@@ -211,6 +211,20 @@
 
       <div id="korean-quiz-grid" class="subject-quiz-grid" aria-label="국어관 퀴즈 카드"></div>
     </section>
+
+    <section id="quiz-select-view" class="quiz-select-view app-view" aria-labelledby="quiz-select-title" hidden>
+      <div class="quiz-select-topbar">
+        <button class="button secondary back-to-korean" type="button" data-back-to-korean>국어관으로 돌아가기</button>
+        <div>
+          <p id="quiz-select-kicker" class="eyebrow">Quiz Select Prototype</p>
+          <h2 id="quiz-select-title">맞춤법 퀴즈</h2>
+          <p id="quiz-select-desc">아직 실제 문제 데이터는 연결하지 않고, 모드 선택 흐름만 확인합니다.</p>
+        </div>
+      </div>
+
+      <div id="quiz-select-summary" class="quiz-select-summary"></div>
+      <div id="quiz-mode-grid" class="quiz-mode-grid" aria-label="퀴즈 모드 선택"></div>
+    </section>
   </main>
 
   <div id="place-modal" class="modal" hidden>
@@ -371,29 +385,70 @@
       {
         icon: '✏️',
         title: '맞춤법',
-        desc: '헷갈리는 낱말과 문장 표기를 고르는 국어 퀴즈 후보입니다.'
+        desc: '헷갈리는 낱말과 문장 표기를 고르는 국어 퀴즈 후보입니다.',
+        quizId: 'spelling',
+        enabled: true
       },
       {
         icon: '📖',
         title: '독서',
-        desc: '읽은 내용을 떠올리고 핵심 장면을 확인하는 카드입니다.'
+        desc: '읽은 내용을 떠올리고 핵심 장면을 확인하는 카드입니다.',
+        quizId: 'reading',
+        enabled: false
       },
       {
         icon: '⏰',
         title: '시간가게',
-        desc: '작품 속 인물과 사건을 바탕으로 문제를 연결할 자리입니다.'
+        desc: '작품 속 인물과 사건을 바탕으로 문제를 연결할 자리입니다.',
+        quizId: 'time-shop',
+        enabled: false
       },
       {
         icon: '💬',
         title: '속담',
-        desc: '생활 속 표현과 뜻을 맞히는 퀴즈로 확장할 수 있습니다.'
+        desc: '생활 속 표현과 뜻을 맞히는 퀴즈로 확장할 수 있습니다.',
+        quizId: 'proverb',
+        enabled: false
       },
       {
         icon: '🐉',
         title: '사자성어',
-        desc: '한자 성어의 뜻과 상황을 연결하는 국어 퀴즈 후보입니다.'
+        desc: '한자 성어의 뜻과 상황을 연결하는 국어 퀴즈 후보입니다.',
+        quizId: 'idiom',
+        enabled: false
       }
     ];
+
+    const QUIZ_SELECT_DETAILS = {
+      spelling: {
+        title: '맞춤법 퀴즈',
+        kicker: 'Korean Hall',
+        desc: '헷갈리는 맞춤법을 연습하는 정적 모드 선택 프로토타입입니다.',
+        summary: '운영본 문제 데이터와 연결하기 전, 연습전/랭킹전/원코 모드 진입 흐름을 먼저 검증합니다.',
+        modes: [
+          {
+            icon: '📝',
+            title: '연습전',
+            desc: '점수 부담 없이 맞춤법 문제를 풀어보는 모드입니다.'
+          },
+          {
+            icon: '🏅',
+            title: '일반 랭킹전',
+            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.'
+          },
+          {
+            icon: '🎯',
+            title: '원코 모드',
+            desc: '한 번 틀리면 종료되는 긴장감 있는 도전 모드 후보입니다.'
+          },
+          {
+            icon: '📊',
+            title: '기록 보기 준비 중',
+            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.'
+          }
+        ]
+      }
+    };
 
     function openPlaceModal(placeId) {
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
@@ -483,7 +538,42 @@
         icon.textContent = card.icon;
         title.textContent = card.title;
         desc.textContent = card.desc;
-        button.className = 'subject-disabled-button';
+        button.className = card.enabled ? 'subject-ready-button' : 'subject-disabled-button';
+        button.type = 'button';
+        button.disabled = !card.enabled;
+        button.textContent = card.enabled ? '입장하기' : '준비 중';
+        if(card.quizId) button.dataset.quizId = card.quizId;
+
+        item.append(icon, title, desc, button);
+        grid.appendChild(item);
+      });
+    }
+
+    function renderQuizSelectView(quizId) {
+      const quiz = QUIZ_SELECT_DETAILS[quizId] || QUIZ_SELECT_DETAILS.spelling;
+      document.getElementById('quiz-select-kicker').textContent = quiz.kicker;
+      document.getElementById('quiz-select-title').textContent = quiz.title;
+      document.getElementById('quiz-select-desc').textContent = quiz.desc;
+      document.getElementById('quiz-select-summary').textContent = quiz.summary;
+      renderQuizModeCards(quiz.modes);
+    }
+
+    function renderQuizModeCards(modes) {
+      const grid = document.getElementById('quiz-mode-grid');
+      grid.innerHTML = '';
+      modes.forEach(mode => {
+        const item = document.createElement('article');
+        const icon = document.createElement('span');
+        const title = document.createElement('h3');
+        const desc = document.createElement('p');
+        const button = document.createElement('button');
+
+        item.className = 'quiz-mode-card';
+        icon.className = 'quiz-mode-icon';
+        icon.textContent = mode.icon;
+        title.textContent = mode.title;
+        desc.textContent = mode.desc;
+        button.className = 'quiz-mode-disabled-button';
         button.type = 'button';
         button.disabled = true;
         button.textContent = '준비 중';
@@ -497,12 +587,14 @@
       closePlaceModal();
       renderSchoolQuizCards();
       document.getElementById('korean-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = false;
       document.getElementById('school-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function showTownView() {
+      document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('korean-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('town-view').hidden = false;
@@ -511,10 +603,20 @@
 
     function showKoreanView() {
       renderKoreanQuizCards();
+      document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('korean-view').hidden = false;
       document.getElementById('korean-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showQuizSelectView(quizId) {
+      renderQuizSelectView(quizId);
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('korean-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = false;
+      document.getElementById('quiz-select-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function updatePlaceInfo(place) {
@@ -550,6 +652,12 @@
     });
 
     document.querySelector('[data-back-to-school]').addEventListener('click', showSchoolView);
+
+    document.getElementById('korean-quiz-grid').addEventListener('click', event => {
+      if(event.target.dataset.quizId) showQuizSelectView(event.target.dataset.quizId);
+    });
+
+    document.querySelector('[data-back-to-korean]').addEventListener('click', showKoreanView);
 
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();
