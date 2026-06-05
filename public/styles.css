@@ -1256,7 +1256,8 @@ h2 {
   margin-top: 18px;
 }
 
-.school-view {
+.school-view,
+.korean-view {
   padding: 22px;
   border: 1px solid rgba(255, 255, 255, 0.82);
   border-radius: 24px;
@@ -1266,7 +1267,14 @@ h2 {
   box-shadow: var(--shadow);
 }
 
-.school-topbar {
+.korean-view {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.6)),
+    linear-gradient(135deg, #fff4da 0%, #e8f8ec 100%);
+}
+
+.school-topbar,
+.subject-topbar {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 18px;
@@ -1274,14 +1282,16 @@ h2 {
   margin-bottom: 16px;
 }
 
-.school-topbar p {
+.school-topbar p,
+.subject-topbar p {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
   word-break: keep-all;
 }
 
-.back-to-town {
+.back-to-town,
+.back-to-school {
   white-space: nowrap;
 }
 
@@ -1392,7 +1402,135 @@ h2 {
   word-break: keep-all;
 }
 
+.school-ready-button,
 .school-disabled-button {
+  align-self: end;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.school-ready-button {
+  border: 0;
+  background: var(--green);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 9px 16px rgba(47, 125, 68, 0.16);
+}
+
+.school-ready-button:hover,
+.school-ready-button:focus-visible {
+  background: var(--green-dark);
+  outline: none;
+}
+
+.school-disabled-button {
+  border: 1px dashed rgba(47, 125, 68, 0.3);
+  background: #fff;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.korean-scene {
+  position: relative;
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid rgba(47, 125, 68, 0.13);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 18% 76%, rgba(255, 207, 58, 0.28), transparent 16%),
+    linear-gradient(180deg, #fff8dc 0 46%, transparent 46%),
+    linear-gradient(180deg, #d8f2c8 0%, #9ed989 100%);
+}
+
+.book-stack,
+.reading-board {
+  position: absolute;
+  display: block;
+}
+
+.reading-board {
+  top: 40px;
+  left: 50%;
+  min-width: 220px;
+  padding: 15px 18px;
+  border: 4px solid #8b6b4f;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--green-dark);
+  font-weight: 900;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 16px rgba(80, 58, 43, 0.12);
+}
+
+.book-stack {
+  bottom: 36px;
+  width: 112px;
+  height: 62px;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #ff7ab6 0 18px, transparent 18px),
+    linear-gradient(180deg, transparent 22px, #6fb0ff 22px 40px, transparent 40px),
+    linear-gradient(180deg, transparent 44px, #ffcf3a 44px 62px);
+  box-shadow: 0 12px 14px rgba(80, 58, 43, 0.12);
+}
+
+.book-a {
+  left: 18%;
+  transform: rotate(-4deg);
+}
+
+.book-b {
+  right: 18%;
+  transform: rotate(5deg);
+}
+
+.subject-quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.subject-quiz-card {
+  display: grid;
+  align-content: start;
+  min-height: 224px;
+  padding: 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.subject-quiz-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  background: #fff8d8;
+  font-size: 1.75rem;
+}
+
+.subject-quiz-card h3 {
+  margin: 14px 0 8px;
+  color: var(--green-dark);
+  font-size: 1.05rem;
+}
+
+.subject-quiz-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.52;
+  word-break: keep-all;
+}
+
+.subject-disabled-button {
   align-self: end;
   min-height: 40px;
   margin-top: 16px;
@@ -1494,19 +1632,23 @@ h2 {
     grid-template-columns: 1fr;
   }
 
-  .school-view {
+  .school-view,
+  .korean-view {
     padding: 14px;
   }
 
-  .school-topbar {
+  .school-topbar,
+  .subject-topbar {
     grid-template-columns: 1fr;
   }
 
-  .back-to-town {
+  .back-to-town,
+  .back-to-school {
     width: fit-content;
   }
 
-  .school-quiz-grid {
+  .school-quiz-grid,
+  .subject-quiz-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1600,11 +1742,13 @@ h2 {
     width: 100%;
   }
 
-  .back-to-town {
+  .back-to-town,
+  .back-to-school {
     width: 100%;
   }
 
-  .school-scene {
+  .school-scene,
+  .korean-scene {
     min-height: 150px;
   }
 
@@ -1629,11 +1773,31 @@ h2 {
     right: 10%;
   }
 
-  .school-quiz-grid {
+  .reading-board {
+    top: 30px;
+    min-width: 170px;
+    max-width: calc(100% - 28px);
+  }
+
+  .book-stack {
+    width: 82px;
+  }
+
+  .book-a {
+    left: 10%;
+  }
+
+  .book-b {
+    right: 10%;
+  }
+
+  .school-quiz-grid,
+  .subject-quiz-grid {
     grid-template-columns: 1fr;
   }
 
-  .school-quiz-card {
+  .school-quiz-card,
+  .subject-quiz-card {
     min-height: 0;
   }
 }
