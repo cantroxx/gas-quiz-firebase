@@ -225,6 +225,19 @@
       <div id="quiz-select-summary" class="quiz-select-summary"></div>
       <div id="quiz-mode-grid" class="quiz-mode-grid" aria-label="퀴즈 모드 선택"></div>
     </section>
+
+    <section id="quiz-play-view" class="quiz-play-view app-view" aria-labelledby="quiz-play-title" hidden>
+      <div class="quiz-play-topbar">
+        <button class="button secondary back-to-quiz-select" type="button" data-back-to-quiz-select>모드 선택으로 돌아가기</button>
+        <div>
+          <p class="eyebrow">Dummy Practice Prototype</p>
+          <h2 id="quiz-play-title">맞춤법 연습전</h2>
+          <p>실제 문제 데이터와 점수 저장 없이, 문제 풀이 흐름만 확인합니다.</p>
+        </div>
+      </div>
+
+      <div id="quiz-play-root" class="quiz-play-root" aria-live="polite"></div>
+    </section>
   </main>
 
   <div id="place-modal" class="modal" hidden>
@@ -394,28 +407,28 @@
         title: '독서',
         desc: '읽은 내용을 떠올리고 핵심 장면을 확인하는 카드입니다.',
         quizId: 'reading',
-        enabled: false
+        enabled: true
       },
       {
         icon: '⏰',
         title: '시간가게',
         desc: '작품 속 인물과 사건을 바탕으로 문제를 연결할 자리입니다.',
-        quizId: 'time-shop',
-        enabled: false
+        quizId: 'time_store',
+        enabled: true
       },
       {
         icon: '💬',
         title: '속담',
         desc: '생활 속 표현과 뜻을 맞히는 퀴즈로 확장할 수 있습니다.',
         quizId: 'proverb',
-        enabled: false
+        enabled: true
       },
       {
         icon: '🐉',
         title: '사자성어',
         desc: '한자 성어의 뜻과 상황을 연결하는 국어 퀴즈 후보입니다.',
         quizId: 'idiom',
-        enabled: false
+        enabled: true
       }
     ];
 
@@ -429,26 +442,273 @@
           {
             icon: '📝',
             title: '연습전',
-            desc: '점수 부담 없이 맞춤법 문제를 풀어보는 모드입니다.'
+            desc: '점수 부담 없이 맞춤법 문제를 풀어보는 모드입니다.',
+            modeId: 'practice',
+            enabled: true
           },
           {
             icon: '🏅',
             title: '일반 랭킹전',
-            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.'
+            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.',
+            modeId: 'ranking',
+            enabled: false
           },
           {
             icon: '🎯',
             title: '원코 모드',
-            desc: '한 번 틀리면 종료되는 긴장감 있는 도전 모드 후보입니다.'
+            desc: '한 번 틀리면 종료되는 긴장감 있는 도전 모드 후보입니다.',
+            modeId: 'one-co',
+            enabled: false
           },
           {
             icon: '📊',
             title: '기록 보기 준비 중',
-            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.'
+            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.',
+            modeId: 'records',
+            enabled: false
+          }
+        ]
+      },
+      reading: {
+        title: '독서 퀴즈',
+        kicker: 'Korean Hall',
+        desc: '작품의 내용과 인물을 떠올리는 정적 모드 선택 프로토타입입니다.',
+        summary: '운영본 독서 문제와 연결하기 전, 같은 퀴즈 엔진으로 모드 진입 흐름을 검증합니다.',
+        modes: [
+          {
+            icon: '📝',
+            title: '연습전',
+            desc: '점수 부담 없이 독서 문제를 풀어보는 모드입니다.',
+            modeId: 'practice',
+            enabled: true
+          },
+          {
+            icon: '🏅',
+            title: '일반 랭킹전',
+            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.',
+            modeId: 'ranking',
+            enabled: false
+          },
+          {
+            icon: '🎯',
+            title: '원코 모드',
+            desc: '한 번 틀리면 종료되는 독서 도전 모드 후보입니다.',
+            modeId: 'one-co',
+            enabled: false
+          },
+          {
+            icon: '📊',
+            title: '기록 보기 준비 중',
+            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.',
+            modeId: 'records',
+            enabled: false
+          }
+        ]
+      },
+      time_store: {
+        title: '시간가게 퀴즈',
+        kicker: 'Korean Hall',
+        desc: '시간가게 작품 내용을 바탕으로 한 정적 모드 선택 프로토타입입니다.',
+        summary: '작품별 퀴즈도 같은 선택 화면과 문제 풀이 엔진을 재사용하는지 확인합니다.',
+        modes: [
+          {
+            icon: '📝',
+            title: '연습전',
+            desc: '작품 속 사건과 인물을 차분히 확인하는 모드입니다.',
+            modeId: 'practice',
+            enabled: true
+          },
+          {
+            icon: '🏅',
+            title: '일반 랭킹전',
+            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.',
+            modeId: 'ranking',
+            enabled: false
+          },
+          {
+            icon: '🎯',
+            title: '원코 모드',
+            desc: '한 번 틀리면 종료되는 작품 도전 모드 후보입니다.',
+            modeId: 'one-co',
+            enabled: false
+          },
+          {
+            icon: '📊',
+            title: '기록 보기 준비 중',
+            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.',
+            modeId: 'records',
+            enabled: false
+          }
+        ]
+      },
+      proverb: {
+        title: '속담 퀴즈',
+        kicker: 'Korean Hall',
+        desc: '속담의 뜻과 쓰임을 맞히는 정적 모드 선택 프로토타입입니다.',
+        summary: '표현형 국어 퀴즈도 같은 퀴즈 엔진으로 동작하도록 구성했습니다.',
+        modes: [
+          {
+            icon: '📝',
+            title: '연습전',
+            desc: '속담의 뜻을 부담 없이 익히는 모드입니다.',
+            modeId: 'practice',
+            enabled: true
+          },
+          {
+            icon: '🏅',
+            title: '일반 랭킹전',
+            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.',
+            modeId: 'ranking',
+            enabled: false
+          },
+          {
+            icon: '🎯',
+            title: '원코 모드',
+            desc: '한 번 틀리면 종료되는 속담 도전 모드 후보입니다.',
+            modeId: 'one-co',
+            enabled: false
+          },
+          {
+            icon: '📊',
+            title: '기록 보기 준비 중',
+            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.',
+            modeId: 'records',
+            enabled: false
+          }
+        ]
+      },
+      idiom: {
+        title: '사자성어 퀴즈',
+        kicker: 'Korean Hall',
+        desc: '사자성어의 뜻과 쓰임을 확인하는 정적 모드 선택 프로토타입입니다.',
+        summary: '사자성어도 동일한 모드 선택과 문제 풀이 화면을 재사용합니다.',
+        modes: [
+          {
+            icon: '📝',
+            title: '연습전',
+            desc: '사자성어 뜻을 차근차근 확인하는 모드입니다.',
+            modeId: 'practice',
+            enabled: true
+          },
+          {
+            icon: '🏅',
+            title: '일반 랭킹전',
+            desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.',
+            modeId: 'ranking',
+            enabled: false
+          },
+          {
+            icon: '🎯',
+            title: '원코 모드',
+            desc: '한 번 틀리면 종료되는 사자성어 도전 모드 후보입니다.',
+            modeId: 'one-co',
+            enabled: false
+          },
+          {
+            icon: '📊',
+            title: '기록 보기 준비 중',
+            desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.',
+            modeId: 'records',
+            enabled: false
           }
         ]
       }
     };
+
+    const QUESTION_BANK = {
+      spelling: [
+        {
+          question: '다음 중 맞는 표현은?',
+          choices: ['되요', '돼요'],
+          answer: 1
+        },
+        {
+          question: '다음 중 맞는 표현은?',
+          choices: ['안되', '안 돼'],
+          answer: 1
+        },
+        {
+          question: '다음 중 맞는 표현은?',
+          choices: ['왠지', '웬지'],
+          answer: 0
+        }
+      ],
+      reading: [
+        {
+          question: '글을 읽을 때 가장 먼저 확인하면 좋은 것은?',
+          choices: ['제목', '페이지 번호'],
+          answer: 0
+        },
+        {
+          question: '인물의 마음을 알 수 있는 단서는?',
+          choices: ['행동과 말', '글자 크기'],
+          answer: 0
+        },
+        {
+          question: '이야기의 사건 순서를 정리할 때 필요한 것은?',
+          choices: ['시간 흐름', '책 표지 색'],
+          answer: 0
+        }
+      ],
+      time_store: [
+        {
+          question: '시간가게처럼 작품 퀴즈에서 중요한 것은?',
+          choices: ['인물과 사건', '책의 두께'],
+          answer: 0
+        },
+        {
+          question: '작품 속 갈등을 이해하려면 무엇을 살펴볼까?',
+          choices: ['인물의 선택', '글꼴 이름'],
+          answer: 0
+        },
+        {
+          question: '장면을 떠올릴 때 도움이 되는 것은?',
+          choices: ['배경과 행동', '쪽수만 외우기'],
+          answer: 0
+        }
+      ],
+      proverb: [
+        {
+          question: '"가는 말이 고와야 오는 말이 곱다"의 뜻은?',
+          choices: ['말을 좋게 해야 한다', '빨리 말해야 한다'],
+          answer: 0
+        },
+        {
+          question: '"티끌 모아 태산"과 가까운 뜻은?',
+          choices: ['작은 것도 모이면 커진다', '산에는 티끌이 없다'],
+          answer: 0
+        },
+        {
+          question: '"소 잃고 외양간 고친다"의 뜻은?',
+          choices: ['일이 지난 뒤 후회한다', '외양간을 잘 꾸민다'],
+          answer: 0
+        }
+      ],
+      idiom: [
+        {
+          question: '"일석이조"의 뜻은?',
+          choices: ['한 가지 일로 두 이익을 얻음', '돌을 두 번 던짐'],
+          answer: 0
+        },
+        {
+          question: '"작심삼일"과 가까운 뜻은?',
+          choices: ['결심이 오래가지 못함', '삼 일 동안만 쉼'],
+          answer: 0
+        },
+        {
+          question: '"고진감래"의 뜻은?',
+          choices: ['고생 끝에 즐거움이 옴', '단맛 뒤에 쓴맛이 옴'],
+          answer: 0
+        }
+      ]
+    };
+
+    let currentQuestionIndex = 0;
+    let selectedChoiceIndex = null;
+    let correctAnswerCount = 0;
+    let lastQuizId = 'spelling';
+    let currentQuizId = 'spelling';
+    let currentModeId = 'practice';
 
     function openPlaceModal(placeId) {
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
@@ -573,14 +833,142 @@
         icon.textContent = mode.icon;
         title.textContent = mode.title;
         desc.textContent = mode.desc;
-        button.className = 'quiz-mode-disabled-button';
+        button.className = mode.enabled ? 'quiz-mode-ready-button' : 'quiz-mode-disabled-button';
         button.type = 'button';
-        button.disabled = true;
-        button.textContent = '준비 중';
+        button.disabled = !mode.enabled;
+        button.textContent = mode.enabled ? '시작하기' : '준비 중';
+        if(mode.modeId) button.dataset.modeId = mode.modeId;
 
         item.append(icon, title, desc, button);
         grid.appendChild(item);
       });
+    }
+
+    function showQuizPlayView(quizId, modeId) {
+      currentQuizId = quizId;
+      currentModeId = modeId;
+      currentQuestionIndex = 0;
+      selectedChoiceIndex = null;
+      correctAnswerCount = 0;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('korean-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = false;
+      renderQuizPlayHeader();
+      renderQuestion();
+      document.getElementById('quiz-play-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getCurrentQuestionSet() {
+      return QUESTION_BANK[currentQuizId] || QUESTION_BANK.spelling;
+    }
+
+    function renderQuizPlayHeader() {
+      const quiz = QUIZ_SELECT_DETAILS[currentQuizId] || QUIZ_SELECT_DETAILS.spelling;
+      const modeLabel = currentModeId === 'practice' ? '연습전' : '준비 중';
+      document.getElementById('quiz-play-title').textContent = `${quiz.title.replace(' 퀴즈', '')} ${modeLabel}`;
+    }
+
+    function renderQuestion() {
+      const questionSet = getCurrentQuestionSet();
+      const question = questionSet[currentQuestionIndex];
+      const root = document.getElementById('quiz-play-root');
+      selectedChoiceIndex = null;
+      root.innerHTML = '';
+
+      const card = document.createElement('article');
+      const progress = document.createElement('p');
+      const title = document.createElement('h3');
+      const choices = document.createElement('div');
+      const submit = document.createElement('button');
+
+      card.className = 'quiz-question-card';
+      progress.className = 'quiz-progress';
+      progress.textContent = `문제 ${currentQuestionIndex + 1} / ${questionSet.length}`;
+      title.textContent = question.question;
+      choices.className = 'quiz-choice-list';
+      submit.className = 'quiz-submit-button';
+      submit.type = 'button';
+      submit.textContent = '정답 제출';
+      submit.disabled = true;
+
+      question.choices.forEach((choice, index) => {
+        const button = document.createElement('button');
+        const choiceMarks = ['①', '②', '③', '④'];
+        button.className = 'quiz-choice';
+        button.type = 'button';
+        button.dataset.choiceIndex = String(index);
+        button.textContent = `${choiceMarks[index] || `${index + 1}.`} ${choice}`;
+        choices.appendChild(button);
+      });
+
+      card.append(progress, title, choices, submit);
+      root.appendChild(card);
+    }
+
+    function submitAnswer() {
+      if(selectedChoiceIndex === null) return;
+      const question = getCurrentQuestionSet()[currentQuestionIndex];
+      const isCorrect = selectedChoiceIndex === question.answer;
+      if(isCorrect) correctAnswerCount += 1;
+      document.querySelectorAll('.quiz-choice').forEach(choice => {
+        choice.disabled = true;
+      });
+      document.querySelector('.quiz-submit-button').disabled = true;
+      showQuizResult(isCorrect);
+    }
+
+    function showQuizResult(isCorrect) {
+      const root = document.getElementById('quiz-play-root');
+      const card = document.createElement('article');
+      const title = document.createElement('h3');
+      const desc = document.createElement('p');
+      const next = document.createElement('button');
+
+      card.className = `quiz-result-card ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+      title.textContent = isCorrect ? '정답입니다!' : '오답입니다!';
+      desc.textContent = isCorrect ? '좋아요. 다음 문제도 이어서 풀어봅니다.' : '괜찮아요. 다음 문제에서 다시 확인해 봅니다.';
+      next.className = 'quiz-submit-button';
+      next.type = 'button';
+      next.textContent = currentQuestionIndex + 1 >= getCurrentQuestionSet().length ? '결과 보기' : '다음 문제';
+      next.dataset.nextQuestion = 'true';
+
+      card.append(title, desc, next);
+      root.appendChild(card);
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex += 1;
+      if(currentQuestionIndex >= getCurrentQuestionSet().length) {
+        showQuizComplete();
+        return;
+      }
+      renderQuestion();
+    }
+
+    function showQuizComplete() {
+      const root = document.getElementById('quiz-play-root');
+      root.innerHTML = '';
+
+      const card = document.createElement('article');
+      const title = document.createElement('h3');
+      const score = document.createElement('p');
+      const note = document.createElement('p');
+      const back = document.createElement('button');
+
+      card.className = 'quiz-complete-card';
+      title.textContent = '연습 완료';
+      score.className = 'quiz-complete-score';
+      score.textContent = `${getCurrentQuestionSet().length}문제 중 ${correctAnswerCount}개`;
+      note.textContent = '아직 실제 점수 저장이나 랭킹 반영은 하지 않는 더미 결과입니다.';
+      back.className = 'button primary';
+      back.type = 'button';
+      back.dataset.backToQuizSelect = 'true';
+      back.textContent = '모드 선택으로 돌아가기';
+
+      card.append(title, score, note, back);
+      root.appendChild(card);
     }
 
     function showSchoolView() {
@@ -588,12 +976,14 @@
       renderSchoolQuizCards();
       document.getElementById('korean-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = false;
       document.getElementById('school-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function showTownView() {
+      document.getElementById('quiz-play-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('korean-view').hidden = true;
       document.getElementById('school-view').hidden = true;
@@ -603,6 +993,7 @@
 
     function showKoreanView() {
       renderKoreanQuizCards();
+      document.getElementById('quiz-play-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = true;
@@ -611,11 +1002,13 @@
     }
 
     function showQuizSelectView(quizId) {
+      lastQuizId = quizId;
       renderQuizSelectView(quizId);
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('korean-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = false;
+      document.getElementById('quiz-play-view').hidden = true;
       document.getElementById('quiz-select-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -658,6 +1051,34 @@
     });
 
     document.querySelector('[data-back-to-korean]').addEventListener('click', showKoreanView);
+
+    document.getElementById('quiz-mode-grid').addEventListener('click', event => {
+      if(event.target.dataset.modeId === 'practice') showQuizPlayView(lastQuizId, 'practice');
+    });
+
+    document.querySelector('[data-back-to-quiz-select]').addEventListener('click', () => showQuizSelectView(lastQuizId));
+
+    document.getElementById('quiz-play-root').addEventListener('click', event => {
+      if(event.target.dataset.choiceIndex !== undefined) {
+        selectedChoiceIndex = Number(event.target.dataset.choiceIndex);
+        document.querySelectorAll('.quiz-choice').forEach(choice => {
+          choice.classList.toggle('quiz-choice-selected', choice === event.target);
+        });
+        document.querySelector('.quiz-submit-button').disabled = false;
+      }
+
+      if(event.target.classList.contains('quiz-submit-button') && !event.target.dataset.nextQuestion) {
+        submitAnswer();
+      }
+
+      if(event.target.dataset.nextQuestion) {
+        nextQuestion();
+      }
+
+      if(event.target.dataset.backToQuizSelect) {
+        showQuizSelectView(lastQuizId);
+      }
+    });
 
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();
