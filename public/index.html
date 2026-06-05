@@ -11,18 +11,8 @@
 </head>
 <body>
   <main class="shell">
-    <section class="hero" aria-labelledby="page-title">
-      <div class="town-scene" aria-hidden="true">
-        <span class="sun"></span>
-        <span class="cloud cloud-a"></span>
-        <span class="cloud cloud-b"></span>
-        <span class="house house-a">🏠</span>
-        <span class="house house-b">🏫</span>
-        <span class="tree tree-a">🌳</span>
-        <span class="tree tree-b">🌲</span>
-      </div>
-
-      <div class="hero-content">
+    <section class="town-hero" aria-labelledby="page-title">
+      <div class="hero-copy">
         <p class="eyebrow">Firebase Hosting Preview</p>
         <h1 id="page-title">DJ48 Firebase 실험실</h1>
         <p class="lead">새 퀴즈타운 디자인과 Firebase 기능을 실험하는 공간입니다.</p>
@@ -34,28 +24,214 @@
       </div>
     </section>
 
-    <section class="feature-grid" aria-label="실험 예정 기능">
-      <article class="feature-card hosting">
-        <span class="feature-icon" aria-hidden="true">🚀</span>
-        <h2>Hosting</h2>
-        <p>GAS 운영본과 분리된 정적 실험 사이트를 먼저 배포합니다.</p>
-      </article>
-      <article class="feature-card storage">
-        <span class="feature-icon" aria-hidden="true">🖼️</span>
-        <h2>Storage 이미지</h2>
-        <p>내 방 배경, 아바타, 장식 이미지를 안전하게 실험합니다.</p>
-      </article>
-      <article class="feature-card catalog">
-        <span class="feature-icon" aria-hidden="true">📦</span>
-        <h2>Firestore assetCatalog</h2>
-        <p>꾸미기 자산 목록을 데이터 기반으로 불러오는 구조를 준비합니다.</p>
-      </article>
-      <article class="feature-card town">
-        <span class="feature-icon" aria-hidden="true">🌈</span>
-        <h2>동물농장 스타일 타운 UI</h2>
-        <p>게임처럼 탐험하는 퀴즈타운 화면을 작게 검증합니다.</p>
-      </article>
+    <section class="town-panel" aria-labelledby="town-title">
+      <div class="town-panel-header">
+        <p class="eyebrow">Static Town Prototype</p>
+        <h2 id="town-title">퀴즈타운 지도</h2>
+        <p>아직 실제 기능은 연결하지 않고, 장소 이동과 화면 느낌만 확인합니다.</p>
+      </div>
+
+      <div class="town-map" aria-label="퀴즈타운 장소 지도">
+        <div class="sky-layer" aria-hidden="true">
+          <span class="sun"></span>
+          <span class="cloud cloud-a"></span>
+          <span class="cloud cloud-b"></span>
+        </div>
+
+        <div class="town-decor" aria-hidden="true">
+          <span class="decor-tree tree-left-top"></span>
+          <span class="decor-tree tree-left-mid"></span>
+          <span class="decor-tree tree-right-top"></span>
+          <span class="decor-tree tree-right-mid"></span>
+          <span class="decor-tree tree-bottom-left"></span>
+          <span class="decor-tree tree-bottom-right"></span>
+
+          <span class="flower-bed flowers-home"></span>
+          <span class="flower-bed flowers-shop"></span>
+          <span class="flower-bed flowers-school"></span>
+
+          <span class="fence fence-left"></span>
+          <span class="fence fence-right"></span>
+
+          <span class="pond small-pond"></span>
+          <span class="sign-board">안내</span>
+
+          <span class="npc npc-guide">
+            <span class="npc-head"></span>
+            <span class="npc-body"></span>
+          </span>
+          <span class="npc npc-student">
+            <span class="npc-head"></span>
+            <span class="npc-body"></span>
+          </span>
+
+          <span class="pebble pebble-a"></span>
+          <span class="pebble pebble-b"></span>
+          <span class="pebble pebble-c"></span>
+          <span class="grass-tuft grass-a"></span>
+          <span class="grass-tuft grass-b"></span>
+          <span class="grass-tuft grass-c"></span>
+        </div>
+
+        <button class="place central-plaza" type="button" data-place="central">
+          <span class="place-art plaza-art" aria-hidden="true">
+            <span class="plaza-tree"></span>
+            <span class="plaza-fountain"></span>
+            <span class="plaza-tree"></span>
+          </span>
+          <span class="place-name">중앙 광장</span>
+          <span class="place-tag">모임</span>
+        </button>
+
+        <button class="place my-home" type="button" data-place="home">
+          <span class="place-art building home-building" aria-hidden="true">
+            <span class="roof"></span>
+            <span class="wall"></span>
+            <span class="door"></span>
+          </span>
+          <span class="place-name">내 집</span>
+          <span class="place-tag">꾸미기</span>
+        </button>
+
+        <button class="place school" type="button" data-place="school">
+          <span class="place-art building school-building" aria-hidden="true">
+            <span class="roof"></span>
+            <span class="wall"></span>
+            <span class="door"></span>
+          </span>
+          <span class="place-name">학교</span>
+          <span class="place-tag">퀴즈</span>
+        </button>
+
+        <button class="place shop" type="button" data-place="shop">
+          <span class="place-art building shop-building" aria-hidden="true">
+            <span class="awning"></span>
+            <span class="wall"></span>
+            <span class="door"></span>
+          </span>
+          <span class="place-name">상점</span>
+          <span class="place-tag">아이템</span>
+        </button>
+
+        <button class="place ranking" type="button" data-place="ranking">
+          <span class="place-art building ranking-building" aria-hidden="true">
+            <span class="roof"></span>
+            <span class="wall"></span>
+            <span class="trophy-mark">1</span>
+          </span>
+          <span class="place-name">랭킹 광장</span>
+          <span class="place-tag">순위</span>
+        </button>
+
+        <button class="place event" type="button" data-place="event">
+          <span class="place-art tent-building" aria-hidden="true">
+            <span class="tent-top"></span>
+            <span class="tent-base"></span>
+            <span class="flag"></span>
+          </span>
+          <span class="place-name">이벤트 광장</span>
+          <span class="place-tag">축제</span>
+        </button>
+
+        <div class="road road-main" aria-hidden="true"></div>
+        <div class="road road-cross" aria-hidden="true"></div>
+      </div>
+
+      <nav class="map-buttons" aria-label="지도 이동 버튼">
+        <button type="button" data-place="central">중앙 광장</button>
+        <button type="button" data-place="home">내 집</button>
+        <button type="button" data-place="school">학교</button>
+        <button type="button" data-place="shop">상점</button>
+        <button type="button" data-place="ranking">랭킹 광장</button>
+        <button type="button" data-place="event">이벤트 광장</button>
+      </nav>
+
+      <aside class="place-info" aria-live="polite">
+        <span id="place-info-icon" class="place-info-icon" aria-hidden="true">🌳</span>
+        <div>
+          <h3 id="place-info-title">중앙 광장</h3>
+          <p id="place-info-desc">친구 소식, 공지, 오늘의 추천 활동을 보여줄 중심 공간입니다.</p>
+        </div>
+      </aside>
     </section>
   </main>
+
+  <div id="place-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="닫기">×</button>
+      <div id="modal-icon" class="modal-icon" aria-hidden="true">🌳</div>
+      <h2 id="modal-title">중앙 광장</h2>
+      <p id="modal-desc">퀴즈타운의 중심 공간입니다.</p>
+      <p id="modal-status" class="modal-status">아직 Firebase 기능은 연결하지 않은 정적 프로토타입입니다.</p>
+      <button class="button primary modal-action" type="button" data-close-modal>확인</button>
+    </section>
+  </div>
+
+  <script>
+    const PLACE_DETAILS = {
+      central: {
+        icon: '🌳',
+        title: '중앙 광장',
+        desc: '친구 소식, 공지, 오늘의 추천 활동을 보여줄 중심 공간입니다.'
+      },
+      home: {
+        icon: '🏠',
+        title: '내 집',
+        desc: 'Storage 이미지와 assetCatalog를 이용해 방 꾸미기를 실험할 후보 공간입니다.'
+      },
+      school: {
+        icon: '🏫',
+        title: '학교',
+        desc: '나중에 퀴즈 카테고리와 문제 선택 화면을 연결할 예정입니다.'
+      },
+      shop: {
+        icon: '🛍️',
+        title: '상점',
+        desc: '아바타, 배경, 장식 아이템을 구경하는 화면으로 확장할 수 있습니다.'
+      },
+      ranking: {
+        icon: '🏆',
+        title: '랭킹 광장',
+        desc: '현재는 더미 화면이며, 실제 랭킹은 아직 GAS 운영본을 사용합니다.'
+      },
+      event: {
+        icon: '🎪',
+        title: '이벤트 광장',
+        desc: '기간 한정 퀴즈나 수업 이벤트를 보여줄 실험 구역입니다.'
+      }
+    };
+
+    function openPlaceModal(placeId) {
+      const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
+      updatePlaceInfo(place);
+      document.getElementById('modal-icon').textContent = place.icon;
+      document.getElementById('modal-title').textContent = place.title;
+      document.getElementById('modal-desc').textContent = place.desc;
+      document.getElementById('place-modal').hidden = false;
+    }
+
+    function updatePlaceInfo(place) {
+      document.getElementById('place-info-icon').textContent = place.icon;
+      document.getElementById('place-info-title').textContent = place.title;
+      document.getElementById('place-info-desc').textContent = place.desc;
+    }
+
+    function closePlaceModal() {
+      document.getElementById('place-modal').hidden = true;
+    }
+
+    document.querySelectorAll('[data-place]').forEach(button => {
+      button.addEventListener('click', () => openPlaceModal(button.dataset.place));
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach(button => {
+      button.addEventListener('click', closePlaceModal);
+    });
+
+    document.addEventListener('keydown', event => {
+      if(event.key === 'Escape') closePlaceModal();
+    });
+  </script>
 </body>
 </html>
