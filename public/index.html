@@ -178,11 +178,19 @@
     <div class="modal-backdrop" data-close-modal></div>
     <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <button class="modal-close" type="button" data-close-modal aria-label="닫기">×</button>
-      <div id="modal-icon" class="modal-icon" aria-hidden="true">🌳</div>
-      <h2 id="modal-title">중앙 광장</h2>
-      <p id="modal-desc">퀴즈타운의 중심 공간입니다.</p>
-      <p id="modal-status" class="modal-status">아직 Firebase 기능은 연결하지 않은 정적 프로토타입입니다.</p>
-      <button class="button primary modal-action" type="button" data-close-modal>확인</button>
+      <div class="place-panel-header">
+        <div id="modal-icon" class="modal-icon" aria-hidden="true">🌳</div>
+        <div>
+          <p id="modal-kicker" class="modal-kicker">Town Guide</p>
+          <h2 id="modal-title">중앙 광장</h2>
+          <p id="modal-desc">퀴즈타운의 중심 공간입니다.</p>
+        </div>
+      </div>
+      <div id="modal-summary" class="modal-summary"></div>
+      <div id="modal-features" class="modal-features" aria-label="장소별 상세 항목"></div>
+      <div id="modal-actions" class="modal-actions" aria-label="준비 중인 기능"></div>
+      <p id="modal-status" class="modal-status">아직 실제 기능은 연결하지 않은 정적 프로토타입입니다.</p>
+      <button class="button primary modal-action" type="button" data-close-modal>닫기</button>
     </section>
   </div>
 
@@ -191,32 +199,80 @@
       central: {
         icon: '🌳',
         title: '중앙 광장',
-        desc: '친구 소식, 공지, 오늘의 추천 활동을 보여줄 중심 공간입니다.'
+        kicker: 'Town Guide',
+        desc: '친구 소식, 공지, 오늘의 추천 활동을 보여줄 중심 공간입니다.',
+        summary: '퀴즈타운에 처음 들어오면 들르는 안내 장소입니다.',
+        features: [
+          { label: '오늘의 알림', value: '대규모 타운 UI 실험 중' },
+          { label: '추천 이동 장소', value: '학교와 내 집을 먼저 둘러보세요' },
+          { label: '타운 안내', value: '각 건물을 눌러 장소별 화면을 확인합니다' }
+        ],
+        actions: ['공지 보기 준비 중', '추천 장소 이동 준비 중']
       },
       home: {
         icon: '🏠',
         title: '내 집',
-        desc: 'Storage 이미지와 assetCatalog를 이용해 방 꾸미기를 실험할 후보 공간입니다.'
+        kicker: 'My Room',
+        desc: 'Storage 이미지와 assetCatalog를 이용해 방 꾸미기를 실험할 후보 공간입니다.',
+        summary: '나중에 프로필과 내 방 꾸미기를 연결할 개인 공간입니다.',
+        features: [
+          { label: '닉네임', value: 'DJ48 학생' },
+          { label: '칭호', value: '새싹 퀴즈러' },
+          { label: '뱃지', value: '샘플 뱃지 3개' }
+        ],
+        actions: ['방 꾸미기 준비 중', '프로필 편집 준비 중']
       },
       school: {
         icon: '🏫',
         title: '학교',
-        desc: '나중에 퀴즈 카테고리와 문제 선택 화면을 연결할 예정입니다.'
+        kicker: 'Quiz School',
+        desc: '나중에 퀴즈 카테고리와 문제 선택 화면을 연결할 예정입니다.',
+        summary: '퀴즈 카테고리를 고르고 연습전/랭킹전으로 들어갈 핵심 장소입니다.',
+        features: [
+          { label: '오늘의 추천 퀴즈', value: '역사 인물 10문제' },
+          { label: '국어', value: '맞춤법, 다의어, 독서 퀴즈' },
+          { label: '사회/수학', value: '역사 인물, 곱셈나눗셈' }
+        ],
+        actions: ['입장하기 준비 중', '카테고리 선택 준비 중']
       },
       shop: {
         icon: '🛍️',
         title: '상점',
-        desc: '아바타, 배경, 장식 아이템을 구경하는 화면으로 확장할 수 있습니다.'
+        kicker: 'Town Shop',
+        desc: '아바타, 배경, 장식 아이템을 구경하는 화면으로 확장할 수 있습니다.',
+        summary: '타운과 내 방을 꾸미는 아이템 카탈로그를 실험할 장소입니다.',
+        features: [
+          { label: '배경', value: '방 배경 이미지 준비 중' },
+          { label: '아바타', value: '캐릭터 옷과 표정 준비 중' },
+          { label: '장식 아이템', value: '나무, 꽃, 소품 준비 중' }
+        ],
+        actions: ['아이템 보기 준비 중', '상점 입장 준비 중']
       },
       ranking: {
         icon: '🏆',
         title: '랭킹 광장',
-        desc: '현재는 더미 화면이며, 실제 랭킹은 아직 GAS 운영본을 사용합니다.'
+        kicker: 'Ranking Plaza',
+        desc: '현재는 더미 화면이며, 실제 랭킹은 아직 GAS 운영본을 사용합니다.',
+        summary: '랭킹은 학생 기록과 연결되므로 나중에 가장 조심해서 옮길 영역입니다.',
+        features: [
+          { label: '퀴즈왕', value: '이번 주 샘플 1위 표시 예정' },
+          { label: '카테고리 랭킹', value: '국어/사회/수학 분리 예정' },
+          { label: '내 기록', value: '개인 최고점 보기 준비 중' }
+        ],
+        actions: ['랭킹 보기 준비 중', '내 기록 보기 준비 중']
       },
       event: {
         icon: '🎪',
         title: '이벤트 광장',
-        desc: '기간 한정 퀴즈나 수업 이벤트를 보여줄 실험 구역입니다.'
+        kicker: 'Event Plaza',
+        desc: '기간 한정 퀴즈나 수업 이벤트를 보여줄 실험 구역입니다.',
+        summary: '출석, 축제, 기간 한정 퀴즈를 보여주는 실험 구역입니다.',
+        features: [
+          { label: '출석', value: '오늘의 출석 보상 준비 중' },
+          { label: '축제', value: '학급 이벤트 배너 준비 중' },
+          { label: '기간 한정 퀴즈', value: '특별 문제 세트 준비 중' }
+        ],
+        actions: ['출석하기 준비 중', '이벤트 보기 준비 중']
       }
     };
 
@@ -224,10 +280,46 @@
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
       updatePlaceInfo(place);
       updatePlayerLocation(place);
+      renderPlacePanel(place);
+      document.getElementById('place-modal').hidden = false;
+    }
+
+    function renderPlacePanel(place) {
       document.getElementById('modal-icon').textContent = place.icon;
+      document.getElementById('modal-kicker').textContent = place.kicker;
       document.getElementById('modal-title').textContent = place.title;
       document.getElementById('modal-desc').textContent = place.desc;
-      document.getElementById('place-modal').hidden = false;
+      document.getElementById('modal-summary').textContent = place.summary;
+      renderPanelFeatures(place.features);
+      renderPanelActions(place.actions);
+    }
+
+    function renderPanelFeatures(features) {
+      const featureRoot = document.getElementById('modal-features');
+      featureRoot.innerHTML = '';
+      features.forEach(feature => {
+        const item = document.createElement('article');
+        const label = document.createElement('span');
+        const value = document.createElement('strong');
+        item.className = 'modal-feature';
+        label.textContent = feature.label;
+        value.textContent = feature.value;
+        item.append(label, value);
+        featureRoot.appendChild(item);
+      });
+    }
+
+    function renderPanelActions(actions) {
+      const actionRoot = document.getElementById('modal-actions');
+      actionRoot.innerHTML = '';
+      actions.forEach(action => {
+        const button = document.createElement('button');
+        button.className = 'modal-disabled-action';
+        button.type = 'button';
+        button.disabled = true;
+        button.textContent = action;
+        actionRoot.appendChild(button);
+      });
     }
 
     function updatePlaceInfo(place) {
