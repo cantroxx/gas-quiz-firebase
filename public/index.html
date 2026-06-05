@@ -24,7 +24,7 @@
       </div>
     </section>
 
-    <section class="town-panel" aria-labelledby="town-title">
+    <section id="town-view" class="town-panel app-view" aria-labelledby="town-title">
       <div class="town-panel-header">
         <p class="eyebrow">Static Town Prototype</p>
         <h2 id="town-title">퀴즈타운 지도</h2>
@@ -172,6 +172,26 @@
         </div>
       </aside>
     </section>
+
+    <section id="school-view" class="school-view app-view" aria-labelledby="school-title" hidden>
+      <div class="school-topbar">
+        <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
+        <div>
+          <p class="eyebrow">Quiz School Prototype</p>
+          <h2 id="school-title">학교</h2>
+          <p>아직 실제 문제 데이터는 연결하지 않고, 퀴즈 선택 화면 흐름만 확인합니다.</p>
+        </div>
+      </div>
+
+      <div class="school-scene" aria-hidden="true">
+        <span class="school-board">오늘의 수업</span>
+        <span class="school-desk desk-a"></span>
+        <span class="school-desk desk-b"></span>
+        <span class="school-window"></span>
+      </div>
+
+      <div id="school-quiz-grid" class="school-quiz-grid" aria-label="학교 퀴즈 카드"></div>
+    </section>
   </main>
 
   <div id="place-modal" class="modal" hidden>
@@ -207,7 +227,10 @@
           { label: '추천 이동 장소', value: '학교와 내 집을 먼저 둘러보세요' },
           { label: '타운 안내', value: '각 건물을 눌러 장소별 화면을 확인합니다' }
         ],
-        actions: ['공지 보기 준비 중', '추천 장소 이동 준비 중']
+        actions: [
+          { label: '공지 보기 준비 중', enabled: false },
+          { label: '추천 장소 이동 준비 중', enabled: false }
+        ]
       },
       home: {
         icon: '🏠',
@@ -220,7 +243,10 @@
           { label: '칭호', value: '새싹 퀴즈러' },
           { label: '뱃지', value: '샘플 뱃지 3개' }
         ],
-        actions: ['방 꾸미기 준비 중', '프로필 편집 준비 중']
+        actions: [
+          { label: '방 꾸미기 준비 중', enabled: false },
+          { label: '프로필 편집 준비 중', enabled: false }
+        ]
       },
       school: {
         icon: '🏫',
@@ -233,7 +259,10 @@
           { label: '국어', value: '맞춤법, 다의어, 독서 퀴즈' },
           { label: '사회/수학', value: '역사 인물, 곱셈나눗셈' }
         ],
-        actions: ['입장하기 준비 중', '카테고리 선택 준비 중']
+        actions: [
+          { label: '학교 입장하기', enabled: true, action: 'openSchool' },
+          { label: '카테고리 선택 준비 중', enabled: false }
+        ]
       },
       shop: {
         icon: '🛍️',
@@ -246,7 +275,10 @@
           { label: '아바타', value: '캐릭터 옷과 표정 준비 중' },
           { label: '장식 아이템', value: '나무, 꽃, 소품 준비 중' }
         ],
-        actions: ['아이템 보기 준비 중', '상점 입장 준비 중']
+        actions: [
+          { label: '아이템 보기 준비 중', enabled: false },
+          { label: '상점 입장 준비 중', enabled: false }
+        ]
       },
       ranking: {
         icon: '🏆',
@@ -259,7 +291,10 @@
           { label: '카테고리 랭킹', value: '국어/사회/수학 분리 예정' },
           { label: '내 기록', value: '개인 최고점 보기 준비 중' }
         ],
-        actions: ['랭킹 보기 준비 중', '내 기록 보기 준비 중']
+        actions: [
+          { label: '랭킹 보기 준비 중', enabled: false },
+          { label: '내 기록 보기 준비 중', enabled: false }
+        ]
       },
       event: {
         icon: '🎪',
@@ -272,9 +307,40 @@
           { label: '축제', value: '학급 이벤트 배너 준비 중' },
           { label: '기간 한정 퀴즈', value: '특별 문제 세트 준비 중' }
         ],
-        actions: ['출석하기 준비 중', '이벤트 보기 준비 중']
+        actions: [
+          { label: '출석하기 준비 중', enabled: false },
+          { label: '이벤트 보기 준비 중', enabled: false }
+        ]
       }
     };
+
+    const SCHOOL_QUIZ_CARDS = [
+      {
+        icon: '📚',
+        title: '국어 퀴즈',
+        desc: '맞춤법, 다의어, 독서 문제를 고르는 화면으로 확장할 카드입니다.'
+      },
+      {
+        icon: '🏛️',
+        title: '사회 퀴즈',
+        desc: '역사 인물과 사회 개념 퀴즈를 연결할 후보 영역입니다.'
+      },
+      {
+        icon: '➗',
+        title: '수학 퀴즈',
+        desc: '곱셈, 나눗셈, 계산 연습 화면으로 이어질 자리입니다.'
+      },
+      {
+        icon: '⭐',
+        title: '인기 퀴즈',
+        desc: '학생들이 자주 찾는 재미 퀴즈를 모아 보여줄 예정입니다.'
+      },
+      {
+        icon: '🏆',
+        title: '랭킹전 준비 중',
+        desc: '기록 저장과 보안 규칙이 준비된 뒤 연결할 경쟁 모드입니다.'
+      }
+    ];
 
     function openPlaceModal(placeId) {
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
@@ -314,12 +380,52 @@
       actionRoot.innerHTML = '';
       actions.forEach(action => {
         const button = document.createElement('button');
-        button.className = 'modal-disabled-action';
+        button.className = action.enabled ? 'modal-ready-action' : 'modal-disabled-action';
         button.type = 'button';
-        button.disabled = true;
-        button.textContent = action;
+        button.disabled = !action.enabled;
+        button.textContent = action.label;
+        if(action.action) button.dataset.panelAction = action.action;
         actionRoot.appendChild(button);
       });
+    }
+
+    function renderSchoolQuizCards() {
+      const grid = document.getElementById('school-quiz-grid');
+      grid.innerHTML = '';
+      SCHOOL_QUIZ_CARDS.forEach(card => {
+        const item = document.createElement('article');
+        const icon = document.createElement('span');
+        const title = document.createElement('h3');
+        const desc = document.createElement('p');
+        const button = document.createElement('button');
+
+        item.className = 'school-quiz-card';
+        icon.className = 'school-quiz-icon';
+        icon.textContent = card.icon;
+        title.textContent = card.title;
+        desc.textContent = card.desc;
+        button.className = 'school-disabled-button';
+        button.type = 'button';
+        button.disabled = true;
+        button.textContent = '준비 중';
+
+        item.append(icon, title, desc, button);
+        grid.appendChild(item);
+      });
+    }
+
+    function showSchoolView() {
+      closePlaceModal();
+      renderSchoolQuizCards();
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('school-view').hidden = false;
+      document.getElementById('school-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showTownView() {
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = false;
+      document.getElementById('town-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function updatePlaceInfo(place) {
@@ -343,6 +449,12 @@
     document.querySelectorAll('[data-close-modal]').forEach(button => {
       button.addEventListener('click', closePlaceModal);
     });
+
+    document.getElementById('modal-actions').addEventListener('click', event => {
+      if(event.target.dataset.panelAction === 'openSchool') showSchoolView();
+    });
+
+    document.querySelector('[data-back-to-town]').addEventListener('click', showTownView);
 
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();

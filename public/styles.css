@@ -1225,6 +1225,24 @@ h2 {
   cursor: not-allowed;
 }
 
+.modal-ready-action {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 9px 16px rgba(47, 125, 68, 0.18);
+}
+
+.modal-ready-action:hover,
+.modal-ready-action:focus-visible {
+  background: var(--green-dark);
+  outline: none;
+}
+
 .modal-status {
   padding: 12px;
   border-radius: 14px;
@@ -1236,6 +1254,155 @@ h2 {
 .modal-action {
   width: 100%;
   margin-top: 18px;
+}
+
+.school-view {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.58)),
+    linear-gradient(135deg, #e8f8ec 0%, #fff6d7 100%);
+  box-shadow: var(--shadow);
+}
+
+.school-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.school-topbar p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.back-to-town {
+  white-space: nowrap;
+}
+
+.school-scene {
+  position: relative;
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid rgba(47, 125, 68, 0.13);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, #dff5ff 0 42%, transparent 42%),
+    linear-gradient(180deg, #fff2c9 0%, #e7c987 100%);
+}
+
+.school-board,
+.school-desk,
+.school-window {
+  position: absolute;
+  display: block;
+}
+
+.school-board {
+  top: 34px;
+  left: 50%;
+  min-width: 160px;
+  padding: 14px 18px;
+  border: 5px solid #8b6b4f;
+  border-radius: 12px;
+  background: #3f8f57;
+  color: #fff;
+  font-weight: 900;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 16px rgba(47, 83, 52, 0.16);
+}
+
+.school-desk {
+  bottom: 30px;
+  width: 120px;
+  height: 42px;
+  border-radius: 12px 12px 8px 8px;
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgba(80, 58, 43, 0.18) 18% 22%, transparent 22% 78%, rgba(80, 58, 43, 0.18) 78% 82%, transparent 82%),
+    #d19a55;
+  box-shadow: 0 12px 14px rgba(80, 58, 43, 0.14);
+}
+
+.desk-a {
+  left: 18%;
+}
+
+.desk-b {
+  right: 18%;
+}
+
+.school-window {
+  top: 28px;
+  right: 8%;
+  width: 74px;
+  height: 58px;
+  border: 5px solid #fff;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, transparent 0 45%, #fff 45% 55%, transparent 55%),
+    linear-gradient(180deg, transparent 0 45%, #fff 45% 55%, transparent 55%),
+    #9ad4ff;
+}
+
+.school-quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.school-quiz-card {
+  display: grid;
+  align-content: start;
+  min-height: 230px;
+  padding: 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.school-quiz-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  background: var(--mint);
+  font-size: 1.75rem;
+}
+
+.school-quiz-card h3 {
+  margin: 14px 0 8px;
+  color: var(--green-dark);
+  font-size: 1.05rem;
+}
+
+.school-quiz-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.52;
+  word-break: keep-all;
+}
+
+.school-disabled-button {
+  align-self: end;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(47, 125, 68, 0.3);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 900;
+  cursor: not-allowed;
 }
 
 .error-shell {
@@ -1326,6 +1493,22 @@ h2 {
   .modal-features {
     grid-template-columns: 1fr;
   }
+
+  .school-view {
+    padding: 14px;
+  }
+
+  .school-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .back-to-town {
+    width: fit-content;
+  }
+
+  .school-quiz-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
@@ -1415,5 +1598,42 @@ h2 {
 
   .modal-disabled-action {
     width: 100%;
+  }
+
+  .back-to-town {
+    width: 100%;
+  }
+
+  .school-scene {
+    min-height: 150px;
+  }
+
+  .school-board {
+    top: 26px;
+    min-width: 130px;
+  }
+
+  .school-window {
+    display: none;
+  }
+
+  .school-desk {
+    width: 92px;
+  }
+
+  .desk-a {
+    left: 10%;
+  }
+
+  .desk-b {
+    right: 10%;
+  }
+
+  .school-quiz-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .school-quiz-card {
+    min-height: 0;
   }
 }
