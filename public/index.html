@@ -73,6 +73,16 @@
           <span class="grass-tuft grass-c"></span>
         </div>
 
+        <div class="player-marker" aria-label="플레이어 캐릭터">
+          <span class="player-avatar" aria-hidden="true">
+            <span class="player-head"></span>
+            <span class="player-hair"></span>
+            <span class="player-body"></span>
+            <span class="player-bag"></span>
+          </span>
+          <span class="player-name">DJ48 학생</span>
+        </div>
+
         <button class="place central-plaza" type="button" data-place="central">
           <span class="place-art plaza-art" aria-hidden="true">
             <span class="plaza-tree"></span>
@@ -146,6 +156,14 @@
         <button type="button" data-place="event">이벤트 광장</button>
       </nav>
 
+      <aside class="player-status" aria-live="polite">
+        <span class="player-status-avatar" aria-hidden="true">🙂</span>
+        <div>
+          <p class="player-status-name">DJ48 학생</p>
+          <p class="player-status-location">현재 위치: <strong id="current-location">중앙 광장</strong></p>
+        </div>
+      </aside>
+
       <aside class="place-info" aria-live="polite">
         <span id="place-info-icon" class="place-info-icon" aria-hidden="true">🌳</span>
         <div>
@@ -205,6 +223,7 @@
     function openPlaceModal(placeId) {
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
       updatePlaceInfo(place);
+      updatePlayerLocation(place);
       document.getElementById('modal-icon').textContent = place.icon;
       document.getElementById('modal-title').textContent = place.title;
       document.getElementById('modal-desc').textContent = place.desc;
@@ -215,6 +234,10 @@
       document.getElementById('place-info-icon').textContent = place.icon;
       document.getElementById('place-info-title').textContent = place.title;
       document.getElementById('place-info-desc').textContent = place.desc;
+    }
+
+    function updatePlayerLocation(place) {
+      document.getElementById('current-location').textContent = place.title;
     }
 
     function closePlaceModal() {
