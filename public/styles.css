@@ -1258,6 +1258,7 @@ h2 {
 
 .home-view,
 .ranking-view,
+.shop-view,
 .school-view,
 .subject-view,
 .quiz-select-view,
@@ -1283,6 +1284,12 @@ h2 {
     linear-gradient(135deg, #fff8d8 0%, #e6f3ff 100%);
 }
 
+.shop-view {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.6)),
+    linear-gradient(135deg, #fff2e3 0%, #e9f7ff 100%);
+}
+
 .subject-view {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.6)),
@@ -1303,6 +1310,7 @@ h2 {
 
 .home-topbar,
 .ranking-topbar,
+.shop-topbar,
 .school-topbar,
 .subject-topbar,
 .quiz-select-topbar,
@@ -1316,6 +1324,7 @@ h2 {
 
 .home-topbar p,
 .ranking-topbar p,
+.shop-topbar p,
 .school-topbar p,
 .subject-topbar p,
 .quiz-select-topbar p,
@@ -1514,6 +1523,105 @@ h2 {
   font-weight: 900;
   line-height: 1.45;
   word-break: keep-all;
+}
+
+.shop-category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.shop-category-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--green-dark);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.shop-item-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.shop-item-card {
+  display: grid;
+  align-content: start;
+  min-height: 268px;
+  padding: 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.shop-item-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 17px;
+  background: #fff8d8;
+  font-size: 1.8rem;
+}
+
+.shop-item-category {
+  width: fit-content;
+  margin: 14px 0 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.shop-item-card h3 {
+  margin: 10px 0 8px;
+  color: var(--green-dark);
+  font-size: 1.06rem;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.shop-item-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.52;
+  word-break: keep-all;
+}
+
+.shop-item-price {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 14px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #fff2c9;
+  color: #7b5a17;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.shop-disabled-button {
+  align-self: end;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(47, 125, 68, 0.3);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-weight: 900;
+  cursor: not-allowed;
 }
 
 .school-scene {
@@ -2120,6 +2228,7 @@ h2 {
 
   .home-view,
   .ranking-view,
+  .shop-view,
   .school-view,
   .subject-view,
   .quiz-select-view,
@@ -2129,6 +2238,7 @@ h2 {
 
   .home-topbar,
   .ranking-topbar,
+  .shop-topbar,
   .school-topbar,
   .subject-topbar,
   .quiz-select-topbar,
@@ -2146,6 +2256,7 @@ h2 {
   .school-quiz-grid,
   .subject-quiz-grid,
   .ranking-card-grid,
+  .shop-item-grid,
   .quiz-mode-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2259,7 +2370,8 @@ h2 {
 
   .profile-meta,
   .collection-grid,
-  .ranking-card-grid {
+  .ranking-card-grid,
+  .shop-item-grid {
     grid-template-columns: 1fr;
   }
 
