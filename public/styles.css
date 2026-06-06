@@ -1572,6 +1572,12 @@ h2 {
   font-size: 1.08rem;
 }
 
+.shop-wallet-daily {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--mint);
+}
+
 .shop-wallet span {
   color: var(--muted);
   font-size: 0.9rem;
@@ -2319,7 +2325,7 @@ h2 {
 
 .quiz-reward-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-top: 16px;
 }
@@ -2473,6 +2479,7 @@ h2 {
   .quest-card-grid,
   .class-mission-grid,
   .season-event-grid,
+  .quiz-reward-grid,
   .quiz-mode-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

@@ -460,15 +460,44 @@
       }
     };
 
+    const ECONOMY_CONSTANTS = {
+      dailyCoinLimit: 100,
+      practiceCompleteCoin: 5,
+      practiceCorrectCoin: 1,
+      rankingParticipationCoin: 10,
+      rankingDailyRewardLimit: 3,
+      oneChanceSuccessCoin: 15,
+      questRewardTable: {
+        easy: 10,
+        normal: 20,
+        hard: 30,
+        weeklyPersonal: 50,
+        classMissionMin: 50,
+        classMissionMax: 100
+      },
+      shopPriceTable: {
+        smallDecoration: 50,
+        normalDecoration: 100,
+        background: 150,
+        avatar: 200,
+        titleFrame: 250,
+        rareSeasonItemMin: 500
+      }
+    };
+
     const USER_REWARD_DATA = {
       coin: 120,
       exp: 340,
+      dailyCoinLimit: ECONOMY_CONSTANTS.dailyCoinLimit,
+      dailyEarnedCoin: 37,
       completeReward: {
         exp: 10,
-        coin: 5,
+        coin: ECONOMY_CONSTANTS.practiceCompleteCoin,
+        correctCoin: ECONOMY_CONSTANTS.practiceCorrectCoin,
         bonusLabel: '연습 완료 보너스'
       },
-      note: '프로토타입 표시용 정적 보상 데이터입니다.'
+      limitGuide: '오늘 받을 수 있는 기본 보상을 모두 받았어요',
+      note: 'DJ코인 정책을 보여주는 프로토타입 표시용 정적 보상 데이터입니다.'
     };
 
     const PROFILE_DATA = {
@@ -533,7 +562,7 @@
         category: '배경',
         name: '숲속 배경',
         desc: '내 집 화면을 초록 숲 분위기로 꾸밀 수 있는 더미 배경입니다.',
-        price: 100,
+        price: ECONOMY_CONSTANTS.shopPriceTable.background,
         icon: '🌲'
       },
       {
@@ -541,7 +570,7 @@
         category: '배경',
         name: '별빛 배경',
         desc: '밤하늘 별빛 느낌을 더하는 배경 아이템 후보입니다.',
-        price: 120,
+        price: ECONOMY_CONSTANTS.shopPriceTable.background,
         icon: '🌟'
       },
       {
@@ -549,7 +578,7 @@
         category: '아바타',
         name: '고양이 아바타',
         desc: '프로필에 귀여운 고양이 캐릭터를 표시할 수 있는 더미 아바타입니다.',
-        price: 150,
+        price: ECONOMY_CONSTANTS.shopPriceTable.avatar,
         icon: '🐱'
       },
       {
@@ -557,7 +586,7 @@
         category: '아바타',
         name: '탐험가 아바타',
         desc: '퀴즈타운을 탐험하는 느낌의 캐릭터 아바타 후보입니다.',
-        price: 160,
+        price: ECONOMY_CONSTANTS.shopPriceTable.avatar,
         icon: '🧭'
       },
       {
@@ -565,7 +594,7 @@
         category: '방 장식',
         name: '책장',
         desc: '내 집에 독서 분위기를 더하는 방 장식 아이템입니다.',
-        price: 90,
+        price: ECONOMY_CONSTANTS.shopPriceTable.normalDecoration,
         icon: '📚'
       },
       {
@@ -573,7 +602,7 @@
         category: '방 장식',
         name: '화분',
         desc: '방 한쪽에 싱그러운 느낌을 주는 작은 장식 후보입니다.',
-        price: 80,
+        price: ECONOMY_CONSTANTS.shopPriceTable.smallDecoration,
         icon: '🪴'
       },
       {
@@ -581,7 +610,7 @@
         category: '칭호 프레임',
         name: '금빛 칭호 프레임',
         desc: '대표 칭호를 더 돋보이게 보여주는 프레임 아이템 후보입니다.',
-        price: 200,
+        price: ECONOMY_CONSTANTS.shopPriceTable.titleFrame,
         icon: '🟨'
       }
     ];
@@ -592,7 +621,7 @@
         icon: '✏️',
         title: '맞춤법 연습전 1회 완료',
         progress: '0/1',
-        reward: '코인 +10, 경험치 +20',
+        reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.easy}`,
         status: '진행 중'
       },
       {
@@ -600,7 +629,7 @@
         icon: '🏛️',
         title: '사회 퀴즈 3문제 풀기',
         progress: '2/3',
-        reward: '코인 +10, 경험치 +20',
+        reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.normal}`,
         status: '완료 가능'
       },
       {
@@ -608,7 +637,7 @@
         icon: '➗',
         title: '수학 연습전 도전하기',
         progress: '0/1',
-        reward: '코인 +10, 경험치 +20',
+        reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.hard}`,
         status: '준비 중'
       }
     ];
@@ -620,15 +649,15 @@
         title: '우리 반 누적 퀴즈 100회 도전',
         current: 64,
         target: 100,
-        reward: '학급 코인 보너스 예고'
+        reward: `학급 공동 보상 ${ECONOMY_CONSTANTS.questRewardTable.classMissionMin} DJ코인 예고`
       },
       {
         missionId: 'class_coin_2000',
         icon: '🪙',
-        title: '학급 누적 코인 2000개 모으기',
+        title: '학급 누적 DJ코인 2000개 모으기',
         current: 1280,
         target: 2000,
-        reward: '상점 할인 이벤트 예고'
+        reward: `학급 공동 보상 ${ECONOMY_CONSTANTS.questRewardTable.classMissionMax} DJ코인 예고`
       },
       {
         missionId: 'ranking_30',
@@ -636,7 +665,7 @@
         title: '이번 주 랭킹전 참여 30회',
         current: 18,
         target: 30,
-        reward: '랭킹전 챌린저 뱃지 예고'
+        reward: `학급 공동 보상 ${ECONOMY_CONSTANTS.questRewardTable.classMissionMin} DJ코인 + 뱃지 예고`
       }
     ];
 
@@ -1203,8 +1232,8 @@
       titleValue.textContent = mainTitle.name;
       badgeLabel.textContent = '뱃지';
       badgeValue.textContent = mainBadge.name;
-      coinLabel.textContent = '보유 코인';
-      coinValue.textContent = `${USER_REWARD_DATA.coin}코인`;
+      coinLabel.textContent = '보유 DJ코인';
+      coinValue.textContent = `${USER_REWARD_DATA.coin} DJ코인`;
       expLabel.textContent = '경험치';
       expValue.textContent = `${USER_REWARD_DATA.exp} EXP`;
 
@@ -1274,12 +1303,15 @@
     function renderShopWallet() {
       const root = document.getElementById('shop-wallet');
       const coin = document.createElement('strong');
+      const daily = document.createElement('strong');
       const note = document.createElement('span');
 
       root.innerHTML = '';
-      coin.textContent = `내 코인 ${USER_REWARD_DATA.coin}코인`;
+      coin.textContent = `내 DJ코인 ${USER_REWARD_DATA.coin}`;
+      daily.className = 'shop-wallet-daily';
+      daily.textContent = `오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인`;
       note.textContent = '구매와 차감은 아직 저장하지 않는 프로토타입 표시용입니다.';
-      root.append(coin, note);
+      root.append(coin, daily, note);
     }
 
     function renderShopItems() {
@@ -1305,7 +1337,7 @@
         desc.className = 'shop-item-desc';
         desc.textContent = item.desc;
         price.className = 'shop-item-price';
-        price.textContent = `${item.price}코인`;
+        price.textContent = `${item.price} DJ코인`;
         stateLabel.className = `shop-item-state ${state.className}`;
         stateLabel.textContent = state.label;
         button.className = 'shop-disabled-button';
@@ -1655,7 +1687,8 @@
       rewardGrid.className = 'quiz-reward-grid';
       [
         { label: '경험치', value: `+${USER_REWARD_DATA.completeReward.exp}` },
-        { label: '코인', value: `+${USER_REWARD_DATA.completeReward.coin}` },
+        { label: '완료 DJ코인', value: `+${USER_REWARD_DATA.completeReward.coin}` },
+        { label: '정답 보상', value: `정답 1개당 +${USER_REWARD_DATA.completeReward.correctCoin}` },
         { label: '보너스', value: USER_REWARD_DATA.completeReward.bonusLabel }
       ].forEach(reward => {
         const item = document.createElement('p');
@@ -1667,7 +1700,7 @@
         item.append(label, value);
         rewardGrid.appendChild(item);
       });
-      note.textContent = '프로토타입 표시용 보상입니다. 실제 점수, 코인, 경험치는 저장하거나 누적하지 않습니다.';
+      note.textContent = `프로토타입 표시용 보상입니다. 실제 점수, DJ코인, 경험치는 저장하거나 누적하지 않습니다. 오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인. 상한 초과 시 "${USER_REWARD_DATA.limitGuide}"라고 안내합니다.`;
       back.className = 'button primary';
       back.type = 'button';
       back.dataset.backToQuizSelect = 'true';
