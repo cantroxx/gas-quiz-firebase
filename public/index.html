@@ -173,6 +173,50 @@
       </aside>
     </section>
 
+    <section id="home-view" class="home-view app-view" aria-labelledby="home-title" hidden>
+      <div class="home-topbar">
+        <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
+        <div>
+          <p class="eyebrow">My Room Prototype</p>
+          <h2 id="home-title">내 집</h2>
+          <p>운영본 프로필 데이터를 연결하기 전, 내 정보와 보유 항목 배치를 확인합니다.</p>
+        </div>
+      </div>
+
+      <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
+
+      <div class="collection-layout">
+        <section class="collection-panel" aria-labelledby="title-list-heading">
+          <div class="collection-heading">
+            <p class="eyebrow">Titles</p>
+            <h3 id="title-list-heading">보유 칭호</h3>
+          </div>
+          <div id="title-card-grid" class="collection-grid"></div>
+        </section>
+
+        <section class="collection-panel" aria-labelledby="badge-list-heading">
+          <div class="collection-heading">
+            <p class="eyebrow">Badges</p>
+            <h3 id="badge-list-heading">보유 뱃지</h3>
+          </div>
+          <div id="badge-card-grid" class="collection-grid"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="ranking-view" class="ranking-view app-view" aria-labelledby="ranking-title" hidden>
+      <div class="ranking-topbar">
+        <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
+        <div>
+          <p class="eyebrow">Ranking Plaza Prototype</p>
+          <h2 id="ranking-title">DJ48 명예의 전당</h2>
+          <p>실제 랭킹 저장 없이 더미 1위 데이터를 카드로 배치한 정적 화면입니다.</p>
+        </div>
+      </div>
+
+      <div id="ranking-card-grid" class="ranking-card-grid" aria-label="명예의 전당 랭킹 카드"></div>
+    </section>
+
     <section id="school-view" class="school-view app-view" aria-labelledby="school-title" hidden>
       <div class="school-topbar">
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
@@ -282,7 +326,7 @@
         icon: '🏠',
         title: '내 집',
         kicker: 'My Room',
-        desc: 'Storage 이미지와 assetCatalog를 이용해 방 꾸미기를 실험할 후보 공간입니다.',
+        desc: '정적 프로필, 칭호, 뱃지 화면을 확인하는 개인 공간입니다.',
         summary: '나중에 프로필과 내 방 꾸미기를 연결할 개인 공간입니다.',
         features: [
           { label: '닉네임', value: 'DJ48 학생' },
@@ -290,7 +334,7 @@
           { label: '뱃지', value: '샘플 뱃지 3개' }
         ],
         actions: [
-          { label: '방 꾸미기 준비 중', enabled: false },
+          { label: '내 집 입장하기', enabled: true, action: 'openHome' },
           { label: '프로필 편집 준비 중', enabled: false }
         ]
       },
@@ -338,7 +382,7 @@
           { label: '내 기록', value: '개인 최고점 보기 준비 중' }
         ],
         actions: [
-          { label: '랭킹 보기 준비 중', enabled: false },
+          { label: '랭킹 광장 입장하기', enabled: true, action: 'openRanking' },
           { label: '내 기록 보기 준비 중', enabled: false }
         ]
       },
@@ -359,6 +403,105 @@
         ]
       }
     };
+
+    const PROFILE_DATA = {
+      avatar: '🙂',
+      nickname: 'DJ48 학생',
+      school: '성자초등학교',
+      mainTitleId: 'legend_quiz_king',
+      mainBadgeId: 'reading_king'
+    };
+
+    const TITLE_DATA = [
+      {
+        titleId: 'legend_quiz_king',
+        icon: '👑',
+        name: '전설의 퀴즈왕',
+        desc: '여러 과목 퀴즈에서 꾸준히 좋은 성과를 낸 학생에게 주는 더미 칭호입니다.'
+      },
+      {
+        titleId: 'korean_master',
+        icon: '📚',
+        name: '국어 마스터',
+        desc: '맞춤법과 독서 퀴즈를 즐겨 푼 학생에게 어울리는 칭호입니다.'
+      },
+      {
+        titleId: 'three_kingdoms_expert',
+        icon: '🏯',
+        name: '삼국시대 전문가',
+        desc: '삼국시대 문제를 자신 있게 풀 수 있는 학생을 위한 칭호입니다.'
+      },
+      {
+        titleId: 'reading_king',
+        icon: '📖',
+        name: '독서왕',
+        desc: '책 속 인물과 사건을 꼼꼼히 살펴보는 학생에게 어울리는 칭호입니다.'
+      }
+    ];
+
+    const BADGE_DATA = [
+      {
+        badgeId: 'reading_king',
+        icon: '📖',
+        name: '독서왕',
+        desc: '독서 퀴즈 활동을 나타내는 더미 뱃지입니다.'
+      },
+      {
+        badgeId: 'quiz_king',
+        icon: '🏆',
+        name: '퀴즈왕',
+        desc: '여러 퀴즈를 골고루 풀어본 학생을 위한 더미 뱃지입니다.'
+      },
+      {
+        badgeId: 'ranking_challenger',
+        icon: '🏅',
+        name: '랭킹전 챌린저',
+        desc: '나중에 랭킹전 참여 기록과 연결할 수 있는 뱃지입니다.'
+      }
+    ];
+
+    const RANKING_DATA = [
+      {
+        rankId: 'quiz_king',
+        icon: '👑',
+        category: '퀴즈왕',
+        rank: '1위',
+        nickname: 'DJ48학생',
+        title: '전설의 퀴즈왕'
+      },
+      {
+        rankId: 'korean_king',
+        icon: '📚',
+        category: '국어왕',
+        rank: '1위',
+        nickname: '맞춤법탐험가',
+        title: '국어 마스터'
+      },
+      {
+        rankId: 'social_king',
+        icon: '🏛️',
+        category: '사회왕',
+        rank: '1위',
+        nickname: '역사탐정',
+        title: '삼국시대 전문가'
+      },
+      {
+        rankId: 'math_king',
+        icon: '➗',
+        category: '수학왕',
+        rank: '1위',
+        nickname: '계산박사',
+        title: '수학 해결사'
+      },
+      {
+        rankId: 'weekly_riser',
+        icon: '🚀',
+        category: '이번 주 상승왕',
+        rank: '1위',
+        nickname: '도전하는학생',
+        title: '랭킹전 챌린저'
+      }
+    ];
 
     const MODE_CATALOG = {
       practice: {
@@ -744,6 +887,14 @@
     let currentModeId = 'practice';
 
     function openPlaceModal(placeId) {
+      if(placeId === 'home') {
+        showHomeView();
+        return;
+      }
+      if(placeId === 'ranking') {
+        showRankingView();
+        return;
+      }
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
       updatePlaceInfo(place);
       updatePlayerLocation(place);
@@ -787,6 +938,106 @@
         button.textContent = action.label;
         if(action.action) button.dataset.panelAction = action.action;
         actionRoot.appendChild(button);
+      });
+    }
+
+    function findTitle(titleId) {
+      return TITLE_DATA.find(title => title.titleId === titleId) || TITLE_DATA[0];
+    }
+
+    function findBadge(badgeId) {
+      return BADGE_DATA.find(badge => badge.badgeId === badgeId) || BADGE_DATA[0];
+    }
+
+    function renderHomeView() {
+      renderProfileCard();
+      renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
+      renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
+    }
+
+    function renderProfileCard() {
+      const root = document.getElementById('profile-card-root');
+      const mainTitle = findTitle(PROFILE_DATA.mainTitleId);
+      const mainBadge = findBadge(PROFILE_DATA.mainBadgeId);
+      const card = document.createElement('article');
+      const avatar = document.createElement('div');
+      const body = document.createElement('div');
+      const name = document.createElement('h3');
+      const school = document.createElement('p');
+      const meta = document.createElement('div');
+      const title = document.createElement('p');
+      const titleLabel = document.createElement('span');
+      const titleValue = document.createElement('strong');
+      const badge = document.createElement('p');
+      const badgeLabel = document.createElement('span');
+      const badgeValue = document.createElement('strong');
+
+      root.innerHTML = '';
+      card.className = 'profile-card';
+      avatar.className = 'profile-avatar';
+      avatar.textContent = PROFILE_DATA.avatar;
+      body.className = 'profile-body';
+      name.textContent = PROFILE_DATA.nickname;
+      school.className = 'profile-school';
+      school.textContent = PROFILE_DATA.school;
+      meta.className = 'profile-meta';
+      titleLabel.textContent = '칭호';
+      titleValue.textContent = mainTitle.name;
+      badgeLabel.textContent = '뱃지';
+      badgeValue.textContent = mainBadge.name;
+
+      title.append(titleLabel, titleValue);
+      badge.append(badgeLabel, badgeValue);
+      meta.append(title, badge);
+      body.append(name, school, meta);
+      card.append(avatar, body);
+      root.appendChild(card);
+    }
+
+    function renderCollectionCards(rootId, items, className) {
+      const root = document.getElementById(rootId);
+      root.innerHTML = '';
+      items.forEach(item => {
+        const card = document.createElement('article');
+        const icon = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+
+        card.className = `collection-card ${className}`;
+        icon.className = 'collection-icon';
+        icon.textContent = item.icon;
+        title.textContent = item.name;
+        desc.textContent = item.desc;
+
+        card.append(icon, title, desc);
+        root.appendChild(card);
+      });
+    }
+
+    function renderRankingView() {
+      const grid = document.getElementById('ranking-card-grid');
+      grid.innerHTML = '';
+      RANKING_DATA.forEach(entry => {
+        const card = document.createElement('article');
+        const icon = document.createElement('span');
+        const rank = document.createElement('p');
+        const category = document.createElement('h3');
+        const nickname = document.createElement('strong');
+        const title = document.createElement('p');
+
+        card.className = 'ranking-card';
+        icon.className = 'ranking-card-icon';
+        icon.textContent = entry.icon;
+        rank.className = 'ranking-rank';
+        rank.textContent = entry.rank;
+        category.textContent = entry.category;
+        nickname.className = 'ranking-nickname';
+        nickname.textContent = entry.nickname;
+        title.className = 'ranking-title';
+        title.textContent = entry.title;
+
+        card.append(icon, rank, category, nickname, title);
+        grid.appendChild(card);
       });
     }
 
@@ -920,6 +1171,8 @@
       currentQuestionIndex = 0;
       selectedChoiceIndex = null;
       correctAnswerCount = 0;
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('subject-view').hidden = true;
@@ -1045,6 +1298,8 @@
     function showSchoolView() {
       closePlaceModal();
       renderSchoolQuizCards();
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
       document.getElementById('subject-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
@@ -1054,6 +1309,9 @@
     }
 
     function showTownView() {
+      closePlaceModal();
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('subject-view').hidden = true;
@@ -1062,9 +1320,41 @@
       document.getElementById('town-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function showHomeView() {
+      closePlaceModal();
+      renderHomeView();
+      updatePlaceInfo(PLACE_DETAILS.home);
+      updatePlayerLocation(PLACE_DETAILS.home);
+      document.getElementById('ranking-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('subject-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('home-view').hidden = false;
+      document.getElementById('home-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showRankingView() {
+      closePlaceModal();
+      renderRankingView();
+      updatePlaceInfo(PLACE_DETAILS.ranking);
+      updatePlayerLocation(PLACE_DETAILS.ranking);
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('subject-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('ranking-view').hidden = false;
+      document.getElementById('ranking-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function showSubjectView(subjectId) {
       currentSubjectId = subjectId;
       renderSubjectQuizCards(subjectId);
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
       document.getElementById('town-view').hidden = true;
@@ -1078,6 +1368,8 @@
       lastQuizId = quizId;
       currentSubjectId = quiz.subjectId || currentSubjectId;
       renderQuizSelectView(quizId);
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
       document.getElementById('town-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('subject-view').hidden = true;
@@ -1110,9 +1402,13 @@
 
     document.getElementById('modal-actions').addEventListener('click', event => {
       if(event.target.dataset.panelAction === 'openSchool') showSchoolView();
+      if(event.target.dataset.panelAction === 'openHome') showHomeView();
+      if(event.target.dataset.panelAction === 'openRanking') showRankingView();
     });
 
-    document.querySelector('[data-back-to-town]').addEventListener('click', showTownView);
+    document.querySelectorAll('[data-back-to-town]').forEach(button => {
+      button.addEventListener('click', showTownView);
+    });
 
     document.getElementById('school-quiz-grid').addEventListener('click', event => {
       const card = event.target.closest('[data-subject-id]');
