@@ -1545,6 +1545,32 @@ h2 {
   font-weight: 900;
 }
 
+.shop-wallet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(47, 125, 68, 0.13);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.shop-wallet strong {
+  color: var(--green-dark);
+  font-size: 1.08rem;
+}
+
+.shop-wallet span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
 .shop-item-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1609,6 +1635,26 @@ h2 {
   color: #7b5a17;
   font-size: 0.9rem;
   font-weight: 900;
+}
+
+.shop-item-state {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.shop-state-ready {
+  background: var(--mint);
+  color: var(--green-dark);
+}
+
+.shop-state-short {
+  background: #fff2f7;
+  color: #a43e68;
 }
 
 .shop-disabled-button {
@@ -2137,6 +2183,37 @@ h2 {
   font-weight: 900;
 }
 
+.quiz-reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.quiz-reward-card {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.13);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.quiz-reward-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.quiz-reward-card strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--green-dark);
+  font-size: 1.08rem;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
 .error-shell {
   min-height: 100vh;
   display: grid;
@@ -2371,8 +2448,14 @@ h2 {
   .profile-meta,
   .collection-grid,
   .ranking-card-grid,
-  .shop-item-grid {
+  .shop-item-grid,
+  .quiz-reward-grid {
     grid-template-columns: 1fr;
+  }
+
+  .shop-wallet {
+    display: grid;
+    justify-items: start;
   }
 
   .school-scene,

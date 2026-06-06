@@ -234,6 +234,7 @@
         <span>칭호 프레임</span>
       </div>
 
+      <div id="shop-wallet" class="shop-wallet" aria-label="상점 보유 코인"></div>
       <div id="shop-item-grid" class="shop-item-grid" aria-label="상점 아이템 카드"></div>
     </section>
 
@@ -422,6 +423,17 @@
           { label: '이벤트 보기 준비 중', enabled: false }
         ]
       }
+    };
+
+    const USER_REWARD_DATA = {
+      coin: 120,
+      exp: 340,
+      completeReward: {
+        exp: 10,
+        coin: 5,
+        bonusLabel: '연습 완료 보너스'
+      },
+      note: '프로토타입 표시용 정적 보상 데이터입니다.'
     };
 
     const PROFILE_DATA = {
@@ -1054,6 +1066,12 @@
       const badge = document.createElement('p');
       const badgeLabel = document.createElement('span');
       const badgeValue = document.createElement('strong');
+      const coin = document.createElement('p');
+      const coinLabel = document.createElement('span');
+      const coinValue = document.createElement('strong');
+      const exp = document.createElement('p');
+      const expLabel = document.createElement('span');
+      const expValue = document.createElement('strong');
 
       root.innerHTML = '';
       card.className = 'profile-card';
@@ -1068,10 +1086,16 @@
       titleValue.textContent = mainTitle.name;
       badgeLabel.textContent = '뱃지';
       badgeValue.textContent = mainBadge.name;
+      coinLabel.textContent = '보유 코인';
+      coinValue.textContent = `${USER_REWARD_DATA.coin}코인`;
+      expLabel.textContent = '경험치';
+      expValue.textContent = `${USER_REWARD_DATA.exp} EXP`;
 
       title.append(titleLabel, titleValue);
       badge.append(badgeLabel, badgeValue);
-      meta.append(title, badge);
+      coin.append(coinLabel, coinValue);
+      exp.append(expLabel, expValue);
+      meta.append(title, badge, coin, exp);
       body.append(name, school, meta);
       card.append(avatar, body);
       root.appendChild(card);
@@ -1124,16 +1148,35 @@
       });
     }
 
+    function getShopItemState(item) {
+      return USER_REWARD_DATA.coin >= item.price
+        ? { label: '살 수 있음', className: 'shop-state-ready' }
+        : { label: '코인 부족', className: 'shop-state-short' };
+    }
+
+    function renderShopWallet() {
+      const root = document.getElementById('shop-wallet');
+      const coin = document.createElement('strong');
+      const note = document.createElement('span');
+
+      root.innerHTML = '';
+      coin.textContent = `내 코인 ${USER_REWARD_DATA.coin}코인`;
+      note.textContent = '구매와 차감은 아직 저장하지 않는 프로토타입 표시용입니다.';
+      root.append(coin, note);
+    }
+
     function renderShopItems() {
       const grid = document.getElementById('shop-item-grid');
       grid.innerHTML = '';
       SHOP_ITEMS.forEach(item => {
+        const state = getShopItemState(item);
         const card = document.createElement('article');
         const icon = document.createElement('span');
         const category = document.createElement('p');
         const title = document.createElement('h3');
         const desc = document.createElement('p');
         const price = document.createElement('strong');
+        const stateLabel = document.createElement('span');
         const button = document.createElement('button');
 
         card.className = 'shop-item-card';
@@ -1146,12 +1189,14 @@
         desc.textContent = item.desc;
         price.className = 'shop-item-price';
         price.textContent = `${item.price}코인`;
+        stateLabel.className = `shop-item-state ${state.className}`;
+        stateLabel.textContent = state.label;
         button.className = 'shop-disabled-button';
         button.type = 'button';
         button.disabled = true;
         button.textContent = '구매 준비 중';
 
-        card.append(icon, category, title, desc, price, button);
+        card.append(icon, category, title, desc, price, stateLabel, button);
         grid.appendChild(card);
       });
     }
@@ -1394,6 +1439,7 @@
       const card = document.createElement('article');
       const title = document.createElement('h3');
       const score = document.createElement('p');
+      const rewardGrid = document.createElement('div');
       const note = document.createElement('p');
       const back = document.createElement('button');
 
@@ -1401,13 +1447,28 @@
       title.textContent = '연습 완료';
       score.className = 'quiz-complete-score';
       score.textContent = `${getCurrentQuestionSet().length}문제 중 ${correctAnswerCount}개`;
-      note.textContent = '아직 실제 점수 저장이나 랭킹 반영은 하지 않는 더미 결과입니다.';
+      rewardGrid.className = 'quiz-reward-grid';
+      [
+        { label: '경험치', value: `+${USER_REWARD_DATA.completeReward.exp}` },
+        { label: '코인', value: `+${USER_REWARD_DATA.completeReward.coin}` },
+        { label: '보너스', value: USER_REWARD_DATA.completeReward.bonusLabel }
+      ].forEach(reward => {
+        const item = document.createElement('p');
+        const label = document.createElement('span');
+        const value = document.createElement('strong');
+        item.className = 'quiz-reward-card';
+        label.textContent = reward.label;
+        value.textContent = reward.value;
+        item.append(label, value);
+        rewardGrid.appendChild(item);
+      });
+      note.textContent = '프로토타입 표시용 보상입니다. 실제 점수, 코인, 경험치는 저장하거나 누적하지 않습니다.';
       back.className = 'button primary';
       back.type = 'button';
       back.dataset.backToQuizSelect = 'true';
       back.textContent = '모드 선택으로 돌아가기';
 
-      card.append(title, score, note, back);
+      card.append(title, score, rewardGrid, note, back);
       root.appendChild(card);
     }
 
@@ -1472,6 +1533,7 @@
 
     function showShopView() {
       closePlaceModal();
+      renderShopWallet();
       renderShopItems();
       updatePlaceInfo(PLACE_DETAILS.shop);
       updatePlayerLocation(PLACE_DETAILS.shop);
