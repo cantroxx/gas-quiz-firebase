@@ -1257,7 +1257,7 @@ h2 {
 }
 
 .school-view,
-.korean-view,
+.subject-view,
 .quiz-select-view,
 .quiz-play-view {
   padding: 22px;
@@ -1269,7 +1269,7 @@ h2 {
   box-shadow: var(--shadow);
 }
 
-.korean-view {
+.subject-view {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.6)),
     linear-gradient(135deg, #fff4da 0%, #e8f8ec 100%);
@@ -1310,7 +1310,7 @@ h2 {
 
 .back-to-town,
 .back-to-school,
-.back-to-korean,
+.back-to-subject,
 .back-to-quiz-select {
   white-space: nowrap;
 }
@@ -1398,6 +1398,23 @@ h2 {
   box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
 }
 
+.school-quiz-card[role="button"],
+.subject-quiz-card[role="button"],
+.quiz-mode-card[role="button"] {
+  cursor: pointer;
+}
+
+.school-quiz-card[role="button"]:hover,
+.school-quiz-card[role="button"]:focus-visible,
+.subject-quiz-card[role="button"]:hover,
+.subject-quiz-card[role="button"]:focus-visible,
+.quiz-mode-card[role="button"]:hover,
+.quiz-mode-card[role="button"]:focus-visible {
+  border-color: rgba(40, 114, 74, 0.34);
+  outline: none;
+  transform: translateY(-2px);
+}
+
 .school-quiz-icon {
   display: grid;
   place-items: center;
@@ -1453,7 +1470,7 @@ h2 {
   cursor: not-allowed;
 }
 
-.korean-scene {
+.subject-scene {
   position: relative;
   min-height: 180px;
   overflow: hidden;
@@ -1548,6 +1565,18 @@ h2 {
   font-size: 0.9rem;
   line-height: 1.52;
   word-break: keep-all;
+}
+
+.subject-quiz-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .subject-ready-button,
@@ -1889,7 +1918,7 @@ h2 {
   }
 
   .school-view,
-  .korean-view,
+  .subject-view,
   .quiz-select-view,
   .quiz-play-view {
     padding: 14px;
@@ -1904,7 +1933,7 @@ h2 {
 
   .back-to-town,
   .back-to-school,
-  .back-to-korean,
+  .back-to-subject,
   .back-to-quiz-select {
     width: fit-content;
   }
@@ -2007,13 +2036,13 @@ h2 {
 
   .back-to-town,
   .back-to-school,
-  .back-to-korean,
+  .back-to-subject,
   .back-to-quiz-select {
     width: 100%;
   }
 
   .school-scene,
-  .korean-scene {
+  .subject-scene {
     min-height: 150px;
   }
 
