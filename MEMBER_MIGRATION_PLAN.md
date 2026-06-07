@@ -282,6 +282,8 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-member
 - import 전 dry-run 결과와 샘플 변환 결과를 반드시 확인한다.
 - 비밀번호 필드는 입력 파일에 있어도 Firestore에 저장하지 않는다.
 - `passwordMode`, `initialPasswordChanged` 같은 상태값만 저장한다.
+- 입력 JSON에 `authUid`가 없으면 기존 `users/{userId}.authUid`를 덮어쓰지 않도록 import 문서에서 제외한다.
+- `set(..., { merge: true })`를 사용하므로 입력에 포함된 필드는 기존 `users/{userId}` 값을 갱신할 수 있다.
 - 운영본 `gas-quiz`와 Google Sheets는 수정하지 않는다.
 
 입력 JSON은 배열 또는 `{ "members": [...] }` 형태를 허용한다. 운영본 14컬럼 구조를 반영해 `userId`, `grade`, `classNo`, `number`, `nickname`, `profileImageUrl`, `createdAt`, `lastLoginAt`, `password`, `school`, `selectedTitleId`, `rankingMessage`, `role`, `status` 형태의 데이터를 받을 수 있다. `password` 값은 변환 중 폐기된다.

@@ -142,11 +142,11 @@ function transformMember(rawMember) {
   const createdAt = toFirestoreTimestamp(valueFrom(member, ['createdAt', 'created_at', '생성일시']));
   const updatedAt = toFirestoreTimestamp(valueFrom(member, ['updatedAt', 'updated_at', 'lastLoginAt', '최근로그인일시', '최근수정일시']));
   const serverTime = admin.firestore.FieldValue.serverTimestamp();
+  const authUid = normalizeString(valueFrom(member, ['authUid'], ''));
 
-  return {
+  const userDocument = {
     userId,
     legacyMemberId: normalizeString(valueFrom(member, ['legacyMemberId', 'userId', '회원ID', '학생ID'], userId)) || userId,
-    authUid: valueFrom(member, ['authUid'], null) || null,
     school: normalizeString(valueFrom(member, ['school', '학교'])),
     grade: normalizeString(valueFrom(member, ['grade', '학년'])),
     classNumber: normalizeString(valueFrom(member, ['classNumber', 'classNo', 'class', '반'])),
@@ -165,6 +165,10 @@ function transformMember(rawMember) {
     updatedAt: updatedAt || serverTime,
     migratedAt: serverTime
   };
+
+  // Preserve an existing users/{userId}.authUid mapping unless the export explicitly provides one.
+  if (authUid) userDocument.authUid = authUid;
+  return userDocument;
 }
 
 function summarizeForDryRun(users, sampleLimit) {
