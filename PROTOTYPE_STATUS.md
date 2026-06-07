@@ -4,7 +4,7 @@
 
 `gas-quiz-firebase`는 운영본 `gas-quiz`를 직접 수정하지 않고 Firebase Hosting 위에서 새 퀴즈타운 UI와 기능 흐름을 검증하기 위한 정적 프로토타입이다.
 
-현재 목표는 실제 데이터 연결보다 화면 구조, 이동 흐름, 공통 퀴즈 엔진, 보상/상점/이벤트 루프의 큰 형태를 먼저 확인하는 것이다.
+현재 목표는 화면 구조와 이동 흐름을 유지하면서 Firestore 읽기/쓰기 연결을 작은 범위부터 검증하는 것이다. 상점, 인벤토리, 내 집 설정은 현재 `test_user` 기준 프로토타입으로만 연결되어 있다.
 
 ## 2. 현재 구현된 화면
 
@@ -54,6 +54,9 @@
 - 프로필 카드 표시
 - 닉네임, 학교, 대표 칭호, 대표 뱃지, 보유 코인, 경험치 표시
 - 보유 칭호와 보유 뱃지 목록 표시
+- `userInventory/test_user/items`를 읽어 보유 꾸미기 아이템 표시
+- 보유 아이템을 선택하면 `userRoomSettings/test_user`에 내 집 설정 저장
+- 저장된 선택 상태는 재진입/새로고침 후 `적용중` 상태로 표시
 - `PROFILE_DATA`, `TITLE_DATA`, `BADGE_DATA`, `USER_REWARD_DATA` 기반
 
 ### 상점
@@ -61,10 +64,14 @@
 - 타운의 상점에서 진입
 - `DJ48 상점` 화면
 - 카테고리: 배경, 아바타, 방 장식, 칭호 프레임
-- 상단에 보유 코인 표시
-- 아이템 가격과 보유 코인을 비교해 `살 수 있음` 또는 `코인 부족` 상태 표시
-- 구매 버튼은 모두 `구매 준비 중` 비활성 상태
-- `SHOP_ITEMS`, `USER_REWARD_DATA` 기반
+- `shopItems` Firestore 컬렉션에서 상점 아이템 읽기
+- `assetCatalog` Firestore 컬렉션에서 아이콘/이미지 메타데이터 읽기
+- Firestore 읽기 실패 시 기존 `SHOP_ITEMS`와 아이콘 fallback 유지
+- `userEconomy/test_user`에서 DJ코인 잔액 읽기
+- `userInventory/test_user/items`를 읽어 보유 아이템 상태 표시
+- 구매 가능, 코인 부족, 보유중 상태 표시
+- 구매 시 Firestore transaction으로 DJ코인 차감, 인벤토리 추가, `purchaseLogs` 기록
+- 현재 구매 흐름은 실제 로그인 사용자가 아닌 `test_user` 전용 프로토타입
 
 ### 이벤트 광장
 
@@ -80,6 +87,8 @@
 - 타운 -> 랭킹 광장 -> 타운
 - 타운 -> 내 집 -> 타운
 - 타운 -> 상점 -> 타운
+- 타운 -> 상점 -> 구매 -> `userInventory/test_user/items` 저장 -> 내 집 보유 아이템 표시
+- 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/test_user` 저장 -> 내 집 재진입 시 적용 상태 유지
 - 타운 -> 이벤트 광장 -> 타운
 - 타운의 중앙 광장 등 일부 장소는 기존 장소 안내 모달 유지
 
@@ -130,9 +139,49 @@
 
 ### `SHOP_ITEMS`
 
-- 상점 아이템 카탈로그
+- Firestore `shopItems` 읽기 실패 시 사용하는 정적 fallback 상점 아이템 카탈로그
 - 필드: `itemId`, `category`, `name`, `desc`, `price`, `icon`
-- 실제 구매나 보유 상태 저장은 없음
+- 현재 상점 기본 데이터는 Firestore `shopItems`를 우선 사용
+
+### `shopItems`
+
+- Firestore 상점 아이템 카탈로그
+- 현재 연결 완료
+- 필드: `itemId`, `category`, `name`, `desc`, `price`, `priceType`, `enabled`, `sortOrder`, `imageUrl`, `assetId`, `rarity`
+- 구매 시 화면 값이 아니라 Firestore 문서를 transaction 안에서 다시 확인
+
+### `assetCatalog`
+
+- Firestore 이미지/아이콘 메타데이터 카탈로그
+- 현재 연결 완료
+- `shopItems.assetId`로 연결
+- `imageUrl`이 비어 있거나 `TODO`이면 `fallbackIcon` 또는 기존 아이콘 fallback 사용
+
+### `userEconomy`
+
+- 테스트 사용자 `test_user`의 DJ코인 잔액 저장
+- 현재 `userEconomy/test_user` 기준으로 상점 구매 프로토타입 연결
+- 구매 시 `djCoin` 차감 및 `totalSpent` 증가
+
+### `userInventory`
+
+- 테스트 사용자 보유 아이템 저장
+- 현재 경로: `userInventory/test_user/items/{itemId}`
+- 상점 구매 성공 시 보유 아이템 문서 생성
+- 내 집 화면에서 보유 꾸미기 아이템 후보로 사용
+
+### `purchaseLogs`
+
+- 상점 구매 로그 저장
+- 구매 성공 시 `purchaseLogs/{autoId}` 생성
+- 현재는 `serverVerified: false`인 클라이언트 transaction 테스트 흐름
+
+### `userRoomSettings`
+
+- 테스트 사용자 내 집 선택 설정 저장
+- 현재 경로: `userRoomSettings/test_user`
+- 필드: `userId`, `selectedBackgroundItemId`, `selectedAvatarItemId`, `selectedDecorItemIds`, `selectedTitleFrameItemId`, `updatedAt`
+- 보유 아이템 선택 시 카테고리별 필드에 저장
 
 ### `USER_REWARD_DATA`
 
@@ -161,51 +210,65 @@
 
 - 모든 문제 데이터
 - 퀴즈 완료 보상
-- 보유 코인과 경험치
+- 퀴즈 완료 보상으로 누적되는 보유 코인과 경험치
 - 랭킹 광장 순위
 - 프로필, 칭호, 뱃지
-- 상점 아이템, 가격, 구매 가능 상태
+- 실제 로그인 사용자 기준 상점 상태
 - 퀘스트 진행도와 보상
 - 학급 미션 진행도
 - 시즌 이벤트
 - 랭킹전, 원코 모드, 기록 보기
+- 내 집 장착 결과의 실제 시각 반영
 
 ## 6. 아직 연결하지 않은 것
 
-- Firebase SDK
-- Firestore
 - Storage
 - GAS `getQuizData`
-- 실제 로그인
-- 실제 저장
+- 실제 로그인 사용자 ID
 - 실제 랭킹
-- 실제 학급화폐
-- 실제 이미지 에셋 저장소
+- 운영 수준 Firestore 보안 규칙
+- 서버 검증 기반 구매 처리
+- Firebase Storage 실제 이미지
 - 운영본 데이터
+
+현재 연결된 것:
+
+- Firebase SDK
+- Firestore `shopItems`
+- Firestore `assetCatalog`
+- Firestore `userEconomy/test_user`
+- Firestore `userInventory/test_user/items`
+- Firestore `purchaseLogs`
+- Firestore `userRoomSettings/test_user`
+
+주의:
+
+- 위 연결은 `test_user` 기반 프로토타입이다.
+- 실제 로그인 사용자, 운영본 사용자, 학급 사용자와는 아직 연결하지 않았다.
+- Firestore 보안 규칙은 운영 수준으로 정리하기 전이다.
+- Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
 
 ## 7. 다음 작업 추천 순서
 
-1. 프로토타입 점검
-   - 모바일/데스크톱에서 주요 화면 이동 확인
-   - 국어/사회/수학 퀴즈 완료 흐름 확인
-   - 내 집, 상점, 이벤트 광장 정보 구조 검토
+1. 실제 로그인 사용자 ID 연결
+   - `test_user` 상수를 Firebase Auth 또는 운영본 사용자 매핑으로 대체
+   - `userEconomy`, `userInventory`, `userRoomSettings` 경로를 로그인 사용자 기준으로 전환
 
-2. 학급화폐 구조 설계
-   - 코인 지급 조건 정의
-   - 퀴즈 완료 보상, 퀘스트 보상, 학급 미션 보상 구분
-   - 상점 구매와 보유 아이템 정책 정리
+2. Firestore 보안 규칙 정리
+   - `shopItems`, `assetCatalog` 읽기 권한
+   - `userEconomy`, `userInventory`, `userRoomSettings` 본인 읽기/쓰기 제한
+   - 구매 transaction의 클라이언트 직접 쓰기 유지 여부 검토
 
-3. Firestore 스키마 설계
-   - 사용자 프로필
-   - 사용자별 보유 코인/경험치
-   - 퀴즈 풀이 기록
-   - 랭킹 집계 결과
-   - 상점 아이템과 구매 내역
-   - 퀘스트/미션 진행도
+3. Firebase Storage 이미지 연결
+   - `assetCatalog.imageUrl`에 실제 이미지 URL 입력
+   - 상점과 내 집 카드에서 이미지 표시 확인
+   - 이미지 실패 시 fallback icon 유지 확인
 
-4. Storage 이미지 연결
-   - 배경, 아바타, 방 장식, 뱃지, 칭호 프레임 이미지 구조 설계
-   - `SHOP_ITEMS`와 이미지 URL 매핑 방식 결정
+4. 배포 전 최종 테스트
+   - 타운/학교/퀴즈/상점/내 집/이벤트 흐름 점검
+   - 구매 후 내 집 적용 상태 유지 확인
+   - 모바일/데스크톱 레이아웃 확인
+   - Firestore 권한 오류 확인
 
 5. GAS 데이터 연동 검토
    - 운영본 `getQuizData`의 반환 구조 확인
@@ -217,4 +280,4 @@
 - 이 문서는 Firebase 실험본 `~/Projects/gas-quiz-firebase` 기준이다.
 - 운영본 `~/Projects/gas-quiz`와 혼동하지 말 것.
 - 운영본 파일, GAS 배포, 운영 데이터는 이 프로토타입 작업 중 수정하지 않는다.
-- Firebase 실험본은 현재 정적 프로토타입이며 실제 사용자 데이터와 연결되어 있지 않다.
+- Firebase 실험본은 일부 Firestore 프로토타입 데이터와 연결되어 있지만, 실제 로그인 사용자나 운영본 데이터와 연결되어 있지 않다.
