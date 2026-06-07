@@ -360,6 +360,9 @@
     </section>
   </div>
 
+  <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
   <script>
     const PLACE_DETAILS = {
       central: {
@@ -614,6 +617,33 @@
         icon: '🟨'
       }
     ];
+
+    const SHOP_CATEGORY_LABELS = {
+      background: '배경',
+      avatar: '아바타',
+      roomDecor: '방 장식',
+      titleFrame: '칭호 프레임'
+    };
+
+    const SHOP_ICON_FALLBACKS = {
+      forest_bg: '🌲',
+      forest_background: '🌲',
+      star_bg: '🌟',
+      starlight_background: '🌟',
+      cat_avatar: '🐱',
+      explorer_avatar: '🧭',
+      bookshelf: '📚',
+      flowerpot: '🪴',
+      golden_title_frame: '🟨',
+      gold_title_frame: '🟨',
+      background: '🌄',
+      avatar: '🙂',
+      roomDecor: '🪴',
+      titleFrame: '🟨'
+    };
+
+    let firestoreShopItems = null;
+    let shopItemsLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -1294,6 +1324,67 @@
       });
     }
 
+    function getFirestoreDb() {
+      if(!window.firebase?.apps?.length || !window.firebase.firestore) return null;
+      return window.firebase.firestore();
+    }
+
+    function getShopFallbackIcon(itemId, category) {
+      return SHOP_ICON_FALLBACKS[itemId] || SHOP_ICON_FALLBACKS[category] || '🛍️';
+    }
+
+    function normalizeShopItemFromFirestore(doc) {
+      const data = doc.data();
+      const itemId = data.itemId || doc.id;
+      const price = Number(data.price);
+      const sortOrder = Number(data.sortOrder);
+      const category = data.category || '';
+      const imageUrl = typeof data.imageUrl === 'string' ? data.imageUrl.trim() : '';
+
+      return {
+        itemId,
+        category: SHOP_CATEGORY_LABELS[category] || category || '기타',
+        name: data.name || itemId,
+        desc: data.desc || '상점 아이템 설명을 준비 중입니다.',
+        price: Number.isFinite(price) ? price : 0,
+        icon: getShopFallbackIcon(itemId, category),
+        enabled: data.enabled === true,
+        sortOrder: Number.isFinite(sortOrder) ? sortOrder : 999,
+        priceType: data.priceType || 'djCoin',
+        imageUrl: imageUrl && imageUrl !== 'TODO' ? imageUrl : '',
+        assetId: data.assetId || '',
+        rarity: data.rarity || 'common'
+      };
+    }
+
+    async function loadShopItemsFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      const snapshot = await db.collection('shopItems').get();
+      return snapshot.docs
+        .map(normalizeShopItemFromFirestore)
+        .filter(item => item.enabled)
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+    }
+
+    async function getShopItemsForRender() {
+      if(firestoreShopItems) return firestoreShopItems;
+      if(!shopItemsLoadPromise) {
+        shopItemsLoadPromise = loadShopItemsFromFirestore()
+          .then(items => {
+            if(!items.length) return SHOP_ITEMS;
+            firestoreShopItems = items;
+            return items;
+          })
+          .catch(error => {
+            console.warn('Firestore shopItems read failed. Using static fallback SHOP_ITEMS.', error);
+            return SHOP_ITEMS;
+          });
+      }
+      return shopItemsLoadPromise;
+    }
+
     function getShopItemState(item) {
       return USER_REWARD_DATA.coin >= item.price
         ? { label: '살 수 있음', className: 'shop-state-ready' }
@@ -1314,10 +1405,10 @@
       root.append(coin, daily, note);
     }
 
-    function renderShopItems() {
+    function renderShopItems(items = SHOP_ITEMS) {
       const grid = document.getElementById('shop-item-grid');
       grid.innerHTML = '';
-      SHOP_ITEMS.forEach(item => {
+      items.forEach(item => {
         const state = getShopItemState(item);
         const card = document.createElement('article');
         const icon = document.createElement('span');
@@ -1776,7 +1867,7 @@
     function showShopView() {
       closePlaceModal();
       renderShopWallet();
-      renderShopItems();
+      renderShopItems(SHOP_ITEMS);
       updatePlaceInfo(PLACE_DETAILS.shop);
       updatePlayerLocation(PLACE_DETAILS.shop);
       document.getElementById('home-view').hidden = true;
@@ -1789,6 +1880,8 @@
       document.getElementById('town-view').hidden = true;
       document.getElementById('shop-view').hidden = false;
       document.getElementById('shop-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      getShopItemsForRender().then(renderShopItems);
     }
 
     function showEventView() {
