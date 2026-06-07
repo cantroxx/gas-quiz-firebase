@@ -1,0 +1,72 @@
+{
+  "success": true,
+  "exportedAt": "2026-06-07 20:00:00",
+  "users": [
+    {
+      "userId": "G4-C8-N22",
+      "selectedTitleId": "spelling_doctor"
+    },
+    {
+      "userId": "G5-C2-N07",
+      "selectedTitleId": "math_muldiv_master"
+    },
+    {
+      "userId": "G3-C1-N03",
+      "selectedTitleId": ""
+    }
+  ],
+  "titles": [
+    {
+      "userId": "G4-C8-N22",
+      "titleId": "spelling_researcher",
+      "titleName": "맞춤법 연구자",
+      "theme": "spelling",
+      "tier": 1,
+      "effect": "",
+      "sourceType": "practiceStars",
+      "sourceCategory": "맞춤법",
+      "sourceGroup": "맞춤법",
+      "acquiredAt": "2026-05-01 09:00:00",
+      "updatedAt": "2026-05-01 09:00:00"
+    },
+    {
+      "userId": "G4-C8-N22",
+      "titleId": "spelling_doctor",
+      "titleName": "맞춤법 박사",
+      "theme": "spelling",
+      "tier": 3,
+      "effect": "title-effect-marquee",
+      "sourceType": "practiceStars",
+      "sourceCategory": "맞춤법",
+      "sourceGroup": "맞춤법",
+      "acquiredAt": "2026-05-08 09:00:00",
+      "updatedAt": "2026-05-08 09:00:00"
+    },
+    {
+      "userId": "G4-C8-N22",
+      "titleId": "quiz_school_newbie",
+      "titleName": "퀴즈학교 신입",
+      "theme": "general",
+      "tier": 1,
+      "effect": "",
+      "sourceType": "badgeFields",
+      "sourceCategory": "공통",
+      "sourceGroup": "badgeFields",
+      "acquiredAt": "2026-05-10 09:00:00",
+      "updatedAt": "2026-05-10 09:00:00"
+    },
+    {
+      "userId": "G5-C2-N07",
+      "titleId": "math_muldiv_master",
+      "titleName": "곱셈과 나눗셈 마스터",
+      "theme": "math",
+      "tier": 5,
+      "effect": "title-effect-neon",
+      "sourceType": "practiceStars",
+      "sourceCategory": "수학",
+      "sourceGroup": "곱셈과 나눗셈",
+      "acquiredAt": "2026-05-15 09:00:00",
+      "updatedAt": "2026-05-15 09:00:00"
+    }
+  ]
+}

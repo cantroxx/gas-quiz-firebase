@@ -69,6 +69,7 @@ service-account.json
 # Local private member migration data
 member-export.json
 member-export.csv
+title-export.json
 exports/
 private/
 
