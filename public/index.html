@@ -201,6 +201,14 @@
           </div>
           <div id="badge-card-grid" class="collection-grid"></div>
         </section>
+
+        <section class="collection-panel" aria-labelledby="owned-item-heading">
+          <div class="collection-heading">
+            <p class="eyebrow">Room Items</p>
+            <h3 id="owned-item-heading">보유 꾸미기 아이템</h3>
+          </div>
+          <div id="owned-item-grid" class="collection-grid"></div>
+        </section>
       </div>
     </section>
 
@@ -1232,6 +1240,8 @@
       renderProfileCard();
       renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
       renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
+      renderHomeOwnedItemsFallback();
+      renderHomeOwnedItemsFromFirestore();
     }
 
     function renderProfileCard() {
@@ -1301,6 +1311,100 @@
         desc.textContent = item.desc;
 
         card.append(icon, title, desc);
+        root.appendChild(card);
+      });
+    }
+
+    function renderHomeOwnedItemsFallback() {
+      const root = document.getElementById('owned-item-grid');
+      if(!root) return;
+
+      root.innerHTML = '';
+      const card = document.createElement('article');
+      const icon = document.createElement('span');
+      const title = document.createElement('h4');
+      const desc = document.createElement('p');
+
+      card.className = 'collection-card';
+      icon.className = 'collection-icon';
+      icon.textContent = '🛍️';
+      title.textContent = '보유 아이템 확인 중';
+      desc.textContent = '상점에서 구매한 꾸미기 아이템만 이곳에 표시됩니다.';
+
+      card.append(icon, title, desc);
+      root.appendChild(card);
+    }
+
+    async function renderHomeOwnedItemsFromFirestore() {
+      const root = document.getElementById('owned-item-grid');
+      if(!root) return;
+
+      try {
+        const [items, assetCatalogMap, inventoryItemIds] = await Promise.all([
+          getShopItemsForRender(),
+          getAssetCatalogMap(),
+          getInventoryItemIdsForRender()
+        ]);
+        const ownedItems = items.filter(item => inventoryItemIds.has(item.itemId));
+        renderHomeOwnedItems(ownedItems, assetCatalogMap);
+      } catch(error) {
+        console.warn('Home inventory read failed. Keeping owned item fallback.', error);
+        renderHomeOwnedItems([], {});
+      }
+    }
+
+    function renderHomeOwnedItems(items, assetCatalogMap = {}) {
+      const root = document.getElementById('owned-item-grid');
+      if(!root) return;
+
+      root.innerHTML = '';
+
+      if(!items.length) {
+        const emptyCard = document.createElement('article');
+        const icon = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+
+        emptyCard.className = 'collection-card';
+        icon.className = 'collection-icon';
+        icon.textContent = '🛒';
+        title.textContent = '아직 보유한 꾸미기 아이템이 없어요';
+        desc.textContent = '상점에서 구매한 아이템이 생기면 이곳에서 선택 후보로 표시됩니다.';
+        emptyCard.append(icon, title, desc);
+        root.appendChild(emptyCard);
+        return;
+      }
+
+      items.forEach(item => {
+        const visual = resolveShopItemVisual(item, assetCatalogMap);
+        const card = document.createElement('article');
+        const icon = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        const state = document.createElement('p');
+
+        card.className = 'collection-card';
+        icon.className = 'collection-icon';
+        if(visual.imageUrl) {
+          const image = document.createElement('img');
+          image.src = visual.imageUrl;
+          image.alt = visual.alt;
+          image.loading = 'lazy';
+          image.style.width = '100%';
+          image.style.height = '100%';
+          image.style.objectFit = 'contain';
+          image.addEventListener('error', () => {
+            icon.textContent = visual.fallbackIcon;
+          }, { once: true });
+          icon.appendChild(image);
+        } else {
+          icon.textContent = visual.fallbackIcon;
+        }
+        title.textContent = item.name;
+        desc.textContent = item.desc;
+        state.textContent = '선택 가능';
+
+        card.append(icon, title, desc, state);
         root.appendChild(card);
       });
     }
