@@ -197,6 +197,18 @@
 - 보유 아이템 선택 시 카테고리별 필드에 저장
 - Auth 실패 시 `userRoomSettings/test_user` fallback 사용
 
+### `users`
+
+- 운영본 GAS `회원정보`에서 Firebase migration export JSON 생성 완료
+- Firestore `users` 컬렉션 import 완료
+- 총 148명 import 완료: 학생 146명, 관리자 2명
+- 상태: active 147명, inactive 1명
+- 문서 경로: `users/{userId}`
+- 주요 필드: `userId`, `legacyMemberId`, `school`, `grade`, `classNumber`, `studentNumber`, `nickname`, `role`, `status`, `active`, `passwordMode`, `initialPasswordChanged`, `profileImageUrl`, `selectedTitleId`, `rankingMessage`, `createdAt`, `updatedAt`, `migratedAt`
+- 비밀번호, 평문 password, password hash는 import하지 않음
+- 입력에 `authUid`가 없으면 기존 `users/{userId}.authUid`를 덮어쓰지 않는 정책 적용
+- 운영본 `gas-quiz`는 계속 유지하며, Firebase 실험본은 새 사이트 전환 준비용으로 분리 유지
+
 ### `USER_REWARD_DATA`
 
 - 보유 코인/경험치와 퀴즈 완료 보상 표시용 정적 데이터
@@ -238,12 +250,12 @@
 
 - Storage
 - GAS `getQuizData`
-- 운영본 회원 시스템과 Auth 사용자 매핑
+- 운영본 회원 시스템과 Auth `uid` 사용자 매핑
 - 실제 랭킹
 - 운영 수준 Firestore 보안 규칙
 - 서버 검증 기반 구매 처리
 - Firebase Storage 실제 이미지
-- 운영본 데이터
+- 운영본 문제/랭킹/기록 데이터
 
 현재 연결된 것:
 
@@ -256,6 +268,7 @@
 - Firestore `userInventory/{uid}/items`
 - Firestore `purchaseLogs`
 - Firestore `userRoomSettings/{uid}`
+- Firestore `users` 운영본 회원 148명 import
 - Auth 실패 시 개발용 `test_user` fallback
 
 ## 7. 실제 Firebase Console 기준 테스트 결과
@@ -271,6 +284,12 @@
 - 실제 Firebase Console에서 `userRoomSettings` 문서 확인 완료
 - 실제 Firebase Console에서 `purchaseLogs` 문서 확인 완료
 - 실제 Firebase Console 기준 `shopItems`와 `assetCatalog` 표시 정상 확인 완료
+- 운영본 GAS 회원 export/import 완료
+- Firestore `users` 컬렉션에 148명 저장 확인 완료
+- `users` role 집계 확인 완료: student 146명, admin 2명
+- `users` status 집계 확인 완료: active 147명, inactive 1명
+- `users` 문서에 비밀번호 계열 필드가 없는 것 확인 완료
+- `users` 문서의 `authUid` 매핑은 아직 다음 단계
 
 현재 주요 기능 루프:
 
@@ -285,7 +304,7 @@
 주의:
 
 - 위 연결은 Firebase Auth 익명 사용자 기반 프로토타입이다.
-- 운영본 회원 시스템, 학급 사용자, 실제 학생 계정과는 아직 매핑하지 않았다.
+- 운영본 회원 148명은 `users` 컬렉션에 import했지만, Firebase Auth `uid`와 아직 매핑하지 않았다.
 - Firestore 보안 규칙은 운영 수준으로 정리하기 전이다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
 - push/deploy 전 최종 검증이 필요하다.
@@ -324,4 +343,6 @@
 - 이 문서는 Firebase 실험본 `~/Projects/gas-quiz-firebase` 기준이다.
 - 운영본 `~/Projects/gas-quiz`와 혼동하지 말 것.
 - 운영본 파일, GAS 배포, 운영 데이터는 이 프로토타입 작업 중 수정하지 않는다.
-- Firebase 실험본은 일부 Firestore 프로토타입 데이터와 연결되어 있지만, 실제 로그인 사용자나 운영본 데이터와 연결되어 있지 않다.
+- 운영본 `gas-quiz`는 계속 유지한다.
+- `gas-quiz-firebase`는 새 사이트 전환 준비용으로 별도 검증 중이다.
+- Firebase 실험본은 운영본 회원 `users` 컬렉션 import까지 완료했지만, 실제 로그인 사용자 매핑과 운영본 문제/랭킹/기록 데이터 연결은 아직 전이다.
