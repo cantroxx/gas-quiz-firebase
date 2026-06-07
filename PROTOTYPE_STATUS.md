@@ -258,6 +258,30 @@
 - Firestore `userRoomSettings/{uid}`
 - Auth 실패 시 개발용 `test_user` fallback
 
+## 7. 실제 Firebase Console 기준 테스트 결과
+
+확인 완료:
+
+- 로컬 Hosting Emulator는 화면만 로컬에서 실행한다.
+- 현재 구조에서는 Firestore Emulator가 아니라 실제 Firebase 프로젝트의 Firestore/Auth를 사용한다.
+- Firestore Emulator UI가 비어 있어도 현재 연결 구조에서는 정상일 수 있다.
+- 실제 Firebase Console에서 Auth `uid` 생성 확인 완료
+- 실제 Firebase Console에서 `userEconomy` 문서 확인 완료
+- 실제 Firebase Console에서 `userInventory` 문서 확인 완료
+- 실제 Firebase Console에서 `userRoomSettings` 문서 확인 완료
+- 실제 Firebase Console에서 `purchaseLogs` 문서 확인 완료
+- 실제 Firebase Console 기준 `shopItems`와 `assetCatalog` 표시 정상 확인 완료
+
+현재 주요 기능 루프:
+
+1. Firebase Auth 익명 로그인으로 `uid` 생성
+2. `userEconomy/{uid}` 기본 경제 문서 초기화
+3. 상점에서 `shopItems`와 `assetCatalog` 기반 아이템 표시
+4. 상점 구매 transaction 실행
+5. `userInventory/{uid}/items`에 구매 아이템 저장
+6. 내 집에서 보유 아이템 표시
+7. 내 집 적용 선택을 `userRoomSettings/{uid}`에 저장
+
 주의:
 
 - 위 연결은 Firebase Auth 익명 사용자 기반 프로토타입이다.
@@ -265,15 +289,16 @@
 - Firestore 보안 규칙은 운영 수준으로 정리하기 전이다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
 - push/deploy 전 최종 검증이 필요하다.
+- Firestore Emulator까지 함께 검증하려면 별도의 Emulator 연결 코드와 seed/import 데이터가 필요하다.
 
-## 7. 다음 작업 추천 순서
+## 8. 다음 작업 추천 순서
 
 1. 운영본 회원 시스템과 Auth 사용자 매핑
    - 익명 Auth `uid`를 운영본 학생/학급 사용자와 어떻게 연결할지 결정
    - 기존 익명 사용자 데이터를 실제 사용자 데이터로 승계할지 검토
    - `userEconomy`, `userInventory`, `userRoomSettings`의 사용자 식별 정책 확정
 
-2. Firestore 보안 규칙 정리
+2. Firestore 보안 규칙 실제 적용 전 최종 점검
    - `shopItems`, `assetCatalog` 읽기 권한
    - `userEconomy`, `userInventory`, `userRoomSettings` 본인 읽기/쓰기 제한
    - 구매 transaction의 클라이언트 직접 쓰기 유지 여부 검토
@@ -283,7 +308,7 @@
    - 상점과 내 집 카드에서 이미지 표시 확인
    - 이미지 실패 시 fallback icon 유지 확인
 
-4. 배포 전 최종 테스트
+4. Firebase Hosting 배포 테스트
    - 타운/학교/퀴즈/상점/내 집/이벤트 흐름 점검
    - 구매 후 내 집 적용 상태 유지 확인
    - 모바일/데스크톱 레이아웃 확인
@@ -294,7 +319,7 @@
    - `QUIZ_CATALOG`와 운영본 quizId 매핑
    - `QUESTION_BANK` 대체 또는 병행 전략 결정
 
-## 8. 운영본 주의사항
+## 9. 운영본 주의사항
 
 - 이 문서는 Firebase 실험본 `~/Projects/gas-quiz-firebase` 기준이다.
 - 운영본 `~/Projects/gas-quiz`와 혼동하지 말 것.
