@@ -10,8 +10,65 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isLinkedMember(userId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.authUid == request.auth.uid;
+    }
+
+    function canAccessUserScopedData(userId) {
+      return isOwner(userId) || isLinkedMember(userId);
+    }
+
     function isAdmin() {
       return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function hasNoForbiddenUserFields(data) {
+      return !data.keys().hasAny([
+        'password',
+        'plainPassword',
+        'passwordHash',
+        'passwordSalt'
+      ]);
+    }
+
+    function isActiveStudentUser() {
+      return resource.data.role == 'student'
+        && resource.data.status == 'active'
+        && resource.data.active == true;
+    }
+
+    function isUnlinkedOrSameAuthUser() {
+      return !resource.data.keys().hasAny(['authUid'])
+        || resource.data.authUid == null
+        || resource.data.authUid == ''
+        || resource.data.authUid == request.auth.uid;
+    }
+
+    function canReadUserDocument() {
+      return isSignedIn()
+        && hasNoForbiddenUserFields(resource.data)
+        && (
+          isAdmin()
+          || resource.data.authUid == request.auth.uid
+          || isActiveStudentUser()
+        );
+    }
+
+    function canLinkUserAuthUid() {
+      return isSignedIn()
+        && isActiveStudentUser()
+        && isUnlinkedOrSameAuthUser()
+        && request.resource.data.authUid == request.auth.uid
+        && hasNoForbiddenUserFields(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'authUid',
+          'authLinkedAt',
+          'authLinkProvider',
+          'authLinkVersion',
+          'updatedAt'
+        ]);
     }
 
     match /shopItems/{itemId} {
@@ -24,22 +81,31 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /users/{userId} {
+      allow get: if canReadUserDocument();
+      allow list: if isSignedIn()
+        && hasNoForbiddenUserFields(resource.data)
+        && resource.data.authUid == request.auth.uid;
+      allow update: if isAdmin() || canLinkUserAuthUid();
+      allow create, delete: if isAdmin();
+    }
+
     match /userEconomy/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if canAccessUserScopedData(userId);
     }
 
     match /userInventory/{userId}/{document=**} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if canAccessUserScopedData(userId);
     }
 
     match /userRoomSettings/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if canAccessUserScopedData(userId);
     }
 
     match /purchaseLogs/{logId} {
       allow read: if false;
       allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
+        && canAccessUserScopedData(request.resource.data.userId);
       allow update, delete: if false;
     }
 
