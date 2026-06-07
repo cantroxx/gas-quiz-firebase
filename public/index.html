@@ -369,6 +369,7 @@
   </div>
 
   <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script>
@@ -662,6 +663,10 @@
     let inventoryLoadPromise = null;
     let firestoreRoomSettings = null;
     let roomSettingsLoadPromise = null;
+    let firebaseAuthUser = null;
+    let firebaseAuthInitPromise = null;
+    let lastResolvedUserId = null;
+    let authStateListenerAttached = false;
 
     const QUEST_DATA = [
       {
@@ -1449,8 +1454,20 @@
       return window.firebase.firestore();
     }
 
+    function getFirebaseAuth() {
+      if(!window.firebase?.apps?.length || !window.firebase.auth) return null;
+      return window.firebase.auth();
+    }
+
+    function getFirebaseAuthUser() {
+      const auth = getFirebaseAuth();
+      return auth?.currentUser || firebaseAuthUser;
+    }
+
     function getCurrentUserId() {
-      // Later this can read window.firebase.auth().currentUser or the app login state.
+      const authUser = getFirebaseAuthUser();
+      if(authUser?.uid) return authUser.uid;
+      // Later this can also read an app-level classroom login state.
       return TEST_SHOP_USER_ID;
     }
 
@@ -1467,6 +1484,55 @@
     function resetUserScopedRuntimeData() {
       resetShopRuntimeData();
       resetRoomSettingsCache();
+    }
+
+    function handleResolvedUserChange(nextUserId) {
+      if(lastResolvedUserId && lastResolvedUserId !== nextUserId) {
+        resetUserScopedRuntimeData();
+      }
+      lastResolvedUserId = nextUserId;
+    }
+
+    async function signInAnonymouslyIfNeeded() {
+      const auth = getFirebaseAuth();
+      if(!auth) return null;
+      if(auth.currentUser) return auth.currentUser;
+
+      const credential = await auth.signInAnonymously();
+      return credential.user || auth.currentUser;
+    }
+
+    function initializeAuthUser() {
+      if(firebaseAuthInitPromise) return firebaseAuthInitPromise;
+
+      const auth = getFirebaseAuth();
+      if(!auth) {
+        handleResolvedUserChange(TEST_SHOP_USER_ID);
+        firebaseAuthInitPromise = Promise.resolve(null);
+        return firebaseAuthInitPromise;
+      }
+
+      if(!authStateListenerAttached) {
+        auth.onAuthStateChanged(user => {
+          firebaseAuthUser = user;
+          handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
+        });
+        authStateListenerAttached = true;
+      }
+
+      firebaseAuthInitPromise = signInAnonymouslyIfNeeded()
+        .then(user => {
+          firebaseAuthUser = user;
+          handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
+          return user;
+        })
+        .catch(error => {
+          console.warn('Firebase anonymous auth failed. Using test user fallback.', error);
+          handleResolvedUserChange(TEST_SHOP_USER_ID);
+          return null;
+        });
+
+      return firebaseAuthInitPromise;
     }
 
     function getShopFallbackIcon(itemId, category) {
@@ -1666,7 +1732,7 @@
           .then(economy => {
             firestoreUserEconomy = economy || {
               userId: getCurrentUserId() || '',
-              djCoin: USER_REWARD_DATA.coin,
+              djCoin: 0,
               totalEarned: 0,
               totalSpent: 0
             };
@@ -1676,7 +1742,7 @@
             console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
             return {
               userId: getCurrentUserId() || '',
-              djCoin: USER_REWARD_DATA.coin,
+              djCoin: isUsingTestUserFallback() ? USER_REWARD_DATA.coin : 0,
               totalEarned: 0,
               totalSpent: 0
             };
@@ -2414,6 +2480,7 @@
     function showHomeView() {
       closePlaceModal();
       renderHomeView();
+      initializeAuthUser().then(renderHomeView);
       updatePlaceInfo(PLACE_DETAILS.home);
       updatePlayerLocation(PLACE_DETAILS.home);
       document.getElementById('ranking-view').hidden = true;
@@ -2462,7 +2529,7 @@
       document.getElementById('shop-view').hidden = false;
       document.getElementById('shop-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-      renderShopFromFirestore();
+      initializeAuthUser().then(renderShopFromFirestore);
     }
 
     function showEventView() {
@@ -2625,6 +2692,8 @@
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();
     });
+
+    initializeAuthUser();
   </script>
 </body>
 </html>
