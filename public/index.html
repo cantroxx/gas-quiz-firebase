@@ -1601,6 +1601,20 @@
       };
     }
 
+    function getInitialUserEconomy(userId) {
+      const fieldValue = getFirestoreFieldValue();
+      const now = fieldValue.serverTimestamp();
+      return {
+        userId,
+        djCoin: 1000,
+        totalEarned: 1000,
+        totalSpent: 0,
+        createdAt: now,
+        updatedAt: now,
+        source: 'initial_grant'
+      };
+    }
+
     function getDefaultRoomSettings() {
       const userId = getCurrentUserId() || '';
       return {
@@ -1725,12 +1739,32 @@
       return normalizeUserEconomyFromFirestore(snapshot);
     }
 
+    async function ensureUserEconomyInitialized(userId) {
+      if(!userId || isUsingTestUserFallback()) return null;
+
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      const ref = db.collection('userEconomy').doc(userId);
+      const snapshot = await ref.get();
+      if(snapshot.exists) return normalizeUserEconomyFromFirestore(snapshot);
+
+      const initialEconomy = getInitialUserEconomy(userId);
+      await ref.set(initialEconomy, { merge: false });
+      return {
+        userId,
+        djCoin: initialEconomy.djCoin,
+        totalEarned: initialEconomy.totalEarned,
+        totalSpent: initialEconomy.totalSpent
+      };
+    }
+
     async function getUserEconomyForRender() {
       if(firestoreUserEconomy) return firestoreUserEconomy;
       if(!userEconomyLoadPromise) {
         userEconomyLoadPromise = loadUserEconomyFromFirestore()
-          .then(economy => {
-            firestoreUserEconomy = economy || {
+          .then(async economy => {
+            firestoreUserEconomy = economy || await ensureUserEconomyInitialized(getCurrentUserId()) || {
               userId: getCurrentUserId() || '',
               djCoin: 0,
               totalEarned: 0,
