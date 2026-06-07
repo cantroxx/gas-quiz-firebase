@@ -660,6 +660,8 @@
     let userEconomyLoadPromise = null;
     let firestoreInventoryItemIds = null;
     let inventoryLoadPromise = null;
+    let firestoreRoomSettings = null;
+    let roomSettingsLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -1340,20 +1342,21 @@
       if(!root) return;
 
       try {
-        const [items, assetCatalogMap, inventoryItemIds] = await Promise.all([
+        const [items, assetCatalogMap, inventoryItemIds, roomSettings] = await Promise.all([
           getShopItemsForRender(),
           getAssetCatalogMap(),
-          getInventoryItemIdsForRender()
+          getInventoryItemIdsForRender(),
+          getRoomSettingsForRender()
         ]);
         const ownedItems = items.filter(item => inventoryItemIds.has(item.itemId));
-        renderHomeOwnedItems(ownedItems, assetCatalogMap);
+        renderHomeOwnedItems(ownedItems, assetCatalogMap, roomSettings);
       } catch(error) {
         console.warn('Home inventory read failed. Keeping owned item fallback.', error);
         renderHomeOwnedItems([], {});
       }
     }
 
-    function renderHomeOwnedItems(items, assetCatalogMap = {}) {
+    function renderHomeOwnedItems(items, assetCatalogMap = {}, roomSettings = getDefaultRoomSettings()) {
       const root = document.getElementById('owned-item-grid');
       if(!root) return;
 
@@ -1377,6 +1380,7 @@
 
       items.forEach(item => {
         const visual = resolveShopItemVisual(item, assetCatalogMap);
+        const isSelected = isRoomItemSelected(item, roomSettings);
         const card = document.createElement('article');
         const icon = document.createElement('span');
         const title = document.createElement('h4');
@@ -1384,6 +1388,10 @@
         const state = document.createElement('p');
 
         card.className = 'collection-card';
+        card.dataset.roomItemId = item.itemId;
+        card.role = 'button';
+        card.tabIndex = 0;
+        card.setAttribute('aria-pressed', String(isSelected));
         icon.className = 'collection-icon';
         if(visual.imageUrl) {
           const image = document.createElement('img');
@@ -1402,7 +1410,7 @@
         }
         title.textContent = item.name;
         desc.textContent = item.desc;
-        state.textContent = '선택 가능';
+        state.textContent = isSelected ? '적용중' : '선택 가능';
 
         card.append(icon, title, desc, state);
         root.appendChild(card);
@@ -1507,6 +1515,48 @@
       };
     }
 
+    function getDefaultRoomSettings() {
+      return {
+        userId: TEST_SHOP_USER_ID,
+        selectedBackgroundItemId: '',
+        selectedAvatarItemId: '',
+        selectedDecorItemIds: [],
+        selectedTitleFrameItemId: ''
+      };
+    }
+
+    function normalizeRoomSettingsFromFirestore(doc) {
+      if(!doc.exists) return getDefaultRoomSettings();
+      const data = doc.data();
+      return {
+        userId: data.userId || TEST_SHOP_USER_ID,
+        selectedBackgroundItemId: data.selectedBackgroundItemId || '',
+        selectedAvatarItemId: data.selectedAvatarItemId || '',
+        selectedDecorItemIds: Array.isArray(data.selectedDecorItemIds) ? data.selectedDecorItemIds : [],
+        selectedTitleFrameItemId: data.selectedTitleFrameItemId || ''
+      };
+    }
+
+    function getRoomItemCategory(item) {
+      const category = item.rawCategory || item.category;
+      const categoryMap = {
+        '배경': 'background',
+        '아바타': 'avatar',
+        '방 장식': 'roomDecor',
+        '칭호 프레임': 'titleFrame'
+      };
+      return categoryMap[category] || category;
+    }
+
+    function isRoomItemSelected(item, roomSettings = getDefaultRoomSettings()) {
+      const category = getRoomItemCategory(item);
+      if(category === 'background') return roomSettings.selectedBackgroundItemId === item.itemId;
+      if(category === 'avatar') return roomSettings.selectedAvatarItemId === item.itemId;
+      if(category === 'roomDecor') return roomSettings.selectedDecorItemIds.includes(item.itemId);
+      if(category === 'titleFrame') return roomSettings.selectedTitleFrameItemId === item.itemId;
+      return false;
+    }
+
     async function loadShopItemsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
@@ -1544,6 +1594,11 @@
       userEconomyLoadPromise = null;
       firestoreInventoryItemIds = null;
       inventoryLoadPromise = null;
+    }
+
+    function resetRoomSettingsCache() {
+      firestoreRoomSettings = null;
+      roomSettingsLoadPromise = null;
     }
 
     async function loadAssetCatalogFromFirestore() {
@@ -1630,6 +1685,30 @@
           });
       }
       return inventoryLoadPromise;
+    }
+
+    async function loadRoomSettingsFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      const snapshot = await db.collection('userRoomSettings').doc(TEST_SHOP_USER_ID).get();
+      return normalizeRoomSettingsFromFirestore(snapshot);
+    }
+
+    async function getRoomSettingsForRender() {
+      if(firestoreRoomSettings) return firestoreRoomSettings;
+      if(!roomSettingsLoadPromise) {
+        roomSettingsLoadPromise = loadRoomSettingsFromFirestore()
+          .then(settings => {
+            firestoreRoomSettings = settings;
+            return settings;
+          })
+          .catch(error => {
+            console.warn('Firestore userRoomSettings read failed. Using empty room settings.', error);
+            return getDefaultRoomSettings();
+          });
+      }
+      return roomSettingsLoadPromise;
     }
 
     async function getShopRenderData() {
@@ -1850,6 +1929,67 @@
       const { items, assetCatalogMap, economy, inventoryItemIds } = await getShopRenderData();
       renderShopWallet(economy);
       renderShopItems(items, assetCatalogMap, economy, inventoryItemIds);
+    }
+
+    async function saveRoomItemSelection(itemId) {
+      const db = getFirestoreDb();
+      if(!db) {
+        showShopPurchaseMessage('내 집 설정을 저장할 수 없어요.');
+        return;
+      }
+
+      try {
+        const itemRef = db.collection('shopItems').doc(itemId);
+        const inventoryRef = db.collection('userInventory').doc(TEST_SHOP_USER_ID).collection('items').doc(itemId);
+        const settingsRef = db.collection('userRoomSettings').doc(TEST_SHOP_USER_ID);
+        const [itemSnapshot, inventorySnapshot, settingsSnapshot] = await Promise.all([
+          itemRef.get(),
+          inventoryRef.get(),
+          settingsRef.get()
+        ]);
+
+        if(!itemSnapshot.exists) throw new Error('item-not-found');
+        if(!inventorySnapshot.exists) throw new Error('not-owned');
+
+        const item = normalizeShopItemFromFirestore(itemSnapshot);
+        const category = getRoomItemCategory(item);
+        const currentSettings = normalizeRoomSettingsFromFirestore(settingsSnapshot);
+        const fieldValue = getFirestoreFieldValue();
+        const updateData = {
+          userId: TEST_SHOP_USER_ID,
+          updatedAt: fieldValue.serverTimestamp()
+        };
+
+        if(category === 'background') {
+          updateData.selectedBackgroundItemId = itemId;
+        } else if(category === 'avatar') {
+          updateData.selectedAvatarItemId = itemId;
+        } else if(category === 'roomDecor') {
+          const decorSet = new Set(currentSettings.selectedDecorItemIds);
+          if(decorSet.has(itemId)) {
+            decorSet.delete(itemId);
+          } else {
+            decorSet.add(itemId);
+          }
+          updateData.selectedDecorItemIds = Array.from(decorSet);
+        } else if(category === 'titleFrame') {
+          updateData.selectedTitleFrameItemId = itemId;
+        } else {
+          throw new Error('unsupported-category');
+        }
+
+        await settingsRef.set(updateData, { merge: true });
+        resetRoomSettingsCache();
+        await renderHomeOwnedItemsFromFirestore();
+      } catch(error) {
+        const messages = {
+          'item-not-found': '아이템 정보를 찾을 수 없어요.',
+          'not-owned': '보유한 아이템만 내 집에 적용할 수 있어요.',
+          'unsupported-category': '아직 내 집에 적용할 수 없는 아이템 종류예요.'
+        };
+        console.warn('Room item save failed.', error);
+        showShopPurchaseMessage(messages[error.message] || '내 집 설정 저장 중 문제가 생겼어요.');
+      }
     }
 
     function renderQuestCards() {
@@ -2436,6 +2576,20 @@
       const button = event.target.closest('[data-shop-item-id]');
       if(!button || button.disabled) return;
       purchaseShopItem(button.dataset.shopItemId);
+    });
+
+    document.getElementById('owned-item-grid').addEventListener('click', event => {
+      const card = event.target.closest('[data-room-item-id]');
+      if(!card) return;
+      saveRoomItemSelection(card.dataset.roomItemId);
+    });
+
+    document.getElementById('owned-item-grid').addEventListener('keydown', event => {
+      if(event.key !== 'Enter' && event.key !== ' ') return;
+      const card = event.target.closest('[data-room-item-id]');
+      if(!card) return;
+      event.preventDefault();
+      saveRoomItemSelection(card.dataset.roomItemId);
     });
 
     document.addEventListener('keydown', event => {
