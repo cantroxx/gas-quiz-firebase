@@ -642,10 +642,16 @@
       titleFrame: '🟨'
     };
 
+    const TEST_SHOP_USER_ID = 'test_user';
+
     let firestoreShopItems = null;
     let shopItemsLoadPromise = null;
     let firestoreAssetCatalogMap = null;
     let assetCatalogLoadPromise = null;
+    let firestoreUserEconomy = null;
+    let userEconomyLoadPromise = null;
+    let firestoreInventoryItemIds = null;
+    let inventoryLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -1382,6 +1388,21 @@
       };
     }
 
+    function normalizeUserEconomyFromFirestore(doc) {
+      if(!doc.exists) return null;
+      const data = doc.data();
+      const djCoin = Number(data.djCoin ?? data.coin);
+      const totalEarned = Number(data.totalEarned ?? data.lifetimeEarnedCoin);
+      const totalSpent = Number(data.totalSpent ?? data.lifetimeSpentCoin);
+
+      return {
+        userId: data.userId || doc.id,
+        djCoin: Number.isFinite(djCoin) ? djCoin : USER_REWARD_DATA.coin,
+        totalEarned: Number.isFinite(totalEarned) ? totalEarned : 0,
+        totalSpent: Number.isFinite(totalSpent) ? totalSpent : 0
+      };
+    }
+
     async function loadShopItemsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
@@ -1408,6 +1429,17 @@
           });
       }
       return shopItemsLoadPromise;
+    }
+
+    function resetShopRuntimeData() {
+      firestoreShopItems = null;
+      shopItemsLoadPromise = null;
+      firestoreAssetCatalogMap = null;
+      assetCatalogLoadPromise = null;
+      firestoreUserEconomy = null;
+      userEconomyLoadPromise = null;
+      firestoreInventoryItemIds = null;
+      inventoryLoadPromise = null;
     }
 
     async function loadAssetCatalogFromFirestore() {
@@ -1438,13 +1470,73 @@
       return assetCatalogLoadPromise;
     }
 
-    async function getShopItemsAndAssetsForRender() {
-      const [items, assetCatalogMap] = await Promise.all([
+    async function loadUserEconomyFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      const snapshot = await db.collection('userEconomy').doc(TEST_SHOP_USER_ID).get();
+      return normalizeUserEconomyFromFirestore(snapshot);
+    }
+
+    async function getUserEconomyForRender() {
+      if(firestoreUserEconomy) return firestoreUserEconomy;
+      if(!userEconomyLoadPromise) {
+        userEconomyLoadPromise = loadUserEconomyFromFirestore()
+          .then(economy => {
+            firestoreUserEconomy = economy || {
+              userId: TEST_SHOP_USER_ID,
+              djCoin: USER_REWARD_DATA.coin,
+              totalEarned: 0,
+              totalSpent: 0
+            };
+            return firestoreUserEconomy;
+          })
+          .catch(error => {
+            console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
+            return {
+              userId: TEST_SHOP_USER_ID,
+              djCoin: USER_REWARD_DATA.coin,
+              totalEarned: 0,
+              totalSpent: 0
+            };
+          });
+      }
+      return userEconomyLoadPromise;
+    }
+
+    async function loadInventoryItemIdsFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      const snapshot = await db.collection('userInventory').doc(TEST_SHOP_USER_ID).collection('items').get();
+      return new Set(snapshot.docs.map(doc => doc.id));
+    }
+
+    async function getInventoryItemIdsForRender() {
+      if(firestoreInventoryItemIds) return firestoreInventoryItemIds;
+      if(!inventoryLoadPromise) {
+        inventoryLoadPromise = loadInventoryItemIdsFromFirestore()
+          .then(itemIds => {
+            firestoreInventoryItemIds = itemIds;
+            return itemIds;
+          })
+          .catch(error => {
+            console.warn('Firestore userInventory read failed. Treating inventory as empty.', error);
+            return new Set();
+          });
+      }
+      return inventoryLoadPromise;
+    }
+
+    async function getShopRenderData() {
+      const [items, assetCatalogMap, economy, inventoryItemIds] = await Promise.all([
         getShopItemsForRender(),
-        getAssetCatalogMap()
+        getAssetCatalogMap(),
+        getUserEconomyForRender(),
+        getInventoryItemIdsForRender()
       ]);
 
-      return { items, assetCatalogMap };
+      return { items, assetCatalogMap, economy, inventoryItemIds };
     }
 
     function resolveShopItemVisual(item, assetCatalogMap = {}) {
@@ -1464,31 +1556,52 @@
       };
     }
 
-    function getShopItemState(item) {
-      return USER_REWARD_DATA.coin >= item.price
-        ? { label: '살 수 있음', className: 'shop-state-ready' }
-        : { label: '코인 부족', className: 'shop-state-short' };
+    function getShopItemState(item, economy = null, inventoryItemIds = new Set()) {
+      if(inventoryItemIds.has(item.itemId)) {
+        return {
+          label: '보유중',
+          buttonLabel: '보유중',
+          className: 'shop-state-ready',
+          disabled: true
+        };
+      }
+
+      const currentCoin = economy?.djCoin ?? USER_REWARD_DATA.coin;
+      return currentCoin >= item.price
+        ? {
+          label: '구매 가능',
+          buttonLabel: '구매하기',
+          className: 'shop-state-ready',
+          disabled: false
+        }
+        : {
+          label: '코인 부족',
+          buttonLabel: '코인 부족',
+          className: 'shop-state-short',
+          disabled: true
+        };
     }
 
-    function renderShopWallet() {
+    function renderShopWallet(economy = null) {
       const root = document.getElementById('shop-wallet');
       const coin = document.createElement('strong');
       const daily = document.createElement('strong');
       const note = document.createElement('span');
+      const currentCoin = economy?.djCoin ?? USER_REWARD_DATA.coin;
 
       root.innerHTML = '';
-      coin.textContent = `내 DJ코인 ${USER_REWARD_DATA.coin}`;
+      coin.textContent = `내 DJ코인 ${currentCoin}`;
       daily.className = 'shop-wallet-daily';
       daily.textContent = `오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인`;
-      note.textContent = '구매와 차감은 아직 저장하지 않는 프로토타입 표시용입니다.';
+      note.textContent = `테스트 사용자 ${TEST_SHOP_USER_ID} 기준 구매 프로토타입입니다.`;
       root.append(coin, daily, note);
     }
 
-    function renderShopItems(items = SHOP_ITEMS, assetCatalogMap = {}) {
+    function renderShopItems(items = SHOP_ITEMS, assetCatalogMap = {}, economy = null, inventoryItemIds = new Set()) {
       const grid = document.getElementById('shop-item-grid');
       grid.innerHTML = '';
       items.forEach(item => {
-        const state = getShopItemState(item);
+        const state = getShopItemState(item, economy, inventoryItemIds);
         const visual = resolveShopItemVisual(item, assetCatalogMap);
         const card = document.createElement('article');
         const icon = document.createElement('span');
@@ -1527,12 +1640,112 @@
         stateLabel.textContent = state.label;
         button.className = 'shop-disabled-button';
         button.type = 'button';
-        button.disabled = true;
-        button.textContent = '구매 준비 중';
+        button.disabled = state.disabled;
+        button.textContent = state.buttonLabel || state.label;
+        button.dataset.shopItemId = item.itemId;
 
         card.append(icon, category, title, desc, price, stateLabel, button);
         grid.appendChild(card);
       });
+    }
+
+    function getFirestoreFieldValue() {
+      return window.firebase.firestore.FieldValue;
+    }
+
+    function showShopPurchaseMessage(message) {
+      window.alert(message);
+    }
+
+    async function purchaseShopItem(itemId) {
+      const db = getFirestoreDb();
+      if(!db) {
+        showShopPurchaseMessage('구매 기능을 불러올 수 없어요.');
+        return;
+      }
+
+      try {
+        await db.runTransaction(async transaction => {
+          const itemRef = db.collection('shopItems').doc(itemId);
+          const economyRef = db.collection('userEconomy').doc(TEST_SHOP_USER_ID);
+          const inventoryRef = db.collection('userInventory').doc(TEST_SHOP_USER_ID).collection('items').doc(itemId);
+          const purchaseLogRef = db.collection('purchaseLogs').doc();
+
+          const itemSnapshot = await transaction.get(itemRef);
+          const economySnapshot = await transaction.get(economyRef);
+          const inventorySnapshot = await transaction.get(inventoryRef);
+
+          if(!itemSnapshot.exists) throw new Error('item-not-found');
+          if(!economySnapshot.exists) throw new Error('economy-not-found');
+          if(inventorySnapshot.exists) throw new Error('already-owned');
+
+          const item = itemSnapshot.data();
+          const economy = economySnapshot.data();
+          const price = Number(item.price);
+          const djCoin = Number(economy.djCoin ?? economy.coin);
+
+          if(item.enabled !== true) throw new Error('item-disabled');
+          if(item.priceType && item.priceType !== 'djCoin') throw new Error('unsupported-price-type');
+          if(!Number.isFinite(price) || price < 0) throw new Error('invalid-price');
+          if(!Number.isFinite(djCoin) || djCoin < price) throw new Error('coin-short');
+
+          const fieldValue = getFirestoreFieldValue();
+          const now = fieldValue.serverTimestamp();
+
+          transaction.update(economyRef, {
+            djCoin: djCoin - price,
+            totalSpent: fieldValue.increment(price),
+            updatedAt: now
+          });
+
+          transaction.set(inventoryRef, {
+            userId: TEST_SHOP_USER_ID,
+            itemId,
+            assetId: item.assetId || '',
+            source: 'shopPurchase',
+            pricePaid: price,
+            priceType: 'djCoin',
+            equipped: false,
+            acquiredAt: now,
+            updatedAt: now
+          });
+
+          transaction.set(purchaseLogRef, {
+            logId: purchaseLogRef.id,
+            userId: TEST_SHOP_USER_ID,
+            itemId,
+            assetId: item.assetId || '',
+            coinDelta: -price,
+            pricePaid: price,
+            priceType: 'djCoin',
+            inventoryPath: inventoryRef.path,
+            serverVerified: false,
+            createdAt: now
+          });
+        });
+
+        resetShopRuntimeData();
+        await renderShopFromFirestore();
+        showShopPurchaseMessage('구매가 완료됐어요.');
+      } catch(error) {
+        const messages = {
+          'item-not-found': '아이템 정보를 찾을 수 없어요.',
+          'economy-not-found': '테스트 사용자 지갑 정보를 찾을 수 없어요.',
+          'already-owned': '이미 보유한 아이템이에요.',
+          'item-disabled': '지금은 구매할 수 없는 아이템이에요.',
+          'unsupported-price-type': '지원하지 않는 가격 유형이에요.',
+          'invalid-price': '아이템 가격 정보가 올바르지 않아요.',
+          'coin-short': 'DJ코인이 부족해요.'
+        };
+        console.warn('Shop purchase failed.', error);
+        showShopPurchaseMessage(messages[error.message] || '구매 처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.');
+      }
+    }
+
+    async function renderShopFromFirestore() {
+      const { items, assetCatalogMap, economy, inventoryItemIds } = await getShopRenderData();
+      renderShopWallet(economy);
+      renderShopItems(items, assetCatalogMap, economy, inventoryItemIds);
     }
 
     function renderQuestCards() {
@@ -1961,7 +2174,7 @@
     function showShopView() {
       closePlaceModal();
       renderShopWallet();
-      renderShopItems(SHOP_ITEMS);
+      renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       updatePlaceInfo(PLACE_DETAILS.shop);
       updatePlayerLocation(PLACE_DETAILS.shop);
       document.getElementById('home-view').hidden = true;
@@ -1975,9 +2188,7 @@
       document.getElementById('shop-view').hidden = false;
       document.getElementById('shop-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-      getShopItemsAndAssetsForRender().then(({ items, assetCatalogMap }) => {
-        renderShopItems(items, assetCatalogMap);
-      });
+      renderShopFromFirestore();
     }
 
     function showEventView() {
@@ -2115,6 +2326,12 @@
       if(event.target.dataset.backToQuizSelect) {
         showQuizSelectView(lastQuizId);
       }
+    });
+
+    document.getElementById('shop-item-grid').addEventListener('click', event => {
+      const button = event.target.closest('[data-shop-item-id]');
+      if(!button || button.disabled) return;
+      purchaseShopItem(button.dataset.shopItemId);
     });
 
     document.addEventListener('keydown', event => {
