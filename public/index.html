@@ -1449,6 +1449,26 @@
       return window.firebase.firestore();
     }
 
+    function getCurrentUserId() {
+      // Later this can read window.firebase.auth().currentUser or the app login state.
+      return TEST_SHOP_USER_ID;
+    }
+
+    function requireCurrentUserId() {
+      const userId = getCurrentUserId();
+      if(!userId) throw new Error('login-required');
+      return userId;
+    }
+
+    function isUsingTestUserFallback() {
+      return getCurrentUserId() === TEST_SHOP_USER_ID;
+    }
+
+    function resetUserScopedRuntimeData() {
+      resetShopRuntimeData();
+      resetRoomSettingsCache();
+    }
+
     function getShopFallbackIcon(itemId, category) {
       return SHOP_ICON_FALLBACKS[itemId] || SHOP_ICON_FALLBACKS[category] || '🛍️';
     }
@@ -1516,8 +1536,9 @@
     }
 
     function getDefaultRoomSettings() {
+      const userId = getCurrentUserId() || '';
       return {
-        userId: TEST_SHOP_USER_ID,
+        userId,
         selectedBackgroundItemId: '',
         selectedAvatarItemId: '',
         selectedDecorItemIds: [],
@@ -1529,7 +1550,7 @@
       if(!doc.exists) return getDefaultRoomSettings();
       const data = doc.data();
       return {
-        userId: data.userId || TEST_SHOP_USER_ID,
+        userId: data.userId || getCurrentUserId() || '',
         selectedBackgroundItemId: data.selectedBackgroundItemId || '',
         selectedAvatarItemId: data.selectedAvatarItemId || '',
         selectedDecorItemIds: Array.isArray(data.selectedDecorItemIds) ? data.selectedDecorItemIds : [],
@@ -1632,8 +1653,9 @@
     async function loadUserEconomyFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
+      const userId = requireCurrentUserId();
 
-      const snapshot = await db.collection('userEconomy').doc(TEST_SHOP_USER_ID).get();
+      const snapshot = await db.collection('userEconomy').doc(userId).get();
       return normalizeUserEconomyFromFirestore(snapshot);
     }
 
@@ -1643,7 +1665,7 @@
         userEconomyLoadPromise = loadUserEconomyFromFirestore()
           .then(economy => {
             firestoreUserEconomy = economy || {
-              userId: TEST_SHOP_USER_ID,
+              userId: getCurrentUserId() || '',
               djCoin: USER_REWARD_DATA.coin,
               totalEarned: 0,
               totalSpent: 0
@@ -1653,7 +1675,7 @@
           .catch(error => {
             console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
             return {
-              userId: TEST_SHOP_USER_ID,
+              userId: getCurrentUserId() || '',
               djCoin: USER_REWARD_DATA.coin,
               totalEarned: 0,
               totalSpent: 0
@@ -1666,8 +1688,9 @@
     async function loadInventoryItemIdsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
+      const userId = requireCurrentUserId();
 
-      const snapshot = await db.collection('userInventory').doc(TEST_SHOP_USER_ID).collection('items').get();
+      const snapshot = await db.collection('userInventory').doc(userId).collection('items').get();
       return new Set(snapshot.docs.map(doc => doc.id));
     }
 
@@ -1690,8 +1713,9 @@
     async function loadRoomSettingsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
+      const userId = requireCurrentUserId();
 
-      const snapshot = await db.collection('userRoomSettings').doc(TEST_SHOP_USER_ID).get();
+      const snapshot = await db.collection('userRoomSettings').doc(userId).get();
       return normalizeRoomSettingsFromFirestore(snapshot);
     }
 
@@ -1776,7 +1800,9 @@
       coin.textContent = `내 DJ코인 ${currentCoin}`;
       daily.className = 'shop-wallet-daily';
       daily.textContent = `오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인`;
-      note.textContent = `테스트 사용자 ${TEST_SHOP_USER_ID} 기준 구매 프로토타입입니다.`;
+      note.textContent = isUsingTestUserFallback()
+        ? `테스트 사용자 ${getCurrentUserId()} 기준 구매 프로토타입입니다.`
+        : '로그인 사용자 기준 구매 프로토타입입니다.';
       root.append(coin, daily, note);
     }
 
@@ -1848,10 +1874,11 @@
       }
 
       try {
+        const userId = requireCurrentUserId();
         await db.runTransaction(async transaction => {
           const itemRef = db.collection('shopItems').doc(itemId);
-          const economyRef = db.collection('userEconomy').doc(TEST_SHOP_USER_ID);
-          const inventoryRef = db.collection('userInventory').doc(TEST_SHOP_USER_ID).collection('items').doc(itemId);
+          const economyRef = db.collection('userEconomy').doc(userId);
+          const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
           const purchaseLogRef = db.collection('purchaseLogs').doc();
 
           const itemSnapshot = await transaction.get(itemRef);
@@ -1882,7 +1909,7 @@
           });
 
           transaction.set(inventoryRef, {
-            userId: TEST_SHOP_USER_ID,
+            userId,
             itemId,
             assetId: item.assetId || '',
             source: 'shopPurchase',
@@ -1895,7 +1922,7 @@
 
           transaction.set(purchaseLogRef, {
             logId: purchaseLogRef.id,
-            userId: TEST_SHOP_USER_ID,
+            userId,
             itemId,
             assetId: item.assetId || '',
             coinDelta: -price,
@@ -1912,6 +1939,7 @@
         showShopPurchaseMessage('구매가 완료됐어요.');
       } catch(error) {
         const messages = {
+          'login-required': '로그인 후 구매할 수 있어요.',
           'item-not-found': '아이템 정보를 찾을 수 없어요.',
           'economy-not-found': '테스트 사용자 지갑 정보를 찾을 수 없어요.',
           'already-owned': '이미 보유한 아이템이에요.',
@@ -1939,9 +1967,10 @@
       }
 
       try {
+        const userId = requireCurrentUserId();
         const itemRef = db.collection('shopItems').doc(itemId);
-        const inventoryRef = db.collection('userInventory').doc(TEST_SHOP_USER_ID).collection('items').doc(itemId);
-        const settingsRef = db.collection('userRoomSettings').doc(TEST_SHOP_USER_ID);
+        const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
+        const settingsRef = db.collection('userRoomSettings').doc(userId);
         const [itemSnapshot, inventorySnapshot, settingsSnapshot] = await Promise.all([
           itemRef.get(),
           inventoryRef.get(),
@@ -1956,7 +1985,7 @@
         const currentSettings = normalizeRoomSettingsFromFirestore(settingsSnapshot);
         const fieldValue = getFirestoreFieldValue();
         const updateData = {
-          userId: TEST_SHOP_USER_ID,
+          userId,
           updatedAt: fieldValue.serverTimestamp()
         };
 
@@ -1983,6 +2012,7 @@
         await renderHomeOwnedItemsFromFirestore();
       } catch(error) {
         const messages = {
+          'login-required': '로그인 후 내 집 설정을 저장할 수 있어요.',
           'item-not-found': '아이템 정보를 찾을 수 없어요.',
           'not-owned': '보유한 아이템만 내 집에 적용할 수 있어요.',
           'unsupported-category': '아직 내 집에 적용할 수 없는 아이템 종류예요.'
