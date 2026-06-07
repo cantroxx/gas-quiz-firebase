@@ -186,6 +186,33 @@
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
 
       <div class="collection-layout">
+        <section class="collection-panel" aria-labelledby="member-link-heading">
+          <div class="collection-heading">
+            <p class="eyebrow">Firebase Member Link</p>
+            <h3 id="member-link-heading">Firebase 회원 연결 테스트</h3>
+          </div>
+          <form id="member-link-form" class="member-link-form" autocomplete="off">
+            <label>
+              학교
+              <input id="member-link-school" name="school" type="text" value="동자">
+            </label>
+            <label>
+              학년
+              <input id="member-link-grade" name="grade" type="number" min="1" max="6" inputmode="numeric">
+            </label>
+            <label>
+              반
+              <input id="member-link-class" name="classNumber" type="number" min="1" inputmode="numeric">
+            </label>
+            <label>
+              번호
+              <input id="member-link-number" name="studentNumber" type="number" min="1" inputmode="numeric">
+            </label>
+            <button class="button primary" type="submit">회원 연결</button>
+          </form>
+          <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
+        </section>
+
         <section class="collection-panel" aria-labelledby="title-list-heading">
           <div class="collection-heading">
             <p class="eyebrow">Titles</p>
@@ -652,6 +679,7 @@
     };
 
     const TEST_SHOP_USER_ID = 'test_user';
+    const DEFAULT_MEMBER_SCHOOL = '동자';
 
     let firestoreShopItems = null;
     let shopItemsLoadPromise = null;
@@ -667,6 +695,9 @@
     let firebaseAuthInitPromise = null;
     let lastResolvedUserId = null;
     let authStateListenerAttached = false;
+    let currentMemberUserId = '';
+    let currentMemberProfile = null;
+    let memberLinkInProgress = false;
 
     const QUEST_DATA = [
       {
@@ -1245,6 +1276,7 @@
 
     function renderHomeView() {
       renderProfileCard();
+      renderMemberLinkPanel();
       renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
       renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
       renderHomeOwnedItemsFallback();
@@ -1300,6 +1332,26 @@
       body.append(name, school, meta);
       card.append(avatar, body);
       root.appendChild(card);
+    }
+
+    function renderMemberLinkPanel() {
+      const status = document.getElementById('member-link-status');
+      if(!status) return;
+
+      status.innerHTML = '';
+
+      if(currentMemberProfile) {
+        const summary = document.createElement('p');
+        const detail = document.createElement('p');
+        summary.textContent = `연결됨: ${currentMemberProfile.nickname || '이름 없음'} (${currentMemberUserId})`;
+        detail.textContent = `${currentMemberProfile.school || ''} ${currentMemberProfile.grade || ''}학년 ${currentMemberProfile.classNumber || ''}반 ${currentMemberProfile.studentNumber || ''}번`;
+        status.append(summary, detail);
+        return;
+      }
+
+      const note = document.createElement('p');
+      note.textContent = '운영본에서 이관한 users 문서를 학교/학년/반/번호로 찾아 현재 Firebase Auth uid와 연결합니다. 비밀번호는 사용하거나 저장하지 않습니다.';
+      status.appendChild(note);
     }
 
     function renderCollectionCards(rootId, items, className) {
@@ -1464,6 +1516,73 @@
       return auth?.currentUser || firebaseAuthUser;
     }
 
+    function normalizeLegacyMemberSchool(school) {
+      const value = String(school || '').trim();
+      if(!value) return DEFAULT_MEMBER_SCHOOL;
+      const normalized = value
+        .replace(/^서울/, '')
+        .replace(/초등학교$/, '')
+        .replace(/초$/, '')
+        .trim();
+      return normalized || DEFAULT_MEMBER_SCHOOL;
+    }
+
+    function buildLegacyMemberUserId(school, grade, classNumber, studentNumber) {
+      const normalizedSchool = normalizeLegacyMemberSchool(school);
+      const gradeNumber = Number(grade);
+      const classNoNumber = Number(classNumber);
+      const studentNoNumber = Number(studentNumber);
+
+      if(!gradeNumber || !classNoNumber || !studentNoNumber) {
+        throw new Error('invalid-member-identity');
+      }
+
+      const baseUserId = `G${gradeNumber}-C${classNoNumber}-N${String(studentNoNumber).padStart(2, '0')}`;
+      if(normalizedSchool === DEFAULT_MEMBER_SCHOOL) return baseUserId;
+
+      const schoolKey = normalizedSchool.replace(/[^0-9A-Za-z가-힣_-]/g, '');
+      return schoolKey ? `S${schoolKey}-${baseUserId}` : baseUserId;
+    }
+
+    function getMemberLinkFormValues() {
+      return {
+        school: document.getElementById('member-link-school')?.value || DEFAULT_MEMBER_SCHOOL,
+        grade: document.getElementById('member-link-grade')?.value || '',
+        classNumber: document.getElementById('member-link-class')?.value || '',
+        studentNumber: document.getElementById('member-link-number')?.value || ''
+      };
+    }
+
+    function setMemberLinkStatus(message, isError = false) {
+      const status = document.getElementById('member-link-status');
+      if(!status) return;
+      status.innerHTML = '';
+      const text = document.createElement('p');
+      text.textContent = message;
+      text.style.color = isError ? '#b3261e' : '';
+      status.appendChild(text);
+    }
+
+    function normalizeMemberProfileFromFirestore(doc) {
+      const data = doc.data() || {};
+      return {
+        userId: data.userId || doc.id,
+        legacyMemberId: data.legacyMemberId || doc.id,
+        authUid: data.authUid || '',
+        school: data.school || '',
+        grade: data.grade || '',
+        classNumber: data.classNumber || '',
+        studentNumber: data.studentNumber || '',
+        nickname: data.nickname || '',
+        role: data.role || 'student',
+        status: data.status || 'active',
+        active: data.active === true,
+        profileImageUrl: data.profileImageUrl || '',
+        selectedTitleId: data.selectedTitleId || '',
+        rankingMessage: data.rankingMessage || ''
+      };
+    }
+
     function getCurrentUserId() {
       const authUser = getFirebaseAuthUser();
       if(authUser?.uid) return authUser.uid;
@@ -1533,6 +1652,78 @@
         });
 
       return firebaseAuthInitPromise;
+    }
+
+    async function linkImportedMemberToCurrentAuthUser(values) {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+
+      const authUser = await initializeAuthUser();
+      const authUid = authUser?.uid || getFirebaseAuthUser()?.uid || '';
+      if(!authUid) throw new Error('auth-required');
+
+      const legacyUserId = buildLegacyMemberUserId(values.school, values.grade, values.classNumber, values.studentNumber);
+      const memberRef = db.collection('users').doc(legacyUserId);
+      let linkedProfile = null;
+
+      await db.runTransaction(async transaction => {
+        const memberSnapshot = await transaction.get(memberRef);
+        if(!memberSnapshot.exists) throw new Error('member-not-found');
+
+        const profile = normalizeMemberProfileFromFirestore(memberSnapshot);
+        if(profile.role !== 'student') throw new Error('member-not-student');
+        if(profile.status !== 'active' || profile.active !== true) throw new Error('member-inactive');
+
+        if(profile.authUid && profile.authUid !== authUid) {
+          throw new Error('member-linked-to-other-auth');
+        }
+
+        if(!profile.authUid) {
+          const fieldValue = getFirestoreFieldValue();
+          transaction.set(memberRef, {
+            authUid,
+            authLinkedAt: fieldValue.serverTimestamp(),
+            authLinkProvider: 'firebase_member_link_test',
+            authLinkVersion: 1,
+            updatedAt: fieldValue.serverTimestamp()
+          }, { merge: true });
+          profile.authUid = authUid;
+        }
+
+        linkedProfile = profile;
+      });
+
+      currentMemberUserId = legacyUserId;
+      currentMemberProfile = linkedProfile;
+      return linkedProfile;
+    }
+
+    async function handleMemberLinkSubmit(event) {
+      event.preventDefault();
+      if(memberLinkInProgress) return;
+
+      memberLinkInProgress = true;
+      setMemberLinkStatus('회원 문서를 확인하고 있습니다...');
+
+      try {
+        const profile = await linkImportedMemberToCurrentAuthUser(getMemberLinkFormValues());
+        renderMemberLinkPanel();
+        setMemberLinkStatus(`${profile.nickname || profile.userId} 회원 연결이 완료됐어요. ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
+      } catch(error) {
+        const messages = {
+          'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
+          'auth-required': 'Firebase Auth 로그인 후 연결할 수 있어요.',
+          'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
+          'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
+          'member-not-student': '관리자 계정은 학생 연결 테스트에서 제외됩니다.',
+          'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
+          'member-linked-to-other-auth': '이미 다른 로그인 정보와 연결된 회원입니다.'
+        };
+        console.warn('Member auth link failed.', error);
+        setMemberLinkStatus(messages[error.message] || '회원 연결 중 문제가 생겼어요.', true);
+      } finally {
+        memberLinkInProgress = false;
+      }
     }
 
     function getShopFallbackIcon(itemId, category) {
@@ -2722,6 +2913,8 @@
       event.preventDefault();
       saveRoomItemSelection(card.dataset.roomItemId);
     });
+
+    document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
 
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();
