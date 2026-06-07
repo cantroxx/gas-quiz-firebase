@@ -4,7 +4,7 @@
 
 `gas-quiz-firebase`는 운영본 `gas-quiz`를 직접 수정하지 않고 Firebase Hosting 위에서 새 퀴즈타운 UI와 기능 흐름을 검증하기 위한 정적 프로토타입이다.
 
-현재 목표는 화면 구조와 이동 흐름을 유지하면서 Firestore 읽기/쓰기 연결을 작은 범위부터 검증하는 것이다. 상점, 인벤토리, 내 집 설정은 현재 `test_user` 기준 프로토타입으로만 연결되어 있다.
+현재 목표는 화면 구조와 이동 흐름을 유지하면서 Firestore 읽기/쓰기 연결을 작은 범위부터 검증하는 것이다. 상점, 인벤토리, 내 집 설정은 Firebase Auth 익명 사용자 `uid`를 우선 사용하며, Auth 실패 시에는 개발용 `test_user` fallback을 유지한다.
 
 ## 2. 현재 구현된 화면
 
@@ -54,9 +54,10 @@
 - 프로필 카드 표시
 - 닉네임, 학교, 대표 칭호, 대표 뱃지, 보유 코인, 경험치 표시
 - 보유 칭호와 보유 뱃지 목록 표시
-- `userInventory/test_user/items`를 읽어 보유 꾸미기 아이템 표시
-- 보유 아이템을 선택하면 `userRoomSettings/test_user`에 내 집 설정 저장
+- `userInventory/{uid}/items`를 읽어 보유 꾸미기 아이템 표시
+- 보유 아이템을 선택하면 `userRoomSettings/{uid}`에 내 집 설정 저장
 - 저장된 선택 상태는 재진입/새로고침 후 `적용중` 상태로 표시
+- Auth 실패 시 개발용 `test_user` 경로로 fallback
 - `PROFILE_DATA`, `TITLE_DATA`, `BADGE_DATA`, `USER_REWARD_DATA` 기반
 
 ### 상점
@@ -67,11 +68,16 @@
 - `shopItems` Firestore 컬렉션에서 상점 아이템 읽기
 - `assetCatalog` Firestore 컬렉션에서 아이콘/이미지 메타데이터 읽기
 - Firestore 읽기 실패 시 기존 `SHOP_ITEMS`와 아이콘 fallback 유지
-- `userEconomy/test_user`에서 DJ코인 잔액 읽기
-- `userInventory/test_user/items`를 읽어 보유 아이템 상태 표시
+- Firebase Auth 익명 로그인 연결 완료
+- `getCurrentUserId()`는 Auth `currentUser.uid`를 우선 사용
+- Auth 실패 시 개발용 `test_user` fallback 유지
+- 신규 Auth 사용자에게 `userEconomy/{uid}` 기본 문서 자동 초기화
+- 초기 경제 문서에는 DJ코인 1000 지급
+- `userEconomy/{uid}`에서 DJ코인 잔액 읽기
+- `userInventory/{uid}/items`를 읽어 보유 아이템 상태 표시
 - 구매 가능, 코인 부족, 보유중 상태 표시
 - 구매 시 Firestore transaction으로 DJ코인 차감, 인벤토리 추가, `purchaseLogs` 기록
-- 현재 구매 흐름은 실제 로그인 사용자가 아닌 `test_user` 전용 프로토타입
+- 현재 구매 흐름은 Auth `uid` 기준이며, 운영본 회원 시스템과는 아직 매핑하지 않음
 
 ### 이벤트 광장
 
@@ -87,8 +93,9 @@
 - 타운 -> 랭킹 광장 -> 타운
 - 타운 -> 내 집 -> 타운
 - 타운 -> 상점 -> 타운
-- 타운 -> 상점 -> 구매 -> `userInventory/test_user/items` 저장 -> 내 집 보유 아이템 표시
-- 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/test_user` 저장 -> 내 집 재진입 시 적용 상태 유지
+- 타운 -> 상점 -> Auth 익명 로그인 -> `userEconomy/{uid}` 초기화 -> 구매
+- 타운 -> 상점 -> 구매 -> `userInventory/{uid}/items` 저장 -> 내 집 보유 아이템 표시
+- 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/{uid}` 저장 -> 내 집 재진입 시 적용 상태 유지
 - 타운 -> 이벤트 광장 -> 타운
 - 타운의 중앙 광장 등 일부 장소는 기존 장소 안내 모달 유지
 
@@ -159,29 +166,36 @@
 
 ### `userEconomy`
 
-- 테스트 사용자 `test_user`의 DJ코인 잔액 저장
-- 현재 `userEconomy/test_user` 기준으로 상점 구매 프로토타입 연결
+- Auth 익명 사용자 `uid` 기준 DJ코인 잔액 저장
+- 현재 `userEconomy/{uid}` 기준으로 상점 구매 프로토타입 연결
+- 신규 Auth 사용자 문서가 없으면 최초 진입 시 자동 생성
+- 초기 필드: `userId`, `djCoin: 1000`, `totalEarned: 1000`, `totalSpent: 0`, `createdAt`, `updatedAt`, `source: "initial_grant"`
 - 구매 시 `djCoin` 차감 및 `totalSpent` 증가
+- Auth 실패 시 `test_user` fallback 사용
 
 ### `userInventory`
 
-- 테스트 사용자 보유 아이템 저장
-- 현재 경로: `userInventory/test_user/items/{itemId}`
+- Auth 익명 사용자 보유 아이템 저장
+- 현재 경로: `userInventory/{uid}/items/{itemId}`
 - 상점 구매 성공 시 보유 아이템 문서 생성
 - 내 집 화면에서 보유 꾸미기 아이템 후보로 사용
+- Auth 실패 시 `userInventory/test_user/items/{itemId}` fallback 사용
 
 ### `purchaseLogs`
 
 - 상점 구매 로그 저장
 - 구매 성공 시 `purchaseLogs/{autoId}` 생성
+- 문서 내부 `userId`는 Auth `uid`를 우선 기록
 - 현재는 `serverVerified: false`인 클라이언트 transaction 테스트 흐름
+- Auth 실패 시 `userId: test_user` fallback 사용
 
 ### `userRoomSettings`
 
-- 테스트 사용자 내 집 선택 설정 저장
-- 현재 경로: `userRoomSettings/test_user`
+- Auth 익명 사용자 내 집 선택 설정 저장
+- 현재 경로: `userRoomSettings/{uid}`
 - 필드: `userId`, `selectedBackgroundItemId`, `selectedAvatarItemId`, `selectedDecorItemIds`, `selectedTitleFrameItemId`, `updatedAt`
 - 보유 아이템 선택 시 카테고리별 필드에 저장
+- Auth 실패 시 `userRoomSettings/test_user` fallback 사용
 
 ### `USER_REWARD_DATA`
 
@@ -213,7 +227,7 @@
 - 퀴즈 완료 보상으로 누적되는 보유 코인과 경험치
 - 랭킹 광장 순위
 - 프로필, 칭호, 뱃지
-- 실제 로그인 사용자 기준 상점 상태
+- 운영본 회원 시스템 기준 상점 상태
 - 퀘스트 진행도와 보상
 - 학급 미션 진행도
 - 시즌 이벤트
@@ -224,7 +238,7 @@
 
 - Storage
 - GAS `getQuizData`
-- 실제 로그인 사용자 ID
+- 운영본 회원 시스템과 Auth 사용자 매핑
 - 실제 랭킹
 - 운영 수준 Firestore 보안 규칙
 - 서버 검증 기반 구매 처리
@@ -234,25 +248,30 @@
 현재 연결된 것:
 
 - Firebase SDK
+- Firebase Auth 익명 로그인
+- Auth `currentUser.uid` 우선 사용자 ID resolver
 - Firestore `shopItems`
 - Firestore `assetCatalog`
-- Firestore `userEconomy/test_user`
-- Firestore `userInventory/test_user/items`
+- Firestore `userEconomy/{uid}`
+- Firestore `userInventory/{uid}/items`
 - Firestore `purchaseLogs`
-- Firestore `userRoomSettings/test_user`
+- Firestore `userRoomSettings/{uid}`
+- Auth 실패 시 개발용 `test_user` fallback
 
 주의:
 
-- 위 연결은 `test_user` 기반 프로토타입이다.
-- 실제 로그인 사용자, 운영본 사용자, 학급 사용자와는 아직 연결하지 않았다.
+- 위 연결은 Firebase Auth 익명 사용자 기반 프로토타입이다.
+- 운영본 회원 시스템, 학급 사용자, 실제 학생 계정과는 아직 매핑하지 않았다.
 - Firestore 보안 규칙은 운영 수준으로 정리하기 전이다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
+- push/deploy 전 최종 검증이 필요하다.
 
 ## 7. 다음 작업 추천 순서
 
-1. 실제 로그인 사용자 ID 연결
-   - `test_user` 상수를 Firebase Auth 또는 운영본 사용자 매핑으로 대체
-   - `userEconomy`, `userInventory`, `userRoomSettings` 경로를 로그인 사용자 기준으로 전환
+1. 운영본 회원 시스템과 Auth 사용자 매핑
+   - 익명 Auth `uid`를 운영본 학생/학급 사용자와 어떻게 연결할지 결정
+   - 기존 익명 사용자 데이터를 실제 사용자 데이터로 승계할지 검토
+   - `userEconomy`, `userInventory`, `userRoomSettings`의 사용자 식별 정책 확정
 
 2. Firestore 보안 규칙 정리
    - `shopItems`, `assetCatalog` 읽기 권한
