@@ -4,7 +4,7 @@
 
 `gas-quiz-firebase`는 운영본 `gas-quiz`를 직접 수정하지 않고 Firebase Hosting 위에서 새 퀴즈타운 UI와 기능 흐름을 검증하기 위한 정적 프로토타입이다.
 
-현재 목표는 화면 구조와 이동 흐름을 유지하면서 Firestore 읽기/쓰기 연결을 작은 범위부터 검증하는 것이다. 상점, 인벤토리, 내 집 설정은 Firebase Auth 익명 사용자 `uid`를 우선 사용하며, Auth 실패 시에는 개발용 `test_user` fallback을 유지한다.
+현재 목표는 화면 구조와 이동 흐름을 유지하면서 Firestore 읽기/쓰기 연결을 작은 범위부터 검증하는 것이다. 상점, 인벤토리, 내 집 설정은 회원 연결 완료 시 운영본 회원 `userId`를 우선 사용하며, 회원 연결 전에는 Firebase Auth 익명 사용자 `uid`, Auth 실패 시에는 개발용 `test_user` fallback을 유지한다.
 
 ## 2. 현재 구현된 화면
 
@@ -54,8 +54,9 @@
 - 프로필 카드 표시
 - 닉네임, 학교, 대표 칭호, 대표 뱃지, 보유 코인, 경험치 표시
 - 보유 칭호와 보유 뱃지 목록 표시
-- `userInventory/{uid}/items`를 읽어 보유 꾸미기 아이템 표시
-- 보유 아이템을 선택하면 `userRoomSettings/{uid}`에 내 집 설정 저장
+- `userInventory/{dataOwnerId}/items`를 읽어 보유 꾸미기 아이템 표시
+- 보유 아이템을 선택하면 `userRoomSettings/{dataOwnerId}`에 내 집 설정 저장
+- 회원 연결 완료 후에는 `dataOwnerId`가 운영본 회원 `userId`가 된다.
 - 저장된 선택 상태는 재진입/새로고침 후 `적용중` 상태로 표시
 - Auth 실패 시 개발용 `test_user` 경로로 fallback
 - `PROFILE_DATA`, `TITLE_DATA`, `BADGE_DATA`, `USER_REWARD_DATA` 기반
@@ -70,14 +71,16 @@
 - Firestore 읽기 실패 시 기존 `SHOP_ITEMS`와 아이콘 fallback 유지
 - Firebase Auth 익명 로그인 연결 완료
 - `getCurrentUserId()`는 Auth `currentUser.uid`를 우선 사용
+- `getCurrentDataOwnerId()`는 `currentMemberUserId` -> Auth `uid` -> `test_user` 순서로 경제/인벤토리/내 집 데이터 소유자를 결정
 - Auth 실패 시 개발용 `test_user` fallback 유지
-- 신규 Auth 사용자에게 `userEconomy/{uid}` 기본 문서 자동 초기화
+- 신규 데이터 소유자에게 `userEconomy/{dataOwnerId}` 기본 문서 자동 초기화
 - 초기 경제 문서에는 DJ코인 1000 지급
-- `userEconomy/{uid}`에서 DJ코인 잔액 읽기
-- `userInventory/{uid}/items`를 읽어 보유 아이템 상태 표시
+- `userEconomy/{dataOwnerId}`에서 DJ코인 잔액 읽기
+- `userInventory/{dataOwnerId}/items`를 읽어 보유 아이템 상태 표시
 - 구매 가능, 코인 부족, 보유중 상태 표시
 - 구매 시 Firestore transaction으로 DJ코인 차감, 인벤토리 추가, `purchaseLogs` 기록
-- 현재 구매 흐름은 Auth `uid` 기준이며, 운영본 회원 시스템과는 아직 매핑하지 않음
+- 회원 연결 완료 상태에서는 구매 흐름이 운영본 회원 `userId` 기준으로 동작
+- 기존 Auth `uid` 기준 경제/인벤토리/내 집 데이터가 있고 회원 `userId` 기준 데이터가 없으면 최초 1회 자동 migration 지원
 
 ### 이벤트 광장
 
@@ -93,9 +96,11 @@
 - 타운 -> 랭킹 광장 -> 타운
 - 타운 -> 내 집 -> 타운
 - 타운 -> 상점 -> 타운
-- 타운 -> 상점 -> Auth 익명 로그인 -> `userEconomy/{uid}` 초기화 -> 구매
-- 타운 -> 상점 -> 구매 -> `userInventory/{uid}/items` 저장 -> 내 집 보유 아이템 표시
-- 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/{uid}` 저장 -> 내 집 재진입 시 적용 상태 유지
+- 타운 -> 상점 -> Auth 익명 로그인 -> 회원 연결 전 `userEconomy/{uid}` 초기화 -> 구매
+- 타운 -> 내 집 -> Firebase 회원 연결 테스트 -> `users/{memberUserId}.authUid` 연결
+- 회원 연결 완료 -> 기존 `uid` 소유 데이터를 `memberUserId` 소유 데이터로 자동 migration
+- 타운 -> 상점 -> 구매 -> `userInventory/{memberUserId}/items` 저장 -> 내 집 보유 아이템 표시
+- 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/{memberUserId}` 저장 -> 내 집 재진입 시 적용 상태 유지
 - 타운 -> 이벤트 광장 -> 타운
 - 타운의 중앙 광장 등 일부 장소는 기존 장소 안내 모달 유지
 
@@ -166,35 +171,44 @@
 
 ### `userEconomy`
 
-- Auth 익명 사용자 `uid` 기준 DJ코인 잔액 저장
-- 현재 `userEconomy/{uid}` 기준으로 상점 구매 프로토타입 연결
-- 신규 Auth 사용자 문서가 없으면 최초 진입 시 자동 생성
+- 데이터 소유자 기준 DJ코인 잔액 저장
+- 현재 경로: `userEconomy/{dataOwnerId}`
+- `dataOwnerId` 우선순위: 운영본 회원 `currentMemberUserId` -> Auth `uid` -> 개발용 `test_user`
+- 신규 데이터 소유자 문서가 없으면 최초 진입 시 자동 생성
 - 초기 필드: `userId`, `djCoin: 1000`, `totalEarned: 1000`, `totalSpent: 0`, `createdAt`, `updatedAt`, `source: "initial_grant"`
 - 구매 시 `djCoin` 차감 및 `totalSpent` 증가
-- Auth 실패 시 `test_user` fallback 사용
+- 회원 연결 후 `userEconomy/{uid}`가 있고 `userEconomy/{memberUserId}`가 없으면 최초 1회 복사
+- migration 필드: `migratedFromUid`, `migratedAt`
+- 기존 `userEconomy/{memberUserId}`가 있으면 덮어쓰지 않음
 
 ### `userInventory`
 
-- Auth 익명 사용자 보유 아이템 저장
-- 현재 경로: `userInventory/{uid}/items/{itemId}`
+- 데이터 소유자 기준 보유 아이템 저장
+- 현재 경로: `userInventory/{dataOwnerId}/items/{itemId}`
 - 상점 구매 성공 시 보유 아이템 문서 생성
 - 내 집 화면에서 보유 꾸미기 아이템 후보로 사용
-- Auth 실패 시 `userInventory/test_user/items/{itemId}` fallback 사용
+- 회원 연결 후 `userInventory/{uid}/items`가 있고 `userInventory/{memberUserId}/items`가 비어 있으면 최초 1회 복사
+- migration 필드: 각 아이템 문서의 `migratedFromUid`, `migratedAt`
+- 기존 `userInventory/{memberUserId}/items`에 문서가 있으면 덮어쓰지 않음
 
 ### `purchaseLogs`
 
 - 상점 구매 로그 저장
 - 구매 성공 시 `purchaseLogs/{autoId}` 생성
-- 문서 내부 `userId`는 Auth `uid`를 우선 기록
+- 문서 내부 `userId`는 현재 `dataOwnerId`를 기록
 - 현재는 `serverVerified: false`인 클라이언트 transaction 테스트 흐름
+- 회원 연결 완료 상태에서는 운영본 회원 `userId`가 기록됨
 - Auth 실패 시 `userId: test_user` fallback 사용
 
 ### `userRoomSettings`
 
-- Auth 익명 사용자 내 집 선택 설정 저장
-- 현재 경로: `userRoomSettings/{uid}`
+- 데이터 소유자 기준 내 집 선택 설정 저장
+- 현재 경로: `userRoomSettings/{dataOwnerId}`
 - 필드: `userId`, `selectedBackgroundItemId`, `selectedAvatarItemId`, `selectedDecorItemIds`, `selectedTitleFrameItemId`, `updatedAt`
 - 보유 아이템 선택 시 카테고리별 필드에 저장
+- 회원 연결 후 `userRoomSettings/{uid}`가 있고 `userRoomSettings/{memberUserId}`가 없으면 최초 1회 복사
+- migration 필드: `migratedFromUid`, `migratedAt`
+- 기존 `userRoomSettings/{memberUserId}`가 있으면 덮어쓰지 않음
 - Auth 실패 시 `userRoomSettings/test_user` fallback 사용
 
 ### `users`
@@ -262,13 +276,16 @@
 - Firebase SDK
 - Firebase Auth 익명 로그인
 - Auth `currentUser.uid` 우선 사용자 ID resolver
+- 회원 연결 완료 시 운영본 회원 `userId` 우선 데이터 소유자 resolver
 - Firestore `shopItems`
 - Firestore `assetCatalog`
-- Firestore `userEconomy/{uid}`
-- Firestore `userInventory/{uid}/items`
+- Firestore `userEconomy/{dataOwnerId}`
+- Firestore `userInventory/{dataOwnerId}/items`
 - Firestore `purchaseLogs`
-- Firestore `userRoomSettings/{uid}`
+- Firestore `userRoomSettings/{dataOwnerId}`
 - Firestore `users` 운영본 회원 148명 import
+- `users/{memberUserId}.authUid` 회원 연결
+- Auth `uid` 소유 데이터에서 회원 `userId` 소유 데이터로 최초 1회 자동 migration
 - Auth 실패 시 개발용 `test_user` fallback
 
 ## 7. 실제 Firebase Console 기준 테스트 결과
@@ -289,22 +306,26 @@
 - `users` role 집계 확인 완료: student 146명, admin 2명
 - `users` status 집계 확인 완료: active 147명, inactive 1명
 - `users` 문서에 비밀번호 계열 필드가 없는 것 확인 완료
-- `users` 문서의 `authUid` 매핑은 아직 다음 단계
+- `users` 문서의 `authUid` 매핑 1차 구현 완료
+- 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
 
 현재 주요 기능 루프:
 
 1. Firebase Auth 익명 로그인으로 `uid` 생성
-2. `userEconomy/{uid}` 기본 경제 문서 초기화
-3. 상점에서 `shopItems`와 `assetCatalog` 기반 아이템 표시
-4. 상점 구매 transaction 실행
-5. `userInventory/{uid}/items`에 구매 아이템 저장
-6. 내 집에서 보유 아이템 표시
-7. 내 집 적용 선택을 `userRoomSettings/{uid}`에 저장
+2. 회원 연결 전에는 `userEconomy/{uid}` 기본 경제 문서 초기화
+3. 내 집의 Firebase 회원 연결 테스트에서 운영본 회원 `userId`를 찾아 `users/{memberUserId}.authUid` 연결
+4. 연결된 회원이 있으면 데이터 소유자를 `memberUserId`로 전환
+5. 기존 `uid` 기준 경제/인벤토리/내 집 데이터가 있고 `memberUserId` 기준 데이터가 없으면 자동 migration
+6. 상점에서 `shopItems`와 `assetCatalog` 기반 아이템 표시
+7. 상점 구매 transaction 실행
+8. `userInventory/{memberUserId}/items`에 구매 아이템 저장
+9. 내 집에서 보유 아이템 표시
+10. 내 집 적용 선택을 `userRoomSettings/{memberUserId}`에 저장
 
 주의:
 
-- 위 연결은 Firebase Auth 익명 사용자 기반 프로토타입이다.
-- 운영본 회원 148명은 `users` 컬렉션에 import했지만, Firebase Auth `uid`와 아직 매핑하지 않았다.
+- 위 연결은 Firebase Auth 익명 사용자와 운영본 회원 `userId`를 연결하는 1차 프로토타입이다.
+- 비밀번호 검증은 아직 연결하지 않았으며, 현재는 학교/학년/반/번호로 active student 문서를 찾아 연결한다.
 - Firestore 보안 규칙은 운영 수준으로 정리하기 전이다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
 - push/deploy 전 최종 검증이 필요하다.
@@ -312,14 +333,15 @@
 
 ## 8. 다음 작업 추천 순서
 
-1. 운영본 회원 시스템과 Auth 사용자 매핑
-   - 익명 Auth `uid`를 운영본 학생/학급 사용자와 어떻게 연결할지 결정
-   - 기존 익명 사용자 데이터를 실제 사용자 데이터로 승계할지 검토
-   - `userEconomy`, `userInventory`, `userRoomSettings`의 사용자 식별 정책 확정
+1. 운영본 회원 로그인 검증 방식 확정
+   - 기존 비밀번호 미이관 상태에서 초기 비밀번호 재설정 또는 별도 인증 방식을 결정
+   - 현재 학교/학년/반/번호 기반 연결 테스트를 운영 로그인 UX로 바꿀지 검토
+   - `users/{memberUserId}.authUid` 중복 연결 해제/복구 정책 정리
 
 2. Firestore 보안 규칙 실제 적용 전 최종 점검
    - `shopItems`, `assetCatalog` 읽기 권한
-   - `userEconomy`, `userInventory`, `userRoomSettings` 본인 읽기/쓰기 제한
+   - 회원 `userId` 기준 `userEconomy`, `userInventory`, `userRoomSettings` 본인 읽기/쓰기 제한
+   - `users/{memberUserId}.authUid` 연결 transaction 허용 범위 검토
    - 구매 transaction의 클라이언트 직접 쓰기 유지 여부 검토
 
 3. Firebase Storage 이미지 연결

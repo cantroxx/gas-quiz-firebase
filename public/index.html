@@ -698,6 +698,7 @@
     let currentMemberUserId = '';
     let currentMemberProfile = null;
     let memberLinkInProgress = false;
+    let userDataMigrationPromise = null;
 
     const QUEST_DATA = [
       {
@@ -1596,13 +1597,24 @@
       return userId;
     }
 
+    function getCurrentDataOwnerId() {
+      return currentMemberUserId || getCurrentUserId() || TEST_SHOP_USER_ID;
+    }
+
+    function requireCurrentDataOwnerId() {
+      const userId = getCurrentDataOwnerId();
+      if(!userId) throw new Error('login-required');
+      return userId;
+    }
+
     function isUsingTestUserFallback() {
-      return getCurrentUserId() === TEST_SHOP_USER_ID;
+      return getCurrentDataOwnerId() === TEST_SHOP_USER_ID;
     }
 
     function resetUserScopedRuntimeData() {
       resetShopRuntimeData();
       resetRoomSettingsCache();
+      userDataMigrationPromise = null;
     }
 
     function handleResolvedUserChange(nextUserId) {
@@ -1695,6 +1707,8 @@
 
       currentMemberUserId = legacyUserId;
       currentMemberProfile = linkedProfile;
+      resetUserScopedRuntimeData();
+      await migrateUserDataToMemberIdIfNeeded();
       return linkedProfile;
     }
 
@@ -1807,7 +1821,7 @@
     }
 
     function getDefaultRoomSettings() {
-      const userId = getCurrentUserId() || '';
+      const userId = getCurrentDataOwnerId() || '';
       return {
         userId,
         selectedBackgroundItemId: '',
@@ -1821,7 +1835,7 @@
       if(!doc.exists) return getDefaultRoomSettings();
       const data = doc.data();
       return {
-        userId: data.userId || getCurrentUserId() || '',
+        userId: data.userId || getCurrentDataOwnerId() || '',
         selectedBackgroundItemId: data.selectedBackgroundItemId || '',
         selectedAvatarItemId: data.selectedAvatarItemId || '',
         selectedDecorItemIds: Array.isArray(data.selectedDecorItemIds) ? data.selectedDecorItemIds : [],
@@ -1921,29 +1935,136 @@
       return assetCatalogLoadPromise;
     }
 
+    async function migrateUserEconomyToMemberId(db, sourceUid, memberUserId) {
+      const sourceRef = db.collection('userEconomy').doc(sourceUid);
+      const targetRef = db.collection('userEconomy').doc(memberUserId);
+      const [sourceSnapshot, targetSnapshot] = await Promise.all([
+        sourceRef.get(),
+        targetRef.get()
+      ]);
+
+      if(targetSnapshot.exists || !sourceSnapshot.exists) return false;
+
+      const fieldValue = getFirestoreFieldValue();
+      await targetRef.set({
+        ...sourceSnapshot.data(),
+        userId: memberUserId,
+        migratedFromUid: sourceUid,
+        migratedAt: fieldValue.serverTimestamp(),
+        updatedAt: fieldValue.serverTimestamp()
+      }, { merge: false });
+      return true;
+    }
+
+    async function migrateInventoryToMemberId(db, sourceUid, memberUserId) {
+      const sourceRef = db.collection('userInventory').doc(sourceUid).collection('items');
+      const targetRef = db.collection('userInventory').doc(memberUserId).collection('items');
+      const [sourceSnapshot, targetSnapshot] = await Promise.all([
+        sourceRef.get(),
+        targetRef.limit(1).get()
+      ]);
+
+      if(!targetSnapshot.empty || sourceSnapshot.empty) return false;
+
+      const fieldValue = getFirestoreFieldValue();
+      const batch = db.batch();
+      sourceSnapshot.docs.forEach(doc => {
+        batch.set(targetRef.doc(doc.id), {
+          ...doc.data(),
+          userId: memberUserId,
+          migratedFromUid: sourceUid,
+          migratedAt: fieldValue.serverTimestamp(),
+          updatedAt: fieldValue.serverTimestamp()
+        }, { merge: false });
+      });
+      await batch.commit();
+      return true;
+    }
+
+    async function migrateRoomSettingsToMemberId(db, sourceUid, memberUserId) {
+      const sourceRef = db.collection('userRoomSettings').doc(sourceUid);
+      const targetRef = db.collection('userRoomSettings').doc(memberUserId);
+      const [sourceSnapshot, targetSnapshot] = await Promise.all([
+        sourceRef.get(),
+        targetRef.get()
+      ]);
+
+      if(targetSnapshot.exists || !sourceSnapshot.exists) return false;
+
+      const fieldValue = getFirestoreFieldValue();
+      await targetRef.set({
+        ...sourceSnapshot.data(),
+        userId: memberUserId,
+        migratedFromUid: sourceUid,
+        migratedAt: fieldValue.serverTimestamp(),
+        updatedAt: fieldValue.serverTimestamp()
+      }, { merge: false });
+      return true;
+    }
+
+    async function migrateUserDataToMemberIdIfNeeded() {
+      if(!currentMemberUserId) return { skipped: true, reason: 'member-not-linked' };
+      if(userDataMigrationPromise) return userDataMigrationPromise;
+
+      const sourceUid = getCurrentUserId();
+      const memberUserId = currentMemberUserId;
+      if(!sourceUid || sourceUid === TEST_SHOP_USER_ID || sourceUid === memberUserId) {
+        return { skipped: true, reason: 'no-auth-source' };
+      }
+
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      userDataMigrationPromise = Promise.all([
+        migrateUserEconomyToMemberId(db, sourceUid, memberUserId),
+        migrateInventoryToMemberId(db, sourceUid, memberUserId),
+        migrateRoomSettingsToMemberId(db, sourceUid, memberUserId)
+      ]).then(([economy, inventory, roomSettings]) => ({
+        economy,
+        inventory,
+        roomSettings,
+        migratedFromUid: sourceUid,
+        memberUserId
+      }));
+
+      return userDataMigrationPromise;
+    }
+
+    async function prepareMemberOwnedData() {
+      if(!currentMemberUserId) return null;
+      try {
+        return await migrateUserDataToMemberIdIfNeeded();
+      } catch(error) {
+        console.warn('User data migration to member id failed. Continuing with current owner.', error);
+        return null;
+      }
+    }
+
     async function loadUserEconomyFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
-      const userId = requireCurrentUserId();
+      await prepareMemberOwnedData();
+      const userId = requireCurrentDataOwnerId();
 
       const snapshot = await db.collection('userEconomy').doc(userId).get();
       return normalizeUserEconomyFromFirestore(snapshot);
     }
 
     async function ensureUserEconomyInitialized(userId) {
-      if(!userId || isUsingTestUserFallback()) return null;
+      const ownerId = userId || getCurrentDataOwnerId();
+      if(!ownerId || ownerId === TEST_SHOP_USER_ID) return null;
 
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
 
-      const ref = db.collection('userEconomy').doc(userId);
+      const ref = db.collection('userEconomy').doc(ownerId);
       const snapshot = await ref.get();
       if(snapshot.exists) return normalizeUserEconomyFromFirestore(snapshot);
 
-      const initialEconomy = getInitialUserEconomy(userId);
+      const initialEconomy = getInitialUserEconomy(ownerId);
       await ref.set(initialEconomy, { merge: false });
       return {
-        userId,
+        userId: ownerId,
         djCoin: initialEconomy.djCoin,
         totalEarned: initialEconomy.totalEarned,
         totalSpent: initialEconomy.totalSpent
@@ -1955,8 +2076,9 @@
       if(!userEconomyLoadPromise) {
         userEconomyLoadPromise = loadUserEconomyFromFirestore()
           .then(async economy => {
-            firestoreUserEconomy = economy || await ensureUserEconomyInitialized(getCurrentUserId()) || {
-              userId: getCurrentUserId() || '',
+            const ownerId = getCurrentDataOwnerId();
+            firestoreUserEconomy = economy || await ensureUserEconomyInitialized(ownerId) || {
+              userId: ownerId || '',
               djCoin: 0,
               totalEarned: 0,
               totalSpent: 0
@@ -1966,7 +2088,7 @@
           .catch(error => {
             console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
             return {
-              userId: getCurrentUserId() || '',
+              userId: getCurrentDataOwnerId() || '',
               djCoin: isUsingTestUserFallback() ? USER_REWARD_DATA.coin : 0,
               totalEarned: 0,
               totalSpent: 0
@@ -1979,7 +2101,8 @@
     async function loadInventoryItemIdsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
-      const userId = requireCurrentUserId();
+      await prepareMemberOwnedData();
+      const userId = requireCurrentDataOwnerId();
 
       const snapshot = await db.collection('userInventory').doc(userId).collection('items').get();
       return new Set(snapshot.docs.map(doc => doc.id));
@@ -2004,7 +2127,8 @@
     async function loadRoomSettingsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
-      const userId = requireCurrentUserId();
+      await prepareMemberOwnedData();
+      const userId = requireCurrentDataOwnerId();
 
       const snapshot = await db.collection('userRoomSettings').doc(userId).get();
       return normalizeRoomSettingsFromFirestore(snapshot);
@@ -2092,8 +2216,8 @@
       daily.className = 'shop-wallet-daily';
       daily.textContent = `오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인`;
       note.textContent = isUsingTestUserFallback()
-        ? `테스트 사용자 ${getCurrentUserId()} 기준 구매 프로토타입입니다.`
-        : '로그인 사용자 기준 구매 프로토타입입니다.';
+        ? `테스트 사용자 ${getCurrentDataOwnerId()} 기준 구매 프로토타입입니다.`
+        : `데이터 소유자 ${getCurrentDataOwnerId()} 기준 구매 프로토타입입니다.`;
       root.append(coin, daily, note);
     }
 
@@ -2165,7 +2289,8 @@
       }
 
       try {
-        const userId = requireCurrentUserId();
+        await prepareMemberOwnedData();
+        const userId = requireCurrentDataOwnerId();
         await db.runTransaction(async transaction => {
           const itemRef = db.collection('shopItems').doc(itemId);
           const economyRef = db.collection('userEconomy').doc(userId);
@@ -2258,7 +2383,8 @@
       }
 
       try {
-        const userId = requireCurrentUserId();
+        await prepareMemberOwnedData();
+        const userId = requireCurrentDataOwnerId();
         const itemRef = db.collection('shopItems').doc(itemId);
         const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
         const settingsRef = db.collection('userRoomSettings').doc(userId);
