@@ -644,6 +644,8 @@
 
     let firestoreShopItems = null;
     let shopItemsLoadPromise = null;
+    let firestoreAssetCatalogMap = null;
+    let assetCatalogLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -1333,6 +1335,12 @@
       return SHOP_ICON_FALLBACKS[itemId] || SHOP_ICON_FALLBACKS[category] || '🛍️';
     }
 
+    function isUsableImageUrl(value) {
+      if(typeof value !== 'string') return false;
+      const imageUrl = value.trim();
+      return imageUrl && imageUrl !== 'TODO' && /^https?:\/\//.test(imageUrl);
+    }
+
     function normalizeShopItemFromFirestore(doc) {
       const data = doc.data();
       const itemId = data.itemId || doc.id;
@@ -1343,6 +1351,7 @@
 
       return {
         itemId,
+        rawCategory: category,
         category: SHOP_CATEGORY_LABELS[category] || category || '기타',
         name: data.name || itemId,
         desc: data.desc || '상점 아이템 설명을 준비 중입니다.',
@@ -1354,6 +1363,22 @@
         imageUrl: imageUrl && imageUrl !== 'TODO' ? imageUrl : '',
         assetId: data.assetId || '',
         rarity: data.rarity || 'common'
+      };
+    }
+
+    function normalizeAssetCatalogFromFirestore(doc) {
+      const data = doc.data();
+      const assetId = data.assetId || doc.id;
+      const imageUrl = typeof data.imageUrl === 'string' ? data.imageUrl.trim() : '';
+
+      return {
+        assetId,
+        type: data.type || '',
+        name: data.name || assetId,
+        storagePath: data.storagePath || '',
+        imageUrl: isUsableImageUrl(imageUrl) ? imageUrl : '',
+        fallbackIcon: data.fallbackIcon || '',
+        enabled: data.enabled === true
       };
     }
 
@@ -1385,6 +1410,60 @@
       return shopItemsLoadPromise;
     }
 
+    async function loadAssetCatalogFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('Firestore SDK is not available.');
+
+      const snapshot = await db.collection('assetCatalog').get();
+      return snapshot.docs.reduce((map, doc) => {
+        const asset = normalizeAssetCatalogFromFirestore(doc);
+        map[asset.assetId] = asset;
+        return map;
+      }, {});
+    }
+
+    async function getAssetCatalogMap() {
+      if(firestoreAssetCatalogMap) return firestoreAssetCatalogMap;
+      if(!assetCatalogLoadPromise) {
+        assetCatalogLoadPromise = loadAssetCatalogFromFirestore()
+          .then(assetMap => {
+            firestoreAssetCatalogMap = assetMap;
+            return assetMap;
+          })
+          .catch(error => {
+            console.warn('Firestore assetCatalog read failed. Using shop item fallback icons.', error);
+            return {};
+          });
+      }
+      return assetCatalogLoadPromise;
+    }
+
+    async function getShopItemsAndAssetsForRender() {
+      const [items, assetCatalogMap] = await Promise.all([
+        getShopItemsForRender(),
+        getAssetCatalogMap()
+      ]);
+
+      return { items, assetCatalogMap };
+    }
+
+    function resolveShopItemVisual(item, assetCatalogMap = {}) {
+      const asset = item.assetId ? assetCatalogMap[item.assetId] : null;
+      const assetEnabled = asset?.enabled === true;
+      const imageUrl = assetEnabled && isUsableImageUrl(asset.imageUrl)
+        ? asset.imageUrl
+        : item.imageUrl || '';
+      const fallbackIcon = assetEnabled && asset.fallbackIcon
+        ? asset.fallbackIcon
+        : item.icon || getShopFallbackIcon(item.itemId, item.rawCategory || item.category);
+
+      return {
+        imageUrl: isUsableImageUrl(imageUrl) ? imageUrl : '',
+        fallbackIcon,
+        alt: asset?.name || item.name
+      };
+    }
+
     function getShopItemState(item) {
       return USER_REWARD_DATA.coin >= item.price
         ? { label: '살 수 있음', className: 'shop-state-ready' }
@@ -1405,11 +1484,12 @@
       root.append(coin, daily, note);
     }
 
-    function renderShopItems(items = SHOP_ITEMS) {
+    function renderShopItems(items = SHOP_ITEMS, assetCatalogMap = {}) {
       const grid = document.getElementById('shop-item-grid');
       grid.innerHTML = '';
       items.forEach(item => {
         const state = getShopItemState(item);
+        const visual = resolveShopItemVisual(item, assetCatalogMap);
         const card = document.createElement('article');
         const icon = document.createElement('span');
         const category = document.createElement('p');
@@ -1421,7 +1501,21 @@
 
         card.className = 'shop-item-card';
         icon.className = 'shop-item-icon';
-        icon.textContent = item.icon;
+        if(visual.imageUrl) {
+          const image = document.createElement('img');
+          image.src = visual.imageUrl;
+          image.alt = visual.alt;
+          image.loading = 'lazy';
+          image.style.width = '100%';
+          image.style.height = '100%';
+          image.style.objectFit = 'contain';
+          image.addEventListener('error', () => {
+            icon.textContent = visual.fallbackIcon;
+          }, { once: true });
+          icon.appendChild(image);
+        } else {
+          icon.textContent = visual.fallbackIcon;
+        }
         category.className = 'shop-item-category';
         category.textContent = item.category;
         title.textContent = item.name;
@@ -1881,7 +1975,9 @@
       document.getElementById('shop-view').hidden = false;
       document.getElementById('shop-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-      getShopItemsForRender().then(renderShopItems);
+      getShopItemsAndAssetsForRender().then(({ items, assetCatalogMap }) => {
+        renderShopItems(items, assetCatalogMap);
+      });
     }
 
     function showEventView() {
