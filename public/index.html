@@ -680,6 +680,7 @@
 
     const TEST_SHOP_USER_ID = 'test_user';
     const DEFAULT_MEMBER_SCHOOL = '동자';
+    const LINKED_MEMBER_HINT_KEY = 'dj48LinkedMemberUserId';
 
     let firestoreShopItems = null;
     let shopItemsLoadPromise = null;
@@ -1584,6 +1585,48 @@
       };
     }
 
+    function maybeSaveLinkedMemberHint(memberUserId) {
+      if(!memberUserId) return;
+      try {
+        window.localStorage?.setItem(LINKED_MEMBER_HINT_KEY, memberUserId);
+      } catch(error) {
+        console.warn('Linked member hint could not be saved.', error);
+      }
+    }
+
+    function getLinkedMemberHint() {
+      try {
+        return window.localStorage?.getItem(LINKED_MEMBER_HINT_KEY) || '';
+      } catch(error) {
+        console.warn('Linked member hint could not be read.', error);
+        return '';
+      }
+    }
+
+    function clearLinkedMemberHint() {
+      try {
+        window.localStorage?.removeItem(LINKED_MEMBER_HINT_KEY);
+      } catch(error) {
+        console.warn('Linked member hint could not be cleared.', error);
+      }
+    }
+
+    function applyRestoredMemberProfile(profile) {
+      currentMemberUserId = profile.userId;
+      currentMemberProfile = profile;
+      maybeSaveLinkedMemberHint(profile.userId);
+      resetUserScopedRuntimeData();
+      return profile;
+    }
+
+    function isRestorableMemberProfile(profile, authUid) {
+      return profile
+        && profile.authUid === authUid
+        && profile.role === 'student'
+        && profile.status === 'active'
+        && profile.active === true;
+    }
+
     function getCurrentUserId() {
       const authUser = getFirebaseAuthUser();
       if(authUser?.uid) return authUser.uid;
@@ -1619,6 +1662,10 @@
 
     function handleResolvedUserChange(nextUserId) {
       if(lastResolvedUserId && lastResolvedUserId !== nextUserId) {
+        const hadResolvedAuthUser = lastResolvedUserId !== TEST_SHOP_USER_ID;
+        currentMemberUserId = '';
+        currentMemberProfile = null;
+        if(hadResolvedAuthUser) clearLinkedMemberHint();
         resetUserScopedRuntimeData();
       }
       lastResolvedUserId = nextUserId;
@@ -1631,6 +1678,45 @@
 
       const credential = await auth.signInAnonymously();
       return credential.user || auth.currentUser;
+    }
+
+    async function restoreLinkedMemberFromAuthUid() {
+      const db = getFirestoreDb();
+      const authUid = getFirebaseAuthUser()?.uid || '';
+      if(!db || !authUid || authUid === TEST_SHOP_USER_ID) return null;
+      if(currentMemberUserId && currentMemberProfile?.authUid === authUid) return currentMemberProfile;
+
+      const hintedMemberUserId = getLinkedMemberHint();
+      if(hintedMemberUserId) {
+        try {
+          const hintedSnapshot = await db.collection('users').doc(hintedMemberUserId).get();
+          if(hintedSnapshot.exists) {
+            const hintedProfile = normalizeMemberProfileFromFirestore(hintedSnapshot);
+            if(isRestorableMemberProfile(hintedProfile, authUid)) {
+              return applyRestoredMemberProfile(hintedProfile);
+            }
+          }
+          clearLinkedMemberHint();
+        } catch(error) {
+          console.warn('Linked member hint verification failed.', error);
+          clearLinkedMemberHint();
+        }
+      }
+
+      try {
+        const snapshot = await db.collection('users')
+          .where('authUid', '==', authUid)
+          .limit(1)
+          .get();
+        if(snapshot.empty) return null;
+
+        const profile = normalizeMemberProfileFromFirestore(snapshot.docs[0]);
+        if(!isRestorableMemberProfile(profile, authUid)) return null;
+        return applyRestoredMemberProfile(profile);
+      } catch(error) {
+        console.warn('Linked member restore by auth uid failed.', error);
+        return null;
+      }
     }
 
     function initializeAuthUser() {
@@ -1647,6 +1733,11 @@
         auth.onAuthStateChanged(user => {
           firebaseAuthUser = user;
           handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
+          if(user?.uid) {
+            restoreLinkedMemberFromAuthUid()
+              .then(() => renderMemberLinkPanel())
+              .catch(error => console.warn('Linked member restore after auth state change failed.', error));
+          }
         });
         authStateListenerAttached = true;
       }
@@ -1655,7 +1746,7 @@
         .then(user => {
           firebaseAuthUser = user;
           handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
-          return user;
+          return restoreLinkedMemberFromAuthUid().then(() => user);
         })
         .catch(error => {
           console.warn('Firebase anonymous auth failed. Using test user fallback.', error);
@@ -1707,6 +1798,7 @@
 
       currentMemberUserId = legacyUserId;
       currentMemberProfile = linkedProfile;
+      maybeSaveLinkedMemberHint(legacyUserId);
       resetUserScopedRuntimeData();
       await migrateUserDataToMemberIdIfNeeded();
       return linkedProfile;
