@@ -72,6 +72,8 @@
 - Firebase Auth 익명 로그인 연결 완료
 - `getCurrentUserId()`는 Auth `currentUser.uid`를 우선 사용
 - `getCurrentDataOwnerId()`는 `currentMemberUserId` -> Auth `uid` -> `test_user` 순서로 경제/인벤토리/내 집 데이터 소유자를 결정
+- Auth `uid`와 연결된 `users` 문서를 자동 복구해 새로고침/재진입 후에도 `currentMemberUserId`와 `currentMemberProfile` 유지
+- localStorage의 회원 힌트는 Firestore `users/{memberUserId}.authUid` 재검증을 통과할 때만 사용
 - Auth 실패 시 개발용 `test_user` fallback 유지
 - 신규 데이터 소유자에게 `userEconomy/{dataOwnerId}` 기본 문서 자동 초기화
 - 초기 경제 문서에는 DJ코인 1000 지급
@@ -98,6 +100,7 @@
 - 타운 -> 상점 -> 타운
 - 타운 -> 상점 -> Auth 익명 로그인 -> 회원 연결 전 `userEconomy/{uid}` 초기화 -> 구매
 - 타운 -> 내 집 -> Firebase 회원 연결 테스트 -> `users/{memberUserId}.authUid` 연결
+- 새로고침/재진입 -> 현재 Auth `uid`로 연결된 `users` 문서 자동 복구
 - 회원 연결 완료 -> 기존 `uid` 소유 데이터를 `memberUserId` 소유 데이터로 자동 migration
 - 타운 -> 상점 -> 구매 -> `userInventory/{memberUserId}/items` 저장 -> 내 집 보유 아이템 표시
 - 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/{memberUserId}` 저장 -> 내 집 재진입 시 적용 상태 유지
@@ -221,6 +224,11 @@
 - 주요 필드: `userId`, `legacyMemberId`, `school`, `grade`, `classNumber`, `studentNumber`, `nickname`, `role`, `status`, `active`, `passwordMode`, `initialPasswordChanged`, `profileImageUrl`, `selectedTitleId`, `rankingMessage`, `createdAt`, `updatedAt`, `migratedAt`
 - 비밀번호, 평문 password, password hash는 import하지 않음
 - 입력에 `authUid`가 없으면 기존 `users/{userId}.authUid`를 덮어쓰지 않는 정책 적용
+- `users/{memberUserId}.authUid` 연결 1차 구현 완료
+- 자동 복구 흐름:
+  - localStorage 힌트 `memberUserId` -> `users/{memberUserId}` 단건 읽기 -> `authUid` 재검증
+  - 힌트가 없거나 실패하면 `users where authUid == current uid limit 1` 역조회
+- 다른 Auth `uid`에 이미 연결된 회원은 재연결 차단
 - 운영본 `gas-quiz`는 계속 유지하며, Firebase 실험본은 새 사이트 전환 준비용으로 분리 유지
 
 ### `USER_REWARD_DATA`
@@ -266,7 +274,6 @@
 - GAS `getQuizData`
 - 운영본 회원 시스템과 Auth `uid` 사용자 매핑
 - 실제 랭킹
-- 운영 수준 Firestore 보안 규칙
 - 서버 검증 기반 구매 처리
 - Firebase Storage 실제 이미지
 - 운영본 문제/랭킹/기록 데이터
@@ -285,7 +292,11 @@
 - Firestore `userRoomSettings/{dataOwnerId}`
 - Firestore `users` 운영본 회원 148명 import
 - `users/{memberUserId}.authUid` 회원 연결
+- Auth `uid` 기반 연결 회원 자동 복구
+- localStorage 힌트와 Firestore 재검증 기반 회원 복구
 - Auth `uid` 소유 데이터에서 회원 `userId` 소유 데이터로 최초 1회 자동 migration
+- linked member 접근을 허용하는 `firestore.rules` 보완
+- Firestore Emulator rules 로딩 확인
 - Auth 실패 시 개발용 `test_user` fallback
 
 ## 7. 실제 Firebase Console 기준 테스트 결과
@@ -307,64 +318,110 @@
 - `users` status 집계 확인 완료: active 147명, inactive 1명
 - `users` 문서에 비밀번호 계열 필드가 없는 것 확인 완료
 - `users` 문서의 `authUid` 매핑 1차 구현 완료
+- Auth `uid` 기반 자동 회원 복구 구현 완료
+- localStorage 힌트와 Firestore `authUid` 재검증 구조 구현 완료
 - 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
+- 기존 Auth `uid` 소유 경제/인벤토리/내 집 데이터를 회원 `userId` 소유 데이터로 최초 1회 migration하는 구조 구현 완료
+- linked member 접근을 허용하도록 `firestore.rules` 보완 완료
+- `firebase emulators:exec --only firestore "echo rules-loaded"`로 rules 로딩 확인 완료
 
 현재 주요 기능 루프:
 
 1. Firebase Auth 익명 로그인으로 `uid` 생성
 2. 회원 연결 전에는 `userEconomy/{uid}` 기본 경제 문서 초기화
 3. 내 집의 Firebase 회원 연결 테스트에서 운영본 회원 `userId`를 찾아 `users/{memberUserId}.authUid` 연결
-4. 연결된 회원이 있으면 데이터 소유자를 `memberUserId`로 전환
-5. 기존 `uid` 기준 경제/인벤토리/내 집 데이터가 있고 `memberUserId` 기준 데이터가 없으면 자동 migration
-6. 상점에서 `shopItems`와 `assetCatalog` 기반 아이템 표시
-7. 상점 구매 transaction 실행
-8. `userInventory/{memberUserId}/items`에 구매 아이템 저장
-9. 내 집에서 보유 아이템 표시
-10. 내 집 적용 선택을 `userRoomSettings/{memberUserId}`에 저장
+4. 새로고침/재진입 시 Auth `uid`로 연결된 `users` 문서를 자동 복구
+5. 연결된 회원이 있으면 데이터 소유자를 `memberUserId`로 전환
+6. 기존 `uid` 기준 경제/인벤토리/내 집 데이터가 있고 `memberUserId` 기준 데이터가 없으면 자동 migration
+7. 상점에서 `shopItems`와 `assetCatalog` 기반 아이템 표시
+8. 상점 구매 transaction 실행
+9. `userInventory/{memberUserId}/items`에 구매 아이템 저장
+10. 내 집에서 보유 아이템 표시
+11. 내 집 적용 선택을 `userRoomSettings/{memberUserId}`에 저장
 
 주의:
 
 - 위 연결은 Firebase Auth 익명 사용자와 운영본 회원 `userId`를 연결하는 1차 프로토타입이다.
 - 비밀번호 검증은 아직 연결하지 않았으며, 현재는 학교/학년/반/번호로 active student 문서를 찾아 연결한다.
-- Firestore 보안 규칙은 운영 수준으로 정리하기 전이다.
+- Firestore rules는 linked member 접근을 허용하도록 보완했지만, 운영 수준의 서버 검증 전이다.
+- 현재 구매/경제 흐름은 클라이언트 transaction이므로 `userEconomy`, `userInventory`, `purchaseLogs` 조작 위험이 남아 있다.
+- 운영 전 Functions 이전 또는 서버 검증이 필요하다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
 - push/deploy 전 최종 검증이 필요하다.
 - Firestore Emulator까지 함께 검증하려면 별도의 Emulator 연결 코드와 seed/import 데이터가 필요하다.
 
-## 8. 다음 작업 추천 순서
+## 8. 수동 테스트 체크리스트
 
-1. 운영본 회원 로그인 검증 방식 확정
+1. 회원 연결
+   - 내 집의 Firebase 회원 연결 테스트에서 학교/학년/반/번호 입력
+   - active student 회원이면 `users/{memberUserId}.authUid` 연결 확인
+
+2. 새로고침 후 자동 복구
+   - 같은 브라우저에서 새로고침 또는 재진입
+   - 연결된 회원 표시가 자동 복구되는지 확인
+   - localStorage 힌트가 있어도 Firestore `authUid` 재검증 후 복구되는지 확인
+
+3. 상점 DJ코인 표시
+   - 상점 진입 후 `userEconomy/{memberUserId}` 기준 DJ코인 표시 확인
+   - 기존 `uid` 기준 문서가 있던 경우 `memberUserId` 기준 문서로 migration되는지 확인
+
+4. 구매
+   - 구매 가능 아이템 클릭
+   - DJ코인 차감, 구매 완료 메시지, 보유중 상태 변경 확인
+
+5. 인벤토리 저장
+   - Firestore Console에서 `userInventory/{memberUserId}/items/{itemId}` 생성 확인
+   - 내 집 보유 아이템 목록에 구매 아이템 표시 확인
+
+6. 내 집 설정 저장
+   - 내 집에서 보유 아이템 선택
+   - `userRoomSettings/{memberUserId}` 저장 확인
+   - 새로고침/재진입 후 `적용중` 상태 유지 확인
+
+7. 다른 uid 중복 연결 차단
+   - 다른 브라우저/프로필/시크릿 창에서 같은 회원 연결 시도
+   - 이미 다른 로그인 정보와 연결된 회원 안내 확인
+
+## 9. 다음 작업 추천 순서
+
+1. 학생용 로그인 UI 정리
+   - 현재 Firebase 회원 연결 테스트 UI를 학생용 로그인 흐름으로 정리
+   - 자동 복구 성공/실패 상태 표시 개선
+   - 중복 연결 안내와 교사 문의 흐름 정리
+
+2. 비밀번호/초기비밀번호 검증 정책 확정
    - 기존 비밀번호 미이관 상태에서 초기 비밀번호 재설정 또는 별도 인증 방식을 결정
    - 현재 학교/학년/반/번호 기반 연결 테스트를 운영 로그인 UX로 바꿀지 검토
    - `users/{memberUserId}.authUid` 중복 연결 해제/복구 정책 정리
 
-2. Firestore 보안 규칙 실제 적용 전 최종 점검
-   - `shopItems`, `assetCatalog` 읽기 권한
-   - 회원 `userId` 기준 `userEconomy`, `userInventory`, `userRoomSettings` 본인 읽기/쓰기 제한
-   - `users/{memberUserId}.authUid` 연결 transaction 허용 범위 검토
-   - 구매 transaction의 클라이언트 직접 쓰기 유지 여부 검토
+3. Functions 기반 경제 처리
+   - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
+   - `userInventory` 직접 추가 방지
+   - `purchaseLogs` 서버 생성 구조 검토
 
-3. Firebase Storage 이미지 연결
+4. Firebase Storage 이미지 연결
    - `assetCatalog.imageUrl`에 실제 이미지 URL 입력
    - 상점과 내 집 카드에서 이미지 표시 확인
    - 이미지 실패 시 fallback icon 유지 확인
 
-4. Firebase Hosting 배포 테스트
+5. Firebase Hosting 배포 테스트
    - 타운/학교/퀴즈/상점/내 집/이벤트 흐름 점검
+   - 회원 연결, 새로고침 자동 복구, 중복 uid 차단 확인
    - 구매 후 내 집 적용 상태 유지 확인
    - 모바일/데스크톱 레이아웃 확인
    - Firestore 권한 오류 확인
 
-5. GAS 데이터 연동 검토
+6. GAS 데이터 연동 검토
    - 운영본 `getQuizData`의 반환 구조 확인
    - `QUIZ_CATALOG`와 운영본 quizId 매핑
    - `QUESTION_BANK` 대체 또는 병행 전략 결정
 
-## 9. 운영본 주의사항
+## 10. 운영본 주의사항
 
 - 이 문서는 Firebase 실험본 `~/Projects/gas-quiz-firebase` 기준이다.
 - 운영본 `~/Projects/gas-quiz`와 혼동하지 말 것.
 - 운영본 파일, GAS 배포, 운영 데이터는 이 프로토타입 작업 중 수정하지 않는다.
 - 운영본 `gas-quiz`는 계속 유지한다.
 - `gas-quiz-firebase`는 새 사이트 전환 준비용으로 별도 검증 중이다.
-- Firebase 실험본은 운영본 회원 `users` 컬렉션 import까지 완료했지만, 실제 로그인 사용자 매핑과 운영본 문제/랭킹/기록 데이터 연결은 아직 전이다.
+- Firebase 실험본은 운영본 회원 `users` 컬렉션 import, `authUid` 연결, 자동 복구, memberUserId 기준 데이터 소유권 전환까지 완료했다.
+- 운영본 문제/랭킹/기록 데이터 연결은 아직 전이다.
