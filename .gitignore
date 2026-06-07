@@ -66,5 +66,11 @@ node_modules/
 .env
 service-account.json
 
+# Local private member migration data
+member-export.json
+member-export.csv
+exports/
+private/
+
 # dataconnect generated files
 .dataconnect

@@ -247,7 +247,46 @@ Auth `uid`는 `authUid` 필드로 별도 저장한다. 이렇게 하면 운영�
 7. 로그인 성공 후 `authUid` 연결 테스트
 8. 기존 `userEconomy`, `userInventory`, `userRoomSettings`와 사용자 기준 통합 검토
 
-## 14. 아직 하지 않을 것
+## 14. 로컬 전용 import 도구
+
+실제 운영본 회원정보 export 파일은 로컬 전용으로만 다룬다.
+
+보호 대상:
+
+- `member-export.json`
+- `member-export.csv`
+- `exports/`
+- `private/`
+- `service-account.json`
+- `.env`
+
+위 파일과 폴더는 `.gitignore`로 보호하며, 실제 학생 개인정보나 export 결과를 git에 커밋하지 않는다.
+
+로컬 import 스크립트:
+
+```bash
+node scripts/import-members-from-json.js --dry-run
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-members-from-json.js --commit
+```
+
+기본 입력 파일:
+
+```text
+./member-export.json
+```
+
+안전 규칙:
+
+- 기본 실행은 dry-run으로 처리한다.
+- 실제 Firestore 쓰기는 `--commit`을 명시한 경우에만 수행한다.
+- import 전 dry-run 결과와 샘플 변환 결과를 반드시 확인한다.
+- 비밀번호 필드는 입력 파일에 있어도 Firestore에 저장하지 않는다.
+- `passwordMode`, `initialPasswordChanged` 같은 상태값만 저장한다.
+- 운영본 `gas-quiz`와 Google Sheets는 수정하지 않는다.
+
+입력 JSON은 배열 또는 `{ "members": [...] }` 형태를 허용한다. 운영본 14컬럼 구조를 반영해 `userId`, `grade`, `classNo`, `number`, `nickname`, `profileImageUrl`, `createdAt`, `lastLoginAt`, `password`, `school`, `selectedTitleId`, `rankingMessage`, `role`, `status` 형태의 데이터를 받을 수 있다. `password` 값은 변환 중 폐기된다.
+
+## 15. 아직 하지 않을 것
 
 - 운영본 `gas-quiz` 수정
 - 운영본 Google Sheets 데이터 수정
@@ -259,7 +298,7 @@ Auth `uid`는 `authUid` 필드로 별도 저장한다. 이렇게 하면 운영�
 - 운영 보안 규칙 확정
 - 회원 전체 마이그레이션
 
-## 15. 다음 구현 단계
+## 16. 다음 구현 단계
 
 1. `MEMBER_MIGRATION_PLAN.md` 확정
 2. 샘플 seed 스크립트 구조 검토
