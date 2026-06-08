@@ -964,19 +964,21 @@
         title: '속담 퀴즈',
         kicker: 'Korean Hall',
         icon: '💬',
-        desc: '속담의 뜻과 쓰임을 맞히는 정적 모드 선택 프로토타입입니다.',
-        summary: '표현형 국어 퀴즈도 같은 퀴즈 엔진으로 동작하도록 구성했습니다.',
+        desc: '속담의 뜻과 쓰임을 맞히는 퀴즈입니다.',
+        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
         subjectId: 'korean',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['records'],
+        enabled: false
       },
       idiom: {
         title: '사자성어 퀴즈',
         kicker: 'Korean Hall',
         icon: '🐉',
-        desc: '사자성어의 뜻과 쓰임을 확인하는 정적 모드 선택 프로토타입입니다.',
-        summary: '사자성어도 동일한 모드 선택과 문제 풀이 화면을 재사용합니다.',
+        desc: '사자성어의 뜻과 쓰임을 확인하는 퀴즈입니다.',
+        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
         subjectId: 'korean',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['records'],
+        enabled: false
       },
       samgukji: {
         title: '삼국지 퀴즈',
@@ -1027,19 +1029,21 @@
         title: '문화유산 퀴즈',
         kicker: 'Social Studies Hall',
         icon: '🏺',
-        desc: '우리 문화유산의 이름과 특징을 확인하는 사회 더미 퀴즈입니다.',
-        summary: '문화유산 카드는 정적 데이터만 사용하며 외부 저장소에 연결하지 않습니다.',
+        desc: '우리 문화유산의 이름과 특징을 확인하는 사회 퀴즈입니다.',
+        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
         subjectId: 'social',
-        modes: ['practice', 'ranking', 'oneChance']
+        modes: ['records'],
+        enabled: false
       },
       social_concepts: {
         title: '사회 개념 퀴즈',
         kicker: 'Social Studies Hall',
         icon: '🗺️',
         desc: '지도, 지역, 공동체 같은 기본 사회 개념을 확인합니다.',
-        summary: '개념형 문제도 공통 퀴즈 엔진으로 처리합니다.',
+        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
         subjectId: 'social',
-        modes: ['practice', 'ranking', 'oneChance']
+        modes: ['records'],
+        enabled: false
       },
       multiplication_division: {
         title: '곱셈과 나눗셈 퀴즈',
@@ -1063,12 +1067,26 @@
         title: '계산 연습 퀴즈',
         kicker: 'Math Hall',
         icon: '🧮',
-        desc: '간단한 사칙 계산을 빠르게 확인하는 수학 더미 퀴즈입니다.',
-        summary: '계산 연습은 정답 인덱스 기반 QUESTION_BANK 구조로 동작합니다.',
+        desc: '간단한 사칙 계산을 빠르게 확인하는 수학 퀴즈입니다.',
+        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
         subjectId: 'math',
-        modes: ['practice', 'ranking', 'oneChance']
+        modes: ['records'],
+        enabled: false
       }
     };
+
+    const FIREBASE_PLAYABLE_QUIZ_IDS = new Set([
+      'random-basic',
+      'spelling',
+      'word-relation',
+      'gmo',
+      'time_store',
+      'samgukji',
+      'ancient-history',
+      'history-people',
+      'idol',
+      'anime'
+    ]);
 
     const QUESTION_BANK = {
       spelling: [
@@ -3438,6 +3456,7 @@
       grid.innerHTML = '';
       subject.quizzes.forEach(quizId => {
         const quiz = QUIZ_CATALOG[quizId];
+        const isPlayable = quiz.enabled !== false && FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(quizId));
         const item = document.createElement('article');
         const icon = document.createElement('span');
         const title = document.createElement('h3');
@@ -3446,17 +3465,20 @@
         const badge = document.createElement('span');
 
         item.className = 'subject-quiz-card';
-        item.dataset.quizId = quizId;
-        item.tabIndex = 0;
-        item.setAttribute('role', 'button');
+        if(isPlayable) {
+          item.dataset.quizId = quizId;
+          item.tabIndex = 0;
+          item.setAttribute('role', 'button');
+        }
         icon.className = 'subject-quiz-icon';
         icon.textContent = quiz.icon;
         title.textContent = quiz.title.replace(' 퀴즈', '');
         desc.textContent = quiz.desc;
-        button.className = 'subject-ready-button';
+        button.className = isPlayable ? 'subject-ready-button' : 'subject-disabled-button';
         button.type = 'button';
-        button.textContent = '입장하기';
-        button.dataset.quizId = quizId;
+        button.disabled = !isPlayable;
+        button.textContent = isPlayable ? '입장하기' : '준비 중';
+        if(isPlayable) button.dataset.quizId = quizId;
 
         item.append(icon, title, desc);
         if(quiz.groupLabel) {
@@ -3484,7 +3506,12 @@
       const grid = document.getElementById('quiz-mode-grid');
       grid.innerHTML = '';
       modeIds.forEach(modeId => {
-        const mode = MODE_CATALOG[modeId] || MODE_CATALOG.practice;
+        const baseMode = MODE_CATALOG[modeId] || MODE_CATALOG.practice;
+        const playable = FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(lastQuizId));
+        const mode = {
+          ...baseMode,
+          enabled: baseMode.enabled && playable
+        };
         const item = document.createElement('article');
         const icon = document.createElement('span');
         const title = document.createElement('h3');
