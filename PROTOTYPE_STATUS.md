@@ -141,6 +141,7 @@
 
 - 보유 칭호 목록
 - 예: 전설의 퀴즈왕, 국어 마스터, 삼국시대 전문가, 독서왕
+- 현재 화면 표시는 아직 정적 데이터 기반이며, 운영본 `타이틀현황`은 Firestore `userTitles` / `userTitleSummary`로 실제 import 완료
 
 ### `BADGE_DATA`
 
@@ -231,6 +232,20 @@
 - 다른 Auth `uid`에 이미 연결된 회원은 재연결 차단
 - 운영본 `gas-quiz`는 계속 유지하며, Firebase 실험본은 새 사이트 전환 준비용으로 분리 유지
 
+### `userTitles`
+
+- 운영본 GAS `타이틀현황`에서 Firebase migration export JSON 생성 완료
+- Firestore 경로: `userTitles/{memberUserId}/titles/{titleId}`
+- 실제 import 완료: 타이틀 문서 11건, 보유 타이틀 사용자 5명
+- `users.selectedTitleId`와 일치하는 보유 타이틀은 `selected: true`로 저장
+
+### `userTitleSummary`
+
+- Firestore 경로: `userTitleSummary/{memberUserId}`
+- 실제 import 완료: 요약 문서 5건
+- 주요 필드: `userId`, `memberUserId`, `titleCount`, `selectedTitleId`, `selectedTitleName`, `missingSelectedTitle`, `migratedAt`, `migrationSource`
+- 검증 결과 `missingSelectedTitle` 누락 없음
+
 ### `USER_REWARD_DATA`
 
 - 보유 코인/경험치와 퀴즈 완료 보상 표시용 정적 데이터
@@ -260,7 +275,7 @@
 - 퀴즈 완료 보상
 - 퀴즈 완료 보상으로 누적되는 보유 코인과 경험치
 - 랭킹 광장 순위
-- 프로필, 칭호, 뱃지
+- 프로필, 칭호 UI 연결, 뱃지
 - 운영본 회원 시스템 기준 상점 상태
 - 퀘스트 진행도와 보상
 - 학급 미션 진행도
@@ -272,11 +287,11 @@
 
 - Storage
 - GAS `getQuizData`
-- 운영본 회원 시스템과 Auth `uid` 사용자 매핑
+- 운영본 뱃지/연습기록/랭킹/퀴즈 데이터
 - 실제 랭킹
 - 서버 검증 기반 구매 처리
 - Firebase Storage 실제 이미지
-- 운영본 문제/랭킹/기록 데이터
+- 운영본 문제/기록 데이터
 
 현재 연결된 것:
 
@@ -291,6 +306,9 @@
 - Firestore `purchaseLogs`
 - Firestore `userRoomSettings/{dataOwnerId}`
 - Firestore `users` 운영본 회원 148명 import
+- Firestore `userTitles/{memberUserId}/titles/{titleId}` 운영본 타이틀현황 11건 import
+- Firestore `userTitleSummary/{memberUserId}` 타이틀 요약 5건 import
+- `users.selectedTitleId`와 보유 타이틀 `selected` 표시 연결
 - `users/{memberUserId}.authUid` 회원 연결
 - Auth `uid` 기반 연결 회원 자동 복구
 - localStorage 힌트와 Firestore 재검증 기반 회원 복구
@@ -318,6 +336,11 @@
 - `users` status 집계 확인 완료: active 147명, inactive 1명
 - `users` 문서에 비밀번호 계열 필드가 없는 것 확인 완료
 - `users` 문서의 `authUid` 매핑 1차 구현 완료
+- 운영본 `타이틀현황` Drive export/import 완료
+- Firestore `userTitles` 하위 컬렉션에 11건 저장 확인 완료
+- Firestore `userTitleSummary` 컬렉션에 5건 저장 확인 완료
+- `users.selectedTitleId`와 `userTitles`의 `selected` 표시 일치 확인 완료
+- `missingSelectedTitle` 누락 없음 확인 완료
 - Auth `uid` 기반 자동 회원 복구 구현 완료
 - localStorage 힌트와 Firestore `authUid` 재검증 구조 구현 완료
 - 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
@@ -384,14 +407,14 @@
 
 ## 9. 다음 작업 추천 순서
 
-1. 타이틀 실제 이관
-   - 운영본 타이틀 export/import 계획에 따라 Firebase `userTitles` 실제 이관 진행
-   - 현재 프로필/칭호 표시는 아직 더미 상태이므로 실제 보유 타이틀 연결을 우선 검증
-
-2. 학생용 로그인 UI 정리
+1. 학생용 로그인 UI 정리
    - 현재 Firebase 회원 연결 테스트 UI를 학생용 로그인 흐름으로 정리
    - 자동 복구 성공/실패 상태 표시 개선
    - 중복 연결 안내와 교사 문의 흐름 정리
+
+2. 타이틀 UI 연결
+   - Firestore `userTitles` / `userTitleSummary`를 내 집/프로필 칭호 표시와 연결
+   - 정적 `TITLE_DATA` fallback 유지 여부 결정
 
 3. 비밀번호/초기비밀번호 검증 정책 확정
    - 기존 비밀번호 미이관 상태에서 초기 비밀번호 재설정 또는 별도 인증 방식을 결정
