@@ -97,6 +97,82 @@ service cloud.firestore {
         ]);
     }
 
+    function hasValidPracticeProgressShape(recordId) {
+      return isSignedIn()
+        && request.resource.data.memberUserId is string
+        && canAccessUserScopedData(request.resource.data.memberUserId)
+        && (!request.resource.data.keys().hasAny(['authUid']) || request.resource.data.authUid == request.auth.uid)
+        && request.resource.data.source == 'firebase-app'
+        && request.resource.data.version == 2
+        && request.resource.data.recordId is string
+        && request.resource.data.recordId == recordId
+        && recordId.matches(request.resource.data.memberUserId + '__.*')
+        && request.resource.data.userId == request.resource.data.memberUserId
+        && request.resource.data.mode == 'practice'
+        && request.resource.data.correctCount is number
+        && request.resource.data.totalCount is number
+        && request.resource.data.starCount is number
+        && request.resource.data.correctIds is list
+        && request.resource.data.keys().hasOnly([
+          'recordId',
+          'memberUserId',
+          'userId',
+          'authUid',
+          'quizId',
+          'area',
+          'detail',
+          'areaKey',
+          'mode',
+          'completionType',
+          'inferredCompletionType',
+          'totalCount',
+          'correctCount',
+          'correctIds',
+          'starCount',
+          'completed',
+          'firstCompletedAt',
+          'lastCompletedAt',
+          'lastAchievedAt',
+          'createdAt',
+          'updatedAt',
+          'source',
+          'version',
+          'grade',
+          'classNo',
+          'number',
+          'nickname',
+          'hasLegacyUnknown',
+          'legacyUnknownCount',
+          'sourceSheet',
+          'sourceRowNumber',
+          'mergedSources',
+          'migratedAt',
+          'migrationSource'
+        ]);
+    }
+
+    function canCreatePracticeProgress(recordId) {
+      return hasValidPracticeProgressShape(recordId);
+    }
+
+    function canUpdatePracticeProgress(recordId) {
+      return hasValidPracticeProgressShape(recordId)
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId
+        && resource.data.recordId == request.resource.data.recordId
+        && resource.data.area == request.resource.data.area
+        && resource.data.detail == request.resource.data.detail
+        && resource.data.areaKey == request.resource.data.areaKey;
+    }
+
+    function canReadPracticeProgress(recordId) {
+      return isSignedIn()
+        && resource.data.memberUserId is string
+        && canAccessUserScopedData(resource.data.memberUserId)
+        && resource.data.recordId == recordId
+        && recordId.matches(resource.data.memberUserId + '__.*');
+    }
+
     match /shopItems/{itemId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -143,6 +219,13 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && canAccessUserScopedData(request.resource.data.userId);
       allow update, delete: if false;
+    }
+
+    match /practiceRecords/{recordId} {
+      allow read: if canReadPracticeProgress(recordId);
+      allow create: if canCreatePracticeProgress(recordId);
+      allow update: if canUpdatePracticeProgress(recordId);
+      allow delete: if false;
     }
 
     match /{document=**} {

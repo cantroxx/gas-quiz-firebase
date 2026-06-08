@@ -1576,6 +1576,18 @@
       return quizId;
     }
 
+    function slugPracticeKey(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[()]/g, '')
+        .replace(/[：]/g, ':')
+        .replace(/지앰오/g, '지엠오')
+        .replace(/[^0-9a-z가-힣:_-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+
     function shuffleList(items) {
       return items
         .map(item => ({ item, sort: Math.random() }))
@@ -1608,6 +1620,7 @@
       ].filter(value => value !== answer);
       const choices = shuffleList([answer, ...distractors.slice(0, 3)]).map(String);
       return {
+        practiceQuestionId: '',
         question,
         choices,
         answer: choices.indexOf(String(answer))
@@ -1641,6 +1654,7 @@
             const quotient = 11 + ((index * 2 + i) % 20);
             questions.push(makeMathChoiceQuestion(`${divisor * quotient} ÷ ${divisor}의 값은?`, quotient));
           }
+          questions[questions.length - 1].practiceQuestionId = `math-muldiv-${group.type}-${String(index).padStart(3, '0')}`;
           index += 1;
         }
       });
@@ -1655,6 +1669,7 @@
       const normalizedChoices = choices.length >= 2 ? choices : [answerText, '다시 보기'];
       const answerIndex = normalizedChoices.findIndex(choice => choice === answerText);
       return {
+        practiceQuestionId: String(question.questionId || '').trim(),
         question: prompt || '다음 중 맞는 표현은?',
         choices: normalizedChoices,
         answer: answerIndex >= 0 ? answerIndex : 0
@@ -1671,6 +1686,7 @@
         question.sentence2
       ].filter(Boolean);
       return {
+        practiceQuestionId: String(question.questionId || '').trim(),
         question: promptParts.join('\n'),
         choices,
         answer: answerIndex >= 0 ? answerIndex : 0
@@ -1685,6 +1701,7 @@
         ? explicitAnswer
         : choices.findIndex(choice => choice === answerText);
       return {
+        practiceQuestionId: String(question.questionId || '').trim(),
         type: 'choice',
         question: String(question.prompt || question.question || '').trim(),
         choices,
@@ -1698,6 +1715,7 @@
       const answerText = String(question.answer || '').trim();
       const aliases = Array.isArray(question.aliases) ? question.aliases.map(alias => String(alias || '').trim()).filter(Boolean) : [];
       return {
+        practiceQuestionId: String(question.questionId || '').trim(),
         type: 'imageInput',
         question: String(question.prompt || '이미지를 보고 정답을 입력하세요.').trim(),
         imageUrl: String(question.imageUrl || question.question || '').trim(),
@@ -3114,6 +3132,14 @@
         isCorrect = selectedChoiceIndex === question.answer;
       }
       if(isCorrect) correctAnswerCount += 1;
+      if(isCorrect) {
+        console.info('Practice progress correct questionId:', {
+          questionId: getPracticeQuestionId(question),
+          quizId: normalizeFirebaseQuizId(currentQuizId)
+        });
+        savePracticeProgressAfterCorrectAnswer(question)
+          .catch(error => console.warn('Firestore practice progress save failed.', error));
+      }
       document.querySelectorAll('.quiz-choice').forEach(choice => {
         choice.disabled = true;
       });
@@ -3147,6 +3173,138 @@
         return;
       }
       renderQuestion();
+    }
+
+    function getPracticeTargetForQuiz(quizId, meta) {
+      const id = normalizeFirebaseQuizId(quizId);
+      const completionType = String(meta?.completionType || '').trim();
+      const targets = {
+        'random-basic': { area: '수학', detail: '곱셈과 나눗셈', areaKey: '수학/random-basic', completionType: 'loop' },
+        spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
+        'word-relation': { area: '국어', detail: '다의어·동형이의어', areaKey: '국어/word-relation', completionType: 'loop' },
+        gmo: { area: '국어', detail: '독서:지엠오 아이', areaKey: '국어/gmo', completionType: 'complete' },
+        time_store: { area: '국어', detail: '독서:시간가게', areaKey: '국어/독서:시간가게', completionType: completionType || 'complete' },
+        samgukji: { area: '사회', detail: '삼국지', areaKey: '사회/삼국지', completionType: completionType || 'loop' },
+        'ancient-history': { area: '사회', detail: '고대사~삼국시대', areaKey: '사회/ancient-three-kingdoms', completionType: completionType || 'loop' },
+        'history-people': { area: '인물', detail: '역사인물', areaKey: '인물/역사인물', completionType: completionType || 'loop' },
+        idol: { area: '인물', detail: '아이돌', areaKey: '인물/아이돌', completionType: completionType || 'loop' },
+        anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' }
+      };
+      return targets[id] || null;
+    }
+
+    function buildPracticeProgressRecordId(memberUserId, areaKey) {
+      return `${memberUserId}__${slugPracticeKey(areaKey).replace(/-/g, '_')}`;
+    }
+
+    function getPracticeQuestionId(question) {
+      return String(question?.practiceQuestionId || question?.questionId || question?.answerText || question?.question || '').trim();
+    }
+
+    async function savePracticeProgressAfterCorrectAnswer(question) {
+      if(currentModeId !== 'practice') return null;
+
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+
+      const memberUserId = getCurrentDataOwnerId();
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) throw new Error('member-required');
+
+      const questionId = getPracticeQuestionId(question);
+      if(!questionId) throw new Error('missing-question-id');
+
+      const quizId = normalizeFirebaseQuizId(currentQuizId);
+      const meta = await loadFirebaseQuizMeta(quizId);
+      const target = getPracticeTargetForQuiz(quizId, meta);
+      if(!target) throw new Error('unsupported-practice-target');
+
+      const totalCount = Number(meta?.questionCount) || getCurrentQuestionSet().length;
+      if(!totalCount || totalCount <= 0) throw new Error('invalid-total-count');
+
+      const recordId = buildPracticeProgressRecordId(memberUserId, target.areaKey);
+      const recordRef = db.collection('practiceRecords').doc(recordId);
+      const authUid = getFirebaseAuthUser()?.uid || '';
+      const fieldValue = getFirestoreFieldValue();
+      let saveResult = null;
+
+      await db.runTransaction(async transaction => {
+        const snapshot = await transaction.get(recordRef);
+        const existing = snapshot.exists ? snapshot.data() || {} : {};
+        const existingIds = Array.isArray(existing.correctIds) ? existing.correctIds.map(id => String(id || '').trim()).filter(Boolean) : [];
+        const isDuplicateCorrectId = existingIds.includes(questionId);
+        const mergedIds = Array.from(new Set([...existingIds, questionId]));
+        const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
+        const existingStarCount = Number(existing.starCount) || 0;
+        const completed = mergedIds.length >= totalCount;
+        const isCompleteType = target.completionType === 'complete';
+        let nextIds = mergedIds;
+        let nextCorrectCount = mergedIds.length;
+        let nextStarCount = existingStarCount;
+        const nextData = {
+          recordId,
+          memberUserId,
+          userId: memberUserId,
+          authUid,
+          quizId,
+          area: target.area,
+          detail: target.detail,
+          areaKey: target.areaKey,
+          completionType: target.completionType,
+          inferredCompletionType: false,
+          totalCount,
+          mode: 'practice',
+          source: 'firebase-app',
+          version: 2,
+          updatedAt: fieldValue.serverTimestamp(),
+          lastAchievedAt: fieldValue.serverTimestamp()
+        };
+
+        if(!snapshot.exists) {
+          nextData.createdAt = fieldValue.serverTimestamp();
+        }
+
+        if(completed) {
+          if(isCompleteType) {
+            nextStarCount = Math.max(nextStarCount, 1);
+            nextIds = [];
+            nextCorrectCount = totalCount;
+          } else {
+            nextStarCount += 1;
+            nextIds = [];
+            nextCorrectCount = 0;
+          }
+          nextData.completed = true;
+          nextData.firstCompletedAt = existing.firstCompletedAt || fieldValue.serverTimestamp();
+          nextData.lastCompletedAt = fieldValue.serverTimestamp();
+        } else {
+          nextData.completed = !!existing.completed;
+          if(existing.firstCompletedAt) nextData.firstCompletedAt = existing.firstCompletedAt;
+          if(existing.lastCompletedAt) nextData.lastCompletedAt = existing.lastCompletedAt;
+        }
+
+        nextData.correctIds = nextIds;
+        nextData.correctCount = nextCorrectCount;
+        nextData.starCount = nextStarCount;
+        saveResult = {
+          recordId,
+          questionId,
+          duplicate: isDuplicateCorrectId,
+          completed,
+          previousCorrectCount,
+          nextCorrectCount,
+          previousStarCount: existingStarCount,
+          nextStarCount
+        };
+        if(isDuplicateCorrectId) {
+          console.info('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
+        } else {
+          console.info('Practice progress new correctId added:', saveResult);
+        }
+        transaction.set(recordRef, nextData, { merge: true });
+      });
+
+      console.info('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
+      return recordId;
     }
 
     function showQuizComplete() {
