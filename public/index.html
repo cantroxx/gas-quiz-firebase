@@ -15,11 +15,11 @@
       <div class="hero-copy">
         <p class="eyebrow">Firebase Hosting Preview</p>
         <h1 id="page-title">DJ48 Firebase 실험실</h1>
-        <p class="lead">새 퀴즈타운 디자인과 Firebase 기능을 실험하는 공간입니다.</p>
-        <p class="notice">기존 퀴즈, 로그인, 랭킹은 아직 GAS 운영본에서 사용합니다.</p>
+        <p class="lead">새 퀴즈타운 디자인과 Firebase 기능을 확인하는 공간입니다.</p>
+        <p class="notice">회원 연결, 퀴즈 플레이, 기록, 보상, 랭킹을 Firebase에서 확인하는 배포본입니다.</p>
         <div class="actions" aria-label="실험실 동작">
           <a class="button primary" href="/" aria-label="Firebase Hosting 연결 확인">Firebase Hosting 연결 확인</a>
-          <a class="button secondary" href="#" aria-label="기존 퀴즈타운 열기">기존 퀴즈타운 열기</a>
+          <a class="button secondary" href="#town-view" aria-label="퀴즈타운 지도 보기">퀴즈타운 지도 보기</a>
         </div>
       </div>
     </section>
@@ -391,7 +391,7 @@
       <div id="modal-summary" class="modal-summary"></div>
       <div id="modal-features" class="modal-features" aria-label="장소별 상세 항목"></div>
       <div id="modal-actions" class="modal-actions" aria-label="준비 중인 기능"></div>
-      <p id="modal-status" class="modal-status">아직 실제 기능은 연결하지 않은 정적 프로토타입입니다.</p>
+      <p id="modal-status" class="modal-status">각 장소에서 현재 연결된 기능을 확인할 수 있습니다.</p>
       <button class="button primary modal-action" type="button" data-close-modal>닫기</button>
     </section>
   </div>
@@ -422,12 +422,12 @@
         icon: '🏠',
         title: '내 집',
         kicker: 'My Room',
-        desc: '정적 프로필, 칭호, 뱃지 화면을 확인하는 개인 공간입니다.',
-        summary: '나중에 프로필과 내 방 꾸미기를 연결할 개인 공간입니다.',
+        desc: '회원 프로필, 보유 칭호, 뱃지, 내 방 꾸미기 상태를 확인하는 개인 공간입니다.',
+        summary: '회원 연결 후 Firestore에 저장된 개인 데이터를 보여줍니다.',
         features: [
           { label: '닉네임', value: 'DJ48 학생' },
-          { label: '칭호', value: '새싹 퀴즈러' },
-          { label: '뱃지', value: '샘플 뱃지 3개' }
+          { label: '칭호', value: '보유 타이틀 표시' },
+          { label: '뱃지', value: '연습기록 기반 표시' }
         ],
         actions: [
           { label: '내 집 입장하기', enabled: true, action: 'openHome' },
@@ -438,7 +438,7 @@
         icon: '🏫',
         title: '학교',
         kicker: 'Quiz School',
-        desc: '나중에 퀴즈 카테고리와 문제 선택 화면을 연결할 예정입니다.',
+        desc: '과목관에서 퀴즈를 고르고 연습전과 랭킹전을 시작합니다.',
         summary: '퀴즈 카테고리를 고르고 연습전/랭킹전으로 들어갈 핵심 장소입니다.',
         features: [
           { label: '오늘의 추천 퀴즈', value: '역사 인물 10문제' },
@@ -447,15 +447,15 @@
         ],
         actions: [
           { label: '학교 입장하기', enabled: true, action: 'openSchool' },
-          { label: '카테고리 선택 준비 중', enabled: false }
+          { label: '기록 보기 준비 중', enabled: false }
         ]
       },
       shop: {
         icon: '🛍️',
         title: '상점',
         kicker: 'Town Shop',
-        desc: '아바타, 배경, 장식 아이템을 구경하는 정적 상점 화면입니다.',
-        summary: '타운과 내 방을 꾸미는 아이템 카탈로그를 실험할 장소입니다.',
+        desc: 'DJ코인으로 배경, 아바타, 장식 아이템을 구매합니다.',
+        summary: 'Firestore 상점 아이템과 보유 인벤토리를 기준으로 동작합니다.',
         features: [
           { label: '배경', value: '숲속 배경, 별빛 배경' },
           { label: '아바타', value: '고양이, 탐험가 아바타' },
@@ -463,23 +463,23 @@
         ],
         actions: [
           { label: '상점 입장하기', enabled: true, action: 'openShop' },
-          { label: '구매 기능 준비 중', enabled: false }
+          { label: '내 집에서 적용하기', enabled: true, action: 'openHome' }
         ]
       },
       ranking: {
         icon: '🏆',
         title: '랭킹 광장',
         kicker: 'Ranking Plaza',
-        desc: '현재는 더미 화면이며, 실제 랭킹은 아직 GAS 운영본을 사용합니다.',
-        summary: '랭킹은 학생 기록과 연결되므로 나중에 가장 조심해서 옮길 영역입니다.',
+        desc: 'Firestore 랭킹 기록과 퀴즈왕 요약을 확인합니다.',
+        summary: '랭킹전 완료 기록을 기준으로 주요 랭킹과 분야별 목록을 보여줍니다.',
         features: [
-          { label: '퀴즈왕', value: '이번 주 샘플 1위 표시 예정' },
-          { label: '카테고리 랭킹', value: '국어/사회/수학 분리 예정' },
-          { label: '내 기록', value: '개인 최고점 보기 준비 중' }
+          { label: '퀴즈왕', value: '종합 요약 표시' },
+          { label: '카테고리 랭킹', value: '국어/사회/수학 분리' },
+          { label: '최근 기록', value: '최근 랭킹전 기록 표시' }
         ],
         actions: [
           { label: '랭킹 광장 입장하기', enabled: true, action: 'openRanking' },
-          { label: '내 기록 보기 준비 중', enabled: false }
+          { label: '분야별 목록 보기', enabled: true, action: 'openRanking' }
         ]
       },
       event: {
@@ -827,7 +827,7 @@
       practice: {
         icon: '📝',
         title: '연습전',
-        desc: '점수 부담 없이 문제를 풀어보는 정적 프로토타입 모드입니다.',
+        desc: '정답마다 연습기록과 보상을 저장하는 모드입니다.',
         enabled: true
       },
       ranking: {
@@ -855,8 +855,8 @@
         icon: '📚',
         title: '국어 퀴즈',
         hallTitle: '국어관',
-        kicker: 'Korean Hall Prototype',
-        desc: '운영본의 국어 퀴즈 데이터를 연결하기 전, 카테고리 선택 흐름만 확인합니다.',
+        kicker: 'Korean Hall',
+        desc: 'Firestore로 이관된 국어 문제를 과목관에서 선택합니다.',
         board: '낱말과 문장을 탐험해요',
         cardDesc: '맞춤법, 독서, 속담, 사자성어 문제를 고르는 화면입니다.',
         quizzes: ['spelling', 'word-relation', 'gmo', 'time_store', 'proverb', 'idiom'],
@@ -866,7 +866,7 @@
         icon: '🏛️',
         title: '사회 퀴즈',
         hallTitle: '사회관',
-        kicker: 'Social Studies Hall Prototype',
+        kicker: 'Social Studies Hall',
         desc: '사회 퀴즈도 국어관과 같은 선택 화면과 공통 엔진으로 연결합니다.',
         board: '역사와 사회를 살펴봐요',
         cardDesc: '삼국시대, 역사 인물, 문화유산, 사회 개념 퀴즈를 고르는 화면입니다.',
@@ -888,7 +888,7 @@
         icon: '➗',
         title: '수학 퀴즈',
         hallTitle: '수학관',
-        kicker: 'Math Hall Prototype',
+        kicker: 'Math Hall',
         desc: '수학 퀴즈도 과목 공통 구조와 같은 연습전 엔진으로 연결합니다.',
         board: '차근차근 계산해요',
         cardDesc: '곱셈과 나눗셈, 계산 연습 퀴즈를 고르는 화면입니다.',
@@ -904,8 +904,8 @@
       { subjectId: 'popular' },
       {
         icon: '🏆',
-        title: '랭킹전 준비 중',
-        desc: '기록 저장과 보안 규칙이 준비된 뒤 연결할 경쟁 모드입니다.',
+        title: '랭킹 광장',
+        desc: '저장된 랭킹전 기록을 확인합니다.',
         enabled: false
       }
     ];
@@ -915,8 +915,8 @@
         title: '맞춤법 퀴즈',
         kicker: 'Korean Hall',
         icon: '✏️',
-        desc: '헷갈리는 맞춤법을 연습하는 정적 모드 선택 프로토타입입니다.',
-        summary: '운영본 문제 데이터와 연결하기 전, 연습전/랭킹전/원코 모드 진입 흐름을 먼저 검증합니다.',
+        desc: '헷갈리는 맞춤법을 Firestore 문제로 연습합니다.',
+        summary: '연습전과 랭킹전에서 맞춤법 문제를 풉니다.',
         subjectId: 'korean',
         modes: ['practice', 'ranking', 'oneChance', 'records']
       },
@@ -944,8 +944,8 @@
         title: '독서 퀴즈',
         kicker: 'Korean Hall',
         icon: '📖',
-        desc: '작품의 내용과 인물을 떠올리는 정적 모드 선택 프로토타입입니다.',
-        summary: '운영본 독서 문제와 연결하기 전, 같은 퀴즈 엔진으로 모드 진입 흐름을 검증합니다.',
+        desc: '작품의 내용과 인물을 떠올리는 독서 퀴즈입니다.',
+        summary: '독서 하위 퀴즈와 같은 문제 풀이 엔진을 사용합니다.',
         subjectId: 'korean',
         modes: ['practice', 'ranking', 'oneChance', 'records']
       },
@@ -953,7 +953,7 @@
         title: '시간가게 퀴즈',
         kicker: 'Korean Hall',
         icon: '⏰',
-        desc: '시간가게 작품 내용을 바탕으로 한 정적 모드 선택 프로토타입입니다.',
+        desc: '시간가게 작품 내용을 바탕으로 한 독서 퀴즈입니다.',
         summary: '독서 하위의 작품별 퀴즈로 표시하되, 선택 화면과 문제 풀이 엔진은 그대로 재사용합니다.',
         subjectId: 'korean',
         parentQuizId: 'reading',
@@ -1045,7 +1045,7 @@
         title: '곱셈과 나눗셈 퀴즈',
         kicker: 'Math Hall',
         icon: '✖️',
-        desc: '곱셈과 나눗셈의 기본 관계를 확인하는 수학 더미 퀴즈입니다.',
+        desc: '곱셈과 나눗셈의 기본 관계를 확인하는 수학 퀴즈입니다.',
         summary: '수학관 문제도 별도 엔진 없이 같은 연습전 화면을 사용합니다.',
         subjectId: 'math',
         modes: ['practice', 'ranking', 'oneChance']
