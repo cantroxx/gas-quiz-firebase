@@ -130,7 +130,8 @@
 
 - 퀴즈 엔진에서 사용하는 더미 문제 저장소
 - 각 `quizId`별 객관식 문제 배열
-- 현재 실제 운영본 문제와 연결하지 않음
+- 현재 public UI는 아직 정적 `QUESTION_BANK`를 사용한다.
+- Firestore에는 운영본 기본 퀴즈 1차 데이터(`random-basic`, `spelling`, `word-relation`) import 완료
 
 ### `PROFILE_DATA`
 
@@ -290,6 +291,21 @@
 - 사용자별 카테고리 최고 점수 합산 방식으로 생성
 - 검증 기준 1위: `G4-C8-N19`, 총점 342점, 반영 카테고리 8개
 
+### `quizzes`
+
+- 운영본 GAS 기본 퀴즈 1차 Drive export/import 완료
+- Firestore 경로: `quizzes/{quizId}`
+- 실제 import 완료: `random-basic`, `spelling`, `word-relation` 3건
+- `random-basic`은 생성형 메타만 저장: `generatorType: math-muldiv`, `questionCount: 100`
+- `spelling` / `word-relation`은 운영본 시트 기반 메타와 문제 수 저장
+
+### `quizQuestions`
+
+- Firestore 경로: `quizQuestions/{quizId}/questions/{questionId}`
+- 실제 import 완료: `spelling` 205건, `word-relation` 100건
+- `random-basic`은 시트 문제가 없어 question 문서를 저장하지 않음
+- GMO, 사회, 이미지형 퀴즈는 아직 미이관
+
 ### `USER_REWARD_DATA`
 
 - 보유 코인/경험치와 퀴즈 완료 보상 표시용 정적 데이터
@@ -315,7 +331,8 @@
 
 ## 5. 아직 더미인 부분
 
-- 운영본 문제 데이터 전체 이전
+- 운영본 문제 데이터의 public UI 연결
+- GMO/사회/이미지형 퀴즈 데이터 이전
 - 퀴즈 완료 보상
 - 퀴즈 완료 보상으로 누적되는 보유 코인과 경험치
 - 랭킹 광장 순위
@@ -331,7 +348,8 @@
 
 - Storage
 - GAS `getQuizData`
-- 운영본 퀴즈 원본 데이터
+- 운영본 퀴즈 원본 데이터 전체
+- Firestore 기본 퀴즈 데이터를 public UI에 표시하는 연결
 - Firestore 랭킹 데이터를 public UI에 표시하는 연결
 - 서버 검증 기반 구매 처리
 - Firebase Storage 실제 이미지
@@ -358,6 +376,9 @@
 - Firestore `rankingRecords/{recordId}` 운영본 랭킹기록 3947건 import
 - Firestore `userRankingSummary/{memberUserId}` 랭킹 요약 112건 import
 - Firestore `quizKingSummary/{memberUserId}` 퀴즈왕 요약 109건 import
+- Firestore `quizzes/{quizId}` 기본 퀴즈 3건 import
+- Firestore `quizQuestions/spelling/questions/{questionId}` 맞춤법 문제 205건 import
+- Firestore `quizQuestions/word-relation/questions/{questionId}` 다의어·동형이의어 문제 100건 import
 - `users.selectedTitleId`와 보유 타이틀 `selected` 표시 연결
 - `users/{memberUserId}.authUid` 회원 연결
 - Auth `uid` 기반 연결 회원 자동 복구
@@ -403,6 +424,11 @@
 - Firestore `quizKingSummary` 컬렉션에 109건 저장 확인 완료
 - 랭킹 legacy row 850건, `userId` 없는 row 6건 fallback 저장 확인 완료
 - `quizKingSummary` 상위 샘플 확인 완료: `G4-C8-N19`, `G4-C8-N21`, `G4-C8-N20`
+- 운영본 기본 퀴즈 1차 Drive export/import 완료
+- Firestore `quizzes/random-basic`, `quizzes/spelling`, `quizzes/word-relation` 저장 확인 완료
+- Firestore `quizQuestions/spelling/questions` 205건 저장 확인 완료
+- Firestore `quizQuestions/word-relation/questions` 100건 저장 확인 완료
+- `random-basic` 생성형 메타 `generatorType: math-muldiv` 확인 완료
 - Auth `uid` 기반 자동 회원 복구 구현 완료
 - localStorage 힌트와 Firestore `authUid` 재검증 구조 구현 완료
 - 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
@@ -502,8 +528,8 @@
 
 7. GAS 데이터 연동 검토
    - 퀴즈 이전 1차 정찰 완료
-   - 가장 먼저 이전 가능한 퀴즈 후보: `random-basic` / 곱셈과 나눗셈, `spelling` / 맞춤법, `word-relation` / 다의어·동형이의어, `gmo` / 지엠오 아이, 사회 `sheet` `multipleChoice4` 활성 항목
-   - 퀴즈 전체 이전은 아직 전
+   - 기본 퀴즈 1차 import 완료: `random-basic` / 곱셈과 나눗셈, `spelling` / 맞춤법, `word-relation` / 다의어·동형이의어
+   - GMO, 사회 `sheet` `multipleChoice4`, 이미지형 퀴즈는 아직 미이관
    - `QUIZ_CATALOG`와 운영본 quizId 매핑
    - `QUESTION_BANK` 대체 또는 병행 전략 결정
 
@@ -515,4 +541,4 @@
 - 운영본 `gas-quiz`는 계속 유지한다.
 - `gas-quiz-firebase`는 새 사이트 전환 준비용으로 별도 검증 중이다.
 - Firebase 실험본은 운영본 회원 `users` 컬렉션 import, `authUid` 연결, 자동 복구, memberUserId 기준 데이터 소유권 전환까지 완료했다.
-- 운영본 문제 데이터 연결과 Firestore 랭킹 UI 연결은 아직 전이다.
+- Firestore 기본 퀴즈 데이터와 랭킹 데이터를 public UI에 연결하는 작업은 아직 전이다.

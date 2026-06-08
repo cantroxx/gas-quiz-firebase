@@ -75,6 +75,7 @@ member-export.csv
 title-export.json
 practice-export.json
 ranking-export.json
+quiz-basic-export.json
 exports/
 private/
 
