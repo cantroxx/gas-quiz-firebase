@@ -1542,6 +1542,227 @@ h2 {
   word-break: keep-all;
 }
 
+.ranking-board-root {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ranking-board-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ranking-board-tab {
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--green-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ranking-board-tab.is-active {
+  border-color: rgba(47, 125, 68, 0.44);
+  background: var(--mint);
+}
+
+.ranking-board-panel {
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.ranking-sub-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.ranking-sub-tab {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ranking-sub-tab.is-active {
+  border-color: rgba(47, 125, 68, 0.4);
+  background: #fff8d8;
+  color: var(--green-dark);
+}
+
+.ranking-board-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 16px rgba(47, 125, 68, 0.08);
+}
+
+.ranking-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.ranking-podium-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  min-height: 190px;
+  padding: 18px 12px 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-top-width: 6px;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.ranking-podium-card.rank-1 {
+  min-height: 214px;
+}
+
+.ranking-medal-gold {
+  border-color: rgba(226, 179, 52, 0.72);
+  box-shadow: 0 12px 24px rgba(226, 179, 52, 0.18);
+}
+
+.ranking-medal-silver {
+  border-color: rgba(189, 196, 207, 0.82);
+}
+
+.ranking-medal-bronze {
+  border-color: rgba(201, 137, 85, 0.76);
+}
+
+.ranking-medal-badge {
+  position: absolute;
+  top: -9px;
+  left: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.ranking-avatar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 9px;
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--green-dark);
+  font-weight: 900;
+}
+
+.rank-1 .ranking-avatar {
+  width: 68px;
+  height: 68px;
+}
+
+.ranking-card-name,
+.ranking-card-meta,
+.ranking-card-score {
+  margin: 0;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.ranking-card-name {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.ranking-card-meta {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.ranking-card-score {
+  margin-top: auto;
+  padding-top: 8px;
+  color: var(--green-dark);
+  font-weight: 900;
+}
+
+.ranking-board-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(47, 125, 68, 0.1);
+  border-radius: 0;
+  background: #fff;
+}
+
+.ranking-board-row:last-child {
+  border-bottom: 0;
+}
+
+.ranking-board-rank {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff8d8;
+  color: var(--green-dark);
+  font-size: 0.9rem;
+}
+
+.ranking-board-name,
+.ranking-board-meta,
+.ranking-board-score,
+.ranking-board-empty {
+  margin: 0;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.ranking-board-name {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.ranking-board-meta,
+.ranking-board-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.ranking-board-score {
+  color: var(--green-dark);
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .shop-category-list {
   display: flex;
   flex-wrap: wrap;
@@ -2559,6 +2780,23 @@ h2 {
 
   .button {
     width: 100%;
+  }
+
+  .ranking-board-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .ranking-podium {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-podium-card {
+    min-height: 0;
+  }
+
+  .ranking-board-score {
+    grid-column: 2;
+    text-align: left;
   }
 
   .town-map {

@@ -250,6 +250,7 @@
       </div>
 
       <div id="ranking-card-grid" class="ranking-card-grid" aria-label="명예의 전당 랭킹 카드"></div>
+      <div id="ranking-board-root" class="ranking-board-root" aria-label="랭킹 상세 목록"></div>
     </section>
 
     <section id="shop-view" class="shop-view app-view" aria-labelledby="shop-title" hidden>
@@ -1732,11 +1733,16 @@
 
     function renderRankingView() {
       renderRankingCards(RANKING_DATA.map(entry => ({ ...entry, title: '랭킹 불러오는 중' })));
+      renderRankingBoards(null);
       loadRankingPlazaCardsFromFirestore()
-        .then(entries => renderRankingCards(entries?.length ? entries : RANKING_DATA))
+        .then(model => {
+          renderRankingCards(model?.cards?.length ? model.cards : RANKING_DATA);
+          renderRankingBoards(model);
+        })
         .catch(error => {
           console.warn('Firestore ranking plaza read failed. Using static ranking fallback.', error);
           renderRankingCards(RANKING_DATA);
+          renderRankingBoards(null);
         });
     }
 
@@ -1785,6 +1791,242 @@
       return records.slice().sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))[0] || null;
     }
 
+    function getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit = 10) {
+      return records
+        .filter(record => categoryKeys.includes(record.categoryKey))
+        .sort((a, b) => {
+          const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+          if(scoreDiff) return scoreDiff;
+          return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
+        })
+        .slice(0, limit);
+    }
+
+    function getLatestRankingRecords(records, limit = 10) {
+      return records.slice().sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a)).slice(0, limit);
+    }
+
+    function getTopQuizKingSummaries(summaries, limit = 10) {
+      return summaries
+        .slice()
+        .sort((a, b) => {
+          const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
+          if(scoreDiff) return scoreDiff;
+          return (Number(b.categoryCount) || 0) - (Number(a.categoryCount) || 0);
+        })
+        .slice(0, limit);
+    }
+
+    function renderRankingBoards(model) {
+      const root = document.getElementById('ranking-board-root');
+      if(!root) return;
+      root.innerHTML = '';
+
+      if(!model) {
+        const loading = document.createElement('p');
+        loading.className = 'ranking-board-empty';
+        loading.textContent = '랭킹 목록을 불러오는 중입니다.';
+        root.appendChild(loading);
+        return;
+      }
+
+      const tabs = document.createElement('div');
+      const panels = document.createElement('div');
+      tabs.className = 'ranking-board-tabs';
+      panels.className = 'ranking-board-panels';
+
+      model.boards.forEach((board, index) => {
+        const button = document.createElement('button');
+        const panel = document.createElement('section');
+        button.type = 'button';
+        button.className = `ranking-board-tab${index === 0 ? ' is-active' : ''}`;
+        button.textContent = board.label;
+        button.dataset.rankingBoardId = board.id;
+        panel.className = 'ranking-board-panel';
+        panel.dataset.rankingBoardPanel = board.id;
+        panel.hidden = index !== 0;
+        renderRankingBoardPanel(panel, board);
+        tabs.appendChild(button);
+        panels.appendChild(panel);
+      });
+
+      root.append(tabs, panels);
+    }
+
+    function renderRankingBoardPanel(panel, board) {
+      panel.innerHTML = '';
+      const groups = board.groups || [{ id: 'all', label: '전체', rows: board.rows }];
+
+      if(groups.length > 1) {
+        const groupTabs = document.createElement('div');
+        groupTabs.className = 'ranking-sub-tabs';
+        groups.forEach((group, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `ranking-sub-tab${index === 0 ? ' is-active' : ''}`;
+          button.textContent = group.label;
+          button.dataset.rankingSubGroupId = group.id;
+          button.dataset.rankingParentBoardId = board.id;
+          groupTabs.appendChild(button);
+        });
+        panel.appendChild(groupTabs);
+      }
+
+      groups.forEach((group, index) => {
+        const groupPanel = document.createElement('div');
+        groupPanel.className = 'ranking-sub-panel';
+        groupPanel.dataset.rankingSubPanel = group.id;
+        groupPanel.hidden = index !== 0;
+        renderRankingRows(groupPanel, group.rows, board);
+        panel.appendChild(groupPanel);
+      });
+    }
+
+    function renderRankingRows(panel, rows, board) {
+      if(!rows.length) {
+        const empty = document.createElement('p');
+        empty.className = 'ranking-board-empty';
+        empty.textContent = '아직 표시할 기록이 없습니다.';
+        panel.appendChild(empty);
+        return;
+      }
+
+      const podiumRows = rows.slice(0, 3);
+      const restRows = rows.slice(3);
+      const podium = document.createElement('div');
+      podium.className = 'ranking-podium';
+      podiumRows.forEach((row, index) => {
+        podium.appendChild(createRankingPodiumCard(row, index, board));
+      });
+      panel.appendChild(podium);
+
+      if(!restRows.length) return;
+
+      const list = document.createElement('div');
+      list.className = 'ranking-board-list';
+      restRows.forEach((row, index) => {
+        const item = document.createElement('article');
+        const rank = document.createElement('strong');
+        const body = document.createElement('div');
+        const name = document.createElement('p');
+        const meta = document.createElement('p');
+        const score = document.createElement('p');
+
+        item.className = 'ranking-board-row';
+        rank.className = 'ranking-board-rank';
+        body.className = 'ranking-board-body';
+        name.className = 'ranking-board-name';
+        meta.className = 'ranking-board-meta';
+        score.className = 'ranking-board-score';
+        rank.textContent = `${index + 4}`;
+        name.textContent = normalizeRankingDisplayName(row);
+        meta.textContent = board.meta(row);
+        score.textContent = board.score(row);
+
+        body.append(name, meta);
+        item.append(rank, body, score);
+        list.appendChild(item);
+      });
+      panel.appendChild(list);
+    }
+
+    function createRankingPodiumCard(row, index, board) {
+      const rank = index + 1;
+      const medals = ['🥇', '🥈', '🥉'];
+      const classes = ['gold', 'silver', 'bronze'];
+      const card = document.createElement('article');
+      const badge = document.createElement('span');
+      const avatar = document.createElement('div');
+      const name = document.createElement('h4');
+      const meta = document.createElement('p');
+      const score = document.createElement('p');
+
+      card.className = `ranking-podium-card ranking-medal-${classes[index]} rank-${rank}`;
+      badge.className = 'ranking-medal-badge';
+      avatar.className = 'ranking-avatar';
+      name.className = 'ranking-card-name';
+      meta.className = 'ranking-card-meta';
+      score.className = 'ranking-card-score';
+      badge.textContent = `${medals[index]} ${rank}위`;
+      avatar.textContent = `${rank}`;
+      name.textContent = normalizeRankingDisplayName(row);
+      meta.textContent = board.meta(row);
+      score.textContent = board.score(row);
+
+      card.append(badge, avatar, name, meta, score);
+      return card;
+    }
+
+    function getRankingCategoryLabel(row) {
+      const raw = String(row?.category || row?.rawCategory || '').trim();
+      const match = raw.match(/^.+?\((.+)\)$/);
+      return match ? match[1].trim() : raw;
+    }
+
+    function buildRankingGroups(records, definitions) {
+      return definitions.map(definition => ({
+        id: definition.id,
+        label: definition.label,
+        rows: getTopRankingRecordsByCategoryKeys(records, definition.keys)
+      }));
+    }
+
+    function getRankingBoardModels(quizKingSummaries, rankingRecords) {
+      const koreanGroups = buildRankingGroups(rankingRecords, [
+        { id: 'spelling', label: '맞춤법', keys: ['맞춤법'] },
+        { id: 'wordRelation', label: '다의어·동형이의어', keys: ['단어다의어-동형이의어'] },
+        { id: 'readingGmo', label: '지엠오 아이', keys: ['독서지엠오-아이'] },
+        { id: 'timeStore', label: '시간가게', keys: ['독서시간가게'] }
+      ]);
+      const socialGroups = buildRankingGroups(rankingRecords, [
+        { id: 'samgukji', label: '삼국지', keys: ['사회삼국지'] },
+        { id: 'ancientHistory', label: '고대사~삼국시대', keys: ['사회고대사-삼국시대'] }
+      ]);
+      const mathGroups = buildRankingGroups(rankingRecords, [
+        { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] }
+      ]);
+      return [
+        {
+          id: 'quizKing',
+          label: '퀴즈왕',
+          rows: getTopQuizKingSummaries(quizKingSummaries),
+          meta: row => `${Number(row.categoryCount) || 0}영역 반영`,
+          score: row => `총 ${Number(row.totalScore) || 0}점`
+        },
+        {
+          id: 'korean',
+          label: '국어',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']),
+          groups: koreanGroups,
+          meta: row => getRankingCategoryLabel(row) || '국어',
+          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+        },
+        {
+          id: 'social',
+          label: '사회',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']),
+          groups: socialGroups,
+          meta: row => getRankingCategoryLabel(row) || '사회',
+          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+        },
+        {
+          id: 'math',
+          label: '수학',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']),
+          groups: mathGroups,
+          meta: row => getRankingCategoryLabel(row) || '수학',
+          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+        },
+        {
+          id: 'latest',
+          label: '최근 기록',
+          rows: getLatestRankingRecords(rankingRecords),
+          meta: row => row.category || row.rawCategory || '랭킹전',
+          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+        }
+      ];
+    }
+
     async function loadRankingPlazaCardsFromFirestore() {
       const db = getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
@@ -1794,32 +2036,30 @@
         db.collection('quizKingSummary').get(),
         db.collection('rankingRecords').where('rankingMode', '==', 'normal').get()
       ]);
-      const quizKing = quizKingSnapshot.docs
-        .map(doc => ({ memberUserId: doc.id, ...doc.data() }))
-        .sort((a, b) => {
-          const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
-          if(scoreDiff) return scoreDiff;
-          return (Number(b.categoryCount) || 0) - (Number(a.categoryCount) || 0);
-        })[0] || null;
+      const quizKingSummaries = quizKingSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...doc.data() }));
+      const quizKing = getTopQuizKingSummaries(quizKingSummaries, 1)[0] || null;
       const rankingRecords = rankingSnapshot.docs.map(doc => ({ recordId: doc.id, ...doc.data() }));
       const koreanBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
       const mathBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']);
       const latestRecord = getLatestRankingRecord(rankingRecords);
-      return [
-        {
-          rankId: 'quiz_king',
-          icon: '👑',
-          category: '퀴즈왕',
-          rank: quizKing ? '1위' : '기록 없음',
-          nickname: normalizeRankingDisplayName(quizKing),
-          title: quizKing ? `총 ${Number(quizKing.totalScore) || 0}점 · ${Number(quizKing.categoryCount) || 0}영역` : '아직 기록이 없어요'
-        },
-        buildRankingRecordCard('korean_king', '📚', '국어왕', koreanBest),
-        buildRankingRecordCard('social_king', '🏛️', '사회왕', socialBest),
-        buildRankingRecordCard('math_king', '➗', '수학왕', mathBest),
-        buildRankingRecordCard('latest_challenger', '🚀', '최근 도전자', latestRecord)
-      ];
+      return {
+        cards: [
+          {
+            rankId: 'quiz_king',
+            icon: '👑',
+            category: '퀴즈왕',
+            rank: quizKing ? '1위' : '기록 없음',
+            nickname: normalizeRankingDisplayName(quizKing),
+            title: quizKing ? `총 ${Number(quizKing.totalScore) || 0}점 · ${Number(quizKing.categoryCount) || 0}영역` : '아직 기록이 없어요'
+          },
+          buildRankingRecordCard('korean_king', '📚', '국어왕', koreanBest),
+          buildRankingRecordCard('social_king', '🏛️', '사회왕', socialBest),
+          buildRankingRecordCard('math_king', '➗', '수학왕', mathBest),
+          buildRankingRecordCard('latest_challenger', '🚀', '최근 도전자', latestRecord)
+        ],
+        boards: getRankingBoardModels(quizKingSummaries, rankingRecords)
+      };
     }
 
     function getFirestoreDb() {
@@ -4278,6 +4518,32 @@
     document.getElementById('school-quiz-grid').addEventListener('click', event => {
       const card = event.target.closest('[data-subject-id]');
       if(card) showSubjectView(card.dataset.subjectId);
+    });
+
+    document.getElementById('ranking-board-root').addEventListener('click', event => {
+      const subButton = event.target.closest('[data-ranking-sub-group-id]');
+      if(subButton) {
+        const boardId = subButton.dataset.rankingParentBoardId;
+        const groupId = subButton.dataset.rankingSubGroupId;
+        const activePanel = document.querySelector(`[data-ranking-board-panel="${boardId}"]`);
+        activePanel?.querySelectorAll('.ranking-sub-tab').forEach(tab => {
+          tab.classList.toggle('is-active', tab === subButton);
+        });
+        activePanel?.querySelectorAll('[data-ranking-sub-panel]').forEach(panel => {
+          panel.hidden = panel.dataset.rankingSubPanel !== groupId;
+        });
+        return;
+      }
+
+      const button = event.target.closest('[data-ranking-board-id]');
+      if(!button) return;
+      const boardId = button.dataset.rankingBoardId;
+      document.querySelectorAll('.ranking-board-tab').forEach(tab => {
+        tab.classList.toggle('is-active', tab === button);
+      });
+      document.querySelectorAll('[data-ranking-board-panel]').forEach(panel => {
+        panel.hidden = panel.dataset.rankingBoardPanel !== boardId;
+      });
     });
 
     document.querySelector('[data-back-to-school]').addEventListener('click', showSchoolView);
