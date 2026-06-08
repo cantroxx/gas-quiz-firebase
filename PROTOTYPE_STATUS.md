@@ -1,10 +1,10 @@
-# Firebase 실험본 프로토타입 현황
+# Firebase MVP 현황
 
 ## 1. 프로젝트 목적
 
-`gas-quiz-firebase`는 운영본 `gas-quiz`를 직접 수정하지 않고 Firebase Hosting 위에서 새 퀴즈타운 UI와 기능 흐름을 검증하기 위한 정적 프로토타입이다.
+`gas-quiz-firebase`는 운영본 `gas-quiz`의 핵심 학생용 흐름을 Firebase Hosting / Firestore 기반으로 이전한 MVP이다.
 
-현재 목표는 화면 구조와 이동 흐름을 유지하면서 Firestore 읽기/쓰기 연결을 작은 범위부터 검증하는 것이다. 상점, 인벤토리, 내 집 설정은 회원 연결 완료 시 운영본 회원 `userId`를 우선 사용하며, 회원 연결 전에는 Firebase Auth 익명 사용자 `uid`, Auth 실패 시에는 개발용 `test_user` fallback을 유지한다.
+현재 배포본은 회원 연결, 퀴즈 목록, Firestore 문제 로드, 연습전/랭킹전, 기록 저장, 보상, 뱃지, 랭킹 광장, 상점, 인벤토리, 내 집 설정까지 연결되어 있다. 운영본 `gas-quiz`는 계속 분리 유지하며, Firebase MVP는 Firestore로 이관된 데이터만 사용한다.
 
 ## 2. 현재 구현된 화면
 
@@ -18,8 +18,9 @@
 ### 학교
 
 - 타운의 학교에서 진입
-- 국어, 사회, 수학 과목관으로 이동
-- 인기 퀴즈와 랭킹전 준비 중 카드는 더미 상태
+- 국어, 사회, 수학, 인기 퀴즈관으로 이동
+- 이관 완료된 퀴즈는 Firestore 문제로 연습전/랭킹전을 실행
+- 미이관 퀴즈 카드는 준비 중 상태로 표시
 
 ### 국어/사회/수학 과목관
 
@@ -33,20 +34,24 @@
 
 - 선택한 퀴즈의 설명과 지원 모드 표시
 - 모드 데이터는 `MODE_CATALOG`와 `QUIZ_CATALOG.modes`로 관리
-- 현재 실제 실행은 연습전만 연결
+- 연습전, 랭킹전, 원코 모드 진입 연결
 
 ### 문제 풀이
 
 - 공통 퀴즈 엔진 사용
-- `QUESTION_BANK` 기반 더미 문제 풀이
+- Firestore `quizzes` / `quizQuestions` 문제 로드
+- `random-basic`은 Firestore 메타 기반 생성형 문제 사용
 - 객관식 선택, 정답 제출, 결과 표시, 다음 문제, 완료 화면
+- 정답 처리 시 `practiceRecords`, `userPracticeSummary`, `userBadges`, `userEconomy` 갱신
+- 랭킹전 종료 시 `rankingRecords`, `userRankingSummary`, `quizKingSummary` 갱신
 
 ### 랭킹 광장
 
 - 타운의 랭킹 광장에서 진입
 - `DJ48 명예의 전당` 화면
-- 퀴즈왕, 국어왕, 사회왕, 수학왕, 이번 주 상승왕 카드 표시
-- `RANKING_DATA` 기반 더미 데이터
+- 퀴즈왕, 국어왕, 사회왕, 수학왕, 인기왕, 최근 도전자 카드 표시
+- Firestore `rankingRecords`와 `quizKingSummary` 기반
+- 분야별 랭킹은 같은 사용자/같은 분야의 최고 기록 1건만 표시
 
 ### 내 집
 
@@ -54,12 +59,13 @@
 - 프로필 카드 표시
 - 닉네임, 학교, 대표 칭호, 대표 뱃지, 보유 코인, 경험치 표시
 - 보유 칭호와 보유 뱃지 목록 표시
+- Firestore `userTitles`, `userTitleSummary`, `userBadges` 기준 표시
 - `userInventory/{dataOwnerId}/items`를 읽어 보유 꾸미기 아이템 표시
 - 보유 아이템을 선택하면 `userRoomSettings/{dataOwnerId}`에 내 집 설정 저장
 - 회원 연결 완료 후에는 `dataOwnerId`가 운영본 회원 `userId`가 된다.
 - 저장된 선택 상태는 재진입/새로고침 후 `적용중` 상태로 표시
 - Auth 실패 시 개발용 `test_user` 경로로 fallback
-- `PROFILE_DATA`, `TITLE_DATA`, `BADGE_DATA`, `USER_REWARD_DATA` 기반
+- Firestore 읽기 실패 시에만 정적 fallback 사용
 
 ### 상점
 
@@ -128,31 +134,28 @@
 
 ### `QUESTION_BANK`
 
-- 퀴즈 엔진에서 사용하는 더미 문제 저장소
-- 각 `quizId`별 객관식 문제 배열
-- 현재 public UI는 아직 정적 `QUESTION_BANK`를 사용한다.
-- Firestore에는 운영본 기본 퀴즈 1차 데이터(`random-basic`, `spelling`, `word-relation`) import 완료
+- Firestore 로드 실패 시 사용하는 비상 fallback 문제 저장소
+- 정상 흐름은 Firestore `quizzes` / `quizQuestions`를 우선 사용
+- 배포 전 검증 기준 모든 playable quiz의 Firestore 메타/문항 수 일치 확인 완료
 
 ### `PROFILE_DATA`
 
-- 내 집 프로필 표시용 더미 사용자 데이터
-- 아바타, 닉네임, 학교, 대표 칭호, 대표 뱃지 ID 포함
+- 회원 연결 전 또는 Firestore 읽기 실패 시 사용하는 fallback 사용자 데이터
 
 ### `TITLE_DATA`
 
-- 보유 칭호 목록
-- 예: 전설의 퀴즈왕, 국어 마스터, 삼국시대 전문가, 독서왕
-- 현재 화면 표시는 아직 정적 데이터 기반이며, 운영본 `타이틀현황`은 Firestore `userTitles` / `userTitleSummary`로 실제 import 완료
+- 회원 연결 전 또는 Firestore 읽기 실패 시 사용하는 fallback 칭호 데이터
+- 정상 흐름은 Firestore `userTitles` / `userTitleSummary`를 우선 사용
 
 ### `BADGE_DATA`
 
-- 보유 뱃지 목록
-- 예: 독서왕, 퀴즈왕, 랭킹전 챌린저
+- 회원 연결 전 또는 Firestore 읽기 실패 시 사용하는 fallback 뱃지 데이터
+- 정상 흐름은 Firestore `userBadges`를 우선 사용
 
 ### `RANKING_DATA`
 
-- 랭킹 광장 명예의 전당 표시용 더미 데이터
-- 각 랭킹 카드의 카테고리, 1위 닉네임, 칭호 관리
+- 랭킹 광장 Firestore 읽기 실패 시 사용하는 fallback 데이터
+- 정상 흐름은 Firestore `rankingRecords` / `quizKingSummary`를 우선 사용
 
 ### `SHOP_ITEMS`
 
@@ -230,7 +233,8 @@
 - 자동 복구 흐름:
   - localStorage 힌트 `memberUserId` -> `users/{memberUserId}` 단건 읽기 -> `authUid` 재검증
   - 힌트가 없거나 실패하면 `users where authUid == current uid limit 1` 역조회
-- 다른 Auth `uid`에 이미 연결된 회원은 재연결 차단
+- 현재 테스트 정책에서는 같은 회원 정보 검증 성공 시 다른 Auth `uid`로 재연결 가능
+- 운영 전에는 비밀번호 또는 서버 검증 성공 후에만 재연결되도록 정책 확정 필요
 - 운영본 `gas-quiz`는 계속 유지하며, Firebase 실험본은 새 사이트 전환 준비용으로 분리 유지
 
 ### `userTitles`
@@ -267,7 +271,7 @@
 - Firestore 경로: `userBadges/{memberUserId}/badges/{badgeId}`
 - 실제 import 완료: badge 문서 303건
 - `practiceRecords`에서 파생된 materialized badge view로 저장
-- 아직 public UI와는 연결하지 않음
+- public UI 내 집/프로필 뱃지 표시와 연습전 정답 처리 후 갱신 연결 완료
 
 ### `rankingRecords`
 
@@ -282,7 +286,7 @@
 - Firestore 경로: `userRankingSummary/{memberUserId}`
 - 실제 import 완료: 요약 문서 112건
 - 주요 필드: `byMode`, `bestScoresByMode`, `totalRecordCount`, `legacyRecordCount`
-- 아직 public UI와는 연결하지 않음
+- 랭킹전 종료 후 갱신 연결 완료
 
 ### `quizKingSummary`
 
@@ -293,25 +297,34 @@
 
 ### `quizzes`
 
-- 운영본 GAS 기본 퀴즈 1차 Drive export/import 완료
+- 운영본 GAS 퀴즈 데이터 Drive export/import 완료
 - Firestore 경로: `quizzes/{quizId}`
-- 실제 import 완료: `random-basic`, `spelling`, `word-relation` 3건
+- 실제 import 완료: `random-basic`, `spelling`, `word-relation`, `gmo`, `samgukji`, `ancient-history`, `time_store`, `history-people`, `idol`, `anime`, `dad-joke`, `pokemon-gen1`~`pokemon-gen9`
 - `random-basic`은 생성형 메타만 저장: `generatorType: math-muldiv`, `questionCount: 100`
-- `spelling` / `word-relation`은 운영본 시트 기반 메타와 문제 수 저장
+- 배포 전 Firestore 문서 존재와 문항 수 검증 완료
 
 ### `quizQuestions`
 
 - Firestore 경로: `quizQuestions/{quizId}/questions/{questionId}`
-- 실제 import 완료: `spelling` 205건, `word-relation` 100건
+- 실제 import 완료:
+  - `spelling` 205건
+  - `word-relation` 100건
+  - `gmo` 100건
+  - `samgukji` 100건
+  - `ancient-history` 100건
+  - `time_store` 50건
+  - `history-people` 100건
+  - `idol` 100건
+  - `anime` 100건
+  - `dad-joke` 203건
+  - `pokemon-gen1`~`pokemon-gen9` 세대별 151/100/135/107/156/72/88/96/120건
 - `random-basic`은 시트 문제가 없어 question 문서를 저장하지 않음
-- GMO, 사회, 이미지형 퀴즈는 아직 미이관
 
 ### `USER_REWARD_DATA`
 
-- 보유 코인/경험치와 퀴즈 완료 보상 표시용 정적 데이터
-- 현재 값: 코인 120, 경험치 340
-- 퀴즈 완료 보상: 경험치 +10, 코인 +5, 연습 완료 보너스
-- 실제 누적 저장은 하지 않음
+- 회원 연결 전 또는 Firestore 읽기 실패 시 사용하는 fallback 보상 데이터
+- 정상 흐름은 `userEconomy`를 우선 사용
+- 연습전 신규 correctId 저장 성공 시 DJ코인 +1 지급
 
 ### `QUEST_DATA`
 
@@ -329,31 +342,22 @@
 - 시즌 이벤트 목록
 - 이벤트명, 설명, 기간 표시
 
-## 5. 아직 더미인 부분
+## 5. 오픈 전 남은 TODO
 
-- 운영본 문제 데이터의 public UI 연결
-- GMO/사회/이미지형 퀴즈 데이터 이전
-- 퀴즈 완료 보상
-- 퀴즈 완료 보상으로 누적되는 보유 코인과 경험치
-- 랭킹 광장 순위
-- 프로필, 칭호 UI 연결, 뱃지
-- 운영본 회원 시스템 기준 상점 상태
-- 퀘스트 진행도와 보상
-- 학급 미션 진행도
-- 시즌 이벤트
-- 랭킹전, 원코 모드, 기록 보기
-- 내 집 장착 결과의 실제 시각 반영
+- 학생용 로그인 보안 정책 확정
+  - 현재 회원 연결은 학교/학년/반/번호 검증 후 `authUid`를 연결/재연결한다.
+  - 운영 전에는 비밀번호, 초기 비밀번호, 교사 승인 또는 서버 검증 중 하나를 확정해야 한다.
+- Functions 기반 서버 검증 이전
+  - 현재 상점 구매, 보상 지급, 인벤토리 추가는 클라이언트 transaction 중심이다.
+  - 오픈 범위가 제한된 MVP이면 유지 가능하지만, 장기 운영 전에는 Functions 이전이 필요하다.
+- 이벤트/퀘스트/학급 미션 실제 진행도 연결
+  - 현재 이벤트 광장은 안내/표시 중심이다.
+- 미이관 퀴즈 처리
+  - 속담, 사자성어, 문화유산, 사회 개념, 계산 연습은 준비 중 상태로 유지한다.
+- 이미지 자산 정리
+  - 상점/내 집 꾸미기 자산은 `assetCatalog.fallbackIcon` 중심이며, 실제 Storage 이미지 연결은 후속 작업이다.
 
-## 6. 아직 연결하지 않은 것
-
-- Storage
-- GAS `getQuizData`
-- 운영본 퀴즈 원본 데이터 전체
-- Firestore 기본 퀴즈 데이터를 public UI에 표시하는 연결
-- Firestore 랭킹 데이터를 public UI에 표시하는 연결
-- 서버 검증 기반 구매 처리
-- Firebase Storage 실제 이미지
-- 운영본 문제 데이터
+## 6. 현재 연결된 것
 
 현재 연결된 것:
 
@@ -376,9 +380,13 @@
 - Firestore `rankingRecords/{recordId}` 운영본 랭킹기록 3947건 import
 - Firestore `userRankingSummary/{memberUserId}` 랭킹 요약 112건 import
 - Firestore `quizKingSummary/{memberUserId}` 퀴즈왕 요약 109건 import
-- Firestore `quizzes/{quizId}` 기본 퀴즈 3건 import
+- Firestore `quizzes/{quizId}` playable 퀴즈 import
 - Firestore `quizQuestions/spelling/questions/{questionId}` 맞춤법 문제 205건 import
 - Firestore `quizQuestions/word-relation/questions/{questionId}` 다의어·동형이의어 문제 100건 import
+- Firestore `quizQuestions`의 GMO/사회/시간가게/이미지형/아재개그/포켓몬 문제 import
+- public UI의 Firestore 문제 로드, 연습전, 랭킹전, 결과 표시
+- public UI의 `practiceRecords`, `userPracticeSummary`, `userBadges`, `userEconomy` 신규 write
+- public UI의 `rankingRecords`, `userRankingSummary`, `quizKingSummary` 신규 write
 - `users.selectedTitleId`와 보유 타이틀 `selected` 표시 연결
 - `users/{memberUserId}.authUid` 회원 연결
 - Auth `uid` 기반 연결 회원 자동 복구
@@ -452,13 +460,13 @@
 
 주의:
 
-- 위 연결은 Firebase Auth 익명 사용자와 운영본 회원 `userId`를 연결하는 1차 프로토타입이다.
+- 위 연결은 Firebase Auth 익명 사용자와 운영본 회원 `userId`를 연결하는 MVP 흐름이다.
 - 비밀번호 검증은 아직 연결하지 않았으며, 현재는 학교/학년/반/번호로 active student 문서를 찾아 연결한다.
 - Firestore rules는 linked member 접근을 허용하도록 보완했지만, 운영 수준의 서버 검증 전이다.
 - 현재 구매/경제 흐름은 클라이언트 transaction이므로 `userEconomy`, `userInventory`, `purchaseLogs` 조작 위험이 남아 있다.
 - 운영 전 Functions 이전 또는 서버 검증이 필요하다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
-- push/deploy 전 최종 검증이 필요하다.
+- push/deploy 전 최종 브라우저 검증이 필요하다.
 - Firestore Emulator까지 함께 검증하려면 별도의 Emulator 연결 코드와 seed/import 데이터가 필요하다.
 
 ## 8. 수동 테스트 체크리스트
@@ -489,49 +497,38 @@
    - `userRoomSettings/{memberUserId}` 저장 확인
    - 새로고침/재진입 후 `적용중` 상태 유지 확인
 
-7. 다른 uid 중복 연결 차단
+7. 다른 uid 재연결
    - 다른 브라우저/프로필/시크릿 창에서 같은 회원 연결 시도
-   - 이미 다른 로그인 정보와 연결된 회원 안내 확인
+   - 현재 테스트 정책에서는 현재 로그인 정보로 재연결되는지 확인
+   - 운영 전에는 비밀번호 또는 서버 검증 없이 재연결되지 않도록 정책 확정 필요
 
 ## 9. 다음 작업 추천 순서
 
-1. 학생용 로그인 UI 정리
-   - 현재 Firebase 회원 연결 테스트 UI를 학생용 로그인 흐름으로 정리
-   - 자동 복구 성공/실패 상태 표시 개선
-   - 중복 연결 안내와 교사 문의 흐름 정리
+1. 최종 브라우저 리그레션 확인
+   - 회원 연결, 자동 복구, 홈/프로필, 상점, 내 집, 랭킹 광장 확인
+   - 주요 퀴즈 1문제씩 정답/오답 확인
+   - 콘솔에 `permission-denied`, `progress save failed`, `quiz load failed`가 없는지 확인
 
-2. 타이틀 UI 연결
-   - Firestore `userTitles` / `userTitleSummary`를 내 집/프로필 칭호 표시와 연결
-   - 정적 `TITLE_DATA` fallback 유지 여부 결정
-
-3. 비밀번호/초기비밀번호 검증 정책 확정
+2. 비밀번호/초기비밀번호 검증 정책 확정
    - 기존 비밀번호 미이관 상태에서 초기 비밀번호 재설정 또는 별도 인증 방식을 결정
-   - 현재 학교/학년/반/번호 기반 연결 테스트를 운영 로그인 UX로 바꿀지 검토
+   - 현재 학교/학년/반/번호 기반 연결 테스트를 운영 로그인 UX로 유지할지 검토
    - `users/{memberUserId}.authUid` 중복 연결 해제/복구 정책 정리
 
-4. Functions 기반 경제 처리
+3. Functions 기반 경제 처리
    - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
    - `userInventory` 직접 추가 방지
    - `purchaseLogs` 서버 생성 구조 검토
+
+4. 미이관 퀴즈 처리
+   - 속담, 사자성어, 문화유산, 사회 개념, 계산 연습을 이관할지 준비 중으로 유지할지 결정
 
 5. Firebase Storage 이미지 연결
    - `assetCatalog.imageUrl`에 실제 이미지 URL 입력
    - 상점과 내 집 카드에서 이미지 표시 확인
    - 이미지 실패 시 fallback icon 유지 확인
 
-6. Firebase Hosting 배포 테스트
-   - 타운/학교/퀴즈/상점/내 집/이벤트 흐름 점검
-   - 회원 연결, 새로고침 자동 복구, 중복 uid 차단 확인
-   - 구매 후 내 집 적용 상태 유지 확인
-   - 모바일/데스크톱 레이아웃 확인
-   - Firestore 권한 오류 확인
-
-7. GAS 데이터 연동 검토
-   - 퀴즈 이전 1차 정찰 완료
-   - 기본 퀴즈 1차 import 완료: `random-basic` / 곱셈과 나눗셈, `spelling` / 맞춤법, `word-relation` / 다의어·동형이의어
-   - GMO, 사회 `sheet` `multipleChoice4`, 이미지형 퀴즈는 아직 미이관
-   - `QUIZ_CATALOG`와 운영본 quizId 매핑
-   - `QUESTION_BANK` 대체 또는 병행 전략 결정
+6. 이벤트/퀘스트/학급 미션 실제화
+   - 이벤트 광장 표시 데이터를 실제 기록/보상과 연결
 
 ## 10. 운영본 주의사항
 
