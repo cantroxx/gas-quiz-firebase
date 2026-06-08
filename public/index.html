@@ -243,9 +243,9 @@
       <div class="ranking-topbar">
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
         <div>
-          <p class="eyebrow">Ranking Plaza Prototype</p>
+          <p class="eyebrow">Ranking Plaza</p>
           <h2 id="ranking-title">DJ48 명예의 전당</h2>
-          <p>실제 랭킹 저장 없이 더미 1위 데이터를 카드로 배치한 정적 화면입니다.</p>
+          <p>Firestore 랭킹 기록을 기준으로 주요 1위 기록을 보여줍니다.</p>
         </div>
       </div>
 
@@ -1544,10 +1544,10 @@
       });
     }
 
-    function renderRankingView() {
+    function renderRankingCards(entries) {
       const grid = document.getElementById('ranking-card-grid');
       grid.innerHTML = '';
-      RANKING_DATA.forEach(entry => {
+      entries.forEach(entry => {
         const card = document.createElement('article');
         const icon = document.createElement('span');
         const rank = document.createElement('p');
@@ -1569,6 +1569,98 @@
         card.append(icon, rank, category, nickname, title);
         grid.appendChild(card);
       });
+    }
+
+    function renderRankingView() {
+      renderRankingCards(RANKING_DATA.map(entry => ({ ...entry, title: '랭킹 불러오는 중' })));
+      loadRankingPlazaCardsFromFirestore()
+        .then(entries => renderRankingCards(entries?.length ? entries : RANKING_DATA))
+        .catch(error => {
+          console.warn('Firestore ranking plaza read failed. Using static ranking fallback.', error);
+          renderRankingCards(RANKING_DATA);
+        });
+    }
+
+    function normalizeRankingDisplayName(data) {
+      return String(data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
+    }
+
+    function buildRankingRecordCard(rankId, icon, label, record) {
+      if(!record) {
+        return {
+          rankId,
+          icon,
+          category: label,
+          rank: '기록 없음',
+          nickname: '도전 대기',
+          title: '아직 기록이 없어요'
+        };
+      }
+      const elapsed = record.elapsedText || formatRankingElapsedText(record.elapsedSeconds);
+      return {
+        rankId,
+        icon,
+        category: label,
+        rank: '1위',
+        nickname: normalizeRankingDisplayName(record),
+        title: `${Number(record.score) || 0}점${elapsed ? ` · ${elapsed}` : ''}`
+      };
+    }
+
+    function getBestRankingRecordByCategoryKeys(records, categoryKeys) {
+      return records.sort((a, b) => {
+        const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+        if(scoreDiff) return scoreDiff;
+        return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
+      }).find(record => categoryKeys.includes(record.categoryKey)) || null;
+    }
+
+    function getRankingRecordTimeValue(record) {
+      const value = record?.recordedAt || record?.createdAt || record?.migratedAt;
+      if(value?.toMillis) return value.toMillis();
+      const parsed = Date.parse(String(value || ''));
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    function getLatestRankingRecord(records) {
+      return records.slice().sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))[0] || null;
+    }
+
+    async function loadRankingPlazaCardsFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+
+      const [quizKingSnapshot, rankingSnapshot] = await Promise.all([
+        db.collection('quizKingSummary').get(),
+        db.collection('rankingRecords').where('rankingMode', '==', 'normal').get()
+      ]);
+      const quizKing = quizKingSnapshot.docs
+        .map(doc => ({ memberUserId: doc.id, ...doc.data() }))
+        .sort((a, b) => {
+          const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
+          if(scoreDiff) return scoreDiff;
+          return (Number(b.categoryCount) || 0) - (Number(a.categoryCount) || 0);
+        })[0] || null;
+      const rankingRecords = rankingSnapshot.docs.map(doc => ({ recordId: doc.id, ...doc.data() }));
+      const koreanBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
+      const socialBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
+      const mathBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']);
+      const latestRecord = getLatestRankingRecord(rankingRecords);
+      return [
+        {
+          rankId: 'quiz_king',
+          icon: '👑',
+          category: '퀴즈왕',
+          rank: quizKing ? '1위' : '기록 없음',
+          nickname: normalizeRankingDisplayName(quizKing),
+          title: quizKing ? `총 ${Number(quizKing.totalScore) || 0}점 · ${Number(quizKing.categoryCount) || 0}영역` : '아직 기록이 없어요'
+        },
+        buildRankingRecordCard('korean_king', '📚', '국어왕', koreanBest),
+        buildRankingRecordCard('social_king', '🏛️', '사회왕', socialBest),
+        buildRankingRecordCard('math_king', '➗', '수학왕', mathBest),
+        buildRankingRecordCard('latest_challenger', '🚀', '최근 도전자', latestRecord)
+      ];
     }
 
     function getFirestoreDb() {

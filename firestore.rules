@@ -410,7 +410,7 @@ service cloud.firestore {
     }
 
     match /rankingRecords/{recordId} {
-      allow read: if false;
+      allow read: if isSignedIn();
       allow create: if hasValidRankingRecordShape(recordId);
       allow update, delete: if false;
     }
@@ -423,7 +423,7 @@ service cloud.firestore {
     }
 
     match /quizKingSummary/{userId} {
-      allow read: if canAccessUserScopedData(userId);
+      allow read: if isSignedIn();
       allow create: if hasValidQuizKingSummaryShape(userId);
       allow update: if canUpdateQuizKingSummary(userId);
       allow delete: if false;
