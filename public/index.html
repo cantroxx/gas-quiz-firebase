@@ -1992,6 +1992,14 @@
     function renderRankingBoardPanel(panel, board) {
       panel.innerHTML = '';
       const groups = board.groups || [{ id: 'all', label: '전체', rows: board.rows }];
+      const header = document.createElement('div');
+      const title = document.createElement('h3');
+      const desc = document.createElement('p');
+      header.className = 'ranking-board-header';
+      title.textContent = board.title || board.label;
+      desc.textContent = board.desc || '랭킹전 기록을 기준으로 정렬합니다.';
+      header.append(title, desc);
+      panel.appendChild(header);
 
       if(groups.length > 1) {
         const groupTabs = document.createElement('div');
@@ -2107,24 +2115,44 @@
       }));
     }
 
+    function buildSubjectRankingGroups(records, allKeys, definitions) {
+      return [
+        { id: 'all', label: '전체', rows: getTopRankingRecordsByCategoryKeys(records, allKeys) },
+        ...buildRankingGroups(records, definitions)
+      ];
+    }
+
     function getRankingBoardModels(quizKingSummaries, rankingRecords) {
-      const koreanGroups = buildRankingGroups(rankingRecords, [
+      const koreanKeys = ['맞춤법', '아재개그', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게'];
+      const socialKeys = ['사회삼국지', '사회고대사-삼국시대', '인물역사-인물'];
+      const mathKeys = ['수학곱셈과-나눗셈'];
+      const popularKeys = ['아재개그', '인물아이돌', '인물애니'];
+      const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
         { id: 'spelling', label: '맞춤법', keys: ['맞춤법'] },
+        { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'wordRelation', label: '다의어·동형이의어', keys: ['단어다의어-동형이의어'] },
         { id: 'readingGmo', label: '지엠오 아이', keys: ['독서지엠오-아이'] },
         { id: 'timeStore', label: '시간가게', keys: ['독서시간가게'] }
       ]);
-      const socialGroups = buildRankingGroups(rankingRecords, [
+      const socialGroups = buildSubjectRankingGroups(rankingRecords, socialKeys, [
         { id: 'samgukji', label: '삼국지', keys: ['사회삼국지'] },
-        { id: 'ancientHistory', label: '고대사~삼국시대', keys: ['사회고대사-삼국시대'] }
+        { id: 'ancientHistory', label: '고대사~삼국시대', keys: ['사회고대사-삼국시대'] },
+        { id: 'historyPeople', label: '역사 인물', keys: ['인물역사-인물'] }
       ]);
-      const mathGroups = buildRankingGroups(rankingRecords, [
+      const mathGroups = buildSubjectRankingGroups(rankingRecords, mathKeys, [
         { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] }
+      ]);
+      const popularGroups = buildSubjectRankingGroups(rankingRecords, popularKeys, [
+        { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
+        { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
+        { id: 'anime', label: '애니', keys: ['인물애니'] }
       ]);
       return [
         {
           id: 'quizKing',
           label: '퀴즈왕',
+          title: '종합 퀴즈왕',
+          desc: '여러 분야의 최고 점수를 합산한 종합 순위입니다.',
           rows: getTopQuizKingSummaries(quizKingSummaries),
           meta: row => `${Number(row.categoryCount) || 0}영역 반영`,
           score: row => `총 ${Number(row.totalScore) || 0}점`
@@ -2132,7 +2160,9 @@
         {
           id: 'korean',
           label: '국어',
-          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']),
+          title: '국어·일상 랭킹',
+          desc: '맞춤법, 아재개그, 단어, 독서 퀴즈의 랭킹 기록입니다.',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, koreanKeys),
           groups: koreanGroups,
           meta: row => getRankingCategoryLabel(row) || '국어',
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
@@ -2140,7 +2170,9 @@
         {
           id: 'social',
           label: '사회',
-          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']),
+          title: '사회 랭킹',
+          desc: '삼국지, 고대사, 역사 인물 퀴즈의 랭킹 기록입니다.',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, socialKeys),
           groups: socialGroups,
           meta: row => getRankingCategoryLabel(row) || '사회',
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
@@ -2148,14 +2180,28 @@
         {
           id: 'math',
           label: '수학',
-          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']),
+          title: '수학 랭킹',
+          desc: '곱셈과 나눗셈 랭킹전 기록입니다.',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, mathKeys),
           groups: mathGroups,
           meta: row => getRankingCategoryLabel(row) || '수학',
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
         },
         {
+          id: 'popular',
+          label: '인기',
+          title: '인기 퀴즈 랭킹',
+          desc: '아재개그, 아이돌, 애니 퀴즈의 랭킹 기록입니다.',
+          rows: getTopRankingRecordsByCategoryKeys(rankingRecords, popularKeys),
+          groups: popularGroups,
+          meta: row => getRankingCategoryLabel(row) || '인기',
+          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+        },
+        {
           id: 'latest',
           label: '최근 기록',
+          title: '최근 랭킹전 기록',
+          desc: '가장 최근 저장된 랭킹전 기록입니다.',
           rows: getLatestRankingRecords(rankingRecords),
           meta: row => row.category || row.rawCategory || '랭킹전',
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
@@ -2178,6 +2224,7 @@
       const koreanBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
       const mathBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']);
+      const popularBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['아재개그', '인물아이돌', '인물애니']);
       const latestRecord = getLatestRankingRecord(rankingRecords);
       return {
         cards: [
@@ -2192,6 +2239,7 @@
           buildRankingRecordCard('korean_king', '📚', '국어왕', koreanBest),
           buildRankingRecordCard('social_king', '🏛️', '사회왕', socialBest),
           buildRankingRecordCard('math_king', '➗', '수학왕', mathBest),
+          buildRankingRecordCard('popular_king', '⭐', '인기왕', popularBest),
           buildRankingRecordCard('latest_challenger', '🚀', '최근 도전자', latestRecord)
         ],
         boards: getRankingBoardModels(quizKingSummaries, rankingRecords)

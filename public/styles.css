@@ -1577,6 +1577,29 @@ h2 {
   background: rgba(255, 255, 255, 0.86);
 }
 
+.ranking-board-header {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.ranking-board-header h3,
+.ranking-board-header p {
+  margin: 0;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.ranking-board-header h3 {
+  color: var(--ink);
+  font-size: 1.04rem;
+}
+
+.ranking-board-header p {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .ranking-sub-tabs {
   display: flex;
   flex-wrap: wrap;
