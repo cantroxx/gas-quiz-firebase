@@ -97,25 +97,6 @@ service cloud.firestore {
         ]);
     }
 
-    function canUnlinkUserAuthUidDuringTest() {
-      return isSignedIn()
-        && isActiveStudentUser()
-        && resource.data.authUid == request.auth.uid
-        && request.resource.data.authUid == ''
-        && request.resource.data.previousAuthUid == resource.data.authUid
-        && request.resource.data.authLinkProvider == 'firebase_member_unlink_test'
-        && request.resource.data.authLinkVersion == 3
-        && hasNoForbiddenUserFields(request.resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'authUid',
-          'authUnlinkedAt',
-          'previousAuthUid',
-          'authLinkProvider',
-          'authLinkVersion',
-          'updatedAt'
-        ]);
-    }
-
     function hasValidPracticeProgressShape(recordId) {
       return isSignedIn()
         && request.resource.data.memberUserId is string
@@ -175,21 +156,67 @@ service cloud.firestore {
     }
 
     function canUpdatePracticeProgress(recordId) {
-      return hasValidPracticeProgressShape(recordId)
-        && resource.data.memberUserId == request.resource.data.memberUserId
-        && resource.data.userId == request.resource.data.userId
-        && resource.data.recordId == request.resource.data.recordId
-        && resource.data.area == request.resource.data.area
-        && resource.data.detail == request.resource.data.detail
-        && resource.data.areaKey == request.resource.data.areaKey;
+      return isSignedIn()
+        && request.resource.data.memberUserId is string
+        && canAccessUserScopedData(request.resource.data.memberUserId)
+        && (!request.resource.data.keys().hasAny(['authUid']) || request.resource.data.authUid == request.auth.uid)
+        && request.resource.data.source == 'firebase-app'
+        && request.resource.data.version == 2
+        && request.resource.data.recordId is string
+        && request.resource.data.recordId == recordId
+        && recordId.matches(request.resource.data.memberUserId + '__.*')
+        && request.resource.data.userId == request.resource.data.memberUserId
+        && request.resource.data.mode == 'practice'
+        && request.resource.data.correctCount is number
+        && request.resource.data.totalCount is number
+        && request.resource.data.starCount is number
+        && request.resource.data.correctIds is list
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'recordId',
+          'memberUserId',
+          'userId',
+          'authUid',
+          'quizId',
+          'area',
+          'detail',
+          'areaKey',
+          'mode',
+          'completionType',
+          'inferredCompletionType',
+          'totalCount',
+          'correctCount',
+          'correctIds',
+          'starCount',
+          'completed',
+          'firstCompletedAt',
+          'lastCompletedAt',
+          'lastAchievedAt',
+          'createdAt',
+          'updatedAt',
+          'source',
+          'version'
+        ])
+        && (!resource.data.keys().hasAny(['memberUserId']) || resource.data.memberUserId == request.resource.data.memberUserId)
+        && (!resource.data.keys().hasAny(['userId']) || resource.data.userId == request.resource.data.userId || resource.data.userId == request.resource.data.memberUserId)
+        && (!resource.data.keys().hasAny(['recordId']) || resource.data.recordId == request.resource.data.recordId)
+        && (!resource.data.keys().hasAny(['areaKey']) || resource.data.areaKey == request.resource.data.areaKey);
     }
 
     function canReadPracticeProgress(recordId) {
       return isSignedIn()
-        && resource.data.memberUserId is string
-        && canAccessUserScopedData(resource.data.memberUserId)
-        && resource.data.recordId == recordId
-        && recordId.matches(resource.data.memberUserId + '__.*');
+        && (!resource.data.keys().hasAny(['recordId']) || resource.data.recordId == recordId)
+        && (
+          (
+            resource.data.memberUserId is string
+            && canAccessUserScopedData(resource.data.memberUserId)
+            && recordId.matches(resource.data.memberUserId + '__.*')
+          )
+          || (
+            resource.data.userId is string
+            && canAccessUserScopedData(resource.data.userId)
+            && recordId.matches(resource.data.userId + '__.*')
+          )
+        );
     }
 
     function hasValidPracticeSummaryShape(userId) {
@@ -219,8 +246,8 @@ service cloud.firestore {
 
     function canUpdatePracticeSummary(userId) {
       return hasValidPracticeSummaryShape(userId)
-        && resource.data.memberUserId == request.resource.data.memberUserId
-        && resource.data.userId == request.resource.data.userId;
+        && (!resource.data.keys().hasAny(['memberUserId']) || resource.data.memberUserId == request.resource.data.memberUserId)
+        && (!resource.data.keys().hasAny(['userId']) || resource.data.userId == request.resource.data.userId || resource.data.userId == request.resource.data.memberUserId);
     }
 
     function hasValidUserBadgeShape(userId, badgeId) {
@@ -385,7 +412,7 @@ service cloud.firestore {
       allow list: if isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
         && resource.data.authUid == request.auth.uid;
-      allow update: if isAdmin() || canLinkUserAuthUid() || canRelinkUserAuthUidDuringTest() || canUnlinkUserAuthUidDuringTest();
+      allow update: if isAdmin() || canLinkUserAuthUid() || canRelinkUserAuthUidDuringTest();
       allow create, delete: if isAdmin();
     }
 

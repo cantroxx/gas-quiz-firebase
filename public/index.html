@@ -1988,6 +1988,57 @@
         .slice(0, limit);
     }
 
+    const RANKING_PLAZA_ROW_LIMIT = 10;
+    const RANKING_PLAZA_CATEGORY_KEYS = [
+      '맞춤법',
+      '아재개그',
+      '단어다의어-동형이의어',
+      '독서지엠오-아이',
+      '독서시간가게',
+      '사회삼국지',
+      '사회고대사-삼국시대',
+      '인물역사-인물',
+      '수학곱셈과-나눗셈',
+      '인물아이돌',
+      '인물애니'
+    ];
+
+    function normalizeRankingRecordFromFirestore(doc) {
+      return { recordId: doc.id, ...doc.data() };
+    }
+
+    async function loadTopRankingRecordsForCategory(db, categoryKey, limit = RANKING_PLAZA_ROW_LIMIT) {
+      const snapshot = await db.collection('rankingRecords')
+        .where('rankingMode', '==', 'normal')
+        .where('categoryKey', '==', categoryKey)
+        .orderBy('score', 'desc')
+        .orderBy('elapsedSeconds', 'asc')
+        .limit(limit)
+        .get();
+      return snapshot.docs.map(normalizeRankingRecordFromFirestore);
+    }
+
+    async function loadLatestRankingRecordsForPlaza(db, limit = RANKING_PLAZA_ROW_LIMIT) {
+      const snapshot = await db.collection('rankingRecords')
+        .where('rankingMode', '==', 'normal')
+        .orderBy('recordedAt', 'desc')
+        .limit(limit)
+        .get();
+      return snapshot.docs.map(normalizeRankingRecordFromFirestore);
+    }
+
+    async function loadLimitedRankingRecordsForPlaza(db) {
+      const categoryResults = await Promise.all(
+        RANKING_PLAZA_CATEGORY_KEYS.map(categoryKey => loadTopRankingRecordsForCategory(db, categoryKey))
+      );
+      const latestRecords = await loadLatestRankingRecordsForPlaza(db);
+      const recordsById = new Map();
+      categoryResults.flat().concat(latestRecords).forEach(record => {
+        if(record?.recordId) recordsById.set(record.recordId, record);
+      });
+      return Array.from(recordsById.values());
+    }
+
     function renderRankingBoards(model) {
       const root = document.getElementById('ranking-board-root');
       if(!root) return;
@@ -2249,13 +2300,12 @@
       if(!db) throw new Error('firestore-unavailable');
       await initializeAuthUser();
 
-      const [quizKingSnapshot, rankingSnapshot] = await Promise.all([
-        db.collection('quizKingSummary').get(),
-        db.collection('rankingRecords').where('rankingMode', '==', 'normal').get()
+      const [quizKingSnapshot, rankingRecords] = await Promise.all([
+        db.collection('quizKingSummary').orderBy('totalScore', 'desc').limit(RANKING_PLAZA_ROW_LIMIT).get(),
+        loadLimitedRankingRecordsForPlaza(db)
       ]);
       const quizKingSummaries = quizKingSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...doc.data() }));
       const quizKing = getTopQuizKingSummaries(quizKingSummaries, 1)[0] || null;
-      const rankingRecords = rankingSnapshot.docs.map(doc => ({ recordId: doc.id, ...doc.data() }));
       const koreanBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
       const mathBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']);
@@ -2752,88 +2802,66 @@
 
       const legacyUserId = buildLegacyMemberUserId(values.school, values.grade, values.classNumber, values.studentNumber);
       const memberRef = db.collection('users').doc(legacyUserId);
-      let linkedProfile = null;
+      const memberSnapshot = await memberRef.get();
+      if(!memberSnapshot.exists) throw new Error('member-not-found');
 
-      await db.runTransaction(async transaction => {
-        const memberSnapshot = await transaction.get(memberRef);
-        if(!memberSnapshot.exists) throw new Error('member-not-found');
+      const linkedProfile = normalizeMemberProfileFromFirestore(memberSnapshot);
+      if(linkedProfile.role !== 'student') throw new Error('member-not-student');
+      if(linkedProfile.status !== 'active' || linkedProfile.active !== true) throw new Error('member-inactive');
 
-        const profile = normalizeMemberProfileFromFirestore(memberSnapshot);
-        if(profile.role !== 'student') throw new Error('member-not-student');
-        if(profile.status !== 'active' || profile.active !== true) throw new Error('member-inactive');
-
-        const fieldValue = getFirestoreFieldValue();
-        if(profile.authUid && profile.authUid !== authUid) {
-          const previousAuthUid = profile.authUid;
-          // TODO: Before production, allow authUid relinking only after password
-          // verification or a server-verified identity check succeeds.
-          transaction.set(memberRef, {
-            authUid,
-            authRelinkedAt: fieldValue.serverTimestamp(),
-            previousAuthUid,
-            authLinkProvider: 'firebase_member_link_test',
-            authLinkVersion: 2,
-            updatedAt: fieldValue.serverTimestamp()
-          }, { merge: true });
-          profile.authUid = authUid;
-          profile.previousAuthUid = previousAuthUid;
-          profile.authLinkProvider = 'firebase_member_link_test';
-          profile.authLinkVersion = 2;
-          profile._authLinkAction = 'relinked';
-        } else if(!profile.authUid) {
-          transaction.set(memberRef, {
-            authUid,
-            authLinkedAt: fieldValue.serverTimestamp(),
-            authLinkProvider: 'firebase_member_link_test',
-            authLinkVersion: 1,
-            updatedAt: fieldValue.serverTimestamp()
-          }, { merge: true });
-          profile.authUid = authUid;
-          profile.authLinkProvider = 'firebase_member_link_test';
-          profile.authLinkVersion = 1;
-          profile._authLinkAction = 'linked';
-        } else {
-          profile._authLinkAction = 'unchanged';
-        }
-
-        linkedProfile = profile;
-      });
+      const fieldValue = getFirestoreFieldValue();
+      if(linkedProfile.authUid && linkedProfile.authUid !== authUid) {
+        const previousAuthUid = linkedProfile.authUid;
+        // TODO: Before production, allow authUid relinking only after password
+        // verification or a server-verified identity check succeeds.
+        await memberRef.set({
+          authUid,
+          authRelinkedAt: fieldValue.serverTimestamp(),
+          previousAuthUid,
+          authLinkProvider: 'firebase_member_link_test',
+          authLinkVersion: 2,
+          updatedAt: fieldValue.serverTimestamp()
+        }, { merge: true });
+        linkedProfile.authUid = authUid;
+        linkedProfile.previousAuthUid = previousAuthUid;
+        linkedProfile.authLinkProvider = 'firebase_member_link_test';
+        linkedProfile.authLinkVersion = 2;
+        linkedProfile._authLinkAction = 'relinked';
+      } else if(!linkedProfile.authUid) {
+        await memberRef.set({
+          authUid,
+          authLinkedAt: fieldValue.serverTimestamp(),
+          authLinkProvider: 'firebase_member_link_test',
+          authLinkVersion: 1,
+          updatedAt: fieldValue.serverTimestamp()
+        }, { merge: true });
+        linkedProfile.authUid = authUid;
+        linkedProfile.authLinkProvider = 'firebase_member_link_test';
+        linkedProfile.authLinkVersion = 1;
+        linkedProfile._authLinkAction = 'linked';
+      } else {
+        linkedProfile._authLinkAction = 'unchanged';
+      }
 
       currentMemberUserId = legacyUserId;
       currentMemberProfile = linkedProfile;
       maybeSaveLinkedMemberHint(legacyUserId);
       resetUserScopedRuntimeData();
-      await migrateUserDataToMemberIdIfNeeded();
+      try {
+        await migrateUserDataToMemberIdIfNeeded();
+      } catch(error) {
+        console.warn('Member owned data migration after auth link failed. Auth link remains active.', error);
+      }
       return linkedProfile;
     }
 
     async function unlinkCurrentMemberForTesting() {
-      const db = getFirestoreDb();
       const auth = getFirebaseAuth();
       const authUid = getFirebaseAuthUser()?.uid || '';
       const memberUserId = currentMemberUserId;
 
-      if(!db) throw new Error('firestore-unavailable');
       if(!auth || !authUid) throw new Error('auth-required');
       if(!memberUserId) throw new Error('member-not-linked');
-
-      const memberRef = db.collection('users').doc(memberUserId);
-      await db.runTransaction(async transaction => {
-        const memberSnapshot = await transaction.get(memberRef);
-        if(!memberSnapshot.exists) throw new Error('member-not-found');
-        const profile = normalizeMemberProfileFromFirestore(memberSnapshot);
-        if(profile.authUid !== authUid) throw new Error('member-auth-mismatch');
-
-        const fieldValue = getFirestoreFieldValue();
-        transaction.set(memberRef, {
-          authUid: '',
-          authUnlinkedAt: fieldValue.serverTimestamp(),
-          previousAuthUid: authUid,
-          authLinkProvider: 'firebase_member_unlink_test',
-          authLinkVersion: 3,
-          updatedAt: fieldValue.serverTimestamp()
-        }, { merge: true });
-      });
 
       currentMemberUserId = '';
       currentMemberProfile = null;
@@ -2857,14 +2885,11 @@
         renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
         renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
         renderHomeOwnedItemsFallback();
-        setMemberLinkStatus('현재 브라우저 연결을 해제했어요. 다른 학생 정보로 다시 연결할 수 있습니다.');
+        setMemberLinkStatus('현재 브라우저 연결을 초기화했어요. 다른 학생 정보로 다시 연결할 수 있습니다.');
       } catch(error) {
         const messages = {
-          'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
           'auth-required': 'Firebase Auth 로그인 후 해제할 수 있어요.',
-          'member-not-linked': '현재 연결된 회원이 없습니다.',
-          'member-not-found': '연결된 회원 문서를 찾지 못했어요.',
-          'member-auth-mismatch': '현재 로그인 정보와 연결된 회원만 해제할 수 있어요.'
+          'member-not-linked': '현재 연결된 회원이 없습니다.'
         };
         console.warn('Member auth unlink failed.', error);
         setMemberLinkStatus(messages[error.message] || '회원 연결 해제 중 문제가 생겼어요.', true);
@@ -3453,64 +3478,66 @@
       try {
         await prepareMemberOwnedData();
         const userId = requireCurrentDataOwnerId();
-        await db.runTransaction(async transaction => {
-          const itemRef = db.collection('shopItems').doc(itemId);
-          const economyRef = db.collection('userEconomy').doc(userId);
-          const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
-          const purchaseLogRef = db.collection('purchaseLogs').doc();
+        const itemRef = db.collection('shopItems').doc(itemId);
+        const economyRef = db.collection('userEconomy').doc(userId);
+        const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
+        const purchaseLogRef = db.collection('purchaseLogs').doc();
 
-          const itemSnapshot = await transaction.get(itemRef);
-          const economySnapshot = await transaction.get(economyRef);
-          const inventorySnapshot = await transaction.get(inventoryRef);
+        const [itemSnapshot, economySnapshot, inventorySnapshot] = await Promise.all([
+          itemRef.get(),
+          economyRef.get(),
+          inventoryRef.get()
+        ]);
 
-          if(!itemSnapshot.exists) throw new Error('item-not-found');
-          if(!economySnapshot.exists) throw new Error('economy-not-found');
-          if(inventorySnapshot.exists) throw new Error('already-owned');
+        if(!itemSnapshot.exists) throw new Error('item-not-found');
+        if(!economySnapshot.exists) throw new Error('economy-not-found');
+        if(inventorySnapshot.exists) throw new Error('already-owned');
 
-          const item = itemSnapshot.data();
-          const economy = economySnapshot.data();
-          const price = Number(item.price);
-          const djCoin = Number(economy.djCoin ?? economy.coin);
+        const item = itemSnapshot.data();
+        const economy = economySnapshot.data();
+        const price = Number(item.price);
+        const djCoin = Number(economy.djCoin ?? economy.coin);
 
-          if(item.enabled !== true) throw new Error('item-disabled');
-          if(item.priceType && item.priceType !== 'djCoin') throw new Error('unsupported-price-type');
-          if(!Number.isFinite(price) || price < 0) throw new Error('invalid-price');
-          if(!Number.isFinite(djCoin) || djCoin < price) throw new Error('coin-short');
+        if(item.enabled !== true) throw new Error('item-disabled');
+        if(item.priceType && item.priceType !== 'djCoin') throw new Error('unsupported-price-type');
+        if(!Number.isFinite(price) || price < 0) throw new Error('invalid-price');
+        if(!Number.isFinite(djCoin) || djCoin < price) throw new Error('coin-short');
 
-          const fieldValue = getFirestoreFieldValue();
-          const now = fieldValue.serverTimestamp();
+        const fieldValue = getFirestoreFieldValue();
+        const now = fieldValue.serverTimestamp();
+        const batch = db.batch();
 
-          transaction.update(economyRef, {
-            djCoin: djCoin - price,
-            totalSpent: fieldValue.increment(price),
-            updatedAt: now
-          });
-
-          transaction.set(inventoryRef, {
-            userId,
-            itemId,
-            assetId: item.assetId || '',
-            source: 'shopPurchase',
-            pricePaid: price,
-            priceType: 'djCoin',
-            equipped: false,
-            acquiredAt: now,
-            updatedAt: now
-          });
-
-          transaction.set(purchaseLogRef, {
-            logId: purchaseLogRef.id,
-            userId,
-            itemId,
-            assetId: item.assetId || '',
-            coinDelta: -price,
-            pricePaid: price,
-            priceType: 'djCoin',
-            inventoryPath: inventoryRef.path,
-            serverVerified: false,
-            createdAt: now
-          });
+        batch.update(economyRef, {
+          djCoin: djCoin - price,
+          totalSpent: fieldValue.increment(price),
+          updatedAt: now
         });
+
+        batch.set(inventoryRef, {
+          userId,
+          itemId,
+          assetId: item.assetId || '',
+          source: 'shopPurchase',
+          pricePaid: price,
+          priceType: 'djCoin',
+          equipped: false,
+          acquiredAt: now,
+          updatedAt: now
+        });
+
+        batch.set(purchaseLogRef, {
+          logId: purchaseLogRef.id,
+          userId,
+          itemId,
+          assetId: item.assetId || '',
+          coinDelta: -price,
+          pricePaid: price,
+          priceType: 'djCoin',
+          inventoryPath: inventoryRef.path,
+          serverVerified: false,
+          createdAt: now
+        });
+        await batch.commit();
 
         resetShopRuntimeData();
         await renderShopFromFirestore();
@@ -3989,6 +4016,22 @@
       return String(value || '').trim().replace(/\s+/g, '').toLowerCase();
     }
 
+    function isFirestoreQuotaExceededError(error) {
+      const code = String(error?.code || '').toLowerCase();
+      const message = String(error?.message || error?.name || '').toLowerCase();
+      return code.includes('resource-exhausted')
+        || message.includes('quota exceeded')
+        || message.includes('too many requests')
+        || message.includes('resource-exhausted');
+    }
+
+    function isFirestorePermissionDeniedError(error) {
+      const code = String(error?.code || '').toLowerCase();
+      const message = String(error?.message || error?.name || '').toLowerCase();
+      return code.includes('permission-denied')
+        || message.includes('missing or insufficient permissions');
+    }
+
     function submitAnswer() {
       if(currentQuestionResolved) return;
       const question = getCurrentQuestionSet()[currentQuestionIndex];
@@ -4024,7 +4067,11 @@
         progressSavePromise
           .then(result => renderPracticeSaveStatus(result))
           .catch(error => {
-            console.warn('Firestore practice progress save failed.', error);
+            if(isFirestoreQuotaExceededError(error)) {
+              console.warn('Firestore practice progress save deferred because Firestore quota is exhausted.', error);
+            } else {
+              console.warn('Firestore practice progress save failed.', error);
+            }
             renderPracticeSaveStatus({ error: true });
           });
       }
@@ -4304,25 +4351,25 @@
         migrationSource: 'firebase_app_ranking'
       };
 
-      await db.runTransaction(async transaction => {
-        const [userSummarySnapshot, quizKingSummarySnapshot] = await Promise.all([
-          transaction.get(userSummaryRef),
-          transaction.get(quizKingSummaryRef)
-        ]);
-        const userSummaryData = buildUserRankingSummaryUpdate(
-          userSummarySnapshot.exists ? userSummarySnapshot.data() : {},
-          record,
-          fieldValue.serverTimestamp()
-        );
-        const quizKingSummaryData = buildQuizKingSummaryUpdate(
-          quizKingSummarySnapshot.exists ? quizKingSummarySnapshot.data() : {},
-          record,
-          fieldValue.serverTimestamp()
-        );
-        transaction.set(recordRef, record, { merge: true });
-        transaction.set(userSummaryRef, userSummaryData, { merge: true });
-        transaction.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
-      });
+      const [userSummarySnapshot, quizKingSummarySnapshot] = await Promise.all([
+        userSummaryRef.get(),
+        quizKingSummaryRef.get()
+      ]);
+      const userSummaryData = buildUserRankingSummaryUpdate(
+        userSummarySnapshot.exists ? userSummarySnapshot.data() : {},
+        record,
+        fieldValue.serverTimestamp()
+      );
+      const quizKingSummaryData = buildQuizKingSummaryUpdate(
+        quizKingSummarySnapshot.exists ? quizKingSummarySnapshot.data() : {},
+        record,
+        fieldValue.serverTimestamp()
+      );
+      const batch = db.batch();
+      batch.set(recordRef, record, { merge: true });
+      batch.set(userSummaryRef, userSummaryData, { merge: true });
+      batch.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
+      await batch.commit();
 
       console.info('Firestore ranking record save succeeded:', {
         recordId,
@@ -4426,19 +4473,14 @@
 
       const fieldValue = getFirestoreFieldValue();
       const economyRef = db.collection('userEconomy').doc(memberUserId);
-      const snapshot = await economyRef.get();
       const data = {
         userId: memberUserId,
         djCoin: fieldValue.increment(rewardCoin),
         totalEarned: fieldValue.increment(rewardCoin),
         updatedAt: fieldValue.serverTimestamp(),
-        lastPracticeRewardAt: fieldValue.serverTimestamp()
+        lastPracticeRewardAt: fieldValue.serverTimestamp(),
+        source: 'practice_reward'
       };
-      if(!snapshot.exists) {
-        data.totalSpent = 0;
-        data.createdAt = fieldValue.serverTimestamp();
-        data.source = 'practice_reward';
-      }
 
       console.info('Practice reward economy update queued:', {
         economyPath: economyRef.path,
@@ -4482,121 +4524,149 @@
       const authUid = getFirebaseAuthUser()?.uid || '';
       const fieldValue = getFirestoreFieldValue();
       let saveResult = null;
+      let readFallback = false;
+      let snapshot = null;
+      let summarySnapshot = null;
 
-      await db.runTransaction(async transaction => {
-        const snapshot = await transaction.get(recordRef);
-        const summarySnapshot = await transaction.get(summaryRef);
-        const existing = snapshot.exists ? snapshot.data() || {} : {};
-        const existingSummary = summarySnapshot.exists ? summarySnapshot.data() || {} : {};
-        const existingIds = Array.isArray(existing.correctIds) ? existing.correctIds.map(id => String(id || '').trim()).filter(Boolean) : [];
-        const isDuplicateCorrectId = existingIds.includes(questionId);
-        const mergedIds = Array.from(new Set([...existingIds, questionId]));
-        const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
-        const existingStarCount = Number(existing.starCount) || 0;
-        const rewardCoin = isDuplicateCorrectId ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
-        const completed = mergedIds.length >= totalCount;
-        const isCompleteType = target.completionType === 'complete';
-        let nextIds = mergedIds;
-        let nextCorrectCount = mergedIds.length;
-        let nextStarCount = existingStarCount;
-        let completedRound = false;
-        const nextData = {
-          recordId,
-          memberUserId,
-          userId: memberUserId,
-          authUid,
-          quizId,
-          area: target.area,
-          detail: target.detail,
-          areaKey: target.areaKey,
-          completionType: target.completionType,
-          inferredCompletionType: false,
-          totalCount,
-          mode: 'practice',
-          source: 'firebase-app',
-          version: 2,
-          updatedAt: fieldValue.serverTimestamp(),
-          lastAchievedAt: fieldValue.serverTimestamp()
-        };
+      try {
+        [snapshot, summarySnapshot] = await Promise.all([
+          recordRef.get(),
+          summaryRef.get()
+        ]);
+      } catch(error) {
+        if(!isFirestorePermissionDeniedError(error)) throw error;
+        readFallback = true;
+        console.warn('Practice progress read blocked; using write-only fallback for legacy or missing progress document.', {
+          recordPath: recordRef.path,
+          summaryPath: summaryRef.path,
+          code: error?.code || '',
+          message: error?.message || ''
+        });
+      }
+      const existing = snapshot?.exists ? snapshot.data() || {} : {};
+      const existingSummary = summarySnapshot?.exists ? summarySnapshot.data() || {} : {};
+      const existingIds = Array.isArray(existing.correctIds) ? existing.correctIds.map(id => String(id || '').trim()).filter(Boolean) : [];
+      const isDuplicateCorrectId = existingIds.includes(questionId);
+      const mergedIds = Array.from(new Set([...existingIds, questionId]));
+      const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
+      const existingStarCount = Number(existing.starCount) || 0;
+      const rewardCoin = (isDuplicateCorrectId || readFallback) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
+      const completed = mergedIds.length >= totalCount;
+      const isCompleteType = target.completionType === 'complete';
+      let nextIds = mergedIds;
+      let nextCorrectCount = mergedIds.length;
+      let nextStarCount = existingStarCount;
+      let completedRound = false;
+      const nextData = {
+        recordId,
+        memberUserId,
+        userId: memberUserId,
+        authUid,
+        quizId,
+        area: target.area,
+        detail: target.detail,
+        areaKey: target.areaKey,
+        completionType: target.completionType,
+        inferredCompletionType: false,
+        totalCount,
+        mode: 'practice',
+        source: 'firebase-app',
+        version: 2,
+        updatedAt: fieldValue.serverTimestamp(),
+        lastAchievedAt: fieldValue.serverTimestamp()
+      };
 
-        if(!snapshot.exists) {
-          nextData.createdAt = fieldValue.serverTimestamp();
-        }
+      if(!snapshot?.exists) {
+        nextData.createdAt = fieldValue.serverTimestamp();
+      }
 
-        if(completed) {
-          completedRound = true;
-          if(isCompleteType) {
-            nextStarCount = Math.max(nextStarCount, 1);
-            nextIds = [];
-            nextCorrectCount = totalCount;
-          } else {
-            nextStarCount += 1;
-            nextIds = [];
-            nextCorrectCount = 0;
-          }
-          nextData.completed = true;
-          nextData.firstCompletedAt = existing.firstCompletedAt || fieldValue.serverTimestamp();
-          nextData.lastCompletedAt = fieldValue.serverTimestamp();
+      if(completed) {
+        completedRound = true;
+        if(isCompleteType) {
+          nextStarCount = Math.max(nextStarCount, 1);
+          nextIds = [];
+          nextCorrectCount = totalCount;
         } else {
-          nextData.completed = !!existing.completed;
-          if(existing.firstCompletedAt) nextData.firstCompletedAt = existing.firstCompletedAt;
-          if(existing.lastCompletedAt) nextData.lastCompletedAt = existing.lastCompletedAt;
+          nextStarCount += 1;
+          nextIds = [];
+          nextCorrectCount = 0;
         }
+        nextData.completed = true;
+        nextData.firstCompletedAt = existing.firstCompletedAt || fieldValue.serverTimestamp();
+        nextData.lastCompletedAt = fieldValue.serverTimestamp();
+      } else {
+        nextData.completed = !!existing.completed;
+        if(existing.firstCompletedAt) nextData.firstCompletedAt = existing.firstCompletedAt;
+        if(existing.lastCompletedAt) nextData.lastCompletedAt = existing.lastCompletedAt;
+      }
 
-        nextData.correctIds = nextIds;
-        nextData.correctCount = nextCorrectCount;
-        nextData.starCount = nextStarCount;
-        const summaryData = buildPracticeSummaryUpdate(existingSummary, {
-          memberUserId,
-          recordExists: snapshot.exists,
-          area: target.area,
-          detail: target.detail,
-          areaKey: target.areaKey,
-          totalCount,
-          previousStarCount: existingStarCount,
-          nextStarCount,
-          nextCorrectCount,
-          updatedAt: fieldValue.serverTimestamp()
-        });
-        const badgeData = buildPracticeBadgeUpdate({
-          memberUserId,
-          area: target.area,
-          detail: target.detail,
-          areaKey: target.areaKey,
-          totalCount,
-          nextStarCount,
-          nextCorrectCount,
-          updatedAt: fieldValue.serverTimestamp()
-        });
-        const badgeRef = db.collection('userBadges').doc(memberUserId).collection('badges').doc(badgeData.badgeId);
-        saveResult = {
+      nextData.correctIds = readFallback ? fieldValue.arrayUnion(questionId) : nextIds;
+      nextData.correctCount = readFallback ? fieldValue.increment(1) : nextCorrectCount;
+      nextData.starCount = nextStarCount;
+      const summaryData = buildPracticeSummaryUpdate(existingSummary, {
+        memberUserId,
+        recordExists: !!snapshot?.exists,
+        area: target.area,
+        detail: target.detail,
+        areaKey: target.areaKey,
+        totalCount,
+        previousStarCount: existingStarCount,
+        nextStarCount,
+        nextCorrectCount,
+        updatedAt: fieldValue.serverTimestamp()
+      });
+      const badgeData = buildPracticeBadgeUpdate({
+        memberUserId,
+        area: target.area,
+        detail: target.detail,
+        areaKey: target.areaKey,
+        totalCount,
+        nextStarCount,
+        nextCorrectCount,
+        updatedAt: fieldValue.serverTimestamp()
+      });
+      const badgeRef = db.collection('userBadges').doc(memberUserId).collection('badges').doc(badgeData.badgeId);
+      saveResult = {
+        recordId,
+        questionId,
+        duplicate: isDuplicateCorrectId,
+        readFallback,
+        completed,
+        completedRound,
+        completionType: target.completionType,
+        rewardCoin,
+        previousCorrectCount,
+        nextCorrectCount,
+        previousStarCount: existingStarCount,
+        nextStarCount,
+        badgePath: badgeRef.path
+      };
+      if(isDuplicateCorrectId) {
+        console.info('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
+        console.info('Practice reward skipped for duplicate correctId:', {
           recordId,
           questionId,
-          duplicate: isDuplicateCorrectId,
-          completed,
-          completedRound,
-          completionType: target.completionType,
-          rewardCoin,
-          previousCorrectCount,
-          nextCorrectCount,
-          previousStarCount: existingStarCount,
-          nextStarCount,
-          badgePath: badgeRef.path
-        };
-        if(isDuplicateCorrectId) {
-          console.info('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
-          console.info('Practice reward skipped for duplicate correctId:', {
-            recordId,
-            questionId,
-            rewardCoin
-          });
-        } else {
-          console.info('Practice progress new correctId added:', saveResult);
-        }
-        transaction.set(recordRef, nextData, { merge: true });
-        transaction.set(summaryRef, summaryData, { merge: true });
-        transaction.set(badgeRef, badgeData, { merge: true });
+          rewardCoin
+        });
+      } else {
+        console.info('Practice progress new correctId added:', saveResult);
+      }
+      console.info('Practice progress write paths:', {
+        recordPath: recordRef.path,
+        summaryPath: summaryRef.path,
+        badgePath: badgeRef.path,
+        readFallback
       });
+      await recordRef.set(nextData, { merge: true });
+
+      if(readFallback) {
+        console.info('Practice progress primary record update succeeded with write-only fallback:', saveResult);
+      } else {
+        const batch = db.batch();
+        batch.set(summaryRef, summaryData, { merge: true });
+        batch.set(badgeRef, badgeData, { merge: true });
+        await batch.commit();
+      }
 
       console.info('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
       if(saveResult && saveResult.completedRound) {
