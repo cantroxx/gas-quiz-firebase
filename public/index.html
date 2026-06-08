@@ -3201,6 +3201,58 @@
       return String(question?.practiceQuestionId || question?.questionId || question?.answerText || question?.question || '').trim();
     }
 
+    function getPracticeBadgeMeta(areaKey, area, detail) {
+      const parts = String(areaKey || '').split('/');
+      const groupRaw = parts[0] || area || '';
+      const detailRaw = parts[1] || detail || '';
+      const groupMap = {
+        '포켓몬': 'pokemon',
+        '인물': 'people',
+        '일상': 'daily',
+        '국어': 'korean',
+        '수학': 'math',
+        '사회': 'social'
+      };
+      const group = groupMap[groupRaw] || slugPracticeKey(groupRaw || area);
+      const badgeId = `${group}_${slugPracticeKey(detailRaw || detail).replace(/-/g, '_')}`;
+      return {
+        group,
+        badgeId,
+        label: detail || detailRaw || badgeId
+      };
+    }
+
+    function buildPracticeSummaryUpdate(summary, options) {
+      const existingSummary = summary || {};
+      const meta = getPracticeBadgeMeta(options.areaKey, options.area, options.detail);
+      const starDelta = Math.max(0, options.nextStarCount - options.previousStarCount);
+      const groupStars = { ...(existingSummary.groupStars || {}) };
+      const groups = { ...(existingSummary.groups || {}) };
+      const groupItems = { ...(groups[meta.group] || {}) };
+      const correct = Math.min(options.nextCorrectCount || 0, options.totalCount || 0);
+      const total = options.totalCount || 0;
+      const available = (options.nextStarCount || 0) > 0 || (!!total && correct >= total);
+
+      groupStars[meta.group] = (Number(groupStars[meta.group]) || 0) + starDelta;
+      groupItems[meta.badgeId] = {
+        correct,
+        total,
+        starCount: options.nextStarCount || 0,
+        available
+      };
+      groups[meta.group] = groupItems;
+
+      return {
+        userId: options.memberUserId,
+        memberUserId: options.memberUserId,
+        totalStars: (Number(existingSummary.totalStars) || 0) + starDelta,
+        recordCount: (Number(existingSummary.recordCount) || 0) + (options.recordExists ? 0 : 1),
+        groupStars,
+        groups,
+        updatedAt: options.updatedAt
+      };
+    }
+
     async function savePracticeProgressAfterCorrectAnswer(question) {
       if(currentModeId !== 'practice') return null;
 
@@ -3223,13 +3275,16 @@
 
       const recordId = buildPracticeProgressRecordId(memberUserId, target.areaKey);
       const recordRef = db.collection('practiceRecords').doc(recordId);
+      const summaryRef = db.collection('userPracticeSummary').doc(memberUserId);
       const authUid = getFirebaseAuthUser()?.uid || '';
       const fieldValue = getFirestoreFieldValue();
       let saveResult = null;
 
       await db.runTransaction(async transaction => {
         const snapshot = await transaction.get(recordRef);
+        const summarySnapshot = await transaction.get(summaryRef);
         const existing = snapshot.exists ? snapshot.data() || {} : {};
+        const existingSummary = summarySnapshot.exists ? summarySnapshot.data() || {} : {};
         const existingIds = Array.isArray(existing.correctIds) ? existing.correctIds.map(id => String(id || '').trim()).filter(Boolean) : [];
         const isDuplicateCorrectId = existingIds.includes(questionId);
         const mergedIds = Array.from(new Set([...existingIds, questionId]));
@@ -3285,6 +3340,18 @@
         nextData.correctIds = nextIds;
         nextData.correctCount = nextCorrectCount;
         nextData.starCount = nextStarCount;
+        const summaryData = buildPracticeSummaryUpdate(existingSummary, {
+          memberUserId,
+          recordExists: snapshot.exists,
+          area: target.area,
+          detail: target.detail,
+          areaKey: target.areaKey,
+          totalCount,
+          previousStarCount: existingStarCount,
+          nextStarCount,
+          nextCorrectCount,
+          updatedAt: fieldValue.serverTimestamp()
+        });
         saveResult = {
           recordId,
           questionId,
@@ -3301,6 +3368,7 @@
           console.info('Practice progress new correctId added:', saveResult);
         }
         transaction.set(recordRef, nextData, { merge: true });
+        transaction.set(summaryRef, summaryData, { merge: true });
       });
 
       console.info('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });

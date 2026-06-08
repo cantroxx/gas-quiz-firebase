@@ -173,6 +173,37 @@ service cloud.firestore {
         && recordId.matches(resource.data.memberUserId + '__.*');
     }
 
+    function hasValidPracticeSummaryShape(userId) {
+      return isSignedIn()
+        && canAccessUserScopedData(userId)
+        && request.resource.data.memberUserId == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.totalStars is number
+        && request.resource.data.recordCount is number
+        && request.resource.data.groupStars is map
+        && request.resource.data.groups is map
+        && request.resource.data.keys().hasOnly([
+          'userId',
+          'memberUserId',
+          'totalStars',
+          'earnedBadgeCount',
+          'groupStars',
+          'recommendedBadgeId',
+          'recordCount',
+          'legacyUnknownRecordCount',
+          'groups',
+          'migrationSource',
+          'migratedAt',
+          'updatedAt'
+        ]);
+    }
+
+    function canUpdatePracticeSummary(userId) {
+      return hasValidPracticeSummaryShape(userId)
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId;
+    }
+
     match /shopItems/{itemId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -225,6 +256,13 @@ service cloud.firestore {
       allow read: if canReadPracticeProgress(recordId);
       allow create: if canCreatePracticeProgress(recordId);
       allow update: if canUpdatePracticeProgress(recordId);
+      allow delete: if false;
+    }
+
+    match /userPracticeSummary/{userId} {
+      allow read: if canAccessUserScopedData(userId);
+      allow create: if hasValidPracticeSummaryShape(userId);
+      allow update: if canUpdatePracticeSummary(userId);
       allow delete: if false;
     }
 
