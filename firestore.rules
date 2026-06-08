@@ -204,6 +204,37 @@ service cloud.firestore {
         && resource.data.userId == request.resource.data.userId;
     }
 
+    function hasValidUserBadgeShape(userId, badgeId) {
+      return isSignedIn()
+        && canAccessUserScopedData(userId)
+        && request.resource.data.memberUserId == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.badgeId == badgeId
+        && request.resource.data.correct is number
+        && request.resource.data.total is number
+        && request.resource.data.starCount is number
+        && request.resource.data.progressPercent is number
+        && request.resource.data.keys().hasOnly([
+          'userId',
+          'memberUserId',
+          'badgeId',
+          'label',
+          'group',
+          'areaKey',
+          'sourceId',
+          'correct',
+          'total',
+          'starCount',
+          'completed',
+          'available',
+          'progressPercent',
+          'hasLegacyUnknown',
+          'migrationSource',
+          'migratedAt',
+          'updatedAt'
+        ]);
+    }
+
     match /shopItems/{itemId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -263,6 +294,12 @@ service cloud.firestore {
       allow read: if canAccessUserScopedData(userId);
       allow create: if hasValidPracticeSummaryShape(userId);
       allow update: if canUpdatePracticeSummary(userId);
+      allow delete: if false;
+    }
+
+    match /userBadges/{userId}/badges/{badgeId} {
+      allow read: if canAccessUserScopedData(userId);
+      allow create, update: if hasValidUserBadgeShape(userId, badgeId);
       allow delete: if false;
     }
 

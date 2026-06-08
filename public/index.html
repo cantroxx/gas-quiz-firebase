@@ -3132,19 +3132,27 @@
         isCorrect = selectedChoiceIndex === question.answer;
       }
       if(isCorrect) correctAnswerCount += 1;
+      let progressSavePromise = null;
       if(isCorrect) {
         console.info('Practice progress correct questionId:', {
           questionId: getPracticeQuestionId(question),
           quizId: normalizeFirebaseQuizId(currentQuizId)
         });
-        savePracticeProgressAfterCorrectAnswer(question)
-          .catch(error => console.warn('Firestore practice progress save failed.', error));
+        progressSavePromise = savePracticeProgressAfterCorrectAnswer(question);
       }
       document.querySelectorAll('.quiz-choice').forEach(choice => {
         choice.disabled = true;
       });
       document.querySelector('.quiz-submit-button').disabled = true;
       showQuizResult(isCorrect);
+      if(progressSavePromise) {
+        progressSavePromise
+          .then(result => renderPracticeSaveStatus(result))
+          .catch(error => {
+            console.warn('Firestore practice progress save failed.', error);
+            renderPracticeSaveStatus({ error: true });
+          });
+      }
     }
 
     function showQuizResult(isCorrect) {
@@ -3152,18 +3160,38 @@
       const card = document.createElement('article');
       const title = document.createElement('h3');
       const desc = document.createElement('p');
+      const saveStatus = document.createElement('p');
       const next = document.createElement('button');
 
       card.className = `quiz-result-card ${isCorrect ? 'is-correct' : 'is-wrong'}`;
       title.textContent = isCorrect ? '정답입니다!' : '오답입니다!';
       desc.textContent = isCorrect ? '좋아요. 다음 문제도 이어서 풀어봅니다.' : '괜찮아요. 다음 문제에서 다시 확인해 봅니다.';
+      saveStatus.id = 'practice-save-status';
+      saveStatus.className = 'quiz-progress';
+      saveStatus.textContent = isCorrect ? '기록 저장 중' : '';
       next.className = 'quiz-submit-button';
       next.type = 'button';
       next.textContent = currentQuestionIndex + 1 >= getCurrentQuestionSet().length ? '결과 보기' : '다음 문제';
       next.dataset.nextQuestion = 'true';
 
-      card.append(title, desc, next);
+      card.append(title, desc, saveStatus, next);
       root.appendChild(card);
+    }
+
+    function renderPracticeSaveStatus(result) {
+      const status = document.getElementById('practice-save-status');
+      if(!status) return;
+      if(!result || result.error) {
+        status.textContent = '기록 저장을 확인하지 못했어요.';
+        return;
+      }
+      if(result.duplicate) {
+        status.textContent = '이미 맞힌 문제라 기록과 보상은 그대로예요.';
+        return;
+      }
+      const rewardText = result.rewardCoin > 0 ? ` · DJ코인 +${result.rewardCoin}` : '';
+      const completeText = result.completed ? ` · 완주 ${result.nextStarCount}회` : '';
+      status.textContent = `기록 저장 완료${rewardText}${completeText}`;
     }
 
     function nextQuestion() {
@@ -3182,7 +3210,7 @@
         'random-basic': { area: '수학', detail: '곱셈과 나눗셈', areaKey: '수학/random-basic', completionType: 'loop' },
         spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
         'word-relation': { area: '국어', detail: '다의어·동형이의어', areaKey: '국어/word-relation', completionType: 'loop' },
-        gmo: { area: '국어', detail: '독서:지엠오 아이', areaKey: '국어/gmo', completionType: 'complete' },
+        gmo: { area: '국어', detail: '독서:지앰오 아이', areaKey: '국어/gmo', completionType: 'complete' },
         time_store: { area: '국어', detail: '독서:시간가게', areaKey: '국어/독서:시간가게', completionType: completionType || 'complete' },
         samgukji: { area: '사회', detail: '삼국지', areaKey: '사회/three-kingdoms', completionType: completionType || 'loop' },
         'ancient-history': { area: '사회', detail: '고대사~삼국시대', areaKey: '사회/ancient-three-kingdoms', completionType: completionType || 'loop' },
@@ -3249,6 +3277,31 @@
         recordCount: (Number(existingSummary.recordCount) || 0) + (options.recordExists ? 0 : 1),
         groupStars,
         groups,
+        updatedAt: options.updatedAt
+      };
+    }
+
+    function buildPracticeBadgeUpdate(options) {
+      const meta = getPracticeBadgeMeta(options.areaKey, options.area, options.detail);
+      const correct = Math.min(options.nextCorrectCount || 0, options.totalCount || 0);
+      const total = options.totalCount || 0;
+      const completed = !!total && (correct >= total || (options.nextStarCount || 0) > 0);
+      const progressPercent = total ? Math.min(100, Math.round((correct / total) * 100)) : 0;
+      return {
+        userId: options.memberUserId,
+        memberUserId: options.memberUserId,
+        badgeId: meta.badgeId,
+        label: meta.label,
+        group: meta.group,
+        areaKey: options.areaKey,
+        sourceId: meta.badgeId,
+        correct,
+        total,
+        starCount: options.nextStarCount || 0,
+        completed,
+        progressPercent,
+        available: (options.nextStarCount || 0) > 0 || completed,
+        migrationSource: 'firebase_app_practice_progress',
         updatedAt: options.updatedAt
       };
     }
@@ -3333,6 +3386,7 @@
         let nextIds = mergedIds;
         let nextCorrectCount = mergedIds.length;
         let nextStarCount = existingStarCount;
+        let completedRound = false;
         const nextData = {
           recordId,
           memberUserId,
@@ -3357,6 +3411,7 @@
         }
 
         if(completed) {
+          completedRound = true;
           if(isCompleteType) {
             nextStarCount = Math.max(nextStarCount, 1);
             nextIds = [];
@@ -3390,16 +3445,30 @@
           nextCorrectCount,
           updatedAt: fieldValue.serverTimestamp()
         });
+        const badgeData = buildPracticeBadgeUpdate({
+          memberUserId,
+          area: target.area,
+          detail: target.detail,
+          areaKey: target.areaKey,
+          totalCount,
+          nextStarCount,
+          nextCorrectCount,
+          updatedAt: fieldValue.serverTimestamp()
+        });
+        const badgeRef = db.collection('userBadges').doc(memberUserId).collection('badges').doc(badgeData.badgeId);
         saveResult = {
           recordId,
           questionId,
           duplicate: isDuplicateCorrectId,
           completed,
+          completedRound,
+          completionType: target.completionType,
           rewardCoin,
           previousCorrectCount,
           nextCorrectCount,
           previousStarCount: existingStarCount,
-          nextStarCount
+          nextStarCount,
+          badgePath: badgeRef.path
         };
         if(isDuplicateCorrectId) {
           console.info('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
@@ -3413,9 +3482,19 @@
         }
         transaction.set(recordRef, nextData, { merge: true });
         transaction.set(summaryRef, summaryData, { merge: true });
+        transaction.set(badgeRef, badgeData, { merge: true });
       });
 
       console.info('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
+      if(saveResult && saveResult.completedRound) {
+        console.info('Practice completion round applied:', {
+          recordId: saveResult.recordId,
+          completionType: saveResult.completionType,
+          previousStarCount: saveResult.previousStarCount,
+          nextStarCount: saveResult.nextStarCount,
+          badgePath: saveResult.badgePath
+        });
+      }
       if(saveResult && saveResult.rewardCoin > 0) {
         await grantPracticeCorrectReward(memberUserId, saveResult.rewardCoin, {
           recordId: saveResult.recordId,
@@ -3423,7 +3502,7 @@
           quizId
         });
       }
-      return recordId;
+      return saveResult || { recordId, questionId };
     }
 
     function showQuizComplete() {
