@@ -73,6 +73,7 @@ service-account.json
 member-export.json
 member-export.csv
 title-export.json
+practice-export.json
 exports/
 private/
 

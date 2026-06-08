@@ -1,0 +1,136 @@
+{
+  "success": true,
+  "exportedAt": "2026-06-08 10:45:00",
+  "source": "sample_only",
+  "practiceRecords": [
+    {
+      "sourceSheet": "연습기록",
+      "sourceRowNumber": 2,
+      "userId": "SAMPLE-G4-C1-N01",
+      "grade": "4",
+      "classNo": "1",
+      "number": "1",
+      "nickname": "샘플하나",
+      "area": "국어",
+      "detail": "독서:지엠오 아이",
+      "completionType": "complete",
+      "correctCount": 20,
+      "totalCount": 20,
+      "correctIds": [],
+      "starCount": 1,
+      "lastAchievedAt": "2026-05-01 09:00:00",
+      "firstCompletedAt": "2026-05-01 09:00:00",
+      "lastCompletedAt": "2026-05-01 09:00:00",
+      "mode": "practice"
+    },
+    {
+      "sourceSheet": "연습기록",
+      "sourceRowNumber": 3,
+      "userId": "SAMPLE-G4-C1-N02",
+      "grade": "4",
+      "classNo": "1",
+      "number": "2",
+      "nickname": "샘플둘",
+      "area": "국어",
+      "detail": "다의어·동형이의어",
+      "completionType": "loop",
+      "correctCount": 3,
+      "totalCount": 12,
+      "correctIds": [
+        "word-relation-2",
+        "word-relation-7",
+        "word-relation-9"
+      ],
+      "starCount": 2,
+      "lastAchievedAt": "2026-05-02 10:00:00",
+      "firstCompletedAt": "2026-04-20 10:00:00",
+      "lastCompletedAt": "2026-05-01 10:00:00",
+      "mode": "practice"
+    },
+    {
+      "sourceSheet": "연습기록",
+      "sourceRowNumber": 4,
+      "userId": "SAMPLE-G4-C1-N03",
+      "grade": "4",
+      "classNo": "1",
+      "number": "3",
+      "nickname": "샘플셋",
+      "area": "수학",
+      "detail": "곱셈과 나눗셈",
+      "completionType": "loop",
+      "correctCount": 2,
+      "totalCount": 100,
+      "correctIds": [],
+      "starCount": 0,
+      "lastAchievedAt": "2026-05-03 11:00:00",
+      "firstCompletedAt": "",
+      "lastCompletedAt": "",
+      "mode": "practice"
+    },
+    {
+      "sourceSheet": "연습기록",
+      "sourceRowNumber": 5,
+      "userId": "SAMPLE-G4-C1-N02",
+      "grade": "4",
+      "classNo": "1",
+      "number": "2",
+      "nickname": "샘플둘",
+      "area": "포켓몬",
+      "detail": "1세대",
+      "completionType": "loop",
+      "correctCount": 151,
+      "totalCount": 151,
+      "correctIds": [
+        "pokemon-001",
+        "pokemon-002"
+      ],
+      "starCount": 1,
+      "lastAchievedAt": "2026-05-04 12:00:00",
+      "firstCompletedAt": "2026-05-04 12:00:00",
+      "lastCompletedAt": "2026-05-04 12:00:00",
+      "mode": "practice"
+    }
+  ],
+  "pokemonPracticeRecords": [
+    {
+      "sourceSheet": "포켓몬연습기록",
+      "sourceRowNumber": 2,
+      "userId": "SAMPLE-G4-C1-N02",
+      "grade": "4",
+      "classNo": "1",
+      "number": "2",
+      "nickname": "샘플둘",
+      "generation": "1세대",
+      "earned": true,
+      "earnedAt": "2026-05-04 12:00:00",
+      "correctCount": 151,
+      "totalCount": 151,
+      "bestAchievedAt": "2026-05-04 12:00:00",
+      "correctIds": [
+        "pokemon-001",
+        "pokemon-003"
+      ]
+    },
+    {
+      "sourceSheet": "포켓몬연습기록",
+      "sourceRowNumber": 3,
+      "userId": "SAMPLE-G4-C1-N03",
+      "grade": "4",
+      "classNo": "1",
+      "number": "3",
+      "nickname": "샘플셋",
+      "generation": "2세대",
+      "earned": false,
+      "earnedAt": "",
+      "correctCount": 4,
+      "totalCount": 100,
+      "bestAchievedAt": "2026-05-05 13:00:00",
+      "correctIds": [
+        "LEGACY_UNKNOWN_1",
+        "LEGACY_UNKNOWN_2",
+        "LEGACY_UNKNOWN_3",
+        "LEGACY_UNKNOWN_4"
+      ]
+    }
+  ]
+}
