@@ -3253,6 +3253,43 @@
       };
     }
 
+    async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {
+      if(!rewardCoin || rewardCoin <= 0) return null;
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+
+      const fieldValue = getFirestoreFieldValue();
+      const economyRef = db.collection('userEconomy').doc(memberUserId);
+      const snapshot = await economyRef.get();
+      const data = {
+        userId: memberUserId,
+        djCoin: fieldValue.increment(rewardCoin),
+        totalEarned: fieldValue.increment(rewardCoin),
+        updatedAt: fieldValue.serverTimestamp(),
+        lastPracticeRewardAt: fieldValue.serverTimestamp()
+      };
+      if(!snapshot.exists) {
+        data.totalSpent = 0;
+        data.createdAt = fieldValue.serverTimestamp();
+        data.source = 'practice_reward';
+      }
+
+      console.info('Practice reward economy update queued:', {
+        economyPath: economyRef.path,
+        rewardCoin,
+        context
+      });
+      await economyRef.set(data, { merge: true });
+      firestoreUserEconomy = null;
+      userEconomyLoadPromise = null;
+      console.info('Firestore practice reward update succeeded:', {
+        economyPath: economyRef.path,
+        rewardCoin,
+        context
+      });
+      return economyRef.path;
+    }
+
     async function savePracticeProgressAfterCorrectAnswer(question) {
       if(currentModeId !== 'practice') return null;
 
@@ -3290,6 +3327,7 @@
         const mergedIds = Array.from(new Set([...existingIds, questionId]));
         const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
         const existingStarCount = Number(existing.starCount) || 0;
+        const rewardCoin = isDuplicateCorrectId ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
         const completed = mergedIds.length >= totalCount;
         const isCompleteType = target.completionType === 'complete';
         let nextIds = mergedIds;
@@ -3357,6 +3395,7 @@
           questionId,
           duplicate: isDuplicateCorrectId,
           completed,
+          rewardCoin,
           previousCorrectCount,
           nextCorrectCount,
           previousStarCount: existingStarCount,
@@ -3364,6 +3403,11 @@
         };
         if(isDuplicateCorrectId) {
           console.info('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
+          console.info('Practice reward skipped for duplicate correctId:', {
+            recordId,
+            questionId,
+            rewardCoin
+          });
         } else {
           console.info('Practice progress new correctId added:', saveResult);
         }
@@ -3372,6 +3416,13 @@
       });
 
       console.info('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
+      if(saveResult && saveResult.rewardCoin > 0) {
+        await grantPracticeCorrectReward(memberUserId, saveResult.rewardCoin, {
+          recordId: saveResult.recordId,
+          questionId: saveResult.questionId,
+          quizId
+        });
+      }
       return recordId;
     }
 
