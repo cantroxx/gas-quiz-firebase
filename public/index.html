@@ -701,6 +701,7 @@
     let currentMemberProfile = null;
     let memberLinkInProgress = false;
     let userDataMigrationPromise = null;
+    let firestoreDbInstance = null;
 
     const QUEST_DATA = [
       {
@@ -2333,7 +2334,19 @@
 
     function getFirestoreDb() {
       if(!window.firebase?.apps?.length || !window.firebase.firestore) return null;
-      return window.firebase.firestore();
+      if(firestoreDbInstance) return firestoreDbInstance;
+
+      firestoreDbInstance = window.firebase.firestore();
+      try {
+        firestoreDbInstance.settings({
+          experimentalAutoDetectLongPolling: true,
+          ignoreUndefinedProperties: true,
+          merge: true
+        });
+      } catch(error) {
+        console.warn('Firestore settings could not be applied after initialization.', error);
+      }
+      return firestoreDbInstance;
     }
 
     function normalizeFirebaseQuizId(quizId) {
