@@ -20,6 +20,10 @@ service cloud.firestore {
       return isOwner(userId) || isLinkedMember(userId);
     }
 
+    function practiceRecordOwnerFromId(recordId) {
+      return recordId.split('__')[0];
+    }
+
     function isAdmin() {
       return isSignedIn() && request.auth.token.admin == true;
     }
@@ -204,17 +208,20 @@ service cloud.firestore {
 
     function canReadPracticeProgress(recordId) {
       return isSignedIn()
-        && (!resource.data.keys().hasAny(['recordId']) || resource.data.recordId == recordId)
+        && canAccessUserScopedData(practiceRecordOwnerFromId(recordId))
+        && recordId.matches(practiceRecordOwnerFromId(recordId) + '__.*')
         && (
-          (
-            resource.data.memberUserId is string
-            && canAccessUserScopedData(resource.data.memberUserId)
-            && recordId.matches(resource.data.memberUserId + '__.*')
-          )
+          !exists(/databases/$(database)/documents/practiceRecords/$(recordId))
           || (
-            resource.data.userId is string
-            && canAccessUserScopedData(resource.data.userId)
-            && recordId.matches(resource.data.userId + '__.*')
+            (!resource.data.keys().hasAny(['recordId']) || resource.data.recordId == recordId)
+            && (
+              !resource.data.keys().hasAny(['memberUserId'])
+              || resource.data.memberUserId == practiceRecordOwnerFromId(recordId)
+            )
+            && (
+              !resource.data.keys().hasAny(['userId'])
+              || resource.data.userId == practiceRecordOwnerFromId(recordId)
+            )
           )
         );
     }
