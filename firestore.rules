@@ -97,6 +97,25 @@ service cloud.firestore {
         ]);
     }
 
+    function canUnlinkUserAuthUidDuringTest() {
+      return isSignedIn()
+        && isActiveStudentUser()
+        && resource.data.authUid == request.auth.uid
+        && request.resource.data.authUid == ''
+        && request.resource.data.previousAuthUid == resource.data.authUid
+        && request.resource.data.authLinkProvider == 'firebase_member_unlink_test'
+        && request.resource.data.authLinkVersion == 3
+        && hasNoForbiddenUserFields(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'authUid',
+          'authUnlinkedAt',
+          'previousAuthUid',
+          'authLinkProvider',
+          'authLinkVersion',
+          'updatedAt'
+        ]);
+    }
+
     function hasValidPracticeProgressShape(recordId) {
       return isSignedIn()
         && request.resource.data.memberUserId is string
@@ -366,7 +385,7 @@ service cloud.firestore {
       allow list: if isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
         && resource.data.authUid == request.auth.uid;
-      allow update: if isAdmin() || canLinkUserAuthUid() || canRelinkUserAuthUidDuringTest();
+      allow update: if isAdmin() || canLinkUserAuthUid() || canRelinkUserAuthUidDuringTest() || canUnlinkUserAuthUidDuringTest();
       allow create, delete: if isAdmin();
     }
 

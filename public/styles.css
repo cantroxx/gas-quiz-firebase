@@ -169,6 +169,24 @@ h2 {
   color: var(--green-dark);
 }
 
+.button.danger {
+  border-color: rgba(179, 38, 30, 0.22);
+  color: #b3261e;
+}
+
+.member-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.member-link-actions .button {
+  min-height: 38px;
+  padding: 9px 13px;
+  box-shadow: none;
+}
+
 .town-panel {
   padding: 22px;
 }

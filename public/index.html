@@ -1709,9 +1709,17 @@
       if(currentMemberProfile) {
         const summary = document.createElement('p');
         const detail = document.createElement('p');
+        const actions = document.createElement('div');
+        const unlinkButton = document.createElement('button');
         summary.textContent = `연결됨: ${currentMemberProfile.nickname || '이름 없음'} (${currentMemberUserId})`;
         detail.textContent = `${currentMemberProfile.school || ''} ${currentMemberProfile.grade || ''}학년 ${currentMemberProfile.classNumber || ''}반 ${currentMemberProfile.studentNumber || ''}번`;
-        status.append(summary, detail);
+        actions.className = 'member-link-actions';
+        unlinkButton.id = 'member-unlink-button';
+        unlinkButton.className = 'button secondary danger';
+        unlinkButton.type = 'button';
+        unlinkButton.textContent = '현재 브라우저 연결 해제';
+        actions.appendChild(unlinkButton);
+        status.append(summary, detail, actions);
         return;
       }
 
@@ -2797,6 +2805,71 @@
       resetUserScopedRuntimeData();
       await migrateUserDataToMemberIdIfNeeded();
       return linkedProfile;
+    }
+
+    async function unlinkCurrentMemberForTesting() {
+      const db = getFirestoreDb();
+      const auth = getFirebaseAuth();
+      const authUid = getFirebaseAuthUser()?.uid || '';
+      const memberUserId = currentMemberUserId;
+
+      if(!db) throw new Error('firestore-unavailable');
+      if(!auth || !authUid) throw new Error('auth-required');
+      if(!memberUserId) throw new Error('member-not-linked');
+
+      const memberRef = db.collection('users').doc(memberUserId);
+      await db.runTransaction(async transaction => {
+        const memberSnapshot = await transaction.get(memberRef);
+        if(!memberSnapshot.exists) throw new Error('member-not-found');
+        const profile = normalizeMemberProfileFromFirestore(memberSnapshot);
+        if(profile.authUid !== authUid) throw new Error('member-auth-mismatch');
+
+        const fieldValue = getFirestoreFieldValue();
+        transaction.set(memberRef, {
+          authUid: '',
+          authUnlinkedAt: fieldValue.serverTimestamp(),
+          previousAuthUid: authUid,
+          authLinkProvider: 'firebase_member_unlink_test',
+          authLinkVersion: 3,
+          updatedAt: fieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+
+      currentMemberUserId = '';
+      currentMemberProfile = null;
+      clearLinkedMemberHint();
+      resetUserScopedRuntimeData();
+      firebaseAuthUser = null;
+      firebaseAuthInitPromise = null;
+      await auth.signOut();
+      await initializeAuthUser();
+    }
+
+    async function handleMemberUnlinkClick() {
+      const button = document.getElementById('member-unlink-button');
+      if(button) button.disabled = true;
+      setMemberLinkStatus('현재 브라우저의 회원 연결을 해제하고 있습니다...');
+
+      try {
+        await unlinkCurrentMemberForTesting();
+        renderMemberLinkPanel();
+        renderProfileCard();
+        renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
+        renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
+        renderHomeOwnedItemsFallback();
+        setMemberLinkStatus('현재 브라우저 연결을 해제했어요. 다른 학생 정보로 다시 연결할 수 있습니다.');
+      } catch(error) {
+        const messages = {
+          'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
+          'auth-required': 'Firebase Auth 로그인 후 해제할 수 있어요.',
+          'member-not-linked': '현재 연결된 회원이 없습니다.',
+          'member-not-found': '연결된 회원 문서를 찾지 못했어요.',
+          'member-auth-mismatch': '현재 로그인 정보와 연결된 회원만 해제할 수 있어요.'
+        };
+        console.warn('Member auth unlink failed.', error);
+        setMemberLinkStatus(messages[error.message] || '회원 연결 해제 중 문제가 생겼어요.', true);
+        renderMemberLinkPanel();
+      }
     }
 
     async function handleMemberLinkSubmit(event) {
@@ -4885,6 +4958,9 @@
     });
 
     document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
+    document.getElementById('member-link-status').addEventListener('click', event => {
+      if(event.target.closest('#member-unlink-button')) handleMemberUnlinkClick();
+    });
 
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();
