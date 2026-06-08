@@ -107,6 +107,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /quizzes/{quizId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /quizQuestions/{quizId}/questions/{questionId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /users/{userId} {
       allow get: if canReadUserDocument();
       allow list: if isSignedIn()
