@@ -246,6 +246,28 @@
 - 주요 필드: `userId`, `memberUserId`, `titleCount`, `selectedTitleId`, `selectedTitleName`, `missingSelectedTitle`, `migratedAt`, `migrationSource`
 - 검증 결과 `missingSelectedTitle` 누락 없음
 
+### `practiceRecords`
+
+- 운영본 GAS `연습기록` / `포켓몬연습기록` Drive export/import 완료
+- Firestore 경로: `practiceRecords/{recordId}`
+- 실제 import 완료: practice record 303건
+- `recordId`는 운영본 `userId + areaKey` 기준으로 저장
+- `LEGACY_UNKNOWN_*` 보완 정책 적용: legacy unknown record 4건 확인
+- export 기준 `포켓몬연습기록` row는 0건이었고, 포켓몬 중복 병합 대상은 없었다.
+
+### `userPracticeSummary`
+
+- Firestore 경로: `userPracticeSummary/{memberUserId}`
+- 실제 import 완료: 요약 문서 97건
+- 주요 필드: `totalStars`, `earnedBadgeCount`, `groupStars`, `recommendedBadgeId`, `recordCount`, `legacyUnknownRecordCount`, `groups`
+
+### `userBadges`
+
+- Firestore 경로: `userBadges/{memberUserId}/badges/{badgeId}`
+- 실제 import 완료: badge 문서 303건
+- `practiceRecords`에서 파생된 materialized badge view로 저장
+- 아직 public UI와는 연결하지 않음
+
 ### `USER_REWARD_DATA`
 
 - 보유 코인/경험치와 퀴즈 완료 보상 표시용 정적 데이터
@@ -287,7 +309,7 @@
 
 - Storage
 - GAS `getQuizData`
-- 운영본 뱃지/연습기록/랭킹/퀴즈 데이터
+- 운영본 랭킹/퀴즈 원본 데이터
 - 실제 랭킹
 - 서버 검증 기반 구매 처리
 - Firebase Storage 실제 이미지
@@ -308,6 +330,9 @@
 - Firestore `users` 운영본 회원 148명 import
 - Firestore `userTitles/{memberUserId}/titles/{titleId}` 운영본 타이틀현황 11건 import
 - Firestore `userTitleSummary/{memberUserId}` 타이틀 요약 5건 import
+- Firestore `practiceRecords/{recordId}` 운영본 연습기록 303건 import
+- Firestore `userPracticeSummary/{memberUserId}` 연습/뱃지 요약 97건 import
+- Firestore `userBadges/{memberUserId}/badges/{badgeId}` 뱃지 303건 import
 - `users.selectedTitleId`와 보유 타이틀 `selected` 표시 연결
 - `users/{memberUserId}.authUid` 회원 연결
 - Auth `uid` 기반 연결 회원 자동 복구
@@ -341,6 +366,12 @@
 - Firestore `userTitleSummary` 컬렉션에 5건 저장 확인 완료
 - `users.selectedTitleId`와 `userTitles`의 `selected` 표시 일치 확인 완료
 - `missingSelectedTitle` 누락 없음 확인 완료
+- 운영본 `연습기록` / `포켓몬연습기록` Drive export/import 완료
+- Firestore `practiceRecords` 컬렉션에 303건 저장 확인 완료
+- Firestore `userPracticeSummary` 컬렉션에 97건 저장 확인 완료
+- Firestore `userBadges` 하위 컬렉션에 303건 저장 확인 완료
+- `LEGACY_UNKNOWN_*` 보완 record 4건 확인 완료
+- 포켓몬 중복 병합 대상 없음 확인 완료
 - Auth `uid` 기반 자동 회원 복구 구현 완료
 - localStorage 힌트와 Firestore `authUid` 재검증 구조 구현 완료
 - 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
