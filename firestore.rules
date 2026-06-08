@@ -46,6 +46,13 @@ service cloud.firestore {
         || resource.data.authUid == request.auth.uid;
     }
 
+    function isLinkedToDifferentAuthUser() {
+      return resource.data.keys().hasAny(['authUid'])
+        && resource.data.authUid != null
+        && resource.data.authUid != ''
+        && resource.data.authUid != request.auth.uid;
+    }
+
     function canReadUserDocument() {
       return isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
@@ -71,6 +78,25 @@ service cloud.firestore {
         ]);
     }
 
+    function canRelinkUserAuthUidDuringTest() {
+      return isSignedIn()
+        && isActiveStudentUser()
+        && isLinkedToDifferentAuthUser()
+        && request.resource.data.authUid == request.auth.uid
+        && request.resource.data.previousAuthUid == resource.data.authUid
+        && request.resource.data.authLinkProvider == 'firebase_member_link_test'
+        && request.resource.data.authLinkVersion == 2
+        && hasNoForbiddenUserFields(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'authUid',
+          'authRelinkedAt',
+          'previousAuthUid',
+          'authLinkProvider',
+          'authLinkVersion',
+          'updatedAt'
+        ]);
+    }
+
     match /shopItems/{itemId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -86,7 +112,7 @@ service cloud.firestore {
       allow list: if isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
         && resource.data.authUid == request.auth.uid;
-      allow update: if isAdmin() || canLinkUserAuthUid();
+      allow update: if isAdmin() || canLinkUserAuthUid() || canRelinkUserAuthUidDuringTest();
       allow create, delete: if isAdmin();
     }
 
