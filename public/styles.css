@@ -2232,6 +2232,53 @@ h2 {
   margin-top: 18px;
 }
 
+.quiz-image-question {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  max-height: 360px;
+  padding: 12px;
+  border: 2px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.quiz-image-question img {
+  max-width: 100%;
+  max-height: 336px;
+  object-fit: contain;
+}
+
+.quiz-image-question.is-image-error::after {
+  content: '이미지를 불러오지 못했습니다.';
+  color: #8a3a2a;
+  font-weight: 900;
+}
+
+.quiz-image-question.is-image-error img {
+  display: none;
+}
+
+.quiz-answer-input {
+  grid-column: 1 / -1;
+  min-height: 54px;
+  padding: 12px 14px;
+  border: 2px solid rgba(47, 125, 68, 0.18);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 900;
+}
+
+.quiz-answer-input:focus {
+  border-color: var(--green);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(47, 125, 68, 0.12);
+}
+
 .quiz-choice {
   min-height: 62px;
   padding: 14px 16px;

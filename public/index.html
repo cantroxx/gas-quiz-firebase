@@ -858,7 +858,7 @@
         desc: '운영본의 국어 퀴즈 데이터를 연결하기 전, 카테고리 선택 흐름만 확인합니다.',
         board: '낱말과 문장을 탐험해요',
         cardDesc: '맞춤법, 독서, 속담, 사자성어 문제를 고르는 화면입니다.',
-        quizzes: ['spelling', 'reading', 'time_store', 'proverb', 'idiom'],
+        quizzes: ['spelling', 'word-relation', 'gmo', 'time_store', 'proverb', 'idiom'],
         enabled: true
       },
       social: {
@@ -869,7 +869,18 @@
         desc: '사회 퀴즈도 국어관과 같은 선택 화면과 공통 엔진으로 연결합니다.',
         board: '역사와 사회를 살펴봐요',
         cardDesc: '삼국시대, 역사 인물, 문화유산, 사회 개념 퀴즈를 고르는 화면입니다.',
-        quizzes: ['three_kingdoms', 'historical_figures', 'cultural_heritage', 'social_concepts'],
+        quizzes: ['samgukji', 'ancient-history', 'history-people', 'cultural_heritage', 'social_concepts'],
+        enabled: true
+      },
+      popular: {
+        icon: '⭐',
+        title: '인기 퀴즈',
+        hallTitle: '인기관',
+        kicker: 'Popular Quiz Hall',
+        desc: '이미지로 정답을 맞히는 인물형 퀴즈를 Firestore 데이터와 연결합니다.',
+        board: '사진을 보고 이름을 맞혀요',
+        cardDesc: '아이돌, 애니 이미지 퀴즈를 고르는 화면입니다.',
+        quizzes: ['idol', 'anime'],
         enabled: true
       },
       math: {
@@ -889,12 +900,7 @@
       { subjectId: 'korean' },
       { subjectId: 'social' },
       { subjectId: 'math' },
-      {
-        icon: '⭐',
-        title: '인기 퀴즈',
-        desc: '학생들이 자주 찾는 재미 퀴즈를 모아 보여줄 예정입니다.',
-        enabled: false
-      },
+      { subjectId: 'popular' },
       {
         icon: '🏆',
         title: '랭킹전 준비 중',
@@ -920,6 +926,17 @@
         desc: '한 낱말이 여러 뜻으로 쓰이는지, 소리는 같고 뜻이 다른지 확인합니다.',
         summary: '운영본 단어시트에서 이관한 문제를 Firestore에서 읽어 연습전 화면으로 표시합니다.',
         subjectId: 'korean',
+        modes: ['practice', 'ranking', 'oneChance', 'records']
+      },
+      gmo: {
+        title: '지엠오 아이 퀴즈',
+        kicker: 'Korean Hall',
+        icon: '📗',
+        desc: '지엠오 아이 독서 문제를 Firestore에서 읽어 풉니다.',
+        summary: '운영본 독서 시트에서 이관한 4지선다 문제를 사용합니다.',
+        subjectId: 'korean',
+        parentQuizId: 'reading',
+        groupLabel: '독서 하위',
         modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       reading: {
@@ -960,22 +977,49 @@
         subjectId: 'korean',
         modes: ['practice', 'ranking', 'oneChance', 'records']
       },
-      three_kingdoms: {
-        title: '삼국시대 퀴즈',
+      samgukji: {
+        title: '삼국지 퀴즈',
         kicker: 'Social Studies Hall',
         icon: '🏯',
-        desc: '고구려, 백제, 신라의 특징을 확인하는 사회 더미 퀴즈입니다.',
-        summary: '사회관 카드도 국어와 같은 모드 선택 화면을 사용합니다.',
+        desc: '삼국지 4지선다 문제를 Firestore에서 읽어 풉니다.',
+        summary: '운영본 사회 시트에서 이관한 4지선다 문제를 사용합니다.',
         subjectId: 'social',
         modes: ['practice', 'ranking', 'oneChance']
       },
-      historical_figures: {
+      'ancient-history': {
+        title: '고대사 퀴즈',
+        kicker: 'Social Studies Hall',
+        icon: '🏺',
+        desc: '고대사 4지선다 문제를 Firestore에서 읽어 풉니다.',
+        summary: '운영본 사회 시트에서 이관한 4지선다 문제를 사용합니다.',
+        subjectId: 'social',
+        modes: ['practice', 'ranking', 'oneChance']
+      },
+      'history-people': {
         title: '역사 인물 퀴즈',
         kicker: 'Social Studies Hall',
         icon: '🧭',
-        desc: '역사 속 인물과 업적을 연결하는 사회 더미 퀴즈입니다.',
-        summary: '인물형 문제도 같은 QUESTION_BANK 매핑으로 연습전에 진입합니다.',
+        desc: '역사 인물 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: 'Firestore imageInput 문제를 읽어 이미지와 정답 입력 화면으로 표시합니다.',
         subjectId: 'social',
+        modes: ['practice', 'ranking', 'oneChance']
+      },
+      idol: {
+        title: '아이돌 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🎤',
+        desc: '아이돌 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: 'Firestore imageInput 문제를 읽어 이미지와 정답 입력 화면으로 표시합니다.',
+        subjectId: 'popular',
+        modes: ['practice', 'ranking', 'oneChance']
+      },
+      anime: {
+        title: '애니 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🎬',
+        desc: '애니 캐릭터 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: 'Firestore imageInput 문제를 읽어 이미지와 정답 입력 화면으로 표시합니다.',
+        subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
       cultural_heritage: {
@@ -1633,6 +1677,45 @@
       };
     }
 
+    function buildChoiceQuestion(question) {
+      const choices = Array.isArray(question.choices) ? question.choices.map(choice => String(choice || '').trim()).filter(Boolean) : [];
+      const explicitAnswer = Number(question.answerIndex);
+      const answerText = String(question.answer || '').trim();
+      const answerIndex = Number.isInteger(explicitAnswer) && explicitAnswer >= 0 && explicitAnswer < choices.length
+        ? explicitAnswer
+        : choices.findIndex(choice => choice === answerText);
+      return {
+        type: 'choice',
+        question: String(question.prompt || question.question || '').trim(),
+        choices,
+        answer: answerIndex >= 0 ? answerIndex : 0,
+        answerText,
+        hint: String(question.hint || question.explanation || '').trim()
+      };
+    }
+
+    function buildImageInputQuestion(question) {
+      const answerText = String(question.answer || '').trim();
+      const aliases = Array.isArray(question.aliases) ? question.aliases.map(alias => String(alias || '').trim()).filter(Boolean) : [];
+      return {
+        type: 'imageInput',
+        question: String(question.prompt || '이미지를 보고 정답을 입력하세요.').trim(),
+        imageUrl: String(question.imageUrl || question.question || '').trim(),
+        answerText,
+        aliases,
+        hint: String(question.hint || question.explanation || '').trim()
+      };
+    }
+
+    function buildFirestoreQuestion(question) {
+      const questionType = String(question.questionType || '').trim();
+      if(questionType === 'imageInput') return buildImageInputQuestion(question);
+      if(questionType === 'readingMultipleChoice' || questionType === 'sheetMultipleChoice4') return buildChoiceQuestion(question);
+      if(Array.isArray(question.choices) && question.choices.length) return buildChoiceQuestion(question);
+      if(question.imageUrl) return buildImageInputQuestion(question);
+      return null;
+    }
+
     async function buildFirebaseQuizData(quizId) {
       const id = normalizeFirebaseQuizId(quizId);
       if(firebaseQuizDataCache[id]) return firebaseQuizDataCache[id];
@@ -1647,9 +1730,14 @@
         const rows = await loadFirebaseQuizQuestions(id);
         if(id === 'spelling') questions = rows.map(buildSpellingQuestion);
         if(id === 'word-relation') questions = rows.map(buildWordRelationQuestion);
+        if(!questions.length) questions = rows.map(buildFirestoreQuestion).filter(Boolean);
       }
 
-      questions = questions.filter(question => question.question && Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer));
+      questions = questions.filter(question => {
+        if(!question || !question.question) return false;
+        if(question.type === 'imageInput') return !!question.imageUrl && !!question.answerText;
+        return Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
+      });
       if(!questions.length) return null;
 
       firebaseQuizDataCache[id] = questions;
@@ -2970,24 +3058,61 @@
       submit.textContent = '정답 제출';
       submit.disabled = true;
 
-      question.choices.forEach((choice, index) => {
-        const button = document.createElement('button');
-        const choiceMarks = ['①', '②', '③', '④'];
-        button.className = 'quiz-choice';
-        button.type = 'button';
-        button.dataset.choiceIndex = String(index);
-        button.textContent = `${choiceMarks[index] || `${index + 1}.`} ${choice}`;
-        choices.appendChild(button);
-      });
+      if(question.type === 'imageInput') {
+        const imageWrap = document.createElement('div');
+        const image = document.createElement('img');
+        const input = document.createElement('input');
+        imageWrap.className = 'quiz-image-question';
+        image.src = question.imageUrl;
+        image.alt = '퀴즈 이미지';
+        image.loading = 'lazy';
+        image.addEventListener('error', () => {
+          imageWrap.classList.add('is-image-error');
+        });
+        input.className = 'quiz-answer-input';
+        input.type = 'text';
+        input.autocomplete = 'off';
+        input.placeholder = '정답 입력';
+        input.setAttribute('aria-label', '정답 입력');
+        input.addEventListener('input', () => {
+          submit.disabled = !input.value.trim();
+        });
+        imageWrap.appendChild(image);
+        choices.append(imageWrap, input);
+      } else {
+        question.choices.forEach((choice, index) => {
+          const button = document.createElement('button');
+          const choiceMarks = ['①', '②', '③', '④'];
+          button.className = 'quiz-choice';
+          button.type = 'button';
+          button.dataset.choiceIndex = String(index);
+          button.textContent = `${choiceMarks[index] || `${index + 1}.`} ${choice}`;
+          choices.appendChild(button);
+        });
+      }
 
       card.append(progress, title, choices, submit);
       root.appendChild(card);
     }
 
+    function normalizeQuizAnswer(value) {
+      return String(value || '').trim().replace(/\s+/g, '').toLowerCase();
+    }
+
     function submitAnswer() {
-      if(selectedChoiceIndex === null) return;
       const question = getCurrentQuestionSet()[currentQuestionIndex];
-      const isCorrect = selectedChoiceIndex === question.answer;
+      let isCorrect = false;
+      if(question.type === 'imageInput') {
+        const input = document.querySelector('.quiz-answer-input');
+        const submitted = normalizeQuizAnswer(input?.value);
+        const acceptedAnswers = [question.answerText, ...(question.aliases || [])].map(normalizeQuizAnswer).filter(Boolean);
+        if(!submitted) return;
+        isCorrect = acceptedAnswers.includes(submitted);
+        if(input) input.disabled = true;
+      } else {
+        if(selectedChoiceIndex === null) return;
+        isCorrect = selectedChoiceIndex === question.answer;
+      }
       if(isCorrect) correctAnswerCount += 1;
       document.querySelectorAll('.quiz-choice').forEach(choice => {
         choice.disabled = true;
