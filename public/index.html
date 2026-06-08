@@ -1909,7 +1909,7 @@
     }
 
     function getBestRankingRecordByCategoryKeys(records, categoryKeys) {
-      return records.sort((a, b) => {
+      return getBestRankingRecordsByUserAndCategory(records, categoryKeys).sort((a, b) => {
         const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
         if(scoreDiff) return scoreDiff;
         return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
@@ -1927,9 +1927,36 @@
       return records.slice().sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))[0] || null;
     }
 
-    function getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit = 10) {
-      return records
+    function getRankingRecordUserKey(record) {
+      return String(record?.memberUserId || record?.userId || record?.displayName || record?.nickname || '').trim();
+    }
+
+    function isBetterCategoryRankingRecord(candidate, current) {
+      if(!current) return true;
+      const scoreDiff = (Number(candidate.score) || 0) - (Number(current.score) || 0);
+      if(scoreDiff) return scoreDiff > 0;
+      const candidateTime = Number(candidate.elapsedSeconds) || 999999999;
+      const currentTime = Number(current.elapsedSeconds) || 999999999;
+      if(candidateTime !== currentTime) return candidateTime < currentTime;
+      return getRankingRecordTimeValue(candidate) > getRankingRecordTimeValue(current);
+    }
+
+    function getBestRankingRecordsByUserAndCategory(records, categoryKeys) {
+      const bestByUserAndCategory = new Map();
+      records
         .filter(record => categoryKeys.includes(record.categoryKey))
+        .forEach(record => {
+          const userKey = getRankingRecordUserKey(record);
+          if(!userKey) return;
+          const key = `${record.categoryKey}::${userKey}`;
+          const current = bestByUserAndCategory.get(key);
+          if(isBetterCategoryRankingRecord(record, current)) bestByUserAndCategory.set(key, record);
+        });
+      return Array.from(bestByUserAndCategory.values());
+    }
+
+    function getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit = 10) {
+      return getBestRankingRecordsByUserAndCategory(records, categoryKeys)
         .sort((a, b) => {
           const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
           if(scoreDiff) return scoreDiff;
