@@ -256,7 +256,7 @@
 
 ## 5. 아직 더미인 부분
 
-- 모든 문제 데이터
+- 운영본 문제 데이터 전체 이전
 - 퀴즈 완료 보상
 - 퀴즈 완료 보상으로 누적되는 보유 코인과 경험치
 - 랭킹 광장 순위
@@ -384,35 +384,41 @@
 
 ## 9. 다음 작업 추천 순서
 
-1. 학생용 로그인 UI 정리
+1. 타이틀 실제 이관
+   - 운영본 타이틀 export/import 계획에 따라 Firebase `userTitles` 실제 이관 진행
+   - 현재 프로필/칭호 표시는 아직 더미 상태이므로 실제 보유 타이틀 연결을 우선 검증
+
+2. 학생용 로그인 UI 정리
    - 현재 Firebase 회원 연결 테스트 UI를 학생용 로그인 흐름으로 정리
    - 자동 복구 성공/실패 상태 표시 개선
    - 중복 연결 안내와 교사 문의 흐름 정리
 
-2. 비밀번호/초기비밀번호 검증 정책 확정
+3. 비밀번호/초기비밀번호 검증 정책 확정
    - 기존 비밀번호 미이관 상태에서 초기 비밀번호 재설정 또는 별도 인증 방식을 결정
    - 현재 학교/학년/반/번호 기반 연결 테스트를 운영 로그인 UX로 바꿀지 검토
    - `users/{memberUserId}.authUid` 중복 연결 해제/복구 정책 정리
 
-3. Functions 기반 경제 처리
+4. Functions 기반 경제 처리
    - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
    - `userInventory` 직접 추가 방지
    - `purchaseLogs` 서버 생성 구조 검토
 
-4. Firebase Storage 이미지 연결
+5. Firebase Storage 이미지 연결
    - `assetCatalog.imageUrl`에 실제 이미지 URL 입력
    - 상점과 내 집 카드에서 이미지 표시 확인
    - 이미지 실패 시 fallback icon 유지 확인
 
-5. Firebase Hosting 배포 테스트
+6. Firebase Hosting 배포 테스트
    - 타운/학교/퀴즈/상점/내 집/이벤트 흐름 점검
    - 회원 연결, 새로고침 자동 복구, 중복 uid 차단 확인
    - 구매 후 내 집 적용 상태 유지 확인
    - 모바일/데스크톱 레이아웃 확인
    - Firestore 권한 오류 확인
 
-6. GAS 데이터 연동 검토
-   - 운영본 `getQuizData`의 반환 구조 확인
+7. GAS 데이터 연동 검토
+   - 퀴즈 이전 1차 정찰 완료
+   - 가장 먼저 이전 가능한 퀴즈 후보: `random-basic` / 곱셈과 나눗셈, `spelling` / 맞춤법, `word-relation` / 다의어·동형이의어, `gmo` / 지엠오 아이, 사회 `sheet` `multipleChoice4` 활성 항목
+   - 퀴즈 전체 이전은 아직 전
    - `QUIZ_CATALOG`와 운영본 quizId 매핑
    - `QUESTION_BANK` 대체 또는 병행 전략 결정
 

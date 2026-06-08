@@ -64,6 +64,9 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# macOS metadata
+.DS_Store
 service-account.json
 
 # Local private member migration data
