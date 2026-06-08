@@ -832,8 +832,8 @@
       ranking: {
         icon: '🏅',
         title: '일반 랭킹전',
-        desc: '기록 저장 구조가 준비되면 점수 경쟁으로 연결할 모드입니다.',
-        enabled: false
+        desc: '하트가 다 닳을 때까지 점수와 시간을 기록하는 모드입니다.',
+        enabled: true
       },
       oneChance: {
         icon: '🎯',
@@ -1266,6 +1266,11 @@
     let currentSubjectId = 'korean';
     let currentQuizId = 'spelling';
     let currentModeId = 'practice';
+    let currentQuizStartedAtMs = 0;
+    let currentRankingLives = 0;
+    let currentRankingQuestionTimer = null;
+    let currentRankingTimeLeft = 0;
+    let currentQuestionResolved = false;
     const firebaseQuizDataCache = {};
 
     function openPlaceModal(placeId) {
@@ -3022,6 +3027,10 @@
       currentQuestionIndex = 0;
       selectedChoiceIndex = null;
       correctAnswerCount = 0;
+      currentQuizStartedAtMs = Date.now();
+      currentRankingLives = modeId === 'ranking' ? 3 : 0;
+      currentQuestionResolved = false;
+      clearRankingQuestionTimer();
       try {
         await buildFirebaseQuizData(quizId);
       } catch(error) {
@@ -3058,6 +3067,7 @@
       const question = questionSet[currentQuestionIndex];
       const root = document.getElementById('quiz-play-root');
       selectedChoiceIndex = null;
+      currentQuestionResolved = false;
       root.innerHTML = '';
 
       const card = document.createElement('article');
@@ -3068,7 +3078,7 @@
 
       card.className = 'quiz-question-card';
       progress.className = 'quiz-progress';
-      progress.textContent = `문제 ${currentQuestionIndex + 1} / ${questionSet.length}`;
+      progress.textContent = getQuizProgressText();
       title.textContent = question.question;
       choices.className = 'quiz-choice-list';
       submit.className = 'quiz-submit-button';
@@ -3111,6 +3121,57 @@
 
       card.append(progress, title, choices, submit);
       root.appendChild(card);
+      startRankingQuestionTimerIfNeeded();
+    }
+
+    function getQuizProgressText() {
+      const base = `문제 ${currentQuestionIndex + 1} / ${getCurrentQuestionSet().length}`;
+      if(currentModeId !== 'ranking') return base;
+      return `${base} · 생명력 ${'♥'.repeat(Math.max(currentRankingLives, 0))}`;
+    }
+
+    function clearRankingQuestionTimer() {
+      if(currentRankingQuestionTimer) clearInterval(currentRankingQuestionTimer);
+      currentRankingQuestionTimer = null;
+    }
+
+    function getRankingTimeLimitSecondsForQuiz(quizId) {
+      const id = normalizeFirebaseQuizId(quizId);
+      if(id === 'gmo' || id === 'time_store') return 60;
+      if(id === 'random-basic') return 60;
+      if(id === 'word-relation') return 30;
+      if(id === 'samgukji' || id === 'ancient-history') return 15;
+      return 12;
+    }
+
+    function startRankingQuestionTimerIfNeeded() {
+      clearRankingQuestionTimer();
+      if(currentModeId !== 'ranking') return;
+      currentRankingTimeLeft = getRankingTimeLimitSecondsForQuiz(currentQuizId);
+      const updateProgress = () => {
+        const progress = document.querySelector('.quiz-progress');
+        if(progress) progress.textContent = `${getQuizProgressText()} · ${Math.max(0, Math.ceil(currentRankingTimeLeft))}초`;
+      };
+      updateProgress();
+      currentRankingQuestionTimer = setInterval(() => {
+        currentRankingTimeLeft -= 0.1;
+        updateProgress();
+        if(currentRankingTimeLeft <= 0) handleRankingTimeout();
+      }, 100);
+    }
+
+    function handleRankingTimeout() {
+      if(currentModeId !== 'ranking' || currentQuestionResolved) return;
+      currentQuestionResolved = true;
+      clearRankingQuestionTimer();
+      const input = document.querySelector('.quiz-answer-input');
+      if(input) input.disabled = true;
+      document.querySelectorAll('.quiz-choice').forEach(choice => {
+        choice.disabled = true;
+      });
+      const submit = document.querySelector('.quiz-submit-button');
+      if(submit) submit.disabled = true;
+      showQuizResult(false, '시간 초과로 하트가 1개 줄었어요.');
     }
 
     function normalizeQuizAnswer(value) {
@@ -3118,6 +3179,7 @@
     }
 
     function submitAnswer() {
+      if(currentQuestionResolved) return;
       const question = getCurrentQuestionSet()[currentQuestionIndex];
       let isCorrect = false;
       if(question.type === 'imageInput') {
@@ -3131,9 +3193,11 @@
         if(selectedChoiceIndex === null) return;
         isCorrect = selectedChoiceIndex === question.answer;
       }
+      currentQuestionResolved = true;
+      clearRankingQuestionTimer();
       if(isCorrect) correctAnswerCount += 1;
       let progressSavePromise = null;
-      if(isCorrect) {
+      if(isCorrect && currentModeId === 'practice') {
         console.info('Practice progress correct questionId:', {
           questionId: getPracticeQuestionId(question),
           quizId: normalizeFirebaseQuizId(currentQuizId)
@@ -3155,24 +3219,29 @@
       }
     }
 
-    function showQuizResult(isCorrect) {
+    function showQuizResult(isCorrect, overrideMessage) {
       const root = document.getElementById('quiz-play-root');
       const card = document.createElement('article');
       const title = document.createElement('h3');
       const desc = document.createElement('p');
       const saveStatus = document.createElement('p');
       const next = document.createElement('button');
+      if(currentModeId === 'ranking' && !isCorrect) {
+        currentRankingLives = Math.max(0, currentRankingLives - 1);
+      }
+      const rankingEndedByWrongAnswer = currentModeId === 'ranking' && !isCorrect && currentRankingLives <= 0;
 
       card.className = `quiz-result-card ${isCorrect ? 'is-correct' : 'is-wrong'}`;
       title.textContent = isCorrect ? '정답입니다!' : '오답입니다!';
-      desc.textContent = isCorrect ? '좋아요. 다음 문제도 이어서 풀어봅니다.' : '괜찮아요. 다음 문제에서 다시 확인해 봅니다.';
+      desc.textContent = overrideMessage || (rankingEndedByWrongAnswer ? '생명력이 모두 소진되어 랭킹전이 종료됩니다.' : (isCorrect ? '좋아요. 다음 문제도 이어서 풀어봅니다.' : '괜찮아요. 다음 문제에서 다시 확인해 봅니다.'));
       saveStatus.id = 'practice-save-status';
       saveStatus.className = 'quiz-progress';
-      saveStatus.textContent = isCorrect ? '기록 저장 중' : '';
+      saveStatus.textContent = isCorrect && currentModeId === 'practice' ? '기록 저장 중' : '';
       next.className = 'quiz-submit-button';
       next.type = 'button';
-      next.textContent = currentQuestionIndex + 1 >= getCurrentQuestionSet().length ? '결과 보기' : '다음 문제';
+      next.textContent = rankingEndedByWrongAnswer || currentQuestionIndex + 1 >= getCurrentQuestionSet().length ? '결과 보기' : '다음 문제';
       next.dataset.nextQuestion = 'true';
+      if(rankingEndedByWrongAnswer) next.dataset.completeQuiz = 'true';
 
       card.append(title, desc, saveStatus, next);
       root.appendChild(card);
@@ -3195,6 +3264,7 @@
     }
 
     function nextQuestion() {
+      clearRankingQuestionTimer();
       currentQuestionIndex += 1;
       if(currentQuestionIndex >= getCurrentQuestionSet().length) {
         showQuizComplete();
@@ -3223,6 +3293,216 @@
 
     function buildPracticeProgressRecordId(memberUserId, areaKey) {
       return `${memberUserId}__${slugPracticeKey(areaKey).replace(/-/g, '_')}`;
+    }
+
+    function getRankingTargetForQuiz(quizId) {
+      const id = normalizeFirebaseQuizId(quizId);
+      const targets = {
+        'random-basic': { category: '수학(곱셈과 나눗셈)', subFilter: '곱셈과 나눗셈' },
+        spelling: { category: '맞춤법', subFilter: '' },
+        'word-relation': { category: '단어(다의어·동형이의어)', subFilter: '다의어·동형이의어' },
+        gmo: { category: '독서(지앰오 아이)', subFilter: '지앰오 아이' },
+        time_store: { category: '독서(시간가게)', subFilter: '시간가게' },
+        samgukji: { category: '사회(삼국지)', subFilter: '삼국지' },
+        'ancient-history': { category: '사회(고대사~삼국시대)', subFilter: '고대사~삼국시대' },
+        'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
+        idol: { category: '인물(아이돌)', subFilter: '아이돌' },
+        anime: { category: '인물(애니)', subFilter: '애니' }
+      };
+      const target = targets[id];
+      if(!target) return null;
+      return {
+        ...target,
+        categoryKey: slugPracticeKey(target.category),
+        rankingMode: 'normal'
+      };
+    }
+
+    function buildRankingRecordId(memberUserId, categoryKey, rankingMode) {
+      const safeUserId = slugPracticeKey(memberUserId).replace(/-/g, '_');
+      const safeCategory = slugPracticeKey(categoryKey).replace(/-/g, '_');
+      return `firebase_${safeUserId}_${safeCategory}_${rankingMode}_${Date.now()}`;
+    }
+
+    function formatRankingElapsedText(seconds) {
+      const safeSeconds = Math.max(0, Number(seconds) || 0);
+      const minutes = Math.floor(safeSeconds / 60);
+      const remain = safeSeconds % 60;
+      return minutes ? `${minutes}분 ${remain}초` : `${remain}초`;
+    }
+
+    function isBetterRankingEntry(next, current) {
+      if(!current) return true;
+      if((next.score || 0) !== (current.score || 0)) return (next.score || 0) > (current.score || 0);
+      const nextTime = Number(next.elapsedSeconds) || 999999999;
+      const currentTime = Number(current.elapsedSeconds) || 999999999;
+      return nextTime < currentTime;
+    }
+
+    function buildUserRankingSummaryUpdate(summary, record, updatedAt) {
+      const existing = summary || {};
+      const byMode = { ...(existing.byMode || {}) };
+      const bestScoresByMode = { ...(existing.bestScoresByMode || {}) };
+      const modeSummary = {
+        ...(byMode[record.rankingMode] || {}),
+        byCategory: { ...((byMode[record.rankingMode] || {}).byCategory || {}) }
+      };
+      const bestModeSummary = { ...(bestScoresByMode[record.rankingMode] || {}) };
+      const currentEntry = modeSummary.byCategory[record.categoryKey];
+
+      if(isBetterRankingEntry(record, currentEntry)) {
+        modeSummary.byCategory[record.categoryKey] = {
+          rank: Number(currentEntry?.rank) || 0,
+          total: Number(currentEntry?.total) || 0,
+          score: record.score,
+          elapsedSeconds: record.elapsedSeconds,
+          elapsedText: record.elapsedText,
+          recordId: record.recordId,
+          category: record.category
+        };
+        bestModeSummary[record.categoryKey] = {
+          score: record.score,
+          elapsedSeconds: record.elapsedSeconds,
+          recordId: record.recordId
+        };
+      }
+
+      byMode[record.rankingMode] = modeSummary;
+      bestScoresByMode[record.rankingMode] = bestModeSummary;
+
+      return {
+        memberUserId: record.memberUserId,
+        userId: record.userId,
+        displayName: record.displayName,
+        hasUserId: true,
+        totalRecordCount: (Number(existing.totalRecordCount) || 0) + 1,
+        legacyRecordCount: Number(existing.legacyRecordCount) || 0,
+        byMode,
+        bestScoresByMode,
+        migrationSource: 'firebase_app_ranking',
+        updatedAt
+      };
+    }
+
+    function buildQuizKingSummaryUpdate(summary, record, updatedAt) {
+      const existing = summary || {};
+      const categories = Array.isArray(existing.categories) ? [...existing.categories] : [];
+      const index = categories.findIndex(item => item?.categoryKey === record.categoryKey);
+      const current = index >= 0 ? categories[index] : null;
+
+      if(isBetterRankingEntry(record, current)) {
+        const nextCategory = {
+          categoryKey: record.categoryKey,
+          category: record.category,
+          score: record.score,
+          elapsedSeconds: record.elapsedSeconds,
+          elapsedText: record.elapsedText,
+          rankingMode: record.rankingMode,
+          recordId: record.recordId
+        };
+        if(index >= 0) categories[index] = nextCategory;
+        else categories.push(nextCategory);
+      }
+
+      categories.sort((a, b) => String(a.category || '').localeCompare(String(b.category || ''), 'ko'));
+      return {
+        memberUserId: record.memberUserId,
+        userId: record.userId,
+        displayName: record.displayName,
+        hasUserId: true,
+        categories,
+        totalScore: categories.reduce((sum, item) => sum + (Number(item.score) || 0), 0),
+        categoryCount: categories.length,
+        rank: Number(existing.rank) || 0,
+        migrationSource: 'firebase_app_ranking',
+        updatedAt
+      };
+    }
+
+    async function saveRankingRecordOnQuizComplete() {
+      if(currentModeId !== 'ranking') return null;
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+
+      const memberUserId = getCurrentDataOwnerId();
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) throw new Error('member-required');
+      if(correctAnswerCount <= 0) {
+        console.info('Ranking record skipped because score is 0.', {
+          quizId: normalizeFirebaseQuizId(currentQuizId)
+        });
+        return { skipped: true, reason: 'zero-score' };
+      }
+
+      const quizId = normalizeFirebaseQuizId(currentQuizId);
+      const target = getRankingTargetForQuiz(quizId);
+      if(!target) throw new Error('unsupported-ranking-target');
+
+      const profile = currentMemberProfile || {};
+      const elapsedSeconds = Math.max(1, Math.round((Date.now() - (currentQuizStartedAtMs || Date.now())) / 1000));
+      const fieldValue = getFirestoreFieldValue();
+      const recordId = buildRankingRecordId(memberUserId, target.categoryKey, target.rankingMode);
+      const recordRef = db.collection('rankingRecords').doc(recordId);
+      const userSummaryRef = db.collection('userRankingSummary').doc(memberUserId);
+      const quizKingSummaryRef = db.collection('quizKingSummary').doc(memberUserId);
+      const record = {
+        recordId,
+        memberUserId,
+        userId: memberUserId,
+        displayName: profile.nickname || profile.name || memberUserId,
+        grade: String(profile.grade || ''),
+        classNo: String(profile.classNo || profile.classNumber || ''),
+        number: String(profile.number || profile.studentNumber || ''),
+        quizId,
+        category: target.category,
+        categoryKey: target.categoryKey,
+        rawCategory: target.category,
+        subFilter: target.subFilter,
+        score: correctAnswerCount,
+        elapsedSeconds,
+        elapsedText: formatRankingElapsedText(elapsedSeconds),
+        rankingMode: target.rankingMode,
+        sourceSheet: 'firebase-app',
+        sourceRowNumber: 0,
+        legacy: false,
+        hasUserId: true,
+        recordedAt: fieldValue.serverTimestamp(),
+        createdAt: fieldValue.serverTimestamp(),
+        updatedAt: fieldValue.serverTimestamp(),
+        migrationSource: 'firebase_app_ranking'
+      };
+
+      await db.runTransaction(async transaction => {
+        const [userSummarySnapshot, quizKingSummarySnapshot] = await Promise.all([
+          transaction.get(userSummaryRef),
+          transaction.get(quizKingSummaryRef)
+        ]);
+        const userSummaryData = buildUserRankingSummaryUpdate(
+          userSummarySnapshot.exists ? userSummarySnapshot.data() : {},
+          record,
+          fieldValue.serverTimestamp()
+        );
+        const quizKingSummaryData = buildQuizKingSummaryUpdate(
+          quizKingSummarySnapshot.exists ? quizKingSummarySnapshot.data() : {},
+          record,
+          fieldValue.serverTimestamp()
+        );
+        transaction.set(recordRef, record, { merge: true });
+        transaction.set(userSummaryRef, userSummaryData, { merge: true });
+        transaction.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
+      });
+
+      console.info('Firestore ranking record save succeeded:', {
+        recordId,
+        score: correctAnswerCount,
+        categoryKey: target.categoryKey,
+        elapsedSeconds
+      });
+      return {
+        recordId,
+        score: correctAnswerCount,
+        categoryKey: target.categoryKey,
+        elapsedText: record.elapsedText
+      };
     }
 
     function getPracticeQuestionId(question) {
@@ -3506,6 +3786,7 @@
     }
 
     function showQuizComplete() {
+      clearRankingQuestionTimer();
       const root = document.getElementById('quiz-play-root');
       root.innerHTML = '';
 
@@ -3514,12 +3795,13 @@
       const score = document.createElement('p');
       const rewardGrid = document.createElement('div');
       const note = document.createElement('p');
+      const saveStatus = document.createElement('p');
       const back = document.createElement('button');
 
       card.className = 'quiz-complete-card';
-      title.textContent = '연습 완료';
+      title.textContent = currentModeId === 'ranking' ? '랭킹전 종료' : '연습 완료';
       score.className = 'quiz-complete-score';
-      score.textContent = `${getCurrentQuestionSet().length}문제 중 ${correctAnswerCount}개`;
+      score.textContent = `${currentModeId === 'ranking' ? Math.min(currentQuestionIndex + 1, getCurrentQuestionSet().length) : getCurrentQuestionSet().length}문제 중 ${correctAnswerCount}개`;
       rewardGrid.className = 'quiz-reward-grid';
       [
         { label: '경험치', value: `+${USER_REWARD_DATA.completeReward.exp}` },
@@ -3536,14 +3818,40 @@
         item.append(label, value);
         rewardGrid.appendChild(item);
       });
-      note.textContent = `프로토타입 표시용 보상입니다. 실제 점수, DJ코인, 경험치는 저장하거나 누적하지 않습니다. 오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인. 상한 초과 시 "${USER_REWARD_DATA.limitGuide}"라고 안내합니다.`;
+      note.textContent = `완료 보상은 아직 표시용입니다. 정답 1개 보상은 신규 기록일 때만 저장됩니다. 오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인. 상한 초과 시 "${USER_REWARD_DATA.limitGuide}"라고 안내합니다.`;
+      saveStatus.id = 'ranking-save-status';
+      saveStatus.className = 'quiz-progress';
+      saveStatus.textContent = currentModeId === 'ranking' ? '랭킹 기록 저장 중' : '';
       back.className = 'button primary';
       back.type = 'button';
       back.dataset.backToQuizSelect = 'true';
       back.textContent = '모드 선택으로 돌아가기';
 
-      card.append(title, score, rewardGrid, note, back);
+      card.append(title, score, rewardGrid, note, saveStatus, back);
       root.appendChild(card);
+
+      if(currentModeId === 'ranking') {
+        saveRankingRecordOnQuizComplete()
+          .then(result => renderRankingSaveStatus(result))
+          .catch(error => {
+            console.warn('Firestore ranking record save failed.', error);
+            renderRankingSaveStatus({ error: true });
+          });
+      }
+    }
+
+    function renderRankingSaveStatus(result) {
+      const status = document.getElementById('ranking-save-status');
+      if(!status) return;
+      if(!result || result.error) {
+        status.textContent = '랭킹 기록 저장을 확인하지 못했어요.';
+        return;
+      }
+      if(result.skipped && result.reason === 'zero-score') {
+        status.textContent = '점수가 0점이라 랭킹 기록은 저장하지 않았어요.';
+        return;
+      }
+      status.textContent = `랭킹 기록 저장 완료 · ${result.score}점 · ${result.elapsedText}`;
     }
 
     function showSchoolView() {
@@ -3665,6 +3973,7 @@
     }
 
     function showQuizSelectView(quizId) {
+      clearRankingQuestionTimer();
       const quiz = QUIZ_CATALOG[quizId] || QUIZ_CATALOG.spelling;
       lastQuizId = quizId;
       currentSubjectId = quiz.subjectId || currentSubjectId;
@@ -3731,7 +4040,8 @@
 
     document.getElementById('quiz-mode-grid').addEventListener('click', event => {
       const card = event.target.closest('[data-mode-id]');
-      if(card?.dataset.modeId === 'practice') showQuizPlayView(lastQuizId, 'practice');
+      const modeId = card?.dataset.modeId;
+      if(modeId === 'practice' || modeId === 'ranking') showQuizPlayView(lastQuizId, modeId);
     });
 
     document.querySelector('[data-back-to-quiz-select]').addEventListener('click', () => showQuizSelectView(lastQuizId));
@@ -3759,7 +4069,8 @@
       }
 
       if(event.target.dataset.nextQuestion) {
-        nextQuestion();
+        if(event.target.dataset.completeQuiz) showQuizComplete();
+        else nextQuestion();
       }
 
       if(event.target.dataset.backToQuizSelect) {

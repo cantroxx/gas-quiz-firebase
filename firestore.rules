@@ -235,6 +235,112 @@ service cloud.firestore {
         ]);
     }
 
+    function hasValidRankingRecordShape(recordId) {
+      return isSignedIn()
+        && request.resource.data.memberUserId is string
+        && canAccessUserScopedData(request.resource.data.memberUserId)
+        && request.resource.data.recordId == recordId
+        && recordId.matches('firebase_.*')
+        && request.resource.data.userId == request.resource.data.memberUserId
+        && request.resource.data.rankingMode == 'normal'
+        && request.resource.data.legacy == false
+        && request.resource.data.hasUserId == true
+        && request.resource.data.sourceSheet == 'firebase-app'
+        && request.resource.data.score is number
+        && request.resource.data.score > 0
+        && request.resource.data.elapsedSeconds is number
+        && request.resource.data.elapsedSeconds > 0
+        && request.resource.data.keys().hasOnly([
+          'recordId',
+          'memberUserId',
+          'userId',
+          'displayName',
+          'grade',
+          'classNo',
+          'number',
+          'quizId',
+          'category',
+          'categoryKey',
+          'rawCategory',
+          'subFilter',
+          'score',
+          'elapsedSeconds',
+          'elapsedText',
+          'rankingMode',
+          'sourceSheet',
+          'sourceRowNumber',
+          'legacy',
+          'hasUserId',
+          'recordedAt',
+          'createdAt',
+          'updatedAt',
+          'migrationSource',
+          'migratedAt'
+        ]);
+    }
+
+    function hasValidUserRankingSummaryShape(userId) {
+      return isSignedIn()
+        && canAccessUserScopedData(userId)
+        && request.resource.data.memberUserId == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.hasUserId == true
+        && request.resource.data.totalRecordCount is number
+        && request.resource.data.legacyRecordCount is number
+        && request.resource.data.byMode is map
+        && request.resource.data.bestScoresByMode is map
+        && request.resource.data.keys().hasOnly([
+          'memberUserId',
+          'userId',
+          'displayName',
+          'hasUserId',
+          'totalRecordCount',
+          'legacyRecordCount',
+          'byMode',
+          'bestScoresByMode',
+          'migrationSource',
+          'migratedAt',
+          'updatedAt'
+        ]);
+    }
+
+    function canUpdateUserRankingSummary(userId) {
+      return hasValidUserRankingSummaryShape(userId)
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId;
+    }
+
+    function hasValidQuizKingSummaryShape(userId) {
+      return isSignedIn()
+        && canAccessUserScopedData(userId)
+        && request.resource.data.memberUserId == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.hasUserId == true
+        && request.resource.data.categories is list
+        && request.resource.data.totalScore is number
+        && request.resource.data.categoryCount is number
+        && request.resource.data.rank is number
+        && request.resource.data.keys().hasOnly([
+          'memberUserId',
+          'userId',
+          'displayName',
+          'hasUserId',
+          'categories',
+          'totalScore',
+          'categoryCount',
+          'rank',
+          'migrationSource',
+          'migratedAt',
+          'updatedAt'
+        ]);
+    }
+
+    function canUpdateQuizKingSummary(userId) {
+      return hasValidQuizKingSummaryShape(userId)
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId;
+    }
+
     match /shopItems/{itemId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -300,6 +406,26 @@ service cloud.firestore {
     match /userBadges/{userId}/badges/{badgeId} {
       allow read: if canAccessUserScopedData(userId);
       allow create, update: if hasValidUserBadgeShape(userId, badgeId);
+      allow delete: if false;
+    }
+
+    match /rankingRecords/{recordId} {
+      allow read: if false;
+      allow create: if hasValidRankingRecordShape(recordId);
+      allow update, delete: if false;
+    }
+
+    match /userRankingSummary/{userId} {
+      allow read: if canAccessUserScopedData(userId);
+      allow create: if hasValidUserRankingSummaryShape(userId);
+      allow update: if canUpdateUserRankingSummary(userId);
+      allow delete: if false;
+    }
+
+    match /quizKingSummary/{userId} {
+      allow read: if canAccessUserScopedData(userId);
+      allow create: if hasValidQuizKingSummaryShape(userId);
+      allow update: if canUpdateQuizKingSummary(userId);
       allow delete: if false;
     }
 
