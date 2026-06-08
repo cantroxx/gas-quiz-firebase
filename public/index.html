@@ -878,10 +878,10 @@
         title: '인기 퀴즈',
         hallTitle: '인기관',
         kicker: 'Popular Quiz Hall',
-        desc: '이미지로 정답을 맞히는 인물형 퀴즈를 Firestore 데이터와 연결합니다.',
-        board: '사진을 보고 이름을 맞혀요',
-        cardDesc: '아이돌, 애니 이미지 퀴즈를 고르는 화면입니다.',
-        quizzes: ['idol', 'anime'],
+        desc: '이미지와 문장으로 정답을 맞히는 인기 퀴즈를 Firestore 데이터와 연결합니다.',
+        board: '사진과 문장을 보고 정답을 맞혀요',
+        cardDesc: '아이돌, 애니, 아재개그, 포켓몬 퀴즈를 고르는 화면입니다.',
+        quizzes: ['idol', 'anime', 'dad-joke', 'pokemon-gen1', 'pokemon-gen2', 'pokemon-gen3', 'pokemon-gen4', 'pokemon-gen5', 'pokemon-gen6', 'pokemon-gen7', 'pokemon-gen8', 'pokemon-gen9'],
         enabled: true
       },
       math: {
@@ -1025,6 +1025,114 @@
         subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
+      'dad-joke': {
+        title: '아재개그 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '😄',
+        desc: '아재개그 문제를 보고 정답을 맞히는 퀴즈입니다.',
+        summary: '운영본 아재개그문제 시트에서 이관한 입력형 문제를 Firestore에서 읽습니다.',
+        subjectId: 'popular',
+        modes: ['practice', 'ranking', 'oneChance']
+      },
+      'pokemon-gen1': {
+        title: '포켓몬 1세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 1세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen2': {
+        title: '포켓몬 2세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 2세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen3': {
+        title: '포켓몬 3세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 3세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen4': {
+        title: '포켓몬 4세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 4세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen5': {
+        title: '포켓몬 5세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 5세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen6': {
+        title: '포켓몬 6세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 6세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen7': {
+        title: '포켓몬 7세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 7세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen8': {
+        title: '포켓몬 8세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 8세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
+      'pokemon-gen9': {
+        title: '포켓몬 9세대 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '포켓몬 9세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'records']
+      },
       cultural_heritage: {
         title: '문화유산 퀴즈',
         kicker: 'Social Studies Hall',
@@ -1085,7 +1193,17 @@
       'ancient-history',
       'history-people',
       'idol',
-      'anime'
+      'anime',
+      'dad-joke',
+      'pokemon-gen1',
+      'pokemon-gen2',
+      'pokemon-gen3',
+      'pokemon-gen4',
+      'pokemon-gen5',
+      'pokemon-gen6',
+      'pokemon-gen7',
+      'pokemon-gen8',
+      'pokemon-gen9'
     ]);
 
     const QUESTION_BANK = {
@@ -2207,6 +2325,19 @@
       };
     }
 
+    function buildInputQuestion(question) {
+      const answerText = String(question.answer || '').trim();
+      const aliases = Array.isArray(question.aliases) ? question.aliases.map(alias => String(alias || '').trim()).filter(Boolean) : [];
+      return {
+        practiceQuestionId: String(question.questionId || '').trim(),
+        type: 'textInput',
+        question: String(question.prompt || question.question || '').trim(),
+        answerText,
+        aliases,
+        hint: String(question.hint || question.explanation || '').trim()
+      };
+    }
+
     function buildChoiceQuestion(question) {
       const choices = Array.isArray(question.choices) ? question.choices.map(choice => String(choice || '').trim()).filter(Boolean) : [];
       const explicitAnswer = Number(question.answerIndex);
@@ -2242,9 +2373,11 @@
     function buildFirestoreQuestion(question) {
       const questionType = String(question.questionType || '').trim();
       if(questionType === 'imageInput') return buildImageInputQuestion(question);
+      if(questionType === 'input' || questionType === 'textInput') return buildInputQuestion(question);
       if(questionType === 'readingMultipleChoice' || questionType === 'sheetMultipleChoice4') return buildChoiceQuestion(question);
       if(Array.isArray(question.choices) && question.choices.length) return buildChoiceQuestion(question);
       if(question.imageUrl) return buildImageInputQuestion(question);
+      if(question.answer) return buildInputQuestion(question);
       return null;
     }
 
@@ -2268,6 +2401,7 @@
       questions = questions.filter(question => {
         if(!question || !question.question) return false;
         if(question.type === 'imageInput') return !!question.imageUrl && !!question.answerText;
+        if(question.type === 'textInput') return !!question.answerText;
         return Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
       });
       if(!questions.length) return null;
@@ -3625,6 +3759,17 @@
         });
         imageWrap.appendChild(image);
         choices.append(imageWrap, input);
+      } else if(question.type === 'textInput') {
+        const input = document.createElement('input');
+        input.className = 'quiz-answer-input';
+        input.type = 'text';
+        input.autocomplete = 'off';
+        input.placeholder = '정답 입력';
+        input.setAttribute('aria-label', '정답 입력');
+        input.addEventListener('input', () => {
+          submit.disabled = !input.value.trim();
+        });
+        choices.appendChild(input);
       } else {
         question.choices.forEach((choice, index) => {
           const button = document.createElement('button');
@@ -3700,7 +3845,7 @@
       if(currentQuestionResolved) return;
       const question = getCurrentQuestionSet()[currentQuestionIndex];
       let isCorrect = false;
-      if(question.type === 'imageInput') {
+      if(question.type === 'imageInput' || question.type === 'textInput') {
         const input = document.querySelector('.quiz-answer-input');
         const submitted = normalizeQuizAnswer(input?.value);
         const acceptedAnswers = [question.answerText, ...(question.aliases || [])].map(normalizeQuizAnswer).filter(Boolean);
@@ -3794,9 +3939,20 @@
     function getPracticeTargetForQuiz(quizId, meta) {
       const id = normalizeFirebaseQuizId(quizId);
       const completionType = String(meta?.completionType || '').trim();
+      const pokemonGenerationMatch = id.match(/^pokemon-gen([1-9])$/);
+      if(pokemonGenerationMatch) {
+        const generation = pokemonGenerationMatch[1];
+        return {
+          area: '포켓몬',
+          detail: `${generation}세대`,
+          areaKey: `포켓몬/${generation}세대`,
+          completionType: completionType || 'loop'
+        };
+      }
       const targets = {
         'random-basic': { area: '수학', detail: '곱셈과 나눗셈', areaKey: '수학/random-basic', completionType: 'loop' },
         spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
+        'dad-joke': { area: '일상', detail: '아재개그', areaKey: '일상/아재개그', completionType: completionType || 'loop' },
         'word-relation': { area: '국어', detail: '다의어·동형이의어', areaKey: '국어/word-relation', completionType: 'loop' },
         gmo: { area: '국어', detail: '독서:지앰오 아이', areaKey: '국어/gmo', completionType: 'complete' },
         time_store: { area: '국어', detail: '독서:시간가게', areaKey: '국어/독서:시간가게', completionType: completionType || 'complete' },
@@ -3815,9 +3971,20 @@
 
     function getRankingTargetForQuiz(quizId) {
       const id = normalizeFirebaseQuizId(quizId);
+      const pokemonGenerationMatch = id.match(/^pokemon-gen([1-9])$/);
+      if(pokemonGenerationMatch) {
+        const generation = pokemonGenerationMatch[1];
+        return {
+          category: `포켓몬(${generation}세대)`,
+          subFilter: `${generation}세대`,
+          categoryKey: slugPracticeKey(`포켓몬(${generation}세대)`),
+          rankingMode: 'normal'
+        };
+      }
       const targets = {
         'random-basic': { category: '수학(곱셈과 나눗셈)', subFilter: '곱셈과 나눗셈' },
         spelling: { category: '맞춤법', subFilter: '' },
+        'dad-joke': { category: '아재개그', subFilter: '' },
         'word-relation': { category: '단어(다의어·동형이의어)', subFilter: '다의어·동형이의어' },
         gmo: { category: '독서(지앰오 아이)', subFilter: '지앰오 아이' },
         time_store: { category: '독서(시간가게)', subFilter: '시간가게' },
