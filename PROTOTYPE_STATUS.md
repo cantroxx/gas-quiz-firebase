@@ -268,6 +268,28 @@
 - `practiceRecords`에서 파생된 materialized badge view로 저장
 - 아직 public UI와는 연결하지 않음
 
+### `rankingRecords`
+
+- 운영본 GAS `랭킹기록` / `기록저장` Drive export/import 완료
+- Firestore 경로: `rankingRecords/{recordId}`
+- 실제 import 완료: ranking record 3947건
+- export 기준 `랭킹기록` 3097건, `기록저장` legacy 850건
+- `userId` 없는 legacy row 6건은 `legacy_name_*` fallback key로 분리 저장
+
+### `userRankingSummary`
+
+- Firestore 경로: `userRankingSummary/{memberUserId}`
+- 실제 import 완료: 요약 문서 112건
+- 주요 필드: `byMode`, `bestScoresByMode`, `totalRecordCount`, `legacyRecordCount`
+- 아직 public UI와는 연결하지 않음
+
+### `quizKingSummary`
+
+- Firestore 경로: `quizKingSummary/{memberUserId}`
+- 실제 import 완료: 퀴즈왕 요약 문서 109건
+- 사용자별 카테고리 최고 점수 합산 방식으로 생성
+- 검증 기준 1위: `G4-C8-N19`, 총점 342점, 반영 카테고리 8개
+
 ### `USER_REWARD_DATA`
 
 - 보유 코인/경험치와 퀴즈 완료 보상 표시용 정적 데이터
@@ -309,11 +331,11 @@
 
 - Storage
 - GAS `getQuizData`
-- 운영본 랭킹/퀴즈 원본 데이터
-- 실제 랭킹
+- 운영본 퀴즈 원본 데이터
+- Firestore 랭킹 데이터를 public UI에 표시하는 연결
 - 서버 검증 기반 구매 처리
 - Firebase Storage 실제 이미지
-- 운영본 문제/기록 데이터
+- 운영본 문제 데이터
 
 현재 연결된 것:
 
@@ -333,6 +355,9 @@
 - Firestore `practiceRecords/{recordId}` 운영본 연습기록 303건 import
 - Firestore `userPracticeSummary/{memberUserId}` 연습/뱃지 요약 97건 import
 - Firestore `userBadges/{memberUserId}/badges/{badgeId}` 뱃지 303건 import
+- Firestore `rankingRecords/{recordId}` 운영본 랭킹기록 3947건 import
+- Firestore `userRankingSummary/{memberUserId}` 랭킹 요약 112건 import
+- Firestore `quizKingSummary/{memberUserId}` 퀴즈왕 요약 109건 import
 - `users.selectedTitleId`와 보유 타이틀 `selected` 표시 연결
 - `users/{memberUserId}.authUid` 회원 연결
 - Auth `uid` 기반 연결 회원 자동 복구
@@ -372,6 +397,12 @@
 - Firestore `userBadges` 하위 컬렉션에 303건 저장 확인 완료
 - `LEGACY_UNKNOWN_*` 보완 record 4건 확인 완료
 - 포켓몬 중복 병합 대상 없음 확인 완료
+- 운영본 `랭킹기록` / `기록저장` Drive export/import 완료
+- Firestore `rankingRecords` 컬렉션에 3947건 저장 확인 완료
+- Firestore `userRankingSummary` 컬렉션에 112건 저장 확인 완료
+- Firestore `quizKingSummary` 컬렉션에 109건 저장 확인 완료
+- 랭킹 legacy row 850건, `userId` 없는 row 6건 fallback 저장 확인 완료
+- `quizKingSummary` 상위 샘플 확인 완료: `G4-C8-N19`, `G4-C8-N21`, `G4-C8-N20`
 - Auth `uid` 기반 자동 회원 복구 구현 완료
 - localStorage 힌트와 Firestore `authUid` 재검증 구조 구현 완료
 - 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
@@ -484,4 +515,4 @@
 - 운영본 `gas-quiz`는 계속 유지한다.
 - `gas-quiz-firebase`는 새 사이트 전환 준비용으로 별도 검증 중이다.
 - Firebase 실험본은 운영본 회원 `users` 컬렉션 import, `authUid` 연결, 자동 복구, memberUserId 기준 데이터 소유권 전환까지 완료했다.
-- 운영본 문제/랭킹/기록 데이터 연결은 아직 전이다.
+- 운영본 문제 데이터 연결과 Firestore 랭킹 UI 연결은 아직 전이다.
