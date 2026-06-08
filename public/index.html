@@ -1925,12 +1925,25 @@
         if(profile.role !== 'student') throw new Error('member-not-student');
         if(profile.status !== 'active' || profile.active !== true) throw new Error('member-inactive');
 
+        const fieldValue = getFirestoreFieldValue();
         if(profile.authUid && profile.authUid !== authUid) {
-          throw new Error('member-linked-to-other-auth');
-        }
-
-        if(!profile.authUid) {
-          const fieldValue = getFirestoreFieldValue();
+          const previousAuthUid = profile.authUid;
+          // TODO: Before production, allow authUid relinking only after password
+          // verification or a server-verified identity check succeeds.
+          transaction.set(memberRef, {
+            authUid,
+            authRelinkedAt: fieldValue.serverTimestamp(),
+            previousAuthUid,
+            authLinkProvider: 'firebase_member_link_test',
+            authLinkVersion: 2,
+            updatedAt: fieldValue.serverTimestamp()
+          }, { merge: true });
+          profile.authUid = authUid;
+          profile.previousAuthUid = previousAuthUid;
+          profile.authLinkProvider = 'firebase_member_link_test';
+          profile.authLinkVersion = 2;
+          profile._authLinkAction = 'relinked';
+        } else if(!profile.authUid) {
           transaction.set(memberRef, {
             authUid,
             authLinkedAt: fieldValue.serverTimestamp(),
@@ -1939,6 +1952,11 @@
             updatedAt: fieldValue.serverTimestamp()
           }, { merge: true });
           profile.authUid = authUid;
+          profile.authLinkProvider = 'firebase_member_link_test';
+          profile.authLinkVersion = 1;
+          profile._authLinkAction = 'linked';
+        } else {
+          profile._authLinkAction = 'unchanged';
         }
 
         linkedProfile = profile;
@@ -1962,7 +1980,10 @@
       try {
         const profile = await linkImportedMemberToCurrentAuthUser(getMemberLinkFormValues());
         renderMemberLinkPanel();
-        setMemberLinkStatus(`${profile.nickname || profile.userId} 회원 연결이 완료됐어요. ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
+        const actionMessage = profile._authLinkAction === 'relinked'
+          ? '회원 정보가 현재 로그인 정보로 다시 연결됐어요.'
+          : '회원 연결이 완료됐어요.';
+        setMemberLinkStatus(`${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
       } catch(error) {
         const messages = {
           'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
@@ -1970,8 +1991,7 @@
           'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
           'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
           'member-not-student': '관리자 계정은 학생 연결 테스트에서 제외됩니다.',
-          'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
-          'member-linked-to-other-auth': '이미 다른 로그인 정보와 연결된 회원입니다.'
+          'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.'
         };
         console.warn('Member auth link failed.', error);
         setMemberLinkStatus(messages[error.message] || '회원 연결 중 문제가 생겼어요.', true);
