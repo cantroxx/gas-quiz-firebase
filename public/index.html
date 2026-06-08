@@ -880,7 +880,7 @@
         desc: '수학 퀴즈도 과목 공통 구조와 같은 연습전 엔진으로 연결합니다.',
         board: '차근차근 계산해요',
         cardDesc: '곱셈과 나눗셈, 계산 연습 퀴즈를 고르는 화면입니다.',
-        quizzes: ['multiplication_division', 'calculation_practice'],
+        quizzes: ['random-basic', 'calculation_practice'],
         enabled: true
       }
     };
@@ -910,6 +910,15 @@
         icon: '✏️',
         desc: '헷갈리는 맞춤법을 연습하는 정적 모드 선택 프로토타입입니다.',
         summary: '운영본 문제 데이터와 연결하기 전, 연습전/랭킹전/원코 모드 진입 흐름을 먼저 검증합니다.',
+        subjectId: 'korean',
+        modes: ['practice', 'ranking', 'oneChance', 'records']
+      },
+      'word-relation': {
+        title: '다의어·동형이의어 퀴즈',
+        kicker: 'Korean Hall',
+        icon: '🔤',
+        desc: '한 낱말이 여러 뜻으로 쓰이는지, 소리는 같고 뜻이 다른지 확인합니다.',
+        summary: '운영본 단어시트에서 이관한 문제를 Firestore에서 읽어 연습전 화면으로 표시합니다.',
         subjectId: 'korean',
         modes: ['practice', 'ranking', 'oneChance', 'records']
       },
@@ -993,6 +1002,15 @@
         icon: '✖️',
         desc: '곱셈과 나눗셈의 기본 관계를 확인하는 수학 더미 퀴즈입니다.',
         summary: '수학관 문제도 별도 엔진 없이 같은 연습전 화면을 사용합니다.',
+        subjectId: 'math',
+        modes: ['practice', 'ranking', 'oneChance']
+      },
+      'random-basic': {
+        title: '곱셈과 나눗셈 퀴즈',
+        kicker: 'Math Hall',
+        icon: '✖️',
+        desc: '운영본 random-basic 생성 규칙을 사용해 곱셈과 나눗셈 문제를 풉니다.',
+        summary: 'Firestore에는 생성형 메타만 저장하고, 화면에서는 generatorType 기준으로 문제를 생성합니다.',
         subjectId: 'math',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1204,6 +1222,7 @@
     let currentSubjectId = 'korean';
     let currentQuizId = 'spelling';
     let currentModeId = 'practice';
+    const firebaseQuizDataCache = {};
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
@@ -1506,6 +1525,135 @@
     function getFirestoreDb() {
       if(!window.firebase?.apps?.length || !window.firebase.firestore) return null;
       return window.firebase.firestore();
+    }
+
+    function normalizeFirebaseQuizId(quizId) {
+      if(quizId === 'multiplication_division') return 'random-basic';
+      return quizId;
+    }
+
+    function shuffleList(items) {
+      return items
+        .map(item => ({ item, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(entry => entry.item);
+    }
+
+    async function loadFirebaseQuizMeta(quizId) {
+      const db = getFirestoreDb();
+      const id = normalizeFirebaseQuizId(quizId);
+      if(!db || !id) return null;
+      const snapshot = await db.collection('quizzes').doc(id).get();
+      return snapshot.exists ? { quizId: id, ...snapshot.data() } : null;
+    }
+
+    async function loadFirebaseQuizQuestions(quizId) {
+      const db = getFirestoreDb();
+      const id = normalizeFirebaseQuizId(quizId);
+      if(!db || !id) return [];
+      const snapshot = await db.collection('quizQuestions').doc(id).collection('questions').orderBy('order').get();
+      return snapshot.docs.map(doc => ({ questionId: doc.id, ...doc.data() }));
+    }
+
+    function makeMathChoiceQuestion(question, answer) {
+      const distractors = [
+        answer + 1,
+        Math.max(0, answer - 1),
+        answer + 10,
+        Math.max(0, answer - 10)
+      ].filter(value => value !== answer);
+      const choices = shuffleList([answer, ...distractors.slice(0, 3)]).map(String);
+      return {
+        question,
+        choices,
+        answer: choices.indexOf(String(answer))
+      };
+    }
+
+    function generateFirebaseRandomBasicQuestions() {
+      const questions = [];
+      let index = 1;
+      [
+        { type: 'mul10', count: 30 },
+        { type: 'mul2digit', count: 30 },
+        { type: 'div10', count: 20 },
+        { type: 'div2digit', count: 20 }
+      ].forEach(group => {
+        for(let i = 0; i < group.count; i += 1) {
+          if(group.type === 'mul10') {
+            const left = 2 + ((index + i) % 8);
+            const right = 10 * (2 + ((index * 3 + i) % 8));
+            questions.push(makeMathChoiceQuestion(`${left} x ${right}의 값은?`, left * right));
+          } else if(group.type === 'mul2digit') {
+            const left = 11 + ((index + i) % 20);
+            const right = 2 + ((index * 2 + i) % 8);
+            questions.push(makeMathChoiceQuestion(`${left} x ${right}의 값은?`, left * right));
+          } else if(group.type === 'div10') {
+            const divisor = 2 + ((index + i) % 8);
+            const quotient = 10 * (2 + ((index * 3 + i) % 8));
+            questions.push(makeMathChoiceQuestion(`${divisor * quotient} ÷ ${divisor}의 값은?`, quotient));
+          } else {
+            const divisor = 2 + ((index + i) % 8);
+            const quotient = 11 + ((index * 2 + i) % 20);
+            questions.push(makeMathChoiceQuestion(`${divisor * quotient} ÷ ${divisor}의 값은?`, quotient));
+          }
+          index += 1;
+        }
+      });
+      return shuffleList(questions);
+    }
+
+    function buildSpellingQuestion(question) {
+      const prompt = String(question.prompt || '').trim();
+      const answerText = String(question.answer || '').trim();
+      const match = prompt.match(/\(([^()/]+)\/([^()/]+)\)/);
+      const choices = match ? [match[1].trim(), match[2].trim()] : [answerText, ...(question.aliases || [])].filter(Boolean).slice(0, 2);
+      const normalizedChoices = choices.length >= 2 ? choices : [answerText, '다시 보기'];
+      const answerIndex = normalizedChoices.findIndex(choice => choice === answerText);
+      return {
+        question: prompt || '다음 중 맞는 표현은?',
+        choices: normalizedChoices,
+        answer: answerIndex >= 0 ? answerIndex : 0
+      };
+    }
+
+    function buildWordRelationQuestion(question) {
+      const relationAnswer = String(question.answer || '').trim();
+      const choices = ['다의어', '동형이의어'];
+      const answerIndex = choices.indexOf(relationAnswer);
+      const promptParts = [
+        `${question.word || '낱말'}의 쓰임을 고르세요.`,
+        question.sentence1,
+        question.sentence2
+      ].filter(Boolean);
+      return {
+        question: promptParts.join('\n'),
+        choices,
+        answer: answerIndex >= 0 ? answerIndex : 0
+      };
+    }
+
+    async function buildFirebaseQuizData(quizId) {
+      const id = normalizeFirebaseQuizId(quizId);
+      if(firebaseQuizDataCache[id]) return firebaseQuizDataCache[id];
+
+      const meta = await loadFirebaseQuizMeta(id);
+      if(!meta) return null;
+
+      let questions = [];
+      if(id === 'random-basic' && meta.generatorType === 'math-muldiv') {
+        questions = generateFirebaseRandomBasicQuestions();
+      } else {
+        const rows = await loadFirebaseQuizQuestions(id);
+        if(id === 'spelling') questions = rows.map(buildSpellingQuestion);
+        if(id === 'word-relation') questions = rows.map(buildWordRelationQuestion);
+      }
+
+      questions = questions.filter(question => question.question && Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer));
+      if(!questions.length) return null;
+
+      firebaseQuizDataCache[id] = questions;
+      return questions;
     }
 
     function getFirebaseAuth() {
@@ -2742,12 +2890,17 @@
       });
     }
 
-    function showQuizPlayView(quizId, modeId) {
+    async function showQuizPlayView(quizId, modeId) {
       currentQuizId = quizId;
       currentModeId = modeId;
       currentQuestionIndex = 0;
       selectedChoiceIndex = null;
       correctAnswerCount = 0;
+      try {
+        await buildFirebaseQuizData(quizId);
+      } catch(error) {
+        console.warn('Firestore quiz load failed. Falling back to local QUESTION_BANK.', error);
+      }
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -2763,7 +2916,8 @@
     }
 
     function getCurrentQuestionSet() {
-      return QUESTION_BANK[currentQuizId] || QUESTION_BANK.spelling;
+      const firebaseQuizId = normalizeFirebaseQuizId(currentQuizId);
+      return firebaseQuizDataCache[firebaseQuizId] || QUESTION_BANK[currentQuizId] || QUESTION_BANK.spelling;
     }
 
     function renderQuizPlayHeader() {
