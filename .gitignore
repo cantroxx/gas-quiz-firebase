@@ -78,6 +78,7 @@ ranking-export.json
 quiz-basic-export.json
 quiz-gmo-export.json
 quiz-society-export.json
+quiz-time-store-export.json
 exports/
 private/
 
