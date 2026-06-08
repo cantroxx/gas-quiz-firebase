@@ -409,6 +409,16 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /userTitles/{userId}/titles/{titleId} {
+      allow read: if canAccessUserScopedData(userId);
+      allow write: if isAdmin();
+    }
+
+    match /userTitleSummary/{userId} {
+      allow read: if canAccessUserScopedData(userId);
+      allow write: if isAdmin();
+    }
+
     match /rankingRecords/{recordId} {
       allow read: if isSignedIn();
       allow create: if hasValidRankingRecordShape(recordId);

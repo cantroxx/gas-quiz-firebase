@@ -1351,12 +1351,45 @@
       renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
       renderHomeOwnedItemsFallback();
       renderHomeOwnedItemsFromFirestore();
+      renderHomeMemberDataFromFirestore();
     }
 
-    function renderProfileCard() {
-      const root = document.getElementById('profile-card-root');
+    function getFallbackProfileModel() {
       const mainTitle = findTitle(PROFILE_DATA.mainTitleId);
       const mainBadge = findBadge(PROFILE_DATA.mainBadgeId);
+      return {
+        avatar: PROFILE_DATA.avatar,
+        profileImageUrl: '',
+        nickname: PROFILE_DATA.nickname,
+        school: PROFILE_DATA.school,
+        titleName: mainTitle.name,
+        badgeName: mainBadge.name,
+        coinText: `${USER_REWARD_DATA.coin} DJ코인`,
+        expText: `${USER_REWARD_DATA.exp} EXP`
+      };
+    }
+
+    function renderProfileAvatar(root, profile) {
+      root.innerHTML = '';
+      if(profile.profileImageUrl && /^https?:\/\//.test(profile.profileImageUrl)) {
+        const image = document.createElement('img');
+        image.src = profile.profileImageUrl;
+        image.alt = `${profile.nickname || '사용자'} 프로필`;
+        image.loading = 'lazy';
+        image.referrerPolicy = 'no-referrer';
+        image.addEventListener('error', () => {
+          root.innerHTML = '';
+          root.textContent = profile.avatar || '🙂';
+        });
+        root.appendChild(image);
+        return;
+      }
+      root.textContent = profile.avatar || '🙂';
+    }
+
+    function renderProfileCard(profileModel) {
+      const profile = profileModel || getFallbackProfileModel();
+      const root = document.getElementById('profile-card-root');
       const card = document.createElement('article');
       const avatar = document.createElement('div');
       const body = document.createElement('div');
@@ -1379,20 +1412,20 @@
       root.innerHTML = '';
       card.className = 'profile-card';
       avatar.className = 'profile-avatar';
-      avatar.textContent = PROFILE_DATA.avatar;
+      renderProfileAvatar(avatar, profile);
       body.className = 'profile-body';
-      name.textContent = PROFILE_DATA.nickname;
+      name.textContent = profile.nickname;
       school.className = 'profile-school';
-      school.textContent = PROFILE_DATA.school;
+      school.textContent = profile.school;
       meta.className = 'profile-meta';
       titleLabel.textContent = '칭호';
-      titleValue.textContent = mainTitle.name;
+      titleValue.textContent = profile.titleName;
       badgeLabel.textContent = '뱃지';
-      badgeValue.textContent = mainBadge.name;
+      badgeValue.textContent = profile.badgeName;
       coinLabel.textContent = '보유 DJ코인';
-      coinValue.textContent = `${USER_REWARD_DATA.coin} DJ코인`;
+      coinValue.textContent = profile.coinText;
       expLabel.textContent = '경험치';
-      expValue.textContent = `${USER_REWARD_DATA.exp} EXP`;
+      expValue.textContent = profile.expText;
 
       title.append(titleLabel, titleValue);
       badge.append(badgeLabel, badgeValue);
@@ -1402,6 +1435,132 @@
       body.append(name, school, meta);
       card.append(avatar, body);
       root.appendChild(card);
+    }
+
+    function getBadgeIconForGroup(group) {
+      const icons = {
+        korean: '📚',
+        social: '🏛️',
+        math: '➗',
+        people: '🖼️',
+        daily: '✅',
+        pokemon: '⭐'
+      };
+      return icons[group] || '🏅';
+    }
+
+    function normalizeTitleCardFromFirestore(doc) {
+      const data = doc.data() || {};
+      return {
+        titleId: data.titleId || doc.id,
+        icon: '🏷️',
+        name: data.titleName || data.name || data.titleId || doc.id,
+        desc: data.sourceCategory || data.sourceType || '운영본 타이틀현황에서 이관된 칭호입니다.'
+      };
+    }
+
+    function normalizeBadgeCardFromFirestore(doc) {
+      const data = doc.data() || {};
+      const correct = Number(data.correct) || 0;
+      const total = Number(data.total) || 0;
+      const starCount = Number(data.starCount) || 0;
+      const progressText = total ? `${correct}/${total}` : '진행 기록 있음';
+      return {
+        badgeId: data.badgeId || doc.id,
+        icon: getBadgeIconForGroup(data.group),
+        name: data.label || data.badgeId || doc.id,
+        desc: `진행도 ${progressText}${starCount ? ` · 완주 ${starCount}회` : ''}`
+      };
+    }
+
+    function getSelectedTitleNameFromHomeData(profile, titleSummary, titleCards, hasMemberUserId) {
+      const selectedTitleId = titleSummary?.selectedTitleId || profile?.selectedTitleId || '';
+      const selectedTitleName = titleSummary?.selectedTitleName || '';
+      if(selectedTitleName) return selectedTitleName;
+      const selected = titleCards.find(title => title.titleId === selectedTitleId);
+      if(selected?.name) return selected.name;
+      if(hasMemberUserId) return selectedTitleId ? '선택한 칭호 없음' : '보유 칭호 없음';
+      return findTitle(PROFILE_DATA.mainTitleId).name;
+    }
+
+    function getRepresentativeBadgeName(badgeCards, hasMemberUserId) {
+      if(badgeCards[0]?.name) return badgeCards[0].name;
+      return hasMemberUserId ? '보유 뱃지 없음' : findBadge(PROFILE_DATA.mainBadgeId).name;
+    }
+
+    async function loadHomeMemberDataFromFirestore() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const dataOwnerId = getCurrentDataOwnerId();
+      const memberUserId = currentMemberUserId || '';
+      const profile = currentMemberProfile || null;
+
+      const economyPromise = getUserEconomyForRender().catch(error => {
+        console.warn('Home userEconomy read failed. Using profile fallback economy.', error);
+        return null;
+      });
+      const titleSummaryPromise = memberUserId
+        ? db.collection('userTitleSummary').doc(memberUserId).get().catch(() => null)
+        : Promise.resolve(null);
+      const titlesPromise = memberUserId
+        ? db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null)
+        : Promise.resolve(null);
+      const badgesPromise = memberUserId
+        ? db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null)
+        : Promise.resolve(null);
+
+      const [economy, titleSummarySnapshot, titlesSnapshot, badgesSnapshot] = await Promise.all([
+        economyPromise,
+        titleSummaryPromise,
+        titlesPromise,
+        badgesPromise
+      ]);
+      const titleCards = titlesSnapshot?.docs?.map(normalizeTitleCardFromFirestore) || [];
+      const badgeCards = badgesSnapshot?.docs?.map(normalizeBadgeCardFromFirestore) || [];
+      const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() : null;
+      const hasMemberUserId = !!memberUserId;
+      const schoolText = profile
+        ? `${profile.school || ''} ${profile.grade || ''}학년 ${profile.classNumber || ''}반 ${profile.studentNumber || ''}번`.trim()
+        : PROFILE_DATA.school;
+
+      return {
+        profile: {
+          avatar: PROFILE_DATA.avatar,
+          profileImageUrl: profile?.profileImageUrl || '',
+          nickname: profile?.nickname || PROFILE_DATA.nickname,
+          school: schoolText || PROFILE_DATA.school,
+          titleName: getSelectedTitleNameFromHomeData(profile, titleSummary, titleCards, hasMemberUserId),
+          badgeName: getRepresentativeBadgeName(badgeCards, hasMemberUserId),
+          coinText: economy ? `${Number(economy.djCoin) || 0} DJ코인` : `${USER_REWARD_DATA.coin} DJ코인`,
+          expText: `${USER_REWARD_DATA.exp} EXP`
+        },
+        titleCards,
+        badgeCards,
+        dataOwnerId
+      };
+    }
+
+    function renderHomeMemberDataFromFirestore() {
+      loadHomeMemberDataFromFirestore()
+        .then(model => {
+          renderProfileCard(model.profile);
+          renderCollectionCards('title-card-grid', model.titleCards.length ? model.titleCards : [{
+            titleId: 'none',
+            icon: '🏷️',
+            name: '보유 칭호 없음',
+            desc: '아직 운영본 타이틀현황에서 이관된 보유 칭호가 없습니다.'
+          }], 'title-card');
+          renderCollectionCards('badge-card-grid', model.badgeCards.length ? model.badgeCards : [{
+            badgeId: 'none',
+            icon: '🏅',
+            name: '보유 뱃지 없음',
+            desc: '아직 연습기록 기반 보유 뱃지가 없습니다.'
+          }], 'badge-card');
+        })
+        .catch(error => {
+          console.warn('Firestore home member data read failed. Using static home fallback.', error);
+        });
     }
 
     function renderMemberLinkPanel() {

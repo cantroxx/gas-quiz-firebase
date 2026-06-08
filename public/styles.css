@@ -1379,6 +1379,14 @@ h2 {
     linear-gradient(135deg, #ffcf3a, #6cb9ff);
   font-size: 3rem;
   box-shadow: 0 12px 22px rgba(47, 125, 68, 0.16);
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-body h3 {
