@@ -51,7 +51,7 @@
           </label>
           <label>
             학년
-            <input id="member-link-grade" name="grade" type="number" min="1" max="6" inputmode="numeric">
+            <input id="member-link-grade" name="grade" type="number" min="1" max="9" inputmode="numeric">
           </label>
           <label>
             반
@@ -336,6 +336,42 @@
           <h3 id="season-event-heading">시즌 이벤트</h3>
         </div>
         <div id="season-event-grid" class="season-event-grid"></div>
+      </section>
+    </section>
+
+    <section id="admin-view" class="admin-view app-view" aria-labelledby="admin-title" hidden>
+      <div class="event-topbar">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h2 id="admin-title">관리자 센터</h2>
+          <p>회원 상태, 비밀번호, 브라우저 연결을 관리합니다.</p>
+        </div>
+        <button class="back-to-town" type="button" data-admin-logout>로그아웃</button>
+      </div>
+
+      <section class="admin-section" aria-labelledby="admin-member-heading">
+        <div class="event-section-heading">
+          <p class="eyebrow">Members</p>
+          <h3 id="admin-member-heading">회원 관리</h3>
+        </div>
+        <div class="admin-toolbar">
+          <label>
+            학년
+            <input id="admin-filter-grade" type="number" min="1" max="9" inputmode="numeric" placeholder="전체">
+          </label>
+          <label>
+            반
+            <input id="admin-filter-class" type="number" min="1" inputmode="numeric" placeholder="전체">
+          </label>
+          <label>
+            검색
+            <input id="admin-filter-query" type="text" placeholder="닉네임, userId">
+          </label>
+          <button id="admin-member-refresh" class="button primary" type="button">조회</button>
+        </div>
+        <p id="admin-status" class="admin-status" aria-live="polite"></p>
+        <div id="admin-summary" class="admin-summary"></div>
+        <div id="admin-member-list" class="admin-member-list"></div>
       </section>
     </section>
 
@@ -3574,7 +3610,7 @@
     function isRestorableMemberProfile(profile, authUid) {
       return profile
         && profile.authUid === authUid
-        && profile.role === 'student'
+        && ['student', 'admin'].includes(profile.role)
         && profile.status === 'active'
         && profile.active === true;
     }
@@ -3689,7 +3725,10 @@
             restoreLinkedMemberFromAuthUid()
               .then(profile => {
                 renderMemberLinkPanel();
-                if(profile) showTownView();
+                if(profile) {
+                  if(profile.role === 'admin') showAdminView();
+                  else showTownView();
+                }
               })
               .catch(error => console.warn('Linked member restore after auth state change failed.', error));
           }
@@ -3703,7 +3742,10 @@
           handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
           return restoreLinkedMemberFromAuthUid().then(profile => {
             renderMemberLinkPanel();
-            if(profile) showTownView();
+            if(profile) {
+              if(profile.role === 'admin') showAdminView();
+              else showTownView();
+            }
             return user;
           });
         })
@@ -3878,9 +3920,11 @@
       if(button) button.textContent = '저장 중...';
 
       try {
-        await changeCurrentMemberPassword(newPassword, passwordConfirm);
+        const result = await changeCurrentMemberPassword(newPassword, passwordConfirm);
         renderMemberLinkPanel();
         setMemberLinkStatus('새 비밀번호가 저장됐어요. 이제 이 비밀번호로 로그인할 수 있습니다.');
+        if(result?.profile?.role === 'admin' || currentMemberProfile?.role === 'admin') showAdminView();
+        else showTownView();
       } catch(error) {
         const messages = {
           'functions-unavailable': '비밀번호 변경 서버 연결을 사용할 수 없어요.',
@@ -3976,7 +4020,12 @@
           ? '비밀번호가 등록되고 로그인됐어요.'
           : '비밀번호 로그인이 완료됐어요.';
         setMemberLinkStatus(`${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
-        showTownView();
+        if(pendingPasswordChange?.memberUserId === currentMemberUserId) {
+          renderMemberLinkPanel();
+          return;
+        }
+        if(profile.role === 'admin') showAdminView();
+        else showTownView();
       } catch(error) {
         const messages = {
           'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
@@ -3987,7 +4036,7 @@
           'password-confirm-mismatch': '비밀번호 확인이 일치하지 않아요.',
           'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
           'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
-          'member-not-student': '관리자 계정은 학생 연결 테스트에서 제외됩니다.',
+          'member-not-student': '학생 계정만 사용할 수 있는 기능입니다.',
           'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
           'functions/invalid-argument': '학교, 학년, 반, 번호, 닉네임 또는 비밀번호를 다시 확인해 주세요.',
           'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
@@ -4737,6 +4786,150 @@
       });
     }
 
+    function setAdminStatus(message, isError = false) {
+      const status = document.getElementById('admin-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function getAdminFilterValues() {
+      return {
+        grade: document.getElementById('admin-filter-grade')?.value || '',
+        classNumber: document.getElementById('admin-filter-class')?.value || '',
+        query: document.getElementById('admin-filter-query')?.value || '',
+        limit: 120
+      };
+    }
+
+    function renderAdminSummary(summary) {
+      const root = document.getElementById('admin-summary');
+      if(!root) return;
+      const data = summary || {};
+      root.innerHTML = '';
+      [
+        ['전체', data.total || 0],
+        ['활성 학생', data.activeStudents || 0],
+        ['비활성', data.inactive || 0],
+        ['관리자', data.admins || 0]
+      ].forEach(([label, value]) => {
+        const item = document.createElement('article');
+        const strong = document.createElement('strong');
+        const span = document.createElement('span');
+        strong.textContent = value;
+        span.textContent = label;
+        item.append(strong, span);
+        root.appendChild(item);
+      });
+    }
+
+    function renderAdminMemberList(members) {
+      const root = document.getElementById('admin-member-list');
+      if(!root) return;
+      root.innerHTML = '';
+      const items = members || [];
+      if(!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'admin-empty';
+        empty.textContent = '조회된 회원이 없습니다.';
+        root.appendChild(empty);
+        return;
+      }
+      items.forEach(member => {
+        const card = document.createElement('article');
+        const main = document.createElement('div');
+        const title = document.createElement('h4');
+        const meta = document.createElement('p');
+        const state = document.createElement('p');
+        const actions = document.createElement('div');
+        const resetButton = document.createElement('button');
+        const unlinkButton = document.createElement('button');
+        const statusButton = document.createElement('button');
+
+        card.className = 'admin-member-card';
+        card.dataset.memberUserId = member.userId;
+        title.textContent = `${member.nickname || '이름 없음'} · ${member.userId}`;
+        meta.textContent = `${member.school || '동자'} ${member.grade || '-'}학년 ${member.classNumber || '-'}반 ${member.studentNumber || '-'}번`;
+        state.className = 'admin-member-state';
+        state.textContent = `${member.role === 'admin' ? '관리자' : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}`;
+        resetButton.type = 'button';
+        resetButton.className = 'admin-action-button';
+        resetButton.dataset.adminAction = 'resetPassword';
+        resetButton.textContent = '비밀번호 초기화';
+        unlinkButton.type = 'button';
+        unlinkButton.className = 'admin-action-button';
+        unlinkButton.dataset.adminAction = 'unlinkAuth';
+        unlinkButton.disabled = !member.authLinked || member.role === 'admin';
+        unlinkButton.textContent = '연결 해제';
+        statusButton.type = 'button';
+        statusButton.className = 'admin-action-button';
+        statusButton.dataset.adminAction = member.status === 'active' ? 'deactivate' : 'activate';
+        statusButton.disabled = member.role === 'admin';
+        statusButton.textContent = member.status === 'active' ? '비활성화' : '활성화';
+        actions.className = 'admin-member-actions';
+        actions.append(resetButton, unlinkButton, statusButton);
+        main.append(title, meta, state);
+        card.append(main, actions);
+        root.appendChild(card);
+      });
+    }
+
+    async function loadAdminMembers() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminStatus('회원 목록을 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminListMembers');
+      const response = await callable(getAdminFilterValues());
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-list-failed');
+      renderAdminSummary(result.summary);
+      renderAdminMemberList(result.members);
+      setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다.`);
+      return result;
+    }
+
+    async function runAdminMemberAction(action, memberUserId) {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      const labels = {
+        resetPassword: '비밀번호를 임시 비밀번호로 초기화할까요?',
+        unlinkAuth: '현재 브라우저 연결을 해제할까요?',
+        deactivate: '이 회원을 비활성화할까요?',
+        activate: '이 회원을 활성화할까요?'
+      };
+      if(!window.confirm(`${memberUserId}\n${labels[action] || '처리할까요?'}`)) return;
+      setAdminStatus('관리자 작업을 처리하는 중입니다...');
+      let callableName = '';
+      let payload = { memberUserId };
+      if(action === 'resetPassword') callableName = 'adminResetMemberPassword';
+      else if(action === 'unlinkAuth') callableName = 'adminUnlinkMemberAuth';
+      else if(action === 'deactivate') {
+        callableName = 'adminUpdateMemberStatus';
+        payload.status = 'inactive';
+      } else if(action === 'activate') {
+        callableName = 'adminUpdateMemberStatus';
+        payload.status = 'active';
+      } else {
+        throw new Error('unsupported-admin-action');
+      }
+      const callable = functions.httpsCallable(callableName);
+      const response = await callable(payload);
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-action-failed');
+      if(action === 'resetPassword') {
+        setAdminStatus(`${memberUserId} 임시 비밀번호: ${result.temporaryPassword}`);
+      } else {
+        setAdminStatus(`${memberUserId} 작업이 완료됐습니다.`);
+      }
+      await loadAdminMembers();
+    }
+
+    async function logoutAdminMember() {
+      await unlinkCurrentMemberForTesting();
+      showLoginView();
+    }
+
     function renderSchoolQuizCards() {
       const grid = document.getElementById('school-quiz-grid');
       grid.innerHTML = '';
@@ -4885,6 +5078,7 @@
       } catch(error) {
         console.warn('Firestore quiz load failed. Falling back to local QUESTION_BANK.', error);
       }
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -5782,6 +5976,7 @@
     function showSchoolView() {
       closePlaceModal();
       renderSchoolQuizCards();
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -5798,6 +5993,7 @@
       closePlaceModal();
       document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = true;
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -5814,6 +6010,7 @@
       closePlaceModal();
       document.getElementById('app-hero').hidden = false;
       document.getElementById('login-view').hidden = false;
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -5826,12 +6023,34 @@
       document.getElementById('login-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function showAdminView() {
+      closePlaceModal();
+      document.getElementById('app-hero').hidden = true;
+      document.getElementById('login-view').hidden = true;
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
+      document.getElementById('shop-view').hidden = true;
+      document.getElementById('event-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('subject-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('admin-view').hidden = false;
+      document.getElementById('admin-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      loadAdminMembers().catch(error => {
+        console.warn('Admin member list load failed.', error);
+        setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true);
+      });
+    }
+
     function showHomeView() {
       closePlaceModal();
       renderHomeView();
       initializeAuthUser().then(renderHomeView);
       updatePlaceInfo(PLACE_DETAILS.home);
       updatePlayerLocation(PLACE_DETAILS.home);
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -5849,6 +6068,7 @@
       renderRankingView();
       updatePlaceInfo(PLACE_DETAILS.ranking);
       updatePlayerLocation(PLACE_DETAILS.ranking);
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -5867,6 +6087,7 @@
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       updatePlaceInfo(PLACE_DETAILS.shop);
       updatePlayerLocation(PLACE_DETAILS.shop);
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -5888,6 +6109,7 @@
       renderSeasonEvents();
       updatePlaceInfo(PLACE_DETAILS.event);
       updatePlayerLocation(PLACE_DETAILS.event);
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -5903,6 +6125,7 @@
     function showSubjectView(subjectId) {
       currentSubjectId = subjectId;
       renderSubjectQuizCards(subjectId);
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -5921,6 +6144,7 @@
       lastQuizId = quizId;
       currentSubjectId = quiz.subjectId || currentSubjectId;
       renderQuizSelectView(quizId);
+      document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -6154,6 +6378,40 @@
       if(!card) return;
       event.preventDefault();
       saveRoomItemSelection(card.dataset.roomItemId);
+    });
+
+    document.getElementById('admin-member-refresh').addEventListener('click', () => {
+      loadAdminMembers().catch(error => {
+        console.warn('Admin member refresh failed.', error);
+        setAdminStatus('회원 목록을 다시 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-member-list').addEventListener('click', event => {
+      const button = event.target.closest('[data-admin-action]');
+      const card = event.target.closest('[data-member-user-id]');
+      if(!button || !card || button.disabled) return;
+      button.disabled = true;
+      runAdminMemberAction(button.dataset.adminAction, card.dataset.memberUserId)
+        .catch(error => {
+          console.warn('Admin member action failed.', error);
+          const messages = {
+            'functions/permission-denied': '관리자 권한이 없거나 허용되지 않은 작업입니다.',
+            'functions/not-found': '대상 회원을 찾지 못했습니다.',
+            'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
+          };
+          setAdminStatus(messages[error.message] || '관리자 작업 중 문제가 생겼습니다.', true);
+        })
+        .finally(() => {
+          button.disabled = false;
+        });
+    });
+
+    document.querySelector('[data-admin-logout]').addEventListener('click', () => {
+      logoutAdminMember().catch(error => {
+        console.warn('Admin logout failed.', error);
+        setAdminStatus('로그아웃 중 문제가 생겼습니다.', true);
+      });
     });
 
     document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);

@@ -164,6 +164,44 @@ function assertActiveStudent(memberData) {
   }
 }
 
+function assertActiveMember(memberData) {
+  if (!memberData || !["student", "admin"].includes(memberData.role)) {
+    throw new HttpsError("failed-precondition", "Member is not active.");
+  }
+  if (memberData.status !== "active" || memberData.active !== true) {
+    throw new HttpsError("failed-precondition", "Member is inactive.");
+  }
+}
+
+async function getAdminMemberForAuth(authUid) {
+  const snapshot = await db.collection("users")
+    .where("authUid", "==", authUid)
+    .where("role", "==", "admin")
+    .limit(1)
+    .get();
+  if (snapshot.empty) {
+    throw new HttpsError("permission-denied", "Admin permission is required.");
+  }
+  const doc = snapshot.docs[0];
+  const data = doc.data() || {};
+  if (data.status !== "active" || data.active !== true) {
+    throw new HttpsError("permission-denied", "Admin member is inactive.");
+  }
+  return { memberUserId: doc.id, memberData: data };
+}
+
+async function writeAdminLog({ adminUserId, action, targetUserId, before, after, reason }) {
+  await db.collection("adminLogs").add({
+    adminUserId,
+    action,
+    targetUserId: targetUserId || "",
+    before: before || null,
+    after: after || null,
+    reason: reason || "",
+    createdAt: FieldValue.serverTimestamp()
+  });
+}
+
 function assertAccessCodeUsable(accessData) {
   if (!accessData || accessData.active !== true) {
     throw new HttpsError("permission-denied", "Access code is not active.");
@@ -435,7 +473,7 @@ exports.linkMemberAuthUid = onCall({ region: REGION }, async request => {
         consumeOnUse: true
       });
       const memberData = verified.memberData || {};
-      assertActiveStudent(memberData);
+      assertActiveMember(memberData);
 
       const updateData = {
         authUid,
@@ -526,7 +564,7 @@ exports.startMemberPasswordSetup = onCall({ region: REGION }, async request => {
         throw new HttpsError("not-found", "Member not found.");
       }
       const memberData = memberSnapshot.data() || {};
-      assertActiveStudent(memberData);
+      assertActiveMember(memberData);
       if (credentialsSnapshot.exists && credentialsSnapshot.data()?.passwordHash) {
         throw new HttpsError("already-exists", "Member password is already configured.");
       }
@@ -630,7 +668,7 @@ exports.setMemberPassword = onCall({ region: REGION }, async request => {
         throw new HttpsError("not-found", "Member not found.");
       }
       const memberData = memberSnapshot.data() || {};
-      assertActiveStudent(memberData);
+      assertActiveMember(memberData);
       if (credentialsSnapshot.exists && credentialsSnapshot.data()?.passwordHash) {
         throw new HttpsError("already-exists", "Member password is already configured.");
       }
@@ -714,7 +752,7 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
         throw new HttpsError("not-found", "Member not found.");
       }
       const memberData = memberSnapshot.data() || {};
-      assertActiveStudent(memberData);
+      assertActiveMember(memberData);
       if (!credentialsSnapshot.exists || !credentialsSnapshot.data()?.passwordHash) {
         throw new HttpsError("failed-precondition", "Member password is not configured.");
       }
@@ -794,7 +832,7 @@ exports.changeMemberPassword = onCall({ region: REGION }, async request => {
         throw new HttpsError("not-found", "Member not found.");
       }
       const memberData = memberSnapshot.data() || {};
-      assertActiveStudent(memberData);
+      assertActiveMember(memberData);
       if (memberData.authUid !== authUid) {
         throw new HttpsError("permission-denied", "Member is not linked to current auth.");
       }
@@ -913,6 +951,198 @@ exports.resetMemberPasswordToTemporary = onCall({ region: REGION }, async reques
     });
     throw error;
   }
+});
+
+function publicAdminMemberRow(doc) {
+  const data = doc.data ? doc.data() || {} : doc || {};
+  const userId = doc.id || data.userId || "";
+  return {
+    userId,
+    school: data.school || DEFAULT_MEMBER_SCHOOL,
+    grade: data.grade || "",
+    classNumber: data.classNumber || "",
+    studentNumber: data.studentNumber || "",
+    nickname: data.nickname || data.name || "",
+    role: data.role || "student",
+    status: data.status || "",
+    active: data.active === true,
+    authLinked: !!data.authUid,
+    updatedAt: data.updatedAt || null
+  };
+}
+
+exports.adminListMembers = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const grade = String(payload.grade || "").trim();
+  const classNumber = String(payload.classNumber || "").trim();
+  const queryText = String(payload.query || "").trim().toLowerCase();
+  const limit = Math.max(1, Math.min(Number(payload.limit) || 80, 200));
+
+  const snapshot = await db.collection("users").orderBy("userId").limit(1000).get();
+  let members = snapshot.docs.map(publicAdminMemberRow);
+
+  if (grade) {
+    members = members.filter(member => String(member.grade) === grade);
+  }
+  if (classNumber) {
+    members = members.filter(member => String(member.classNumber) === classNumber);
+  }
+  if (queryText) {
+    members = members.filter(member => [
+      member.userId,
+      member.school,
+      member.nickname,
+      `${member.grade}-${member.classNumber}-${member.studentNumber}`
+    ].join(" ").toLowerCase().includes(queryText));
+  }
+  const summary = members.reduce((acc, member) => {
+    acc.total += 1;
+    if (member.role === "admin") acc.admins += 1;
+    if (member.role === "student" && member.active && member.status === "active") acc.activeStudents += 1;
+    if (!member.active || member.status !== "active") acc.inactive += 1;
+    return acc;
+  }, { total: 0, activeStudents: 0, inactive: 0, admins: 0 });
+
+  return {
+    success: true,
+    adminUserId: adminMember.memberUserId,
+    summary,
+    members: members.slice(0, limit)
+  };
+});
+
+exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!memberSnapshot.exists) {
+      throw new HttpsError("not-found", "Member not found.");
+    }
+    const memberData = memberSnapshot.data() || {};
+    assertActiveMember(memberData);
+    if (memberData.role === "admin" && adminMember.memberUserId !== memberUserId) {
+      throw new HttpsError("permission-denied", "Other admin passwords cannot be reset here.");
+    }
+    const temporaryPassword = normalizePassword(buildTemporaryMemberPassword({
+      grade: memberData.grade,
+      classNumber: memberData.classNumber,
+      studentNumber: memberData.studentNumber
+    }));
+    transaction.set(credentialsRef, {
+      memberUserId,
+      ...createPasswordHash(temporaryPassword),
+      forcePasswordChange: true,
+      failedAttempts: 0,
+      lockedUntil: null,
+      resetAt: FieldValue.serverTimestamp(),
+      resetByAuthUid: authUid,
+      resetByAdminUserId: adminMember.memberUserId,
+      resetSource: "admin",
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(memberRef, {
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { memberData, temporaryPassword };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminResetMemberPassword",
+    targetUserId: memberUserId,
+    before: { forcePasswordChange: false },
+    after: { forcePasswordChange: true },
+    reason: String(payload.reason || "")
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    temporaryPassword: result.temporaryPassword,
+    profile: publicMemberProfile(memberUserId, result.memberData)
+  };
+});
+
+exports.adminUpdateMemberStatus = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const nextStatus = String(payload.status || "").trim().toLowerCase();
+  if (!["active", "inactive"].includes(nextStatus)) {
+    throw new HttpsError("invalid-argument", "status must be active or inactive.");
+  }
+  if (memberUserId === adminMember.memberUserId && nextStatus === "inactive") {
+    throw new HttpsError("permission-denied", "Admin cannot deactivate self.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+    const before = memberSnapshot.data() || {};
+    transaction.set(memberRef, {
+      status: nextStatus,
+      active: nextStatus === "active",
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { before };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdateMemberStatus",
+    targetUserId: memberUserId,
+    before: { status: result.before.status, active: result.before.active },
+    after: { status: nextStatus, active: nextStatus === "active" },
+    reason: String(payload.reason || "")
+  });
+
+  return { success: true, memberUserId, status: nextStatus, active: nextStatus === "active" };
+});
+
+exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  if (memberUserId === adminMember.memberUserId) {
+    throw new HttpsError("permission-denied", "Admin cannot unlink self here.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+    const before = memberSnapshot.data() || {};
+    transaction.set(memberRef, {
+      previousAuthUid: before.authUid || before.previousAuthUid || "",
+      authUid: "",
+      authUnlinkedAt: FieldValue.serverTimestamp(),
+      authUnlinkedByAdminUserId: adminMember.memberUserId,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { before };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUnlinkMemberAuth",
+    targetUserId: memberUserId,
+    before: { authLinked: !!result.before.authUid },
+    after: { authLinked: false },
+    reason: String(payload.reason || "")
+  });
+
+  return { success: true, memberUserId, authLinked: false };
 });
 
 exports.purchaseShopItem = onCall({ region: REGION }, async request => {
