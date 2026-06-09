@@ -5026,7 +5026,9 @@
         ['전체', data.total || 0],
         ['활성 학생', data.activeStudents || 0],
         ['비활성', data.inactive || 0],
-        ['관리자', data.admins || 0]
+        ['관리자', data.admins || 0],
+        ['비번 설정', data.displayedPasswordConfigured || 0],
+        ['변경 필요', data.displayedForcePasswordChange || 0]
       ].forEach(([label, value]) => {
         const item = document.createElement('article');
         const strong = document.createElement('strong');
@@ -5036,6 +5038,14 @@
         item.append(strong, span);
         root.appendChild(item);
       });
+    }
+
+    function getAdminPasswordStateLabel(member) {
+      const state = member?.passwordState || {};
+      if(state.locked) return '비밀번호 잠김';
+      if(state.forcePasswordChange) return '초기화 후 변경 필요';
+      if(state.passwordConfigured) return '비밀번호 설정 완료';
+      return '비밀번호 미설정';
     }
 
     function renderAdminMemberList(members) {
@@ -5056,6 +5066,7 @@
         const title = document.createElement('h4');
         const meta = document.createElement('p');
         const state = document.createElement('p');
+        const passwordState = document.createElement('p');
         const actions = document.createElement('div');
         const resetButton = document.createElement('button');
         const unlinkButton = document.createElement('button');
@@ -5067,6 +5078,8 @@
         meta.textContent = `${member.school || '동자'} ${member.grade || '-'}학년 ${member.classNumber || '-'}반 ${member.studentNumber || '-'}번`;
         state.className = 'admin-member-state';
         state.textContent = `${member.role === 'admin' ? '관리자' : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}`;
+        passwordState.className = 'admin-member-password-state';
+        passwordState.textContent = getAdminPasswordStateLabel(member);
         resetButton.type = 'button';
         resetButton.className = 'admin-action-button';
         resetButton.dataset.adminAction = 'resetPassword';
@@ -5083,7 +5096,7 @@
         statusButton.textContent = member.status === 'active' ? '비활성화' : '활성화';
         actions.className = 'admin-member-actions';
         actions.append(resetButton, unlinkButton, statusButton);
-        main.append(title, meta, state);
+        main.append(title, meta, state, passwordState);
         card.append(main, actions);
         root.appendChild(card);
       });
@@ -5101,7 +5114,7 @@
       if(!result.success) throw new Error('admin-list-failed');
       renderAdminSummary(result.summary);
       renderAdminMemberList(result.members);
-      if(shouldUpdateStatus) setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다.`);
+      if(shouldUpdateStatus) setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다. 비밀번호 현황은 현재 표시된 목록 기준입니다.`);
       return result;
     }
 

@@ -1023,7 +1023,21 @@ function publicAdminMemberRow(doc) {
     status: data.status || "",
     active: data.active === true,
     authLinked: !!data.authUid,
+    passwordMode: data.passwordMode || "",
+    initialPasswordChanged: data.initialPasswordChanged === true,
     updatedAt: data.updatedAt || null
+  };
+}
+
+function publicAdminCredentialState(snapshot) {
+  const data = snapshot.exists ? snapshot.data() || {} : {};
+  return {
+    passwordConfigured: !!data.passwordHash,
+    forcePasswordChange: data.forcePasswordChange === true,
+    failedAttempts: Number(data.failedAttempts || 0),
+    locked: timestampToMillis(data.lockedUntil) > Date.now(),
+    lastLoginAt: data.lastLoginAt || null,
+    resetAt: data.resetAt || null
   };
 }
 
@@ -1053,6 +1067,17 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
       `${member.grade}-${member.classNumber}-${member.studentNumber}`
     ].join(" ").toLowerCase().includes(queryText));
   }
+  const selectedMembers = members.slice(0, limit);
+  const credentialSnapshots = selectedMembers.length
+    ? await db.getAll(...selectedMembers.map(member => db.collection("memberCredentials").doc(member.userId)))
+    : [];
+  const credentialsByUserId = new Map(
+    credentialSnapshots.map(snapshot => [snapshot.id, publicAdminCredentialState(snapshot)])
+  );
+  selectedMembers.forEach(member => {
+    member.passwordState = credentialsByUserId.get(member.userId) || publicAdminCredentialState({ exists: false });
+  });
+
   const summary = members.reduce((acc, member) => {
     acc.total += 1;
     if (member.role === "admin") acc.admins += 1;
@@ -1060,12 +1085,14 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
     if (!member.active || member.status !== "active") acc.inactive += 1;
     return acc;
   }, { total: 0, activeStudents: 0, inactive: 0, admins: 0 });
+  summary.displayedPasswordConfigured = selectedMembers.filter(member => member.passwordState.passwordConfigured).length;
+  summary.displayedForcePasswordChange = selectedMembers.filter(member => member.passwordState.forcePasswordChange).length;
 
   return {
     success: true,
     adminUserId: adminMember.memberUserId,
     summary,
-    members: members.slice(0, limit)
+    members: selectedMembers
   };
 });
 
