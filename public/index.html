@@ -2518,9 +2518,22 @@
       const starCount = Number(data.starCount) || 0;
       const progressText = total ? `${correct}/${total}` : '진행 기록 있음';
       const rawGroup = data.group || 'other';
-      const group = rawGroup === 'daily' && (data.badgeId === 'daily_맞춤법' || data.label === '맞춤법' || data.areaKey === '일상/맞춤법')
-        ? 'korean'
-        : rawGroup;
+      const badgeKeyText = [
+        data.badgeId,
+        data.label,
+        data.areaKey,
+        data.sourceId
+      ].filter(Boolean).join(' ');
+      let group = rawGroup;
+      if(data.badgeId === 'daily_맞춤법' || data.label === '맞춤법' || data.areaKey === '일상/맞춤법') {
+        group = 'korean';
+      } else if(badgeKeyText.includes('역사인물') || badgeKeyText.includes('역사-인물')) {
+        group = 'social';
+      } else if(badgeKeyText.includes('아재개그')) {
+        group = 'people';
+      } else if(rawGroup === 'daily') {
+        group = 'people';
+      }
       return {
         badgeId: data.badgeId || doc.id,
         icon: getBadgeIconForGroup(group),
@@ -2728,7 +2741,6 @@
         social: '사회',
         math: '수학',
         people: '인기·인물',
-        daily: '일상',
         pokemon: '포켓몬',
         other: '기타'
       };
@@ -2736,7 +2748,7 @@
     }
 
     function getBadgeGroupOrder(group) {
-      const order = ['korean', 'social', 'math', 'people', 'daily', 'pokemon', 'other'];
+      const order = ['korean', 'social', 'math', 'people', 'pokemon', 'other'];
       const index = order.indexOf(group);
       return index >= 0 ? index : order.length;
     }
@@ -3398,7 +3410,67 @@
       return record?.subFilter || record?.category || record?.categoryKey || '랭킹전';
     }
 
-    function renderProfileRankingRecords(records = []) {
+    function getProfileRankingCategoryKey(record) {
+      return String(record?.categoryKey || '').trim() || slugPracticeKey(record?.category || record?.quizId || '');
+    }
+
+    function getProfileBestRankingRecords(records = []) {
+      const bestByCategory = {};
+      records.forEach(record => {
+        const key = getProfileRankingCategoryKey(record);
+        if(!key) return;
+        if(isBetterRankingEntry(record, bestByCategory[key])) bestByCategory[key] = record;
+      });
+      return Object.values(bestByCategory);
+    }
+
+    function getProfileRankingRowKey(record) {
+      return String(record?.recordId || `${getProfileRankingCategoryKey(record)}::${getRankingRecordUserKey(record)}`);
+    }
+
+    function getProfileRankingRankText(record, rankContext = {}) {
+      const info = rankContext[getProfileRankingRowKey(record)] || rankContext[getProfileRankingCategoryKey(record)];
+      if(!info?.rank) return '';
+      return `${info.rank}위`;
+    }
+
+    async function loadProfileRankingRankContext(db, bestRows = []) {
+      const categoryKeys = Array.from(new Set(bestRows.map(getProfileRankingCategoryKey).filter(Boolean)));
+      if(!db || !categoryKeys.length) return {};
+      const snapshots = await Promise.all(categoryKeys.map(categoryKey =>
+        db.collection('rankingRecords')
+          .where('categoryKey', '==', categoryKey)
+          .limit(250)
+          .get()
+          .catch(error => {
+            console.warn('Firestore profile ranking rank read failed.', { categoryKey, error });
+            return null;
+          })
+      ));
+      const rankContext = {};
+      snapshots.forEach((snapshot, index) => {
+        if(!snapshot) return;
+        const categoryKey = categoryKeys[index];
+        const topRows = getTopRankingRecordsByCategoryKeys(
+          snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) })),
+          [categoryKey],
+          250
+        );
+        topRows.forEach((row, rowIndex) => {
+          const rankInfo = {
+            rank: rowIndex + 1,
+            total: topRows.length
+          };
+          rankContext[getProfileRankingRowKey(row)] = rankInfo;
+          if(getRankingRecordUserKey(row) === currentMemberUserId) {
+            rankContext[categoryKey] = rankInfo;
+          }
+        });
+      });
+      return rankContext;
+    }
+
+    function renderProfileRankingRecords(records = [], rankContext = {}) {
       const root = document.getElementById('profile-ranking-root');
       if(!root) return;
       root.innerHTML = '';
@@ -3418,19 +3490,22 @@
         return;
       }
 
-      const bestByCategory = {};
-      items.forEach(record => {
-        const key = record.categoryKey || record.category || record.quizId || '';
-        if(!key) return;
-        if(isBetterRankingEntry(record, bestByCategory[key])) bestByCategory[key] = record;
-      });
-      const bestRows = Object.values(bestByCategory)
-        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999))
-        .slice(0, 6);
+      const bestRows = getProfileBestRankingRecords(items)
+        .sort((a, b) => {
+          const aRank = Number((rankContext[getProfileRankingRowKey(a)] || rankContext[getProfileRankingCategoryKey(a)])?.rank || 999999);
+          const bRank = Number((rankContext[getProfileRankingRowKey(b)] || rankContext[getProfileRankingCategoryKey(b)])?.rank || 999999);
+          if(aRank !== bRank) return aRank - bRank;
+          return (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999);
+        })
+        .slice(0, 5);
       const latestRows = items
         .slice()
         .sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))
-        .slice(0, 5);
+        .slice(0, 3);
+      const recentBestRows = getProfileBestRankingRecords(items)
+        .filter(record => getProfileRankingRankText(record, rankContext))
+        .sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))
+        .slice(0, 2);
 
       const bestSection = document.createElement('div');
       const recentSection = document.createElement('div');
@@ -3450,12 +3525,19 @@
         const title = document.createElement('strong');
         const meta = document.createElement('span');
         const score = document.createElement('b');
+        const rank = document.createElement('em');
+        const rankText = getProfileRankingRankText(record, rankContext);
         row.className = 'profile-ranking-row';
         title.textContent = getRankingRecordQuizTitle(record);
         meta.textContent = options.showDate
           ? `${formatProfileRankingDate(record)} · ${record.elapsedText || formatRankingElapsedText(record.elapsedSeconds)}`
           : `${record.category || record.subFilter || ''} · ${record.elapsedText || formatRankingElapsedText(record.elapsedSeconds)}`;
         score.textContent = `${Number(record.score) || 0}점`;
+        if(rankText) {
+          rank.className = 'profile-ranking-rank';
+          rank.textContent = rankText;
+          title.appendChild(rank);
+        }
         row.append(title, meta, score);
         list.appendChild(row);
       };
@@ -3464,6 +3546,15 @@
       latestRows.forEach(record => appendRow(recentList, record, { showDate: true }));
       bestSection.append(bestTitle, bestList);
       recentSection.append(recentTitle, recentList);
+      if(recentBestRows.length) {
+        const subTitle = document.createElement('p');
+        const subList = document.createElement('div');
+        subTitle.className = 'profile-ranking-subtitle';
+        subTitle.textContent = '최근 순위권 기록';
+        subList.className = 'profile-ranking-list profile-ranking-list-compact';
+        recentBestRows.forEach(record => appendRow(subList, record, { showDate: true }));
+        recentSection.append(subTitle, subList);
+      }
       root.append(bestSection, recentSection);
     }
 
@@ -3482,7 +3573,9 @@
         .limit(80)
         .get();
       const records = snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
-      renderProfileRankingRecords(records);
+      const bestRows = getProfileBestRankingRecords(records.filter(record => Number(record.score) > 0));
+      const rankContext = await loadProfileRankingRankContext(db, bestRows);
+      renderProfileRankingRecords(records, rankContext);
       return records;
     }
 

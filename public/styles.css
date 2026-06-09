@@ -2815,9 +2815,20 @@ h2 {
   font-size: 0.98rem;
 }
 
+.profile-ranking-subtitle {
+  margin: 4px 0 0;
+  color: #7c6a45;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 .profile-ranking-list {
   display: grid;
   gap: 8px;
+}
+
+.profile-ranking-list-compact {
+  gap: 6px;
 }
 
 .profile-ranking-row {
@@ -2831,9 +2842,27 @@ h2 {
 }
 
 .profile-ranking-row strong {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
   color: var(--ink);
   font-size: 0.9rem;
   overflow-wrap: anywhere;
+}
+
+.profile-ranking-rank {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff2b8;
+  color: #7b5b0d;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 1000;
+  white-space: nowrap;
 }
 
 .profile-ranking-row span {
