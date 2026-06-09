@@ -2577,6 +2577,10 @@ h2 {
   content: "🖼️";
 }
 
+.profile-account-panel .profile-ranking-message-label::before {
+  content: "✏️";
+}
+
 .profile-image-url-row {
   grid-template-columns: minmax(150px, 1fr) auto auto;
   border-radius: 24px;
@@ -2659,6 +2663,48 @@ h2 {
 .profile-ranking-message-row input:focus {
   outline: none;
   box-shadow: inset 0 0 0 2px rgba(72, 168, 104, 0.28);
+}
+
+.profile-password-change-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(82px, 1fr)) minmax(58px, auto);
+  gap: 6px;
+  align-items: center;
+  padding: 2px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  max-width: 100%;
+}
+
+.profile-password-change-row input {
+  min-height: 38px;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(108, 185, 255, 0.22);
+  border-radius: 999px;
+  background: #f7fcff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: inset 0 2px 0 rgba(47, 125, 68, 0.04);
+}
+
+.profile-password-change-row input:focus {
+  outline: none;
+  border-color: rgba(72, 168, 104, 0.46);
+  box-shadow:
+    0 0 0 3px rgba(72, 168, 104, 0.12),
+    inset 0 2px 0 rgba(47, 125, 68, 0.04);
+}
+
+.profile-password-change-row .profile-inline-button {
+  width: 100%;
+  min-height: 38px;
+  padding-inline: 10px;
+  font-size: 0.78rem;
 }
 
 .profile-inline-button,
@@ -4539,6 +4585,10 @@ h2 {
   }
 
   .profile-ranking-message-row {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-password-change-row {
     grid-template-columns: 1fr;
   }
 

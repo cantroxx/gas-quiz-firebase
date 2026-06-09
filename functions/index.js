@@ -1159,6 +1159,65 @@ exports.changeMemberPassword = onCall({ region: REGION }, async request => {
   }
 });
 
+exports.updateMemberNickname = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const nickname = assertNicknameAllowed(payload.nickname);
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const memberRef = db.collection("users").doc(memberUserId);
+      const memberSnapshot = await transaction.get(memberRef);
+      if (!memberSnapshot.exists) {
+        throw new HttpsError("not-found", "Member not found.");
+      }
+      const memberData = memberSnapshot.data() || {};
+      assertActiveMember(memberData);
+      if (memberData.authUid !== authUid) {
+        throw new HttpsError("permission-denied", "Member is not linked to current auth.");
+      }
+
+      transaction.set(memberRef, {
+        nickname,
+        name: nickname,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return {
+        memberUserId,
+        memberData: {
+          ...memberData,
+          nickname,
+          name: nickname
+        }
+      };
+    });
+
+    await writeMemberAuthLog({
+      action: "updateMemberNickname",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      profile: publicMemberProfile(result.memberUserId, result.memberData)
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "updateMemberNickname",
+      result: "failure",
+      authUid,
+      memberUserId,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
 exports.resetMemberPasswordToTemporary = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
