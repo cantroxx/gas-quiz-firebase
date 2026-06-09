@@ -554,6 +554,26 @@
 6. 이벤트/퀘스트/학급 미션 실제화
    - 이벤트 광장 표시 데이터를 실제 기록/보상과 연결
 
+## 9.1 운영 안정화 진행 상태
+
+- Cloud Functions 런타임을 Node.js 22로 전환 완료
+- `firebase-functions`를 7.2.5로 갱신 완료
+- `firebase-admin`은 `firebase-functions` 7.2.5 peer dependency와 호환되는 13.x 범위로 유지
+- `firebase deploy --only functions`에서 Node.js 22 업데이트 성공 확인
+- Node.js 20 deprecation deploy warning은 해소됨
+- `npm audit --omit=dev` 확인 결과, transitive Google client dependency 경로의 moderate 취약점이 남아 있음
+  - 자동 force fix는 `firebase-admin@14`로 올리며 현재 `firebase-functions@7.2.5` peer 범위와 충돌
+  - `firebase-functions`가 `firebase-admin@14`를 지원할 때 재검토 필요
+- 운영 백업 dry-run 스크립트 추가 및 실행 확인
+  - `scripts/export-operational-backup.js`
+  - root collection 및 subcollection collectionGroup 백업 집계 확인
+  - 실제 백업 파일은 `--commit` 실행 시 `private/backups/`에만 저장
+- 운영 지표 점검 스크립트 추가 및 실행 확인
+  - `scripts/inspect-operational-metrics.js`
+  - 회원/기록/랭킹/보상/구매/미연결 학생 지표 출력 확인
+- 운영 절차 문서 추가
+  - `OPERATIONAL_RUNBOOK.md`
+
 ## 10. 운영본 주의사항
 
 - 이 문서는 Firebase 실험본 `~/Projects/gas-quiz-firebase` 기준이다.
