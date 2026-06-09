@@ -12,24 +12,62 @@
 </head>
 <body>
   <main class="shell">
-    <section class="town-hero" aria-labelledby="page-title">
+    <section id="app-hero" class="town-hero" aria-labelledby="page-title">
       <div class="hero-copy">
-        <p class="eyebrow">Firebase Hosting Preview</p>
+        <p class="eyebrow">Quiz Town</p>
         <h1 id="page-title">DJ48 퀴즈타운</h1>
-        <p class="lead">새 퀴즈타운 디자인과 Firebase 기능을 확인하는 공간입니다.</p>
-        <p class="notice">회원 연결, 퀴즈 플레이, 기록, 보상, 랭킹을 Firebase에서 확인하는 배포본입니다.</p>
-        <div class="actions" aria-label="퀴즈타운 동작">
-          <a class="button primary" href="/" aria-label="Firebase Hosting 연결 확인">Firebase Hosting 연결 확인</a>
-          <a class="button secondary" href="#town-view" aria-label="퀴즈타운 지도 보기">퀴즈타운 지도 보기</a>
-        </div>
       </div>
     </section>
 
-    <section id="town-view" class="town-panel app-view" aria-labelledby="town-title">
+    <section id="login-view" class="login-view app-view" aria-labelledby="member-link-heading">
+      <div class="login-panel">
+        <div class="collection-heading">
+          <p class="eyebrow">Login</p>
+          <h2 id="member-link-heading">로그인</h2>
+        </div>
+        <form id="member-link-form" class="member-link-form" autocomplete="off">
+          <label>
+            학교
+            <input id="member-link-school" name="school" type="text" value="동자">
+          </label>
+          <label>
+            학년
+            <input id="member-link-grade" name="grade" type="number" min="1" max="6" inputmode="numeric">
+          </label>
+          <label>
+            반
+            <input id="member-link-class" name="classNumber" type="number" min="1" inputmode="numeric">
+          </label>
+          <label>
+            번호
+            <input id="member-link-number" name="studentNumber" type="number" min="1" inputmode="numeric">
+          </label>
+          <label>
+            기존 닉네임
+            <input id="member-link-nickname" name="nickname" type="text" autocomplete="off" placeholder="처음 비밀번호를 만들 때만 입력">
+          </label>
+          <label>
+            비밀번호
+            <input id="member-link-password" name="password" type="password" minlength="4" autocomplete="current-password">
+          </label>
+          <label>
+            비밀번호 확인
+            <input id="member-link-password-confirm" name="passwordConfirm" type="password" minlength="4" autocomplete="new-password" placeholder="처음 비밀번호를 만들 때만 입력">
+          </label>
+          <div class="member-link-actions">
+            <button class="button primary" type="submit" name="memberLinkAction" value="login">로그인</button>
+            <button class="button secondary" type="submit" name="memberLinkAction" value="setup">처음 비밀번호 만들기</button>
+          </div>
+        </form>
+        <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="town-view" class="town-panel app-view" aria-labelledby="town-title" hidden>
       <div class="town-panel-header">
         <p class="eyebrow">Quiz Town</p>
         <h2 id="town-title">퀴즈타운 지도</h2>
-        <p>아직 실제 기능은 연결하지 않고, 장소 이동과 화면 느낌만 확인합니다.</p>
+        <p>지도에서 장소를 선택해 퀴즈, 랭킹, 상점, 내 집으로 이동합니다.</p>
       </div>
 
       <div class="town-map" aria-label="퀴즈타운 장소 지도">
@@ -177,6 +215,7 @@
     <section id="home-view" class="home-view app-view" aria-labelledby="home-title" hidden>
       <div class="home-topbar">
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
+        <button class="button secondary danger" type="button" data-member-unlink>로그아웃</button>
         <div>
           <p class="eyebrow">My Room</p>
           <h2 id="home-title">내 집</h2>
@@ -187,48 +226,6 @@
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
 
       <div class="collection-layout">
-        <section class="collection-panel" aria-labelledby="member-link-heading">
-          <div class="collection-heading">
-            <p class="eyebrow">Firebase Member Link</p>
-            <h3 id="member-link-heading">Firebase 회원 연결 테스트</h3>
-          </div>
-          <form id="member-link-form" class="member-link-form" autocomplete="off">
-            <label>
-              학교
-              <input id="member-link-school" name="school" type="text" value="동자">
-            </label>
-            <label>
-              학년
-              <input id="member-link-grade" name="grade" type="number" min="1" max="6" inputmode="numeric">
-            </label>
-            <label>
-              반
-              <input id="member-link-class" name="classNumber" type="number" min="1" inputmode="numeric">
-            </label>
-            <label>
-              번호
-              <input id="member-link-number" name="studentNumber" type="number" min="1" inputmode="numeric">
-            </label>
-            <label>
-              기존 닉네임
-              <input id="member-link-nickname" name="nickname" type="text" autocomplete="off" placeholder="처음 비밀번호를 만들 때만 입력">
-            </label>
-            <label>
-              비밀번호
-              <input id="member-link-password" name="password" type="password" minlength="4" autocomplete="current-password">
-            </label>
-            <label>
-              비밀번호 확인
-              <input id="member-link-password-confirm" name="passwordConfirm" type="password" minlength="4" autocomplete="new-password" placeholder="처음 비밀번호를 만들 때만 입력">
-            </label>
-            <div class="member-link-actions">
-              <button class="button primary" type="submit" name="memberLinkAction" value="login">로그인</button>
-              <button class="button secondary" type="submit" name="memberLinkAction" value="setup">처음 비밀번호 만들기</button>
-            </div>
-          </form>
-          <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
-        </section>
-
         <section class="collection-panel" aria-labelledby="title-list-heading">
           <div class="collection-heading">
             <p class="eyebrow">Titles</p>
@@ -2986,6 +2983,7 @@
         renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
         renderHomeOwnedItemsFallback();
         setMemberLinkStatus('현재 브라우저 연결을 초기화했어요. 다른 학생 정보로 다시 연결할 수 있습니다.');
+        showLoginView();
       } catch(error) {
         const messages = {
           'auth-required': 'Firebase Auth 로그인 후 해제할 수 있어요.',
@@ -3052,6 +3050,7 @@
           ? '비밀번호가 등록되고 로그인됐어요.'
           : '비밀번호 로그인이 완료됐어요.';
         setMemberLinkStatus(`${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
+        showTownView();
       } catch(error) {
         const messages = {
           'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
@@ -4873,6 +4872,8 @@
 
     function showTownView() {
       closePlaceModal();
+      document.getElementById('app-hero').hidden = true;
+      document.getElementById('login-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
@@ -4883,6 +4884,22 @@
       document.getElementById('school-view').hidden = true;
       document.getElementById('town-view').hidden = false;
       document.getElementById('town-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showLoginView() {
+      closePlaceModal();
+      document.getElementById('app-hero').hidden = false;
+      document.getElementById('login-view').hidden = false;
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
+      document.getElementById('shop-view').hidden = true;
+      document.getElementById('event-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('subject-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('login-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function showHomeView() {
@@ -5127,6 +5144,9 @@
     });
 
     document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
+    document.querySelectorAll('[data-member-unlink]').forEach(button => {
+      button.addEventListener('click', handleMemberUnlinkClick);
+    });
     document.getElementById('member-link-status').addEventListener('click', event => {
       if(event.target.closest('#member-unlink-button')) handleMemberUnlinkClick();
       if(event.target.closest('#member-password-change-button')) handleMemberPasswordChangeClick();
