@@ -3524,21 +3524,18 @@
         const row = document.createElement('article');
         const title = document.createElement('strong');
         const meta = document.createElement('span');
-        const score = document.createElement('b');
-        const rank = document.createElement('em');
         const rankText = getProfileRankingRankText(record, rankContext);
+        const timeText = record.elapsedText || formatRankingElapsedText(record.elapsedSeconds);
+        const scoreText = `${Number(record.score) || 0}점`;
+        const metaParts = [timeText, scoreText, rankText].filter(Boolean);
         row.className = 'profile-ranking-row';
-        title.textContent = getRankingRecordQuizTitle(record);
+        title.className = 'profile-ranking-card-title';
+        meta.className = 'profile-ranking-card-meta';
+        title.textContent = record.category || getRankingRecordQuizTitle(record);
         meta.textContent = options.showDate
-          ? `${formatProfileRankingDate(record)} · ${record.elapsedText || formatRankingElapsedText(record.elapsedSeconds)}`
-          : `${record.category || record.subFilter || ''} · ${record.elapsedText || formatRankingElapsedText(record.elapsedSeconds)}`;
-        score.textContent = `${Number(record.score) || 0}점`;
-        if(rankText) {
-          rank.className = 'profile-ranking-rank';
-          rank.textContent = rankText;
-          title.appendChild(rank);
-        }
-        row.append(title, meta, score);
+          ? `${formatProfileRankingDate(record)} · ${metaParts.join(' · ')}`
+          : metaParts.join(' · ');
+        row.append(title, meta);
         list.appendChild(row);
       };
 

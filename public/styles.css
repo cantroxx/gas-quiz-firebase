@@ -2833,48 +2833,31 @@ h2 {
 
 .profile-ranking-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 5px 10px;
-  align-items: center;
-  padding: 10px 11px;
+  gap: 5px;
+  padding: 9px 11px;
   border-radius: 14px;
   background: #f7fcff;
 }
 
-.profile-ranking-row strong {
+.profile-ranking-card-title {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 6px;
   align-items: center;
   color: var(--ink);
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 1000;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
-.profile-ranking-rank {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #fff2b8;
-  color: #7b5b0d;
-  font-size: 0.72rem;
-  font-style: normal;
-  font-weight: 1000;
-  white-space: nowrap;
-}
-
-.profile-ranking-row span {
-  grid-column: 1 / -1;
+.profile-ranking-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.profile-ranking-row b {
-  color: var(--green-dark);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.3;
 }
 
 .profile-ranking-empty {
