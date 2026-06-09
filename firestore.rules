@@ -376,11 +376,13 @@ service cloud.firestore {
     }
 
     match /userEconomy/{userId} {
-      allow read, write: if canAccessUserScopedData(userId);
+      allow read: if canAccessUserScopedData(userId);
+      allow write: if isAdmin();
     }
 
     match /userInventory/{userId}/{document=**} {
-      allow read, write: if canAccessUserScopedData(userId);
+      allow read: if canAccessUserScopedData(userId);
+      allow write: if isAdmin();
     }
 
     match /userRoomSettings/{userId} {
@@ -389,9 +391,7 @@ service cloud.firestore {
 
     match /purchaseLogs/{logId} {
       allow read: if false;
-      allow create: if isSignedIn()
-        && canAccessUserScopedData(request.resource.data.userId);
-      allow update, delete: if false;
+      allow write: if isAdmin();
     }
 
     match /practiceRecords/{recordId} {

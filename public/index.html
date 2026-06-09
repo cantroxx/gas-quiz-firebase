@@ -1779,6 +1779,10 @@
     async function renderHomeOwnedItemsFromFirestore() {
       const root = document.getElementById('owned-item-grid');
       if(!root) return;
+      if(!currentMemberUserId) {
+        renderHomeOwnedItems([], {});
+        return;
+      }
 
       try {
         const [items, assetCatalogMap, inventoryItemIds, roomSettings] = await Promise.all([
@@ -1849,7 +1853,7 @@
         }
         title.textContent = item.name;
         desc.textContent = item.desc;
-        state.textContent = isSelected ? '적용중' : '선택 가능';
+        state.textContent = isSelected ? '적용중 · 다시 누르면 해제' : '선택 가능';
 
         card.append(icon, title, desc, state);
         root.appendChild(card);
@@ -3200,13 +3204,9 @@
       const db = getFirestoreDb();
       if(!db) throw new Error('Firestore SDK is not available.');
 
-      userDataMigrationPromise = Promise.all([
-        migrateUserEconomyToMemberId(db, sourceUid, memberUserId),
-        migrateInventoryToMemberId(db, sourceUid, memberUserId),
-        migrateRoomSettingsToMemberId(db, sourceUid, memberUserId)
-      ]).then(([economy, inventory, roomSettings]) => ({
-        economy,
-        inventory,
+      userDataMigrationPromise = migrateRoomSettingsToMemberId(db, sourceUid, memberUserId).then(roomSettings => ({
+        economy: false,
+        inventory: false,
         roomSettings,
         migratedFromUid: sourceUid,
         memberUserId
@@ -3247,7 +3247,6 @@
       if(snapshot.exists) return normalizeUserEconomyFromFirestore(snapshot);
 
       const initialEconomy = getInitialUserEconomy(ownerId);
-      await ref.set(initialEconomy, { merge: false });
       return {
         userId: ownerId,
         djCoin: initialEconomy.djCoin,
@@ -3288,6 +3287,7 @@
       if(!db) throw new Error('Firestore SDK is not available.');
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
+      if(!currentMemberUserId || userId === TEST_SHOP_USER_ID) return new Set();
 
       const snapshot = await db.collection('userInventory').doc(userId).collection('items').get();
       return new Set(snapshot.docs.map(doc => doc.id));
@@ -3314,6 +3314,7 @@
       if(!db) throw new Error('Firestore SDK is not available.');
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
+      if(!currentMemberUserId || userId === TEST_SHOP_USER_ID) return getDefaultRoomSettings();
 
       const snapshot = await db.collection('userRoomSettings').doc(userId).get();
       return normalizeRoomSettingsFromFirestore(snapshot);
@@ -3540,6 +3541,7 @@
         const item = normalizeShopItemFromFirestore(itemSnapshot);
         const category = getRoomItemCategory(item);
         const currentSettings = normalizeRoomSettingsFromFirestore(settingsSnapshot);
+        const isSelected = isRoomItemSelected(item, currentSettings);
         const fieldValue = getFirestoreFieldValue();
         const updateData = {
           userId,
@@ -3547,9 +3549,9 @@
         };
 
         if(category === 'background') {
-          updateData.selectedBackgroundItemId = itemId;
+          updateData.selectedBackgroundItemId = isSelected ? '' : itemId;
         } else if(category === 'avatar') {
-          updateData.selectedAvatarItemId = itemId;
+          updateData.selectedAvatarItemId = isSelected ? '' : itemId;
         } else if(category === 'roomDecor') {
           const decorSet = new Set(currentSettings.selectedDecorItemIds);
           if(decorSet.has(itemId)) {
@@ -3559,7 +3561,7 @@
           }
           updateData.selectedDecorItemIds = Array.from(decorSet);
         } else if(category === 'titleFrame') {
-          updateData.selectedTitleFrameItemId = itemId;
+          updateData.selectedTitleFrameItemId = isSelected ? '' : itemId;
         } else {
           throw new Error('unsupported-category');
         }
