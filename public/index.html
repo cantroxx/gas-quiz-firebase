@@ -241,9 +241,12 @@
 
       <div class="collection-layout">
         <section class="collection-panel" aria-labelledby="title-list-heading">
-          <div class="collection-heading">
-            <p class="eyebrow">Titles</p>
-            <h3 id="title-list-heading">보유 칭호</h3>
+          <div class="collection-heading collection-heading-row">
+            <div>
+              <p class="eyebrow">Titles</p>
+              <h3 id="title-list-heading">보유 칭호</h3>
+            </div>
+            <button id="title-catalog-button" class="mini-pill-button" type="button">타이틀 목록</button>
           </div>
           <div id="title-card-grid" class="collection-grid"></div>
         </section>
@@ -426,9 +429,47 @@
     </section>
   </div>
 
+  <div id="profile-image-editor-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-profile-image-editor></div>
+    <section class="modal-card profile-image-editor-card" role="dialog" aria-modal="true" aria-labelledby="profile-image-editor-title">
+      <button class="modal-close" type="button" data-close-profile-image-editor aria-label="닫기">×</button>
+      <div class="place-panel-header">
+        <div class="modal-icon" aria-hidden="true">🖼️</div>
+        <div>
+          <p class="modal-kicker">Profile Image</p>
+          <h2 id="profile-image-editor-title">프로필 이미지 맞추기</h2>
+          <p>원 안에 보일 위치와 크기를 정한 뒤 저장합니다.</p>
+        </div>
+      </div>
+      <div class="profile-image-editor-preview" aria-label="프로필 이미지 미리보기">
+        <img id="profile-image-editor-preview-img" alt="프로필 이미지 미리보기">
+      </div>
+      <div class="profile-image-editor-controls">
+        <label>
+          확대
+          <input id="profile-image-editor-scale" type="range" min="0.7" max="2.2" step="0.01" value="1">
+        </label>
+        <label>
+          좌우
+          <input id="profile-image-editor-offset-x" type="range" min="-45" max="45" step="1" value="0">
+        </label>
+        <label>
+          상하
+          <input id="profile-image-editor-offset-y" type="range" min="-45" max="45" step="1" value="0">
+        </label>
+      </div>
+      <p id="profile-image-editor-status" class="modal-status">저장하면 내 집과 랭킹에 같은 위치로 표시됩니다.</p>
+      <div class="modal-actions">
+        <button id="profile-image-editor-reset" class="modal-disabled-action" type="button">초기화</button>
+        <button id="profile-image-editor-save" class="modal-ready-action" type="button">저장</button>
+      </div>
+    </section>
+  </div>
+
   <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/10.12.2/firebase-storage-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script>
@@ -746,6 +787,7 @@
     let userDataMigrationPromise = null;
     let firestoreDbInstance = null;
     let firebaseFunctionsInstance = null;
+    let firebaseStorageInstance = null;
 
     const QUEST_DATA = [
       {
@@ -1454,6 +1496,10 @@
     let currentRankingTimeLeft = 0;
     let currentQuestionResolved = false;
     const firebaseQuizDataCache = {};
+    let titleCatalogCache = null;
+    let titleCatalogMapCache = null;
+    let profileImageOptionsCache = [];
+    let profileImageEditorState = null;
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
@@ -1487,11 +1533,110 @@
       document.getElementById('modal-summary').textContent = place.summary;
       renderPanelFeatures(place.features);
       renderPanelActions(place.actions);
+      document.getElementById('modal-status').textContent = '각 장소에서 현재 연결된 기능을 확인할 수 있습니다.';
+    }
+
+    function openTitleCatalogModal() {
+      const place = {
+        icon: '🏷️',
+        kicker: 'Title Catalog',
+        title: '타이틀 목록',
+        desc: '타이틀 목록을 불러오는 중입니다.',
+        summary: '보유한 타이틀은 내 집에서 대표 칭호로 선택할 수 있고, 선택한 칭호는 랭킹에 표시됩니다.',
+        features: [{ label: '불러오는 중', value: '운영본 타이틀 정의를 확인하고 있습니다.' }],
+        actions: []
+      };
+      renderPlacePanel(place);
+      document.getElementById('place-modal').hidden = false;
+      loadTitleCatalogFromFirestore()
+        .then(titles => {
+          renderTitleCatalogPanel(titles);
+          document.getElementById('modal-status').textContent = '잠긴 타이틀은 조건을 달성하면 보유 칭호에 나타납니다.';
+        })
+        .catch(error => {
+          console.warn('Firestore titleCatalog read failed.', error);
+          renderPlacePanel({
+            ...place,
+            desc: '타이틀 목록을 불러오지 못했습니다.',
+            features: TITLE_DATA.map(title => ({ label: title.name, value: title.desc }))
+          });
+        });
+    }
+
+    function getTitleCatalogGroupLabel(title) {
+      const subjectGroup = String(title?.subjectGroup || '').toLowerCase();
+      if(subjectGroup === 'korean' || subjectGroup === 'reading' || subjectGroup === 'spelling') return '국어';
+      if(subjectGroup === 'social' || subjectGroup === 'society' || subjectGroup === 'history') return '사회';
+      if(subjectGroup === 'math') return '수학';
+      if(subjectGroup === 'popular') {
+        if(title?.category === '포켓몬') return '포켓몬';
+        return '인기';
+      }
+      if(title?.category === '일반') return '일반';
+      return title?.category || '기타';
+    }
+
+    function getTitleCatalogGroupOrder(label) {
+      const order = ['일반', '국어', '사회', '수학', '인기', '포켓몬', '기타'];
+      const index = order.indexOf(label);
+      return index === -1 ? order.length : index;
+    }
+
+    function renderTitleCatalogPanel(titles) {
+      document.getElementById('modal-icon').textContent = '🏷️';
+      document.getElementById('modal-kicker').textContent = 'Title Catalog';
+      document.getElementById('modal-title').textContent = '타이틀 목록';
+      document.getElementById('modal-desc').textContent = `총 ${titles.length}개의 타이틀과 획득 조건입니다.`;
+      document.getElementById('modal-summary').textContent = '분야별로 타이틀 조건을 확인할 수 있습니다. 보유한 타이틀은 내 집에서 대표 칭호로 선택합니다.';
+      renderPanelActions([]);
+
+      const root = document.getElementById('modal-features');
+      root.innerHTML = '';
+      root.classList.add('title-catalog-groups');
+      const groups = {};
+      titles.forEach(title => {
+        const label = getTitleCatalogGroupLabel(title);
+        if(!groups[label]) groups[label] = [];
+        groups[label].push(title);
+      });
+
+      Object.keys(groups)
+        .sort((a, b) => getTitleCatalogGroupOrder(a) - getTitleCatalogGroupOrder(b) || a.localeCompare(b, 'ko'))
+        .forEach(label => {
+          const section = document.createElement('section');
+          const heading = document.createElement('h3');
+          const count = document.createElement('span');
+          const grid = document.createElement('div');
+          section.className = 'title-catalog-group';
+          heading.className = 'title-catalog-heading';
+          count.className = 'title-catalog-count';
+          grid.className = 'title-catalog-grid';
+          heading.textContent = label;
+          count.textContent = `${groups[label].length}개`;
+          heading.appendChild(count);
+          groups[label]
+            .slice()
+            .sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999) || String(a.titleName).localeCompare(String(b.titleName), 'ko'))
+            .forEach(title => {
+              const item = document.createElement('article');
+              const name = document.createElement('strong');
+              const condition = document.createElement('p');
+              item.className = 'title-catalog-item';
+              name.className = ['title-badge', title.themeClass, title.tierClass, title.effectClass].filter(Boolean).join(' ');
+              name.textContent = title.titleName || title.titleId;
+              condition.textContent = title.conditionText || title.description || title.titleId;
+              item.append(name, condition);
+              grid.appendChild(item);
+            });
+          section.append(heading, grid);
+          root.appendChild(section);
+        });
     }
 
     function renderPanelFeatures(features) {
       const featureRoot = document.getElementById('modal-features');
       featureRoot.innerHTML = '';
+      featureRoot.classList.remove('title-catalog-groups');
       features.forEach(feature => {
         const item = document.createElement('article');
         const label = document.createElement('span');
@@ -1524,7 +1669,37 @@
 
     function getKnownTitleName(titleId) {
       const id = String(titleId || '').trim();
-      return TITLE_NAME_BY_ID[id] || '';
+      return titleCatalogMapCache?.[id]?.titleName || TITLE_NAME_BY_ID[id] || '';
+    }
+
+    function normalizeTitleCatalogDoc(doc) {
+      const data = doc.data ? (doc.data() || {}) : (doc || {});
+      return {
+        titleId: data.titleId || doc.id || '',
+        titleName: data.titleName || data.title || data.name || data.titleId || doc.id || '',
+        conditionText: data.conditionText || data.description || '획득 조건을 확인 중입니다.',
+        description: data.description || data.conditionText || '',
+        category: data.category || '',
+        subjectGroup: data.subjectGroup || '',
+        themeClass: data.themeClass || (data.theme ? `title-theme-${data.theme}` : ''),
+        tierClass: data.tierClass || (data.tier ? `title-tier-${data.tier}` : ''),
+        effectClass: data.effectClass || '',
+        order: Number(data.order) || 999
+      };
+    }
+
+    async function loadTitleCatalogFromFirestore(forceRefresh = false) {
+      if(titleCatalogCache && !forceRefresh) return titleCatalogCache;
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const snapshot = await db.collection('titleCatalog').orderBy('order').get();
+      titleCatalogCache = snapshot.docs.map(normalizeTitleCatalogDoc);
+      titleCatalogMapCache = {};
+      titleCatalogCache.forEach(title => {
+        if(title.titleId) titleCatalogMapCache[title.titleId] = title;
+      });
+      return titleCatalogCache;
     }
 
     function findBadge(badgeId) {
@@ -1557,12 +1732,16 @@
       return {
         avatar: PROFILE_DATA.avatar,
         profileImageUrl: '',
+        profileImageSource: '',
+        profileImageStoragePath: '',
+        profileImageScale: 1,
+        profileImageOffsetX: 0,
+        profileImageOffsetY: 0,
         nickname: PROFILE_DATA.nickname,
         school: PROFILE_DATA.school,
         titleName: mainTitle.name,
         badgeName: mainBadge.name,
         coinText: `${USER_REWARD_DATA.coin} DJ코인`,
-        expText: `${USER_REWARD_DATA.exp} EXP`,
         rankingMessage: ''
       };
     }
@@ -1581,6 +1760,23 @@
       return '';
     }
 
+    function getProfileImageEditModel(profile) {
+      const scale = Number(profile?.profileImageScale);
+      const offsetX = Number(profile?.profileImageOffsetX);
+      const offsetY = Number(profile?.profileImageOffsetY);
+      return {
+        profileImageScale: Math.max(0.7, Math.min(2.2, Number.isFinite(scale) && scale > 0 ? scale : 1)),
+        profileImageOffsetX: Math.max(-45, Math.min(45, Number.isFinite(offsetX) ? offsetX : 0)),
+        profileImageOffsetY: Math.max(-45, Math.min(45, Number.isFinite(offsetY) ? offsetY : 0))
+      };
+    }
+
+    function applyProfileImageTransform(image, profile) {
+      const edit = getProfileImageEditModel(profile);
+      image.style.transform = `translate(${edit.profileImageOffsetX}%, ${edit.profileImageOffsetY}%) scale(${edit.profileImageScale})`;
+      image.style.transformOrigin = 'center center';
+    }
+
     function renderProfileAvatar(root, profile) {
       root.innerHTML = '';
       const profileImageUrl = normalizeDisplayImageUrl(profile.profileImageUrl);
@@ -1590,6 +1786,7 @@
         image.alt = `${profile.nickname || '사용자'} 프로필`;
         image.loading = 'lazy';
         image.referrerPolicy = 'no-referrer';
+        applyProfileImageTransform(image, profile);
         image.addEventListener('error', () => {
           root.innerHTML = '';
           root.textContent = profile.avatar || '🙂';
@@ -1618,9 +1815,14 @@
       const coin = document.createElement('p');
       const coinLabel = document.createElement('span');
       const coinValue = document.createElement('strong');
-      const exp = document.createElement('p');
-      const expLabel = document.createElement('span');
-      const expValue = document.createElement('strong');
+      const imagePanel = document.createElement('div');
+      const imageLabel = document.createElement('label');
+      const imageRow = document.createElement('div');
+      const imageInput = document.createElement('input');
+      const imageButton = document.createElement('button');
+      const uploadInput = document.createElement('input');
+      const uploadButton = document.createElement('button');
+      const imageHelp = document.createElement('p');
       const messagePanel = document.createElement('div');
       const messageLabel = document.createElement('label');
       const messageRow = document.createElement('div');
@@ -1643,14 +1845,40 @@
       badgeValue.textContent = profile.badgeName;
       coinLabel.textContent = '보유 DJ코인';
       coinValue.textContent = profile.coinText;
-      expLabel.textContent = '경험치';
-      expValue.textContent = profile.expText;
 
       title.append(titleLabel, titleValue);
       badge.append(badgeLabel, badgeValue);
       coin.append(coinLabel, coinValue);
-      exp.append(expLabel, expValue);
-      meta.append(title, badge, coin, exp);
+      meta.append(title, badge, coin);
+      imagePanel.className = 'profile-ranking-message-panel profile-image-url-panel';
+      imageLabel.className = 'profile-ranking-message-label profile-image-url-label';
+      imageLabel.htmlFor = 'profile-image-search-input';
+      imageLabel.textContent = '프로필 이미지';
+      imageRow.className = 'profile-ranking-message-row profile-image-url-row';
+      imageInput.id = 'profile-image-search-input';
+      imageInput.type = 'text';
+      imageInput.value = '';
+      imageInput.placeholder = '카리나, 피카츄처럼 검색';
+      imageButton.id = 'profile-image-search-button';
+      imageButton.className = 'profile-inline-button';
+      imageButton.type = 'button';
+      imageButton.textContent = '검색';
+      uploadInput.id = 'profile-image-upload-input';
+      uploadInput.type = 'file';
+      uploadInput.accept = 'image/png,image/jpeg,image/webp';
+      uploadInput.hidden = true;
+      uploadButton.id = 'profile-image-upload-button';
+      uploadButton.className = 'profile-inline-button profile-upload-button';
+      uploadButton.type = 'button';
+      uploadButton.textContent = '직접 업로드';
+      imageHelp.id = 'profile-image-search-status';
+      imageHelp.className = 'profile-ranking-message-help';
+      imageHelp.textContent = '퀴즈 이미지 후보를 고르거나 직접 업로드한 뒤, 원 안에 보일 위치를 조정합니다.';
+      const imageResults = document.createElement('div');
+      imageResults.id = 'profile-image-search-results';
+      imageResults.className = 'profile-image-search-results';
+      imageRow.append(imageInput, imageButton, uploadButton, uploadInput);
+      imagePanel.append(imageLabel, imageRow, imageHelp, imageResults);
       messagePanel.className = 'profile-ranking-message-panel';
       messageLabel.className = 'profile-ranking-message-label';
       messageLabel.htmlFor = 'profile-ranking-message-input';
@@ -1670,7 +1898,7 @@
       messageHelp.textContent = '랭킹 단상에 최대 24자까지 표시됩니다.';
       messageRow.append(messageInput, messageButton);
       messagePanel.append(messageLabel, messageRow, messageHelp);
-      body.append(name, school, meta, messagePanel);
+      body.append(name, school, meta, imagePanel, messagePanel);
       card.append(avatar, body);
       root.appendChild(card);
     }
@@ -1694,6 +1922,9 @@
         icon: '🏷️',
         name: data.titleName || data.name || data.titleId || doc.id,
         desc: data.description || data.conditionText || data.sourceCategory || data.sourceType || '획득한 칭호입니다.',
+        themeClass: data.themeClass || (data.theme ? `title-theme-${data.theme}` : ''),
+        tierClass: data.tierClass || (data.tier ? `title-tier-${data.tier}` : ''),
+        effectClass: data.effectClass || data.effect || '',
         selected: data.selected === true
       };
     }
@@ -1780,12 +2011,16 @@
         profile: {
           avatar: PROFILE_DATA.avatar,
           profileImageUrl: profile?.profileImageUrl || '',
+          profileImageSource: profile?.profileImageSource || '',
+          profileImageStoragePath: profile?.profileImageStoragePath || '',
+          profileImageScale: profile?.profileImageScale,
+          profileImageOffsetX: profile?.profileImageOffsetX,
+          profileImageOffsetY: profile?.profileImageOffsetY,
           nickname: profile?.nickname || PROFILE_DATA.nickname,
           school: schoolText || PROFILE_DATA.school,
           titleName: getSelectedTitleNameFromHomeData(profile, titleSummary, titleCards, hasMemberUserId),
           badgeName: getRepresentativeBadgeName(badgeCards, hasMemberUserId),
           coinText: economy ? `${Number(economy.djCoin) || 0} DJ코인` : `${USER_REWARD_DATA.coin} DJ코인`,
-          expText: `${USER_REWARD_DATA.exp} EXP`,
           rankingMessage: profile?.rankingMessage || ''
         },
         titleCards,
@@ -1877,6 +2112,9 @@
         card.className = `collection-card ${className}${item.selected ? ' is-selected' : ''}`;
         icon.className = 'collection-icon';
         icon.textContent = item.icon;
+        if(className === 'title-card' && (item.themeClass || item.tierClass || item.effectClass)) {
+          title.className = ['title-badge', item.themeClass, item.tierClass, item.effectClass].filter(Boolean).join(' ');
+        }
         title.textContent = item.name;
         desc.textContent = item.desc;
 
@@ -1981,6 +2219,244 @@
 
     function normalizeRankingMessageInput(value) {
       return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+    }
+
+    function normalizeProfileImageInput(value) {
+      return String(value || '').trim().slice(0, 500);
+    }
+
+    function renderProfileImageSearchResults(options) {
+      const root = document.getElementById('profile-image-search-results');
+      const status = document.getElementById('profile-image-search-status');
+      if(!root) return;
+      root.innerHTML = '';
+      const items = options || [];
+      if(!items.length) {
+        if(status) status.textContent = '검색 결과가 없습니다.';
+        return;
+      }
+      if(status) status.textContent = `${items.length}개 후보를 찾았습니다. 이미지를 선택하면 위치를 조정할 수 있습니다.`;
+      items.forEach((item, index) => {
+        const button = document.createElement('button');
+        const image = document.createElement('img');
+        const label = document.createElement('span');
+        const source = document.createElement('small');
+        button.className = 'profile-image-option';
+        button.type = 'button';
+        button.dataset.profileImageIndex = String(index);
+        image.src = normalizeDisplayImageUrl(item.displayUrl || item.imageUrl || item.imageFileId);
+        image.alt = `${item.name || '프로필 이미지'} 후보`;
+        image.loading = 'lazy';
+        image.referrerPolicy = 'no-referrer';
+        label.textContent = item.name || '이름 없음';
+        source.textContent = item.sourceQuizId || item.category || '';
+        button.append(image, label, source);
+        root.appendChild(button);
+      });
+    }
+
+    async function searchProfileImageCandidatesFromHome() {
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const input = document.getElementById('profile-image-search-input');
+      const status = document.getElementById('profile-image-search-status');
+      const query = normalizeProfileImageInput(input?.value || '').toLowerCase().replace(/\s+/g, '');
+      if(query.length < 2) {
+        if(status) status.textContent = '검색어를 2글자 이상 입력해 주세요.';
+        return;
+      }
+      if(status) status.textContent = '이미지를 검색하는 중...';
+      const snapshot = await db.collection('profileImageCandidates')
+        .where('keywords', 'array-contains', query)
+        .limit(24)
+        .get();
+      profileImageOptionsCache = snapshot.docs.map(doc => ({ candidateId: doc.id, ...doc.data() }));
+      renderProfileImageSearchResults(profileImageOptionsCache);
+    }
+
+    async function saveSelectedProfileImageFromHome(index) {
+      if(!currentMemberUserId) throw new Error('member-required');
+      const status = document.getElementById('profile-image-search-status');
+      const option = profileImageOptionsCache[Number(index)];
+      if(!option) {
+        if(status) status.textContent = '저장할 이미지를 다시 선택해 주세요.';
+        return;
+      }
+      const profileImageUrl = normalizeProfileImageInput(option.imageUrl || option.displayUrl || option.imageFileId || '');
+      if(!profileImageUrl) {
+        if(status) status.textContent = '선택한 이미지 주소를 확인하지 못했습니다.';
+        return;
+      }
+      openProfileImageEditor({
+        source: 'candidate',
+        candidateId: option.candidateId || '',
+        imageUrl: profileImageUrl,
+        previewUrl: normalizeDisplayImageUrl(profileImageUrl),
+        label: option.name || '선택한 이미지'
+      });
+    }
+
+    function getProfileImageFileExtension(file) {
+      const type = String(file?.type || '').toLowerCase();
+      if(type.includes('png')) return 'png';
+      if(type.includes('webp')) return 'webp';
+      return 'jpg';
+    }
+
+    function readProfileImageFilePreview(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(reader.error || new Error('file-read-failed'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleProfileImageUploadFile(file) {
+      if(!currentMemberUserId) throw new Error('member-required');
+      const status = document.getElementById('profile-image-search-status');
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if(!file) return;
+      if(!allowedTypes.includes(file.type)) {
+        if(status) status.textContent = 'jpg, png, webp 이미지만 올릴 수 있어요.';
+        return;
+      }
+      if(file.size > 2 * 1024 * 1024) {
+        if(status) status.textContent = '이미지는 2MB 이하로 올려 주세요.';
+        return;
+      }
+      if(status) status.textContent = '이미지 미리보기를 준비하고 있습니다...';
+      const previewUrl = await readProfileImageFilePreview(file);
+      openProfileImageEditor({
+        source: 'upload',
+        file,
+        previewUrl,
+        label: file.name || '업로드 이미지'
+      });
+    }
+
+    function setProfileImageEditorStatus(message, isError = false) {
+      const status = document.getElementById('profile-image-editor-status');
+      if(!status) return;
+      status.textContent = message;
+      status.classList.toggle('is-error', isError);
+    }
+
+    function setProfileImageEditorControls(edit) {
+      const next = getProfileImageEditModel(edit);
+      const scale = document.getElementById('profile-image-editor-scale');
+      const offsetX = document.getElementById('profile-image-editor-offset-x');
+      const offsetY = document.getElementById('profile-image-editor-offset-y');
+      if(scale) scale.value = String(next.profileImageScale);
+      if(offsetX) offsetX.value = String(next.profileImageOffsetX);
+      if(offsetY) offsetY.value = String(next.profileImageOffsetY);
+    }
+
+    function updateProfileImageEditorPreview() {
+      if(!profileImageEditorState) return;
+      const scale = document.getElementById('profile-image-editor-scale');
+      const offsetX = document.getElementById('profile-image-editor-offset-x');
+      const offsetY = document.getElementById('profile-image-editor-offset-y');
+      profileImageEditorState.profileImageScale = Number(scale?.value) || 1;
+      profileImageEditorState.profileImageOffsetX = Number(offsetX?.value) || 0;
+      profileImageEditorState.profileImageOffsetY = Number(offsetY?.value) || 0;
+      const image = document.getElementById('profile-image-editor-preview-img');
+      if(image) applyProfileImageTransform(image, profileImageEditorState);
+    }
+
+    function openProfileImageEditor(options) {
+      const modal = document.getElementById('profile-image-editor-modal');
+      const image = document.getElementById('profile-image-editor-preview-img');
+      if(!modal || !image) return;
+      const currentEdit = getProfileImageEditModel(currentMemberProfile || {});
+      profileImageEditorState = {
+        source: options.source || 'candidate',
+        candidateId: options.candidateId || '',
+        imageUrl: options.imageUrl || '',
+        previewUrl: options.previewUrl || normalizeDisplayImageUrl(options.imageUrl || ''),
+        file: options.file || null,
+        label: options.label || '',
+        ...currentEdit
+      };
+      setProfileImageEditorControls(profileImageEditorState);
+      image.src = profileImageEditorState.previewUrl;
+      image.alt = `${profileImageEditorState.label || '프로필 이미지'} 미리보기`;
+      modal.hidden = false;
+      updateProfileImageEditorPreview();
+      setProfileImageEditorStatus('원 안에 들어올 위치를 맞춘 뒤 저장하세요.');
+    }
+
+    function closeProfileImageEditor() {
+      const modal = document.getElementById('profile-image-editor-modal');
+      if(modal) modal.hidden = true;
+      profileImageEditorState = null;
+    }
+
+    async function uploadProfileImageToStorage(file) {
+      const storage = getFirebaseStorage();
+      if(!storage) throw new Error('storage-unavailable');
+      await initializeAuthUser();
+      const authUid = window.firebase?.auth?.().currentUser?.uid || '';
+      if(!authUid) throw new Error('login-required');
+      const extension = getProfileImageFileExtension(file);
+      const path = `profileImages/${authUid}/${currentMemberUserId}_${Date.now()}.${extension}`;
+      const ref = storage.ref(path);
+      await ref.put(file, {
+        contentType: file.type,
+        customMetadata: {
+          memberUserId: currentMemberUserId,
+          source: 'profile-upload'
+        }
+      });
+      const downloadUrl = await ref.getDownloadURL();
+      return { downloadUrl, path };
+    }
+
+    async function saveProfileImageEditorSelection() {
+      if(!currentMemberUserId) throw new Error('member-required');
+      if(!profileImageEditorState) return;
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const saveButton = document.getElementById('profile-image-editor-save');
+      const fieldValue = getFirestoreFieldValue();
+      const edit = getProfileImageEditModel(profileImageEditorState);
+      if(saveButton) saveButton.disabled = true;
+      setProfileImageEditorStatus('프로필 이미지를 저장하고 있습니다...');
+      try {
+        let profileImageUrl = profileImageEditorState.imageUrl;
+        let profileImageStoragePath = '';
+        if(profileImageEditorState.source === 'upload') {
+          const uploaded = await uploadProfileImageToStorage(profileImageEditorState.file);
+          profileImageUrl = uploaded.downloadUrl;
+          profileImageStoragePath = uploaded.path;
+        }
+        const updateData = {
+          profileImageUrl,
+          profileImageSource: profileImageEditorState.source,
+          profileImageStoragePath,
+          profileImageScale: edit.profileImageScale,
+          profileImageOffsetX: edit.profileImageOffsetX,
+          profileImageOffsetY: edit.profileImageOffsetY,
+          updatedAt: fieldValue.serverTimestamp()
+        };
+        await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
+        currentMemberProfile = {
+          ...(currentMemberProfile || {}),
+          ...updateData
+        };
+        closeProfileImageEditor();
+        renderHomeMemberDataFromFirestore();
+      } catch(error) {
+        console.warn('Firestore profile image update failed.', error);
+        const message = profileImageEditorState.source === 'upload'
+          ? '직접 업로드는 Firebase Storage를 먼저 켠 뒤 사용할 수 있어요. 지금은 검색 이미지 선택을 사용해 주세요.'
+          : '이미지 저장 중 문제가 생겼어요.';
+        setProfileImageEditorStatus(message, true);
+      } finally {
+        if(saveButton) saveButton.disabled = false;
+      }
     }
 
     async function saveProfileRankingMessageFromHome() {
@@ -2204,6 +2680,7 @@
         image.alt = `${normalizeRankingDisplayName(row)} 프로필`;
         image.loading = 'lazy';
         image.referrerPolicy = 'no-referrer';
+        applyProfileImageTransform(image, row);
         image.addEventListener('error', () => {
           root.innerHTML = '';
           root.textContent = fallbackText;
@@ -2340,6 +2817,9 @@
         displayName: profile.nickname || row.displayName || row.nickname || row.name,
         nickname: profile.nickname || row.nickname || row.displayName || row.name,
         profileImageUrl: profile.profileImageUrl || row.profileImageUrl || '',
+        profileImageScale: profile.profileImageScale ?? row.profileImageScale,
+        profileImageOffsetX: profile.profileImageOffsetX ?? row.profileImageOffsetX,
+        profileImageOffsetY: profile.profileImageOffsetY ?? row.profileImageOffsetY,
         rankingMessage: profile.rankingMessage || row.rankingMessage || '',
         selectedTitleId: profile.selectedTitleId || row.selectedTitleId || '',
         selectedTitle: profile.selectedTitleName || getKnownTitleName(profile.selectedTitleId) || row.selectedTitle || '',
@@ -2370,6 +2850,9 @@
           classNumber: data.classNumber || '',
           studentNumber: data.studentNumber || '',
           profileImageUrl: data.profileImageUrl || '',
+          profileImageScale: data.profileImageScale,
+          profileImageOffsetX: data.profileImageOffsetX,
+          profileImageOffsetY: data.profileImageOffsetY,
           rankingMessage: data.rankingMessage || '',
           selectedTitleId: data.selectedTitleId || '',
           selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || ''
@@ -2384,6 +2867,17 @@
           if(!titleSnapshot?.exists) return;
           const titleData = titleSnapshot.data() || {};
           missingTitleNameUsers[index].selectedTitleName = titleData.titleName || titleData.name || '';
+        });
+      }
+      const stillMissingTitleUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);
+      if(stillMissingTitleUsers.length) {
+        const catalogSnapshots = await Promise.all(stillMissingTitleUsers.map(profile =>
+          db.collection('titleCatalog').doc(profile.selectedTitleId).get().catch(() => null)
+        ));
+        catalogSnapshots.forEach((titleSnapshot, index) => {
+          if(!titleSnapshot?.exists) return;
+          const titleData = titleSnapshot.data() || {};
+          stillMissingTitleUsers[index].selectedTitleName = titleData.titleName || titleData.title || titleData.name || '';
         });
       }
       return profileMap;
@@ -2728,6 +3222,13 @@
       return firestoreDbInstance;
     }
 
+    function getFirebaseStorage() {
+      if(!window.firebase?.apps?.length || !window.firebase.storage) return null;
+      if(firebaseStorageInstance) return firebaseStorageInstance;
+      firebaseStorageInstance = window.firebase.storage();
+      return firebaseStorageInstance;
+    }
+
     function getFirebaseFunctions() {
       if(!window.firebase?.apps?.length || !window.firebase.functions) return null;
       if(firebaseFunctionsInstance) return firebaseFunctionsInstance;
@@ -3026,6 +3527,11 @@
         status: data.status || 'active',
         active: data.active === true,
         profileImageUrl: data.profileImageUrl || '',
+        profileImageSource: data.profileImageSource || '',
+        profileImageStoragePath: data.profileImageStoragePath || '',
+        profileImageScale: data.profileImageScale,
+        profileImageOffsetX: data.profileImageOffsetX,
+        profileImageOffsetY: data.profileImageOffsetY,
         selectedTitleId: data.selectedTitleId || '',
         rankingMessage: data.rankingMessage || ''
       };
@@ -3961,18 +4467,13 @@
     function renderShopWallet(economy = null) {
       const root = document.getElementById('shop-wallet');
       const coin = document.createElement('strong');
-      const daily = document.createElement('strong');
       const note = document.createElement('span');
       const currentCoin = economy?.djCoin ?? USER_REWARD_DATA.coin;
 
       root.innerHTML = '';
       coin.textContent = `내 DJ코인 ${currentCoin}`;
-      daily.className = 'shop-wallet-daily';
-      daily.textContent = `오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인`;
-      note.textContent = isUsingTestUserFallback()
-        ? `테스트 사용자 ${getCurrentDataOwnerId()} 기준 구매 프로토타입입니다.`
-        : `데이터 소유자 ${getCurrentDataOwnerId()} 기준 구매 프로토타입입니다.`;
-      root.append(coin, daily, note);
+      note.textContent = currentMemberUserId ? '구매와 장착은 현재 로그인한 회원 기준으로 저장됩니다.' : '로그인 후 내 코인과 보유 아이템을 확인할 수 있습니다.';
+      root.append(coin, note);
     }
 
     function renderShopItems(items = SHOP_ITEMS, assetCatalogMap = {}, economy = null, inventoryItemIds = new Set()) {
@@ -5463,10 +5964,81 @@
     });
 
     document.getElementById('profile-card-root').addEventListener('click', event => {
+      if(event.target.closest('#profile-image-search-button')) {
+        searchProfileImageCandidatesFromHome().catch(error => {
+          console.warn('Firestore profile image search failed.', error);
+          const status = document.getElementById('profile-image-search-status');
+          if(status) status.textContent = '이미지를 검색하지 못했습니다.';
+        });
+        return;
+      }
+      if(event.target.closest('#profile-image-upload-button')) {
+        document.getElementById('profile-image-upload-input')?.click();
+        return;
+      }
+      const imageOption = event.target.closest('[data-profile-image-index]');
+      if(imageOption) {
+        saveSelectedProfileImageFromHome(imageOption.dataset.profileImageIndex).catch(error => {
+          console.warn('Firestore profile image select failed.', error);
+          const status = document.getElementById('profile-image-search-status');
+          if(status) status.textContent = '이미지를 저장하지 못했습니다.';
+        });
+        return;
+      }
       if(event.target.closest('#profile-ranking-message-save-button')) {
         saveProfileRankingMessageFromHome();
       }
     });
+
+    document.getElementById('profile-card-root').addEventListener('change', event => {
+      if(event.target?.id !== 'profile-image-upload-input') return;
+      const file = event.target.files?.[0] || null;
+      handleProfileImageUploadFile(file).catch(error => {
+        console.warn('Profile image upload preview failed.', error);
+        const status = document.getElementById('profile-image-search-status');
+        if(status) status.textContent = '이미지 업로드 준비 중 문제가 생겼어요.';
+      }).finally(() => {
+        event.target.value = '';
+      });
+    });
+
+    document.getElementById('profile-card-root').addEventListener('keydown', event => {
+      if(event.key === 'Enter' && event.target?.id === 'profile-image-search-input') {
+        event.preventDefault();
+        searchProfileImageCandidatesFromHome().catch(error => {
+          console.warn('Firestore profile image search failed.', error);
+        });
+      }
+    });
+
+    document.querySelectorAll('[data-close-profile-image-editor]').forEach(button => {
+      button.addEventListener('click', closeProfileImageEditor);
+    });
+
+    ['profile-image-editor-scale', 'profile-image-editor-offset-x', 'profile-image-editor-offset-y'].forEach(inputId => {
+      document.getElementById(inputId)?.addEventListener('input', updateProfileImageEditorPreview);
+    });
+
+    document.getElementById('profile-image-editor-reset')?.addEventListener('click', () => {
+      if(!profileImageEditorState) return;
+      profileImageEditorState = {
+        ...profileImageEditorState,
+        profileImageScale: 1,
+        profileImageOffsetX: 0,
+        profileImageOffsetY: 0
+      };
+      setProfileImageEditorControls(profileImageEditorState);
+      updateProfileImageEditorPreview();
+    });
+
+    document.getElementById('profile-image-editor-save')?.addEventListener('click', () => {
+      saveProfileImageEditorSelection().catch(error => {
+        console.warn('Profile image editor save failed.', error);
+        setProfileImageEditorStatus('이미지 저장 중 문제가 생겼어요.', true);
+      });
+    });
+
+    document.getElementById('title-catalog-button').addEventListener('click', openTitleCatalogModal);
 
     document.getElementById('title-card-grid').addEventListener('click', event => {
       const button = event.target.closest('[data-select-title-id]');

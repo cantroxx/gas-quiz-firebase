@@ -58,10 +58,28 @@ service cloud.firestore {
         && userId == resource.data.userId
         && canAccessUserScopedData(userId)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'profileImageUrl',
+          'profileImageSource',
+          'profileImageStoragePath',
+          'profileImageScale',
+          'profileImageOffsetX',
+          'profileImageOffsetY',
           'rankingMessage',
           'selectedTitleId',
           'updatedAt'
         ])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageUrl']) || request.resource.data.profileImageUrl is string)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageUrl']) || request.resource.data.profileImageUrl.size() <= 1200)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageSource']) || request.resource.data.profileImageSource is string)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageSource']) || request.resource.data.profileImageSource in ['', 'candidate', 'upload'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageStoragePath']) || request.resource.data.profileImageStoragePath is string)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageStoragePath']) || request.resource.data.profileImageStoragePath.size() <= 500)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageScale']) || request.resource.data.profileImageScale is number)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageScale']) || (request.resource.data.profileImageScale >= 0.7 && request.resource.data.profileImageScale <= 2.2))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageOffsetX']) || request.resource.data.profileImageOffsetX is number)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageOffsetX']) || (request.resource.data.profileImageOffsetX >= -45 && request.resource.data.profileImageOffsetX <= 45))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageOffsetY']) || request.resource.data.profileImageOffsetY is number)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['profileImageOffsetY']) || (request.resource.data.profileImageOffsetY >= -45 && request.resource.data.profileImageOffsetY <= 45))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rankingMessage']) || request.resource.data.rankingMessage is string)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rankingMessage']) || request.resource.data.rankingMessage.size() <= 24)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['selectedTitleId']) || request.resource.data.selectedTitleId is string)
@@ -463,6 +481,16 @@ service cloud.firestore {
 
     match /userTitleSummary/{userId} {
       allow read: if canAccessUserScopedData(userId);
+      allow write: if isAdmin();
+    }
+
+    match /titleCatalog/{titleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /profileImageCandidates/{candidateId} {
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
