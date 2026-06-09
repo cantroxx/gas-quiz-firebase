@@ -83,6 +83,10 @@ quiz-image-person-export.json
 quiz-popular-export.json
 exports/
 private/
+member-access-codes.csv
+member-access-codes.json
+member-access-codes-*.csv
+member-access-codes-*.json
 
 # dataconnect generated files
 .dataconnect
