@@ -718,6 +718,7 @@
     let currentMemberProfile = null;
     let memberLinkInProgress = false;
     let memberLinkSubmitAction = 'login';
+    let pendingPasswordChange = null;
     let userDataMigrationPromise = null;
     let firestoreDbInstance = null;
     let firebaseFunctionsInstance = null;
@@ -1740,6 +1741,31 @@
         unlinkButton.textContent = '현재 브라우저 연결 해제';
         actions.appendChild(unlinkButton);
         status.append(summary, detail, actions);
+        if(pendingPasswordChange?.memberUserId === currentMemberUserId) {
+          const changePanel = document.createElement('div');
+          const guide = document.createElement('p');
+          const newPasswordInput = document.createElement('input');
+          const confirmPasswordInput = document.createElement('input');
+          const changeButton = document.createElement('button');
+          changePanel.className = 'member-link-form';
+          guide.textContent = '임시 비밀번호로 로그인했습니다. 새 비밀번호를 설정해야 계속 사용할 수 있습니다.';
+          newPasswordInput.id = 'member-password-change-new';
+          newPasswordInput.type = 'password';
+          newPasswordInput.minLength = 4;
+          newPasswordInput.autocomplete = 'new-password';
+          newPasswordInput.placeholder = '새 비밀번호';
+          confirmPasswordInput.id = 'member-password-change-confirm';
+          confirmPasswordInput.type = 'password';
+          confirmPasswordInput.minLength = 4;
+          confirmPasswordInput.autocomplete = 'new-password';
+          confirmPasswordInput.placeholder = '새 비밀번호 확인';
+          changeButton.id = 'member-password-change-button';
+          changeButton.className = 'button primary';
+          changeButton.type = 'button';
+          changeButton.textContent = '새 비밀번호 저장';
+          changePanel.append(guide, newPasswordInput, confirmPasswordInput, changeButton);
+          status.appendChild(changePanel);
+        }
         return;
       }
 
@@ -2889,6 +2915,12 @@
 
       currentMemberUserId = result.memberUserId;
       currentMemberProfile = linkedProfile;
+      pendingPasswordChange = result.forcePasswordChange === true
+        ? {
+          memberUserId: result.memberUserId,
+          currentPassword: password
+        }
+        : null;
       maybeSaveLinkedMemberHint(result.memberUserId);
       resetUserScopedRuntimeData();
       try {
@@ -2897,6 +2929,27 @@
         console.warn('Member owned data migration after auth link failed. Auth link remains active.', error);
       }
       return linkedProfile;
+    }
+
+    async function changeCurrentMemberPassword(newPassword, passwordConfirm) {
+      if(!pendingPasswordChange?.memberUserId || pendingPasswordChange.memberUserId !== currentMemberUserId) {
+        throw new Error('password-change-not-required');
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      if(!newPassword) throw new Error('password-required');
+      if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
+
+      const changeMemberPassword = functions.httpsCallable('changeMemberPassword');
+      const response = await changeMemberPassword({
+        memberUserId: pendingPasswordChange.memberUserId,
+        currentPassword: pendingPasswordChange.currentPassword,
+        newPassword
+      });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('member-password-change-failed');
+      pendingPasswordChange = null;
+      return result;
     }
 
     async function unlinkCurrentMemberForTesting() {
@@ -2938,6 +2991,43 @@
         console.warn('Member auth unlink failed.', error);
         setMemberLinkStatus(messages[error.message] || '회원 연결 해제 중 문제가 생겼어요.', true);
         renderMemberLinkPanel();
+      }
+    }
+
+    async function handleMemberPasswordChangeClick() {
+      const button = document.getElementById('member-password-change-button');
+      const newPassword = document.getElementById('member-password-change-new')?.value || '';
+      const passwordConfirm = document.getElementById('member-password-change-confirm')?.value || '';
+      if(button) button.disabled = true;
+      const originalButtonText = button?.textContent || '새 비밀번호 저장';
+      if(button) button.textContent = '저장 중...';
+
+      try {
+        await changeCurrentMemberPassword(newPassword, passwordConfirm);
+        renderMemberLinkPanel();
+        setMemberLinkStatus('새 비밀번호가 저장됐어요. 이제 이 비밀번호로 로그인할 수 있습니다.');
+      } catch(error) {
+        const messages = {
+          'functions-unavailable': '비밀번호 변경 서버 연결을 사용할 수 없어요.',
+          'password-change-not-required': '현재 비밀번호 변경이 필요한 상태가 아닙니다.',
+          'password-required': '새 비밀번호를 입력해 주세요.',
+          'password-confirm-mismatch': '새 비밀번호 확인이 일치하지 않아요.',
+          'functions/invalid-argument': '비밀번호는 4자리 이상이어야 하고 너무 쉬운 값은 사용할 수 없어요.',
+          'functions/permission-denied': '현재 비밀번호 확인에 실패했어요. 다시 로그인해 주세요.',
+          'functions/failed-precondition': '비밀번호가 아직 등록되지 않았어요.'
+        };
+        console.warn('Member password change failed.', error);
+        const status = document.getElementById('member-link-status');
+        const errorText = document.createElement('p');
+        errorText.textContent = messages[error.message] || '비밀번호 변경 중 문제가 생겼어요.';
+        errorText.style.color = '#b3261e';
+        status?.appendChild(errorText);
+      } finally {
+        const nextButton = document.getElementById('member-password-change-button');
+        if(nextButton) {
+          nextButton.disabled = false;
+          nextButton.textContent = originalButtonText;
+        }
       }
     }
 
@@ -5036,6 +5126,7 @@
     document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
     document.getElementById('member-link-status').addEventListener('click', event => {
       if(event.target.closest('#member-unlink-button')) handleMemberUnlinkClick();
+      if(event.target.closest('#member-password-change-button')) handleMemberPasswordChangeClick();
     });
 
     document.addEventListener('keydown', event => {

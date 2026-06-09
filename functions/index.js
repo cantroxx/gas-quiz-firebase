@@ -769,6 +769,81 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
   }
 });
 
+exports.changeMemberPassword = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const currentPassword = normalizePassword(payload.currentPassword);
+  const newPassword = normalizePassword(payload.newPassword);
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const memberRef = db.collection("users").doc(memberUserId);
+      const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+      const [memberSnapshot, credentialsSnapshot] = await Promise.all([
+        transaction.get(memberRef),
+        transaction.get(credentialsRef)
+      ]);
+      if (!memberSnapshot.exists) {
+        throw new HttpsError("not-found", "Member not found.");
+      }
+      const memberData = memberSnapshot.data() || {};
+      assertActiveStudent(memberData);
+      if (memberData.authUid !== authUid) {
+        throw new HttpsError("permission-denied", "Member is not linked to current auth.");
+      }
+      if (!credentialsSnapshot.exists || !credentialsSnapshot.data()?.passwordHash) {
+        throw new HttpsError("failed-precondition", "Member password is not configured.");
+      }
+      const credentials = credentialsSnapshot.data() || {};
+      if (!verifyPassword(currentPassword, credentials)) {
+        transaction.set(credentialsRef, failedAttemptUpdate(credentials, {
+          maxFailedAttempts: MAX_FAILED_ATTEMPTS,
+          lockMinutes: 10
+        }), { merge: true });
+        throw new HttpsError("permission-denied", "Current password mismatch.");
+      }
+
+      transaction.set(credentialsRef, {
+        ...createPasswordHash(newPassword),
+        forcePasswordChange: false,
+        failedAttempts: 0,
+        lockedUntil: null,
+        passwordChangedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(memberRef, {
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return { memberUserId, memberData };
+    });
+
+    await writeMemberAuthLog({
+      action: "changeMemberPassword",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      profile: publicMemberProfile(result.memberUserId, result.memberData),
+      forcePasswordChange: false
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "changeMemberPassword",
+      result: "failure",
+      authUid,
+      memberUserId,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
 exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
