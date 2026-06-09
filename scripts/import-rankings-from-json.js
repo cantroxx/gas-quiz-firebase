@@ -16,7 +16,9 @@ function parseArgs(argv) {
     input: DEFAULT_INPUT,
     dryRun: true,
     commit: false,
-    sample: 5
+    sample: 5,
+    cutoff: '',
+    replace: false
   };
 
   for (let i = 2; i < argv.length; i += 1) {
@@ -33,7 +35,18 @@ function parseArgs(argv) {
     } else if (arg === '--sample') {
       args.sample = Number(argv[i + 1]) || args.sample;
       i += 1;
+    } else if (arg === '--cutoff') {
+      args.cutoff = argv[i + 1] || '';
+      i += 1;
+    } else if (arg.startsWith('--cutoff=')) {
+      args.cutoff = arg.slice('--cutoff='.length);
+    } else if (arg === '--replace') {
+      args.replace = true;
     }
+  }
+
+  if (args.cutoff && Number.isNaN(new Date(args.cutoff).getTime())) {
+    throw new Error('--cutoff must be a valid date string.');
   }
 
   return args;
@@ -118,6 +131,14 @@ function toFirestoreDateValue(value) {
   const date = new Date(normalized);
   if (Number.isNaN(date.getTime())) return raw;
   return admin.firestore.Timestamp.fromDate(date);
+}
+
+function dateMillis(value) {
+  const raw = normalizeString(value);
+  if (!raw) return 0;
+  const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 function extractRows(input) {
@@ -338,10 +359,17 @@ function buildQuizKingSummaries(records) {
 
 function buildImportModel(input) {
   const rawRows = extractRows(input);
+  const cutoffMillis = input.__cutoffMillis || 0;
+  const filteredRows = cutoffMillis
+    ? rawRows.filter(raw => {
+      const recordedAtMillis = dateMillis(raw && raw.recordedAt);
+      return !recordedAtMillis || recordedAtMillis < cutoffMillis;
+    })
+    : rawRows;
   const skipped = [];
   const byRecordId = new Map();
 
-  rawRows.forEach(raw => {
+  filteredRows.forEach(raw => {
     const record = transformRow(raw);
     if (record.skipped) {
       skipped.push(record);
@@ -359,7 +387,8 @@ function buildImportModel(input) {
     exportRankingCount: normalizeNumber(input.rankingCount),
     exportLegacyCount: normalizeNumber(input.legacyCount),
     totalInputRows: rawRows.length,
-    duplicateCount: rawRows.length - skipped.length - records.length,
+    filteredOutRows: rawRows.length - filteredRows.length,
+    duplicateCount: filteredRows.length - skipped.length - records.length,
     records,
     userSummaries,
     quizKingSummaries,
@@ -459,6 +488,12 @@ async function commitModel(model) {
     });
   });
 
+  if (model.replace) {
+    await deleteCollectionDocs(db, RANKING_RECORDS_COLLECTION);
+    await deleteCollectionDocs(db, USER_RANKING_SUMMARY_COLLECTION);
+    await deleteCollectionDocs(db, QUIZ_KING_SUMMARY_COLLECTION);
+  }
+
   let committed = 0;
   for (let i = 0; i < writes.length; i += 450) {
     const batch = db.batch();
@@ -470,10 +505,28 @@ async function commitModel(model) {
   console.log(`Committed ${committed} Firestore writes.`);
 }
 
+async function deleteCollectionDocs(db, collectionPath) {
+  let deleted = 0;
+  while (true) {
+    const snapshot = await db.collection(collectionPath).limit(450).get();
+    if (snapshot.empty) break;
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    deleted += snapshot.size;
+  }
+  console.log(`Deleted ${deleted} existing ${collectionPath} documents.`);
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   const input = readJson(args.input);
+  if (args.cutoff) input.__cutoffMillis = new Date(args.cutoff).getTime();
   const model = buildImportModel(input);
+  model.replace = args.replace === true;
+  if (args.cutoff) console.log(`Cutoff filter: ${args.cutoff}`);
+  if (model.filteredOutRows) console.log(`Rows filtered out by cutoff: ${model.filteredOutRows}`);
+  if (model.replace) console.log('Replace mode: rankingRecords/userRankingSummary/quizKingSummary will be rebuilt.');
   summarize(model, args.sample);
 
   if (!args.commit) {

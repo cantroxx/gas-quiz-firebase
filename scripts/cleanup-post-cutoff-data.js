@@ -64,7 +64,8 @@ function parseArgs(argv) {
   const args = {
     cutoff: DEFAULT_CUTOFF,
     sample: DEFAULT_SAMPLE_LIMIT,
-    commit: false
+    commit: false,
+    resetEconomy: false
   };
 
   for (let index = 2; index < argv.length; index += 1) {
@@ -73,6 +74,8 @@ function parseArgs(argv) {
       args.commit = true;
     } else if (arg === '--dry-run') {
       args.commit = false;
+    } else if (arg === '--reset-economy') {
+      args.resetEconomy = true;
     } else if (arg === '--cutoff') {
       index += 1;
       if (!argv[index]) throw new Error('--cutoff requires an ISO date string.');
@@ -207,6 +210,15 @@ async function collectInventoryDeletesFromPurchases(db, purchaseCandidates) {
   return deletes;
 }
 
+async function collectCollectionDocs(db, path) {
+  const snapshot = await db.collection(path).get();
+  return snapshot.docs.map(doc => ({
+    ref: doc.ref,
+    path: doc.ref.path,
+    data: doc.data() || {}
+  }));
+}
+
 async function deleteInBatches(refs) {
   const db = admin.firestore();
   let deleted = 0;
@@ -225,6 +237,7 @@ async function main() {
   const db = admin.firestore();
 
   console.log(args.commit ? 'POST-CUTOFF CLEANUP COMMIT MODE' : 'Post-cutoff cleanup dry-run only. No Firestore writes will be performed.');
+  if (args.resetEconomy) console.log('Economy reset enabled: all userEconomy documents will be deleted.');
   console.log(`Cutoff local input: ${args.cutoff}`);
   console.log(`Cutoff UTC: ${args.cutoffDate.toISOString()}`);
   console.log('');
@@ -263,10 +276,28 @@ async function main() {
   });
   console.log('');
 
+  if (args.resetEconomy) {
+    const economyDocs = await collectCollectionDocs(db, 'userEconomy');
+    economyDocs.forEach(item => refsToDelete.push(item.ref));
+    console.log('[delete userEconomy reset]');
+    console.log(`deleteCount: ${economyDocs.length}`);
+    economyDocs.slice(0, args.sample).forEach(item => {
+      console.log(JSON.stringify({
+        path: item.path,
+        userId: item.data.userId || item.path.split('/').pop(),
+        djCoin: item.data.djCoin ?? '',
+        source: item.data.source || item.data.migrationSource || ''
+      }));
+    });
+    console.log('');
+  }
+
   for (const target of REVIEW_TARGETS) {
     const result = await collectCandidates(db, target, args.cutoffTimestamp);
     const cleanupCandidates = result.candidates.filter(candidate => !isBaselineImportOnly(candidate));
-    const deleteCandidates = cleanupCandidates.filter(candidate => !isGasMigrated(candidate));
+    const deleteCandidates = target.label === 'userRoomSettings'
+      ? cleanupCandidates
+      : cleanupCandidates.filter(candidate => !isGasMigrated(candidate));
     const restoreCandidates = cleanupCandidates.filter(candidate => isGasMigrated(candidate));
 
     if (restoreCandidates.length && target.restoreCommand) restoreCommands.add(target.restoreCommand);
@@ -274,15 +305,16 @@ async function main() {
       if (cleanupCandidates.length && target.restoreCommand) restoreCommands.add(target.restoreCommand);
     }
 
-    if (target.label === 'practiceRecords') {
+    if (target.label === 'practiceRecords' || target.label === 'userRoomSettings') {
       deleteCandidates.forEach(candidate => refsToDelete.push(candidate.ref));
     }
 
     console.log(`[review ${target.label}]`);
     console.log(`candidateCount: ${result.candidates.length}`);
     console.log(`cleanupCandidateCount: ${cleanupCandidates.length}`);
-    console.log(`directDeleteCount: ${target.label === 'practiceRecords' ? deleteCandidates.length : 0}`);
-    console.log(`restoreOrManualReviewCount: ${cleanupCandidates.length - (target.label === 'practiceRecords' ? deleteCandidates.length : 0)}`);
+    const directDeleteCount = (target.label === 'practiceRecords' || target.label === 'userRoomSettings') ? deleteCandidates.length : 0;
+    console.log(`directDeleteCount: ${directDeleteCount}`);
+    console.log(`restoreOrManualReviewCount: ${cleanupCandidates.length - directDeleteCount}`);
     if (result.errors.length) console.log(`queryErrors: ${JSON.stringify(result.errors)}`);
     cleanupCandidates.slice(0, args.sample).forEach(candidate => console.log(JSON.stringify(summarizeCandidate(candidate))));
     console.log('');
@@ -297,8 +329,12 @@ async function main() {
   if (restoreCommands.size) {
     Array.from(restoreCommands).forEach(command => console.log(command));
   }
-  console.log('- userEconomy balances need explicit baseline restore or manual adjustment; member-export.json does not include economy fields.');
-  console.log('- userRoomSettings candidates are review-only in this script.');
+  if (args.resetEconomy) {
+    console.log('- userEconomy is reset by deleting all userEconomy documents; the app starts missing wallets at 0 DJ coin.');
+  } else {
+    console.log('- userEconomy balances need explicit baseline restore or manual adjustment; member-export.json does not include economy fields.');
+  }
+  console.log('- userRoomSettings post-cutoff candidates are deleted with the cleanup batch.');
   console.log('');
 
   if (!args.commit) return;
