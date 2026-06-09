@@ -542,7 +542,7 @@
    - 회원 접속 코드 검증 callable은 배포 및 브라우저 확인 완료
    - 연습전 정답 보상 지급은 `grantPracticeReward` callable 기반으로 전환 중이다.
    - 중복 지급 방지는 `rewardLogs/{deterministicId}`로 처리한다.
-   - 상점 구매 callable은 아직 `unimplemented` 상태다.
+   - 상점 구매는 `purchaseShopItem` callable 기반으로 전환 중이다.
    - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
    - `userInventory` 직접 추가 방지
    - `purchaseLogs` 서버 생성 구조 검토

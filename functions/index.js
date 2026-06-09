@@ -340,11 +340,98 @@ exports.linkMemberAuthUid = onCall({ region: REGION }, async request => {
 });
 
 exports.purchaseShopItem = onCall({ region: REGION }, async request => {
-  requireAuth(request);
-  throw new HttpsError(
-    "unimplemented",
-    "purchaseShopItem is scaffolded for the next migration phase and is not active yet."
-  );
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const itemId = normalizeId(payload.itemId, "itemId");
+
+  const result = await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+
+    const itemRef = db.collection("shopItems").doc(itemId);
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const inventoryRef = db.collection("userInventory").doc(memberUserId).collection("items").doc(itemId);
+    const purchaseLogRef = db.collection("purchaseLogs").doc();
+
+    const [itemSnapshot, economySnapshot, inventorySnapshot] = await Promise.all([
+      transaction.get(itemRef),
+      transaction.get(economyRef),
+      transaction.get(inventoryRef)
+    ]);
+
+    if (!itemSnapshot.exists) {
+      throw new HttpsError("not-found", "Shop item not found.");
+    }
+    if (inventorySnapshot.exists) {
+      throw new HttpsError("already-exists", "Shop item is already owned.");
+    }
+
+    const item = itemSnapshot.data() || {};
+    if (item.enabled !== true) {
+      throw new HttpsError("failed-precondition", "Shop item is disabled.");
+    }
+    if (item.priceType && item.priceType !== "djCoin") {
+      throw new HttpsError("failed-precondition", "Unsupported price type.");
+    }
+
+    const price = Number(item.price);
+    if (!Number.isFinite(price) || price < 0) {
+      throw new HttpsError("failed-precondition", "Invalid shop item price.");
+    }
+
+    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+    const djCoin = Number(economy.djCoin ?? economy.coin ?? 0);
+    if (!Number.isFinite(djCoin) || djCoin < price) {
+      throw new HttpsError("failed-precondition", "Not enough DJ coins.");
+    }
+
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      djCoin: djCoin - price,
+      totalSpent: FieldValue.increment(price),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(inventoryRef, {
+      userId: memberUserId,
+      itemId,
+      assetId: item.assetId || "",
+      source: "shopPurchaseFunction",
+      pricePaid: price,
+      priceType: "djCoin",
+      equipped: false,
+      acquiredAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(purchaseLogRef, {
+      logId: purchaseLogRef.id,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      itemId,
+      assetId: item.assetId || "",
+      coinDelta: -price,
+      pricePaid: price,
+      priceType: "djCoin",
+      inventoryPath: inventoryRef.path,
+      serverVerified: true,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      itemId,
+      pricePaid: price,
+      nextDjCoin: djCoin - price,
+      inventoryPath: inventoryRef.path,
+      purchaseLogPath: purchaseLogRef.path
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    ...result
+  };
 });
 
 exports.grantPracticeReward = onCall({ region: REGION }, async request => {

@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DJ48 퀴즈타운</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
@@ -2323,7 +2324,6 @@
       firestoreDbInstance = window.firebase.firestore();
       try {
         firestoreDbInstance.settings({
-          experimentalAutoDetectLongPolling: true,
           ignoreUndefinedProperties: true,
           merge: true
         });
@@ -3467,75 +3467,22 @@
     }
 
     async function purchaseShopItem(itemId) {
-      const db = getFirestoreDb();
-      if(!db) {
-        showShopPurchaseMessage('구매 기능을 불러올 수 없어요.');
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        showShopPurchaseMessage('구매 서버를 불러올 수 없어요.');
         return;
       }
 
       try {
         await prepareMemberOwnedData();
         const userId = requireCurrentDataOwnerId();
-        const itemRef = db.collection('shopItems').doc(itemId);
-        const economyRef = db.collection('userEconomy').doc(userId);
-        const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
-        const purchaseLogRef = db.collection('purchaseLogs').doc();
-
-        const [itemSnapshot, economySnapshot, inventorySnapshot] = await Promise.all([
-          itemRef.get(),
-          economyRef.get(),
-          inventoryRef.get()
-        ]);
-
-        if(!itemSnapshot.exists) throw new Error('item-not-found');
-        if(!economySnapshot.exists) throw new Error('economy-not-found');
-        if(inventorySnapshot.exists) throw new Error('already-owned');
-
-        const item = itemSnapshot.data();
-        const economy = economySnapshot.data();
-        const price = Number(item.price);
-        const djCoin = Number(economy.djCoin ?? economy.coin);
-
-        if(item.enabled !== true) throw new Error('item-disabled');
-        if(item.priceType && item.priceType !== 'djCoin') throw new Error('unsupported-price-type');
-        if(!Number.isFinite(price) || price < 0) throw new Error('invalid-price');
-        if(!Number.isFinite(djCoin) || djCoin < price) throw new Error('coin-short');
-
-        const fieldValue = getFirestoreFieldValue();
-        const now = fieldValue.serverTimestamp();
-        const batch = db.batch();
-
-        batch.update(economyRef, {
-          djCoin: djCoin - price,
-          totalSpent: fieldValue.increment(price),
-          updatedAt: now
+        const callPurchaseShopItem = functions.httpsCallable('purchaseShopItem');
+        const response = await callPurchaseShopItem({
+          memberUserId: userId,
+          itemId
         });
-
-        batch.set(inventoryRef, {
-          userId,
-          itemId,
-          assetId: item.assetId || '',
-          source: 'shopPurchase',
-          pricePaid: price,
-          priceType: 'djCoin',
-          equipped: false,
-          acquiredAt: now,
-          updatedAt: now
-        });
-
-        batch.set(purchaseLogRef, {
-          logId: purchaseLogRef.id,
-          userId,
-          itemId,
-          assetId: item.assetId || '',
-          coinDelta: -price,
-          pricePaid: price,
-          priceType: 'djCoin',
-          inventoryPath: inventoryRef.path,
-          serverVerified: false,
-          createdAt: now
-        });
-        await batch.commit();
+        const result = response?.data || {};
+        if(!result.success) throw new Error('purchase-function-failed');
 
         resetShopRuntimeData();
         await renderShopFromFirestore();
@@ -3543,6 +3490,12 @@
       } catch(error) {
         const messages = {
           'login-required': '로그인 후 구매할 수 있어요.',
+          'member-not-linked': '회원 연결 후 구매할 수 있어요.',
+          'functions/not-found': '아이템 정보를 찾을 수 없어요.',
+          'functions/already-exists': '이미 보유한 아이템이에요.',
+          'functions/failed-precondition': '구매 조건을 만족하지 못했어요. 코인과 아이템 상태를 확인해 주세요.',
+          'functions/permission-denied': '현재 로그인 정보로는 구매할 수 없어요.',
+          'functions/invalid-argument': '구매 요청 정보가 올바르지 않아요.',
           'item-not-found': '아이템 정보를 찾을 수 없어요.',
           'economy-not-found': '테스트 사용자 지갑 정보를 찾을 수 없어요.',
           'already-owned': '이미 보유한 아이템이에요.',
