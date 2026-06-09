@@ -1,45 +1,52 @@
-# Firebase Functions Scaffold
+# Firebase Functions
 
-This directory prepares the next security migration phase.
+This directory contains the server-verified Firebase MVP actions.
 
 ## Callable functions
 
-- `verifyMemberAccessCode`: validates school, grade, class, number, and a teacher-issued access code.
-- `linkMemberAuthUid`: connects or relinks `users/{memberUserId}.authUid` after server verification.
+- `startMemberPasswordSetup`: validates school, grade, class, number, and the existing nickname during the initial password setup window.
+- `setMemberPassword`: stores the first password hash after a valid setup session.
+- `loginMemberWithPassword`: validates school, grade, class, number, and password, then links/relinks `users/{memberUserId}.authUid`.
+- `changeMemberPassword`: changes a linked member password, including forced changes after an admin reset.
 - `purchaseShopItem`: validates shop purchases and writes economy, inventory, and purchase logs.
 - `grantPracticeReward`: grants one DJ coin for a newly recorded practice correct answer.
 
-## Access code documents
+## Password setup settings
 
-The member verification functions expect server-managed documents at:
+Initial password setup is controlled by:
 
-`memberAccessCodes/{memberUserId}`
+`authSettings/memberPasswordSetup`
 
 Supported fields:
 
-- `active`: boolean
-- `salt`: string
-- `codeHash`: SHA-256 hex of `salt + ":" + accessCode`
-- `expiresAt`: optional Firestore Timestamp
-- `failedAttempts`: optional number
-- `maxFailedAttempts`: optional number
-- `oneTime` or `consumeOnUse`: optional boolean
-
-Do not store raw access codes in Firestore.
-
-## Issuing codes
+- `setupEnabled`: boolean
+- `setupExpiresAt`: Firestore Timestamp
+- `nicknameCheckEnabled`: boolean, currently expected true
+- `minPasswordLength`: number, currently 4
+- `maxFailedAttempts`: number
+- `lockMinutes`: number
 
 Use the Admin SDK script from the project root:
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/generate-member-access-codes.js --dry-run --grade 4 --class 8
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/generate-member-access-codes.js --commit --grade 4 --class 8 --expires-days 30 --output private/member-access-codes-4-8.csv
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --dry-run
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --commit --enable --expires-at 2026-06-17T23:59:59+09:00
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --commit --disable
 ```
 
-The output CSV contains raw access codes and is ignored by git.
+## Password reset
+
+Admin reset is intentionally script-only for the MVP. The reset writes a temporary password and sets `forcePasswordChange: true`.
+
+```sh
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/reset-member-password.js --dry-run --grade 4 --class 8 --number 22
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/reset-member-password.js --commit --grade 4 --class 8 --number 22
+```
+
+Default temporary password format is `grade + class + number`, for example `4822`.
 
 ## Current status
 
-- No Functions deploy has been performed.
-- Existing Hosting and Firestore client flows remain active.
-- Client member linking has not yet been switched to these callables.
+- Password login functions are deployed.
+- Client member linking uses password callables.
+- Access-code callables may remain in code for backward compatibility, but the active UI no longer uses access codes.
