@@ -20,13 +20,24 @@
     </section>
 
     <section id="login-view" class="login-view app-view" aria-labelledby="member-link-heading">
+      <div class="login-town-decor" aria-hidden="true">
+        <span class="login-sun"></span>
+        <span class="login-cloud login-cloud-left"></span>
+        <span class="login-cloud login-cloud-right"></span>
+        <span class="login-tree login-tree-left"></span>
+        <span class="login-tree login-tree-right"></span>
+        <span class="login-path"></span>
+        <span class="login-grass login-grass-left"></span>
+        <span class="login-grass login-grass-right"></span>
+      </div>
       <div class="login-panel">
-        <div class="collection-heading">
-          <p class="eyebrow">Login</p>
+        <div class="collection-heading login-sign">
+          <p class="eyebrow">Quiz Town Gate</p>
           <h2 id="member-link-heading">로그인</h2>
+          <p class="login-welcome">어서오세요! 로그인하고 나만의 마을로 들어가요.</p>
         </div>
         <details class="login-help">
-          <summary>처음 오셨나요?</summary>
+          <summary><span aria-hidden="true">🌱</span> 처음 왔어요 · 비밀번호 만들기 안내</summary>
           <div class="login-help-body">
             <p>처음 접속하면 학교, 학년, 반, 번호와 기존 닉네임을 입력하고 <strong>처음 비밀번호 만들기</strong>를 누릅니다.</p>
             <p>비밀번호는 4자리 이상으로 만들고, 다음부터는 학교, 학년, 반, 번호, 비밀번호로 <strong>로그인</strong>합니다.</p>
@@ -102,7 +113,6 @@
           <span class="fence fence-right"></span>
 
           <span class="pond small-pond"></span>
-          <span class="sign-board">안내</span>
 
           <span class="npc npc-guide">
             <span class="npc-head"></span>
@@ -131,14 +141,9 @@
           <span class="player-name">DJ48 학생</span>
         </div>
 
-        <button class="place central-plaza" type="button" data-place="central">
-          <span class="place-art plaza-art" aria-hidden="true">
-            <span class="plaza-tree"></span>
-            <span class="plaza-fountain"></span>
-            <span class="plaza-tree"></span>
-          </span>
-          <span class="place-name">중앙 광장</span>
-          <span class="place-tag">모임</span>
+        <button class="notice-board-button" type="button" data-place="notice">
+          <span class="notice-board-icon" aria-hidden="true"></span>
+          <span>알림판</span>
         </button>
 
         <button class="place my-home" type="button" data-place="home">
@@ -196,7 +201,7 @@
       </div>
 
       <nav class="map-buttons" aria-label="지도 이동 버튼">
-        <button type="button" data-place="central">중앙 광장</button>
+        <button type="button" data-place="notice">알림판</button>
         <button type="button" data-place="home">내 집</button>
         <button type="button" data-place="school">학교</button>
         <button type="button" data-place="shop">상점</button>
@@ -208,15 +213,15 @@
         <span class="player-status-avatar" aria-hidden="true">🙂</span>
         <div>
           <p class="player-status-name">DJ48 학생</p>
-          <p class="player-status-location">현재 위치: <strong id="current-location">중앙 광장</strong></p>
+          <p class="player-status-location">현재 위치: <strong id="current-location">타운 입구</strong></p>
         </div>
       </aside>
 
       <aside class="place-info" aria-live="polite">
-        <span id="place-info-icon" class="place-info-icon" aria-hidden="true">🌳</span>
+        <span id="place-info-icon" class="place-info-icon" aria-hidden="true"></span>
         <div>
-          <h3 id="place-info-title">중앙 광장</h3>
-          <p id="place-info-desc">친구 소식, 공지, 오늘의 추천 활동을 보여줄 중심 공간입니다.</p>
+          <h3 id="place-info-title">알림판</h3>
+          <p id="place-info-desc">공지와 오늘 추천 활동을 확인하고 바로 이동할 수 있습니다.</p>
         </div>
       </aside>
     </section>
@@ -246,7 +251,7 @@
         <section class="collection-panel" aria-labelledby="badge-list-heading">
           <div class="collection-heading">
             <p class="eyebrow">Badges</p>
-            <h3 id="badge-list-heading">보유 뱃지</h3>
+            <h3 id="badge-list-heading">뱃지·연습 현황</h3>
           </div>
           <div id="badge-card-grid" class="collection-grid"></div>
         </section>
@@ -409,7 +414,7 @@
         <div id="modal-icon" class="modal-icon" aria-hidden="true">🌳</div>
         <div>
           <p id="modal-kicker" class="modal-kicker">Town Guide</p>
-          <h2 id="modal-title">중앙 광장</h2>
+          <h2 id="modal-title">알림판</h2>
           <p id="modal-desc">퀴즈타운의 중심 공간입니다.</p>
         </div>
       </div>
@@ -428,20 +433,21 @@
   <script src="/__/firebase/init.js"></script>
   <script>
     const PLACE_DETAILS = {
-      central: {
-        icon: '🌳',
-        title: '중앙 광장',
-        kicker: 'Town Guide',
-        desc: '친구 소식, 공지, 오늘의 추천 활동을 보여줄 중심 공간입니다.',
-        summary: '퀴즈타운에 처음 들어오면 들르는 안내 장소입니다.',
+      notice: {
+        icon: '',
+        title: '알림판',
+        kicker: 'Notice Board',
+        desc: '공지와 오늘 추천 활동을 확인하고 바로 이동할 수 있습니다.',
+        summary: '관리자 공지, 오늘의 퀘스트, 이벤트 추천 퀴즈를 보여줄 타운 알림판입니다.',
         features: [
-          { label: '오늘의 알림', value: '퀴즈타운 운영 준비 중' },
-          { label: '추천 이동 장소', value: '학교와 내 집을 먼저 둘러보세요' },
-          { label: '타운 안내', value: '각 건물을 눌러 장소별 화면을 확인합니다' }
+          { label: '공지', value: '오늘도 연습전과 랭킹전을 자유롭게 이용할 수 있어요' },
+          { label: '오늘의 퀘스트', value: '이벤트 광장에서 개인 미션을 확인하세요' },
+          { label: '추천 퀴즈', value: '학교에서 과목관을 골라 바로 시작하세요' }
         ],
         actions: [
-          { label: '공지 보기 준비 중', enabled: false },
-          { label: '추천 장소 이동 준비 중', enabled: false }
+          { label: '학교로 바로가기', enabled: true, action: 'openSchool' },
+          { label: '이벤트 보기', enabled: true, action: 'openEvent' },
+          { label: '랭킹 보기', enabled: true, action: 'openRanking' }
         ]
       },
       home: {
@@ -457,7 +463,7 @@
         ],
         actions: [
           { label: '내 집 입장하기', enabled: true, action: 'openHome' },
-          { label: '프로필 편집 준비 중', enabled: false }
+          { label: '한마디·칭호 설정하기', enabled: true, action: 'openHome' }
         ]
       },
       school: {
@@ -501,7 +507,7 @@
         features: [
           { label: '퀴즈왕', value: '종합 요약 표시' },
           { label: '카테고리 랭킹', value: '국어/사회/수학 분리' },
-          { label: '최근 기록', value: '최근 랭킹전 기록 표시' }
+          { label: '인기 퀴즈 랭킹', value: '아재개그/아이돌/애니 표시' }
         ],
         actions: [
           { label: '랭킹 광장 입장하기', enabled: true, action: 'openRanking' },
@@ -600,6 +606,15 @@
         desc: '책 속 인물과 사건을 꼼꼼히 살펴보는 학생에게 어울리는 칭호입니다.'
       }
     ];
+    const TITLE_NAME_BY_ID = {
+      legend_quiz_king: '전설의 퀴즈왕',
+      korean_master: '국어 마스터',
+      three_kingdoms_expert: '삼국시대 전문가',
+      reading_king: '독서왕',
+      reading_gmo_complete: '지엠오 아이 완독',
+      sparkling_newbie: '반짝이는 신입',
+      quiz_mania: '퀴즈매니아'
+    };
 
     const BADGE_DATA = [
       {
@@ -1457,7 +1472,7 @@
         showEventView();
         return;
       }
-      const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.central;
+      const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.notice;
       updatePlaceInfo(place);
       updatePlayerLocation(place);
       renderPlacePanel(place);
@@ -1507,6 +1522,11 @@
       return TITLE_DATA.find(title => title.titleId === titleId) || TITLE_DATA[0];
     }
 
+    function getKnownTitleName(titleId) {
+      const id = String(titleId || '').trim();
+      return TITLE_NAME_BY_ID[id] || '';
+    }
+
     function findBadge(badgeId) {
       return BADGE_DATA.find(badge => badge.badgeId === badgeId) || BADGE_DATA[0];
     }
@@ -1514,8 +1534,18 @@
     function renderHomeView() {
       renderProfileCard();
       renderMemberLinkPanel();
-      renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
-      renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
+      renderCollectionCards('title-card-grid', currentMemberUserId ? [{
+        titleId: 'loading',
+        icon: '🏷️',
+        name: '칭호 불러오는 중',
+        desc: '보유 칭호를 확인하고 있습니다.'
+      }] : TITLE_DATA, 'title-card');
+      renderCollectionCards('badge-card-grid', currentMemberUserId ? [{
+        badgeId: 'loading',
+        icon: '🏅',
+        name: '연습 현황 불러오는 중',
+        desc: '연습기록 기반 뱃지 현황을 확인하고 있습니다.'
+      }] : BADGE_DATA, 'badge-card');
       renderHomeOwnedItemsFallback();
       renderHomeOwnedItemsFromFirestore();
       renderHomeMemberDataFromFirestore();
@@ -1532,15 +1562,31 @@
         titleName: mainTitle.name,
         badgeName: mainBadge.name,
         coinText: `${USER_REWARD_DATA.coin} DJ코인`,
-        expText: `${USER_REWARD_DATA.exp} EXP`
+        expText: `${USER_REWARD_DATA.exp} EXP`,
+        rankingMessage: ''
       };
+    }
+
+    function normalizeDisplayImageUrl(value) {
+      const raw = String(value || '').trim();
+      if(!raw || raw === 'TODO') return '';
+      if(/^https?:\/\//.test(raw)) {
+        const fileMatch = raw.match(/\/file\/d\/([^/]+)/);
+        if(fileMatch?.[1]) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileMatch[1])}`;
+        const idMatch = raw.match(/[?&]id=([^&]+)/);
+        if(raw.includes('drive.google.com') && idMatch?.[1]) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(idMatch[1])}`;
+        return raw;
+      }
+      if(/^[A-Za-z0-9_-]{20,}$/.test(raw)) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(raw)}`;
+      return '';
     }
 
     function renderProfileAvatar(root, profile) {
       root.innerHTML = '';
-      if(profile.profileImageUrl && /^https?:\/\//.test(profile.profileImageUrl)) {
+      const profileImageUrl = normalizeDisplayImageUrl(profile.profileImageUrl);
+      if(profileImageUrl) {
         const image = document.createElement('img');
-        image.src = profile.profileImageUrl;
+        image.src = profileImageUrl;
         image.alt = `${profile.nickname || '사용자'} 프로필`;
         image.loading = 'lazy';
         image.referrerPolicy = 'no-referrer';
@@ -1575,6 +1621,12 @@
       const exp = document.createElement('p');
       const expLabel = document.createElement('span');
       const expValue = document.createElement('strong');
+      const messagePanel = document.createElement('div');
+      const messageLabel = document.createElement('label');
+      const messageRow = document.createElement('div');
+      const messageInput = document.createElement('input');
+      const messageButton = document.createElement('button');
+      const messageHelp = document.createElement('p');
 
       root.innerHTML = '';
       card.className = 'profile-card';
@@ -1587,7 +1639,7 @@
       meta.className = 'profile-meta';
       titleLabel.textContent = '칭호';
       titleValue.textContent = profile.titleName;
-      badgeLabel.textContent = '뱃지';
+      badgeLabel.textContent = '연습 현황';
       badgeValue.textContent = profile.badgeName;
       coinLabel.textContent = '보유 DJ코인';
       coinValue.textContent = profile.coinText;
@@ -1599,7 +1651,26 @@
       coin.append(coinLabel, coinValue);
       exp.append(expLabel, expValue);
       meta.append(title, badge, coin, exp);
-      body.append(name, school, meta);
+      messagePanel.className = 'profile-ranking-message-panel';
+      messageLabel.className = 'profile-ranking-message-label';
+      messageLabel.htmlFor = 'profile-ranking-message-input';
+      messageLabel.textContent = '나의 한마디';
+      messageRow.className = 'profile-ranking-message-row';
+      messageInput.id = 'profile-ranking-message-input';
+      messageInput.type = 'text';
+      messageInput.maxLength = 24;
+      messageInput.value = profile.rankingMessage || '';
+      messageInput.placeholder = '오늘도 도전!';
+      messageButton.id = 'profile-ranking-message-save-button';
+      messageButton.className = 'profile-inline-button';
+      messageButton.type = 'button';
+      messageButton.textContent = '저장';
+      messageHelp.id = 'profile-ranking-message-status';
+      messageHelp.className = 'profile-ranking-message-help';
+      messageHelp.textContent = '랭킹 단상에 최대 24자까지 표시됩니다.';
+      messageRow.append(messageInput, messageButton);
+      messagePanel.append(messageLabel, messageRow, messageHelp);
+      body.append(name, school, meta, messagePanel);
       card.append(avatar, body);
       root.appendChild(card);
     }
@@ -1622,7 +1693,8 @@
         titleId: data.titleId || doc.id,
         icon: '🏷️',
         name: data.titleName || data.name || data.titleId || doc.id,
-        desc: data.sourceCategory || data.sourceType || '운영본 타이틀현황에서 이관된 칭호입니다.'
+        desc: data.description || data.conditionText || data.sourceCategory || data.sourceType || '획득한 칭호입니다.',
+        selected: data.selected === true
       };
     }
 
@@ -1632,11 +1704,21 @@
       const total = Number(data.total) || 0;
       const starCount = Number(data.starCount) || 0;
       const progressText = total ? `${correct}/${total}` : '진행 기록 있음';
+      const rawGroup = data.group || 'other';
+      const group = rawGroup === 'daily' && (data.badgeId === 'daily_맞춤법' || data.label === '맞춤법' || data.areaKey === '일상/맞춤법')
+        ? 'korean'
+        : rawGroup;
       return {
         badgeId: data.badgeId || doc.id,
-        icon: getBadgeIconForGroup(data.group),
+        icon: getBadgeIconForGroup(group),
         name: data.label || data.badgeId || doc.id,
-        desc: `진행도 ${progressText}${starCount ? ` · 완주 ${starCount}회` : ''}`
+        desc: `진행도 ${progressText}${starCount ? ` · 완주 ${starCount}회` : ''}`,
+        group,
+        correct,
+        total,
+        starCount,
+        completed: data.completed === true,
+        progressPercent: Number(data.progressPercent) || 0
       };
     }
 
@@ -1646,13 +1728,16 @@
       if(selectedTitleName) return selectedTitleName;
       const selected = titleCards.find(title => title.titleId === selectedTitleId);
       if(selected?.name) return selected.name;
+      const knownTitleName = getKnownTitleName(selectedTitleId);
+      if(knownTitleName) return knownTitleName;
       if(hasMemberUserId) return selectedTitleId ? '선택한 칭호 없음' : '보유 칭호 없음';
       return findTitle(PROFILE_DATA.mainTitleId).name;
     }
 
     function getRepresentativeBadgeName(badgeCards, hasMemberUserId) {
-      if(badgeCards[0]?.name) return badgeCards[0].name;
-      return hasMemberUserId ? '보유 뱃지 없음' : findBadge(PROFILE_DATA.mainBadgeId).name;
+      const earnedBadge = badgeCards.find(badge => badge.completed || Number(badge.starCount) > 0);
+      if(earnedBadge?.name) return earnedBadge.name;
+      return hasMemberUserId ? '취득한 뱃지 없음' : findBadge(PROFILE_DATA.mainBadgeId).name;
     }
 
     async function loadHomeMemberDataFromFirestore() {
@@ -1700,7 +1785,8 @@
           titleName: getSelectedTitleNameFromHomeData(profile, titleSummary, titleCards, hasMemberUserId),
           badgeName: getRepresentativeBadgeName(badgeCards, hasMemberUserId),
           coinText: economy ? `${Number(economy.djCoin) || 0} DJ코인` : `${USER_REWARD_DATA.coin} DJ코인`,
-          expText: `${USER_REWARD_DATA.exp} EXP`
+          expText: `${USER_REWARD_DATA.exp} EXP`,
+          rankingMessage: profile?.rankingMessage || ''
         },
         titleCards,
         badgeCards,
@@ -1712,18 +1798,24 @@
       loadHomeMemberDataFromFirestore()
         .then(model => {
           renderProfileCard(model.profile);
-          renderCollectionCards('title-card-grid', model.titleCards.length ? model.titleCards : [{
+          const selectedTitleId = currentMemberProfile?.selectedTitleId || '';
+          const titleCards = model.titleCards.map(title => ({
+            ...title,
+            selected: title.titleId === selectedTitleId || title.selected === true,
+            actionLabel: title.titleId === selectedTitleId ? '선택됨' : '대표 칭호로 선택'
+          }));
+          renderCollectionCards('title-card-grid', titleCards.length ? titleCards : [{
             titleId: 'none',
             icon: '🏷️',
             name: '보유 칭호 없음',
-            desc: '아직 운영본 타이틀현황에서 이관된 보유 칭호가 없습니다.'
+            desc: '보유 칭호가 없습니다.'
           }], 'title-card');
-          renderCollectionCards('badge-card-grid', model.badgeCards.length ? model.badgeCards : [{
+          renderBadgeProgressGroups('badge-card-grid', model.badgeCards.length ? model.badgeCards : [{
             badgeId: 'none',
             icon: '🏅',
-            name: '보유 뱃지 없음',
-            desc: '아직 연습기록 기반 보유 뱃지가 없습니다.'
-          }], 'badge-card');
+            name: '연습 현황 없음',
+            desc: '아직 표시할 연습기록 기반 뱃지 현황이 없습니다.'
+          }]);
         })
         .catch(error => {
           console.warn('Firestore home member data read failed. Using static home fallback.', error);
@@ -1782,15 +1874,166 @@
         const title = document.createElement('h4');
         const desc = document.createElement('p');
 
-        card.className = `collection-card ${className}`;
+        card.className = `collection-card ${className}${item.selected ? ' is-selected' : ''}`;
         icon.className = 'collection-icon';
         icon.textContent = item.icon;
         title.textContent = item.name;
         desc.textContent = item.desc;
 
         card.append(icon, title, desc);
+        if(Number(item.starCount) > 0) {
+          const star = document.createElement('span');
+          star.className = 'collection-star-badge';
+          star.textContent = `★ ${Number(item.starCount)}회 완주`;
+          card.appendChild(star);
+        }
+        if(item.actionLabel && item.titleId && item.titleId !== 'none' && item.titleId !== 'loading') {
+          const button = document.createElement('button');
+          button.className = 'collection-card-action';
+          button.type = 'button';
+          button.dataset.selectTitleId = item.selected ? '' : item.titleId;
+          button.textContent = item.actionLabel;
+          card.appendChild(button);
+        }
         root.appendChild(card);
       });
+    }
+
+    function getBadgeGroupLabel(group) {
+      const labels = {
+        korean: '국어',
+        social: '사회',
+        math: '수학',
+        people: '인기·인물',
+        daily: '일상',
+        pokemon: '포켓몬',
+        other: '기타'
+      };
+      return labels[group] || labels.other;
+    }
+
+    function getBadgeGroupOrder(group) {
+      const order = ['korean', 'social', 'math', 'people', 'daily', 'pokemon', 'other'];
+      const index = order.indexOf(group);
+      return index >= 0 ? index : order.length;
+    }
+
+    function renderBadgeProgressGroups(rootId, badges) {
+      const root = document.getElementById(rootId);
+      root.innerHTML = '';
+      const groups = {};
+      badges.forEach(badge => {
+        const group = badge.group || 'other';
+        if(!groups[group]) groups[group] = [];
+        groups[group].push(badge);
+      });
+
+      Object.keys(groups)
+        .sort((a, b) => getBadgeGroupOrder(a) - getBadgeGroupOrder(b))
+        .forEach((group, index) => {
+          const details = document.createElement('details');
+          const summary = document.createElement('summary');
+          const title = document.createElement('span');
+          const count = document.createElement('strong');
+          const grid = document.createElement('div');
+          const items = groups[group].sort((a, b) => String(a.name).localeCompare(String(b.name), 'ko'));
+          const earnedCount = items.filter(item => item.completed || Number(item.starCount) > 0).length;
+
+          details.className = 'badge-progress-group';
+          details.open = false;
+          summary.className = 'badge-progress-summary';
+          title.textContent = getBadgeGroupLabel(group);
+          count.textContent = `${earnedCount}/${items.length}`;
+          grid.className = 'badge-progress-grid';
+          summary.append(title, count);
+          details.appendChild(summary);
+
+          items.forEach(item => {
+            const card = document.createElement('article');
+            const icon = document.createElement('span');
+            const name = document.createElement('h4');
+            const desc = document.createElement('p');
+            const progress = document.createElement('div');
+            const progressBar = document.createElement('span');
+            const star = document.createElement('span');
+
+            card.className = `collection-card badge-card${item.completed || item.starCount ? ' is-earned' : ''}`;
+            icon.className = 'collection-icon';
+            icon.textContent = item.icon;
+            name.textContent = item.name;
+            desc.textContent = item.desc;
+            progress.className = 'badge-progress-track';
+            progressBar.style.width = `${Math.max(0, Math.min(100, Number(item.progressPercent) || 0))}%`;
+            progress.appendChild(progressBar);
+            card.append(icon, name, desc, progress);
+            if(Number(item.starCount) > 0) {
+              star.className = 'collection-star-badge';
+              star.textContent = `★ ${Number(item.starCount)}회 완주`;
+              card.appendChild(star);
+            }
+            grid.appendChild(card);
+          });
+
+          details.appendChild(grid);
+          root.appendChild(details);
+        });
+    }
+
+    function normalizeRankingMessageInput(value) {
+      return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+    }
+
+    async function saveProfileRankingMessageFromHome() {
+      if(!currentMemberUserId) throw new Error('member-required');
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const input = document.getElementById('profile-ranking-message-input');
+      const status = document.getElementById('profile-ranking-message-status');
+      const button = document.getElementById('profile-ranking-message-save-button');
+      const message = normalizeRankingMessageInput(input?.value || '');
+      const fieldValue = getFirestoreFieldValue();
+      if(button) button.disabled = true;
+      if(status) status.textContent = '한마디를 저장하고 있습니다...';
+      try {
+        await db.collection('users').doc(currentMemberUserId).set({
+          rankingMessage: message,
+          updatedAt: fieldValue.serverTimestamp()
+        }, { merge: true });
+        currentMemberProfile = {
+          ...(currentMemberProfile || {}),
+          rankingMessage: message
+        };
+        if(input) input.value = message;
+        if(status) status.textContent = message ? '한마디를 저장했습니다.' : '한마디를 비웠습니다.';
+      } catch(error) {
+        console.warn('Firestore profile ranking message update failed.', error);
+        if(status) status.textContent = '한마디 저장 중 문제가 생겼어요.';
+      } finally {
+        if(button) button.disabled = false;
+      }
+    }
+
+    async function saveProfileSelectedTitleFromHome(titleId) {
+      if(!currentMemberUserId) throw new Error('member-required');
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const selectedTitleId = String(titleId || '').trim();
+      if(selectedTitleId) {
+        const titleSnapshot = await db.collection('userTitles').doc(currentMemberUserId).collection('titles').doc(selectedTitleId).get();
+        if(!titleSnapshot.exists) throw new Error('title-not-owned');
+      }
+      const fieldValue = getFirestoreFieldValue();
+      await db.collection('users').doc(currentMemberUserId).set({
+        selectedTitleId,
+        updatedAt: fieldValue.serverTimestamp()
+      }, { merge: true });
+      currentMemberProfile = {
+        ...(currentMemberProfile || {}),
+        selectedTitleId
+      };
+      renderHomeMemberDataFromFirestore();
     }
 
     function renderHomeOwnedItemsFallback() {
@@ -1943,6 +2186,34 @@
       return String(data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
     }
 
+    function createRankingTitleChip(row) {
+      const titleText = String(row?.selectedTitle || row?.selectedTitleName || getKnownTitleName(row?.selectedTitleId)).trim();
+      if(!titleText) return null;
+      const chip = document.createElement('span');
+      chip.className = 'ranking-title-chip';
+      chip.textContent = titleText;
+      return chip;
+    }
+
+    function renderRankingAvatar(root, row, fallbackText) {
+      root.innerHTML = '';
+      const imageUrl = normalizeDisplayImageUrl(row?.profileImageUrl);
+      if(imageUrl) {
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.alt = `${normalizeRankingDisplayName(row)} 프로필`;
+        image.loading = 'lazy';
+        image.referrerPolicy = 'no-referrer';
+        image.addEventListener('error', () => {
+          root.innerHTML = '';
+          root.textContent = fallbackText;
+        }, { once: true });
+        root.appendChild(image);
+        return;
+      }
+      root.textContent = fallbackText;
+    }
+
     function buildRankingRecordCard(rankId, icon, label, record) {
       if(!record) {
         return {
@@ -2056,14 +2327,85 @@
       return { recordId: doc.id, ...doc.data() };
     }
 
+    function getRankingMemberUserId(row) {
+      return String(row?.memberUserId || row?.userId || '').trim();
+    }
+
+    function mergeRankingRowWithMemberProfile(row, profileMap) {
+      const memberUserId = getRankingMemberUserId(row);
+      const profile = memberUserId ? profileMap[memberUserId] : null;
+      if(!profile) return row;
+      return {
+        ...row,
+        displayName: profile.nickname || row.displayName || row.nickname || row.name,
+        nickname: profile.nickname || row.nickname || row.displayName || row.name,
+        profileImageUrl: profile.profileImageUrl || row.profileImageUrl || '',
+        rankingMessage: profile.rankingMessage || row.rankingMessage || '',
+        selectedTitleId: profile.selectedTitleId || row.selectedTitleId || '',
+        selectedTitle: profile.selectedTitleName || getKnownTitleName(profile.selectedTitleId) || row.selectedTitle || '',
+        school: profile.school || row.school || '',
+        grade: profile.grade || row.grade || '',
+        classNo: profile.classNumber || row.classNo || '',
+        number: profile.studentNumber || row.number || ''
+      };
+    }
+
+    async function loadMemberProfilesForRankingRows(db, rows) {
+      const userIds = Array.from(new Set(rows.map(getRankingMemberUserId).filter(Boolean))).slice(0, 60);
+      if(!userIds.length) return {};
+      const snapshots = await Promise.all(userIds.map(userId => Promise.all([
+        db.collection('users').doc(userId).get().catch(() => null),
+        db.collection('userTitleSummary').doc(userId).get().catch(() => null)
+      ])));
+      const profileMap = {};
+      snapshots.forEach(([userSnapshot, titleSummarySnapshot], index) => {
+        if(!userSnapshot?.exists) return;
+        const data = userSnapshot.data() || {};
+        const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() || {} : {};
+        profileMap[userIds[index]] = {
+          userId: userIds[index],
+          nickname: data.nickname || data.name || '',
+          school: data.school || '',
+          grade: data.grade || '',
+          classNumber: data.classNumber || '',
+          studentNumber: data.studentNumber || '',
+          profileImageUrl: data.profileImageUrl || '',
+          rankingMessage: data.rankingMessage || '',
+          selectedTitleId: data.selectedTitleId || '',
+          selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || ''
+        };
+      });
+      const missingTitleNameUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);
+      if(missingTitleNameUsers.length) {
+        const titleSnapshots = await Promise.all(missingTitleNameUsers.map(profile =>
+          db.collection('userTitles').doc(profile.userId).collection('titles').doc(profile.selectedTitleId).get().catch(() => null)
+        ));
+        titleSnapshots.forEach((titleSnapshot, index) => {
+          if(!titleSnapshot?.exists) return;
+          const titleData = titleSnapshot.data() || {};
+          missingTitleNameUsers[index].selectedTitleName = titleData.titleName || titleData.name || '';
+        });
+      }
+      return profileMap;
+    }
+
     async function loadLimitedRankingRecordsForPlaza(db) {
-      const snapshot = await db.collection('rankingRecords')
-        .where('rankingMode', '==', 'normal')
-        .limit(300)
-        .get();
-      return snapshot.docs
-        .map(normalizeRankingRecordFromFirestore)
-        .filter(record => RANKING_PLAZA_CATEGORY_KEYS.includes(record.categoryKey));
+      const snapshots = await Promise.all(RANKING_PLAZA_CATEGORY_KEYS.map(categoryKey =>
+        db.collection('rankingRecords')
+          .where('categoryKey', '==', categoryKey)
+          .limit(80)
+          .get()
+      ));
+      const byRecordId = new Map();
+      snapshots.forEach(snapshot => {
+        snapshot.docs.map(normalizeRankingRecordFromFirestore).filter(record => {
+          const mode = String(record.rankingMode || '').trim();
+          return !mode || mode === 'normal' || mode === 'legacy';
+        }).forEach(record => {
+          byRecordId.set(record.recordId, record);
+        });
+      });
+      return Array.from(byRecordId.values());
     }
 
     function renderRankingBoards(model) {
@@ -2167,6 +2509,7 @@
         const body = document.createElement('div');
         const name = document.createElement('p');
         const meta = document.createElement('p');
+        const message = document.createElement('p');
         const score = document.createElement('p');
 
         item.className = 'ranking-board-row';
@@ -2176,11 +2519,18 @@
         meta.className = 'ranking-board-meta';
         score.className = 'ranking-board-score';
         rank.textContent = `${index + 4}`;
-        name.textContent = normalizeRankingDisplayName(row);
+        const titleChip = createRankingTitleChip(row);
+        if(titleChip) name.appendChild(titleChip);
+        name.appendChild(document.createTextNode(normalizeRankingDisplayName(row)));
         meta.textContent = board.meta(row);
+        if(row.rankingMessage) {
+          message.className = 'ranking-list-message';
+          message.textContent = `💬 ${String(row.rankingMessage).slice(0, 24)}`;
+        }
         score.textContent = board.score(row);
 
         body.append(name, meta);
+        if(row.rankingMessage) body.appendChild(message);
         item.append(rank, body, score);
         list.appendChild(item);
       });
@@ -2205,12 +2555,24 @@
       meta.className = 'ranking-card-meta';
       score.className = 'ranking-card-score';
       badge.textContent = `${medals[index]} ${rank}위`;
-      avatar.textContent = `${rank}`;
-      name.textContent = normalizeRankingDisplayName(row);
+      renderRankingAvatar(avatar, row, `${rank}`);
+      const titleChip = createRankingTitleChip(row);
+      if(titleChip) name.appendChild(titleChip);
+      name.appendChild(document.createTextNode(normalizeRankingDisplayName(row)));
       meta.textContent = board.meta(row);
       score.textContent = board.score(row);
 
       card.append(badge, avatar, name, meta, score);
+      if(row.rankingMessage) {
+        const message = document.createElement('p');
+        message.className = 'ranking-message-bubble';
+        const label = document.createElement('span');
+        const text = document.createElement('strong');
+        label.textContent = '💬';
+        text.textContent = String(row.rankingMessage).slice(0, 24);
+        message.append(label, text);
+        card.insertBefore(message, score);
+      }
       return card;
     }
 
@@ -2310,15 +2672,6 @@
           meta: row => getRankingCategoryLabel(row) || '인기',
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
         },
-        {
-          id: 'latest',
-          label: '최근 기록',
-          title: '최근 랭킹전 기록',
-          desc: '가장 최근 저장된 랭킹전 기록입니다.',
-          rows: getLatestRankingRecords(rankingRecords),
-          meta: row => row.category || row.rawCategory || '랭킹전',
-          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
-        }
       ];
     }
 
@@ -2331,13 +2684,15 @@
         db.collection('quizKingSummary').orderBy('totalScore', 'desc').limit(RANKING_PLAZA_ROW_LIMIT).get(),
         loadLimitedRankingRecordsForPlaza(db)
       ]);
-      const quizKingSummaries = quizKingSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...doc.data() }));
+      const rawQuizKingSummaries = quizKingSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...doc.data() }));
+      const profileMap = await loadMemberProfilesForRankingRows(db, rawQuizKingSummaries.concat(rankingRecords));
+      const quizKingSummaries = rawQuizKingSummaries.map(row => mergeRankingRowWithMemberProfile(row, profileMap));
+      const enrichedRankingRecords = rankingRecords.map(row => mergeRankingRowWithMemberProfile(row, profileMap));
       const quizKing = getTopQuizKingSummaries(quizKingSummaries, 1)[0] || null;
-      const koreanBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
-      const socialBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
-      const mathBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['수학곱셈과-나눗셈']);
-      const popularBest = getBestRankingRecordByCategoryKeys(rankingRecords, ['아재개그', '인물아이돌', '인물애니']);
-      const latestRecord = getLatestRankingRecord(rankingRecords);
+      const koreanBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
+      const socialBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
+      const mathBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['수학곱셈과-나눗셈']);
+      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니']);
       return {
         cards: [
           {
@@ -2351,10 +2706,9 @@
           buildRankingRecordCard('korean_king', '📚', '국어왕', koreanBest),
           buildRankingRecordCard('social_king', '🏛️', '사회왕', socialBest),
           buildRankingRecordCard('math_king', '➗', '수학왕', mathBest),
-          buildRankingRecordCard('popular_king', '⭐', '인기왕', popularBest),
-          buildRankingRecordCard('latest_challenger', '🚀', '최근 도전자', latestRecord)
+          buildRankingRecordCard('popular_king', '⭐', '인기왕', popularBest)
         ],
-        boards: getRankingBoardModels(quizKingSummaries, rankingRecords)
+        boards: getRankingBoardModels(quizKingSummaries, enrichedRankingRecords)
       };
     }
 
@@ -4499,6 +4853,9 @@
         grade: String(profile.grade || ''),
         classNo: String(profile.classNo || profile.classNumber || ''),
         number: String(profile.number || profile.studentNumber || ''),
+        profileImageUrl: profile.profileImageUrl || '',
+        rankingMessage: profile.rankingMessage || '',
+        selectedTitleId: profile.selectedTitleId || '',
         quizId,
         category: target.category,
         categoryKey: target.categoryKey,
@@ -5103,6 +5460,24 @@
       if(event.target.dataset.panelAction === 'openRanking') showRankingView();
       if(event.target.dataset.panelAction === 'openShop') showShopView();
       if(event.target.dataset.panelAction === 'openEvent') showEventView();
+    });
+
+    document.getElementById('profile-card-root').addEventListener('click', event => {
+      if(event.target.closest('#profile-ranking-message-save-button')) {
+        saveProfileRankingMessageFromHome();
+      }
+    });
+
+    document.getElementById('title-card-grid').addEventListener('click', event => {
+      const button = event.target.closest('[data-select-title-id]');
+      if(!button) return;
+      const titleId = button.dataset.selectTitleId || '';
+      button.disabled = true;
+      button.textContent = titleId ? '저장 중...' : '선택됨';
+      saveProfileSelectedTitleFromHome(titleId).catch(error => {
+        console.warn('Firestore selected title update failed.', error);
+        renderHomeMemberDataFromFirestore();
+      });
     });
 
     document.querySelectorAll('[data-back-to-town]').forEach(button => {

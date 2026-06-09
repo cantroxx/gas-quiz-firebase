@@ -53,6 +53,25 @@ service cloud.firestore {
         );
     }
 
+    function canUpdateOwnUserProfileSettings(userId) {
+      return isSignedIn()
+        && userId == resource.data.userId
+        && canAccessUserScopedData(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'rankingMessage',
+          'selectedTitleId',
+          'updatedAt'
+        ])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rankingMessage']) || request.resource.data.rankingMessage is string)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rankingMessage']) || request.resource.data.rankingMessage.size() <= 24)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['selectedTitleId']) || request.resource.data.selectedTitleId is string)
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['selectedTitleId'])
+          || request.resource.data.selectedTitleId == ''
+          || exists(/databases/$(database)/documents/userTitles/$(userId)/titles/$(request.resource.data.selectedTitleId))
+        );
+    }
+
     function hasValidPracticeProgressShape(recordId) {
       return isSignedIn()
         && request.resource.data.memberUserId is string
@@ -263,6 +282,9 @@ service cloud.firestore {
           'grade',
           'classNo',
           'number',
+          'profileImageUrl',
+          'rankingMessage',
+          'selectedTitleId',
           'quizId',
           'category',
           'categoryKey',
@@ -371,7 +393,7 @@ service cloud.firestore {
       allow list: if isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
         && resource.data.authUid == request.auth.uid;
-      allow update: if isAdmin();
+      allow update: if isAdmin() || canUpdateOwnUserProfileSettings(userId);
       allow create, delete: if isAdmin();
     }
 
