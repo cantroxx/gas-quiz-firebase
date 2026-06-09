@@ -53,7 +53,7 @@ function parseArgs(argv) {
   args.grade = grade;
   args.classNumber = classNumber;
   args.studentNumber = studentNumber;
-  args.password = args.password || `${grade}${classNumber}${studentNumber}`;
+  args.password = args.password || `${grade}${classNumber}${String(studentNumber).padStart(2, '0')}`;
   if (String(args.password).length < 4) {
     throw new Error('Temporary password must be at least 4 characters.');
   }
