@@ -1145,6 +1145,59 @@ exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
   return { success: true, memberUserId, authLinked: false };
 });
 
+function publicNoticeBoard(data) {
+  return {
+    title: String(data?.title || "알림판").trim().slice(0, 40),
+    desc: String(data?.desc || "공지와 오늘 추천 활동을 확인하고 바로 이동할 수 있습니다.").trim().slice(0, 120),
+    summary: String(data?.summary || "관리자 공지, 오늘의 퀘스트, 이벤트 추천 퀴즈를 보여주는 타운 알림판입니다.").trim().slice(0, 180),
+    announcement: String(data?.announcement || "오늘도 연습전과 랭킹전을 자유롭게 이용할 수 있어요.").trim().slice(0, 160),
+    quest: String(data?.quest || "이벤트 광장에서 개인 미션을 확인하세요.").trim().slice(0, 160),
+    recommendedQuizLabel: String(data?.recommendedQuizLabel || "학교에서 과목관을 골라 바로 시작하세요.").trim().slice(0, 80),
+    recommendedQuizId: String(data?.recommendedQuizId || "").trim().slice(0, 80),
+    active: data?.active !== false
+  };
+}
+
+exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+  const snapshot = await db.collection("noticeBoard").doc("current").get();
+  return {
+    success: true,
+    notice: publicNoticeBoard(snapshot.exists ? snapshot.data() || {} : {})
+  };
+});
+
+exports.adminUpdateNoticeBoard = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const nextNotice = publicNoticeBoard(payload.notice || payload);
+  const noticeRef = db.collection("noticeBoard").doc("current");
+  const beforeSnapshot = await noticeRef.get();
+  const before = beforeSnapshot.exists ? publicNoticeBoard(beforeSnapshot.data() || {}) : null;
+
+  await noticeRef.set({
+    ...nextNotice,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByAdminUserId: adminMember.memberUserId
+  }, { merge: true });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdateNoticeBoard",
+    targetUserId: "noticeBoard/current",
+    before,
+    after: nextNotice,
+    reason: "notice board update"
+  });
+
+  return {
+    success: true,
+    notice: nextNotice
+  };
+});
+
 exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};

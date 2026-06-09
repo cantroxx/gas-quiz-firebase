@@ -1854,6 +1854,51 @@ h2 {
   font-weight: 800;
 }
 
+.admin-notice-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-notice-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--green-dark);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.admin-notice-form label:nth-child(3),
+.admin-notice-form label:nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+.admin-notice-form input,
+.admin-notice-form textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+}
+
+.admin-notice-form textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.admin-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
 .admin-status {
   min-height: 24px;
   margin: 12px 0 0;
@@ -2829,8 +2874,14 @@ h2 {
 
   .admin-toolbar,
   .admin-summary,
-  .admin-member-card {
+  .admin-member-card,
+  .admin-notice-form {
     grid-template-columns: 1fr;
+  }
+
+  .admin-notice-form label:nth-child(3),
+  .admin-notice-form label:nth-child(4) {
+    grid-column: auto;
   }
 
   .admin-member-actions {

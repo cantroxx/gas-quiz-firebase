@@ -373,6 +373,44 @@
         <div id="admin-summary" class="admin-summary"></div>
         <div id="admin-member-list" class="admin-member-list"></div>
       </section>
+
+      <section class="admin-section" aria-labelledby="admin-notice-heading">
+        <div class="event-section-heading">
+          <p class="eyebrow">Notice</p>
+          <h3 id="admin-notice-heading">알림판 관리</h3>
+        </div>
+        <div class="admin-notice-form">
+          <label>
+            제목
+            <input id="admin-notice-title-input" type="text" maxlength="40">
+          </label>
+          <label>
+            설명
+            <input id="admin-notice-desc-input" type="text" maxlength="120">
+          </label>
+          <label>
+            공지
+            <textarea id="admin-notice-announcement-input" maxlength="160"></textarea>
+          </label>
+          <label>
+            오늘의 퀘스트
+            <textarea id="admin-notice-quest-input" maxlength="160"></textarea>
+          </label>
+          <label>
+            추천 퀴즈 문구
+            <input id="admin-notice-recommended-label-input" type="text" maxlength="80">
+          </label>
+          <label>
+            추천 quizId
+            <input id="admin-notice-recommended-quiz-input" type="text" maxlength="80" placeholder="예: gmo">
+          </label>
+        </div>
+        <div class="admin-notice-actions">
+          <button id="admin-notice-load" class="button secondary" type="button">불러오기</button>
+          <button id="admin-notice-save" class="button primary" type="button">저장</button>
+        </div>
+        <p id="admin-notice-status" class="admin-status" aria-live="polite"></p>
+      </section>
     </section>
 
     <section id="school-view" class="school-view app-view" aria-labelledby="school-title" hidden>
@@ -1536,6 +1574,7 @@
     let titleCatalogMapCache = null;
     let profileImageOptionsCache = [];
     let profileImageEditorState = null;
+    let noticeBoardCache = null;
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
@@ -1554,11 +1593,99 @@
         showEventView();
         return;
       }
+      if(placeId === 'notice') {
+        openNoticeBoardModal();
+        return;
+      }
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.notice;
       updatePlaceInfo(place);
       updatePlayerLocation(place);
       renderPlacePanel(place);
       document.getElementById('place-modal').hidden = false;
+    }
+
+    function getFallbackNoticeBoard() {
+      return {
+        title: PLACE_DETAILS.notice.title,
+        desc: PLACE_DETAILS.notice.desc,
+        summary: PLACE_DETAILS.notice.summary,
+        announcement: PLACE_DETAILS.notice.features[0]?.value || '',
+        quest: PLACE_DETAILS.notice.features[1]?.value || '',
+        recommendedQuizLabel: PLACE_DETAILS.notice.features[2]?.value || '',
+        recommendedQuizId: '',
+        active: true
+      };
+    }
+
+    function normalizeNoticeBoardData(data) {
+      const fallback = getFallbackNoticeBoard();
+      return {
+        title: String(data?.title || fallback.title).trim(),
+        desc: String(data?.desc || fallback.desc).trim(),
+        summary: String(data?.summary || fallback.summary).trim(),
+        announcement: String(data?.announcement || fallback.announcement).trim(),
+        quest: String(data?.quest || fallback.quest).trim(),
+        recommendedQuizLabel: String(data?.recommendedQuizLabel || fallback.recommendedQuizLabel).trim(),
+        recommendedQuizId: String(data?.recommendedQuizId || fallback.recommendedQuizId).trim(),
+        active: data?.active !== false
+      };
+    }
+
+    function buildNoticePlace(notice) {
+      const data = normalizeNoticeBoardData(notice);
+      const actions = [
+        { label: '학교로 바로가기', enabled: true, action: 'openSchool' },
+        { label: '이벤트 보기', enabled: true, action: 'openEvent' },
+        { label: '랭킹 보기', enabled: true, action: 'openRanking' }
+      ];
+      if(data.recommendedQuizId && QUIZ_CATALOG[data.recommendedQuizId]) {
+        actions.unshift({ label: `${QUIZ_CATALOG[data.recommendedQuizId].title.replace(' 퀴즈', '')} 바로가기`, enabled: true, action: 'openRecommendedQuiz', quizId: data.recommendedQuizId });
+      }
+      return {
+        icon: PLACE_DETAILS.notice.icon,
+        kicker: PLACE_DETAILS.notice.kicker,
+        title: data.title,
+        desc: data.desc,
+        summary: data.summary,
+        features: [
+          { label: '공지', value: data.announcement },
+          { label: '오늘의 퀘스트', value: data.quest },
+          { label: '추천 퀴즈', value: data.recommendedQuizLabel }
+        ],
+        actions
+      };
+    }
+
+    async function loadNoticeBoardFromFirestore(forceRefresh = false) {
+      if(noticeBoardCache && !forceRefresh) return noticeBoardCache;
+      const db = getFirestoreDb();
+      if(!db) throw new Error('firestore-unavailable');
+      await initializeAuthUser();
+      const snapshot = await db.collection('noticeBoard').doc('current').get();
+      noticeBoardCache = normalizeNoticeBoardData(snapshot.exists ? snapshot.data() || {} : {});
+      return noticeBoardCache;
+    }
+
+    function openNoticeBoardModal() {
+      const fallbackPlace = buildNoticePlace(getFallbackNoticeBoard());
+      updatePlaceInfo(fallbackPlace);
+      updatePlayerLocation(fallbackPlace);
+      renderPlacePanel({
+        ...fallbackPlace,
+        desc: '알림판을 불러오는 중입니다.'
+      });
+      document.getElementById('place-modal').hidden = false;
+      loadNoticeBoardFromFirestore()
+        .then(notice => {
+          const place = buildNoticePlace(notice);
+          updatePlaceInfo(place);
+          updatePlayerLocation(place);
+          renderPlacePanel(place);
+        })
+        .catch(error => {
+          console.warn('Firestore noticeBoard read failed. Using static notice.', error);
+          renderPlacePanel(fallbackPlace);
+        });
     }
 
     function renderPlacePanel(place) {
@@ -1695,6 +1822,7 @@
         button.disabled = !action.enabled;
         button.textContent = action.label;
         if(action.action) button.dataset.panelAction = action.action;
+        if(action.quizId) button.dataset.quizId = action.quizId;
         actionRoot.appendChild(button);
       });
     }
@@ -4925,6 +5053,65 @@
       await loadAdminMembers();
     }
 
+    function setAdminNoticeStatus(message, isError = false) {
+      const status = document.getElementById('admin-notice-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function setAdminNoticeForm(notice) {
+      const data = normalizeNoticeBoardData(notice);
+      document.getElementById('admin-notice-title-input').value = data.title;
+      document.getElementById('admin-notice-desc-input').value = data.desc;
+      document.getElementById('admin-notice-announcement-input').value = data.announcement;
+      document.getElementById('admin-notice-quest-input').value = data.quest;
+      document.getElementById('admin-notice-recommended-label-input').value = data.recommendedQuizLabel;
+      document.getElementById('admin-notice-recommended-quiz-input').value = data.recommendedQuizId;
+    }
+
+    function getAdminNoticeFormValues() {
+      return normalizeNoticeBoardData({
+        title: document.getElementById('admin-notice-title-input')?.value || '',
+        desc: document.getElementById('admin-notice-desc-input')?.value || '',
+        announcement: document.getElementById('admin-notice-announcement-input')?.value || '',
+        quest: document.getElementById('admin-notice-quest-input')?.value || '',
+        recommendedQuizLabel: document.getElementById('admin-notice-recommended-label-input')?.value || '',
+        recommendedQuizId: document.getElementById('admin-notice-recommended-quiz-input')?.value || '',
+        active: true
+      });
+    }
+
+    async function loadAdminNoticeBoard() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminNoticeStatus('알림판을 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminGetNoticeBoard');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-notice-load-failed');
+      setAdminNoticeForm(result.notice);
+      noticeBoardCache = normalizeNoticeBoardData(result.notice);
+      setAdminNoticeStatus('알림판 내용을 불러왔습니다.');
+      return result.notice;
+    }
+
+    async function saveAdminNoticeBoard() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      const notice = getAdminNoticeFormValues();
+      setAdminNoticeStatus('알림판을 저장하는 중입니다...');
+      const callable = functions.httpsCallable('adminUpdateNoticeBoard');
+      const response = await callable({ notice });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-notice-save-failed');
+      noticeBoardCache = normalizeNoticeBoardData(result.notice);
+      setAdminNoticeStatus('알림판을 저장했습니다.');
+      return result.notice;
+    }
+
     async function logoutAdminMember() {
       await unlinkCurrentMemberForTesting();
       showLoginView();
@@ -6042,6 +6229,11 @@
         console.warn('Admin member list load failed.', error);
         setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true);
       });
+      loadAdminNoticeBoard().catch(error => {
+        console.warn('Admin notice board load failed.', error);
+        setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
+        setAdminNoticeForm(getFallbackNoticeBoard());
+      });
     }
 
     function showHomeView() {
@@ -6185,6 +6377,10 @@
       if(event.target.dataset.panelAction === 'openRanking') showRankingView();
       if(event.target.dataset.panelAction === 'openShop') showShopView();
       if(event.target.dataset.panelAction === 'openEvent') showEventView();
+      if(event.target.dataset.panelAction === 'openRecommendedQuiz' && event.target.dataset.quizId) {
+        closePlaceModal();
+        showQuizSelectView(event.target.dataset.quizId);
+      }
     });
 
     document.getElementById('profile-card-root').addEventListener('click', event => {
@@ -6411,6 +6607,20 @@
       logoutAdminMember().catch(error => {
         console.warn('Admin logout failed.', error);
         setAdminStatus('로그아웃 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-notice-load').addEventListener('click', () => {
+      loadAdminNoticeBoard().catch(error => {
+        console.warn('Admin notice load failed.', error);
+        setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-notice-save').addEventListener('click', () => {
+      saveAdminNoticeBoard().catch(error => {
+        console.warn('Admin notice save failed.', error);
+        setAdminNoticeStatus('알림판 저장 중 문제가 생겼습니다.', true);
       });
     });
 

@@ -494,6 +494,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /noticeBoard/{noticeId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /rankingRecords/{recordId} {
       allow read: if isSignedIn();
       allow create: if hasValidRankingRecordShape(recordId);
