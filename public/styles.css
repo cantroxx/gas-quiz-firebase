@@ -1991,6 +1991,33 @@ h2 {
   margin-top: 12px;
 }
 
+.admin-logs-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-log-card {
+  padding: 14px 16px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 22px rgba(55, 112, 70, 0.08);
+}
+
+.admin-log-card h4 {
+  margin: 0;
+  color: var(--green-dark);
+  font-size: 0.98rem;
+}
+
+.admin-log-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
 .admin-status {
   min-height: 24px;
   margin: 12px 0 0;

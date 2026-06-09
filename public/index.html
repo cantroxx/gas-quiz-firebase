@@ -353,6 +353,7 @@
         <button class="admin-section-tab is-active" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice">알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="login">로그인 설정</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="logs">작업 이력</button>
       </div>
 
       <section id="admin-section-members" class="admin-section is-active" aria-labelledby="admin-member-heading">
@@ -464,6 +465,23 @@
             <button id="admin-login-settings-save" class="button primary" type="button">저장</button>
           </div>
           <p id="admin-login-settings-status" class="admin-status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="admin-section-logs" class="admin-section" aria-labelledby="admin-logs-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="logs" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Logs</span>
+            <strong id="admin-logs-heading">작업 이력</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-notice-actions">
+            <button id="admin-logs-refresh" class="button secondary" type="button">새로고침</button>
+          </div>
+          <p id="admin-logs-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-logs-list" class="admin-logs-list"></div>
         </div>
       </section>
     </section>
@@ -5249,6 +5267,76 @@
       return result.settings;
     }
 
+    function setAdminLogsStatus(message, isError = false) {
+      const status = document.getElementById('admin-logs-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function formatAdminLogTime(value) {
+      const seconds = Number(value?._seconds || value?.seconds || 0);
+      const millis = seconds ? seconds * 1000 : Date.parse(value || '');
+      if(!millis || Number.isNaN(millis)) return '-';
+      return new Date(millis).toLocaleString('ko-KR', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function formatAdminLogAction(action) {
+      return {
+        adminResetMemberPassword: '비밀번호 초기화',
+        adminUpdateMemberStatus: '회원 상태 변경',
+        adminUnlinkMemberAuth: '연결 해제',
+        adminUpdateNoticeBoard: '알림판 수정',
+        adminUpdatePasswordSetupSettings: '로그인 설정 변경'
+      }[action] || action || '관리자 작업';
+    }
+
+    function renderAdminLogs(logs) {
+      const root = document.getElementById('admin-logs-list');
+      if(!root) return;
+      root.innerHTML = '';
+      const items = logs || [];
+      if(!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'admin-empty';
+        empty.textContent = '표시할 작업 이력이 없습니다.';
+        root.appendChild(empty);
+        return;
+      }
+      items.forEach(log => {
+        const card = document.createElement('article');
+        const title = document.createElement('h4');
+        const meta = document.createElement('p');
+        const reason = document.createElement('p');
+        card.className = 'admin-log-card';
+        title.textContent = formatAdminLogAction(log.action);
+        meta.textContent = `${formatAdminLogTime(log.createdAt)} · 관리자 ${log.adminUserId || '-'} · 대상 ${log.targetUserId || '-'}`;
+        reason.textContent = log.reason ? `사유: ${log.reason}` : '';
+        card.append(title, meta);
+        if(reason.textContent) card.appendChild(reason);
+        root.appendChild(card);
+      });
+    }
+
+    async function loadAdminLogs() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminLogsStatus('작업 이력을 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminListLogs');
+      const response = await callable({ limit: 40 });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-logs-load-failed');
+      renderAdminLogs(result.logs);
+      setAdminLogsStatus(`최근 작업 ${result.logs?.length || 0}건을 표시했습니다.`);
+      return result.logs;
+    }
+
     async function logoutAdminMember() {
       await unlinkCurrentMemberForTesting();
       showLoginView();
@@ -6375,6 +6463,10 @@
         console.warn('Admin login settings load failed.', error);
         setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
       });
+      loadAdminLogs().catch(error => {
+        console.warn('Admin logs load failed.', error);
+        setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true);
+      });
     }
 
     function showHomeView() {
@@ -6786,6 +6878,13 @@
           'functions/invalid-argument': '설정 값을 확인해 주세요.'
         };
         setAdminLoginSettingsStatus(messages[error.message] || '로그인 설정 저장 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-logs-refresh').addEventListener('click', () => {
+      loadAdminLogs().catch(error => {
+        console.warn('Admin logs refresh failed.', error);
+        setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
       });
     });
 

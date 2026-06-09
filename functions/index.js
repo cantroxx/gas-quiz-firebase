@@ -207,6 +207,18 @@ async function writeAdminLog({ adminUserId, action, targetUserId, before, after,
   });
 }
 
+function publicAdminLogRow(doc) {
+  const data = doc.data ? doc.data() || {} : doc || {};
+  return {
+    id: doc.id || data.id || "",
+    adminUserId: data.adminUserId || "",
+    action: data.action || "",
+    targetUserId: data.targetUserId || "",
+    reason: data.reason || "",
+    createdAt: data.createdAt || null
+  };
+}
+
 function assertAccessCodeUsable(accessData) {
   if (!accessData || accessData.active !== true) {
     throw new HttpsError("permission-denied", "Access code is not active.");
@@ -1233,6 +1245,21 @@ exports.adminUpdatePasswordSetupSettings = onCall({ region: REGION }, async requ
   return {
     success: true,
     settings: after
+  };
+});
+
+exports.adminListLogs = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const limit = Math.max(1, Math.min(Number(payload.limit) || 40, 100));
+  const snapshot = await db.collection("adminLogs")
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .get();
+  return {
+    success: true,
+    logs: snapshot.docs.map(publicAdminLogRow)
   };
 });
 
