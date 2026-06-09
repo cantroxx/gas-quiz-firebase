@@ -378,9 +378,41 @@
               검색
               <input id="admin-filter-query" type="text" placeholder="닉네임, userId">
             </label>
+            <label>
+              회원 상태
+              <select id="admin-filter-member-status">
+                <option value="">전체</option>
+                <option value="active">활성 학생</option>
+                <option value="inactive">비활성</option>
+                <option value="admin">관리자</option>
+              </select>
+            </label>
+            <label>
+              연결 상태
+              <select id="admin-filter-auth-status">
+                <option value="">전체</option>
+                <option value="linked">연결됨</option>
+                <option value="unlinked">연결 없음</option>
+              </select>
+            </label>
+            <label>
+              비밀번호
+              <select id="admin-filter-password-status">
+                <option value="">전체</option>
+                <option value="configured">설정 완료</option>
+                <option value="missing">미설정</option>
+                <option value="force">변경 필요</option>
+                <option value="locked">잠김</option>
+              </select>
+            </label>
             <button id="admin-member-refresh" class="button primary" type="button">조회</button>
           </div>
           <p id="admin-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-temp-password-panel" class="admin-temp-password-panel" hidden>
+            <span>임시 비밀번호</span>
+            <strong id="admin-temp-password-value"></strong>
+            <button id="admin-temp-password-copy" class="admin-action-button" type="button">복사</button>
+          </div>
           <div id="admin-summary" class="admin-summary"></div>
           <div id="admin-member-list" class="admin-member-list"></div>
         </div>
@@ -419,6 +451,26 @@
             <label>
               추천 quizId
               <input id="admin-notice-recommended-quiz-input" type="text" maxlength="80" placeholder="예: gmo">
+            </label>
+            <label>
+              추천 퀴즈 2 문구
+              <input id="admin-notice-recommended2-label-input" type="text" maxlength="80">
+            </label>
+            <label>
+              추천 quizId 2
+              <input id="admin-notice-recommended2-quiz-input" type="text" maxlength="80" placeholder="예: samgukji">
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-notice-active-input" type="checkbox">
+              알림판 활성
+            </label>
+            <label>
+              게시 시작
+              <input id="admin-notice-starts-input" type="datetime-local">
+            </label>
+            <label>
+              게시 종료
+              <input id="admin-notice-ends-input" type="datetime-local">
             </label>
           </div>
           <div class="admin-notice-actions">
@@ -477,6 +529,23 @@
           <span aria-hidden="true">⌄</span>
         </button>
         <div class="admin-section-body">
+          <div class="admin-toolbar admin-logs-toolbar">
+            <label>
+              작업 종류
+              <select id="admin-logs-action-filter">
+                <option value="">전체</option>
+                <option value="adminResetMemberPassword">비밀번호 초기화</option>
+                <option value="adminUpdateMemberStatus">회원 상태 변경</option>
+                <option value="adminUnlinkMemberAuth">연결 해제</option>
+                <option value="adminUpdateNoticeBoard">알림판 수정</option>
+                <option value="adminUpdatePasswordSetupSettings">로그인 설정 변경</option>
+              </select>
+            </label>
+            <label>
+              대상 검색
+              <input id="admin-logs-target-filter" type="text" placeholder="예: G4-C8-N22">
+            </label>
+          </div>
           <div class="admin-notice-actions">
             <button id="admin-logs-refresh" class="button secondary" type="button">새로고침</button>
           </div>
@@ -1686,6 +1755,10 @@
         quest: PLACE_DETAILS.notice.features[1]?.value || '',
         recommendedQuizLabel: PLACE_DETAILS.notice.features[2]?.value || '',
         recommendedQuizId: '',
+        recommendedQuiz2Label: '',
+        recommendedQuiz2Id: '',
+        startsAtIso: '',
+        endsAtIso: '',
         active: true
       };
     }
@@ -1700,19 +1773,39 @@
         quest: String(data?.quest || fallback.quest).trim(),
         recommendedQuizLabel: String(data?.recommendedQuizLabel || fallback.recommendedQuizLabel).trim(),
         recommendedQuizId: String(data?.recommendedQuizId || fallback.recommendedQuizId).trim(),
+        recommendedQuiz2Label: String(data?.recommendedQuiz2Label || fallback.recommendedQuiz2Label).trim(),
+        recommendedQuiz2Id: String(data?.recommendedQuiz2Id || fallback.recommendedQuiz2Id).trim(),
+        startsAtIso: String(data?.startsAtIso || fallback.startsAtIso || '').trim(),
+        endsAtIso: String(data?.endsAtIso || fallback.endsAtIso || '').trim(),
         active: data?.active !== false
       };
     }
 
+    function isNoticeBoardVisible(data) {
+      if(data?.active === false) return false;
+      const now = Date.now();
+      const startsAt = data?.startsAtIso ? Date.parse(data.startsAtIso) : 0;
+      const endsAt = data?.endsAtIso ? Date.parse(data.endsAtIso) : 0;
+      if(startsAt && !Number.isNaN(startsAt) && startsAt > now) return false;
+      if(endsAt && !Number.isNaN(endsAt) && endsAt <= now) return false;
+      return true;
+    }
+
     function buildNoticePlace(notice) {
       const data = normalizeNoticeBoardData(notice);
+      if(!isNoticeBoardVisible(data)) return buildNoticePlace(getFallbackNoticeBoard());
       const actions = [
         { label: '학교로 바로가기', enabled: true, action: 'openSchool' },
         { label: '이벤트 보기', enabled: true, action: 'openEvent' },
         { label: '랭킹 보기', enabled: true, action: 'openRanking' }
       ];
+      if(data.recommendedQuiz2Id && QUIZ_CATALOG[data.recommendedQuiz2Id]) {
+        const label = data.recommendedQuiz2Label || `${QUIZ_CATALOG[data.recommendedQuiz2Id].title.replace(' 퀴즈', '')} 바로가기`;
+        actions.unshift({ label, enabled: true, action: 'openRecommendedQuiz', quizId: data.recommendedQuiz2Id });
+      }
       if(data.recommendedQuizId && QUIZ_CATALOG[data.recommendedQuizId]) {
-        actions.unshift({ label: `${QUIZ_CATALOG[data.recommendedQuizId].title.replace(' 퀴즈', '')} 바로가기`, enabled: true, action: 'openRecommendedQuiz', quizId: data.recommendedQuizId });
+        const label = data.recommendedQuizLabel || `${QUIZ_CATALOG[data.recommendedQuizId].title.replace(' 퀴즈', '')} 바로가기`;
+        actions.unshift({ label, enabled: true, action: 'openRecommendedQuiz', quizId: data.recommendedQuizId });
       }
       return {
         icon: PLACE_DETAILS.notice.icon,
@@ -5013,6 +5106,9 @@
         grade: document.getElementById('admin-filter-grade')?.value || '',
         classNumber: document.getElementById('admin-filter-class')?.value || '',
         query: document.getElementById('admin-filter-query')?.value || '',
+        memberStatus: document.getElementById('admin-filter-member-status')?.value || '',
+        authStatus: document.getElementById('admin-filter-auth-status')?.value || '',
+        passwordStatus: document.getElementById('admin-filter-password-status')?.value || '',
         limit: 120
       };
     }
@@ -5147,11 +5243,28 @@
       const result = response?.data || {};
       if(!result.success) throw new Error('admin-action-failed');
       let completionMessage = `${memberUserId} 작업이 완료됐습니다.`;
+      hideAdminTemporaryPassword();
       if(action === 'resetPassword') {
         completionMessage = `${memberUserId} 임시 비밀번호: ${result.temporaryPassword}`;
+        showAdminTemporaryPassword(result.temporaryPassword);
       }
       await loadAdminMembers({ updateStatus: false });
       setAdminStatus(completionMessage);
+    }
+
+    function hideAdminTemporaryPassword() {
+      const panel = document.getElementById('admin-temp-password-panel');
+      const value = document.getElementById('admin-temp-password-value');
+      if(value) value.textContent = '';
+      if(panel) panel.hidden = true;
+    }
+
+    function showAdminTemporaryPassword(password) {
+      const panel = document.getElementById('admin-temp-password-panel');
+      const value = document.getElementById('admin-temp-password-value');
+      if(!panel || !value || !password) return;
+      value.textContent = password;
+      panel.hidden = false;
     }
 
     function setAdminNoticeStatus(message, isError = false) {
@@ -5169,9 +5282,16 @@
       document.getElementById('admin-notice-quest-input').value = data.quest;
       document.getElementById('admin-notice-recommended-label-input').value = data.recommendedQuizLabel;
       document.getElementById('admin-notice-recommended-quiz-input').value = data.recommendedQuizId;
+      document.getElementById('admin-notice-recommended2-label-input').value = data.recommendedQuiz2Label;
+      document.getElementById('admin-notice-recommended2-quiz-input').value = data.recommendedQuiz2Id;
+      document.getElementById('admin-notice-active-input').checked = data.active !== false;
+      document.getElementById('admin-notice-starts-input').value = toDateTimeLocalInputValue(data.startsAtIso);
+      document.getElementById('admin-notice-ends-input').value = toDateTimeLocalInputValue(data.endsAtIso);
     }
 
     function getAdminNoticeFormValues() {
+      const startsValue = document.getElementById('admin-notice-starts-input')?.value || '';
+      const endsValue = document.getElementById('admin-notice-ends-input')?.value || '';
       return normalizeNoticeBoardData({
         title: document.getElementById('admin-notice-title-input')?.value || '',
         desc: document.getElementById('admin-notice-desc-input')?.value || '',
@@ -5179,7 +5299,11 @@
         quest: document.getElementById('admin-notice-quest-input')?.value || '',
         recommendedQuizLabel: document.getElementById('admin-notice-recommended-label-input')?.value || '',
         recommendedQuizId: document.getElementById('admin-notice-recommended-quiz-input')?.value || '',
-        active: true
+        recommendedQuiz2Label: document.getElementById('admin-notice-recommended2-label-input')?.value || '',
+        recommendedQuiz2Id: document.getElementById('admin-notice-recommended2-quiz-input')?.value || '',
+        startsAtIso: startsValue ? new Date(startsValue).toISOString() : '',
+        endsAtIso: endsValue ? new Date(endsValue).toISOString() : '',
+        active: document.getElementById('admin-notice-active-input')?.checked === true
       });
     }
 
@@ -5342,7 +5466,11 @@
       await initializeAuthUser();
       setAdminLogsStatus('작업 이력을 불러오는 중입니다...');
       const callable = functions.httpsCallable('adminListLogs');
-      const response = await callable({ limit: 40 });
+      const response = await callable({
+        action: document.getElementById('admin-logs-action-filter')?.value || '',
+        targetUserId: document.getElementById('admin-logs-target-filter')?.value || '',
+        limit: 40
+      });
       const result = response?.data || {};
       if(!result.success) throw new Error('admin-logs-load-failed');
       renderAdminLogs(result.logs);
@@ -6823,10 +6951,26 @@
     });
 
     document.getElementById('admin-member-refresh').addEventListener('click', () => {
+      hideAdminTemporaryPassword();
       loadAdminMembers().catch(error => {
         console.warn('Admin member refresh failed.', error);
         setAdminStatus('회원 목록을 다시 불러오지 못했습니다.', true);
       });
+    });
+
+    document.getElementById('admin-temp-password-copy').addEventListener('click', () => {
+      const password = document.getElementById('admin-temp-password-value')?.textContent || '';
+      if(!password) return;
+      if(!navigator.clipboard?.writeText) {
+        setAdminStatus('이 브라우저에서는 자동 복사를 지원하지 않습니다. 임시 비밀번호를 직접 선택해 주세요.', true);
+        return;
+      }
+      navigator.clipboard.writeText(password)
+        .then(() => setAdminStatus('임시 비밀번호를 복사했습니다.'))
+        .catch(error => {
+          console.warn('Admin temporary password copy failed.', error);
+          setAdminStatus('복사하지 못했습니다. 임시 비밀번호를 직접 선택해 주세요.', true);
+        });
     });
 
     document.getElementById('admin-member-list').addEventListener('click', event => {
@@ -6897,6 +7041,21 @@
     document.getElementById('admin-logs-refresh').addEventListener('click', () => {
       loadAdminLogs().catch(error => {
         console.warn('Admin logs refresh failed.', error);
+        setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-logs-action-filter').addEventListener('change', () => {
+      loadAdminLogs().catch(error => {
+        console.warn('Admin logs action filter failed.', error);
+        setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-logs-target-filter').addEventListener('keydown', event => {
+      if(event.key !== 'Enter') return;
+      loadAdminLogs().catch(error => {
+        console.warn('Admin logs target filter failed.', error);
         setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
       });
     });

@@ -1902,9 +1902,13 @@ h2 {
 
 .admin-toolbar {
   display: grid;
-  grid-template-columns: 120px 120px minmax(180px, 1fr) auto;
+  grid-template-columns: repeat(3, minmax(130px, 1fr)) auto;
   gap: 10px;
   align-items: end;
+}
+
+.admin-logs-toolbar {
+  grid-template-columns: 180px minmax(180px, 1fr);
 }
 
 .admin-toolbar label {
@@ -1915,7 +1919,8 @@ h2 {
   font-weight: 900;
 }
 
-.admin-toolbar input {
+.admin-toolbar input,
+.admin-toolbar select {
   min-height: 42px;
   padding: 8px 12px;
   border: 1px solid rgba(47, 125, 68, 0.18);
@@ -1924,6 +1929,32 @@ h2 {
   color: var(--ink);
   font: inherit;
   font-weight: 800;
+}
+
+.admin-temp-password-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(167, 111, 28, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 244, 194, 0.86);
+  color: #7b5a17;
+  font-weight: 900;
+}
+
+.admin-temp-password-panel[hidden] {
+  display: none;
+}
+
+.admin-temp-password-panel strong {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  letter-spacing: 0;
 }
 
 .admin-notice-form,
@@ -1959,6 +1990,23 @@ h2 {
   color: var(--ink);
   font: inherit;
   font-weight: 800;
+}
+
+.admin-notice-form .admin-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.admin-notice-form .admin-checkbox-label input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: #2f8f53;
 }
 
 .admin-settings-form .admin-checkbox-label {

@@ -1048,6 +1048,9 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
   const grade = String(payload.grade || "").trim();
   const classNumber = String(payload.classNumber || "").trim();
   const queryText = String(payload.query || "").trim().toLowerCase();
+  const memberStatus = String(payload.memberStatus || "").trim().toLowerCase();
+  const authStatus = String(payload.authStatus || "").trim().toLowerCase();
+  const passwordStatus = String(payload.passwordStatus || "").trim().toLowerCase();
   const limit = Math.max(1, Math.min(Number(payload.limit) || 80, 200));
 
   const snapshot = await db.collection("users").orderBy("userId").limit(1000).get();
@@ -1059,6 +1062,18 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
   if (classNumber) {
     members = members.filter(member => String(member.classNumber) === classNumber);
   }
+  if (memberStatus === "active") {
+    members = members.filter(member => member.active && member.status === "active" && member.role !== "admin");
+  } else if (memberStatus === "inactive") {
+    members = members.filter(member => !member.active || member.status !== "active");
+  } else if (memberStatus === "admin") {
+    members = members.filter(member => member.role === "admin");
+  }
+  if (authStatus === "linked") {
+    members = members.filter(member => member.authLinked);
+  } else if (authStatus === "unlinked") {
+    members = members.filter(member => !member.authLinked);
+  }
   if (queryText) {
     members = members.filter(member => [
       member.userId,
@@ -1067,13 +1082,28 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
       `${member.grade}-${member.classNumber}-${member.studentNumber}`
     ].join(" ").toLowerCase().includes(queryText));
   }
-  const selectedMembers = members.slice(0, limit);
-  const credentialSnapshots = selectedMembers.length
-    ? await db.getAll(...selectedMembers.map(member => db.collection("memberCredentials").doc(member.userId)))
+  const needsPasswordFilter = ["configured", "missing", "force", "locked"].includes(passwordStatus);
+  const credentialTargetMembers = needsPasswordFilter ? members : members.slice(0, limit);
+  const credentialSnapshots = credentialTargetMembers.length
+    ? await db.getAll(...credentialTargetMembers.map(member => db.collection("memberCredentials").doc(member.userId)))
     : [];
   const credentialsByUserId = new Map(
     credentialSnapshots.map(snapshot => [snapshot.id, publicAdminCredentialState(snapshot)])
   );
+  if (needsPasswordFilter) {
+    members.forEach(member => {
+      member.passwordState = credentialsByUserId.get(member.userId) || publicAdminCredentialState({ exists: false });
+    });
+    members = members.filter(member => {
+      const state = member.passwordState || {};
+      if (passwordStatus === "configured") return state.passwordConfigured && !state.forcePasswordChange && !state.locked;
+      if (passwordStatus === "missing") return !state.passwordConfigured;
+      if (passwordStatus === "force") return state.forcePasswordChange;
+      if (passwordStatus === "locked") return state.locked;
+      return true;
+    });
+  }
+  const selectedMembers = members.slice(0, limit);
   selectedMembers.forEach(member => {
     member.passwordState = credentialsByUserId.get(member.userId) || publicAdminCredentialState({ exists: false });
   });
@@ -1280,17 +1310,28 @@ exports.adminListLogs = onCall({ region: REGION }, async request => {
   await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const limit = Math.max(1, Math.min(Number(payload.limit) || 40, 100));
+  const action = String(payload.action || "").trim();
+  const targetQuery = String(payload.targetUserId || "").trim().toLowerCase();
   const snapshot = await db.collection("adminLogs")
     .orderBy("createdAt", "desc")
-    .limit(limit)
+    .limit(action || targetQuery ? 200 : limit)
     .get();
+  let logs = snapshot.docs.map(publicAdminLogRow);
+  if (action) {
+    logs = logs.filter(log => log.action === action);
+  }
+  if (targetQuery) {
+    logs = logs.filter(log => String(log.targetUserId || "").toLowerCase().includes(targetQuery));
+  }
   return {
     success: true,
-    logs: snapshot.docs.map(publicAdminLogRow)
+    logs: logs.slice(0, limit)
   };
 });
 
 function publicNoticeBoard(data) {
+  const startsAtIso = String(data?.startsAtIso || data?.startsAt || "").trim();
+  const endsAtIso = String(data?.endsAtIso || data?.endsAt || "").trim();
   return {
     title: String(data?.title || "알림판").trim().slice(0, 40),
     desc: String(data?.desc || "공지와 오늘 추천 활동을 확인하고 바로 이동할 수 있습니다.").trim().slice(0, 120),
@@ -1299,6 +1340,10 @@ function publicNoticeBoard(data) {
     quest: String(data?.quest || "이벤트 광장에서 개인 미션을 확인하세요.").trim().slice(0, 160),
     recommendedQuizLabel: String(data?.recommendedQuizLabel || "학교에서 과목관을 골라 바로 시작하세요.").trim().slice(0, 80),
     recommendedQuizId: String(data?.recommendedQuizId || "").trim().slice(0, 80),
+    recommendedQuiz2Label: String(data?.recommendedQuiz2Label || "").trim().slice(0, 80),
+    recommendedQuiz2Id: String(data?.recommendedQuiz2Id || "").trim().slice(0, 80),
+    startsAtIso: startsAtIso.slice(0, 40),
+    endsAtIso: endsAtIso.slice(0, 40),
     active: data?.active !== false
   };
 }
