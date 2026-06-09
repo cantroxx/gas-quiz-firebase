@@ -5031,18 +5031,19 @@
       });
     }
 
-    async function loadAdminMembers() {
+    async function loadAdminMembers(options = {}) {
+      const shouldUpdateStatus = options.updateStatus !== false;
       const functions = getFirebaseFunctions();
       if(!functions) throw new Error('functions-unavailable');
       await initializeAuthUser();
-      setAdminStatus('회원 목록을 불러오는 중입니다...');
+      if(shouldUpdateStatus) setAdminStatus('회원 목록을 불러오는 중입니다...');
       const callable = functions.httpsCallable('adminListMembers');
       const response = await callable(getAdminFilterValues());
       const result = response?.data || {};
       if(!result.success) throw new Error('admin-list-failed');
       renderAdminSummary(result.summary);
       renderAdminMemberList(result.members);
-      setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다.`);
+      if(shouldUpdateStatus) setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다.`);
       return result;
     }
 
@@ -5074,12 +5075,12 @@
       const response = await callable(payload);
       const result = response?.data || {};
       if(!result.success) throw new Error('admin-action-failed');
+      let completionMessage = `${memberUserId} 작업이 완료됐습니다.`;
       if(action === 'resetPassword') {
-        setAdminStatus(`${memberUserId} 임시 비밀번호: ${result.temporaryPassword}`);
-      } else {
-        setAdminStatus(`${memberUserId} 작업이 완료됐습니다.`);
+        completionMessage = `${memberUserId} 임시 비밀번호: ${result.temporaryPassword}`;
       }
-      await loadAdminMembers();
+      await loadAdminMembers({ updateStatus: false });
+      setAdminStatus(completionMessage);
     }
 
     function setAdminNoticeStatus(message, isError = false) {
