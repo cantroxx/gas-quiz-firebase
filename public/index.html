@@ -371,6 +371,7 @@
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="login" data-super-admin-only>로그인 설정</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="features" data-super-admin-only>기능 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="permissions" data-super-admin-only>권한 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="logs" data-super-admin-only>작업 이력</button>
       </div>
@@ -557,6 +558,41 @@
         </div>
       </section>
 
+      <section id="admin-section-features" class="admin-section" aria-labelledby="admin-features-heading" data-super-admin-only>
+        <button class="admin-section-toggle" type="button" data-admin-section-target="features" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Features</span>
+            <strong id="admin-features-heading">기능 관리</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-settings-form">
+            <label class="admin-checkbox-label">
+              <input id="admin-feature-practice-reward" type="checkbox">
+              연습전 DJ코인 지급
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-feature-shop" type="checkbox">
+              상점 열기
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-feature-event" type="checkbox">
+              이벤트 광장 열기
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-feature-ranking" type="checkbox">
+              랭킹전/랭킹 광장 열기
+            </label>
+          </div>
+          <div class="admin-notice-actions">
+            <button id="admin-feature-flags-load" class="button secondary" type="button">불러오기</button>
+            <button id="admin-feature-flags-save" class="button primary" type="button">저장</button>
+          </div>
+          <p id="admin-feature-flags-status" class="admin-status" aria-live="polite"></p>
+        </div>
+      </section>
+
       <section id="admin-section-permissions" class="admin-section" aria-labelledby="admin-permissions-heading" data-super-admin-only>
         <button class="admin-section-toggle" type="button" data-admin-section-target="permissions" aria-expanded="false">
           <span>
@@ -607,6 +643,7 @@
                 <option value="adminUnlinkMemberAuth">연결 해제</option>
                 <option value="adminUpdateNoticeBoard">알림판 수정</option>
                 <option value="adminUpdatePasswordSetupSettings">로그인 설정 변경</option>
+                <option value="adminUpdateFeatureFlags">기능 설정 변경</option>
                 <option value="adminGrantClassAdmin">반 관리자 지정</option>
                 <option value="adminRevokeClassAdmin">관리자 해제</option>
               </select>
@@ -1070,6 +1107,12 @@
     const TEST_SHOP_USER_ID = 'test_user';
     const DEFAULT_MEMBER_SCHOOL = '동자';
     const LINKED_MEMBER_HINT_KEY = 'dj48LinkedMemberUserId';
+    const DEFAULT_FEATURE_FLAGS = {
+      practiceRewardEnabled: true,
+      shopEnabled: true,
+      eventPlazaEnabled: true,
+      rankingEnabled: true
+    };
 
     let firestoreShopItems = null;
     let shopItemsLoadPromise = null;
@@ -1807,6 +1850,8 @@
     let profileImageOptionsCache = [];
     let profileImageEditorState = null;
     let noticeBoardCache = null;
+    let featureFlagsCache = null;
+    let featureFlagsLoadPromise = null;
     let adminDashboardCache = null;
 
     function openPlaceModal(placeId) {
@@ -3655,6 +3700,39 @@
       if(firebaseFunctionsInstance) return firebaseFunctionsInstance;
       firebaseFunctionsInstance = window.firebase.app().functions('asia-northeast3');
       return firebaseFunctionsInstance;
+    }
+
+    function normalizeFeatureFlags(data = {}) {
+      return {
+        practiceRewardEnabled: data.practiceRewardEnabled !== false,
+        shopEnabled: data.shopEnabled !== false,
+        eventPlazaEnabled: data.eventPlazaEnabled !== false,
+        rankingEnabled: data.rankingEnabled !== false
+      };
+    }
+
+    async function loadFeatureFlags(forceRefresh = false) {
+      if(featureFlagsCache && !forceRefresh) return featureFlagsCache;
+      if(featureFlagsLoadPromise && !forceRefresh) return featureFlagsLoadPromise;
+      const db = getFirestoreDb();
+      if(!db) {
+        featureFlagsCache = { ...DEFAULT_FEATURE_FLAGS };
+        return featureFlagsCache;
+      }
+      featureFlagsLoadPromise = db.collection('appSettings').doc('featureFlags').get()
+        .then(snapshot => {
+          featureFlagsCache = normalizeFeatureFlags(snapshot.exists ? snapshot.data() || {} : DEFAULT_FEATURE_FLAGS);
+          return featureFlagsCache;
+        })
+        .catch(error => {
+          console.warn('Feature flags read failed. Using defaults.', error);
+          featureFlagsCache = { ...DEFAULT_FEATURE_FLAGS };
+          return featureFlagsCache;
+        })
+        .finally(() => {
+          featureFlagsLoadPromise = null;
+        });
+      return featureFlagsLoadPromise;
     }
 
     function normalizeFirebaseQuizId(quizId) {
@@ -5734,6 +5812,61 @@
       return result.settings;
     }
 
+    function setAdminFeatureFlagsStatus(message, isError = false) {
+      const status = document.getElementById('admin-feature-flags-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function setAdminFeatureFlagsForm(flags) {
+      const data = normalizeFeatureFlags(flags);
+      document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
+      document.getElementById('admin-feature-shop').checked = data.shopEnabled;
+      document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
+      document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
+    }
+
+    function getAdminFeatureFlagsFormValues() {
+      return normalizeFeatureFlags({
+        practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
+        shopEnabled: document.getElementById('admin-feature-shop')?.checked === true,
+        eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
+        rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true
+      });
+    }
+
+    async function loadAdminFeatureFlags() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminFeatureFlagsStatus('기능 설정을 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminGetFeatureFlags');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-feature-flags-load-failed');
+      featureFlagsCache = normalizeFeatureFlags(result.flags);
+      setAdminFeatureFlagsForm(featureFlagsCache);
+      setAdminFeatureFlagsStatus('기능 설정을 불러왔습니다.');
+      return featureFlagsCache;
+    }
+
+    async function saveAdminFeatureFlags() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      const flags = getAdminFeatureFlagsFormValues();
+      setAdminFeatureFlagsStatus('기능 설정을 저장하는 중입니다...');
+      const callable = functions.httpsCallable('adminUpdateFeatureFlags');
+      const response = await callable({ flags });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-feature-flags-save-failed');
+      featureFlagsCache = normalizeFeatureFlags(result.flags);
+      setAdminFeatureFlagsForm(featureFlagsCache);
+      setAdminFeatureFlagsStatus('기능 설정을 저장했습니다.');
+      return featureFlagsCache;
+    }
+
     function setAdminLogsStatus(message, isError = false) {
       const status = document.getElementById('admin-logs-status');
       if(!status) return;
@@ -5752,6 +5885,7 @@
         adminUnlinkMemberAuth: '연결 해제',
         adminUpdateNoticeBoard: '알림판 수정',
         adminUpdatePasswordSetupSettings: '로그인 설정 변경',
+        adminUpdateFeatureFlags: '기능 설정 변경',
         adminGrantClassAdmin: '반 관리자 지정',
         adminRevokeClassAdmin: '관리자 해제'
       }[action] || action || '관리자 작업';
@@ -5906,13 +6040,16 @@
     function renderQuizModeCards(modeIds) {
       const grid = document.getElementById('quiz-mode-grid');
       grid.innerHTML = '';
+      const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
       modeIds.forEach(modeId => {
         if(modeId === 'records') return;
         const baseMode = MODE_CATALOG[modeId] || MODE_CATALOG.practice;
         const playable = FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(lastQuizId));
+        const featureEnabled = modeId !== 'ranking' || flags.rankingEnabled !== false;
         const mode = {
           ...baseMode,
-          enabled: baseMode.enabled && playable
+          enabled: baseMode.enabled && playable && featureEnabled,
+          desc: featureEnabled ? baseMode.desc : '랭킹전은 지금 점검 중입니다.'
         };
         const item = document.createElement('article');
         const icon = document.createElement('span');
@@ -5942,6 +6079,14 @@
     }
 
     async function showQuizPlayView(quizId, modeId) {
+      if(modeId === 'ranking') {
+        const flags = await loadFeatureFlags();
+        if(flags.rankingEnabled === false) {
+          window.alert('랭킹전은 지금 점검 중입니다.');
+          showQuizSelectView(quizId);
+          return;
+        }
+      }
       currentQuizId = quizId;
       currentModeId = modeId;
       currentQuestionIndex = 0;
@@ -6644,7 +6789,9 @@
       const mergedIds = Array.from(new Set([...existingIds, questionId]));
       const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
       const existingStarCount = Number(existing.starCount) || 0;
-      const rewardCoin = (isDuplicateCorrectId || readFallback) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
+      const flags = await loadFeatureFlags();
+      const rewardDisabled = flags.practiceRewardEnabled === false;
+      const rewardCoin = (isDuplicateCorrectId || readFallback || rewardDisabled) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
       const completed = mergedIds.length >= totalCount;
       const isCompleteType = target.completionType === 'complete';
       let nextIds = mergedIds;
@@ -6729,6 +6876,7 @@
         completedRound,
         completionType: target.completionType,
         rewardCoin,
+        rewardDisabled,
         previousCorrectCount,
         nextCorrectCount,
         previousStarCount: existingStarCount,
@@ -6777,6 +6925,11 @@
           recordId: saveResult.recordId,
           questionId: saveResult.questionId,
           quizId
+        });
+      } else if(saveResult && saveResult.rewardDisabled && !saveResult.duplicate) {
+        console.info('Practice reward skipped because reward feature is disabled:', {
+          recordId: saveResult.recordId,
+          questionId: saveResult.questionId
         });
       }
       return saveResult || { recordId, questionId };
@@ -6934,6 +7087,11 @@
             console.warn('Admin login settings load failed.', error);
             setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
           });
+          loadAdminFeatureFlags().catch(error => {
+            console.warn('Admin feature flags load failed.', error);
+            setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
+            setAdminFeatureFlagsForm(featureFlagsCache || DEFAULT_FEATURE_FLAGS);
+          });
           loadAdminLogs().catch(error => {
             console.warn('Admin logs load failed.', error);
             setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true);
@@ -6968,8 +7126,13 @@
       document.getElementById('home-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function showRankingView() {
+    async function showRankingView() {
       closePlaceModal();
+      const flags = await loadFeatureFlags();
+      if(flags.rankingEnabled === false) {
+        window.alert('랭킹 광장은 지금 점검 중입니다.');
+        return;
+      }
       renderRankingView();
       updatePlaceInfo(PLACE_DETAILS.ranking);
       updatePlayerLocation(PLACE_DETAILS.ranking);
@@ -6986,8 +7149,13 @@
       document.getElementById('ranking-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function showShopView() {
+    async function showShopView() {
       closePlaceModal();
+      const flags = await loadFeatureFlags();
+      if(flags.shopEnabled === false) {
+        window.alert('상점은 지금 점검 중입니다.');
+        return;
+      }
       renderShopWallet();
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       updatePlaceInfo(PLACE_DETAILS.shop);
@@ -7007,8 +7175,13 @@
       initializeAuthUser().then(renderShopFromFirestore);
     }
 
-    function showEventView() {
+    async function showEventView() {
       closePlaceModal();
+      const flags = await loadFeatureFlags();
+      if(flags.eventPlazaEnabled === false) {
+        window.alert('이벤트 광장은 지금 점검 중입니다.');
+        return;
+      }
       renderQuestCards();
       renderClassMissionCards();
       renderSeasonEvents();
@@ -7049,6 +7222,9 @@
       lastQuizId = quizId;
       currentSubjectId = quiz.subjectId || currentSubjectId;
       renderQuizSelectView(quizId);
+      loadFeatureFlags().then(() => {
+        if(lastQuizId === quizId && !document.getElementById('quiz-select-view').hidden) renderQuizModeCards(quiz.modes);
+      });
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
@@ -7389,6 +7565,24 @@
           'functions/invalid-argument': '설정 값을 확인해 주세요.'
         };
         setAdminLoginSettingsStatus(messages[error.message] || '로그인 설정 저장 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-feature-flags-load').addEventListener('click', () => {
+      loadAdminFeatureFlags().catch(error => {
+        console.warn('Admin feature flags load failed.', error);
+        setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-feature-flags-save').addEventListener('click', () => {
+      saveAdminFeatureFlags().catch(error => {
+        console.warn('Admin feature flags save failed.', error);
+        const messages = {
+          'functions/permission-denied': '전체 관리자만 기능 설정을 바꿀 수 있습니다.',
+          'functions/invalid-argument': '기능 설정 값을 확인해 주세요.'
+        };
+        setAdminFeatureFlagsStatus(messages[error.message] || '기능 설정 저장 중 문제가 생겼습니다.', true);
       });
     });
 

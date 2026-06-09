@@ -18,7 +18,15 @@ const PASSWORD_HASH_KEY_LENGTH = 32;
 const PASSWORD_SETUP_SESSION_MINUTES = 15;
 const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
 const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
+const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
 const db = getFirestore();
+
+const DEFAULT_FEATURE_FLAGS = {
+  practiceRewardEnabled: true,
+  shopEnabled: true,
+  eventPlazaEnabled: true,
+  rankingEnabled: true
+};
 
 function requireAuth(request) {
   if (!request.auth || !request.auth.uid) {
@@ -105,6 +113,27 @@ function assertNicknameAllowed(nickname) {
     throw new HttpsError("invalid-argument", "Nickname contains blocked words.");
   }
   return normalized;
+}
+
+function publicFeatureFlags(data = {}) {
+  return {
+    practiceRewardEnabled: data.practiceRewardEnabled !== false,
+    shopEnabled: data.shopEnabled !== false,
+    eventPlazaEnabled: data.eventPlazaEnabled !== false,
+    rankingEnabled: data.rankingEnabled !== false
+  };
+}
+
+async function getFeatureFlags(transaction = null) {
+  const ref = db.doc(FEATURE_FLAGS_DOC_PATH);
+  const snapshot = transaction ? await transaction.get(ref) : await ref.get();
+  return publicFeatureFlags(snapshot.exists ? snapshot.data() || {} : DEFAULT_FEATURE_FLAGS);
+}
+
+function assertFeatureEnabled(flags, key, message) {
+  if (flags?.[key] === false) {
+    throw new HttpsError("failed-precondition", message || "Feature is disabled.");
+  }
 }
 
 function normalizePassword(value) {
@@ -1881,6 +1910,46 @@ exports.adminUpdateNoticeBoard = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.adminGetFeatureFlags = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const flags = await getFeatureFlags();
+  return {
+    success: true,
+    flags
+  };
+});
+
+exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const before = await getFeatureFlags();
+  const next = publicFeatureFlags(payload.flags || payload);
+
+  await db.doc(FEATURE_FLAGS_DOC_PATH).set({
+    ...next,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByAdminUserId: adminMember.memberUserId
+  }, { merge: true });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdateFeatureFlags",
+    targetUserId: FEATURE_FLAGS_DOC_PATH,
+    before,
+    after: next,
+    reason: "feature flags update"
+  });
+
+  return {
+    success: true,
+    flags: next
+  };
+});
+
 exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -1888,6 +1957,8 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   const itemId = normalizeId(payload.itemId, "itemId");
 
   const result = await db.runTransaction(async transaction => {
+    const flags = await getFeatureFlags(transaction);
+    assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
     await assertLinkedMemberAuth(transaction, memberUserId, authUid);
 
     const itemRef = db.collection("shopItems").doc(itemId);
@@ -1989,6 +2060,8 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
   }
 
   const result = await db.runTransaction(async transaction => {
+    const flags = await getFeatureFlags(transaction);
+    assertFeatureEnabled(flags, "practiceRewardEnabled", "Practice reward is disabled.");
     await assertLinkedMemberAuth(transaction, memberUserId, authUid);
 
     const recordRef = db.collection("practiceRecords").doc(recordId);

@@ -435,6 +435,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /appSettings/{settingId} {
+      allow read: if settingId == 'featureFlags' && isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /userEconomy/{userId} {
       allow read: if canAccessUserScopedData(userId);
       allow write: if isAdmin();
