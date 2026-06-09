@@ -255,6 +255,16 @@
       </div>
 
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
+      <section class="collection-panel profile-ranking-panel" aria-labelledby="profile-ranking-heading">
+        <div class="collection-heading collection-heading-row">
+          <div>
+            <p class="eyebrow">My Ranking</p>
+            <h3 id="profile-ranking-heading">내 랭킹 기록</h3>
+          </div>
+          <button id="profile-ranking-refresh-button" class="mini-pill-button" type="button">다시 불러오기</button>
+        </div>
+        <div id="profile-ranking-root" class="profile-ranking-root"></div>
+      </section>
 
       <div class="collection-layout">
         <section class="collection-panel" aria-labelledby="title-list-heading">
@@ -549,13 +559,14 @@
         <div class="admin-section-body">
           <div class="admin-settings-form">
             <label class="admin-checkbox-label">
-              <input id="admin-password-setup-enabled" type="checkbox">
-              처음 비밀번호 만들기 허용
+              <input id="admin-signup-enabled" type="checkbox">
+              신규가입 허용
             </label>
-            <label>
-              설정 마감
-              <input id="admin-password-setup-expires-input" type="datetime-local">
+            <label class="admin-checkbox-label">
+              <input id="admin-temporary-password-login-enabled" type="checkbox">
+              임시 비밀번호 로그인 허용
             </label>
+            <p class="admin-settings-note">기존 학생의 임시 비밀번호는 학년+반+번호 4자리입니다. 예: 4학년 8반 22번은 4822</p>
             <label>
               최소 비밀번호 길이
               <input id="admin-min-password-length-input" type="number" min="4" max="32" inputmode="numeric">
@@ -2227,6 +2238,10 @@
       }] : BADGE_DATA, 'badge-card');
       renderHomeOwnedItemsFallback();
       renderHomeOwnedItemsFromFirestore();
+      renderProfileRankingRecordsFromFirestore().catch(error => {
+        console.warn('Firestore profile ranking records read failed.', error);
+        renderProfileRankingRecords([]);
+      });
       renderHomeMemberDataFromFirestore();
     }
 
@@ -2618,6 +2633,9 @@
             name: '연습 현황 없음',
             desc: '아직 표시할 연습기록 기반 뱃지 현황이 없습니다.'
           }]);
+          renderProfileRankingRecordsFromFirestore().catch(error => {
+            console.warn('Firestore profile ranking records refresh failed.', error);
+          });
         })
         .catch(error => {
           console.warn('Firestore home member data read failed. Using static home fallback.', error);
@@ -3362,6 +3380,110 @@
 
     function getLatestRankingRecord(records) {
       return records.slice().sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))[0] || null;
+    }
+
+    function formatProfileRankingDate(record) {
+      const millis = getRankingRecordTimeValue(record);
+      if(!millis) return '날짜 없음';
+      return new Date(millis).toLocaleDateString('ko-KR', {
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    function getRankingRecordQuizTitle(record) {
+      const quizId = normalizeFirebaseQuizId(record?.quizId || '');
+      const catalogTitle = QUIZ_CATALOG[quizId]?.title;
+      if(catalogTitle) return catalogTitle.replace(' 퀴즈', '');
+      return record?.subFilter || record?.category || record?.categoryKey || '랭킹전';
+    }
+
+    function renderProfileRankingRecords(records = []) {
+      const root = document.getElementById('profile-ranking-root');
+      if(!root) return;
+      root.innerHTML = '';
+      const items = records.filter(record => Number(record.score) > 0);
+      if(!currentMemberUserId) {
+        const empty = document.createElement('p');
+        empty.className = 'profile-ranking-empty';
+        empty.textContent = '로그인 후 내 랭킹 기록을 확인할 수 있습니다.';
+        root.appendChild(empty);
+        return;
+      }
+      if(!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'profile-ranking-empty';
+        empty.textContent = '아직 랭킹전 기록이 없습니다.';
+        root.appendChild(empty);
+        return;
+      }
+
+      const bestByCategory = {};
+      items.forEach(record => {
+        const key = record.categoryKey || record.category || record.quizId || '';
+        if(!key) return;
+        if(isBetterRankingEntry(record, bestByCategory[key])) bestByCategory[key] = record;
+      });
+      const bestRows = Object.values(bestByCategory)
+        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999))
+        .slice(0, 6);
+      const latestRows = items
+        .slice()
+        .sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))
+        .slice(0, 5);
+
+      const bestSection = document.createElement('div');
+      const recentSection = document.createElement('div');
+      const bestTitle = document.createElement('h4');
+      const recentTitle = document.createElement('h4');
+      const bestList = document.createElement('div');
+      const recentList = document.createElement('div');
+      bestSection.className = 'profile-ranking-block';
+      recentSection.className = 'profile-ranking-block';
+      bestTitle.textContent = '분야별 최고 기록';
+      recentTitle.textContent = '최근 랭킹전';
+      bestList.className = 'profile-ranking-list';
+      recentList.className = 'profile-ranking-list';
+
+      const appendRow = (list, record, options = {}) => {
+        const row = document.createElement('article');
+        const title = document.createElement('strong');
+        const meta = document.createElement('span');
+        const score = document.createElement('b');
+        row.className = 'profile-ranking-row';
+        title.textContent = getRankingRecordQuizTitle(record);
+        meta.textContent = options.showDate
+          ? `${formatProfileRankingDate(record)} · ${record.elapsedText || formatRankingElapsedText(record.elapsedSeconds)}`
+          : `${record.category || record.subFilter || ''} · ${record.elapsedText || formatRankingElapsedText(record.elapsedSeconds)}`;
+        score.textContent = `${Number(record.score) || 0}점`;
+        row.append(title, meta, score);
+        list.appendChild(row);
+      };
+
+      bestRows.forEach(record => appendRow(bestList, record));
+      latestRows.forEach(record => appendRow(recentList, record, { showDate: true }));
+      bestSection.append(bestTitle, bestList);
+      recentSection.append(recentTitle, recentList);
+      root.append(bestSection, recentSection);
+    }
+
+    async function renderProfileRankingRecordsFromFirestore() {
+      const root = document.getElementById('profile-ranking-root');
+      if(root) {
+        root.innerHTML = '<p class="profile-ranking-empty">내 랭킹 기록을 불러오는 중입니다...</p>';
+      }
+      const db = getFirestoreDb();
+      if(!db || !currentMemberUserId) {
+        renderProfileRankingRecords([]);
+        return [];
+      }
+      const snapshot = await db.collection('rankingRecords')
+        .where('memberUserId', '==', currentMemberUserId)
+        .limit(80)
+        .get();
+      const records = snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
+      renderProfileRankingRecords(records);
+      return records;
     }
 
     function getRankingRecordUserKey(record) {
@@ -6112,21 +6234,20 @@
 
     function setAdminLoginSettingsForm(settings) {
       const data = settings || {};
-      document.getElementById('admin-password-setup-enabled').checked = data.setupEnabled !== false;
-      document.getElementById('admin-password-setup-expires-input').value = toDateTimeLocalInputValue(data.setupExpiresAtIso);
+      document.getElementById('admin-signup-enabled').checked = data.signupEnabled !== false;
+      document.getElementById('admin-temporary-password-login-enabled').checked = data.temporaryPasswordLoginEnabled !== false;
       document.getElementById('admin-min-password-length-input').value = data.minPasswordLength || 4;
       document.getElementById('admin-max-failed-attempts-input').value = data.maxFailedAttempts || 5;
       document.getElementById('admin-lock-minutes-input').value = data.lockMinutes || 10;
     }
 
     function getAdminLoginSettingsFormValues() {
-      const expiresValue = document.getElementById('admin-password-setup-expires-input')?.value || '';
-      const expiresDate = expiresValue ? new Date(expiresValue) : null;
-      if(!expiresDate || Number.isNaN(expiresDate.getTime())) throw new Error('invalid-setup-expires-at');
-      const expiresAt = expiresDate.toISOString();
+      const temporaryPasswordLoginEnabled = document.getElementById('admin-temporary-password-login-enabled')?.checked === true;
       return {
-        setupEnabled: document.getElementById('admin-password-setup-enabled')?.checked === true,
-        setupExpiresAt: expiresAt,
+        signupEnabled: document.getElementById('admin-signup-enabled')?.checked === true,
+        temporaryPasswordLoginEnabled,
+        setupEnabled: temporaryPasswordLoginEnabled,
+        setupExpiresAt: '2099-12-31T14:59:59.000Z',
         minPasswordLength: Number(document.getElementById('admin-min-password-length-input')?.value || 4),
         maxFailedAttempts: Number(document.getElementById('admin-max-failed-attempts-input')?.value || 5),
         lockMinutes: Number(document.getElementById('admin-lock-minutes-input')?.value || 10)
@@ -7763,6 +7884,14 @@
     });
 
     document.getElementById('title-catalog-button').addEventListener('click', openTitleCatalogModal);
+
+    document.getElementById('profile-ranking-refresh-button').addEventListener('click', () => {
+      renderProfileRankingRecordsFromFirestore().catch(error => {
+        console.warn('Firestore profile ranking records manual refresh failed.', error);
+        const root = document.getElementById('profile-ranking-root');
+        if(root) root.innerHTML = '<p class="profile-ranking-empty">내 랭킹 기록을 불러오지 못했습니다.</p>';
+      });
+    });
 
     document.getElementById('title-card-grid').addEventListener('click', event => {
       const button = event.target.closest('[data-select-title-id]');

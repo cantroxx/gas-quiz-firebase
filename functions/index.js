@@ -411,6 +411,8 @@ function publicMemberProfile(memberId, memberData) {
 function publicSetupSettings(settings) {
   return {
     setupEnabled: settings.setupEnabled === true,
+    signupEnabled: settings.signupEnabled !== false,
+    temporaryPasswordLoginEnabled: settings.temporaryPasswordLoginEnabled !== false,
     setupExpiresAt: settings.setupExpiresAt || null,
     minPasswordLength: Number(settings.minPasswordLength || 4),
     maxFailedAttempts: Number(settings.maxFailedAttempts || MAX_FAILED_ATTEMPTS),
@@ -428,8 +430,10 @@ function publicAdminPasswordSetupSettings(settings) {
 }
 
 function normalizeAdminPasswordSetupSettings(payload) {
-  const setupEnabled = payload.setupEnabled !== false;
-  const setupExpiresAt = dateToTimestamp(payload.setupExpiresAt);
+  const signupEnabled = payload.signupEnabled !== false;
+  const temporaryPasswordLoginEnabled = payload.temporaryPasswordLoginEnabled !== false;
+  const setupEnabled = payload.setupEnabled !== undefined ? payload.setupEnabled !== false : temporaryPasswordLoginEnabled;
+  const setupExpiresAt = dateToTimestamp(payload.setupExpiresAt || DEFAULT_PASSWORD_SETUP_EXPIRES_AT);
   const minPasswordLength = Number(payload.minPasswordLength || 4);
   const maxFailedAttempts = Number(payload.maxFailedAttempts || MAX_FAILED_ATTEMPTS);
   const lockMinutes = Number(payload.lockMinutes || 10);
@@ -449,6 +453,8 @@ function normalizeAdminPasswordSetupSettings(payload) {
 
   return {
     setupEnabled,
+    signupEnabled,
+    temporaryPasswordLoginEnabled,
     setupExpiresAt,
     nicknameCheckEnabled: true,
     minPasswordLength,
@@ -576,6 +582,8 @@ async function getPasswordSetupSettings(transaction) {
   const settingsSnapshot = await transaction.get(settingsRef);
   const defaults = {
     setupEnabled: true,
+    signupEnabled: true,
+    temporaryPasswordLoginEnabled: true,
     setupExpiresAt: dateToTimestamp(DEFAULT_PASSWORD_SETUP_EXPIRES_AT),
     minPasswordLength: 4,
     maxFailedAttempts: MAX_FAILED_ATTEMPTS,
@@ -962,6 +970,9 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
       assertNotLocked(credentials, settings);
 
       if (!hasConfiguredPassword) {
+        if (settings.temporaryPasswordLoginEnabled === false) {
+          throw new HttpsError("failed-precondition", "Temporary password login is disabled.");
+        }
         if (password !== temporaryPassword) {
           transaction.set(credentialsRef, failedAttemptUpdate({}, settings), { merge: true });
           throw new HttpsError("permission-denied", "Temporary password mismatch.");
@@ -1054,10 +1065,14 @@ exports.registerNewMember = onCall({ region: REGION }, async request => {
       );
       const memberRef = db.collection("users").doc(memberUserId);
       const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
-      const [memberSnapshot, credentialsSnapshot] = await Promise.all([
+      const [settings, memberSnapshot, credentialsSnapshot] = await Promise.all([
+        getPasswordSetupSettings(transaction),
         transaction.get(memberRef),
         transaction.get(credentialsRef)
       ]);
+      if (settings.signupEnabled === false) {
+        throw new HttpsError("failed-precondition", "Signup is disabled.");
+      }
 
       if (memberSnapshot.exists) {
         throw new HttpsError("already-exists", "Member already exists.");
