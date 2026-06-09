@@ -351,7 +351,7 @@
   - 현재 회원 연결은 학교/학년/반/번호 검증 후 `authUid`를 연결/재연결한다.
   - 운영 전에는 비밀번호, 초기 비밀번호, 교사 승인 또는 서버 검증 중 하나를 확정해야 한다.
 - Functions 기반 서버 검증 이전
-  - 현재 상점 구매, 보상 지급, 인벤토리 추가는 클라이언트 transaction 중심이다.
+  - 현재 상점 구매, 보상 지급, 인벤토리 추가는 클라이언트 read/write 중심이다.
   - 오픈 범위가 제한된 MVP이면 유지 가능하지만, 장기 운영 전에는 Functions 이전이 필요하다.
 - 이벤트/퀘스트/학급 미션 실제 진행도 연결
   - 현재 이벤트 광장은 안내/표시 중심이다.
@@ -507,15 +507,21 @@
 
 8. 현재 브라우저 연결 해제
    - 내 집 회원 연결 패널에서 `현재 브라우저 연결 해제` 클릭
-   - `users/{memberUserId}.authUid`가 빈 값으로 바뀌는지 확인
-   - 새 익명 uid로 전환되고 다른 학생 정보로 다시 연결 가능한지 확인
+   - 서버 `users/{memberUserId}.authUid`를 직접 비우지 않고 브라우저 세션과 localStorage 힌트를 초기화
+   - 새 익명 uid로 전환되고 다른 학생 정보로 다시 연결 가능한지 확인 완료
+
+9. Firebase MVP 회귀 확인
+   - 회원 연결/연결 해제, 자동 복구, 홈/프로필/칭호/뱃지 표시 정상 확인
+   - 연습전 최초 기록 생성, 기존 기록 갱신, `practiceRecords`/`userPracticeSummary`/`userBadges`/`userEconomy` 반영 정상 확인
+   - 랭킹전 저장과 랭킹 광장 Firestore 표시 정상 확인
+   - 상점 구매/장착, 내 집 설정 저장 정상 확인
 
 ## 9. 다음 작업 추천 순서
 
 1. 최종 브라우저 리그레션 확인
-   - 회원 연결, 자동 복구, 홈/프로필, 상점, 내 집, 랭킹 광장 확인
-   - 주요 퀴즈 1문제씩 정답/오답 확인
-   - 콘솔에 `permission-denied`, `progress save failed`, `quiz load failed`가 없는지 확인
+   - 핵심 흐름은 1차 확인 완료
+   - 오픈 직전에는 회원 1~2명으로 회원 연결, 연습전, 랭킹전, 상점, 내 집을 한 번 더 확인
+   - 콘솔에 `permission-denied`, `progress save failed`, `quiz load failed`, `ranking plaza read failed`가 없는지 확인
 
 2. 비밀번호/초기비밀번호 검증 정책 확정
    - 기존 비밀번호 미이관 상태에서 초기 비밀번호 재설정 또는 별도 인증 방식을 결정
@@ -546,4 +552,4 @@
 - 운영본 `gas-quiz`는 계속 유지한다.
 - `gas-quiz-firebase`는 새 사이트 전환 준비용으로 별도 검증 중이다.
 - Firebase 실험본은 운영본 회원 `users` 컬렉션 import, `authUid` 연결, 자동 복구, memberUserId 기준 데이터 소유권 전환까지 완료했다.
-- Firestore 기본 퀴즈 데이터와 랭킹 데이터를 public UI에 연결하는 작업은 아직 전이다.
+- Firestore 퀴즈 데이터, 연습전 저장, 보상, 뱃지, 랭킹전, 랭킹 광장 UI 연결까지 완료했다.
