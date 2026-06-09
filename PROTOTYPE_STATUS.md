@@ -355,6 +355,7 @@
 - Functions 기반 서버 검증 이전
   - 현재 상점 구매, 보상 지급, 인벤토리 추가는 클라이언트 read/write 중심이다.
   - 오픈 범위가 제한된 MVP이면 유지 가능하지만, 장기 운영 전에는 Functions 이전이 필요하다.
+  - `functions/` scaffold는 추가했지만, 실제 Functions deploy와 운영 연결은 아직 하지 않았다.
 - 이벤트/퀘스트/학급 미션 실제 진행도 연결
   - 현재 이벤트 광장은 안내/표시 중심이다.
 - 미이관 퀴즈 처리
@@ -531,6 +532,8 @@
    - `users/{memberUserId}.authUid` 재연결은 서버 검증 성공 또는 교사 승인 이후로 제한해야 한다.
 
 3. Functions 기반 경제 처리
+   - `functions/` scaffold 추가 완료
+   - 현재 callable functions는 모두 `unimplemented` 상태이며 배포하지 않았다.
    - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
    - `userInventory` 직접 추가 방지
    - `purchaseLogs` 서버 생성 구조 검토
