@@ -7,9 +7,9 @@ This directory prepares the next security migration phase.
 - `verifyMemberAccessCode`: validates school, grade, class, number, and a teacher-issued access code.
 - `linkMemberAuthUid`: connects or relinks `users/{memberUserId}.authUid` after server verification.
 - `purchaseShopItem`: move shop purchase validation and inventory writes to server code.
-- `grantPracticeReward`: move practice reward economy writes to server code.
+- `grantPracticeReward`: grants one DJ coin for a newly recorded practice correct answer.
 
-`purchaseShopItem` and `grantPracticeReward` are intentionally still `unimplemented`.
+`purchaseShopItem` is intentionally still `unimplemented`.
 
 ## Access code documents
 

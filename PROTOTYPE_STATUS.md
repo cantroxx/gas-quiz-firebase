@@ -533,14 +533,16 @@
    - 접속 코드 발급 스크립트 `scripts/generate-member-access-codes.js` 추가 완료
    - 4학년 8반 테스트 접속 코드 22건 발급 완료
    - `verifyMemberAccessCode`, `linkMemberAuthUid` Functions deploy 완료
-   - 회원 연결 UI는 접속 코드 입력 + callable 연결 방식으로 배포했으며, 브라우저 확인 대기 중이다.
-   - 다음 단계는 브라우저에서 접속 코드 기반 회원 연결 확인 후 직접 `users.authUid` update rules를 제한하는 작업
+   - 회원 연결 UI는 접속 코드 입력 + callable 연결 방식으로 배포했고, 브라우저 정상 연결 확인 완료
+   - 클라이언트 직접 `users.authUid` update rules는 제거 완료
    - `users/{memberUserId}.authUid` 재연결은 서버 검증 성공 또는 교사 승인 이후로 제한해야 한다.
 
 3. Functions 기반 경제 처리
    - `functions/` scaffold 추가 완료
-   - 회원 접속 코드 검증 callable은 초안 구현 상태이며 배포하지 않았다.
-   - 경제 처리 callable은 아직 `unimplemented` 상태다.
+   - 회원 접속 코드 검증 callable은 배포 및 브라우저 확인 완료
+   - 연습전 정답 보상 지급은 `grantPracticeReward` callable 기반으로 전환 중이다.
+   - 중복 지급 방지는 `rewardLogs/{deterministicId}`로 처리한다.
+   - 상점 구매 callable은 아직 `unimplemented` 상태다.
    - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
    - `userInventory` 직접 추가 방지
    - `purchaseLogs` 서버 생성 구조 검토

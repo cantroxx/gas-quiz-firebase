@@ -4466,34 +4466,31 @@
 
     async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {
       if(!rewardCoin || rewardCoin <= 0) return null;
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-
-      const fieldValue = getFirestoreFieldValue();
-      const economyRef = db.collection('userEconomy').doc(memberUserId);
-      const data = {
-        userId: memberUserId,
-        djCoin: fieldValue.increment(rewardCoin),
-        totalEarned: fieldValue.increment(rewardCoin),
-        updatedAt: fieldValue.serverTimestamp(),
-        lastPracticeRewardAt: fieldValue.serverTimestamp(),
-        source: 'practice_reward'
-      };
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
 
       console.info('Practice reward economy update queued:', {
-        economyPath: economyRef.path,
         rewardCoin,
         context
       });
-      await economyRef.set(data, { merge: true });
+      const grantPracticeReward = functions.httpsCallable('grantPracticeReward');
+      const response = await grantPracticeReward({
+        memberUserId,
+        recordId: context?.recordId || '',
+        questionId: context?.questionId || '',
+        quizId: context?.quizId || ''
+      });
+      const result = response?.data || {};
       firestoreUserEconomy = null;
       userEconomyLoadPromise = null;
       console.info('Firestore practice reward update succeeded:', {
-        economyPath: economyRef.path,
-        rewardCoin,
+        economyPath: result.economyPath || '',
+        rewardLogPath: result.rewardLogPath || '',
+        rewardCoin: result.rewardCoin || 0,
+        duplicate: !!result.duplicate,
         context
       });
-      return economyRef.path;
+      return result.economyPath || null;
     }
 
     async function savePracticeProgressAfterCorrectAnswer(question) {

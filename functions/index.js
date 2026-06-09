@@ -12,6 +12,7 @@ const DEFAULT_MEMBER_SCHOOL = "동자";
 const AUTH_LINK_PROVIDER = "firebase_member_link_function";
 const AUTH_LINK_VERSION = 3;
 const MAX_FAILED_ATTEMPTS = 5;
+const PRACTICE_CORRECT_REWARD_COIN = 1;
 const db = getFirestore();
 
 function requireAuth(request) {
@@ -133,6 +134,22 @@ function publicMemberProfile(memberId, memberData) {
   };
 }
 
+function normalizeId(value, fieldName) {
+  const id = String(value || "").trim();
+  if (!id || id.length > 160 || id.includes("/")) {
+    throw new HttpsError("invalid-argument", `Invalid ${fieldName}.`);
+  }
+  return id;
+}
+
+function rewardLogId(parts) {
+  return parts
+    .map(part => String(part || "").trim().replace(/[^0-9A-Za-z가-힣:_-]+/g, "-"))
+    .filter(Boolean)
+    .join("__")
+    .slice(0, 1400);
+}
+
 async function writeAuthLinkLog(entry) {
   try {
     await db.collection("authLinkLogs").add({
@@ -204,6 +221,20 @@ async function verifyAccessCodeForMemberInTransaction(transaction, { authUid, pa
 
 async function verifyAccessCodeForMember(options) {
   return db.runTransaction(transaction => verifyAccessCodeForMemberInTransaction(transaction, options));
+}
+
+async function assertLinkedMemberAuth(transaction, memberUserId, authUid) {
+  const memberRef = db.collection("users").doc(memberUserId);
+  const memberSnapshot = await transaction.get(memberRef);
+  if (!memberSnapshot.exists) {
+    throw new HttpsError("not-found", "Member not found.");
+  }
+  const memberData = memberSnapshot.data() || {};
+  assertActiveStudent(memberData);
+  if (memberData.authUid !== authUid) {
+    throw new HttpsError("permission-denied", "Member is not linked to current auth.");
+  }
+  return memberData;
 }
 
 exports.verifyMemberAccessCode = onCall({ region: REGION }, async request => {
@@ -317,9 +348,89 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
 });
 
 exports.grantPracticeReward = onCall({ region: REGION }, async request => {
-  requireAuth(request);
-  throw new HttpsError(
-    "unimplemented",
-    "grantPracticeReward is scaffolded for the next migration phase and is not active yet."
-  );
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const recordId = normalizeId(payload.recordId, "recordId");
+  const questionId = normalizeId(payload.questionId, "questionId");
+  const quizId = normalizeId(payload.quizId || "unknown", "quizId");
+
+  if (!recordId.startsWith(`${memberUserId}__`)) {
+    throw new HttpsError("invalid-argument", "recordId does not belong to memberUserId.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+
+    const recordRef = db.collection("practiceRecords").doc(recordId);
+    const logRef = db.collection("rewardLogs").doc(rewardLogId([
+      "practice",
+      memberUserId,
+      recordId,
+      questionId
+    ]));
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+
+    const [recordSnapshot, logSnapshot] = await Promise.all([
+      transaction.get(recordRef),
+      transaction.get(logRef)
+    ]);
+
+    if (!recordSnapshot.exists) {
+      throw new HttpsError("failed-precondition", "Practice record does not exist.");
+    }
+    const record = recordSnapshot.data() || {};
+    const correctIds = Array.isArray(record.correctIds)
+      ? record.correctIds.map(id => String(id || "").trim())
+      : [];
+    if (!correctIds.includes(questionId)) {
+      throw new HttpsError("failed-precondition", "Practice question is not recorded as correct.");
+    }
+
+    if (logSnapshot.exists) {
+      return {
+        duplicate: true,
+        rewardCoin: 0,
+        economyPath: economyRef.path,
+        rewardLogPath: logRef.path
+      };
+    }
+
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      djCoin: FieldValue.increment(PRACTICE_CORRECT_REWARD_COIN),
+      totalEarned: FieldValue.increment(PRACTICE_CORRECT_REWARD_COIN),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastPracticeRewardAt: FieldValue.serverTimestamp(),
+      source: "practice_reward_function"
+    }, { merge: true });
+    transaction.set(logRef, {
+      type: "practice_correct",
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      recordId,
+      questionId,
+      quizId,
+      rewardCoin: PRACTICE_CORRECT_REWARD_COIN,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      duplicate: false,
+      rewardCoin: PRACTICE_CORRECT_REWARD_COIN,
+      economyPath: economyRef.path,
+      rewardLogPath: logRef.path
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    recordId,
+    questionId,
+    quizId,
+    ...result
+  };
 });
