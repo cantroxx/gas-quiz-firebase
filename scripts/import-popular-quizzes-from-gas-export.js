@@ -122,6 +122,8 @@ function normalizeQuestion(quiz, rawQuestion, index) {
   };
 
   if (quiz.category === '포켓몬' || quiz.uiType === 'imageInput') {
+    const pokemonNo = normalizeNumber(rawQuestion.no || rawQuestion.pokemonNo);
+    const pokemonPracticeId = pokemonNo > 0 ? String(pokemonNo) : '';
     return {
       ...base,
       questionType: 'imageInput',
@@ -129,7 +131,13 @@ function normalizeQuestion(quiz, rawQuestion, index) {
       imageUrl: normalizeString(rawQuestion.imageUrl || rawQuestion.question),
       imageFileId: normalizeString(rawQuestion.imageFileId),
       sourceImageRef: normalizeString(rawQuestion.sourceImageRef),
-      pokemonNo: normalizeNumber(rawQuestion.no || rawQuestion.pokemonNo),
+      pokemonNo,
+      practiceQuestionId: normalizeString(rawQuestion.practiceQuestionId) || pokemonPracticeId || questionId,
+      legacyPracticeIds: uniqueStrings([
+        pokemonPracticeId,
+        questionId,
+        ...(Array.isArray(rawQuestion.legacyPracticeIds) ? rawQuestion.legacyPracticeIds : [])
+      ]),
       generation: normalizeNumber(rawQuestion.generation || quiz.generation),
       difficulty: normalizeString(rawQuestion.difficulty || quiz.difficulty)
     };

@@ -1359,7 +1359,7 @@
         desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
         board: '사진과 문장을 보고 정답을 맞혀요',
         cardDesc: '아이돌, 애니, 아재개그, 포켓몬 퀴즈를 고르는 화면입니다.',
-        quizzes: ['idol', 'anime', 'dad-joke', 'pokemon-gen1', 'pokemon-gen2', 'pokemon-gen3', 'pokemon-gen4', 'pokemon-gen5', 'pokemon-gen6', 'pokemon-gen7', 'pokemon-gen8', 'pokemon-gen9'],
+        quizzes: ['idol', 'anime', 'dad-joke', 'pokemon-easy', 'pokemon-normal', 'pokemon-hard', 'pokemon-very-hard', 'pokemon-gen1', 'pokemon-gen2', 'pokemon-gen3', 'pokemon-gen4', 'pokemon-gen5', 'pokemon-gen6', 'pokemon-gen7', 'pokemon-gen8', 'pokemon-gen9'],
         enabled: true
       },
       math: {
@@ -1522,7 +1522,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen2': {
         title: '포켓몬 2세대 퀴즈',
@@ -1533,7 +1533,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen3': {
         title: '포켓몬 3세대 퀴즈',
@@ -1544,7 +1544,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen4': {
         title: '포켓몬 4세대 퀴즈',
@@ -1555,7 +1555,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen5': {
         title: '포켓몬 5세대 퀴즈',
@@ -1566,7 +1566,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen6': {
         title: '포켓몬 6세대 퀴즈',
@@ -1577,7 +1577,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen7': {
         title: '포켓몬 7세대 퀴즈',
@@ -1588,7 +1588,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen8': {
         title: '포켓몬 8세대 퀴즈',
@@ -1599,7 +1599,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       'pokemon-gen9': {
         title: '포켓몬 9세대 퀴즈',
@@ -1610,7 +1610,51 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'records']
+        modes: ['practice', 'ranking', 'oneChance', 'records']
+      },
+      'pokemon-easy': {
+        title: '포켓몬 쉬움 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '1세대 범위의 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '기존 포켓몬 쉬움 모드입니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'ranking', 'oneChance', 'records']
+      },
+      'pokemon-normal': {
+        title: '포켓몬 보통 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '2세대까지의 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '기존 포켓몬 보통 모드입니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'ranking', 'oneChance', 'records']
+      },
+      'pokemon-hard': {
+        title: '포켓몬 어려움 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '3세대까지의 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '기존 포켓몬 어려움 모드입니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'ranking', 'oneChance', 'records']
+      },
+      'pokemon-very-hard': {
+        title: '포켓몬 헬 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '전체 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '기존 포켓몬 헬 모드입니다.',
+        subjectId: 'popular',
+        parentQuizId: 'pokemon',
+        groupLabel: '포켓몬',
+        modes: ['practice', 'ranking', 'oneChance', 'records']
       },
       cultural_heritage: {
         title: '문화유산 퀴즈',
@@ -1674,6 +1718,10 @@
       'idol',
       'anime',
       'dad-joke',
+      'pokemon-easy',
+      'pokemon-normal',
+      'pokemon-hard',
+      'pokemon-very-hard',
       'pokemon-gen1',
       'pokemon-gen2',
       'pokemon-gen3',
@@ -3633,6 +3681,21 @@
 
     const RANKING_PLAZA_ROW_LIMIT = 10;
     const RANKING_PLAZA_CATEGORY_RECORD_LIMIT = 40;
+    const POKEMON_RANKING_CATEGORY_KEYS = [
+      '포켓몬1세대',
+      '포켓몬2세대',
+      '포켓몬3세대',
+      '포켓몬4세대',
+      '포켓몬5세대',
+      '포켓몬6세대',
+      '포켓몬7세대',
+      '포켓몬8세대',
+      '포켓몬9세대',
+      '포켓몬쉬움',
+      '포켓몬보통',
+      '포켓몬어려움',
+      '포켓몬헬'
+    ];
     const RANKING_PLAZA_CATEGORY_KEYS = [
       '맞춤법',
       '아재개그',
@@ -3644,7 +3707,8 @@
       '인물역사-인물',
       '수학곱셈과-나눗셈',
       '인물아이돌',
-      '인물애니'
+      '인물애니',
+      ...POKEMON_RANKING_CATEGORY_KEYS
     ];
 
     function normalizeRankingRecordFromFirestore(doc) {
@@ -3942,7 +4006,7 @@
       const koreanKeys = ['맞춤법', '아재개그', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게'];
       const socialKeys = ['사회삼국지', '사회고대사-삼국시대', '인물역사-인물'];
       const mathKeys = ['수학곱셈과-나눗셈'];
-      const popularKeys = ['아재개그', '인물아이돌', '인물애니'];
+      const popularKeys = ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS];
       const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
         { id: 'spelling', label: '맞춤법', keys: ['맞춤법'] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
@@ -3961,7 +4025,8 @@
       const popularGroups = buildSubjectRankingGroups(rankingRecords, popularKeys, [
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
-        { id: 'anime', label: '애니', keys: ['인물애니'] }
+        { id: 'anime', label: '애니', keys: ['인물애니'] },
+        { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
       ]);
       return [
         {
@@ -4033,7 +4098,7 @@
       const koreanBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
       const mathBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['수학곱셈과-나눗셈']);
-      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니']);
+      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS]);
       return {
         cards: [
           {
@@ -4326,8 +4391,17 @@
     function buildImageInputQuestion(question) {
       const answerText = String(question.answer || '').trim();
       const aliases = Array.isArray(question.aliases) ? question.aliases.map(alias => String(alias || '').trim()).filter(Boolean) : [];
+      const pokemonNo = Number(question.pokemonNo || question.no || 0);
+      const pokemonPracticeId = pokemonNo > 0 ? String(pokemonNo) : '';
+      const questionId = String(question.questionId || '').trim();
+      const legacyPracticeIds = Array.isArray(question.legacyPracticeIds)
+        ? question.legacyPracticeIds.map(id => String(id || '').trim()).filter(Boolean)
+        : [];
       return {
-        practiceQuestionId: String(question.questionId || '').trim(),
+        practiceQuestionId: String(question.practiceQuestionId || pokemonPracticeId || questionId).trim(),
+        legacyPracticeIds: Array.from(new Set([pokemonPracticeId, questionId, ...legacyPracticeIds].filter(Boolean))),
+        questionId,
+        pokemonNo: pokemonNo || undefined,
         type: 'imageInput',
         question: String(question.prompt || '이미지를 보고 정답을 입력하세요.').trim(),
         imageUrl: String(question.imageUrl || question.question || '').trim(),
@@ -6997,6 +7071,13 @@
           completionType: completionType || 'loop'
         };
       }
+      const pokemonDifficultyTargets = {
+        'pokemon-easy': { area: '포켓몬', detail: '쉬움', areaKey: '포켓몬/easy', completionType: completionType || 'loop' },
+        'pokemon-normal': { area: '포켓몬', detail: '보통', areaKey: '포켓몬/normal', completionType: completionType || 'loop' },
+        'pokemon-hard': { area: '포켓몬', detail: '어려움', areaKey: '포켓몬/hard', completionType: completionType || 'loop' },
+        'pokemon-very-hard': { area: '포켓몬', detail: '헬', areaKey: '포켓몬/very-hard', completionType: completionType || 'loop' }
+      };
+      if(pokemonDifficultyTargets[id]) return pokemonDifficultyTargets[id];
       const targets = {
         'random-basic': { area: '수학', detail: '곱셈과 나눗셈', areaKey: '수학/random-basic', completionType: 'loop' },
         spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
@@ -7026,6 +7107,20 @@
           category: `포켓몬(${generation}세대)`,
           subFilter: `${generation}세대`,
           categoryKey: slugPracticeKey(`포켓몬(${generation}세대)`),
+          rankingMode: 'normal'
+        };
+      }
+      const pokemonDifficultyTargets = {
+        'pokemon-easy': { category: '포켓몬(쉬움)', subFilter: '쉬움' },
+        'pokemon-normal': { category: '포켓몬(보통)', subFilter: '보통' },
+        'pokemon-hard': { category: '포켓몬(어려움)', subFilter: '어려움' },
+        'pokemon-very-hard': { category: '포켓몬(헬)', subFilter: '헬' }
+      };
+      if(pokemonDifficultyTargets[id]) {
+        const target = pokemonDifficultyTargets[id];
+        return {
+          ...target,
+          categoryKey: slugPracticeKey(target.category),
           rankingMode: 'normal'
         };
       }
@@ -7245,6 +7340,17 @@
       return String(question?.practiceQuestionId || question?.questionId || question?.answerText || question?.question || '').trim();
     }
 
+    function getPracticeQuestionIdCandidates(question) {
+      const candidates = [
+        question?.practiceQuestionId,
+        ...(Array.isArray(question?.legacyPracticeIds) ? question.legacyPracticeIds : []),
+        question?.questionId,
+        question?.answerText,
+        question?.question
+      ].map(id => String(id || '').trim()).filter(Boolean);
+      return Array.from(new Set(candidates));
+    }
+
     function getPracticeBadgeMeta(areaKey, area, detail) {
       const parts = String(areaKey || '').split('/');
       const groupRaw = parts[0] || area || '';
@@ -7362,6 +7468,7 @@
 
       const questionId = getPracticeQuestionId(question);
       if(!questionId) throw new Error('missing-question-id');
+      const questionIdCandidates = getPracticeQuestionIdCandidates(question);
 
       const quizId = normalizeFirebaseQuizId(currentQuizId);
       const meta = await loadFirebaseQuizMeta(quizId);
@@ -7399,8 +7506,8 @@
       const existing = snapshot?.exists ? snapshot.data() || {} : {};
       const existingSummary = summarySnapshot?.exists ? summarySnapshot.data() || {} : {};
       const existingIds = Array.isArray(existing.correctIds) ? existing.correctIds.map(id => String(id || '').trim()).filter(Boolean) : [];
-      const isDuplicateCorrectId = existingIds.includes(questionId);
-      const mergedIds = Array.from(new Set([...existingIds, questionId]));
+      const isDuplicateCorrectId = questionIdCandidates.some(id => existingIds.includes(id));
+      const mergedIds = isDuplicateCorrectId ? existingIds : Array.from(new Set([...existingIds, questionId]));
       const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
       const existingStarCount = Number(existing.starCount) || 0;
       const flags = await loadFeatureFlags();
