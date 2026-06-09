@@ -349,67 +349,82 @@
         <button class="back-to-town" type="button" data-admin-logout>로그아웃</button>
       </div>
 
-      <section class="admin-section" aria-labelledby="admin-member-heading">
-        <div class="event-section-heading">
-          <p class="eyebrow">Members</p>
-          <h3 id="admin-member-heading">회원 관리</h3>
+      <div class="admin-section-tabs" aria-label="관리자 메뉴">
+        <button class="admin-section-tab is-active" type="button" data-admin-section-target="members">회원 목록</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="notice">알림판 관리</button>
+      </div>
+
+      <section id="admin-section-members" class="admin-section is-active" aria-labelledby="admin-member-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="members" aria-expanded="true">
+          <span>
+            <span class="eyebrow">Members</span>
+            <strong id="admin-member-heading">회원 관리</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-toolbar">
+            <label>
+              학년
+              <input id="admin-filter-grade" type="number" min="1" max="9" inputmode="numeric" placeholder="전체">
+            </label>
+            <label>
+              반
+              <input id="admin-filter-class" type="number" min="1" inputmode="numeric" placeholder="전체">
+            </label>
+            <label>
+              검색
+              <input id="admin-filter-query" type="text" placeholder="닉네임, userId">
+            </label>
+            <button id="admin-member-refresh" class="button primary" type="button">조회</button>
+          </div>
+          <p id="admin-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-summary" class="admin-summary"></div>
+          <div id="admin-member-list" class="admin-member-list"></div>
         </div>
-        <div class="admin-toolbar">
-          <label>
-            학년
-            <input id="admin-filter-grade" type="number" min="1" max="9" inputmode="numeric" placeholder="전체">
-          </label>
-          <label>
-            반
-            <input id="admin-filter-class" type="number" min="1" inputmode="numeric" placeholder="전체">
-          </label>
-          <label>
-            검색
-            <input id="admin-filter-query" type="text" placeholder="닉네임, userId">
-          </label>
-          <button id="admin-member-refresh" class="button primary" type="button">조회</button>
-        </div>
-        <p id="admin-status" class="admin-status" aria-live="polite"></p>
-        <div id="admin-summary" class="admin-summary"></div>
-        <div id="admin-member-list" class="admin-member-list"></div>
       </section>
 
-      <section class="admin-section" aria-labelledby="admin-notice-heading">
-        <div class="event-section-heading">
-          <p class="eyebrow">Notice</p>
-          <h3 id="admin-notice-heading">알림판 관리</h3>
+      <section id="admin-section-notice" class="admin-section" aria-labelledby="admin-notice-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="notice" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Notice</span>
+            <strong id="admin-notice-heading">알림판 관리</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-notice-form">
+            <label>
+              제목
+              <input id="admin-notice-title-input" type="text" maxlength="40">
+            </label>
+            <label>
+              설명
+              <input id="admin-notice-desc-input" type="text" maxlength="120">
+            </label>
+            <label>
+              공지
+              <textarea id="admin-notice-announcement-input" maxlength="160"></textarea>
+            </label>
+            <label>
+              오늘의 퀘스트
+              <textarea id="admin-notice-quest-input" maxlength="160"></textarea>
+            </label>
+            <label>
+              추천 퀴즈 문구
+              <input id="admin-notice-recommended-label-input" type="text" maxlength="80">
+            </label>
+            <label>
+              추천 quizId
+              <input id="admin-notice-recommended-quiz-input" type="text" maxlength="80" placeholder="예: gmo">
+            </label>
+          </div>
+          <div class="admin-notice-actions">
+            <button id="admin-notice-load" class="button secondary" type="button">불러오기</button>
+            <button id="admin-notice-save" class="button primary" type="button">저장</button>
+          </div>
+          <p id="admin-notice-status" class="admin-status" aria-live="polite"></p>
         </div>
-        <div class="admin-notice-form">
-          <label>
-            제목
-            <input id="admin-notice-title-input" type="text" maxlength="40">
-          </label>
-          <label>
-            설명
-            <input id="admin-notice-desc-input" type="text" maxlength="120">
-          </label>
-          <label>
-            공지
-            <textarea id="admin-notice-announcement-input" maxlength="160"></textarea>
-          </label>
-          <label>
-            오늘의 퀘스트
-            <textarea id="admin-notice-quest-input" maxlength="160"></textarea>
-          </label>
-          <label>
-            추천 퀴즈 문구
-            <input id="admin-notice-recommended-label-input" type="text" maxlength="80">
-          </label>
-          <label>
-            추천 quizId
-            <input id="admin-notice-recommended-quiz-input" type="text" maxlength="80" placeholder="예: gmo">
-          </label>
-        </div>
-        <div class="admin-notice-actions">
-          <button id="admin-notice-load" class="button secondary" type="button">불러오기</button>
-          <button id="admin-notice-save" class="button primary" type="button">저장</button>
-        </div>
-        <p id="admin-notice-status" class="admin-status" aria-live="polite"></p>
       </section>
     </section>
 
@@ -4921,6 +4936,20 @@
       status.classList.toggle('is-error', !!isError);
     }
 
+    function setActiveAdminSection(sectionName) {
+      const targetName = sectionName || 'members';
+      document.querySelectorAll('[data-admin-section-target]').forEach(control => {
+        const isActive = control.dataset.adminSectionTarget === targetName;
+        control.classList.toggle('is-active', isActive);
+        if(control.classList.contains('admin-section-toggle')) {
+          control.setAttribute('aria-expanded', String(isActive));
+        }
+      });
+      document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.toggle('is-active', section.id === `admin-section-${targetName}`);
+      });
+    }
+
     function getAdminFilterValues() {
       return {
         grade: document.getElementById('admin-filter-grade')?.value || '',
@@ -6607,6 +6636,12 @@
       logoutAdminMember().catch(error => {
         console.warn('Admin logout failed.', error);
         setAdminStatus('로그아웃 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.querySelectorAll('[data-admin-section-target]').forEach(control => {
+      control.addEventListener('click', () => {
+        setActiveAdminSection(control.dataset.adminSectionTarget);
       });
     });
 
