@@ -210,10 +210,21 @@
               <input id="member-link-number" name="studentNumber" type="number" min="1" inputmode="numeric">
             </label>
             <label>
-              접속 코드
-              <input id="member-link-access-code" name="accessCode" type="text" inputmode="text" autocomplete="off">
+              기존 닉네임
+              <input id="member-link-nickname" name="nickname" type="text" autocomplete="off" placeholder="처음 비밀번호를 만들 때만 입력">
             </label>
-            <button class="button primary" type="submit">회원 연결</button>
+            <label>
+              비밀번호
+              <input id="member-link-password" name="password" type="password" minlength="4" autocomplete="current-password">
+            </label>
+            <label>
+              비밀번호 확인
+              <input id="member-link-password-confirm" name="passwordConfirm" type="password" minlength="4" autocomplete="new-password" placeholder="처음 비밀번호를 만들 때만 입력">
+            </label>
+            <div class="member-link-actions">
+              <button class="button primary" type="submit" name="memberLinkAction" value="login">로그인</button>
+              <button class="button secondary" type="submit" name="memberLinkAction" value="setup">처음 비밀번호 만들기</button>
+            </div>
           </form>
           <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
         </section>
@@ -706,6 +717,7 @@
     let currentMemberUserId = '';
     let currentMemberProfile = null;
     let memberLinkInProgress = false;
+    let memberLinkSubmitAction = 'login';
     let userDataMigrationPromise = null;
     let firestoreDbInstance = null;
     let firebaseFunctionsInstance = null;
@@ -1732,7 +1744,7 @@
       }
 
       const note = document.createElement('p');
-      note.textContent = '운영본에서 이관한 users 문서를 학교/학년/반/번호로 찾아 현재 Firebase Auth uid와 연결합니다. 비밀번호는 사용하거나 저장하지 않습니다.';
+      note.textContent = '처음 접속하면 학교/학년/반/번호와 기존 닉네임으로 비밀번호를 만들고, 이후에는 비밀번호로 로그인합니다.';
       status.appendChild(note);
     }
 
@@ -2595,7 +2607,10 @@
         grade: document.getElementById('member-link-grade')?.value || '',
         classNumber: document.getElementById('member-link-class')?.value || '',
         studentNumber: document.getElementById('member-link-number')?.value || '',
-        accessCode: document.getElementById('member-link-access-code')?.value || ''
+        nickname: document.getElementById('member-link-nickname')?.value || '',
+        password: document.getElementById('member-link-password')?.value || '',
+        passwordConfirm: document.getElementById('member-link-password-confirm')?.value || '',
+        action: memberLinkSubmitAction || 'login'
       };
     }
 
@@ -2811,18 +2826,52 @@
       const authUid = authUser?.uid || getFirebaseAuthUser()?.uid || '';
       if(!authUid) throw new Error('auth-required');
 
-      const accessCode = String(values.accessCode || '').trim();
-      if(!accessCode) throw new Error('access-code-required');
+      const password = String(values.password || '');
+      if(!password) throw new Error('password-required');
 
-      const linkMemberAuthUid = functions.httpsCallable('linkMemberAuthUid');
-      const response = await linkMemberAuthUid({
+      const basePayload = {
         school: values.school || DEFAULT_MEMBER_SCHOOL,
         grade: values.grade,
         classNumber: values.classNumber,
-        studentNumber: values.studentNumber,
-        accessCode
-      });
-      const result = response?.data || {};
+        studentNumber: values.studentNumber
+      };
+
+      let result = null;
+      if(values.action === 'setup') {
+        const nickname = String(values.nickname || '').trim();
+        const passwordConfirm = String(values.passwordConfirm || '');
+        if(!nickname) throw new Error('nickname-required');
+        if(password !== passwordConfirm) throw new Error('password-confirm-mismatch');
+
+        const startMemberPasswordSetup = functions.httpsCallable('startMemberPasswordSetup');
+        const setMemberPassword = functions.httpsCallable('setMemberPassword');
+        const setupResponse = await startMemberPasswordSetup({
+          ...basePayload,
+          nickname
+        });
+        const setupResult = setupResponse?.data || {};
+        if(!setupResult.success || !setupResult.setupSessionId) throw new Error('member-password-setup-failed');
+
+        const setResponse = await setMemberPassword({
+          setupSessionId: setupResult.setupSessionId,
+          newPassword: password
+        });
+        result = {
+          ...(setResponse?.data || {}),
+          action: 'password-setup'
+        };
+      } else {
+        const loginMemberWithPassword = functions.httpsCallable('loginMemberWithPassword');
+        const loginResponse = await loginMemberWithPassword({
+          ...basePayload,
+          password
+        });
+        result = {
+          ...(loginResponse?.data || {}),
+          action: 'password-login'
+        };
+      }
+
       if(!result.success || !result.memberUserId) throw new Error('member-link-function-failed');
 
       const memberRef = db.collection('users').doc(result.memberUserId);
@@ -2836,7 +2885,7 @@
           authUid
         };
       linkedProfile.authUid = authUid;
-      linkedProfile._authLinkAction = result.action || 'linked';
+      linkedProfile._authLinkAction = result.action || 'password-login';
 
       currentMemberUserId = result.memberUserId;
       currentMemberProfile = linkedProfile;
@@ -2897,30 +2946,37 @@
       if(memberLinkInProgress) return;
 
       memberLinkInProgress = true;
-      setMemberLinkStatus('회원 정보와 접속 코드를 확인하고 있습니다...');
+      memberLinkSubmitAction = event.submitter?.value || memberLinkSubmitAction || 'login';
+      const values = getMemberLinkFormValues();
+      setMemberLinkStatus(values.action === 'setup'
+        ? '기존 닉네임을 확인하고 비밀번호를 등록하고 있습니다...'
+        : '회원 정보와 비밀번호를 확인하고 있습니다...');
 
       try {
-        const profile = await linkImportedMemberToCurrentAuthUser(getMemberLinkFormValues());
+        const profile = await linkImportedMemberToCurrentAuthUser(values);
         renderMemberLinkPanel();
-        const actionMessage = profile._authLinkAction === 'relinked'
-          ? '회원 정보가 현재 로그인 정보로 다시 연결됐어요.'
-          : '회원 연결이 완료됐어요.';
+        const actionMessage = profile._authLinkAction === 'password-setup'
+          ? '비밀번호가 등록되고 로그인됐어요.'
+          : '비밀번호 로그인이 완료됐어요.';
         setMemberLinkStatus(`${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
       } catch(error) {
         const messages = {
           'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
           'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
           'auth-required': 'Firebase Auth 로그인 후 연결할 수 있어요.',
-          'access-code-required': '선생님이 안내한 접속 코드를 입력해 주세요.',
+          'nickname-required': '처음 비밀번호를 만들 때는 기존 닉네임을 입력해 주세요.',
+          'password-required': '비밀번호를 입력해 주세요.',
+          'password-confirm-mismatch': '비밀번호 확인이 일치하지 않아요.',
           'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
           'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
           'member-not-student': '관리자 계정은 학생 연결 테스트에서 제외됩니다.',
           'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
-          'functions/invalid-argument': '학교, 학년, 반, 번호, 접속 코드를 다시 확인해 주세요.',
+          'functions/invalid-argument': '학교, 학년, 반, 번호, 닉네임 또는 비밀번호를 다시 확인해 주세요.',
           'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
-          'functions/failed-precondition': '이 회원은 현재 연결할 수 없어요. 선생님께 문의하세요.',
-          'functions/permission-denied': '접속 코드가 맞지 않거나 사용할 수 없어요.',
-          'functions/resource-exhausted': '접속 코드 시도 횟수가 초과됐어요. 선생님께 문의하세요.'
+          'functions/already-exists': '이미 비밀번호가 등록된 회원입니다. 로그인 버튼을 사용해 주세요.',
+          'functions/failed-precondition': '비밀번호 설정 기간이 지났거나 아직 비밀번호가 등록되지 않았어요.',
+          'functions/permission-denied': '닉네임 또는 비밀번호가 맞지 않아요.',
+          'functions/resource-exhausted': '시도 횟수가 초과됐어요. 잠시 후 다시 시도하거나 선생님께 문의하세요.'
         };
         console.warn('Member auth link failed.', error);
         setMemberLinkStatus(messages[error.message] || '회원 연결 중 문제가 생겼어요.', true);
