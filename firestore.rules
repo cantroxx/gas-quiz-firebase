@@ -375,6 +375,26 @@ service cloud.firestore {
       allow create, delete: if isAdmin();
     }
 
+    match /memberCredentials/{userId} {
+      allow read, write: if false;
+    }
+
+    match /memberPasswordSetupState/{userId} {
+      allow read, write: if false;
+    }
+
+    match /memberPasswordSetupSessions/{sessionId} {
+      allow read, write: if false;
+    }
+
+    match /memberAuthLogs/{logId} {
+      allow read, write: if false;
+    }
+
+    match /authSettings/{settingId} {
+      allow read, write: if false;
+    }
+
     match /userEconomy/{userId} {
       allow read: if canAccessUserScopedData(userId);
       allow write: if isAdmin();

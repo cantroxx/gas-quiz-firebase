@@ -3,7 +3,7 @@
 const crypto = require("crypto");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
 initializeApp();
 
@@ -13,6 +13,10 @@ const AUTH_LINK_PROVIDER = "firebase_member_link_function";
 const AUTH_LINK_VERSION = 3;
 const MAX_FAILED_ATTEMPTS = 5;
 const PRACTICE_CORRECT_REWARD_COIN = 1;
+const PASSWORD_HASH_ITERATIONS = 210000;
+const PASSWORD_HASH_KEY_LENGTH = 32;
+const PASSWORD_SETUP_SESSION_MINUTES = 15;
+const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
 const db = getFirestore();
 
 function requireAuth(request) {
@@ -69,6 +73,32 @@ function getMemberPayload(data) {
   };
 }
 
+function getMemberIdentityPayload(data) {
+  const payload = data && typeof data === "object" ? data : {};
+  return {
+    school: payload.school || DEFAULT_MEMBER_SCHOOL,
+    grade: payload.grade,
+    classNumber: payload.classNumber,
+    studentNumber: payload.studentNumber
+  };
+}
+
+function normalizeNickname(value) {
+  return String(value || "").trim();
+}
+
+function normalizePassword(value) {
+  const password = String(value || "");
+  if (password.length < 4 || password.length > 128 || !password.trim()) {
+    throw new HttpsError("invalid-argument", "Password must be 4 to 128 characters.");
+  }
+  const commonWeakPasswords = new Set(["0000", "1111", "1234", "password", "pass"]);
+  if (commonWeakPasswords.has(password.toLowerCase())) {
+    throw new HttpsError("invalid-argument", "Password is too easy to guess.");
+  }
+  return password;
+}
+
 function hashAccessCode(accessCode, salt) {
   return crypto
     .createHash("sha256")
@@ -76,11 +106,47 @@ function hashAccessCode(accessCode, salt) {
     .digest("hex");
 }
 
+function hashPassword(password, salt) {
+  return crypto
+    .pbkdf2Sync(password, salt, PASSWORD_HASH_ITERATIONS, PASSWORD_HASH_KEY_LENGTH, "sha256")
+    .toString("hex");
+}
+
+function createPasswordHash(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return {
+    passwordSalt: salt,
+    passwordHash: hashPassword(password, salt),
+    passwordHashAlgorithm: "pbkdf2_sha256",
+    passwordHashIterations: PASSWORD_HASH_ITERATIONS,
+    passwordVersion: 1
+  };
+}
+
+function verifyPassword(password, credentials) {
+  const salt = String(credentials.passwordSalt || "");
+  const expectedHash = String(credentials.passwordHash || "");
+  if (!salt || !expectedHash) return false;
+  const iterations = Number(credentials.passwordHashIterations || PASSWORD_HASH_ITERATIONS);
+  const actualHash = crypto
+    .pbkdf2Sync(password, salt, iterations, PASSWORD_HASH_KEY_LENGTH, "sha256")
+    .toString("hex");
+  const expected = Buffer.from(expectedHash, "hex");
+  const actual = Buffer.from(actualHash, "hex");
+  return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+}
+
 function timestampToMillis(value) {
   if (!value) return 0;
   if (typeof value.toMillis === "function") return value.toMillis();
   if (value instanceof Date) return value.getTime();
   return 0;
+}
+
+function dateToTimestamp(dateValue) {
+  const parsed = new Date(dateValue);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Timestamp.fromDate(parsed);
 }
 
 function assertActiveStudent(memberData) {
@@ -134,6 +200,16 @@ function publicMemberProfile(memberId, memberData) {
   };
 }
 
+function publicSetupSettings(settings) {
+  return {
+    setupEnabled: settings.setupEnabled === true,
+    setupExpiresAt: settings.setupExpiresAt || null,
+    minPasswordLength: Number(settings.minPasswordLength || 4),
+    maxFailedAttempts: Number(settings.maxFailedAttempts || MAX_FAILED_ATTEMPTS),
+    lockMinutes: Number(settings.lockMinutes || 10)
+  };
+}
+
 function normalizeId(value, fieldName) {
   const id = String(value || "").trim();
   if (!id || id.length > 160 || id.includes("/")) {
@@ -158,6 +234,17 @@ async function writeAuthLinkLog(entry) {
     });
   } catch (error) {
     console.warn("Auth link log write failed.", error);
+  }
+}
+
+async function writeMemberAuthLog(entry) {
+  try {
+    await db.collection("memberAuthLogs").add({
+      ...entry,
+      createdAt: FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    console.warn("Member auth log write failed.", error);
   }
 }
 
@@ -235,6 +322,67 @@ async function assertLinkedMemberAuth(transaction, memberUserId, authUid) {
     throw new HttpsError("permission-denied", "Member is not linked to current auth.");
   }
   return memberData;
+}
+
+async function getPasswordSetupSettings(transaction) {
+  const settingsRef = db.collection("authSettings").doc("memberPasswordSetup");
+  const settingsSnapshot = await transaction.get(settingsRef);
+  const defaults = {
+    setupEnabled: true,
+    setupExpiresAt: dateToTimestamp(DEFAULT_PASSWORD_SETUP_EXPIRES_AT),
+    minPasswordLength: 4,
+    maxFailedAttempts: MAX_FAILED_ATTEMPTS,
+    lockMinutes: 10
+  };
+  return settingsSnapshot.exists
+    ? { ...defaults, ...(settingsSnapshot.data() || {}) }
+    : defaults;
+}
+
+function assertPasswordSetupOpen(settings) {
+  if (settings.setupEnabled !== true) {
+    throw new HttpsError("failed-precondition", "Password setup is disabled.");
+  }
+  const expiresAtMillis = timestampToMillis(settings.setupExpiresAt);
+  if (expiresAtMillis && expiresAtMillis <= Date.now()) {
+    throw new HttpsError("failed-precondition", "Password setup period has ended.");
+  }
+}
+
+function assertNotLocked(stateData, settings) {
+  const lockedUntilMillis = timestampToMillis(stateData?.lockedUntil);
+  if (lockedUntilMillis && lockedUntilMillis > Date.now()) {
+    throw new HttpsError("resource-exhausted", "Member setup or login is temporarily locked.");
+  }
+  if (lockedUntilMillis && lockedUntilMillis <= Date.now()) return;
+  const failedAttempts = Number(stateData?.failedAttempts || 0);
+  const maxFailedAttempts = Number(settings.maxFailedAttempts || MAX_FAILED_ATTEMPTS);
+  if (maxFailedAttempts > 0 && failedAttempts >= maxFailedAttempts) {
+    throw new HttpsError("resource-exhausted", "Member setup or login is temporarily locked.");
+  }
+}
+
+function lockUntilTimestamp(settings) {
+  const lockMinutes = Number(settings.lockMinutes || 10);
+  return Timestamp.fromMillis(Date.now() + Math.max(1, lockMinutes) * 60 * 1000);
+}
+
+function failedAttemptUpdate(stateData, settings) {
+  const failedAttempts = Number(stateData?.failedAttempts || 0) + 1;
+  const maxFailedAttempts = Number(settings.maxFailedAttempts || MAX_FAILED_ATTEMPTS);
+  const update = {
+    failedAttempts: FieldValue.increment(1),
+    lastFailedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+  if (maxFailedAttempts > 0 && failedAttempts >= maxFailedAttempts) {
+    update.lockedUntil = lockUntilTimestamp(settings);
+  }
+  return update;
+}
+
+function createSetupSessionId() {
+  return crypto.randomBytes(24).toString("hex");
 }
 
 exports.verifyMemberAccessCode = onCall({ region: REGION }, async request => {
@@ -331,6 +479,288 @@ exports.linkMemberAuthUid = onCall({ region: REGION }, async request => {
   } catch (error) {
     await writeAuthLinkLog({
       action: "linkMemberAuthUid",
+      result: "failure",
+      authUid,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
+exports.startMemberPasswordSetup = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const identity = getMemberIdentityPayload(payload);
+  const nickname = normalizeNickname(payload.nickname);
+  if (!nickname) {
+    throw new HttpsError("invalid-argument", "Nickname is required.");
+  }
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const memberUserId = buildLegacyMemberUserId(
+        identity.school,
+        identity.grade,
+        identity.classNumber,
+        identity.studentNumber
+      );
+      const memberRef = db.collection("users").doc(memberUserId);
+      const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+      const stateRef = db.collection("memberPasswordSetupState").doc(memberUserId);
+
+      const [settings, memberSnapshot, credentialsSnapshot, stateSnapshot] = await Promise.all([
+        getPasswordSetupSettings(transaction),
+        transaction.get(memberRef),
+        transaction.get(credentialsRef),
+        transaction.get(stateRef)
+      ]);
+
+      assertPasswordSetupOpen(settings);
+      if (!memberSnapshot.exists) {
+        throw new HttpsError("not-found", "Member not found.");
+      }
+      const memberData = memberSnapshot.data() || {};
+      assertActiveStudent(memberData);
+      if (credentialsSnapshot.exists && credentialsSnapshot.data()?.passwordHash) {
+        throw new HttpsError("already-exists", "Member password is already configured.");
+      }
+
+      const stateData = stateSnapshot.exists ? stateSnapshot.data() || {} : {};
+      assertNotLocked(stateData, settings);
+
+      const expectedNickname = normalizeNickname(memberData.nickname || memberData.name);
+      if (expectedNickname !== nickname) {
+        transaction.set(stateRef, failedAttemptUpdate(stateData, settings), { merge: true });
+        throw new HttpsError("permission-denied", "Nickname mismatch.");
+      }
+
+      const setupSessionId = createSetupSessionId();
+      const sessionRef = db.collection("memberPasswordSetupSessions").doc(setupSessionId);
+      const expiresAt = Timestamp.fromMillis(Date.now() + PASSWORD_SETUP_SESSION_MINUTES * 60 * 1000);
+      transaction.set(sessionRef, {
+        setupSessionId,
+        memberUserId,
+        authUid,
+        purpose: "initial_password_setup",
+        used: false,
+        createdAt: FieldValue.serverTimestamp(),
+        expiresAt
+      }, { merge: false });
+      transaction.set(stateRef, {
+        memberUserId,
+        failedAttempts: 0,
+        lockedUntil: null,
+        lastVerifiedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return {
+        memberUserId,
+        setupSessionId,
+        setupSessionExpiresAt: expiresAt,
+        memberData,
+        settings
+      };
+    });
+
+    await writeMemberAuthLog({
+      action: "startMemberPasswordSetup",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      setupSessionId: result.setupSessionId,
+      setupSessionExpiresAt: result.setupSessionExpiresAt,
+      profile: publicMemberProfile(result.memberUserId, result.memberData),
+      settings: publicSetupSettings(result.settings)
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "startMemberPasswordSetup",
+      result: "failure",
+      authUid,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
+exports.setMemberPassword = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const setupSessionId = normalizeId(payload.setupSessionId, "setupSessionId");
+  const password = normalizePassword(payload.newPassword);
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const sessionRef = db.collection("memberPasswordSetupSessions").doc(setupSessionId);
+      const sessionSnapshot = await transaction.get(sessionRef);
+      if (!sessionSnapshot.exists) {
+        throw new HttpsError("not-found", "Password setup session not found.");
+      }
+      const session = sessionSnapshot.data() || {};
+      if (session.used === true) {
+        throw new HttpsError("failed-precondition", "Password setup session already used.");
+      }
+      if (session.authUid !== authUid) {
+        throw new HttpsError("permission-denied", "Password setup session belongs to another auth.");
+      }
+      if (timestampToMillis(session.expiresAt) <= Date.now()) {
+        throw new HttpsError("failed-precondition", "Password setup session expired.");
+      }
+
+      const memberUserId = normalizeId(session.memberUserId, "memberUserId");
+      const memberRef = db.collection("users").doc(memberUserId);
+      const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+      const [memberSnapshot, credentialsSnapshot] = await Promise.all([
+        transaction.get(memberRef),
+        transaction.get(credentialsRef)
+      ]);
+      if (!memberSnapshot.exists) {
+        throw new HttpsError("not-found", "Member not found.");
+      }
+      const memberData = memberSnapshot.data() || {};
+      assertActiveStudent(memberData);
+      if (credentialsSnapshot.exists && credentialsSnapshot.data()?.passwordHash) {
+        throw new HttpsError("already-exists", "Member password is already configured.");
+      }
+
+      const passwordHashData = createPasswordHash(password);
+      transaction.set(credentialsRef, {
+        memberUserId,
+        ...passwordHashData,
+        forcePasswordChange: false,
+        failedAttempts: 0,
+        lockedUntil: null,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastLoginAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+      transaction.set(memberRef, {
+        authUid,
+        authLinkedAt: memberData.authUid ? memberData.authLinkedAt || FieldValue.serverTimestamp() : FieldValue.serverTimestamp(),
+        previousAuthUid: memberData.authUid && memberData.authUid !== authUid ? memberData.authUid : memberData.previousAuthUid || "",
+        authRelinkedAt: memberData.authUid && memberData.authUid !== authUid ? FieldValue.serverTimestamp() : memberData.authRelinkedAt || null,
+        authLinkProvider: "firebase_member_password",
+        authLinkVersion: 4,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(sessionRef, {
+        used: true,
+        usedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return { memberUserId, memberData };
+    });
+
+    await writeMemberAuthLog({
+      action: "setMemberPassword",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      profile: publicMemberProfile(result.memberUserId, result.memberData),
+      forcePasswordChange: false
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "setMemberPassword",
+      result: "failure",
+      authUid,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
+exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const identity = getMemberIdentityPayload(payload);
+  const password = normalizePassword(payload.password);
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const memberUserId = buildLegacyMemberUserId(
+        identity.school,
+        identity.grade,
+        identity.classNumber,
+        identity.studentNumber
+      );
+      const memberRef = db.collection("users").doc(memberUserId);
+      const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+      const [settings, memberSnapshot, credentialsSnapshot] = await Promise.all([
+        getPasswordSetupSettings(transaction),
+        transaction.get(memberRef),
+        transaction.get(credentialsRef)
+      ]);
+
+      if (!memberSnapshot.exists) {
+        throw new HttpsError("not-found", "Member not found.");
+      }
+      const memberData = memberSnapshot.data() || {};
+      assertActiveStudent(memberData);
+      if (!credentialsSnapshot.exists || !credentialsSnapshot.data()?.passwordHash) {
+        throw new HttpsError("failed-precondition", "Member password is not configured.");
+      }
+      const credentials = credentialsSnapshot.data() || {};
+      assertNotLocked(credentials, settings);
+
+      if (!verifyPassword(password, credentials)) {
+        transaction.set(credentialsRef, failedAttemptUpdate(credentials, settings), { merge: true });
+        throw new HttpsError("permission-denied", "Password mismatch.");
+      }
+
+      transaction.set(credentialsRef, {
+        failedAttempts: 0,
+        lockedUntil: null,
+        lastLoginAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(memberRef, {
+        authUid,
+        previousAuthUid: memberData.authUid && memberData.authUid !== authUid ? memberData.authUid : memberData.previousAuthUid || "",
+        authRelinkedAt: memberData.authUid && memberData.authUid !== authUid ? FieldValue.serverTimestamp() : memberData.authRelinkedAt || null,
+        authLinkProvider: "firebase_member_password",
+        authLinkVersion: 4,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return {
+        memberUserId,
+        memberData: {
+          ...memberData,
+          authUid
+        },
+        forcePasswordChange: credentials.forcePasswordChange === true
+      };
+    });
+
+    await writeMemberAuthLog({
+      action: "loginMemberWithPassword",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      profile: publicMemberProfile(result.memberUserId, result.memberData),
+      forcePasswordChange: result.forcePasswordChange
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "loginMemberWithPassword",
       result: "failure",
       authUid,
       reason: error.code || "unknown"
