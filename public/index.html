@@ -1359,7 +1359,7 @@
         desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
         board: '사진과 문장을 보고 정답을 맞혀요',
         cardDesc: '아이돌, 애니, 아재개그, 포켓몬 퀴즈를 고르는 화면입니다.',
-        quizzes: ['idol', 'anime', 'dad-joke', 'pokemon-easy', 'pokemon-normal', 'pokemon-hard', 'pokemon-very-hard', 'pokemon-gen1', 'pokemon-gen2', 'pokemon-gen3', 'pokemon-gen4', 'pokemon-gen5', 'pokemon-gen6', 'pokemon-gen7', 'pokemon-gen8', 'pokemon-gen9'],
+        quizzes: ['idol', 'anime', 'dad-joke', 'pokemon'],
         enabled: true
       },
       math: {
@@ -1513,6 +1513,16 @@
         subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
+      pokemon: {
+        title: '포켓몬 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌲',
+        desc: '세대별 연습전과 난이도별 랭킹전을 고르는 포켓몬 탭입니다.',
+        summary: '연습전은 세대별 도감을 채우고, 랭킹전은 쉬움/보통/헬 난이도와 모드를 골라 도전합니다.',
+        subjectId: 'popular',
+        groupLabel: '포켓몬',
+        modes: ['pokemonHub']
+      },
       'pokemon-gen1': {
         title: '포켓몬 1세대 퀴즈',
         kicker: 'Popular Quiz Hall',
@@ -1522,7 +1532,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen2': {
         title: '포켓몬 2세대 퀴즈',
@@ -1533,7 +1543,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen3': {
         title: '포켓몬 3세대 퀴즈',
@@ -1544,7 +1554,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen4': {
         title: '포켓몬 4세대 퀴즈',
@@ -1555,7 +1565,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen5': {
         title: '포켓몬 5세대 퀴즈',
@@ -1566,7 +1576,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen6': {
         title: '포켓몬 6세대 퀴즈',
@@ -1577,7 +1587,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen7': {
         title: '포켓몬 7세대 퀴즈',
@@ -1588,7 +1598,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen8': {
         title: '포켓몬 8세대 퀴즈',
@@ -1599,7 +1609,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-gen9': {
         title: '포켓몬 9세대 퀴즈',
@@ -1610,7 +1620,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['practice', 'records']
       },
       'pokemon-easy': {
         title: '포켓몬 쉬움 퀴즈',
@@ -1621,7 +1631,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['ranking']
       },
       'pokemon-normal': {
         title: '포켓몬 보통 퀴즈',
@@ -1632,7 +1642,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['ranking']
       },
       'pokemon-hard': {
         title: '포켓몬 어려움 퀴즈',
@@ -1643,7 +1653,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['ranking']
       },
       'pokemon-very-hard': {
         title: '포켓몬 헬 퀴즈',
@@ -1654,7 +1664,7 @@
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
+        modes: ['ranking']
       },
       cultural_heritage: {
         title: '문화유산 퀴즈',
@@ -1718,6 +1728,7 @@
       'idol',
       'anime',
       'dad-joke',
+      'pokemon',
       'pokemon-easy',
       'pokemon-normal',
       'pokemon-hard',
@@ -1930,6 +1941,7 @@
     let currentSubjectId = 'korean';
     let currentQuizId = 'spelling';
     let currentModeId = 'practice';
+    let currentRankingModeId = 'normal';
     let currentQuizStartedAtMs = 0;
     let currentRankingLives = 0;
     let currentRankingQuestionTimer = null;
@@ -4238,6 +4250,11 @@
     function normalizeFirebaseQuizId(quizId) {
       if(quizId === 'multiplication_division') return 'random-basic';
       return quizId;
+    }
+
+    function normalizeFirebaseRankingMode(rankingMode) {
+      const mode = String(rankingMode || '').trim();
+      return ['normal', 'onechance', 'nohint', 'speed'].includes(mode) ? mode : 'normal';
     }
 
     function slugPracticeKey(value) {
@@ -6728,6 +6745,10 @@
     function renderQuizModeCards(modeIds) {
       const grid = document.getElementById('quiz-mode-grid');
       grid.innerHTML = '';
+      if(normalizeFirebaseQuizId(lastQuizId) === 'pokemon') {
+        renderPokemonHubCards(grid);
+        return;
+      }
       const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
       modeIds.forEach(modeId => {
         if(modeId === 'records') return;
@@ -6766,7 +6787,89 @@
       });
     }
 
-    async function showQuizPlayView(quizId, modeId) {
+    function appendPokemonHubCard(grid, options) {
+      const item = document.createElement('article');
+      const icon = document.createElement('span');
+      const title = document.createElement('h3');
+      const desc = document.createElement('p');
+      const button = document.createElement('button');
+      item.className = 'quiz-mode-card';
+      item.dataset.quizId = options.quizId;
+      item.dataset.modeId = options.modeId;
+      if(options.rankingMode) item.dataset.rankingMode = options.rankingMode;
+      item.tabIndex = 0;
+      item.setAttribute('role', 'button');
+      icon.className = 'quiz-mode-icon';
+      icon.textContent = options.icon;
+      title.textContent = options.title;
+      desc.textContent = options.desc;
+      button.className = 'quiz-mode-ready-button';
+      button.type = 'button';
+      button.textContent = options.buttonLabel || '시작하기';
+      button.dataset.quizId = options.quizId;
+      button.dataset.modeId = options.modeId;
+      if(options.rankingMode) button.dataset.rankingMode = options.rankingMode;
+      item.append(icon, title, desc, button);
+      grid.appendChild(item);
+    }
+
+    function renderPokemonHubCards(grid) {
+      const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
+      const section = document.createElement('div');
+      const practiceTitle = document.createElement('p');
+      const rankingTitle = document.createElement('p');
+      const rankingDisabled = flags.rankingEnabled === false;
+      section.className = 'quiz-mode-hub';
+      practiceTitle.className = 'profile-ranking-subtitle';
+      practiceTitle.textContent = '연습전: 세대별 도감 채우기';
+      rankingTitle.className = 'profile-ranking-subtitle';
+      rankingTitle.textContent = '랭킹전: 난이도와 모드 선택';
+      grid.appendChild(practiceTitle);
+      for(let gen = 1; gen <= 9; gen += 1) {
+        appendPokemonHubCard(grid, {
+          quizId: `pokemon-gen${gen}`,
+          modeId: 'practice',
+          icon: '🌲',
+          title: `${gen}세대 연습전`,
+          desc: '맞힌 포켓몬 도감 번호를 누적해 세대별 뱃지를 채웁니다.',
+          buttonLabel: '연습 시작'
+        });
+      }
+      grid.appendChild(rankingTitle);
+      [
+        { quizId: 'pokemon-easy', title: '쉬움 · 일반', mode: 'normal', desc: '1세대 범위 랭킹전입니다.' },
+        { quizId: 'pokemon-easy', title: '쉬움 · 원코', mode: 'onechance', desc: '1세대 범위, 한 번 틀리면 종료됩니다.' },
+        { quizId: 'pokemon-easy', title: '쉬움 · 스피드', mode: 'speed', desc: '1세대 범위, 제한 시간이 짧습니다.' },
+        { quizId: 'pokemon-normal', title: '보통 · 일반', mode: 'normal', desc: '1~2세대 범위 랭킹전입니다.' },
+        { quizId: 'pokemon-normal', title: '보통 · 원코', mode: 'onechance', desc: '1~2세대 범위, 한 번 틀리면 종료됩니다.' },
+        { quizId: 'pokemon-normal', title: '보통 · 스피드', mode: 'speed', desc: '1~2세대 범위, 제한 시간이 짧습니다.' },
+        { quizId: 'pokemon-hard', title: '어려움 · 일반', mode: 'normal', desc: '1~3세대 범위 랭킹전입니다.' },
+        { quizId: 'pokemon-hard', title: '어려움 · 원코', mode: 'onechance', desc: '1~3세대 범위, 한 번 틀리면 종료됩니다.' },
+        { quizId: 'pokemon-hard', title: '어려움 · 스피드', mode: 'speed', desc: '1~3세대 범위, 제한 시간이 짧습니다.' },
+        { quizId: 'pokemon-very-hard', title: '헬 · 일반', mode: 'normal', desc: '전체 세대 범위 랭킹전입니다.' },
+        { quizId: 'pokemon-very-hard', title: '헬 · 원코', mode: 'onechance', desc: '전체 세대 범위, 한 번 틀리면 종료됩니다.' },
+        { quizId: 'pokemon-very-hard', title: '헬 · 스피드', mode: 'speed', desc: '전체 세대 범위, 제한 시간이 짧습니다.' }
+      ].forEach(option => {
+        if(rankingDisabled) return;
+        appendPokemonHubCard(grid, {
+          quizId: option.quizId,
+          modeId: 'ranking',
+          rankingMode: option.mode,
+          icon: option.mode === 'onechance' ? '🎯' : (option.mode === 'speed' ? '⚡' : '🏅'),
+          title: option.title,
+          desc: option.desc,
+          buttonLabel: '랭킹전 시작'
+        });
+      });
+      if(rankingDisabled) {
+        const disabled = document.createElement('p');
+        disabled.className = 'profile-ranking-empty';
+        disabled.textContent = '랭킹전은 지금 점검 중입니다.';
+        grid.appendChild(disabled);
+      }
+    }
+
+    async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
       if(modeId === 'ranking') {
         const flags = await loadFeatureFlags();
         if(flags.rankingEnabled === false) {
@@ -6777,11 +6880,12 @@
       }
       currentQuizId = quizId;
       currentModeId = modeId;
+      currentRankingModeId = modeId === 'ranking' ? normalizeFirebaseRankingMode(rankingModeId) : 'normal';
       currentQuestionIndex = 0;
       selectedChoiceIndex = null;
       correctAnswerCount = 0;
       currentQuizStartedAtMs = Date.now();
-      currentRankingLives = modeId === 'ranking' ? 3 : 0;
+      currentRankingLives = modeId === 'ranking' ? (currentRankingModeId === 'onechance' ? 1 : 3) : 0;
       currentQuestionResolved = false;
       clearRankingQuestionTimer();
       try {
@@ -6901,6 +7005,7 @@
     }
 
     function getRankingTimeLimitSecondsForQuiz(quizId) {
+      if(currentRankingModeId === 'speed') return 5;
       const id = normalizeFirebaseQuizId(quizId);
       if(id === 'gmo' || id === 'time_store') return 60;
       if(id === 'random-basic') return 60;
@@ -7121,7 +7226,7 @@
         return {
           ...target,
           categoryKey: slugPracticeKey(target.category),
-          rankingMode: 'normal'
+          rankingMode: normalizeFirebaseRankingMode(currentRankingModeId)
         };
       }
       const targets = {
@@ -8163,7 +8268,9 @@
     document.getElementById('quiz-mode-grid').addEventListener('click', event => {
       const card = event.target.closest('[data-mode-id]');
       const modeId = card?.dataset.modeId;
-      if(modeId === 'practice' || modeId === 'ranking') showQuizPlayView(lastQuizId, modeId);
+      const quizId = card?.dataset.quizId || lastQuizId;
+      const rankingMode = card?.dataset.rankingMode || 'normal';
+      if(modeId === 'practice' || modeId === 'ranking') showQuizPlayView(quizId, modeId, rankingMode);
     });
 
     document.querySelector('[data-back-to-quiz-select]').addEventListener('click', () => showQuizSelectView(lastQuizId));
