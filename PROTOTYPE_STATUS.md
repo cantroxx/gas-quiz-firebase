@@ -228,11 +228,12 @@
 - 자동 복구 흐름:
   - localStorage 힌트 `memberUserId` -> `users/{memberUserId}` 단건 읽기 -> `authUid` 재검증
   - 힌트가 없거나 실패하면 `users where authUid == current uid limit 1` 역조회
-- 현재 테스트 정책에서는 같은 회원 정보 검증 성공 시 다른 Auth `uid`로 재연결 가능
+- 현재 로그인 정책은 학교/학년/반/번호 + 비밀번호를 Cloud Functions에서 검증한 뒤 `authUid`를 연결/재연결한다.
+- 최초 비밀번호 설정은 2026-06-17 23:59:59 KST까지 기존 닉네임 검증 후 허용한다.
 - 현재 브라우저 테스트를 위해 `authUid` 연결 해제 버튼 제공
   - 연결된 본인 문서만 `authUid: ''`로 업데이트 가능
   - 해제 후 localStorage 힌트 제거, Firebase Auth 익명 세션 재생성
-- 운영 전에는 비밀번호 또는 서버 검증 성공 후에만 재연결되도록 정책 확정 필요
+- 비밀번호 초기화는 운영자 스크립트 `scripts/reset-member-password.js`로 특정 회원만 임시 비밀번호 `학년+반+번호`로 재설정하고, 로그인 후 강제 변경한다.
 - 운영본 `gas-quiz`는 계속 유지하며, Firebase 실험본은 새 사이트 전환 준비용으로 분리 유지
 
 ### `userTitles`
@@ -343,9 +344,9 @@
 ## 5. 오픈 전 남은 TODO
 
 - 학생용 로그인 보안 정책 확정
-  - 회원 연결은 접속 코드 + Cloud Functions 검증 후 `authUid`를 연결/재연결한다.
-  - 4학년 8반 테스트 접속 코드 발급과 브라우저 확인 완료
-  - 운영 전에는 접속 코드 재발급/폐기 절차와 배포 안내를 고정해야 한다.
+  - 회원 연결은 비밀번호 + Cloud Functions 검증 후 `authUid`를 연결/재연결한다.
+  - 최초 설정 기간은 `authSettings/memberPasswordSetup`에서 제어하며 기본 만료는 2026-06-17 23:59:59 KST이다.
+  - 비밀번호 초기화는 운영자 스크립트로 특정 회원만 처리하고, 임시 비밀번호 로그인 후 강제 변경한다.
 - Functions 기반 서버 검증
   - 회원 연결, 연습전 정답 보상, 상점 구매는 Cloud Functions 기반으로 전환 완료
   - `users.authUid`, `userEconomy`, `userInventory`, `purchaseLogs`의 일반 클라이언트 직접 write는 차단 완료
@@ -463,7 +464,7 @@
 주의:
 
 - 위 연결은 Firebase Auth 익명 사용자와 운영본 회원 `userId`를 연결하는 MVP 흐름이다.
-- 비밀번호 검증은 아직 연결하지 않았으며, 현재는 학교/학년/반/번호와 접속 코드를 Cloud Functions에서 검증한다.
+- 비밀번호 검증은 Cloud Functions에서 처리하며, 클라이언트는 평문 비밀번호를 Firestore에 직접 쓰지 않는다.
 - Firestore rules는 linked member 접근을 허용하며, `users.authUid`, 경제, 인벤토리, 구매 로그의 일반 클라이언트 write를 차단한다.
 - 구매/경제/인벤토리 추가는 `purchaseShopItem` Cloud Function으로 이전했다.
 - `userEconomy`, `userInventory`, `purchaseLogs` 일반 클라이언트 write는 Rules에서 차단했다.
@@ -524,15 +525,15 @@
    - 콘솔에 `permission-denied`, `progress save failed`, `quiz load failed`, `ranking plaza read failed`가 없는지 확인
 
 2. 비밀번호/초기비밀번호 검증 정책 확정
-   - 권장 정책 문서화 완료: 교사 발급 초기 접속 코드 + Cloud Functions 서버 검증
-   - 접속 코드 저장 위치 초안: `memberAccessCodes/{memberUserId}`
-   - 접속 코드는 원문 저장 없이 `salt` + `codeHash`로 검증하며, 만료/폐기/실패 횟수 제한 필드 초안을 Functions에 반영했다.
-   - 접속 코드 발급 스크립트 `scripts/generate-member-access-codes.js` 추가 완료
-   - 4학년 8반 테스트 접속 코드 22건 발급 완료
-   - `verifyMemberAccessCode`, `linkMemberAuthUid` Functions deploy 완료
-   - 회원 연결 UI는 접속 코드 입력 + callable 연결 방식으로 배포했고, 브라우저 정상 연결 확인 완료
+   - 접속 코드는 사용하지 않는 방향으로 전환 완료
+   - 최초 설정: 학교/학년/반/번호 + 기존 닉네임 확인 후 비밀번호 등록
+   - 일반 로그인: 학교/학년/반/번호 + 비밀번호 확인
+   - 초기 설정 기간: 2026-06-17 23:59:59 KST까지 `authSettings/memberPasswordSetup`에서 제어
+   - 초기화: `scripts/reset-member-password.js`로 특정 회원 비밀번호를 `학년+반+번호` 임시값으로 reset 후 강제 변경
+   - `startMemberPasswordSetup`, `setMemberPassword`, `loginMemberWithPassword`, `changeMemberPassword` Functions deploy 완료
+   - 회원 연결 UI는 비밀번호 입력 + callable 연결 방식으로 배포했고, 4학년 8반 22번 브라우저 로그인 확인 완료
    - 클라이언트 직접 `users.authUid` update rules는 제거 완료
-   - `users/{memberUserId}.authUid` 재연결은 서버 검증 성공 또는 교사 승인 이후로 제한해야 한다.
+   - `users/{memberUserId}.authUid` 재연결은 서버 비밀번호 검증 성공 이후로 제한한다.
 
 3. Functions 기반 경제 처리
    - `functions/` scaffold 추가 완료
