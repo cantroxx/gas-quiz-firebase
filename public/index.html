@@ -33,50 +33,67 @@
       <div class="login-panel">
         <div class="collection-heading login-sign">
           <p class="eyebrow">Quiz Town Gate</p>
-          <h2 id="member-link-heading">로그인</h2>
+          <h2 id="member-link-heading">입장</h2>
           <p class="login-welcome">어서오세요! 로그인하고 나만의 마을로 들어가요.</p>
         </div>
+        <div class="login-mode-tabs" aria-label="입장 방식 선택">
+          <button id="member-login-mode-button" class="login-mode-tab is-active" type="button" data-member-form-mode="login">로그인</button>
+          <button id="member-signup-mode-button" class="login-mode-tab" type="button" data-member-form-mode="signup">신규가입</button>
+        </div>
         <details class="login-help">
-          <summary><span aria-hidden="true">🌱</span> 처음 왔어요 · 비밀번호 만들기 안내</summary>
+          <summary><span aria-hidden="true">🌱</span> 규칙 보기</summary>
           <div class="login-help-body">
-            <p>처음 접속하면 학교, 학년, 반, 번호와 기존 닉네임을 입력하고 <strong>처음 비밀번호 만들기</strong>를 누릅니다.</p>
-            <p>비밀번호는 4자리 이상으로 만들고, 다음부터는 학교, 학년, 반, 번호, 비밀번호로 <strong>로그인</strong>합니다.</p>
-            <p>비밀번호를 잊었다면 학교, 학년, 반, 번호를 입력한 뒤 <strong>비밀번호를 잊었어요</strong>를 누릅니다.</p>
+            <article class="login-guide-card is-primary">
+              <strong>이미 비밀번호를 만들었어요</strong>
+              <p>학교, 학년, 반, 번호, 비밀번호를 입력하고 <b>로그인</b>을 누릅니다. 기존 닉네임과 비밀번호 확인은 필요하지 않습니다.</p>
+            </article>
+            <article class="login-guide-card">
+              <strong>기존 계정 첫 로그인</strong>
+              <p>처음 비밀번호는 학년, 반, 번호를 붙인 4자리 숫자입니다. 예: 4학년 8반 22번은 <b>4822</b>입니다. 처음 로그인하면 새 비밀번호로 꼭 바꿉니다.</p>
+            </article>
+            <article class="login-guide-card">
+              <strong>등록되지 않은 학생이에요</strong>
+              <p>로그인할 때 등록되지 않은 학년, 반, 번호라고 나오면 <b>신규가입</b>을 눌러 학교, 학년, 반, 번호, 닉네임, 비밀번호를 직접 등록합니다.</p>
+            </article>
+            <article class="login-guide-card">
+              <strong>닉네임·비밀번호 규칙</strong>
+              <p>닉네임은 2~20글자로 만들고 불건전한 말은 사용할 수 없습니다. 비밀번호는 4자리 이상이며, 첫 로그인용 4자리 숫자와 다르게 바꿔야 합니다.</p>
+            </article>
           </div>
         </details>
-        <form id="member-link-form" class="member-link-form" autocomplete="off">
-          <label>
+        <form id="member-link-form" class="member-link-form is-login-mode" autocomplete="off">
+          <p id="member-link-form-guide" class="member-link-form-guide">비밀번호를 이미 만든 학생은 학교/학년/반/번호/비밀번호만 입력합니다.</p>
+          <label class="member-link-basic-field">
             학교
             <input id="member-link-school" name="school" type="text" value="동자">
           </label>
-          <label>
+          <label class="member-link-basic-field">
             학년
             <input id="member-link-grade" name="grade" type="number" min="1" max="9" inputmode="numeric">
           </label>
-          <label>
+          <label class="member-link-basic-field">
             반
             <input id="member-link-class" name="classNumber" type="number" min="1" inputmode="numeric">
           </label>
-          <label>
+          <label class="member-link-basic-field">
             번호
             <input id="member-link-number" name="studentNumber" type="number" min="1" inputmode="numeric">
           </label>
-          <label>
-            기존 닉네임
-            <input id="member-link-nickname" name="nickname" type="text" autocomplete="off" placeholder="처음 비밀번호를 만들 때만 입력">
+          <label class="member-link-setup-field">
+            닉네임 <span>신규가입 전용</span>
+            <input id="member-link-nickname" name="nickname" type="text" autocomplete="off" placeholder="2~20글자">
           </label>
-          <label>
+          <label class="member-link-basic-field">
             비밀번호
             <input id="member-link-password" name="password" type="password" minlength="4" autocomplete="current-password">
           </label>
-          <label>
-            비밀번호 확인
-            <input id="member-link-password-confirm" name="passwordConfirm" type="password" minlength="4" autocomplete="new-password" placeholder="처음 비밀번호를 만들 때만 입력">
+          <label class="member-link-setup-field">
+            비밀번호 확인 <span>신규가입 전용</span>
+            <input id="member-link-password-confirm" name="passwordConfirm" type="password" minlength="4" autocomplete="new-password" placeholder="비밀번호를 한 번 더 입력">
           </label>
           <div class="member-link-actions">
-            <button class="button primary" type="submit" name="memberLinkAction" value="login">로그인</button>
-            <button class="button secondary" type="submit" name="memberLinkAction" value="setup">처음 비밀번호 만들기</button>
-            <button id="member-password-reset-button" class="button secondary" type="button">비밀번호를 잊었어요</button>
+            <button id="member-link-submit-button" class="button primary" type="submit" name="memberLinkAction" value="login">로그인</button>
+            <button id="member-password-reset-button" class="button secondary subtle" type="button">비밀번호를 잊었어요</button>
           </div>
         </form>
         <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
@@ -3908,6 +3925,31 @@
       status.appendChild(text);
     }
 
+    function setMemberLinkFormMode(mode) {
+      const nextMode = mode === 'signup' ? 'signup' : 'login';
+      const form = document.getElementById('member-link-form');
+      const guide = document.getElementById('member-link-form-guide');
+      const submit = document.getElementById('member-link-submit-button');
+      const loginButton = document.getElementById('member-login-mode-button');
+      const signupButton = document.getElementById('member-signup-mode-button');
+      memberLinkSubmitAction = nextMode === 'signup' ? 'setup' : 'login';
+      form?.classList.toggle('is-signup-mode', nextMode === 'signup');
+      form?.classList.toggle('is-login-mode', nextMode === 'login');
+      loginButton?.classList.toggle('is-active', nextMode === 'login');
+      signupButton?.classList.toggle('is-active', nextMode === 'signup');
+      loginButton?.setAttribute('aria-pressed', String(nextMode === 'login'));
+      signupButton?.setAttribute('aria-pressed', String(nextMode === 'signup'));
+      if(guide) {
+        guide.textContent = nextMode === 'signup'
+          ? '등록되지 않은 학생은 학교/학년/반/번호/닉네임/비밀번호를 입력해 새 계정을 만듭니다.'
+          : '비밀번호를 이미 만든 학생은 학교/학년/반/번호/비밀번호만 입력합니다. 첫 비밀번호는 학년반번호 4자리입니다.';
+      }
+      if(submit) {
+        submit.value = memberLinkSubmitAction;
+        submit.textContent = nextMode === 'signup' ? '신규가입' : '로그인';
+      }
+    }
+
     function getTemporaryPasswordText(values) {
       const grade = Number(values.grade);
       const classNumber = Number(values.classNumber);
@@ -4153,22 +4195,15 @@
         if(!nickname) throw new Error('nickname-required');
         if(password !== passwordConfirm) throw new Error('password-confirm-mismatch');
 
-        const startMemberPasswordSetup = functions.httpsCallable('startMemberPasswordSetup');
-        const setMemberPassword = functions.httpsCallable('setMemberPassword');
-        const setupResponse = await startMemberPasswordSetup({
+        const registerNewMember = functions.httpsCallable('registerNewMember');
+        const registerResponse = await registerNewMember({
           ...basePayload,
-          nickname
-        });
-        const setupResult = setupResponse?.data || {};
-        if(!setupResult.success || !setupResult.setupSessionId) throw new Error('member-password-setup-failed');
-
-        const setResponse = await setMemberPassword({
-          setupSessionId: setupResult.setupSessionId,
-          newPassword: password
+          nickname,
+          password
         });
         result = {
-          ...(setResponse?.data || {}),
-          action: 'password-setup'
+          ...(registerResponse?.data || {}),
+          action: 'member-signup'
         };
       } else {
         const loginMemberWithPassword = functions.httpsCallable('loginMemberWithPassword');
@@ -4378,7 +4413,7 @@
       memberLinkSubmitAction = event.submitter?.value || memberLinkSubmitAction || 'login';
       const values = getMemberLinkFormValues();
       setMemberLinkStatus(values.action === 'setup'
-        ? '기존 닉네임을 확인하고 비밀번호를 등록하고 있습니다...'
+        ? '신규가입 정보를 확인하고 계정을 만들고 있습니다...'
         : '회원 정보와 비밀번호를 확인하고 있습니다...');
 
       try {
@@ -4386,6 +4421,8 @@
         renderMemberLinkPanel();
         const actionMessage = profile._authLinkAction === 'password-setup'
           ? '비밀번호가 등록되고 로그인됐어요.'
+          : profile._authLinkAction === 'member-signup'
+            ? '신규가입이 완료되고 로그인됐어요.'
           : '비밀번호 로그인이 완료됐어요.';
         setMemberLinkStatus(`${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
         if(pendingPasswordChange?.memberUserId === currentMemberUserId) {
@@ -4399,7 +4436,7 @@
           'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
           'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
           'auth-required': 'Firebase Auth 로그인 후 연결할 수 있어요.',
-          'nickname-required': '처음 비밀번호를 만들 때는 기존 닉네임을 입력해 주세요.',
+          'nickname-required': '신규가입에는 닉네임을 입력해 주세요.',
           'password-required': '비밀번호를 입력해 주세요.',
           'password-confirm-mismatch': '비밀번호 확인이 일치하지 않아요.',
           'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
@@ -4407,10 +4444,10 @@
           'member-not-student': '학생 계정만 사용할 수 있는 기능입니다.',
           'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
           'functions/invalid-argument': '학교, 학년, 반, 번호, 닉네임 또는 비밀번호를 다시 확인해 주세요.',
-          'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
-          'functions/already-exists': '이미 비밀번호가 등록된 회원입니다. 로그인 버튼을 사용해 주세요.',
+          'functions/not-found': '등록되지 않은 학년/반/번호입니다. 신규가입을 진행해 주세요.',
+          'functions/already-exists': '이미 등록된 회원입니다. 로그인으로 입장해 주세요.',
           'functions/failed-precondition': '비밀번호 설정 기간이 지났거나 아직 비밀번호가 등록되지 않았어요.',
-          'functions/permission-denied': '닉네임 또는 비밀번호가 맞지 않아요.',
+          'functions/permission-denied': '비밀번호가 맞지 않아요.',
           'functions/resource-exhausted': '시도 횟수가 초과됐어요. 잠시 후 다시 시도하거나 선생님께 문의하세요.'
         };
         console.warn('Member auth link failed.', error);
@@ -5870,6 +5907,7 @@
       const grid = document.getElementById('quiz-mode-grid');
       grid.innerHTML = '';
       modeIds.forEach(modeId => {
+        if(modeId === 'records') return;
         const baseMode = MODE_CATALOG[modeId] || MODE_CATALOG.practice;
         const playable = FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(lastQuizId));
         const mode = {
@@ -7404,6 +7442,10 @@
     });
 
     document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
+    document.querySelectorAll('[data-member-form-mode]').forEach(button => {
+      button.addEventListener('click', () => setMemberLinkFormMode(button.dataset.memberFormMode));
+    });
+    setMemberLinkFormMode('login');
     document.getElementById('member-password-reset-button').addEventListener('click', handleMemberPasswordResetClick);
     document.querySelectorAll('[data-member-unlink]').forEach(button => {
       button.addEventListener('click', handleMemberUnlinkClick);

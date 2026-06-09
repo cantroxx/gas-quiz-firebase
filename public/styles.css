@@ -419,6 +419,33 @@ h2 {
   word-break: keep-all;
 }
 
+.login-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.login-mode-tab {
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 2px solid rgba(72, 168, 104, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--green-dark);
+  font: inherit;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(47, 125, 68, 0.08);
+}
+
+.login-mode-tab.is-active {
+  border-color: rgba(72, 168, 104, 0.48);
+  background:
+    linear-gradient(180deg, #f9ffe8, #e8f8ec);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.14);
+}
+
 .login-help {
   margin: 0 0 18px;
   padding: 0;
@@ -477,10 +504,46 @@ h2 {
   word-break: keep-all;
 }
 
+.login-guide-card {
+  display: grid;
+  gap: 5px;
+  padding: 12px 13px;
+  border: 1px solid rgba(72, 168, 104, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.login-guide-card.is-primary {
+  border-color: rgba(72, 168, 104, 0.26);
+  background: rgba(232, 248, 236, 0.78);
+}
+
+.login-guide-card strong {
+  color: var(--green-dark);
+  font-size: 0.96rem;
+}
+
+.login-guide-card b {
+  color: #2f7448;
+}
+
 .member-link-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 13px;
+}
+
+.member-link-form-guide {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 13px;
+  border-radius: 14px;
+  background: rgba(255, 248, 216, 0.82);
+  color: #705629;
+  font-size: 0.88rem;
+  font-weight: 900;
+  line-height: 1.45;
+  word-break: keep-all;
 }
 
 .member-link-form label {
@@ -489,6 +552,23 @@ h2 {
   color: #536457;
   font-size: 0.92rem;
   font-weight: 900;
+}
+
+.member-link-form label span {
+  color: #8c7a55;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.member-link-setup-field {
+  padding: 10px;
+  border: 1px dashed rgba(139, 107, 79, 0.24);
+  border-radius: 17px;
+  background: rgba(255, 252, 239, 0.58);
+}
+
+.member-link-form.is-login-mode .member-link-setup-field {
+  display: none;
 }
 
 .member-link-form input {
@@ -521,7 +601,7 @@ h2 {
 .member-link-actions {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  grid-template-columns: 1.2fr 1fr;
   gap: 10px;
   margin-top: 4px;
 }
@@ -542,6 +622,11 @@ h2 {
   border: 1px solid rgba(72, 168, 104, 0.2);
   background: #f9ffe8;
   color: var(--green-dark);
+}
+
+.member-link-actions .button.subtle {
+  border-color: rgba(139, 107, 79, 0.16);
+  font-size: 0.86rem;
 }
 
 #member-password-reset-button {

@@ -88,6 +88,25 @@ function normalizeNickname(value) {
   return String(value || "").trim();
 }
 
+function assertNicknameAllowed(nickname) {
+  const normalized = normalizeNickname(nickname);
+  const compact = normalized.replace(/\s+/g, "").toLowerCase();
+  const blockedWords = [
+    "시발", "씨발", "ㅅㅂ", "병신", "ㅂㅅ", "좆", "꺼져", "죽어",
+    "fuck", "shit", "bitch"
+  ];
+  if (normalized.length < 2 || normalized.length > 20) {
+    throw new HttpsError("invalid-argument", "Nickname must be 2 to 20 characters.");
+  }
+  if (!/[0-9A-Za-z가-힣]/.test(normalized)) {
+    throw new HttpsError("invalid-argument", "Nickname must include letters or numbers.");
+  }
+  if (blockedWords.some(word => compact.includes(word))) {
+    throw new HttpsError("invalid-argument", "Nickname contains blocked words.");
+  }
+  return normalized;
+}
+
 function normalizePassword(value) {
   const password = String(value || "");
   if (password.length < 4 || password.length > 128 || !password.trim()) {
@@ -141,6 +160,30 @@ function verifyPassword(password, credentials) {
   const expected = Buffer.from(expectedHash, "hex");
   const actual = Buffer.from(actualHash, "hex");
   return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+}
+
+function buildMemberProfileForRegistration(identity, nickname, authUid) {
+  const normalizedSchool = normalizeLegacyMemberSchool(identity.school);
+  return {
+    school: normalizedSchool,
+    grade: Number(identity.grade),
+    classNumber: Number(identity.classNumber),
+    studentNumber: Number(identity.studentNumber),
+    nickname,
+    name: nickname,
+    role: "student",
+    status: "active",
+    active: true,
+    authUid,
+    authLinkedAt: FieldValue.serverTimestamp(),
+    authLinkProvider: "firebase_member_password_signup",
+    authLinkVersion: 5,
+    passwordMode: "user_password",
+    initialPasswordChanged: true,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    migrationSource: "firebase_app_signup"
+  };
 }
 
 function timestampToMillis(value) {
@@ -821,6 +864,7 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const identity = getMemberIdentityPayload(payload);
   const password = normalizePassword(payload.password);
+  const temporaryPassword = buildTemporaryMemberPassword(identity);
 
   try {
     const result = await db.runTransaction(async transaction => {
@@ -843,23 +887,39 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
       }
       const memberData = memberSnapshot.data() || {};
       assertActiveMember(memberData);
-      if (!credentialsSnapshot.exists || !credentialsSnapshot.data()?.passwordHash) {
-        throw new HttpsError("failed-precondition", "Member password is not configured.");
-      }
-      const credentials = credentialsSnapshot.data() || {};
+      const hasConfiguredPassword = credentialsSnapshot.exists && credentialsSnapshot.data()?.passwordHash;
+      const credentials = hasConfiguredPassword ? credentialsSnapshot.data() || {} : null;
       assertNotLocked(credentials, settings);
 
-      if (!verifyPassword(password, credentials)) {
-        transaction.set(credentialsRef, failedAttemptUpdate(credentials, settings), { merge: true });
+      if (!hasConfiguredPassword) {
+        if (password !== temporaryPassword) {
+          transaction.set(credentialsRef, failedAttemptUpdate({}, settings), { merge: true });
+          throw new HttpsError("permission-denied", "Temporary password mismatch.");
+        }
+        transaction.set(credentialsRef, {
+          memberUserId,
+          ...createPasswordHash(temporaryPassword),
+          forcePasswordChange: true,
+          failedAttempts: 0,
+          lockedUntil: null,
+          passwordMode: "temporary_identity",
+          temporaryPasswordIssuedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+          lastLoginAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+      } else if (!verifyPassword(password, credentials)) {
+        transaction.set(credentialsRef, failedAttemptUpdate(credentials || {}, settings), { merge: true });
         throw new HttpsError("permission-denied", "Password mismatch.");
+      } else {
+        transaction.set(credentialsRef, {
+          failedAttempts: 0,
+          lockedUntil: null,
+          lastLoginAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
       }
 
-      transaction.set(credentialsRef, {
-        failedAttempts: 0,
-        lockedUntil: null,
-        lastLoginAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
       transaction.set(memberRef, {
         authUid,
         previousAuthUid: memberData.authUid && memberData.authUid !== authUid ? memberData.authUid : memberData.previousAuthUid || "",
@@ -875,7 +935,7 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
           ...memberData,
           authUid
         },
-        forcePasswordChange: credentials.forcePasswordChange === true
+        forcePasswordChange: !hasConfiguredPassword || credentials?.forcePasswordChange === true
       };
     });
 
@@ -895,6 +955,86 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
   } catch (error) {
     await writeMemberAuthLog({
       action: "loginMemberWithPassword",
+      result: "failure",
+      authUid,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
+exports.registerNewMember = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const identity = getMemberIdentityPayload(payload);
+  const nickname = assertNicknameAllowed(payload.nickname);
+  const password = normalizePassword(payload.password);
+  const temporaryPassword = buildTemporaryMemberPassword(identity);
+  if (password === temporaryPassword) {
+    throw new HttpsError("invalid-argument", "Signup password must be different from temporary password.");
+  }
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const memberUserId = buildLegacyMemberUserId(
+        identity.school,
+        identity.grade,
+        identity.classNumber,
+        identity.studentNumber
+      );
+      const memberRef = db.collection("users").doc(memberUserId);
+      const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+      const [memberSnapshot, credentialsSnapshot] = await Promise.all([
+        transaction.get(memberRef),
+        transaction.get(credentialsRef)
+      ]);
+
+      if (memberSnapshot.exists) {
+        throw new HttpsError("already-exists", "Member already exists.");
+      }
+      if (credentialsSnapshot.exists) {
+        throw new HttpsError("already-exists", "Member credentials already exist.");
+      }
+
+      const memberData = buildMemberProfileForRegistration(identity, nickname, authUid);
+      transaction.set(memberRef, memberData, { merge: false });
+      transaction.set(credentialsRef, {
+        memberUserId,
+        ...createPasswordHash(password),
+        forcePasswordChange: false,
+        failedAttempts: 0,
+        lockedUntil: null,
+        passwordMode: "user_password",
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastLoginAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+
+      return {
+        memberUserId,
+        memberData: {
+          ...memberData,
+          authUid
+        }
+      };
+    });
+
+    await writeMemberAuthLog({
+      action: "registerNewMember",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      profile: publicMemberProfile(result.memberUserId, result.memberData),
+      forcePasswordChange: false
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "registerNewMember",
       result: "failure",
       authUid,
       reason: error.code || "unknown"
@@ -937,16 +1077,28 @@ exports.changeMemberPassword = onCall({ region: REGION }, async request => {
         }), { merge: true });
         throw new HttpsError("permission-denied", "Current password mismatch.");
       }
+      const temporaryPassword = buildTemporaryMemberPassword({
+        school: memberData.school,
+        grade: memberData.grade,
+        classNumber: memberData.classNumber,
+        studentNumber: memberData.studentNumber
+      });
+      if (newPassword === currentPassword || newPassword === temporaryPassword) {
+        throw new HttpsError("invalid-argument", "New password must be different from temporary or current password.");
+      }
 
       transaction.set(credentialsRef, {
         ...createPasswordHash(newPassword),
         forcePasswordChange: false,
         failedAttempts: 0,
         lockedUntil: null,
+        passwordMode: "user_password",
         passwordChangedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
       transaction.set(memberRef, {
+        passwordMode: "user_password",
+        initialPasswordChanged: true,
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
 
@@ -1007,12 +1159,15 @@ exports.resetMemberPasswordToTemporary = onCall({ region: REGION }, async reques
         forcePasswordChange: true,
         failedAttempts: 0,
         lockedUntil: null,
+        passwordMode: "temporary_identity",
         resetAt: FieldValue.serverTimestamp(),
         resetByAuthUid: authUid,
         resetSource: "student_self_service",
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
       transaction.set(memberRef, {
+        passwordMode: "temporary_identity",
+        initialPasswordChanged: false,
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
 
@@ -1311,6 +1466,7 @@ exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
       forcePasswordChange: true,
       failedAttempts: 0,
       lockedUntil: null,
+      passwordMode: "temporary_identity",
       resetAt: FieldValue.serverTimestamp(),
       resetByAuthUid: authUid,
       resetByAdminUserId: adminMember.memberUserId,
@@ -1318,6 +1474,8 @@ exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
     transaction.set(memberRef, {
+      passwordMode: "temporary_identity",
+      initialPasswordChanged: false,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
     return { memberData, temporaryPassword };
