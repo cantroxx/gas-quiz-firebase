@@ -81,14 +81,12 @@
 - Auth `uid`와 연결된 `users` 문서를 자동 복구해 새로고침/재진입 후에도 `currentMemberUserId`와 `currentMemberProfile` 유지
 - localStorage의 회원 힌트는 Firestore `users/{memberUserId}.authUid` 재검증을 통과할 때만 사용
 - Auth 실패 시 개발용 `test_user` fallback 유지
-- 신규 데이터 소유자에게 `userEconomy/{dataOwnerId}` 기본 문서 자동 초기화
-- 초기 경제 문서에는 DJ코인 1000 지급
-- `userEconomy/{dataOwnerId}`에서 DJ코인 잔액 읽기
-- `userInventory/{dataOwnerId}/items`를 읽어 보유 아이템 상태 표시
+- `userEconomy/{memberUserId}`에서 DJ코인 잔액 읽기
+- `userInventory/{memberUserId}/items`를 읽어 보유 아이템 상태 표시
 - 구매 가능, 코인 부족, 보유중 상태 표시
-- 구매 시 Firestore transaction으로 DJ코인 차감, 인벤토리 추가, `purchaseLogs` 기록
-- 회원 연결 완료 상태에서는 구매 흐름이 운영본 회원 `userId` 기준으로 동작
-- 기존 Auth `uid` 기준 경제/인벤토리/내 집 데이터가 있고 회원 `userId` 기준 데이터가 없으면 최초 1회 자동 migration 지원
+- 구매 시 `purchaseShopItem` Cloud Function으로 DJ코인 차감, 인벤토리 추가, `purchaseLogs` 기록
+- 회원 연결 완료 상태에서만 구매 가능하며 운영본 회원 `userId` 기준으로 동작
+- 기존 Auth `uid` 기준 내 집 데이터가 있고 회원 `userId` 기준 데이터가 없으면 최초 1회 자동 migration 지원
 
 ### 이벤트 광장
 
@@ -104,10 +102,10 @@
 - 타운 -> 랭킹 광장 -> 타운
 - 타운 -> 내 집 -> 타운
 - 타운 -> 상점 -> 타운
-- 타운 -> 상점 -> Auth 익명 로그인 -> 회원 연결 전 `userEconomy/{uid}` 초기화 -> 구매
+- 타운 -> 상점 -> 회원 연결 -> `userEconomy/{memberUserId}` 잔액 표시 -> 구매
 - 타운 -> 내 집 -> Firebase 회원 연결 테스트 -> `users/{memberUserId}.authUid` 연결
 - 새로고침/재진입 -> 현재 Auth `uid`로 연결된 `users` 문서 자동 복구
-- 회원 연결 완료 -> 기존 `uid` 소유 데이터를 `memberUserId` 소유 데이터로 자동 migration
+- 회원 연결 완료 -> 기존 `uid` 소유 내 집 데이터를 `memberUserId` 소유 데이터로 자동 migration
 - 타운 -> 상점 -> 구매 -> `userInventory/{memberUserId}/items` 저장 -> 내 집 보유 아이템 표시
 - 타운 -> 내 집 -> 보유 아이템 선택 -> `userRoomSettings/{memberUserId}` 저장 -> 내 집 재진입 시 적용 상태 유지
 - 타운 -> 이벤트 광장 -> 타운
@@ -193,20 +191,17 @@
 
 - 데이터 소유자 기준 보유 아이템 저장
 - 현재 경로: `userInventory/{dataOwnerId}/items/{itemId}`
-- 상점 구매 성공 시 보유 아이템 문서 생성
+- `purchaseShopItem` Cloud Function이 상점 구매 성공 시 보유 아이템 문서 생성
 - 내 집 화면에서 보유 꾸미기 아이템 후보로 사용
-- 회원 연결 후 `userInventory/{uid}/items`가 있고 `userInventory/{memberUserId}/items`가 비어 있으면 최초 1회 복사
-- migration 필드: 각 아이템 문서의 `migratedFromUid`, `migratedAt`
-- 기존 `userInventory/{memberUserId}/items`에 문서가 있으면 덮어쓰지 않음
+- 일반 클라이언트 write는 Rules에서 차단
 
 ### `purchaseLogs`
 
 - 상점 구매 로그 저장
-- 구매 성공 시 `purchaseLogs/{autoId}` 생성
-- 문서 내부 `userId`는 현재 `dataOwnerId`를 기록
-- 현재는 `serverVerified: false`인 클라이언트 transaction 테스트 흐름
-- 회원 연결 완료 상태에서는 운영본 회원 `userId`가 기록됨
-- Auth 실패 시 `userId: test_user` fallback 사용
+- `purchaseShopItem` Cloud Function이 구매 성공 시 `purchaseLogs/{autoId}` 생성
+- 문서 내부 `userId`/`memberUserId`는 운영본 회원 `userId`를 기록
+- `serverVerified: true`
+- 일반 클라이언트 write는 Rules에서 차단
 
 ### `userRoomSettings`
 
@@ -348,14 +343,13 @@
 ## 5. 오픈 전 남은 TODO
 
 - 학생용 로그인 보안 정책 확정
-  - 현재 회원 연결은 학교/학년/반/번호 검증 후 `authUid`를 연결/재연결한다.
-  - 제한 테스트에서는 현재 흐름을 유지할 수 있다.
-  - 일반 공개 오픈 전 권장안은 교사 발급 초기 접속 코드 + Cloud Functions 서버 검증이다.
-  - 실제 Functions 구현과 접속 코드 발급/폐기 정책은 아직 전이다.
-- Functions 기반 서버 검증 이전
-  - 현재 상점 구매, 보상 지급, 인벤토리 추가는 클라이언트 read/write 중심이다.
-  - 오픈 범위가 제한된 MVP이면 유지 가능하지만, 장기 운영 전에는 Functions 이전이 필요하다.
-  - `functions/` scaffold와 회원 접속 코드 검증 callable 초안은 추가했지만, 실제 Functions deploy와 운영 연결은 아직 하지 않았다.
+  - 회원 연결은 접속 코드 + Cloud Functions 검증 후 `authUid`를 연결/재연결한다.
+  - 4학년 8반 테스트 접속 코드 발급과 브라우저 확인 완료
+  - 운영 전에는 접속 코드 재발급/폐기 절차와 배포 안내를 고정해야 한다.
+- Functions 기반 서버 검증
+  - 회원 연결, 연습전 정답 보상, 상점 구매는 Cloud Functions 기반으로 전환 완료
+  - `users.authUid`, `userEconomy`, `userInventory`, `purchaseLogs`의 일반 클라이언트 직접 write는 차단 완료
+  - 랭킹전/연습기록/내 집 설정은 현재 MVP 기능상 클라이언트 write를 유지한다.
 - 이벤트/퀘스트/학급 미션 실제 진행도 연결
   - 현재 이벤트 광장은 안내/표시 중심이다.
 - 미이관 퀴즈 처리
@@ -391,13 +385,14 @@
 - Firestore `quizQuestions/word-relation/questions/{questionId}` 다의어·동형이의어 문제 100건 import
 - Firestore `quizQuestions`의 GMO/사회/시간가게/이미지형/아재개그/포켓몬 문제 import
 - public UI의 Firestore 문제 로드, 연습전, 랭킹전, 결과 표시
-- public UI의 `practiceRecords`, `userPracticeSummary`, `userBadges`, `userEconomy` 신규 write
+- public UI의 `practiceRecords`, `userPracticeSummary`, `userBadges` 신규 write
+- `userEconomy` 보상/구매 write는 Cloud Functions 기반
 - public UI의 `rankingRecords`, `userRankingSummary`, `quizKingSummary` 신규 write
 - `users.selectedTitleId`와 보유 타이틀 `selected` 표시 연결
 - `users/{memberUserId}.authUid` 회원 연결
 - Auth `uid` 기반 연결 회원 자동 복구
 - localStorage 힌트와 Firestore 재검증 기반 회원 복구
-- Auth `uid` 소유 데이터에서 회원 `userId` 소유 데이터로 최초 1회 자동 migration
+- Auth `uid` 소유 내 집 데이터에서 회원 `userId` 소유 데이터로 최초 1회 자동 migration
 - linked member 접근을 허용하는 `firestore.rules` 보완
 - Firestore Emulator rules 로딩 확인
 - Auth 실패 시 개발용 `test_user` fallback
@@ -445,21 +440,22 @@
 - `random-basic` 생성형 메타 `generatorType: math-muldiv` 확인 완료
 - Auth `uid` 기반 자동 회원 복구 구현 완료
 - localStorage 힌트와 Firestore `authUid` 재검증 구조 구현 완료
-- 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 전환되는 구조 구현 완료
-- 기존 Auth `uid` 소유 경제/인벤토리/내 집 데이터를 회원 `userId` 소유 데이터로 최초 1회 migration하는 구조 구현 완료
+- 회원 연결 후 경제/인벤토리/내 집 데이터가 회원 `userId` 기준으로 동작하는 구조 구현 완료
+- 기존 Auth `uid` 소유 내 집 데이터를 회원 `userId` 소유 데이터로 최초 1회 migration하는 구조 구현 완료
+- 경제/인벤토리는 서버 Functions가 회원 `userId` 기준으로 직접 생성/갱신한다.
 - linked member 접근을 허용하도록 `firestore.rules` 보완 완료
 - `firebase emulators:exec --only firestore "echo rules-loaded"`로 rules 로딩 확인 완료
 
 현재 주요 기능 루프:
 
 1. Firebase Auth 익명 로그인으로 `uid` 생성
-2. 회원 연결 전에는 `userEconomy/{uid}` 기본 경제 문서 초기화
+2. 회원 연결 후 `userEconomy/{memberUserId}` 기준 DJ코인 표시
 3. 내 집의 Firebase 회원 연결 테스트에서 운영본 회원 `userId`를 찾아 `users/{memberUserId}.authUid` 연결
 4. 새로고침/재진입 시 Auth `uid`로 연결된 `users` 문서를 자동 복구
 5. 연결된 회원이 있으면 데이터 소유자를 `memberUserId`로 전환
-6. 기존 `uid` 기준 경제/인벤토리/내 집 데이터가 있고 `memberUserId` 기준 데이터가 없으면 자동 migration
+6. 기존 `uid` 기준 내 집 데이터가 있고 `memberUserId` 기준 데이터가 없으면 자동 migration
 7. 상점에서 `shopItems`와 `assetCatalog` 기반 아이템 표시
-8. 상점 구매 transaction 실행
+8. 상점 구매는 `purchaseShopItem` Cloud Function transaction 실행
 9. `userInventory/{memberUserId}/items`에 구매 아이템 저장
 10. 내 집에서 보유 아이템 표시
 11. 내 집 적용 선택을 `userRoomSettings/{memberUserId}`에 저장
@@ -467,10 +463,11 @@
 주의:
 
 - 위 연결은 Firebase Auth 익명 사용자와 운영본 회원 `userId`를 연결하는 MVP 흐름이다.
-- 비밀번호 검증은 아직 연결하지 않았으며, 현재는 학교/학년/반/번호로 active student 문서를 찾아 연결한다.
-- Firestore rules는 linked member 접근을 허용하도록 보완했지만, 운영 수준의 서버 검증 전이다.
-- 현재 구매/경제 흐름은 클라이언트 transaction이므로 `userEconomy`, `userInventory`, `purchaseLogs` 조작 위험이 남아 있다.
-- 운영 전 Functions 이전 또는 서버 검증이 필요하다.
+- 비밀번호 검증은 아직 연결하지 않았으며, 현재는 학교/학년/반/번호와 접속 코드를 Cloud Functions에서 검증한다.
+- Firestore rules는 linked member 접근을 허용하며, `users.authUid`, 경제, 인벤토리, 구매 로그의 일반 클라이언트 write를 차단한다.
+- 구매/경제/인벤토리 추가는 `purchaseShopItem` Cloud Function으로 이전했다.
+- `userEconomy`, `userInventory`, `purchaseLogs` 일반 클라이언트 write는 Rules에서 차단했다.
+- 내 집 설정 저장은 `userRoomSettings/{memberUserId}` 클라이언트 write를 유지한다.
 - Firebase Storage 실제 이미지 연결 전이며, 현재는 `assetCatalog.fallbackIcon` 중심이다.
 - push/deploy 전 최종 브라우저 검증이 필요하다.
 - Firestore Emulator까지 함께 검증하려면 별도의 Emulator 연결 코드와 seed/import 데이터가 필요하다.
@@ -540,12 +537,10 @@
 3. Functions 기반 경제 처리
    - `functions/` scaffold 추가 완료
    - 회원 접속 코드 검증 callable은 배포 및 브라우저 확인 완료
-   - 연습전 정답 보상 지급은 `grantPracticeReward` callable 기반으로 전환 중이다.
-   - 중복 지급 방지는 `rewardLogs/{deterministicId}`로 처리한다.
-   - 상점 구매는 `purchaseShopItem` callable 기반으로 전환 중이다.
-   - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
-   - `userInventory` 직접 추가 방지
-   - `purchaseLogs` 서버 생성 구조 검토
+   - 연습전 정답 보상 지급은 `grantPracticeReward` callable 기반으로 전환 완료
+   - 중복 지급 방지는 `rewardLogs/{deterministicId}`로 처리
+   - 상점 구매는 `purchaseShopItem` callable 기반으로 전환 완료
+   - `userEconomy`, `userInventory`, `purchaseLogs` 일반 클라이언트 write 차단 완료
 
 4. 미이관 퀴즈 처리
    - 속담, 사자성어, 문화유산, 사회 개념, 계산 연습을 이관할지 준비 중으로 유지할지 결정
