@@ -114,6 +114,32 @@ Firebase Auth uid -> users/{legacyMemberId}.authUid
 - 클라이언트 단독 비밀번호 검증은 하지 않는다.
 - Firestore `users`에는 앞으로도 비밀번호를 저장하지 않는다.
 
+### 5.1 현재 MVP 오픈 권장 정책
+
+현재 배포본은 제한된 테스트/학급 내부 확인을 전제로 학교/학년/반/번호 확인 후 `authUid`를 연결/재연결한다.
+이 방식은 학생 본인 확인을 강하게 보장하지 않으므로, 공개 범위가 넓어지는 운영 오픈 전에는 그대로 유지하지 않는다.
+
+권장 운영 전환안:
+
+1. 교사가 학생별 1회용 또는 초기 접속 코드를 발급한다.
+2. Firebase 사이트는 학교/학년/반/번호/접속 코드를 입력받는다.
+3. Cloud Functions가 서버에서 코드를 검증한다.
+4. 검증 성공 시에만 `users/{memberUserId}.authUid`를 연결 또는 재연결한다.
+5. 검증 성공/실패는 `authLinkLogs/{autoId}`에 기록한다.
+
+보안 원칙:
+
+- 기존 운영본 평문 비밀번호는 Firestore로 이전하지 않는다.
+- 클라이언트에서 접속 코드를 직접 비교하지 않는다.
+- `users` 문서에는 접속 코드 원문을 저장하지 않는다.
+- 코드 검증용 secret은 Functions 또는 서버 전용 저장소에서만 확인한다.
+- 현재 테스트용 재연결 정책은 운영 전 서버 검증 성공 조건으로 교체한다.
+
+MVP 상태:
+
+- 제한된 내부 테스트에서는 현행 회원 연결 UI를 유지할 수 있다.
+- 일반 공개 오픈 전에는 Cloud Functions 기반 검증 또는 교사 승인 절차를 먼저 구현한다.
+
 ## 6. 최초 로그인 연결 흐름
 
 권장 1차 흐름:
@@ -257,7 +283,8 @@ authUserLinks/{authUid}
 ## 12. 구현 순서
 
 1. 로그인/연결 정책 확정
-   - 서버 검증 방식 또는 재설정 방식 중 선택
+   - 제한 테스트는 현행 학교/학년/반/번호 연결 유지
+   - 일반 공개 오픈 전에는 교사 발급 초기 접속 코드 + Cloud Functions 검증 방식 적용
 
 2. Firestore 보안 규칙 초안 갱신
    - `users` 읽기/쓰기 제한
@@ -266,11 +293,13 @@ authUserLinks/{authUid}
 3. 서버 검증 함수 설계
    - 입력: school, grade, classNumber, studentNumber, verificationSecret
    - 출력: 성공 여부, userId, role, status
+   - 실패 횟수 제한과 감사 로그 기록 포함
 
 4. authUid 연결 transaction 구현
    - `users/{userId}` 확인
    - `authUserLinks/{authUid}` 확인
    - `authUid` 비어 있을 때만 연결
+   - 재연결은 검증 성공 또는 교사 승인 상태일 때만 허용
    - 로그 기록
 
 5. 프론트 로그인 화면 프로토타입
