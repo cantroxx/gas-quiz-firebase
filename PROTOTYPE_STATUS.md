@@ -531,8 +531,10 @@
    - 접속 코드 저장 위치 초안: `memberAccessCodes/{memberUserId}`
    - 접속 코드는 원문 저장 없이 `salt` + `codeHash`로 검증하며, 만료/폐기/실패 횟수 제한 필드 초안을 Functions에 반영했다.
    - 접속 코드 발급 스크립트 `scripts/generate-member-access-codes.js` 추가 완료
-   - 실제 접속 코드 발급/Functions 배포/클라이언트 회원 연결 전환은 아직 전이다.
-   - 다음 단계는 테스트 학급 접속 코드 발급 후 Functions deploy와 클라이언트 회원 연결 전환
+   - 4학년 8반 테스트 접속 코드 22건 발급 완료
+   - `verifyMemberAccessCode`, `linkMemberAuthUid` Functions deploy 완료
+   - 회원 연결 UI는 접속 코드 입력 + callable 연결 방식으로 배포했으며, 브라우저 확인 대기 중이다.
+   - 다음 단계는 브라우저에서 접속 코드 기반 회원 연결 확인 후 직접 `users.authUid` update rules를 제한하는 작업
    - `users/{memberUserId}.authUid` 재연결은 서버 검증 성공 또는 교사 승인 이후로 제한해야 한다.
 
 3. Functions 기반 경제 처리

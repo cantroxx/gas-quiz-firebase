@@ -8,7 +8,7 @@ const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 initializeApp();
 
 const REGION = "asia-northeast3";
-const DEFAULT_MEMBER_SCHOOL = "도곡";
+const DEFAULT_MEMBER_SCHOOL = "동자";
 const AUTH_LINK_PROVIDER = "firebase_member_link_function";
 const AUTH_LINK_VERSION = 3;
 const MAX_FAILED_ATTEMPTS = 5;

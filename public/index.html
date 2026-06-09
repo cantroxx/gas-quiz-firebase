@@ -208,6 +208,10 @@
               번호
               <input id="member-link-number" name="studentNumber" type="number" min="1" inputmode="numeric">
             </label>
+            <label>
+              접속 코드
+              <input id="member-link-access-code" name="accessCode" type="text" inputmode="text" autocomplete="off">
+            </label>
             <button class="button primary" type="submit">회원 연결</button>
           </form>
           <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
@@ -399,6 +403,7 @@
   <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script>
     const PLACE_DETAILS = {
@@ -702,6 +707,7 @@
     let memberLinkInProgress = false;
     let userDataMigrationPromise = null;
     let firestoreDbInstance = null;
+    let firebaseFunctionsInstance = null;
 
     const QUEST_DATA = [
       {
@@ -2327,6 +2333,13 @@
       return firestoreDbInstance;
     }
 
+    function getFirebaseFunctions() {
+      if(!window.firebase?.apps?.length || !window.firebase.functions) return null;
+      if(firebaseFunctionsInstance) return firebaseFunctionsInstance;
+      firebaseFunctionsInstance = window.firebase.app().functions('asia-northeast3');
+      return firebaseFunctionsInstance;
+    }
+
     function normalizeFirebaseQuizId(quizId) {
       if(quizId === 'multiplication_division') return 'random-basic';
       return quizId;
@@ -2577,7 +2590,8 @@
         school: document.getElementById('member-link-school')?.value || DEFAULT_MEMBER_SCHOOL,
         grade: document.getElementById('member-link-grade')?.value || '',
         classNumber: document.getElementById('member-link-class')?.value || '',
-        studentNumber: document.getElementById('member-link-number')?.value || ''
+        studentNumber: document.getElementById('member-link-number')?.value || '',
+        accessCode: document.getElementById('member-link-access-code')?.value || ''
       };
     }
 
@@ -2786,57 +2800,43 @@
     async function linkImportedMemberToCurrentAuthUser(values) {
       const db = getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
 
       const authUser = await initializeAuthUser();
       const authUid = authUser?.uid || getFirebaseAuthUser()?.uid || '';
       if(!authUid) throw new Error('auth-required');
 
-      const legacyUserId = buildLegacyMemberUserId(values.school, values.grade, values.classNumber, values.studentNumber);
-      const memberRef = db.collection('users').doc(legacyUserId);
+      const accessCode = String(values.accessCode || '').trim();
+      if(!accessCode) throw new Error('access-code-required');
+
+      const linkMemberAuthUid = functions.httpsCallable('linkMemberAuthUid');
+      const response = await linkMemberAuthUid({
+        school: values.school || DEFAULT_MEMBER_SCHOOL,
+        grade: values.grade,
+        classNumber: values.classNumber,
+        studentNumber: values.studentNumber,
+        accessCode
+      });
+      const result = response?.data || {};
+      if(!result.success || !result.memberUserId) throw new Error('member-link-function-failed');
+
+      const memberRef = db.collection('users').doc(result.memberUserId);
       const memberSnapshot = await memberRef.get();
-      if(!memberSnapshot.exists) throw new Error('member-not-found');
+      let linkedProfile = memberSnapshot.exists
+        ? normalizeMemberProfileFromFirestore(memberSnapshot)
+        : {
+          ...(result.profile || {}),
+          userId: result.memberUserId,
+          legacyMemberId: result.memberUserId,
+          authUid
+        };
+      linkedProfile.authUid = authUid;
+      linkedProfile._authLinkAction = result.action || 'linked';
 
-      const linkedProfile = normalizeMemberProfileFromFirestore(memberSnapshot);
-      if(linkedProfile.role !== 'student') throw new Error('member-not-student');
-      if(linkedProfile.status !== 'active' || linkedProfile.active !== true) throw new Error('member-inactive');
-
-      const fieldValue = getFirestoreFieldValue();
-      if(linkedProfile.authUid && linkedProfile.authUid !== authUid) {
-        const previousAuthUid = linkedProfile.authUid;
-        // TODO: Before production, allow authUid relinking only after password
-        // verification or a server-verified identity check succeeds.
-        await memberRef.set({
-          authUid,
-          authRelinkedAt: fieldValue.serverTimestamp(),
-          previousAuthUid,
-          authLinkProvider: 'firebase_member_link_test',
-          authLinkVersion: 2,
-          updatedAt: fieldValue.serverTimestamp()
-        }, { merge: true });
-        linkedProfile.authUid = authUid;
-        linkedProfile.previousAuthUid = previousAuthUid;
-        linkedProfile.authLinkProvider = 'firebase_member_link_test';
-        linkedProfile.authLinkVersion = 2;
-        linkedProfile._authLinkAction = 'relinked';
-      } else if(!linkedProfile.authUid) {
-        await memberRef.set({
-          authUid,
-          authLinkedAt: fieldValue.serverTimestamp(),
-          authLinkProvider: 'firebase_member_link_test',
-          authLinkVersion: 1,
-          updatedAt: fieldValue.serverTimestamp()
-        }, { merge: true });
-        linkedProfile.authUid = authUid;
-        linkedProfile.authLinkProvider = 'firebase_member_link_test';
-        linkedProfile.authLinkVersion = 1;
-        linkedProfile._authLinkAction = 'linked';
-      } else {
-        linkedProfile._authLinkAction = 'unchanged';
-      }
-
-      currentMemberUserId = legacyUserId;
+      currentMemberUserId = result.memberUserId;
       currentMemberProfile = linkedProfile;
-      maybeSaveLinkedMemberHint(legacyUserId);
+      maybeSaveLinkedMemberHint(result.memberUserId);
       resetUserScopedRuntimeData();
       try {
         await migrateUserDataToMemberIdIfNeeded();
@@ -2893,7 +2893,7 @@
       if(memberLinkInProgress) return;
 
       memberLinkInProgress = true;
-      setMemberLinkStatus('회원 문서를 확인하고 있습니다...');
+      setMemberLinkStatus('회원 정보와 접속 코드를 확인하고 있습니다...');
 
       try {
         const profile = await linkImportedMemberToCurrentAuthUser(getMemberLinkFormValues());
@@ -2905,11 +2905,18 @@
       } catch(error) {
         const messages = {
           'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
+          'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
           'auth-required': 'Firebase Auth 로그인 후 연결할 수 있어요.',
+          'access-code-required': '선생님이 안내한 접속 코드를 입력해 주세요.',
           'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
           'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
           'member-not-student': '관리자 계정은 학생 연결 테스트에서 제외됩니다.',
-          'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.'
+          'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
+          'functions/invalid-argument': '학교, 학년, 반, 번호, 접속 코드를 다시 확인해 주세요.',
+          'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
+          'functions/failed-precondition': '이 회원은 현재 연결할 수 없어요. 선생님께 문의하세요.',
+          'functions/permission-denied': '접속 코드가 맞지 않거나 사용할 수 없어요.',
+          'functions/resource-exhausted': '접속 코드 시도 횟수가 초과됐어요. 선생님께 문의하세요.'
         };
         console.warn('Member auth link failed.', error);
         setMemberLinkStatus(messages[error.message] || '회원 연결 중 문제가 생겼어요.', true);
