@@ -43,20 +43,6 @@ service cloud.firestore {
         && resource.data.active == true;
     }
 
-    function isUnlinkedOrSameAuthUser() {
-      return !resource.data.keys().hasAny(['authUid'])
-        || resource.data.authUid == null
-        || resource.data.authUid == ''
-        || resource.data.authUid == request.auth.uid;
-    }
-
-    function isLinkedToDifferentAuthUser() {
-      return resource.data.keys().hasAny(['authUid'])
-        && resource.data.authUid != null
-        && resource.data.authUid != ''
-        && resource.data.authUid != request.auth.uid;
-    }
-
     function canReadUserDocument() {
       return isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
@@ -65,40 +51,6 @@ service cloud.firestore {
           || resource.data.authUid == request.auth.uid
           || isActiveStudentUser()
         );
-    }
-
-    function canLinkUserAuthUid() {
-      return isSignedIn()
-        && isActiveStudentUser()
-        && isUnlinkedOrSameAuthUser()
-        && request.resource.data.authUid == request.auth.uid
-        && hasNoForbiddenUserFields(request.resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'authUid',
-          'authLinkedAt',
-          'authLinkProvider',
-          'authLinkVersion',
-          'updatedAt'
-        ]);
-    }
-
-    function canRelinkUserAuthUidDuringTest() {
-      return isSignedIn()
-        && isActiveStudentUser()
-        && isLinkedToDifferentAuthUser()
-        && request.resource.data.authUid == request.auth.uid
-        && request.resource.data.previousAuthUid == resource.data.authUid
-        && request.resource.data.authLinkProvider == 'firebase_member_link_test'
-        && request.resource.data.authLinkVersion == 2
-        && hasNoForbiddenUserFields(request.resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'authUid',
-          'authRelinkedAt',
-          'previousAuthUid',
-          'authLinkProvider',
-          'authLinkVersion',
-          'updatedAt'
-        ]);
     }
 
     function hasValidPracticeProgressShape(recordId) {
@@ -419,7 +371,7 @@ service cloud.firestore {
       allow list: if isSignedIn()
         && hasNoForbiddenUserFields(resource.data)
         && resource.data.authUid == request.auth.uid;
-      allow update: if isAdmin() || canLinkUserAuthUid() || canRelinkUserAuthUidDuringTest();
+      allow update: if isAdmin();
       allow create, delete: if isAdmin();
     }
 
