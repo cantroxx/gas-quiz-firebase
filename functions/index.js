@@ -17,6 +17,7 @@ const PASSWORD_HASH_ITERATIONS = 210000;
 const PASSWORD_HASH_KEY_LENGTH = 32;
 const PASSWORD_SETUP_SESSION_MINUTES = 15;
 const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
+const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const db = getFirestore();
 
 function requireAuth(request) {
@@ -192,7 +193,40 @@ async function getAdminMemberForAuth(authUid) {
   if (data.status !== "active" || data.active !== true) {
     throw new HttpsError("permission-denied", "Admin member is inactive.");
   }
-  return { memberUserId: doc.id, memberData: data };
+  const isSuperAdmin = doc.id === SUPER_ADMIN_MEMBER_USER_ID
+    || data.adminLevel === "superAdmin"
+    || data.adminLevel === "fullAdmin";
+  return {
+    memberUserId: doc.id,
+    memberData: data,
+    adminLevel: isSuperAdmin ? "superAdmin" : "classAdmin",
+    isSuperAdmin,
+    scopeGrade: String(data.adminScopeGrade || data.grade || ""),
+    scopeClassNumber: String(data.adminScopeClassNumber || data.classNumber || "")
+  };
+}
+
+function assertSuperAdmin(adminMember) {
+  if (!adminMember?.isSuperAdmin) {
+    throw new HttpsError("permission-denied", "Full admin permission is required.");
+  }
+}
+
+function isMemberInAdminScope(adminMember, memberData) {
+  if (adminMember?.isSuperAdmin) return true;
+  return String(memberData?.grade || "") === String(adminMember?.scopeGrade || "")
+    && String(memberData?.classNumber || "") === String(adminMember?.scopeClassNumber || "");
+}
+
+function assertAdminCanAccessMember(adminMember, memberUserId, memberData, options = {}) {
+  if (adminMember?.isSuperAdmin) return;
+  if (memberUserId === adminMember?.memberUserId && options.allowSelf === true) return;
+  if (!isMemberInAdminScope(adminMember, memberData)) {
+    throw new HttpsError("permission-denied", "Member is outside admin class scope.");
+  }
+  if (memberData?.role === "admin" && options.allowAdminTarget !== true) {
+    throw new HttpsError("permission-denied", "Class admin cannot manage admins.");
+  }
 }
 
 async function writeAdminLog({ adminUserId, action, targetUserId, before, after, reason }) {
@@ -1020,6 +1054,9 @@ function publicAdminMemberRow(doc) {
     studentNumber: data.studentNumber || "",
     nickname: data.nickname || data.name || "",
     role: data.role || "student",
+    adminLevel: data.adminLevel || "",
+    adminScopeGrade: data.adminScopeGrade || "",
+    adminScopeClassNumber: data.adminScopeClassNumber || "",
     status: data.status || "",
     active: data.active === true,
     authLinked: !!data.authUid,
@@ -1056,6 +1093,106 @@ function publicAdminPracticeRecord(doc) {
   };
 }
 
+function getKstDayStartDate() {
+  const now = new Date();
+  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 60 * 60 * 1000);
+}
+
+function buildAdminDashboardSummary({ adminMember, members, credentialStates, todayPracticeCount, todayRewardCount, recentLogs }) {
+  const activeStudents = members.filter(member => member.role !== "admin" && member.active && member.status === "active").length;
+  const inactive = members.filter(member => !member.active || member.status !== "active").length;
+  const admins = members.filter(member => member.role === "admin").length;
+  const authUnlinked = members.filter(member => !member.authLinked).length;
+  const passwordMissing = credentialStates.filter(state => !state.passwordConfigured).length;
+  const passwordForceChange = credentialStates.filter(state => state.forcePasswordChange).length;
+  const passwordLocked = credentialStates.filter(state => state.locked).length;
+  return {
+    scopeLabel: adminMember.isSuperAdmin ? "전체" : `${adminMember.scopeGrade || "-"}학년 ${adminMember.scopeClassNumber || "-"}반`,
+    adminLevel: adminMember.adminLevel,
+    totalMembers: members.length,
+    activeStudents,
+    inactive,
+    admins,
+    authUnlinked,
+    passwordMissing,
+    passwordForceChange,
+    passwordLocked,
+    todayPracticeCount,
+    todayRewardCount,
+    recentLogs
+  };
+}
+
+exports.adminGetDashboard = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const userSnapshot = await db.collection("users").orderBy("userId").limit(1000).get();
+  let members = userSnapshot.docs.map(publicAdminMemberRow);
+  if (!adminMember.isSuperAdmin) {
+    members = members.filter(member => isMemberInAdminScope(adminMember, member));
+  }
+
+  const credentialSnapshots = members.length
+    ? await db.getAll(...members.map(member => db.collection("memberCredentials").doc(member.userId)))
+    : [];
+  const credentialStates = credentialSnapshots.map(publicAdminCredentialState);
+  const kstDayStart = Timestamp.fromDate(getKstDayStartDate());
+  let todayPracticeCount = 0;
+  let todayRewardCount = 0;
+  let recentLogs = [];
+
+  try {
+    const practiceSnapshot = await db.collection("practiceRecords")
+      .where("updatedAt", ">=", kstDayStart)
+      .limit(1000)
+      .get();
+    todayPracticeCount = practiceSnapshot.docs
+      .map(doc => doc.data() || {})
+      .filter(record => adminMember.isSuperAdmin || isMemberInAdminScope(adminMember, {
+        grade: record.grade || "",
+        classNumber: record.classNumber || "",
+        userId: record.memberUserId || record.userId || ""
+      }) || members.some(member => member.userId === (record.memberUserId || record.userId || "")))
+      .length;
+  } catch (error) {
+    console.warn("Admin dashboard practice count failed.", error);
+  }
+
+  try {
+    const rewardSnapshot = await db.collection("rewardLogs")
+      .where("createdAt", ">=", kstDayStart)
+      .limit(1000)
+      .get();
+    todayRewardCount = rewardSnapshot.docs
+      .map(doc => doc.data() || {})
+      .filter(log => adminMember.isSuperAdmin || members.some(member => member.userId === (log.memberUserId || log.userId || "")))
+      .length;
+  } catch (error) {
+    console.warn("Admin dashboard reward count failed.", error);
+  }
+
+  if (adminMember.isSuperAdmin) {
+    const logSnapshot = await db.collection("adminLogs")
+      .orderBy("createdAt", "desc")
+      .limit(5)
+      .get();
+    recentLogs = logSnapshot.docs.map(publicAdminLogRow);
+  }
+
+  return {
+    success: true,
+    dashboard: buildAdminDashboardSummary({
+      adminMember,
+      members,
+      credentialStates,
+      todayPracticeCount,
+      todayRewardCount,
+      recentLogs
+    })
+  };
+});
+
 exports.adminListMembers = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -1070,6 +1207,9 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
 
   const snapshot = await db.collection("users").orderBy("userId").limit(1000).get();
   let members = snapshot.docs.map(publicAdminMemberRow);
+  if (!adminMember.isSuperAdmin) {
+    members = members.filter(member => isMemberInAdminScope(adminMember, member));
+  }
 
   if (grade) {
     members = members.filter(member => String(member.grade) === grade);
@@ -1156,7 +1296,8 @@ exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
     }
     const memberData = memberSnapshot.data() || {};
     assertActiveMember(memberData);
-    if (memberData.role === "admin" && adminMember.memberUserId !== memberUserId) {
+    assertAdminCanAccessMember(adminMember, memberUserId, memberData, { allowSelf: true });
+    if (memberData.role === "admin" && !adminMember.isSuperAdmin && adminMember.memberUserId !== memberUserId) {
       throw new HttpsError("permission-denied", "Other admin passwords cannot be reset here.");
     }
     const temporaryPassword = normalizePassword(buildTemporaryMemberPassword({
@@ -1201,7 +1342,7 @@ exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
 
 exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
-  await getAdminMemberForAuth(authUid);
+  const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
 
@@ -1237,6 +1378,8 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
   if (!userSnapshot.exists) {
     throw new HttpsError("not-found", "Member not found.");
   }
+  const memberData = userSnapshot.data() || {};
+  assertAdminCanAccessMember(adminMember, memberUserId, memberData, { allowSelf: true });
 
   const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
   const summary = summarySnapshot.exists ? summarySnapshot.data() || {} : {};
@@ -1301,6 +1444,74 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.adminSetClassAdmin = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  if (memberUserId === SUPER_ADMIN_MEMBER_USER_ID) {
+    throw new HttpsError("failed-precondition", "Super admin role cannot be changed here.");
+  }
+  const enabled = payload.enabled !== false;
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+    const before = memberSnapshot.data() || {};
+    assertActiveMember(before);
+    const scopeGrade = String(payload.scopeGrade || before.grade || "").trim();
+    const scopeClassNumber = String(payload.scopeClassNumber || before.classNumber || "").trim();
+    if (enabled && (!scopeGrade || !scopeClassNumber)) {
+      throw new HttpsError("invalid-argument", "Class admin scope is required.");
+    }
+    const update = enabled
+      ? {
+          role: "admin",
+          adminLevel: "classAdmin",
+          adminScopeGrade: scopeGrade,
+          adminScopeClassNumber: scopeClassNumber,
+          updatedAt: FieldValue.serverTimestamp(),
+          adminGrantedAt: FieldValue.serverTimestamp(),
+          adminGrantedByAdminUserId: adminMember.memberUserId
+        }
+      : {
+          role: "student",
+          adminLevel: FieldValue.delete(),
+          adminScopeGrade: FieldValue.delete(),
+          adminScopeClassNumber: FieldValue.delete(),
+          adminRevokedAt: FieldValue.serverTimestamp(),
+          adminRevokedByAdminUserId: adminMember.memberUserId,
+          updatedAt: FieldValue.serverTimestamp()
+        };
+    transaction.set(memberRef, update, { merge: true });
+    return { before, after: { enabled, scopeGrade, scopeClassNumber } };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: enabled ? "adminGrantClassAdmin" : "adminRevokeClassAdmin",
+    targetUserId: memberUserId,
+    before: {
+      role: result.before.role || "",
+      adminLevel: result.before.adminLevel || "",
+      adminScopeGrade: result.before.adminScopeGrade || "",
+      adminScopeClassNumber: result.before.adminScopeClassNumber || ""
+    },
+    after: result.after,
+    reason: "class admin permission update"
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    classAdmin: enabled,
+    scopeGrade: result.after.scopeGrade,
+    scopeClassNumber: result.after.scopeClassNumber
+  };
+});
+
 exports.adminUpdateMemberStatus = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -1319,6 +1530,7 @@ exports.adminUpdateMemberStatus = onCall({ region: REGION }, async request => {
     const memberSnapshot = await transaction.get(memberRef);
     if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
     const before = memberSnapshot.data() || {};
+    assertAdminCanAccessMember(adminMember, memberUserId, before);
     transaction.set(memberRef, {
       status: nextStatus,
       active: nextStatus === "active",
@@ -1353,6 +1565,7 @@ exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
     const memberSnapshot = await transaction.get(memberRef);
     if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
     const before = memberSnapshot.data() || {};
+    assertAdminCanAccessMember(adminMember, memberUserId, before);
     transaction.set(memberRef, {
       previousAuthUid: before.authUid || before.previousAuthUid || "",
       authUid: "",
@@ -1377,7 +1590,8 @@ exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
 
 exports.adminGetPasswordSetupSettings = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
-  await getAdminMemberForAuth(authUid);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
   const snapshot = await db.collection("authSettings").doc("memberPasswordSetup").get();
   const settings = snapshot.exists
     ? { setupEnabled: true, setupExpiresAt: dateToTimestamp(DEFAULT_PASSWORD_SETUP_EXPIRES_AT), minPasswordLength: 4, maxFailedAttempts: MAX_FAILED_ATTEMPTS, lockMinutes: 10, ...(snapshot.data() || {}) }
@@ -1391,6 +1605,7 @@ exports.adminGetPasswordSetupSettings = onCall({ region: REGION }, async request
 exports.adminUpdatePasswordSetupSettings = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const settingsRef = db.collection("authSettings").doc("memberPasswordSetup");
   const beforeSnapshot = await settingsRef.get();
@@ -1424,7 +1639,8 @@ exports.adminUpdatePasswordSetupSettings = onCall({ region: REGION }, async requ
 
 exports.adminListLogs = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
-  await getAdminMemberForAuth(authUid);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const limit = Math.max(1, Math.min(Number(payload.limit) || 40, 100));
   const action = String(payload.action || "").trim();
@@ -1467,7 +1683,8 @@ function publicNoticeBoard(data) {
 
 exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
-  await getAdminMemberForAuth(authUid);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
   const snapshot = await db.collection("noticeBoard").doc("current").get();
   return {
     success: true,
@@ -1478,6 +1695,7 @@ exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
 exports.adminUpdateNoticeBoard = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const nextNotice = publicNoticeBoard(payload.notice || payload);
   const noticeRef = db.collection("noticeBoard").doc("current");

@@ -350,14 +350,34 @@
       </div>
 
       <div class="admin-section-tabs" aria-label="관리자 메뉴">
-        <button class="admin-section-tab is-active" type="button" data-admin-section-target="members">회원 목록</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="notice">알림판 관리</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="login">로그인 설정</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="logs">작업 이력</button>
+        <button class="admin-section-tab is-active" type="button" data-admin-section-target="dashboard">대시보드</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="login" data-super-admin-only>로그인 설정</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="permissions" data-super-admin-only>권한 관리</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="logs" data-super-admin-only>작업 이력</button>
       </div>
 
-      <section id="admin-section-members" class="admin-section is-active" aria-labelledby="admin-member-heading">
-        <button class="admin-section-toggle" type="button" data-admin-section-target="members" aria-expanded="true">
+      <section id="admin-section-dashboard" class="admin-section is-active" aria-labelledby="admin-dashboard-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="dashboard" aria-expanded="true">
+          <span>
+            <span class="eyebrow">Dashboard</span>
+            <strong id="admin-dashboard-heading">운영 대시보드</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-notice-actions">
+            <button id="admin-dashboard-refresh" class="button secondary" type="button">새로고침</button>
+          </div>
+          <p id="admin-dashboard-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-dashboard-grid" class="admin-dashboard-grid"></div>
+          <div id="admin-dashboard-recent" class="admin-dashboard-recent"></div>
+        </div>
+      </section>
+
+      <section id="admin-section-members" class="admin-section" aria-labelledby="admin-member-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="members" aria-expanded="false">
           <span>
             <span class="eyebrow">Members</span>
             <strong id="admin-member-heading">회원 관리</strong>
@@ -418,7 +438,7 @@
         </div>
       </section>
 
-      <section id="admin-section-notice" class="admin-section" aria-labelledby="admin-notice-heading">
+      <section id="admin-section-notice" class="admin-section" aria-labelledby="admin-notice-heading" data-super-admin-only>
         <button class="admin-section-toggle" type="button" data-admin-section-target="notice" aria-expanded="false">
           <span>
             <span class="eyebrow">Notice</span>
@@ -481,7 +501,7 @@
         </div>
       </section>
 
-      <section id="admin-section-login" class="admin-section" aria-labelledby="admin-login-heading">
+      <section id="admin-section-login" class="admin-section" aria-labelledby="admin-login-heading" data-super-admin-only>
         <button class="admin-section-toggle" type="button" data-admin-section-target="login" aria-expanded="false">
           <span>
             <span class="eyebrow">Login</span>
@@ -520,7 +540,38 @@
         </div>
       </section>
 
-      <section id="admin-section-logs" class="admin-section" aria-labelledby="admin-logs-heading">
+      <section id="admin-section-permissions" class="admin-section" aria-labelledby="admin-permissions-heading" data-super-admin-only>
+        <button class="admin-section-toggle" type="button" data-admin-section-target="permissions" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Permissions</span>
+            <strong id="admin-permissions-heading">반 관리자 설정</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-settings-form">
+            <label>
+              대상 userId
+              <input id="admin-permission-member-id-input" type="text" placeholder="예: G4-C8-N22">
+            </label>
+            <label>
+              담당 학년
+              <input id="admin-permission-grade-input" type="number" min="1" max="9" inputmode="numeric">
+            </label>
+            <label>
+              담당 반
+              <input id="admin-permission-class-input" type="number" min="1" inputmode="numeric">
+            </label>
+          </div>
+          <div class="admin-notice-actions">
+            <button id="admin-permission-grant" class="button primary" type="button">반 관리자 지정</button>
+            <button id="admin-permission-revoke" class="button secondary danger" type="button">관리자 해제</button>
+          </div>
+          <p id="admin-permission-status" class="admin-status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="admin-section-logs" class="admin-section" aria-labelledby="admin-logs-heading" data-super-admin-only>
         <button class="admin-section-toggle" type="button" data-admin-section-target="logs" aria-expanded="false">
           <span>
             <span class="eyebrow">Logs</span>
@@ -539,6 +590,8 @@
                 <option value="adminUnlinkMemberAuth">연결 해제</option>
                 <option value="adminUpdateNoticeBoard">알림판 수정</option>
                 <option value="adminUpdatePasswordSetupSettings">로그인 설정 변경</option>
+                <option value="adminGrantClassAdmin">반 관리자 지정</option>
+                <option value="adminRevokeClassAdmin">관리자 해제</option>
               </select>
             </label>
             <label>
@@ -1737,6 +1790,7 @@
     let profileImageOptionsCache = [];
     let profileImageEditorState = null;
     let noticeBoardCache = null;
+    let adminDashboardCache = null;
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
@@ -5133,6 +5187,75 @@
       };
     }
 
+    function setAdminDashboardStatus(message, isError = false) {
+      const status = document.getElementById('admin-dashboard-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function setSuperAdminUiEnabled(isSuperAdmin) {
+      document.querySelectorAll('[data-super-admin-only]').forEach(element => {
+        element.hidden = !isSuperAdmin;
+      });
+      if(!isSuperAdmin && document.getElementById('admin-section-dashboard')?.classList.contains('is-active') === false) {
+        const active = document.querySelector('.admin-section.is-active');
+        if(active?.dataset?.superAdminOnly !== undefined) setActiveAdminSection('dashboard');
+      }
+    }
+
+    function renderAdminDashboard(dashboard) {
+      const grid = document.getElementById('admin-dashboard-grid');
+      const recent = document.getElementById('admin-dashboard-recent');
+      if(!grid || !recent) return;
+      const data = dashboard || {};
+      const isSuperAdmin = data.adminLevel === 'superAdmin';
+      grid.innerHTML = '';
+      [
+        ['권한 범위', data.scopeLabel || '-'],
+        ['활성 학생', data.activeStudents || 0],
+        ['연결 없음', data.authUnlinked || 0],
+        ['비번 미설정', data.passwordMissing || 0],
+        ['변경 필요', data.passwordForceChange || 0],
+        ['잠김', data.passwordLocked || 0],
+        ['오늘 기록', data.todayPracticeCount || 0],
+        ['오늘 보상', data.todayRewardCount || 0]
+      ].forEach(([label, value]) => {
+        grid.appendChild(createAdminDetailMetric(label, value));
+      });
+      recent.innerHTML = '';
+      const heading = document.createElement('h3');
+      heading.textContent = isSuperAdmin ? '최근 관리자 작업' : '반 관리자 모드';
+      recent.appendChild(heading);
+      if(isSuperAdmin && data.recentLogs?.length) {
+        data.recentLogs.forEach(log => {
+          const item = document.createElement('p');
+          item.textContent = `${formatAdminTimestamp(log.createdAt)} · ${formatAdminLogAction(log.action)} · ${log.targetUserId || '-'}`;
+          recent.appendChild(item);
+        });
+      } else {
+        const item = document.createElement('p');
+        item.textContent = isSuperAdmin ? '최근 작업 이력이 없습니다.' : '자기 반 학생 관리만 가능합니다.';
+        recent.appendChild(item);
+      }
+    }
+
+    async function loadAdminDashboard() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminDashboardStatus('대시보드를 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminGetDashboard');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-dashboard-load-failed');
+      adminDashboardCache = result.dashboard || {};
+      setSuperAdminUiEnabled(adminDashboardCache.adminLevel === 'superAdmin');
+      renderAdminDashboard(adminDashboardCache);
+      setAdminDashboardStatus('운영 상태를 불러왔습니다.');
+      return adminDashboardCache;
+    }
+
     function renderAdminSummary(summary) {
       const root = document.getElementById('admin-summary');
       if(!root) return;
@@ -5300,7 +5423,7 @@
         title.textContent = `${member.nickname || '이름 없음'} · ${member.userId}`;
         meta.textContent = `${member.school || '동자'} ${member.grade || '-'}학년 ${member.classNumber || '-'}반 ${member.studentNumber || '-'}번`;
         state.className = 'admin-member-state';
-        state.textContent = `${member.role === 'admin' ? '관리자' : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}`;
+        state.textContent = `${member.role === 'admin' ? (member.adminLevel === 'classAdmin' ? `반 관리자 ${member.adminScopeGrade || member.grade || '-'}-${member.adminScopeClassNumber || member.classNumber || '-'}` : '관리자') : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}`;
         passwordState.className = 'admin-member-password-state';
         passwordState.textContent = getAdminPasswordStateLabel(member);
         detailButton.type = 'button';
@@ -5381,6 +5504,45 @@
       }
       await loadAdminMembers({ updateStatus: false });
       setAdminStatus(completionMessage);
+    }
+
+    function setAdminPermissionStatus(message, isError = false) {
+      const status = document.getElementById('admin-permission-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function getAdminPermissionFormValues() {
+      return {
+        memberUserId: (document.getElementById('admin-permission-member-id-input')?.value || '').trim(),
+        scopeGrade: String(document.getElementById('admin-permission-grade-input')?.value || '').trim(),
+        scopeClassNumber: String(document.getElementById('admin-permission-class-input')?.value || '').trim()
+      };
+    }
+
+    async function setClassAdminPermission(enabled) {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      const values = getAdminPermissionFormValues();
+      if(!values.memberUserId) throw new Error('admin-permission-member-required');
+      if(enabled && (!values.scopeGrade || !values.scopeClassNumber)) throw new Error('admin-permission-scope-required');
+      const label = enabled ? '반 관리자로 지정' : '관리자 권한을 해제';
+      if(!window.confirm(`${values.memberUserId}\n${label}할까요?`)) return;
+      setAdminPermissionStatus('권한을 변경하는 중입니다...');
+      const callable = functions.httpsCallable('adminSetClassAdmin');
+      const response = await callable({ ...values, enabled });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-permission-update-failed');
+      setAdminPermissionStatus(enabled
+        ? `${values.memberUserId} 반 관리자 지정 완료: ${values.scopeGrade}학년 ${values.scopeClassNumber}반`
+        : `${values.memberUserId} 관리자 권한을 해제했습니다.`);
+      await Promise.all([
+        loadAdminMembers({ updateStatus: false }).catch(() => null),
+        loadAdminDashboard().catch(() => null),
+        loadAdminLogs().catch(() => null)
+      ]);
     }
 
     function hideAdminTemporaryPassword() {
@@ -5552,7 +5714,9 @@
         adminUpdateMemberStatus: '회원 상태 변경',
         adminUnlinkMemberAuth: '연결 해제',
         adminUpdateNoticeBoard: '알림판 수정',
-        adminUpdatePasswordSetupSettings: '로그인 설정 변경'
+        adminUpdatePasswordSetupSettings: '로그인 설정 변경',
+        adminGrantClassAdmin: '반 관리자 지정',
+        adminRevokeClassAdmin: '관리자 해제'
       }[action] || action || '관리자 작업';
     }
 
@@ -6714,22 +6878,30 @@
       document.getElementById('town-view').hidden = true;
       document.getElementById('admin-view').hidden = false;
       document.getElementById('admin-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveAdminSection('dashboard');
+      loadAdminDashboard().then(dashboard => {
+        if(dashboard?.adminLevel === 'superAdmin') {
+          loadAdminNoticeBoard().catch(error => {
+            console.warn('Admin notice board load failed.', error);
+            setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
+            setAdminNoticeForm(getFallbackNoticeBoard());
+          });
+          loadAdminLoginSettings().catch(error => {
+            console.warn('Admin login settings load failed.', error);
+            setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
+          });
+          loadAdminLogs().catch(error => {
+            console.warn('Admin logs load failed.', error);
+            setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true);
+          });
+        }
+      }).catch(error => {
+        console.warn('Admin dashboard load failed.', error);
+        setAdminDashboardStatus('대시보드를 불러오지 못했습니다.', true);
+      });
       loadAdminMembers().catch(error => {
         console.warn('Admin member list load failed.', error);
         setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true);
-      });
-      loadAdminNoticeBoard().catch(error => {
-        console.warn('Admin notice board load failed.', error);
-        setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
-        setAdminNoticeForm(getFallbackNoticeBoard());
-      });
-      loadAdminLoginSettings().catch(error => {
-        console.warn('Admin login settings load failed.', error);
-        setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
-      });
-      loadAdminLogs().catch(error => {
-        console.warn('Admin logs load failed.', error);
-        setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true);
       });
     }
 
@@ -7081,6 +7253,13 @@
       });
     });
 
+    document.getElementById('admin-dashboard-refresh').addEventListener('click', () => {
+      loadAdminDashboard().catch(error => {
+        console.warn('Admin dashboard refresh failed.', error);
+        setAdminDashboardStatus('대시보드를 다시 불러오지 못했습니다.', true);
+      });
+    });
+
     document.getElementById('admin-temp-password-copy').addEventListener('click', () => {
       const password = document.getElementById('admin-temp-password-value')?.textContent || '';
       if(!password) return;
@@ -7166,6 +7345,33 @@
           'functions/invalid-argument': '설정 값을 확인해 주세요.'
         };
         setAdminLoginSettingsStatus(messages[error.message] || '로그인 설정 저장 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-permission-grant').addEventListener('click', () => {
+      setClassAdminPermission(true).catch(error => {
+        console.warn('Admin class permission grant failed.', error);
+        const messages = {
+          'admin-permission-member-required': '대상 userId를 입력해 주세요.',
+          'admin-permission-scope-required': '담당 학년과 반을 입력해 주세요.',
+          'functions/permission-denied': '전체 관리자만 권한을 변경할 수 있습니다.',
+          'functions/not-found': '대상 회원을 찾지 못했습니다.',
+          'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
+        };
+        setAdminPermissionStatus(messages[error.message] || '반 관리자 지정 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-permission-revoke').addEventListener('click', () => {
+      setClassAdminPermission(false).catch(error => {
+        console.warn('Admin class permission revoke failed.', error);
+        const messages = {
+          'admin-permission-member-required': '대상 userId를 입력해 주세요.',
+          'functions/permission-denied': '전체 관리자만 권한을 변경할 수 있습니다.',
+          'functions/not-found': '대상 회원을 찾지 못했습니다.',
+          'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
+        };
+        setAdminPermissionStatus(messages[error.message] || '관리자 해제 중 문제가 생겼습니다.', true);
       });
     });
 
