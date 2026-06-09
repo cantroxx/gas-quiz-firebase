@@ -32,7 +32,7 @@
       </div>
       <div class="login-panel">
         <div class="collection-heading login-sign">
-          <p class="eyebrow">Quiz Town Gate</p>
+          <p class="eyebrow">마을 입구</p>
           <h2 id="member-link-heading">입장</h2>
           <p class="login-welcome">어서오세요! 로그인하고 나만의 마을로 들어가요.</p>
         </div>
@@ -41,7 +41,7 @@
           <button id="member-signup-mode-button" class="login-mode-tab" type="button" data-member-form-mode="signup">신규가입</button>
         </div>
         <details class="login-help">
-          <summary><span aria-hidden="true">🌱</span> 규칙 보기</summary>
+          <summary><span aria-hidden="true">🌱</span> 자세한 입장 규칙 보기</summary>
           <div class="login-help-body">
             <article class="login-guide-card is-primary">
               <strong>이미 비밀번호를 만들었어요</strong>
@@ -859,11 +859,10 @@
         features: [
           { label: '오늘의 추천 퀴즈', value: '역사 인물 10문제' },
           { label: '국어', value: '맞춤법, 다의어, 독서 퀴즈' },
-          { label: '사회/수학', value: '역사 인물, 곱셈나눗셈' }
+          { label: '사회/수학', value: '역사, 곱셈나눗셈' }
         ],
         actions: [
-          { label: '학교 입장하기', enabled: true, action: 'openSchool' },
-          { label: '기록 보기 준비 중', enabled: false }
+          { label: '학교 입장하기', enabled: true, action: 'openSchool' }
         ]
       },
       shop: {
@@ -1280,8 +1279,8 @@
       },
       records: {
         icon: '📊',
-        title: '기록 보기 준비 중',
-        desc: '나중에 개인 기록과 풀이 이력을 보여줄 자리입니다.',
+        title: '개인 기록',
+        desc: '개인 기록과 뱃지 현황은 내 집에서 확인합니다.',
         enabled: false
       }
     };
@@ -1857,6 +1856,10 @@
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
         showHomeView();
+        return;
+      }
+      if(placeId === 'school') {
+        showSchoolView();
         return;
       }
       if(placeId === 'ranking') {
