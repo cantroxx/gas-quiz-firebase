@@ -2167,6 +2167,54 @@ h2 {
   accent-color: #2f8f53;
 }
 
+.admin-external-quiz-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-external-quiz-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.8fr) minmax(160px, 1.2fr) minmax(180px, 1.4fr) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.admin-external-quiz-row label {
+  display: grid;
+  gap: 6px;
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.admin-external-quiz-row input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+}
+
+.admin-external-quiz-row .admin-checkbox-label {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+}
+
+.admin-external-quiz-row .admin-checkbox-label input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: #2f8f53;
+}
+
 .admin-notice-form textarea {
   min-height: 82px;
   resize: vertical;
@@ -3915,6 +3963,53 @@ h2 {
   cursor: not-allowed;
 }
 
+.external-quiz-section {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.external-quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.external-quiz-card {
+  display: grid;
+  align-content: start;
+  min-height: 210px;
+  padding: 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.external-quiz-card h3 {
+  margin: 14px 0 8px;
+  color: var(--green-dark);
+  font-size: 1.04rem;
+}
+
+.external-quiz-card p,
+.external-quiz-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.52;
+  word-break: keep-all;
+}
+
+.external-quiz-card .school-ready-button {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+}
+
 .subject-scene {
   position: relative;
   min-height: 180px;
@@ -4514,6 +4609,10 @@ h2 {
   }
 
   .collection-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-external-quiz-row {
     grid-template-columns: 1fr;
   }
 }

@@ -436,7 +436,7 @@ service cloud.firestore {
     }
 
     match /appSettings/{settingId} {
-      allow read: if settingId == 'featureFlags' && isSignedIn();
+      allow read: if settingId in ['featureFlags', 'externalQuizzes'] && isSignedIn();
       allow write: if isAdmin();
     }
 

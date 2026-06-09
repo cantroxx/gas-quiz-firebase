@@ -19,6 +19,7 @@ const PASSWORD_SETUP_SESSION_MINUTES = 15;
 const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
 const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
+const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
 const db = getFirestore();
 
 const DEFAULT_FEATURE_FLAGS = {
@@ -26,6 +27,10 @@ const DEFAULT_FEATURE_FLAGS = {
   shopEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true
+};
+
+const DEFAULT_EXTERNAL_QUIZZES = {
+  items: []
 };
 
 function requireAuth(request) {
@@ -134,6 +139,42 @@ function assertFeatureEnabled(flags, key, message) {
   if (flags?.[key] === false) {
     throw new HttpsError("failed-precondition", message || "Feature is disabled.");
   }
+}
+
+function normalizeExternalQuizUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch (error) {
+    throw new HttpsError("invalid-argument", "External quiz URL is invalid.");
+  }
+  if (parsed.protocol !== "https:") {
+    throw new HttpsError("invalid-argument", "External quiz URL must use https.");
+  }
+  return parsed.toString().slice(0, 500);
+}
+
+function publicExternalQuizzes(data = {}) {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  const items = rawItems.slice(0, 5)
+    .map((item, index) => {
+      const title = String(item?.title || "").trim().slice(0, 40);
+      const url = normalizeExternalQuizUrl(item?.url || "");
+      return {
+        id: String(item?.id || `external-${index + 1}`).trim().replace(/[^0-9A-Za-z_-]/g, "-").slice(0, 40) || `external-${index + 1}`,
+        title,
+        description: String(item?.description || "").trim().slice(0, 120),
+        url,
+        active: item?.active !== false,
+        sortOrder: Number(item?.sortOrder) || index + 1
+      };
+    })
+    .filter(item => item.title && item.url)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+
+  return { items };
 }
 
 function normalizePassword(value) {
@@ -2006,6 +2047,47 @@ exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
   return {
     success: true,
     flags: next
+  };
+});
+
+exports.adminGetExternalQuizzes = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const snapshot = await db.doc(EXTERNAL_QUIZZES_DOC_PATH).get();
+  return {
+    success: true,
+    externalQuizzes: publicExternalQuizzes(snapshot.exists ? snapshot.data() || {} : DEFAULT_EXTERNAL_QUIZZES)
+  };
+});
+
+exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const beforeSnapshot = await db.doc(EXTERNAL_QUIZZES_DOC_PATH).get();
+  const before = beforeSnapshot.exists ? publicExternalQuizzes(beforeSnapshot.data() || {}) : DEFAULT_EXTERNAL_QUIZZES;
+  const next = publicExternalQuizzes(payload.externalQuizzes || payload);
+
+  await db.doc(EXTERNAL_QUIZZES_DOC_PATH).set({
+    ...next,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByAdminUserId: adminMember.memberUserId
+  }, { merge: true });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdateExternalQuizzes",
+    targetUserId: EXTERNAL_QUIZZES_DOC_PATH,
+    before,
+    after: next,
+    reason: "external quizzes update"
+  });
+
+  return {
+    success: true,
+    externalQuizzes: next
   };
 });
 
