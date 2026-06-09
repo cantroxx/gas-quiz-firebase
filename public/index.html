@@ -25,6 +25,14 @@
           <p class="eyebrow">Login</p>
           <h2 id="member-link-heading">로그인</h2>
         </div>
+        <details class="login-help">
+          <summary>처음 오셨나요?</summary>
+          <div class="login-help-body">
+            <p>처음 접속하면 학교, 학년, 반, 번호와 기존 닉네임을 입력하고 <strong>처음 비밀번호 만들기</strong>를 누릅니다.</p>
+            <p>비밀번호는 4자리 이상으로 만들고, 다음부터는 학교, 학년, 반, 번호, 비밀번호로 <strong>로그인</strong>합니다.</p>
+            <p>비밀번호를 잊었다면 학교, 학년, 반, 번호를 입력한 뒤 <strong>비밀번호를 잊었어요</strong>를 누릅니다.</p>
+          </div>
+        </details>
         <form id="member-link-form" class="member-link-form" autocomplete="off">
           <label>
             학교
@@ -57,6 +65,7 @@
           <div class="member-link-actions">
             <button class="button primary" type="submit" name="memberLinkAction" value="login">로그인</button>
             <button class="button secondary" type="submit" name="memberLinkAction" value="setup">처음 비밀번호 만들기</button>
+            <button id="member-password-reset-button" class="button secondary" type="button">비밀번호를 잊었어요</button>
           </div>
         </form>
         <div id="member-link-status" class="member-link-status" aria-live="polite"></div>
@@ -2640,6 +2649,14 @@
       status.appendChild(text);
     }
 
+    function getTemporaryPasswordText(values) {
+      const grade = Number(values.grade);
+      const classNumber = Number(values.classNumber);
+      const studentNumber = Number(values.studentNumber);
+      if(!grade || !classNumber || !studentNumber) return '';
+      return `${grade}${classNumber}${String(studentNumber).padStart(2, '0')}`;
+    }
+
     function normalizeMemberProfileFromFirestore(doc) {
       const data = doc.data() || {};
       return {
@@ -3025,6 +3042,58 @@
         if(nextButton) {
           nextButton.disabled = false;
           nextButton.textContent = originalButtonText;
+        }
+      }
+    }
+
+    async function handleMemberPasswordResetClick() {
+      if(memberLinkInProgress) return;
+      const values = getMemberLinkFormValues();
+      const temporaryPassword = getTemporaryPasswordText(values);
+      if(!temporaryPassword) {
+        setMemberLinkStatus('학교, 학년, 반, 번호를 먼저 입력해 주세요.', true);
+        return;
+      }
+      const confirmed = window.confirm(`비밀번호를 임시 비밀번호(${temporaryPassword})로 바꿀까요? 다음 로그인 뒤 새 비밀번호를 다시 만들어야 합니다.`);
+      if(!confirmed) return;
+
+      const button = document.getElementById('member-password-reset-button');
+      const originalText = button?.textContent || '비밀번호를 잊었어요';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '초기화 중...';
+      }
+      memberLinkInProgress = true;
+      setMemberLinkStatus('비밀번호를 임시 비밀번호로 바꾸고 있습니다...');
+
+      try {
+        const functions = getFirebaseFunctions();
+        if(!functions) throw new Error('functions-unavailable');
+        await initializeAuthUser();
+        const resetMemberPasswordToTemporary = functions.httpsCallable('resetMemberPasswordToTemporary');
+        const response = await resetMemberPasswordToTemporary({
+          school: values.school || DEFAULT_MEMBER_SCHOOL,
+          grade: values.grade,
+          classNumber: values.classNumber,
+          studentNumber: values.studentNumber
+        });
+        const result = response?.data || {};
+        if(!result.success) throw new Error('member-password-reset-failed');
+        setMemberLinkStatus(`임시 비밀번호는 ${temporaryPassword}입니다. 이 비밀번호로 로그인한 뒤 새 비밀번호를 저장해 주세요.`);
+      } catch(error) {
+        const messages = {
+          'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
+          'functions/invalid-argument': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
+          'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
+          'functions/failed-precondition': '비활성화된 계정입니다. 선생님께 문의하세요.'
+        };
+        console.warn('Member password reset failed.', error);
+        setMemberLinkStatus(messages[error.message] || '비밀번호 초기화 중 문제가 생겼어요.', true);
+      } finally {
+        memberLinkInProgress = false;
+        if(button) {
+          button.disabled = false;
+          button.textContent = originalText;
         }
       }
     }
@@ -5141,6 +5210,7 @@
     });
 
     document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
+    document.getElementById('member-password-reset-button').addEventListener('click', handleMemberPasswordResetClick);
     document.querySelectorAll('[data-member-unlink]').forEach(button => {
       button.addEventListener('click', handleMemberUnlinkClick);
     });

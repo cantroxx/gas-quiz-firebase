@@ -92,10 +92,6 @@ function normalizePassword(value) {
   if (password.length < 4 || password.length > 128 || !password.trim()) {
     throw new HttpsError("invalid-argument", "Password must be 4 to 128 characters.");
   }
-  const commonWeakPasswords = new Set(["0000", "1111", "1234", "password", "pass"]);
-  if (commonWeakPasswords.has(password.toLowerCase())) {
-    throw new HttpsError("invalid-argument", "Password is too easy to guess.");
-  }
   return password;
 }
 
@@ -121,6 +117,16 @@ function createPasswordHash(password) {
     passwordHashIterations: PASSWORD_HASH_ITERATIONS,
     passwordVersion: 1
   };
+}
+
+function buildTemporaryMemberPassword(identity) {
+  const grade = Number(identity.grade);
+  const classNumber = Number(identity.classNumber);
+  const studentNumber = Number(identity.studentNumber);
+  if (!grade || !classNumber || !studentNumber) {
+    throw new HttpsError("invalid-argument", "Invalid member identity.");
+  }
+  return `${grade}${classNumber}${String(studentNumber).padStart(2, "0")}`;
 }
 
 function verifyPassword(password, credentials) {
@@ -838,6 +844,71 @@ exports.changeMemberPassword = onCall({ region: REGION }, async request => {
       result: "failure",
       authUid,
       memberUserId,
+      reason: error.code || "unknown"
+    });
+    throw error;
+  }
+});
+
+exports.resetMemberPasswordToTemporary = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const identity = getMemberIdentityPayload(payload);
+  const temporaryPassword = normalizePassword(buildTemporaryMemberPassword(identity));
+
+  try {
+    const result = await db.runTransaction(async transaction => {
+      const memberUserId = buildLegacyMemberUserId(
+        identity.school,
+        identity.grade,
+        identity.classNumber,
+        identity.studentNumber
+      );
+      const memberRef = db.collection("users").doc(memberUserId);
+      const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+      const memberSnapshot = await transaction.get(memberRef);
+      if (!memberSnapshot.exists) {
+        throw new HttpsError("not-found", "Member not found.");
+      }
+      const memberData = memberSnapshot.data() || {};
+      assertActiveStudent(memberData);
+
+      transaction.set(credentialsRef, {
+        memberUserId,
+        ...createPasswordHash(temporaryPassword),
+        forcePasswordChange: true,
+        failedAttempts: 0,
+        lockedUntil: null,
+        resetAt: FieldValue.serverTimestamp(),
+        resetByAuthUid: authUid,
+        resetSource: "student_self_service",
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(memberRef, {
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return { memberUserId, memberData };
+    });
+
+    await writeMemberAuthLog({
+      action: "resetMemberPasswordToTemporary",
+      result: "success",
+      authUid,
+      memberUserId: result.memberUserId
+    });
+
+    return {
+      success: true,
+      memberUserId: result.memberUserId,
+      profile: publicMemberProfile(result.memberUserId, result.memberData),
+      forcePasswordChange: true
+    };
+  } catch (error) {
+    await writeMemberAuthLog({
+      action: "resetMemberPasswordToTemporary",
+      result: "failure",
+      authUid,
       reason: error.code || "unknown"
     });
     throw error;
