@@ -1729,18 +1729,8 @@
 
       if(currentMemberProfile) {
         const summary = document.createElement('p');
-        const detail = document.createElement('p');
-        const actions = document.createElement('div');
-        const unlinkButton = document.createElement('button');
-        summary.textContent = `연결됨: ${currentMemberProfile.nickname || '이름 없음'} (${currentMemberUserId})`;
-        detail.textContent = `${currentMemberProfile.school || ''} ${currentMemberProfile.grade || ''}학년 ${currentMemberProfile.classNumber || ''}반 ${currentMemberProfile.studentNumber || ''}번`;
-        actions.className = 'member-link-actions';
-        unlinkButton.id = 'member-unlink-button';
-        unlinkButton.className = 'button secondary danger';
-        unlinkButton.type = 'button';
-        unlinkButton.textContent = '현재 브라우저 연결 해제';
-        actions.appendChild(unlinkButton);
-        status.append(summary, detail, actions);
+        summary.textContent = '로그인 상태를 확인했어요. 타운으로 이동합니다.';
+        status.appendChild(summary);
         if(pendingPasswordChange?.memberUserId === currentMemberUserId) {
           const changePanel = document.createElement('div');
           const guide = document.createElement('p');
@@ -2820,7 +2810,10 @@
           handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
           if(user?.uid) {
             restoreLinkedMemberFromAuthUid()
-              .then(() => renderMemberLinkPanel())
+              .then(profile => {
+                renderMemberLinkPanel();
+                if(profile) showTownView();
+              })
               .catch(error => console.warn('Linked member restore after auth state change failed.', error));
           }
         });
@@ -2831,7 +2824,11 @@
         .then(user => {
           firebaseAuthUser = user;
           handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
-          return restoreLinkedMemberFromAuthUid().then(() => user);
+          return restoreLinkedMemberFromAuthUid().then(profile => {
+            renderMemberLinkPanel();
+            if(profile) showTownView();
+            return user;
+          });
         })
         .catch(error => {
           console.warn('Firebase anonymous auth failed. Using test user fallback.', error);
