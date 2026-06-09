@@ -682,6 +682,26 @@
     </section>
   </div>
 
+  <div id="admin-member-detail-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-admin-member-detail></div>
+    <section class="modal-card admin-detail-card" role="dialog" aria-modal="true" aria-labelledby="admin-member-detail-title">
+      <button class="modal-close" type="button" data-close-admin-member-detail aria-label="닫기">×</button>
+      <div class="place-panel-header">
+        <div class="modal-icon" aria-hidden="true">🧾</div>
+        <div>
+          <p class="modal-kicker">Member Detail</p>
+          <h2 id="admin-member-detail-title">회원 상세</h2>
+          <p id="admin-member-detail-desc">학생 데이터를 읽기 전용으로 확인합니다.</p>
+        </div>
+      </div>
+      <p id="admin-member-detail-status" class="modal-status">회원 정보를 불러오는 중입니다.</p>
+      <div id="admin-member-detail-content" class="admin-detail-content"></div>
+      <div class="modal-actions">
+        <button class="modal-disabled-action" type="button" data-close-admin-member-detail>닫기</button>
+      </div>
+    </section>
+  </div>
+
   <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
@@ -5144,6 +5164,112 @@
       return '비밀번호 미설정';
     }
 
+    function formatAdminTimestamp(value) {
+      const seconds = Number(value?._seconds || value?.seconds || 0);
+      const millis = seconds ? seconds * 1000 : Date.parse(value || '');
+      if(!millis || Number.isNaN(millis)) return '-';
+      return new Date(millis).toLocaleString('ko-KR', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function createAdminDetailMetric(label, value) {
+      const item = document.createElement('article');
+      const strong = document.createElement('strong');
+      const span = document.createElement('span');
+      strong.textContent = value ?? '-';
+      span.textContent = label;
+      item.append(strong, span);
+      return item;
+    }
+
+    function createAdminDetailList(title, rows, formatter) {
+      const section = document.createElement('section');
+      const heading = document.createElement('h3');
+      const list = document.createElement('div');
+      section.className = 'admin-detail-section';
+      heading.textContent = title;
+      list.className = 'admin-detail-list';
+      if(!rows?.length) {
+        const empty = document.createElement('p');
+        empty.className = 'admin-empty';
+        empty.textContent = '표시할 데이터가 없습니다.';
+        list.appendChild(empty);
+      } else {
+        rows.forEach(row => {
+          const item = document.createElement('p');
+          item.textContent = formatter(row);
+          list.appendChild(item);
+        });
+      }
+      section.append(heading, list);
+      return section;
+    }
+
+    function closeAdminMemberDetailModal() {
+      const modal = document.getElementById('admin-member-detail-modal');
+      if(modal) modal.hidden = true;
+    }
+
+    function renderAdminMemberDetail(data) {
+      const content = document.getElementById('admin-member-detail-content');
+      const title = document.getElementById('admin-member-detail-title');
+      const desc = document.getElementById('admin-member-detail-desc');
+      if(!content) return;
+      const profile = data.profile || {};
+      title.textContent = `${profile.nickname || '이름 없음'} · ${data.memberUserId}`;
+      desc.textContent = `${profile.school || '동자'} ${profile.grade || '-'}학년 ${profile.classNumber || '-'}반 ${profile.studentNumber || '-'}번`;
+      content.innerHTML = '';
+
+      const metrics = document.createElement('div');
+      metrics.className = 'admin-detail-metrics';
+      metrics.append(
+        createAdminDetailMetric('연결', profile.authLinked ? '연결됨' : '연결 없음'),
+        createAdminDetailMetric('비밀번호', getAdminPasswordStateLabel({ passwordState: data.passwordState })),
+        createAdminDetailMetric('DJ코인', Number(data.economy?.djCoin || 0)),
+        createAdminDetailMetric('연습 기록', Number(data.practiceSummary?.recordCount || 0)),
+        createAdminDetailMetric('완주 별', Number(data.practiceSummary?.totalStars || 0)),
+        createAdminDetailMetric('칭호', Number(data.titleSummary?.ownedCount || data.counts?.titles || 0)),
+        createAdminDetailMetric('뱃지', Number(data.counts?.badges || 0)),
+        createAdminDetailMetric('대표 칭호', data.titleSummary?.selectedTitleName || data.titleSummary?.selectedTitleId || '없음')
+      );
+
+      content.append(
+        metrics,
+        createAdminDetailList('최근 연습 기록', data.practiceRecords || [], row => `${row.area || '-'} / ${row.detail || row.areaKey || '-'} · ${row.correctCount}/${row.totalCount} · 별 ${row.starCount} · ${formatAdminTimestamp(row.updatedAt)}`),
+        createAdminDetailList('보유 뱃지', data.badges || [], row => `${row.label || row.badgeId} · ${row.correct}/${row.total} · 별 ${row.starCount}${row.completed ? ' · 완료' : ''}`),
+        createAdminDetailList('보유 칭호', data.titles || [], row => `${row.selected ? '대표 · ' : ''}${row.titleName || row.titleId}`)
+      );
+    }
+
+    async function openAdminMemberDetail(memberUserId) {
+      const modal = document.getElementById('admin-member-detail-modal');
+      const content = document.getElementById('admin-member-detail-content');
+      if(!modal) return;
+      if(content) content.innerHTML = '';
+      document.getElementById('admin-member-detail-title').textContent = '회원 상세';
+      document.getElementById('admin-member-detail-desc').textContent = memberUserId;
+      document.getElementById('admin-member-detail-status').textContent = '회원 정보를 불러오는 중입니다.';
+      modal.hidden = false;
+      try {
+        const functions = getFirebaseFunctions();
+        if(!functions) throw new Error('functions-unavailable');
+        await initializeAuthUser();
+        const callable = functions.httpsCallable('adminGetMemberDetail');
+        const response = await callable({ memberUserId });
+        const result = response?.data || {};
+        if(!result.success) throw new Error('admin-member-detail-load-failed');
+        renderAdminMemberDetail(result);
+        document.getElementById('admin-member-detail-status').textContent = '읽기 전용 상세 데이터입니다.';
+      } catch(error) {
+        console.warn('Admin member detail load failed.', error);
+        document.getElementById('admin-member-detail-status').textContent = '회원 상세 정보를 불러오지 못했습니다.';
+      }
+    }
+
     function renderAdminMemberList(members) {
       const root = document.getElementById('admin-member-list');
       if(!root) return;
@@ -5164,6 +5290,7 @@
         const state = document.createElement('p');
         const passwordState = document.createElement('p');
         const actions = document.createElement('div');
+        const detailButton = document.createElement('button');
         const resetButton = document.createElement('button');
         const unlinkButton = document.createElement('button');
         const statusButton = document.createElement('button');
@@ -5176,6 +5303,10 @@
         state.textContent = `${member.role === 'admin' ? '관리자' : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}`;
         passwordState.className = 'admin-member-password-state';
         passwordState.textContent = getAdminPasswordStateLabel(member);
+        detailButton.type = 'button';
+        detailButton.className = 'admin-action-button';
+        detailButton.dataset.adminAction = 'detail';
+        detailButton.textContent = '상세';
         resetButton.type = 'button';
         resetButton.className = 'admin-action-button';
         resetButton.dataset.adminAction = 'resetPassword';
@@ -5191,7 +5322,7 @@
         statusButton.disabled = member.role === 'admin';
         statusButton.textContent = member.status === 'active' ? '비활성화' : '활성화';
         actions.className = 'admin-member-actions';
-        actions.append(resetButton, unlinkButton, statusButton);
+        actions.append(detailButton, resetButton, unlinkButton, statusButton);
         main.append(title, meta, state, passwordState);
         card.append(main, actions);
         root.appendChild(card);
@@ -5412,15 +5543,7 @@
     }
 
     function formatAdminLogTime(value) {
-      const seconds = Number(value?._seconds || value?.seconds || 0);
-      const millis = seconds ? seconds * 1000 : Date.parse(value || '');
-      if(!millis || Number.isNaN(millis)) return '-';
-      return new Date(millis).toLocaleString('ko-KR', {
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      return formatAdminTimestamp(value);
     }
 
     function formatAdminLogAction(action) {
@@ -6977,6 +7100,10 @@
       const button = event.target.closest('[data-admin-action]');
       const card = event.target.closest('[data-member-user-id]');
       if(!button || !card || button.disabled) return;
+      if(button.dataset.adminAction === 'detail') {
+        openAdminMemberDetail(card.dataset.memberUserId);
+        return;
+      }
       button.disabled = true;
       runAdminMemberAction(button.dataset.adminAction, card.dataset.memberUserId)
         .catch(error => {
@@ -6991,6 +7118,10 @@
         .finally(() => {
           button.disabled = false;
         });
+    });
+
+    document.querySelectorAll('[data-close-admin-member-detail]').forEach(button => {
+      button.addEventListener('click', closeAdminMemberDetailModal);
     });
 
     document.querySelector('[data-admin-logout]').addEventListener('click', () => {

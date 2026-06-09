@@ -1041,6 +1041,21 @@ function publicAdminCredentialState(snapshot) {
   };
 }
 
+function publicAdminPracticeRecord(doc) {
+  const data = doc.data ? doc.data() || {} : doc || {};
+  return {
+    recordId: doc.id || data.recordId || "",
+    area: data.area || "",
+    detail: data.detail || "",
+    areaKey: data.areaKey || "",
+    completionType: data.completionType || "",
+    correctCount: Number(data.correctCount || 0),
+    totalCount: Number(data.totalCount || 0),
+    starCount: Number(data.starCount || 0),
+    updatedAt: data.updatedAt || data.lastAchievedAt || null
+  };
+}
+
 exports.adminListMembers = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -1181,6 +1196,108 @@ exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
     memberUserId,
     temporaryPassword: result.temporaryPassword,
     profile: publicMemberProfile(memberUserId, result.memberData)
+  };
+});
+
+exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+
+  const userRef = db.collection("users").doc(memberUserId);
+  const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
+  const economyRef = db.collection("userEconomy").doc(memberUserId);
+  const summaryRef = db.collection("userPracticeSummary").doc(memberUserId);
+  const titleSummaryRef = db.collection("userTitleSummary").doc(memberUserId);
+
+  const [
+    userSnapshot,
+    credentialsSnapshot,
+    economySnapshot,
+    summarySnapshot,
+    titleSummarySnapshot,
+    badgeSnapshot,
+    titleSnapshot,
+    practiceSnapshot
+  ] = await Promise.all([
+    userRef.get(),
+    credentialsRef.get(),
+    economyRef.get(),
+    summaryRef.get(),
+    titleSummaryRef.get(),
+    db.collection("userBadges").doc(memberUserId).collection("badges").limit(120).get(),
+    db.collection("userTitles").doc(memberUserId).collection("titles").limit(160).get(),
+    db.collection("practiceRecords")
+      .where("memberUserId", "==", memberUserId)
+      .limit(80)
+      .get()
+  ]);
+
+  if (!userSnapshot.exists) {
+    throw new HttpsError("not-found", "Member not found.");
+  }
+
+  const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+  const summary = summarySnapshot.exists ? summarySnapshot.data() || {} : {};
+  const titleSummary = titleSummarySnapshot.exists ? titleSummarySnapshot.data() || {} : {};
+  const badges = badgeSnapshot.docs.map(doc => {
+    const data = doc.data() || {};
+    return {
+      badgeId: data.badgeId || doc.id,
+      label: data.label || data.name || doc.id,
+      group: data.group || "",
+      correct: Number(data.correct || 0),
+      total: Number(data.total || 0),
+      starCount: Number(data.starCount || 0),
+      completed: data.completed === true
+    };
+  });
+  const titles = titleSnapshot.docs.map(doc => {
+    const data = doc.data() || {};
+    return {
+      titleId: data.titleId || doc.id,
+      titleName: data.titleName || data.name || data.titleId || doc.id,
+      selected: data.selected === true
+    };
+  });
+  const practiceRecords = practiceSnapshot.docs
+    .map(publicAdminPracticeRecord)
+    .sort((a, b) => timestampToMillis(b.updatedAt) - timestampToMillis(a.updatedAt))
+    .slice(0, 20);
+
+  return {
+    success: true,
+    memberUserId,
+    profile: publicAdminMemberRow(userSnapshot),
+    passwordState: publicAdminCredentialState(credentialsSnapshot),
+    economy: {
+      djCoin: Number(economy.djCoin ?? economy.coin ?? 0),
+      totalEarned: Number(economy.totalEarned || 0),
+      totalSpent: Number(economy.totalSpent || 0),
+      updatedAt: economy.updatedAt || null
+    },
+    practiceSummary: {
+      totalStars: Number(summary.totalStars || 0),
+      recordCount: Number(summary.recordCount || 0),
+      earnedBadgeCount: Number(summary.earnedBadgeCount || 0),
+      legacyUnknownRecordCount: Number(summary.legacyUnknownRecordCount || 0),
+      updatedAt: summary.updatedAt || null
+    },
+    titleSummary: {
+      selectedTitleId: titleSummary.selectedTitleId || "",
+      selectedTitleName: titleSummary.selectedTitleName || "",
+      ownedCount: Number(titleSummary.ownedCount || titles.length || 0),
+      updatedAt: titleSummary.updatedAt || null
+    },
+    counts: {
+      badges: badges.length,
+      titles: titles.length,
+      practiceRecords: practiceRecords.length
+    },
+    badges: badges.slice(0, 20),
+    titles: titles.slice(0, 24),
+    practiceRecords
   };
 });
 
