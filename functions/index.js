@@ -155,6 +155,11 @@ function dateToTimestamp(dateValue) {
   return Timestamp.fromDate(parsed);
 }
 
+function timestampToIsoString(value) {
+  const millis = timestampToMillis(value);
+  return millis ? new Date(millis).toISOString() : "";
+}
+
 function assertActiveStudent(memberData) {
   if (!memberData || memberData.role !== "student") {
     throw new HttpsError("failed-precondition", "Member is not an active student.");
@@ -251,6 +256,45 @@ function publicSetupSettings(settings) {
     minPasswordLength: Number(settings.minPasswordLength || 4),
     maxFailedAttempts: Number(settings.maxFailedAttempts || MAX_FAILED_ATTEMPTS),
     lockMinutes: Number(settings.lockMinutes || 10)
+  };
+}
+
+function publicAdminPasswordSetupSettings(settings) {
+  const normalized = publicSetupSettings(settings || {});
+  return {
+    ...normalized,
+    setupExpiresAtIso: timestampToIsoString(normalized.setupExpiresAt),
+    nicknameCheckEnabled: settings?.nicknameCheckEnabled !== false
+  };
+}
+
+function normalizeAdminPasswordSetupSettings(payload) {
+  const setupEnabled = payload.setupEnabled !== false;
+  const setupExpiresAt = dateToTimestamp(payload.setupExpiresAt);
+  const minPasswordLength = Number(payload.minPasswordLength || 4);
+  const maxFailedAttempts = Number(payload.maxFailedAttempts || MAX_FAILED_ATTEMPTS);
+  const lockMinutes = Number(payload.lockMinutes || 10);
+
+  if (!setupExpiresAt) {
+    throw new HttpsError("invalid-argument", "setupExpiresAt must be a valid date.");
+  }
+  if (!Number.isInteger(minPasswordLength) || minPasswordLength < 4 || minPasswordLength > 32) {
+    throw new HttpsError("invalid-argument", "minPasswordLength must be between 4 and 32.");
+  }
+  if (!Number.isInteger(maxFailedAttempts) || maxFailedAttempts < 1 || maxFailedAttempts > 20) {
+    throw new HttpsError("invalid-argument", "maxFailedAttempts must be between 1 and 20.");
+  }
+  if (!Number.isInteger(lockMinutes) || lockMinutes < 1 || lockMinutes > 240) {
+    throw new HttpsError("invalid-argument", "lockMinutes must be between 1 and 240.");
+  }
+
+  return {
+    setupEnabled,
+    setupExpiresAt,
+    nicknameCheckEnabled: true,
+    minPasswordLength,
+    maxFailedAttempts,
+    lockMinutes
   };
 }
 
@@ -1143,6 +1187,53 @@ exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
   });
 
   return { success: true, memberUserId, authLinked: false };
+});
+
+exports.adminGetPasswordSetupSettings = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+  const snapshot = await db.collection("authSettings").doc("memberPasswordSetup").get();
+  const settings = snapshot.exists
+    ? { setupEnabled: true, setupExpiresAt: dateToTimestamp(DEFAULT_PASSWORD_SETUP_EXPIRES_AT), minPasswordLength: 4, maxFailedAttempts: MAX_FAILED_ATTEMPTS, lockMinutes: 10, ...(snapshot.data() || {}) }
+    : { setupEnabled: true, setupExpiresAt: dateToTimestamp(DEFAULT_PASSWORD_SETUP_EXPIRES_AT), minPasswordLength: 4, maxFailedAttempts: MAX_FAILED_ATTEMPTS, lockMinutes: 10 };
+  return {
+    success: true,
+    settings: publicAdminPasswordSetupSettings(settings)
+  };
+});
+
+exports.adminUpdatePasswordSetupSettings = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const settingsRef = db.collection("authSettings").doc("memberPasswordSetup");
+  const beforeSnapshot = await settingsRef.get();
+  const before = beforeSnapshot.exists
+    ? publicAdminPasswordSetupSettings(beforeSnapshot.data() || {})
+    : null;
+  const nextSettings = normalizeAdminPasswordSetupSettings(payload.settings || payload);
+
+  await settingsRef.set({
+    ...nextSettings,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByAdminUserId: adminMember.memberUserId,
+    updatedBy: "admin-center"
+  }, { merge: true });
+
+  const after = publicAdminPasswordSetupSettings(nextSettings);
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdatePasswordSetupSettings",
+    targetUserId: "authSettings/memberPasswordSetup",
+    before,
+    after,
+    reason: "password setup settings update"
+  });
+
+  return {
+    success: true,
+    settings: after
+  };
 });
 
 function publicNoticeBoard(data) {

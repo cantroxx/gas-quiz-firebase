@@ -352,6 +352,7 @@
       <div class="admin-section-tabs" aria-label="관리자 메뉴">
         <button class="admin-section-tab is-active" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice">알림판 관리</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="login">로그인 설정</button>
       </div>
 
       <section id="admin-section-members" class="admin-section is-active" aria-labelledby="admin-member-heading">
@@ -424,6 +425,45 @@
             <button id="admin-notice-save" class="button primary" type="button">저장</button>
           </div>
           <p id="admin-notice-status" class="admin-status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="admin-section-login" class="admin-section" aria-labelledby="admin-login-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="login" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Login</span>
+            <strong id="admin-login-heading">로그인 설정</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-settings-form">
+            <label class="admin-checkbox-label">
+              <input id="admin-password-setup-enabled" type="checkbox">
+              처음 비밀번호 만들기 허용
+            </label>
+            <label>
+              설정 마감
+              <input id="admin-password-setup-expires-input" type="datetime-local">
+            </label>
+            <label>
+              최소 비밀번호 길이
+              <input id="admin-min-password-length-input" type="number" min="4" max="32" inputmode="numeric">
+            </label>
+            <label>
+              실패 잠금 기준
+              <input id="admin-max-failed-attempts-input" type="number" min="1" max="20" inputmode="numeric">
+            </label>
+            <label>
+              잠금 시간(분)
+              <input id="admin-lock-minutes-input" type="number" min="1" max="240" inputmode="numeric">
+            </label>
+          </div>
+          <div class="admin-notice-actions">
+            <button id="admin-login-settings-load" class="button secondary" type="button">불러오기</button>
+            <button id="admin-login-settings-save" class="button primary" type="button">저장</button>
+          </div>
+          <p id="admin-login-settings-status" class="admin-status" aria-live="polite"></p>
         </div>
       </section>
     </section>
@@ -5142,6 +5182,73 @@
       return result.notice;
     }
 
+    function setAdminLoginSettingsStatus(message, isError = false) {
+      const status = document.getElementById('admin-login-settings-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function toDateTimeLocalInputValue(value) {
+      if(!value) return '';
+      const date = new Date(value);
+      if(Number.isNaN(date.getTime())) return '';
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return localDate.toISOString().slice(0, 16);
+    }
+
+    function setAdminLoginSettingsForm(settings) {
+      const data = settings || {};
+      document.getElementById('admin-password-setup-enabled').checked = data.setupEnabled !== false;
+      document.getElementById('admin-password-setup-expires-input').value = toDateTimeLocalInputValue(data.setupExpiresAtIso);
+      document.getElementById('admin-min-password-length-input').value = data.minPasswordLength || 4;
+      document.getElementById('admin-max-failed-attempts-input').value = data.maxFailedAttempts || 5;
+      document.getElementById('admin-lock-minutes-input').value = data.lockMinutes || 10;
+    }
+
+    function getAdminLoginSettingsFormValues() {
+      const expiresValue = document.getElementById('admin-password-setup-expires-input')?.value || '';
+      const expiresDate = expiresValue ? new Date(expiresValue) : null;
+      if(!expiresDate || Number.isNaN(expiresDate.getTime())) throw new Error('invalid-setup-expires-at');
+      const expiresAt = expiresDate.toISOString();
+      return {
+        setupEnabled: document.getElementById('admin-password-setup-enabled')?.checked === true,
+        setupExpiresAt: expiresAt,
+        minPasswordLength: Number(document.getElementById('admin-min-password-length-input')?.value || 4),
+        maxFailedAttempts: Number(document.getElementById('admin-max-failed-attempts-input')?.value || 5),
+        lockMinutes: Number(document.getElementById('admin-lock-minutes-input')?.value || 10)
+      };
+    }
+
+    async function loadAdminLoginSettings() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminLoginSettingsStatus('로그인 설정을 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminGetPasswordSetupSettings');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-login-settings-load-failed');
+      setAdminLoginSettingsForm(result.settings);
+      setAdminLoginSettingsStatus('로그인 설정을 불러왔습니다.');
+      return result.settings;
+    }
+
+    async function saveAdminLoginSettings() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      const settings = getAdminLoginSettingsFormValues();
+      setAdminLoginSettingsStatus('로그인 설정을 저장하는 중입니다...');
+      const callable = functions.httpsCallable('adminUpdatePasswordSetupSettings');
+      const response = await callable({ settings });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-login-settings-save-failed');
+      setAdminLoginSettingsForm(result.settings);
+      setAdminLoginSettingsStatus('로그인 설정을 저장했습니다.');
+      return result.settings;
+    }
+
     async function logoutAdminMember() {
       await unlinkCurrentMemberForTesting();
       showLoginView();
@@ -6264,6 +6371,10 @@
         setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
         setAdminNoticeForm(getFallbackNoticeBoard());
       });
+      loadAdminLoginSettings().catch(error => {
+        console.warn('Admin login settings load failed.', error);
+        setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
+      });
     }
 
     function showHomeView() {
@@ -6657,6 +6768,24 @@
       saveAdminNoticeBoard().catch(error => {
         console.warn('Admin notice save failed.', error);
         setAdminNoticeStatus('알림판 저장 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-login-settings-load').addEventListener('click', () => {
+      loadAdminLoginSettings().catch(error => {
+        console.warn('Admin login settings load failed.', error);
+        setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-login-settings-save').addEventListener('click', () => {
+      saveAdminLoginSettings().catch(error => {
+        console.warn('Admin login settings save failed.', error);
+        const messages = {
+          'invalid-setup-expires-at': '설정 마감 날짜를 입력해 주세요.',
+          'functions/invalid-argument': '설정 값을 확인해 주세요.'
+        };
+        setAdminLoginSettingsStatus(messages[error.message] || '로그인 설정 저장 중 문제가 생겼습니다.', true);
       });
     });
 
