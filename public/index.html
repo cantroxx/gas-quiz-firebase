@@ -233,7 +233,7 @@
         <div>
           <p class="eyebrow">My Room</p>
           <h2 id="home-title">내 집</h2>
-          <p>운영본 프로필 데이터를 연결하기 전, 내 정보와 보유 항목 배치를 확인합니다.</p>
+          <p>내 프로필, 칭호, 뱃지, 꾸미기 아이템을 확인하고 정리합니다.</p>
         </div>
       </div>
 
@@ -275,7 +275,7 @@
         <div>
           <p class="eyebrow">Ranking Plaza</p>
           <h2 id="ranking-title">DJ48 명예의 전당</h2>
-          <p>Firestore 랭킹 기록을 기준으로 주요 1위 기록을 보여줍니다.</p>
+          <p>랭킹전 기록을 기준으로 주요 1위와 분야별 순위를 보여줍니다.</p>
         </div>
       </div>
 
@@ -635,7 +635,7 @@
         <div>
           <p id="subject-kicker" class="eyebrow">Subject Hall</p>
           <h2 id="subject-title">국어관</h2>
-          <p id="subject-desc">운영본의 퀴즈 데이터를 연결하기 전, 카테고리 선택 흐름만 확인합니다.</p>
+          <p id="subject-desc">과목별 퀴즈를 고르고 연습전이나 랭킹전에 도전합니다.</p>
         </div>
       </div>
 
@@ -670,7 +670,7 @@
         <div>
           <p class="eyebrow">Quiz Play</p>
           <h2 id="quiz-play-title">맞춤법 연습전</h2>
-          <p>Firestore 문제를 풀고 기록과 보상을 저장합니다.</p>
+          <p>문제를 풀고 나의 기록과 보상을 쌓아갑니다.</p>
         </div>
       </div>
 
@@ -785,7 +785,7 @@
         title: '내 집',
         kicker: 'My Room',
         desc: '회원 프로필, 보유 칭호, 뱃지, 내 방 꾸미기 상태를 확인하는 개인 공간입니다.',
-        summary: '회원 연결 후 Firestore에 저장된 개인 데이터를 보여줍니다.',
+        summary: '회원 연결 후 내 프로필, 칭호, 뱃지, 꾸미기 아이템을 보여줍니다.',
         features: [
           { label: '닉네임', value: 'DJ48 학생' },
           { label: '칭호', value: '보유 타이틀 표시' },
@@ -817,7 +817,7 @@
         title: '상점',
         kicker: 'Town Shop',
         desc: 'DJ코인으로 배경, 아바타, 장식 아이템을 구매합니다.',
-        summary: 'Firestore 상점 아이템과 보유 인벤토리를 기준으로 동작합니다.',
+        summary: 'DJ코인으로 꾸미기 아이템을 사고 내 방에 적용할 수 있습니다.',
         features: [
           { label: '배경', value: '숲속 배경, 별빛 배경' },
           { label: '아바타', value: '고양이, 탐험가 아바타' },
@@ -832,7 +832,7 @@
         icon: '🏆',
         title: '랭킹 광장',
         kicker: 'Ranking Plaza',
-        desc: 'Firestore 랭킹 기록과 퀴즈왕 요약을 확인합니다.',
+        desc: '랭킹전 기록과 퀴즈왕 순위를 확인합니다.',
         summary: '랭킹전 완료 기록을 기준으로 주요 랭킹과 분야별 목록을 보여줍니다.',
         features: [
           { label: '퀴즈왕', value: '종합 요약 표시' },
@@ -1232,7 +1232,7 @@
         title: '국어 퀴즈',
         hallTitle: '국어관',
         kicker: 'Korean Hall',
-        desc: 'Firestore로 이관된 국어 문제를 과목관에서 선택합니다.',
+        desc: '맞춤법, 낱말, 독서 퀴즈를 과목관에서 선택합니다.',
         board: '낱말과 문장을 탐험해요',
         cardDesc: '맞춤법, 독서, 속담, 사자성어 문제를 고르는 화면입니다.',
         quizzes: ['spelling', 'word-relation', 'gmo', 'time_store', 'proverb', 'idiom'],
@@ -1243,7 +1243,7 @@
         title: '사회 퀴즈',
         hallTitle: '사회관',
         kicker: 'Social Studies Hall',
-        desc: '사회 퀴즈도 국어관과 같은 선택 화면과 공통 엔진으로 연결합니다.',
+        desc: '역사와 사회 퀴즈를 골라 연습전과 랭킹전에 도전합니다.',
         board: '역사와 사회를 살펴봐요',
         cardDesc: '삼국시대, 역사 인물, 문화유산, 사회 개념 퀴즈를 고르는 화면입니다.',
         quizzes: ['samgukji', 'ancient-history', 'history-people', 'cultural_heritage', 'social_concepts'],
@@ -1254,7 +1254,7 @@
         title: '인기 퀴즈',
         hallTitle: '인기관',
         kicker: 'Popular Quiz Hall',
-        desc: '이미지와 문장으로 정답을 맞히는 인기 퀴즈를 Firestore 데이터와 연결합니다.',
+        desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
         board: '사진과 문장을 보고 정답을 맞혀요',
         cardDesc: '아이돌, 애니, 아재개그, 포켓몬 퀴즈를 고르는 화면입니다.',
         quizzes: ['idol', 'anime', 'dad-joke', 'pokemon-gen1', 'pokemon-gen2', 'pokemon-gen3', 'pokemon-gen4', 'pokemon-gen5', 'pokemon-gen6', 'pokemon-gen7', 'pokemon-gen8', 'pokemon-gen9'],
@@ -1265,7 +1265,7 @@
         title: '수학 퀴즈',
         hallTitle: '수학관',
         kicker: 'Math Hall',
-        desc: '수학 퀴즈도 과목 공통 구조와 같은 연습전 엔진으로 연결합니다.',
+        desc: '곱셈과 나눗셈을 차근차근 풀며 계산 감각을 키웁니다.',
         board: '차근차근 계산해요',
         cardDesc: '곱셈과 나눗셈, 계산 연습 퀴즈를 고르는 화면입니다.',
         quizzes: ['random-basic', 'calculation_practice'],
@@ -1291,7 +1291,7 @@
         title: '맞춤법 퀴즈',
         kicker: 'Korean Hall',
         icon: '✏️',
-        desc: '헷갈리는 맞춤법을 Firestore 문제로 연습합니다.',
+        desc: '헷갈리는 맞춤법을 문제로 풀며 익힙니다.',
         summary: '연습전과 랭킹전에서 맞춤법 문제를 풉니다.',
         subjectId: 'korean',
         modes: ['practice', 'ranking', 'oneChance', 'records']
@@ -1301,7 +1301,7 @@
         kicker: 'Korean Hall',
         icon: '🔤',
         desc: '한 낱말이 여러 뜻으로 쓰이는지, 소리는 같고 뜻이 다른지 확인합니다.',
-        summary: '운영본 단어시트에서 이관한 문제를 Firestore에서 읽어 연습전 화면으로 표시합니다.',
+        summary: '낱말의 뜻과 쓰임을 비교하며 다의어와 동형이의어를 구분합니다.',
         subjectId: 'korean',
         modes: ['practice', 'ranking', 'oneChance', 'records']
       },
@@ -1309,8 +1309,8 @@
         title: '지엠오 아이 퀴즈',
         kicker: 'Korean Hall',
         icon: '📗',
-        desc: '지엠오 아이 독서 문제를 Firestore에서 읽어 풉니다.',
-        summary: '운영본 독서 시트에서 이관한 4지선다 문제를 사용합니다.',
+        desc: '지엠오 아이 내용을 떠올리며 독서 문제를 풉니다.',
+        summary: '작품 내용을 바탕으로 한 4지선다 문제에 도전합니다.',
         subjectId: 'korean',
         parentQuizId: 'reading',
         groupLabel: '독서 하위',
@@ -1341,7 +1341,7 @@
         kicker: 'Korean Hall',
         icon: '💬',
         desc: '속담의 뜻과 쓰임을 맞히는 퀴즈입니다.',
-        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
+        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
         subjectId: 'korean',
         modes: ['records'],
         enabled: false
@@ -1351,7 +1351,7 @@
         kicker: 'Korean Hall',
         icon: '🐉',
         desc: '사자성어의 뜻과 쓰임을 확인하는 퀴즈입니다.',
-        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
+        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
         subjectId: 'korean',
         modes: ['records'],
         enabled: false
@@ -1360,8 +1360,8 @@
         title: '삼국지 퀴즈',
         kicker: 'Social Studies Hall',
         icon: '🏯',
-        desc: '삼국지 4지선다 문제를 Firestore에서 읽어 풉니다.',
-        summary: '운영본 사회 시트에서 이관한 4지선다 문제를 사용합니다.',
+        desc: '삼국지 이야기를 바탕으로 4지선다 문제를 풉니다.',
+        summary: '인물과 사건을 떠올리며 삼국지 문제에 도전합니다.',
         subjectId: 'social',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1369,8 +1369,8 @@
         title: '고대사 퀴즈',
         kicker: 'Social Studies Hall',
         icon: '🏺',
-        desc: '고대사 4지선다 문제를 Firestore에서 읽어 풉니다.',
-        summary: '운영본 사회 시트에서 이관한 4지선다 문제를 사용합니다.',
+        desc: '고대사와 삼국시대 내용을 4지선다로 확인합니다.',
+        summary: '역사의 흐름과 주요 사건을 문제로 복습합니다.',
         subjectId: 'social',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1379,7 +1379,7 @@
         kicker: 'Social Studies Hall',
         icon: '🧭',
         desc: '역사 인물 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: 'Firestore imageInput 문제를 읽어 이미지와 정답 입력 화면으로 표시합니다.',
+        summary: '이미지를 보고 역사 인물의 이름을 입력합니다.',
         subjectId: 'social',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1388,7 +1388,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🎤',
         desc: '아이돌 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: 'Firestore imageInput 문제를 읽어 이미지와 정답 입력 화면으로 표시합니다.',
+        summary: '이미지를 보고 아이돌 이름을 입력합니다.',
         subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1397,7 +1397,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🎬',
         desc: '애니 캐릭터 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: 'Firestore imageInput 문제를 읽어 이미지와 정답 입력 화면으로 표시합니다.',
+        summary: '이미지를 보고 애니 캐릭터 이름을 입력합니다.',
         subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1406,7 +1406,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '😄',
         desc: '아재개그 문제를 보고 정답을 맞히는 퀴즈입니다.',
-        summary: '운영본 아재개그문제 시트에서 이관한 입력형 문제를 Firestore에서 읽습니다.',
+        summary: '문장을 보고 웃긴 정답을 떠올려 입력합니다.',
         subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1415,7 +1415,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 1세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1426,7 +1426,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 2세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1437,7 +1437,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 3세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1448,7 +1448,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 4세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1459,7 +1459,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 5세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1470,7 +1470,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 6세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1481,7 +1481,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 7세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1492,7 +1492,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 8세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1503,7 +1503,7 @@
         kicker: 'Popular Quiz Hall',
         icon: '🌲',
         desc: '포켓몬 9세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '운영본 포켓몬문제 시트에서 이관한 이미지 입력형 문제를 사용합니다.',
+        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
         subjectId: 'popular',
         parentQuizId: 'pokemon',
         groupLabel: '포켓몬',
@@ -1514,7 +1514,7 @@
         kicker: 'Social Studies Hall',
         icon: '🏺',
         desc: '우리 문화유산의 이름과 특징을 확인하는 사회 퀴즈입니다.',
-        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
+        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
         subjectId: 'social',
         modes: ['records'],
         enabled: false
@@ -1524,7 +1524,7 @@
         kicker: 'Social Studies Hall',
         icon: '🗺️',
         desc: '지도, 지역, 공동체 같은 기본 사회 개념을 확인합니다.',
-        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
+        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
         subjectId: 'social',
         modes: ['records'],
         enabled: false
@@ -1542,8 +1542,8 @@
         title: '곱셈과 나눗셈 퀴즈',
         kicker: 'Math Hall',
         icon: '✖️',
-        desc: '운영본 random-basic 생성 규칙을 사용해 곱셈과 나눗셈 문제를 풉니다.',
-        summary: 'Firestore에는 생성형 메타만 저장하고, 화면에서는 generatorType 기준으로 문제를 생성합니다.',
+        desc: '곱셈과 나눗셈 문제를 무작위로 풀며 계산력을 기릅니다.',
+        summary: '100문항 단위로 연습하고, 랭킹전에서는 하트를 지키며 도전합니다.',
         subjectId: 'math',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1552,7 +1552,7 @@
         kicker: 'Math Hall',
         icon: '🧮',
         desc: '간단한 사칙 계산을 빠르게 확인하는 수학 퀴즈입니다.',
-        summary: '아직 Firebase 문제 이관 전이라 배포본에서는 시작할 수 없습니다.',
+        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
         subjectId: 'math',
         modes: ['records'],
         enabled: false
@@ -1946,7 +1946,7 @@
         title: '타이틀 목록',
         desc: '타이틀 목록을 불러오는 중입니다.',
         summary: '보유한 타이틀은 내 집에서 대표 칭호로 선택할 수 있고, 선택한 칭호는 랭킹에 표시됩니다.',
-        features: [{ label: '불러오는 중', value: '운영본 타이틀 정의를 확인하고 있습니다.' }],
+        features: [{ label: '불러오는 중', value: '타이틀 목록을 확인하고 있습니다.' }],
         actions: []
       };
       renderPlacePanel(place);
@@ -2245,7 +2245,7 @@
       meta.className = 'profile-meta';
       titleLabel.textContent = '칭호';
       titleValue.textContent = profile.titleName;
-      badgeLabel.textContent = '연습 현황';
+      badgeLabel.textContent = '대표 뱃지';
       badgeValue.textContent = profile.badgeName;
       coinLabel.textContent = '보유 DJ코인';
       coinValue.textContent = profile.coinText;
@@ -6762,12 +6762,16 @@
       score.className = 'quiz-complete-score';
       score.textContent = `${currentModeId === 'ranking' ? Math.min(currentQuestionIndex + 1, getCurrentQuestionSet().length) : getCurrentQuestionSet().length}문제 중 ${correctAnswerCount}개`;
       rewardGrid.className = 'quiz-reward-grid';
-      [
-        { label: '경험치', value: `+${USER_REWARD_DATA.completeReward.exp}` },
-        { label: '완료 DJ코인', value: `+${USER_REWARD_DATA.completeReward.coin}` },
-        { label: '정답 보상', value: `정답 1개당 +${USER_REWARD_DATA.completeReward.correctCoin}` },
-        { label: '보너스', value: USER_REWARD_DATA.completeReward.bonusLabel }
-      ].forEach(reward => {
+      const rewardItems = currentModeId === 'ranking'
+        ? [
+          { label: '랭킹 점수', value: `${correctAnswerCount}점` },
+          { label: '기록 기준', value: '점수와 시간' }
+        ]
+        : [
+          { label: '정답 기록', value: `${correctAnswerCount}개` },
+          { label: '정답 보상', value: `새 문제 정답 +${USER_REWARD_DATA.completeReward.correctCoin} DJ코인` }
+        ];
+      rewardItems.forEach(reward => {
         const item = document.createElement('p');
         const label = document.createElement('span');
         const value = document.createElement('strong');
@@ -6777,7 +6781,9 @@
         item.append(label, value);
         rewardGrid.appendChild(item);
       });
-      note.textContent = `완료 보상은 아직 표시용입니다. 정답 1개 보상은 신규 기록일 때만 저장됩니다. 오늘 획득: ${USER_REWARD_DATA.dailyEarnedCoin}/${USER_REWARD_DATA.dailyCoinLimit} DJ코인. 상한 초과 시 "${USER_REWARD_DATA.limitGuide}"라고 안내합니다.`;
+      note.textContent = currentModeId === 'ranking'
+        ? '랭킹전 기록은 점수가 높을수록, 점수가 같으면 시간이 짧을수록 위에 표시됩니다.'
+        : `이미 맞힌 문제는 중복 보상이 없고, 새로 맞힌 문제만 기록과 DJ코인이 반영됩니다.`;
       saveStatus.id = 'ranking-save-status';
       saveStatus.className = 'quiz-progress';
       saveStatus.textContent = currentModeId === 'ranking' ? '랭킹 기록 저장 중' : '';
