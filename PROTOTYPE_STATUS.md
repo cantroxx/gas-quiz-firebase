@@ -355,7 +355,7 @@
 - Functions 기반 서버 검증 이전
   - 현재 상점 구매, 보상 지급, 인벤토리 추가는 클라이언트 read/write 중심이다.
   - 오픈 범위가 제한된 MVP이면 유지 가능하지만, 장기 운영 전에는 Functions 이전이 필요하다.
-  - `functions/` scaffold는 추가했지만, 실제 Functions deploy와 운영 연결은 아직 하지 않았다.
+  - `functions/` scaffold와 회원 접속 코드 검증 callable 초안은 추가했지만, 실제 Functions deploy와 운영 연결은 아직 하지 않았다.
 - 이벤트/퀘스트/학급 미션 실제 진행도 연결
   - 현재 이벤트 광장은 안내/표시 중심이다.
 - 미이관 퀴즈 처리
@@ -528,12 +528,15 @@
 
 2. 비밀번호/초기비밀번호 검증 정책 확정
    - 권장 정책 문서화 완료: 교사 발급 초기 접속 코드 + Cloud Functions 서버 검증
-   - 다음 단계는 접속 코드 저장 위치, 만료/폐기 방식, 실패 횟수 제한 설계
+   - 접속 코드 저장 위치 초안: `memberAccessCodes/{memberUserId}`
+   - 접속 코드는 원문 저장 없이 `salt` + `codeHash`로 검증하며, 만료/폐기/실패 횟수 제한 필드 초안을 Functions에 반영했다.
+   - 다음 단계는 접속 코드 발급 스크립트와 클라이언트 회원 연결 전환
    - `users/{memberUserId}.authUid` 재연결은 서버 검증 성공 또는 교사 승인 이후로 제한해야 한다.
 
 3. Functions 기반 경제 처리
    - `functions/` scaffold 추가 완료
-   - 현재 callable functions는 모두 `unimplemented` 상태이며 배포하지 않았다.
+   - 회원 접속 코드 검증 callable은 초안 구현 상태이며 배포하지 않았다.
+   - 경제 처리 callable은 아직 `unimplemented` 상태다.
    - `userEconomy` 초기 지급, 구매, 차감, 보상 지급을 Functions 또는 서버 검증으로 이전
    - `userInventory` 직접 추가 방지
    - `purchaseLogs` 서버 생성 구조 검토

@@ -1,16 +1,36 @@
 # Firebase Functions Scaffold
 
-This directory prepares the next security migration phase. The functions are intentionally scaffold-only and return `unimplemented`.
+This directory prepares the next security migration phase.
 
-## Planned callable functions
+## Callable functions
 
-- `verifyMemberAccessCode`: validate school, grade, class, number, and a teacher-issued access code.
-- `linkMemberAuthUid`: connect or relink `users/{memberUserId}.authUid` after server verification.
+- `verifyMemberAccessCode`: validates school, grade, class, number, and a teacher-issued access code.
+- `linkMemberAuthUid`: connects or relinks `users/{memberUserId}.authUid` after server verification.
 - `purchaseShopItem`: move shop purchase validation and inventory writes to server code.
 - `grantPracticeReward`: move practice reward economy writes to server code.
+
+`purchaseShopItem` and `grantPracticeReward` are intentionally still `unimplemented`.
+
+## Access code documents
+
+The member verification functions expect server-managed documents at:
+
+`memberAccessCodes/{memberUserId}`
+
+Supported fields:
+
+- `active`: boolean
+- `salt`: string
+- `codeHash`: SHA-256 hex of `salt + ":" + accessCode`
+- `expiresAt`: optional Firestore Timestamp
+- `failedAttempts`: optional number
+- `maxFailedAttempts`: optional number
+- `oneTime` or `consumeOnUse`: optional boolean
+
+Do not store raw access codes in Firestore.
 
 ## Current status
 
 - No Functions deploy has been performed.
 - Existing Hosting and Firestore client flows remain active.
-- Do not enable these functions for production until access code storage, expiry, retry limits, and audit logging are implemented.
+- Client member linking has not yet been switched to these callables.
