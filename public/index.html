@@ -8155,16 +8155,28 @@
       let snapshot = null;
       let summarySnapshot = null;
 
-      try {
-        [snapshot, summarySnapshot] = await Promise.all([
-          recordRef.get(),
-          summaryRef.get()
-        ]);
-      } catch(error) {
+      const [recordReadResult, summaryReadResult] = await Promise.allSettled([
+        recordRef.get(),
+        summaryRef.get()
+      ]);
+      if(recordReadResult.status === 'fulfilled') {
+        snapshot = recordReadResult.value;
+      } else {
+        const error = recordReadResult.reason;
         if(!isFirestorePermissionDeniedError(error)) throw error;
         readFallback = true;
-        console.warn('Practice progress read blocked; using write-only fallback for legacy or missing progress document.', {
+        console.warn('Practice progress record read blocked; using write-only fallback for legacy or missing progress document.', {
           recordPath: recordRef.path,
+          code: error?.code || '',
+          message: error?.message || ''
+        });
+      }
+      if(summaryReadResult.status === 'fulfilled') {
+        summarySnapshot = summaryReadResult.value;
+      } else {
+        const error = summaryReadResult.reason;
+        if(!isFirestorePermissionDeniedError(error)) throw error;
+        console.warn('Practice summary read blocked; continuing with merge-only summary update.', {
           summaryPath: summaryRef.path,
           code: error?.code || '',
           message: error?.message || ''
@@ -8179,7 +8191,7 @@
       const existingStarCount = Number(existing.starCount) || 0;
       const flags = await loadFeatureFlags();
       const rewardDisabled = flags.practiceRewardEnabled === false;
-      const rewardCoin = (isDuplicateCorrectId || readFallback || rewardDisabled) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
+      const rewardCoin = (isDuplicateCorrectId || rewardDisabled) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
       const completed = mergedIds.length >= totalCount;
       const isCompleteType = target.completionType === 'complete';
       let nextIds = mergedIds;
@@ -8289,13 +8301,13 @@
       });
       await recordRef.set(nextData, { merge: true });
 
+      const batch = db.batch();
+      batch.set(summaryRef, summaryData, { merge: true });
+      batch.set(badgeRef, badgeData, { merge: true });
+      await batch.commit();
+
       if(readFallback) {
-        console.info('Practice progress primary record update succeeded with write-only fallback:', saveResult);
-      } else {
-        const batch = db.batch();
-        batch.set(summaryRef, summaryData, { merge: true });
-        batch.set(badgeRef, badgeData, { merge: true });
-        await batch.commit();
+        console.info('Practice progress primary record update succeeded with write-only fallback; summary and badge were merged after the write.', saveResult);
       }
 
       console.info('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
