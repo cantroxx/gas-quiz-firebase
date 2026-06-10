@@ -597,22 +597,34 @@
           <span aria-hidden="true">⌄</span>
         </button>
         <div class="admin-section-body">
-          <div class="admin-settings-form">
-            <label class="admin-checkbox-label">
+          <div class="admin-settings-form admin-feature-switch-grid">
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-practice-reward" type="checkbox">
-              연습전 DJ코인 지급
+              <span>
+                <strong>연습전 DJ코인 지급</strong>
+                <small>새 correctId가 저장될 때만 코인을 지급합니다.</small>
+              </span>
             </label>
-            <label class="admin-checkbox-label">
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-shop" type="checkbox">
-              상점 열기
+              <span>
+                <strong>상점 열기</strong>
+                <small>닫으면 학생 화면에서 상점 진입을 막습니다.</small>
+              </span>
             </label>
-            <label class="admin-checkbox-label">
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-event" type="checkbox">
-              이벤트 광장 열기
+              <span>
+                <strong>이벤트 광장 열기</strong>
+                <small>닫으면 이벤트 광장 버튼은 점검 안내로 처리됩니다.</small>
+              </span>
             </label>
-            <label class="admin-checkbox-label">
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-ranking" type="checkbox">
-              랭킹전/랭킹 광장 열기
+              <span>
+                <strong>랭킹전/랭킹 광장 열기</strong>
+                <small>닫으면 랭킹전 진입과 랭킹 광장 표시를 막습니다.</small>
+              </span>
             </label>
           </div>
           <div class="admin-quiz-toggle-panel">
@@ -7123,23 +7135,58 @@
         });
     }
 
+    function getAdminQuizToggleGroupLabel(quizId) {
+      const quiz = QUIZ_CATALOG[quizId] || {};
+      if(String(quiz.parentQuizId || '') === 'pokemon' || String(quizId || '').startsWith('pokemon-')) return '포켓몬';
+      const subjectLabels = {
+        korean: '국어',
+        social: '사회',
+        math: '수학',
+        popular: '인기'
+      };
+      return subjectLabels[quiz.subjectId] || '기타';
+    }
+
+    function getAdminQuizToggleGroups() {
+      const order = ['국어', '사회', '수학', '인기', '포켓몬', '기타'];
+      const groups = {};
+      getAdminQuizToggleIds().forEach(quizId => {
+        const label = getAdminQuizToggleGroupLabel(quizId);
+        if(!groups[label]) groups[label] = [];
+        groups[label].push(quizId);
+      });
+      return order
+        .filter(label => groups[label]?.length)
+        .map(label => ({ label, quizIds: groups[label] }));
+    }
+
     function renderAdminQuizToggleGrid(flags) {
       const root = document.getElementById('admin-quiz-toggle-grid');
       if(!root) return;
       const disabled = getDisabledQuizIdSet(flags);
       root.innerHTML = '';
-      getAdminQuizToggleIds().forEach(quizId => {
-        const quiz = QUIZ_CATALOG[quizId];
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        const text = document.createElement('span');
-        label.className = 'admin-quiz-toggle';
-        input.type = 'checkbox';
-        input.checked = !disabled.has(quizId);
-        input.dataset.adminQuizToggle = quizId;
-        text.textContent = quiz.title.replace(' 퀴즈', '');
-        label.append(input, text);
-        root.appendChild(label);
+      getAdminQuizToggleGroups().forEach(group => {
+        const section = document.createElement('section');
+        const heading = document.createElement('h4');
+        const list = document.createElement('div');
+        section.className = 'admin-quiz-toggle-group';
+        heading.textContent = group.label;
+        list.className = 'admin-quiz-toggle-list';
+        group.quizIds.forEach(quizId => {
+          const quiz = QUIZ_CATALOG[quizId];
+          const label = document.createElement('label');
+          const input = document.createElement('input');
+          const text = document.createElement('span');
+          label.className = 'admin-quiz-toggle';
+          input.type = 'checkbox';
+          input.checked = !disabled.has(quizId);
+          input.dataset.adminQuizToggle = quizId;
+          text.textContent = quiz.title.replace(' 퀴즈', '');
+          label.append(input, text);
+          list.appendChild(label);
+        });
+        section.append(heading, list);
+        root.appendChild(section);
       });
     }
 
