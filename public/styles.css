@@ -1499,7 +1499,7 @@ h2 {
 
 .map-buttons {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
@@ -1520,6 +1520,49 @@ h2 {
   border-color: rgba(40, 114, 74, 0.36);
   background: var(--mint);
   outline: none;
+}
+
+.map-buttons .global-refresh-button {
+  position: relative;
+  background: #fffaf0;
+  border-color: #f1d58e;
+  color: #7a5a14;
+}
+
+.map-buttons .global-refresh-button::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: #8bcf72;
+  box-shadow: 0 0 0 3px rgba(139, 207, 114, 0.2);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.map-buttons .global-refresh-button.needs-refresh {
+  border-color: #79bf55;
+  background: #f2ffd8;
+  color: #2f7d44;
+  box-shadow: 0 0 0 4px rgba(121, 191, 85, 0.18), 0 10px 24px rgba(74, 135, 59, 0.18);
+  animation: refreshGlow 1.35s ease-in-out infinite;
+}
+
+.map-buttons .global-refresh-button.needs-refresh::before {
+  background: #55b947;
+  box-shadow: 0 0 0 5px rgba(85, 185, 71, 0.24);
+}
+
+@keyframes refreshGlow {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 4px rgba(121, 191, 85, 0.16), 0 10px 24px rgba(74, 135, 59, 0.14);
+  }
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 7px rgba(121, 191, 85, 0.28), 0 14px 28px rgba(74, 135, 59, 0.2);
+  }
 }
 
 .player-status {

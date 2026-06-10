@@ -224,6 +224,7 @@
         <button type="button" data-place="shop">상점</button>
         <button type="button" data-place="ranking">랭킹 광장</button>
         <button type="button" data-place="event">이벤트 광장</button>
+        <button id="global-refresh-button" class="global-refresh-button" type="button" title="서버의 최신 정보를 다시 불러옵니다.">최신 정보</button>
       </nav>
 
       <aside class="player-status" aria-live="polite">
@@ -1202,6 +1203,7 @@
     const TEST_SHOP_USER_ID = 'test_user';
     const DEFAULT_MEMBER_SCHOOL = '동자';
     const LINKED_MEMBER_HINT_KEY = 'dj48LinkedMemberUserId';
+    const SERVER_FRESHNESS_SIGNATURE_KEY = 'dj48ServerFreshnessSignature';
     const DEFAULT_FEATURE_FLAGS = {
       practiceRewardEnabled: true,
       shopEnabled: true,
@@ -2035,12 +2037,150 @@
     let externalQuizzesCache = null;
     let externalQuizzesLoadPromise = null;
     let adminDashboardCache = null;
+    let serverFreshnessPollTimer = null;
 
     function debugLog(...args) {
       try {
         if(window.localStorage?.getItem('quizTownDebug') === '1') console.info(...args);
       } catch(error) {
         // Debug logging is optional.
+      }
+    }
+
+    function getFirestoreTimestampMillis(value) {
+      if(!value) return 0;
+      if(value.toMillis) return value.toMillis();
+      if(value.seconds) return (Number(value.seconds) * 1000) + Math.floor(Number(value.nanoseconds || 0) / 1000000);
+      if(typeof value === 'number') return value;
+      const parsed = Date.parse(String(value));
+      return Number.isNaN(parsed) ? 0 : parsed;
+    }
+
+    function getStoredServerFreshnessSignature() {
+      try {
+        return window.localStorage?.getItem(SERVER_FRESHNESS_SIGNATURE_KEY) || '';
+      } catch(error) {
+        return '';
+      }
+    }
+
+    function storeServerFreshnessSignature(signature) {
+      try {
+        if(signature) window.localStorage?.setItem(SERVER_FRESHNESS_SIGNATURE_KEY, signature);
+      } catch(error) {
+        // Local storage is only a hint for the refresh glow.
+      }
+    }
+
+    function setGlobalRefreshNeedsAttention(needsAttention, message = '') {
+      const button = document.getElementById('global-refresh-button');
+      if(!button) return;
+      button.classList.toggle('needs-refresh', !!needsAttention);
+      button.textContent = needsAttention ? '새 정보 있음' : '최신 정보';
+      button.title = message || (needsAttention ? '서버에 새 운영 정보가 있습니다. 눌러서 다시 불러오세요.' : '서버의 최신 정보를 다시 불러옵니다.');
+    }
+
+    function clearRuntimeDataCaches() {
+      rankingPlazaModelCache = null;
+      titleCatalogCache = null;
+      titleCatalogMapCache = null;
+      profileImageOptionsCache = [];
+      noticeBoardCache = null;
+      featureFlagsCache = null;
+      featureFlagsLoadPromise = null;
+      externalQuizzesCache = null;
+      externalQuizzesLoadPromise = null;
+      adminDashboardCache = null;
+      eventProgressCache = null;
+      Object.keys(firebaseQuizDataCache).forEach(key => delete firebaseQuizDataCache[key]);
+      resetShopRuntimeData();
+      resetRoomSettingsCache();
+    }
+
+    async function loadServerFreshnessSignature() {
+      const db = getFirestoreDb();
+      if(!db) return '';
+      await initializeAuthUser();
+      const watchedDocs = [
+        ['featureFlags', db.collection('appSettings').doc('featureFlags')],
+        ['externalQuizzes', db.collection('appSettings').doc('externalQuizzes')],
+        ['noticeBoard', db.collection('noticeBoard').doc('current')]
+      ];
+      const snapshots = await Promise.all(watchedDocs.map(([key, ref]) =>
+        ref.get()
+          .then(snapshot => ({ key, snapshot }))
+          .catch(error => ({ key, error }))
+      ));
+      return snapshots.map(item => {
+        if(item.error || !item.snapshot?.exists) return `${item.key}:missing`;
+        const data = item.snapshot.data() || {};
+        return `${item.key}:${getFirestoreTimestampMillis(data.updatedAt) || 0}`;
+      }).join('|');
+    }
+
+    async function checkServerFreshness() {
+      if(!currentMemberUserId) return;
+      try {
+        const signature = await loadServerFreshnessSignature();
+        if(!signature) return;
+        const stored = getStoredServerFreshnessSignature();
+        if(!stored) {
+          storeServerFreshnessSignature(signature);
+          setGlobalRefreshNeedsAttention(false);
+          return;
+        }
+        setGlobalRefreshNeedsAttention(stored !== signature);
+      } catch(error) {
+        debugLog('Server freshness check skipped.', error);
+      }
+    }
+
+    function startServerFreshnessPolling() {
+      if(serverFreshnessPollTimer) return;
+      window.setTimeout(checkServerFreshness, 2500);
+      serverFreshnessPollTimer = window.setInterval(checkServerFreshness, 60000);
+    }
+
+    async function refreshCurrentAppData() {
+      const button = document.getElementById('global-refresh-button');
+      if(button) {
+        button.disabled = true;
+        button.textContent = '불러오는 중';
+      }
+      try {
+        clearRuntimeDataCaches();
+        await Promise.all([
+          loadFeatureFlags(true).catch(error => console.warn('Feature flags refresh failed.', error)),
+          loadNoticeBoardFromFirestore(true).catch(error => console.warn('Notice board refresh failed.', error)),
+          loadExternalQuizzes(true).catch(error => console.warn('External quizzes refresh failed.', error))
+        ]);
+
+        if(!document.getElementById('home-view')?.hidden) {
+          renderHomeView();
+        } else if(!document.getElementById('ranking-view')?.hidden) {
+          renderRankingView();
+        } else if(!document.getElementById('shop-view')?.hidden) {
+          await renderShopFromFirestore();
+        } else if(!document.getElementById('event-view')?.hidden) {
+          await renderEventProgressFromFunctions(true);
+        } else if(!document.getElementById('school-view')?.hidden) {
+          renderSchoolQuizCards();
+        } else if(!document.getElementById('subject-view')?.hidden) {
+          renderSubjectQuizCards(currentSubjectId);
+        } else if(!document.getElementById('quiz-select-view')?.hidden) {
+          renderQuizSelectView(lastQuizId);
+          const quiz = QUIZ_CATALOG[lastQuizId] || QUIZ_CATALOG.spelling;
+          renderQuizModeCards(quiz.modes);
+        }
+
+        const signature = await loadServerFreshnessSignature().catch(() => '');
+        if(signature) storeServerFreshnessSignature(signature);
+        setGlobalRefreshNeedsAttention(false, '최신 정보를 다시 불러왔습니다.');
+      } finally {
+        if(button) {
+          button.disabled = false;
+          if(!button.classList.contains('needs-refresh')) button.textContent = '최신 정보';
+        }
       }
     }
 
@@ -9105,6 +9245,7 @@
 
     function showTownView() {
       closePlaceModal();
+      startServerFreshnessPolling();
       document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = true;
       document.getElementById('admin-view').hidden = true;
@@ -9343,6 +9484,13 @@
 
     document.querySelectorAll('[data-place]').forEach(button => {
       button.addEventListener('click', () => openPlaceModal(button.dataset.place));
+    });
+
+    document.getElementById('global-refresh-button')?.addEventListener('click', () => {
+      refreshCurrentAppData().catch(error => {
+        console.warn('Global refresh failed.', error);
+        setGlobalRefreshNeedsAttention(true, '최신 정보를 다시 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      });
     });
 
     document.querySelectorAll('[data-close-modal]').forEach(button => {
