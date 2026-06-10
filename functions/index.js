@@ -26,7 +26,8 @@ const DEFAULT_FEATURE_FLAGS = {
   practiceRewardEnabled: true,
   shopEnabled: true,
   eventPlazaEnabled: true,
-  rankingEnabled: true
+  rankingEnabled: true,
+  disabledQuizIds: []
 };
 
 const DEFAULT_EXTERNAL_QUIZZES = {
@@ -121,11 +122,18 @@ function assertNicknameAllowed(nickname) {
 }
 
 function publicFeatureFlags(data = {}) {
+  const disabledQuizIds = Array.isArray(data.disabledQuizIds)
+    ? Array.from(new Set(data.disabledQuizIds
+      .map(id => String(id || "").trim())
+      .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
+      .slice(0, 120)
+    : [];
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     shopEnabled: data.shopEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
-    rankingEnabled: data.rankingEnabled !== false
+    rankingEnabled: data.rankingEnabled !== false,
+    disabledQuizIds
   };
 }
 

@@ -2600,32 +2600,18 @@ h2 {
 .profile-ranking-message-panel {
   position: relative;
   margin-top: 14px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background:
-    linear-gradient(90deg, transparent 0 9px, #f7fcff 9px calc(100% - 9px), transparent calc(100% - 9px)),
-    radial-gradient(circle at 9px 50%, #f7fcff 0 9px, transparent 10px),
-    radial-gradient(circle at calc(100% - 9px) 50%, #f7fcff 0 9px, transparent 10px);
-}
-
-.profile-ranking-message-panel::after {
-  content: "";
-  position: absolute;
-  left: 28px;
-  bottom: -6px;
-  width: 14px;
-  height: 14px;
-  border-radius: 0 0 4px 0;
-  background: #f7fcff;
-  transform: rotate(45deg);
+  padding: 13px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 18px;
+  background: rgba(247, 252, 255, 0.84);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.68);
 }
 
 .profile-ranking-message-label {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 8px 12px;
+  margin: 0 0 8px;
   color: var(--green-dark);
   font-size: 0.86rem;
   font-weight: 900;
@@ -2737,6 +2723,7 @@ h2 {
   border-radius: 0;
   background: transparent;
   max-width: 100%;
+  overflow: hidden;
 }
 
 .profile-password-change-row input {
@@ -4160,6 +4147,64 @@ h2 {
   display: inline-grid;
   place-items: center;
   text-decoration: none;
+}
+
+.admin-quiz-toggle-panel {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.admin-panel-subhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--green-dark);
+}
+
+.admin-panel-subhead strong {
+  font-size: 0.98rem;
+}
+
+.admin-panel-subhead span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.admin-quiz-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.admin-quiz-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(47, 125, 68, 0.16);
+  border-radius: 999px;
+  background: #f7fcff;
+  color: var(--green-dark);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.admin-quiz-toggle input {
+  accent-color: var(--green);
+}
+
+.admin-quiz-toggle:has(input:not(:checked)) {
+  border-style: dashed;
+  background: #fff7f3;
+  color: #9a4a35;
 }
 
 .subject-scene {
