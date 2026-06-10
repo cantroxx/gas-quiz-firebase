@@ -3967,6 +3967,30 @@ h2 {
   color: #a43e68;
 }
 
+.quest-status-claimed {
+  background: rgba(47, 125, 68, 0.1);
+  color: var(--green-dark);
+}
+
+.quest-claim-button {
+  width: fit-content;
+  margin-top: 12px;
+  padding: 8px 13px;
+  border: 1px solid rgba(47, 125, 68, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f9ffea, #dcf3c4);
+  color: var(--green-dark);
+  font-weight: 900;
+  box-shadow: 0 7px 14px rgba(47, 125, 68, 0.12);
+  cursor: pointer;
+}
+
+.quest-claim-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
 .mission-progress-track {
   height: 12px;
   margin-top: 12px;

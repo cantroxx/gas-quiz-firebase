@@ -34,6 +34,57 @@ const DEFAULT_EXTERNAL_QUIZZES = {
   items: []
 };
 
+const EVENT_QUEST_DEFINITIONS = {
+  spelling_practice_once: {
+    questId: "spelling_practice_once",
+    icon: "✏️",
+    title: "맞춤법 연습전 1회 완료",
+    target: 1,
+    rewardCoin: 3,
+    kind: "spellingPractice"
+  },
+  social_three_questions: {
+    questId: "social_three_questions",
+    icon: "🏛️",
+    title: "사회 퀴즈 3문제 풀기",
+    target: 3,
+    rewardCoin: 5,
+    kind: "socialCorrect"
+  },
+  math_practice_try: {
+    questId: "math_practice_try",
+    icon: "➗",
+    title: "수학 연습전 도전하기",
+    target: 1,
+    rewardCoin: 10,
+    kind: "mathPractice"
+  }
+};
+
+const CLASS_MISSION_DEFINITIONS = [
+  {
+    missionId: "class_quiz_100",
+    icon: "🏫",
+    title: "우리 반 누적 퀴즈 100문제 도전",
+    target: 100,
+    reward: "학급 공동 보상 예고"
+  },
+  {
+    missionId: "class_coin_2000",
+    icon: "🪙",
+    title: "학급 누적 DJ코인 2000개 모으기",
+    target: 2000,
+    reward: "학급 공동 보상 예고"
+  },
+  {
+    missionId: "ranking_30",
+    icon: "🏆",
+    title: "학급 랭킹전 참여 30회",
+    target: 30,
+    reward: "학급 공동 보상 예고"
+  }
+];
+
 function requireAuth(request) {
   if (!request.auth || !request.auth.uid) {
     throw new HttpsError("unauthenticated", "Firebase Auth is required.");
@@ -485,6 +536,176 @@ function rewardLogId(parts) {
     .filter(Boolean)
     .join("__")
     .slice(0, 1400);
+}
+
+function getKstDateKey(date = new Date()) {
+  return date.toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+}
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function getPracticeSolvedTotal(record) {
+  const correctCount = Number(record?.correctCount) || 0;
+  const totalCount = Number(record?.totalCount) || 0;
+  const starCount = Number(record?.starCount) || 0;
+  if (totalCount > 0 && starCount > 0) return (starCount * totalCount) + correctCount;
+  return correctCount;
+}
+
+function getRecordAreaKey(record) {
+  return String(record?.areaKey || `${record?.area || ""}/${record?.detail || ""}`).trim();
+}
+
+function getQuestProgressValue(quest, practiceRecords) {
+  if (quest.kind === "spellingPractice") {
+    return practiceRecords.some(record =>
+      record.quizId === "spelling"
+      || getRecordAreaKey(record) === "일상/맞춤법"
+      || String(record.detail || "").includes("맞춤법")
+    ) ? 1 : 0;
+  }
+  if (quest.kind === "mathPractice") {
+    return practiceRecords.some(record =>
+      record.quizId === "random-basic"
+      || getRecordAreaKey(record) === "수학/random-basic"
+      || String(record.detail || "").includes("곱셈과 나눗셈")
+    ) ? 1 : 0;
+  }
+  if (quest.kind === "socialCorrect") {
+    return practiceRecords
+      .filter(record => String(record.area || "").includes("사회") || getRecordAreaKey(record).startsWith("사회/"))
+      .reduce((sum, record) => sum + getPracticeSolvedTotal(record), 0);
+  }
+  return 0;
+}
+
+function buildEventQuestRows(practiceRecords, claimMap) {
+  return Object.values(EVENT_QUEST_DEFINITIONS).map(quest => {
+    const current = Math.min(quest.target, getQuestProgressValue(quest, practiceRecords));
+    const completed = current >= quest.target;
+    const claimed = !!claimMap[quest.questId];
+    return {
+      questId: quest.questId,
+      icon: quest.icon,
+      title: quest.title,
+      current,
+      target: quest.target,
+      progress: `${current}/${quest.target}`,
+      rewardCoin: quest.rewardCoin,
+      reward: `DJ코인 +${quest.rewardCoin}`,
+      completed,
+      claimed,
+      claimable: completed && !claimed,
+      status: claimed ? "수령 완료" : (completed ? "완료 가능" : "진행 중")
+    };
+  });
+}
+
+async function loadLinkedMemberForEvent(authUid, memberUserId) {
+  const safeMemberUserId = normalizeId(memberUserId, "memberUserId");
+  const memberRef = db.collection("users").doc(safeMemberUserId);
+  const snapshot = await memberRef.get();
+  if (!snapshot.exists) {
+    throw new HttpsError("not-found", "Member not found.");
+  }
+  const memberData = snapshot.data() || {};
+  assertActiveStudent(memberData);
+  if (memberData.authUid !== authUid) {
+    throw new HttpsError("permission-denied", "Member is not linked to current auth.");
+  }
+  return { memberUserId: safeMemberUserId, memberData };
+}
+
+async function loadMemberPracticeRecords(memberUserId) {
+  const snapshot = await db.collection("practiceRecords")
+    .where("memberUserId", "==", memberUserId)
+    .limit(500)
+    .get();
+  return snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
+}
+
+async function loadEventClaimMap(memberUserId, dateKey) {
+  const questIds = Object.keys(EVENT_QUEST_DEFINITIONS);
+  const snapshots = await Promise.all(questIds.map(questId =>
+    db.collection("rewardLogs").doc(rewardLogId([
+      "event_quest",
+      dateKey,
+      memberUserId,
+      questId
+    ])).get()
+  ));
+  return snapshots.reduce((map, snapshot, index) => {
+    if (snapshot.exists) map[questIds[index]] = true;
+    return map;
+  }, {});
+}
+
+async function loadClassEventProgress(memberData) {
+  const grade = String(memberData.grade || "");
+  const classNumber = String(memberData.classNumber || "");
+  const school = String(memberData.school || DEFAULT_MEMBER_SCHOOL);
+  if (!grade || !classNumber) return [];
+
+  const gradeCandidates = Array.from(new Set([
+    grade,
+    Number(grade)
+  ].filter(value => value !== "" && !Number.isNaN(value))));
+  const memberSnapshot = await db.collection("users")
+    .where("grade", "in", gradeCandidates)
+    .limit(120)
+    .get();
+  const memberIds = memberSnapshot.docs
+    .filter(doc => {
+      const data = doc.data() || {};
+      return data.role === "student"
+        && data.status === "active"
+        && data.active === true
+        && String(data.classNumber || "") === classNumber
+        && String(data.school || DEFAULT_MEMBER_SCHOOL) === school;
+    })
+    .map(doc => doc.id);
+
+  if (!memberIds.length) {
+    return CLASS_MISSION_DEFINITIONS.map(mission => ({ ...mission, current: 0, percent: 0 }));
+  }
+
+  let practiceTotal = 0;
+  let rankingTotal = 0;
+  let coinTotal = 0;
+  for (const chunk of chunkArray(memberIds, 30)) {
+    const [practiceSnapshot, rankingSnapshot, economySnapshots] = await Promise.all([
+      db.collection("practiceRecords").where("memberUserId", "in", chunk).limit(1000).get(),
+      db.collection("rankingRecords").where("memberUserId", "in", chunk).limit(1000).get(),
+      Promise.all(chunk.map(memberId => db.collection("userEconomy").doc(memberId).get()))
+    ]);
+    practiceTotal += practiceSnapshot.docs
+      .map(doc => doc.data() || {})
+      .reduce((sum, record) => sum + getPracticeSolvedTotal(record), 0);
+    rankingTotal += rankingSnapshot.size;
+    coinTotal += economySnapshots
+      .map(snapshot => snapshot.exists ? snapshot.data() || {} : {})
+      .reduce((sum, economy) => sum + (Number(economy.totalEarned ?? economy.djCoin ?? 0) || 0), 0);
+  }
+
+  const values = {
+    class_quiz_100: practiceTotal,
+    class_coin_2000: coinTotal,
+    ranking_30: rankingTotal
+  };
+  return CLASS_MISSION_DEFINITIONS.map(mission => {
+    const current = Math.max(0, Math.floor(values[mission.missionId] || 0));
+    return {
+      ...mission,
+      current,
+      percent: Math.min(100, Math.round((current / mission.target) * 100))
+    };
+  });
 }
 
 async function writeAuthLinkLog(entry) {
@@ -2111,6 +2332,134 @@ exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request =>
   return {
     success: true,
     externalQuizzes: next
+  };
+});
+
+exports.getEventProgress = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const flags = await getFeatureFlags();
+  assertFeatureEnabled(flags, "eventPlazaEnabled", "Event plaza is disabled.");
+
+  const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
+  const dateKey = getKstDateKey();
+  const [practiceRecords, claimMap, classMissions] = await Promise.all([
+    loadMemberPracticeRecords(memberUserId),
+    loadEventClaimMap(memberUserId, dateKey),
+    loadClassEventProgress(memberData)
+  ]);
+
+  return {
+    success: true,
+    memberUserId,
+    dateKey,
+    quests: buildEventQuestRows(practiceRecords, claimMap),
+    classMissions,
+    seasonEvents: [
+      {
+        eventId: "reading_king_season",
+        icon: "📖",
+        title: "독서왕 시즌",
+        desc: "독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.",
+        period: "이번 달"
+      },
+      {
+        eventId: "three_kingdoms_week",
+        icon: "🏯",
+        title: "삼국시대 탐험 주간",
+        desc: "삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.",
+        period: "이번 주"
+      },
+      {
+        eventId: "calculation_challenge",
+        icon: "🧮",
+        title: "계산왕 챌린지",
+        desc: "수학 계산 연습을 반복하며 도전 기록을 확인하는 이벤트입니다.",
+        period: "준비 중"
+      }
+    ]
+  };
+});
+
+exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const questId = normalizeId(payload.questId, "questId");
+  const quest = EVENT_QUEST_DEFINITIONS[questId];
+  if (!quest) {
+    throw new HttpsError("invalid-argument", "Unknown event quest.");
+  }
+
+  const flags = await getFeatureFlags();
+  assertFeatureEnabled(flags, "eventPlazaEnabled", "Event plaza is disabled.");
+  await loadLinkedMemberForEvent(authUid, memberUserId);
+  const practiceRecords = await loadMemberPracticeRecords(memberUserId);
+  const current = Math.min(quest.target, getQuestProgressValue(quest, practiceRecords));
+  if (current < quest.target) {
+    throw new HttpsError("failed-precondition", "Event quest is not complete.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+
+    const dateKey = getKstDateKey();
+    const logRef = db.collection("rewardLogs").doc(rewardLogId([
+      "event_quest",
+      dateKey,
+      memberUserId,
+      questId
+    ]));
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const logSnapshot = await transaction.get(logRef);
+    if (logSnapshot.exists) {
+      return {
+        duplicate: true,
+        rewardCoin: 0,
+        dateKey,
+        rewardLogPath: logRef.path,
+        economyPath: economyRef.path
+      };
+    }
+
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      djCoin: FieldValue.increment(quest.rewardCoin),
+      totalEarned: FieldValue.increment(quest.rewardCoin),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastEventQuestRewardAt: FieldValue.serverTimestamp(),
+      source: "event_quest_reward_function"
+    }, { merge: true });
+    transaction.set(logRef, {
+      type: "event_quest",
+      questId,
+      questTitle: quest.title,
+      dateKey,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCoin: quest.rewardCoin,
+      progressCurrent: current,
+      progressTarget: quest.target,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      duplicate: false,
+      rewardCoin: quest.rewardCoin,
+      dateKey,
+      rewardLogPath: logRef.path,
+      economyPath: economyRef.path
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    questId,
+    ...result
   };
 });
 

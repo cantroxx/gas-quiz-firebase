@@ -1199,6 +1199,8 @@
     let firestoreDbInstance = null;
     let firebaseFunctionsInstance = null;
     let firebaseStorageInstance = null;
+    let eventProgressCache = null;
+    let eventProgressLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -1213,9 +1215,9 @@
         questId: 'social_three_questions',
         icon: '🏛️',
         title: '사회 퀴즈 3문제 풀기',
-        progress: '2/3',
+        progress: '0/3',
         reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.normal}`,
-        status: '완료 가능'
+        status: '진행 중'
       },
       {
         questId: 'math_practice_try',
@@ -1378,8 +1380,8 @@
         kicker: 'Popular Quiz Hall',
         desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
         board: '사진과 문장을 보고 정답을 맞혀요',
-        cardDesc: '아이돌, 애니, 아재개그, 포켓몬 퀴즈를 고르는 화면입니다.',
-        quizzes: ['idol', 'anime', 'dad-joke', 'pokemon'],
+        cardDesc: '아이돌, 애니, 아재개그, 티니핑, 포켓몬 퀴즈를 고르는 화면입니다.',
+        quizzes: ['idol', 'anime', 'dad-joke', 'tiniping', 'pokemon'],
         enabled: true
       },
       math: {
@@ -1530,6 +1532,15 @@
         icon: '😄',
         desc: '아재개그 문제를 보고 정답을 맞히는 퀴즈입니다.',
         summary: '문장을 보고 웃긴 정답을 떠올려 입력합니다.',
+        subjectId: 'popular',
+        modes: ['practice', 'ranking', 'oneChance']
+      },
+      tiniping: {
+        title: '티니핑 퀴즈',
+        kicker: 'Popular Quiz Hall',
+        icon: '🌸',
+        desc: '티니핑 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+        summary: '이미지를 보고 티니핑 이름을 입력합니다.',
         subjectId: 'popular',
         modes: ['practice', 'ranking', 'oneChance']
       },
@@ -1748,6 +1759,7 @@
       'idol',
       'anime',
       'dad-joke',
+      'tiniping',
       'pokemon',
       'pokemon-easy',
       'pokemon-normal',
@@ -3851,6 +3863,7 @@
       '수학곱셈과-나눗셈',
       '인물아이돌',
       '인물애니',
+      '인물티니핑',
       ...POKEMON_RANKING_CATEGORY_KEYS
     ];
     const RANKING_CATEGORY_QUIZ_ID_MAP = {
@@ -3865,6 +3878,7 @@
       '수학곱셈과-나눗셈': 'random-basic',
       '인물아이돌': 'idol',
       '인물애니': 'anime',
+      '인물티니핑': 'tiniping',
       '포켓몬1세대': 'pokemon-gen1',
       '포켓몬2세대': 'pokemon-gen2',
       '포켓몬3세대': 'pokemon-gen3',
@@ -4171,10 +4185,11 @@
 
     function getPopularRankingAreas() {
       const areas = [
-        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS] },
+        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인물티니핑', ...POKEMON_RANKING_CATEGORY_KEYS] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
         { id: 'anime', label: '애니', keys: ['인물애니'] },
+        { id: 'tiniping', label: '티니핑', keys: ['인물티니핑'] },
         { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
       ];
       return areas
@@ -4215,6 +4230,7 @@
       if(key === '아재개그') return { id: 'dadJoke', label: '아재개그' };
       if(key === '인물아이돌') return { id: 'idol', label: '아이돌' };
       if(key === '인물애니') return { id: 'anime', label: '애니' };
+      if(key === '인물티니핑') return { id: 'tiniping', label: '티니핑' };
       if(isPokemonRankingCategoryKey(key)) return { id: 'pokemon', label: '포켓몬' };
       return { id: 'popular', label: getRankingCategoryLabel(record) || '인기' };
     }
@@ -4555,7 +4571,7 @@
       const koreanKeys = koreanDefinitions.flatMap(definition => definition.keys);
       const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
       const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
-      const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS]);
+      const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인물티니핑', ...POKEMON_RANKING_CATEGORY_KEYS]);
       const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
         ...koreanDefinitions
       ]);
@@ -4637,7 +4653,7 @@
       const koreanBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
       const mathBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['수학곱셈과-나눗셈']);
-      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS]);
+      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니', '인물티니핑', ...POKEMON_RANKING_CATEGORY_KEYS]);
       return {
         cards: [
           {
@@ -4726,6 +4742,7 @@
         'history-people': ['역사 인물', '역사인물'],
         idol: ['아이돌'],
         anime: ['애니'],
+        tiniping: ['티니핑'],
         'dad-joke': ['아재개그'],
         'random-basic': ['곱셈과 나눗셈', 'random-basic'],
         'pokemon-gen1': ['포켓몬(1세대)', 'pokemon-gen1'],
@@ -6379,43 +6396,51 @@
       }
     }
 
-    function renderQuestCards() {
+    function renderQuestCards(quests = QUEST_DATA) {
       const grid = document.getElementById('quest-card-grid');
       grid.innerHTML = '';
-      QUEST_DATA.forEach(quest => {
+      quests.forEach(quest => {
         const card = document.createElement('article');
         const icon = document.createElement('span');
         const title = document.createElement('h4');
         const progress = document.createElement('p');
         const reward = document.createElement('p');
         const status = document.createElement('span');
+        const claimButton = document.createElement('button');
 
         card.className = 'quest-card';
+        card.dataset.questId = quest.questId || '';
         icon.className = 'event-card-icon';
         icon.textContent = quest.icon;
         title.textContent = quest.title;
         progress.className = 'quest-progress';
-        progress.textContent = `진행도 ${quest.progress}`;
+        progress.textContent = `진행도 ${quest.progress || `${Number(quest.current) || 0}/${Number(quest.target) || 1}`}`;
         reward.className = 'quest-reward';
         reward.textContent = `보상: ${quest.reward}`;
         status.className = `quest-status ${getQuestStatusClass(quest.status)}`;
         status.textContent = quest.status;
+        claimButton.type = 'button';
+        claimButton.className = 'quest-claim-button';
+        claimButton.dataset.questClaimId = quest.questId || '';
+        claimButton.textContent = quest.claimed ? '수령 완료' : '보상 받기';
+        claimButton.disabled = !quest.claimable;
 
-        card.append(icon, title, progress, reward, status);
+        card.append(icon, title, progress, reward, status, claimButton);
         grid.appendChild(card);
       });
     }
 
     function getQuestStatusClass(status) {
       if(status === '완료 가능') return 'quest-status-ready';
+      if(status === '수령 완료') return 'quest-status-claimed';
       if(status === '준비 중') return 'quest-status-waiting';
       return 'quest-status-active';
     }
 
-    function renderClassMissionCards() {
+    function renderClassMissionCards(missions = CLASS_MISSION_DATA) {
       const grid = document.getElementById('class-mission-grid');
       grid.innerHTML = '';
-      CLASS_MISSION_DATA.forEach(mission => {
+      missions.forEach(mission => {
         const percent = Math.min(100, Math.round((mission.current / mission.target) * 100));
         const card = document.createElement('article');
         const icon = document.createElement('span');
@@ -6443,10 +6468,10 @@
       });
     }
 
-    function renderSeasonEvents() {
+    function renderSeasonEvents(events = SEASON_EVENT_DATA) {
       const grid = document.getElementById('season-event-grid');
       grid.innerHTML = '';
-      SEASON_EVENT_DATA.forEach(eventItem => {
+      events.forEach(eventItem => {
         const card = document.createElement('article');
         const icon = document.createElement('span');
         const title = document.createElement('h4');
@@ -6464,6 +6489,81 @@
         card.append(icon, title, desc, period);
         grid.appendChild(card);
       });
+    }
+
+    function renderEventLoadingState() {
+      renderQuestCards(QUEST_DATA.map(quest => ({ ...quest, status: '불러오는 중', claimable: false })));
+      renderClassMissionCards(CLASS_MISSION_DATA);
+      renderSeasonEvents(SEASON_EVENT_DATA);
+    }
+
+    async function loadEventProgress(forceRefresh = false) {
+      if(eventProgressCache && !forceRefresh) return eventProgressCache;
+      if(eventProgressLoadPromise && !forceRefresh) return eventProgressLoadPromise;
+      if(!currentMemberUserId) throw new Error('member-required');
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      const callable = functions.httpsCallable('getEventProgress');
+      eventProgressLoadPromise = callable({ memberUserId: currentMemberUserId })
+        .then(response => {
+          eventProgressCache = response?.data || null;
+          return eventProgressCache;
+        })
+        .finally(() => {
+          eventProgressLoadPromise = null;
+        });
+      return eventProgressLoadPromise;
+    }
+
+    async function renderEventProgressFromFunctions(forceRefresh = false) {
+      try {
+        const progress = await loadEventProgress(forceRefresh);
+        renderQuestCards(progress?.quests || QUEST_DATA);
+        renderClassMissionCards(progress?.classMissions || CLASS_MISSION_DATA);
+        renderSeasonEvents(progress?.seasonEvents || SEASON_EVENT_DATA);
+      } catch(error) {
+        console.warn('Firestore event progress load failed. Using static event fallback.', error);
+        renderQuestCards();
+        renderClassMissionCards();
+        renderSeasonEvents();
+      }
+    }
+
+    async function claimEventQuestReward(questId) {
+      if(!questId) return;
+      if(!currentMemberUserId) {
+        window.alert('로그인 후 이벤트 보상을 받을 수 있어요.');
+        return;
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        window.alert('이벤트 보상 기능을 불러오지 못했어요.');
+        return;
+      }
+      const button = document.querySelector(`[data-quest-claim-id="${questId}"]`);
+      if(button) {
+        button.disabled = true;
+        button.textContent = '수령 중...';
+      }
+      try {
+        const callable = functions.httpsCallable('claimEventQuestReward');
+        const response = await callable({ memberUserId: currentMemberUserId, questId });
+        const result = response?.data || {};
+        firestoreUserEconomy = null;
+        userEconomyLoadPromise = null;
+        eventProgressCache = null;
+        debugLog('Event quest reward claimed:', {
+          questId,
+          rewardCoin: result.rewardCoin || 0,
+          duplicate: !!result.duplicate,
+          rewardLogPath: result.rewardLogPath || ''
+        });
+        await renderEventProgressFromFunctions(true);
+      } catch(error) {
+        console.warn('Event quest reward claim failed.', error);
+        window.alert('이벤트 보상 수령 중 문제가 생겼어요. 퀘스트 완료 상태를 다시 확인해 주세요.');
+        await renderEventProgressFromFunctions(true);
+      }
     }
 
     function setAdminStatus(message, isError = false) {
@@ -8054,7 +8154,8 @@
         'ancient-history': { area: '사회', detail: '고대사~삼국시대', areaKey: '사회/ancient-three-kingdoms', completionType: completionType || 'loop' },
         'history-people': { area: '인물', detail: '역사인물', areaKey: '인물/역사인물', completionType: completionType || 'loop' },
         idol: { area: '인물', detail: '아이돌', areaKey: '인물/아이돌', completionType: completionType || 'loop' },
-        anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' }
+        anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' },
+        tiniping: { area: '인물', detail: '티니핑', areaKey: '인물/티니핑', completionType: completionType || 'loop' }
       };
       return targets[id] || null;
     }
@@ -8100,7 +8201,8 @@
         'ancient-history': { category: '사회(고대사~삼국시대)', subFilter: '고대사~삼국시대' },
         'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
         idol: { category: '인물(아이돌)', subFilter: '아이돌' },
-        anime: { category: '인물(애니)', subFilter: '애니' }
+        anime: { category: '인물(애니)', subFilter: '애니' },
+        tiniping: { category: '인물(티니핑)', subFilter: '티니핑' }
       };
       const target = targets[id];
       if(!target) return null;
@@ -8917,9 +9019,7 @@
         window.alert('이벤트 광장은 지금 점검 중입니다.');
         return;
       }
-      renderQuestCards();
-      renderClassMissionCards();
-      renderSeasonEvents();
+      renderEventLoadingState();
       updatePlaceInfo(PLACE_DETAILS.event);
       updatePlayerLocation(PLACE_DETAILS.event);
       document.getElementById('admin-view').hidden = true;
@@ -8933,6 +9033,7 @@
       document.getElementById('town-view').hidden = true;
       document.getElementById('event-view').hidden = false;
       document.getElementById('event-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      renderEventProgressFromFunctions();
     }
 
     function showSubjectView(subjectId) {
@@ -9114,6 +9215,12 @@
 
     document.querySelectorAll('[data-back-to-town]').forEach(button => {
       button.addEventListener('click', showTownView);
+    });
+
+    document.getElementById('quest-card-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-quest-claim-id]');
+      if(!button || button.disabled) return;
+      claimEventQuestReward(button.dataset.questClaimId || '');
     });
 
     document.getElementById('school-quiz-grid').addEventListener('click', event => {
