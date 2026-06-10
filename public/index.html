@@ -7432,11 +7432,13 @@
     }
 
     function appendPokemonPracticeButton(grid, generation) {
+      const quizId = `pokemon-gen${generation}`;
+      if(!isQuizEnabledByFlags(quizId)) return;
       const button = document.createElement('button');
       button.className = 'pokemon-hub-practice-button';
       button.type = 'button';
       button.textContent = `${generation}세대`;
-      button.dataset.quizId = `pokemon-gen${generation}`;
+      button.dataset.quizId = quizId;
       button.dataset.modeId = 'practice';
       grid.appendChild(button);
     }
