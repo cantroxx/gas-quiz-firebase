@@ -102,9 +102,12 @@
 
     <section id="town-view" class="town-panel app-view" aria-labelledby="town-title" hidden>
       <div class="town-panel-header">
-        <p class="eyebrow">Quiz Town</p>
-        <h2 id="town-title">퀴즈타운 지도</h2>
-        <p>지도에서 장소를 선택해 퀴즈, 랭킹, 상점, 내 집으로 이동합니다.</p>
+        <div>
+          <p class="eyebrow">Quiz Town</p>
+          <h2 id="town-title">퀴즈타운 지도</h2>
+          <p>지도에서 장소를 선택해 퀴즈, 랭킹, 상점, 내 집으로 이동합니다.</p>
+        </div>
+        <button id="global-refresh-button" class="global-refresh-button" type="button" title="서버의 최신 정보를 다시 불러옵니다.">최신 정보</button>
       </div>
 
       <div class="town-map" aria-label="퀴즈타운 장소 지도">
@@ -224,7 +227,6 @@
         <button type="button" data-place="shop">상점</button>
         <button type="button" data-place="ranking">랭킹 광장</button>
         <button type="button" data-place="event">이벤트 광장</button>
-        <button id="global-refresh-button" class="global-refresh-button" type="button" title="서버의 최신 정보를 다시 불러옵니다.">최신 정보</button>
       </nav>
 
       <aside class="player-status" aria-live="polite">
@@ -4449,7 +4451,8 @@
         { id: 'all', label: '전체', value: '' },
         { id: 'normal', label: '일반', value: 'normal' },
         { id: 'speed', label: '스피드', value: 'speed' },
-        { id: 'onechance', label: '원코', value: 'onechance' }
+        { id: 'onechance', label: '원코', value: 'onechance' },
+        { id: 'nohint', label: '노힌트', value: 'nohint' }
       ];
     }
 
@@ -4467,6 +4470,7 @@
       const mode = getRankingRecordMode(record);
       if(mode === 'speed') return '스피드';
       if(mode === 'onechance') return '원코';
+      if(mode === 'nohint') return '노힌트';
       return '일반';
     }
 

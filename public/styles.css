@@ -657,7 +657,9 @@ h2 {
 
 .town-panel-header {
   display: grid;
-  gap: 6px;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: start;
   margin-bottom: 16px;
 }
 
@@ -1522,14 +1524,27 @@ h2 {
   outline: none;
 }
 
-.map-buttons .global-refresh-button {
+.global-refresh-button {
   position: relative;
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid #f1d58e;
+  border-radius: 999px;
   background: #fffaf0;
-  border-color: #f1d58e;
   color: #7a5a14;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.map-buttons .global-refresh-button::before {
+.global-refresh-button:hover,
+.global-refresh-button:focus-visible {
+  border-color: rgba(40, 114, 74, 0.36);
+  background: #f7ffe8;
+  outline: none;
+}
+
+.global-refresh-button::before {
   content: "";
   width: 8px;
   height: 8px;
@@ -1541,7 +1556,7 @@ h2 {
   vertical-align: middle;
 }
 
-.map-buttons .global-refresh-button.needs-refresh {
+.global-refresh-button.needs-refresh {
   border-color: #79bf55;
   background: #f2ffd8;
   color: #2f7d44;
@@ -1549,7 +1564,7 @@ h2 {
   animation: refreshGlow 1.35s ease-in-out infinite;
 }
 
-.map-buttons .global-refresh-button.needs-refresh::before {
+.global-refresh-button.needs-refresh::before {
   background: #55b947;
   box-shadow: 0 0 0 5px rgba(85, 185, 71, 0.24);
 }
@@ -5131,6 +5146,14 @@ h2 {
 
   .map-buttons {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .town-panel-header {
+    grid-template-columns: 1fr;
+  }
+
+  .global-refresh-button {
+    justify-self: start;
   }
 
   .badge-progress-grid {
