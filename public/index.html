@@ -3494,11 +3494,12 @@
     }
 
     function getBestRankingRecordByCategoryKeys(records, categoryKeys) {
+      const allowedKeys = new Set((categoryKeys || []).map(normalizeRankingCategoryKey));
       return getBestRankingRecordsByUserAndCategory(records, categoryKeys).sort((a, b) => {
         const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
         if(scoreDiff) return scoreDiff;
         return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
-      }).find(record => categoryKeys.includes(record.categoryKey)) || null;
+      }).find(record => allowedKeys.has(getRankingCategoryKey(record))) || null;
     }
 
     function getRankingRecordTimeValue(record) {
@@ -3764,18 +3765,31 @@
       return Array.from(bestByUser.values());
     }
 
+    function normalizeRankingCategoryKey(categoryKey, category = '') {
+      const key = String(categoryKey || '').trim();
+      const label = String(category || '').trim();
+      if(key === '티니핑' || key === '인물티니핑' || label.includes('티니핑')) return '티니핑';
+      return key;
+    }
+
+    function getRankingCategoryKey(record) {
+      return normalizeRankingCategoryKey(record?.categoryKey || record?.category, record?.category || record?.rawCategory || '');
+    }
+
     function getBestRankingRecordsByUserAndCategory(records, categoryKeys, rankingModes = null) {
       const allowedModes = Array.isArray(rankingModes) && rankingModes.length
         ? new Set(rankingModes.map(mode => String(mode || '').trim()).filter(Boolean))
         : null;
+      const allowedCategoryKeys = new Set((categoryKeys || []).map(normalizeRankingCategoryKey).filter(Boolean));
       const bestByUserAndCategory = new Map();
       records
-        .filter(record => categoryKeys.includes(record.categoryKey))
+        .filter(record => allowedCategoryKeys.has(getRankingCategoryKey(record)))
         .filter(record => isRankingModeAllowed(record, allowedModes))
         .forEach(record => {
           const userKey = getRankingRecordUserKey(record);
+          const categoryKey = getRankingCategoryKey(record);
           if(!userKey) return;
-          const key = `${record.categoryKey}::${getRankingRecordGroupMode(record, allowedModes)}::${userKey}`;
+          const key = `${categoryKey}::${getRankingRecordGroupMode(record, allowedModes)}::${userKey}`;
           const current = bestByUserAndCategory.get(key);
           if(isBetterCategoryRankingRecord(record, current)) bestByUserAndCategory.set(key, record);
         });
@@ -3805,7 +3819,7 @@
       const bestByUser = {};
       records.forEach(record => {
         const userKey = getRankingRecordUserKey(record);
-        const categoryKey = String(record.categoryKey || record.category || '').trim();
+        const categoryKey = getRankingCategoryKey(record);
         if(!userKey || !categoryKey) return;
         if(!bestByUser[userKey]) {
           bestByUser[userKey] = {
@@ -3821,7 +3835,11 @@
         }
         const current = bestByUser[userKey].categories[categoryKey];
         if(!current || isBetterRankingEntry(record, current)) {
-          bestByUser[userKey].categories[categoryKey] = record;
+          bestByUser[userKey].categories[categoryKey] = {
+            ...record,
+            categoryKey,
+            category: categoryKey === '티니핑' ? '티니핑' : record.category
+          };
         }
       });
       return Object.values(bestByUser).map(item => {
@@ -3851,6 +3869,7 @@
       '포켓몬어려움',
       '포켓몬헬'
     ];
+    const TINIPING_RANKING_CATEGORY_KEYS = ['티니핑', '인물티니핑'];
     const RANKING_PLAZA_CATEGORY_KEYS = [
       '맞춤법',
       '아재개그',
@@ -3863,7 +3882,7 @@
       '수학곱셈과-나눗셈',
       '인물아이돌',
       '인물애니',
-      '인물티니핑',
+      ...TINIPING_RANKING_CATEGORY_KEYS,
       ...POKEMON_RANKING_CATEGORY_KEYS
     ];
     const RANKING_CATEGORY_QUIZ_ID_MAP = {
@@ -3878,6 +3897,7 @@
       '수학곱셈과-나눗셈': 'random-basic',
       '인물아이돌': 'idol',
       '인물애니': 'anime',
+      '티니핑': 'tiniping',
       '인물티니핑': 'tiniping',
       '포켓몬1세대': 'pokemon-gen1',
       '포켓몬2세대': 'pokemon-gen2',
@@ -4185,11 +4205,11 @@
 
     function getPopularRankingAreas() {
       const areas = [
-        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인물티니핑', ...POKEMON_RANKING_CATEGORY_KEYS] },
+        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
         { id: 'anime', label: '애니', keys: ['인물애니'] },
-        { id: 'tiniping', label: '티니핑', keys: ['인물티니핑'] },
+        { id: 'tiniping', label: '티니핑', keys: TINIPING_RANKING_CATEGORY_KEYS },
         { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
       ];
       return areas
@@ -4226,11 +4246,11 @@
     }
 
     function getPopularAreaForRecord(record) {
-      const key = String(record?.categoryKey || '').trim();
+      const key = getRankingCategoryKey(record);
       if(key === '아재개그') return { id: 'dadJoke', label: '아재개그' };
       if(key === '인물아이돌') return { id: 'idol', label: '아이돌' };
       if(key === '인물애니') return { id: 'anime', label: '애니' };
-      if(key === '인물티니핑') return { id: 'tiniping', label: '티니핑' };
+      if(key === '티니핑') return { id: 'tiniping', label: '티니핑' };
       if(isPokemonRankingCategoryKey(key)) return { id: 'pokemon', label: '포켓몬' };
       return { id: 'popular', label: getRankingCategoryLabel(record) || '인기' };
     }
@@ -4301,16 +4321,17 @@
     }
 
     function getPopularOverallRows(records, keys) {
+      const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
       const bestByUserAndBucket = new Map();
       records
-        .filter(record => keys.includes(record.categoryKey))
+        .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
         .forEach(record => {
           const userKey = getRankingRecordUserKey(record);
           if(!userKey) return;
           const area = getPopularAreaForRecord(record);
           const bucket = area.id === 'pokemon'
             ? 'pokemon'
-            : `${record.categoryKey}::${getRankingRecordMode(record)}`;
+            : `${getRankingCategoryKey(record)}::${getRankingRecordMode(record)}`;
           const key = `${bucket}::${userKey}`;
           const current = bestByUserAndBucket.get(key);
           if(isBetterCategoryRankingRecord(record, current)) bestByUserAndBucket.set(key, record);
@@ -4326,8 +4347,9 @@
 
     function getPopularPokemonRows(records, keys, modeValues) {
       const allowedModes = Array.isArray(modeValues) && modeValues.length ? new Set(modeValues) : null;
+      const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
       const filtered = records
-        .filter(record => keys.includes(record.categoryKey))
+        .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
         .filter(record => isRankingModeAllowed(record, allowedModes));
       return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, RANKING_PLAZA_ROW_LIMIT);
     }
@@ -4571,7 +4593,7 @@
       const koreanKeys = koreanDefinitions.flatMap(definition => definition.keys);
       const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
       const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
-      const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인물티니핑', ...POKEMON_RANKING_CATEGORY_KEYS]);
+      const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]);
       const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
         ...koreanDefinitions
       ]);
@@ -4653,7 +4675,7 @@
       const koreanBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
       const mathBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['수학곱셈과-나눗셈']);
-      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니', '인물티니핑', ...POKEMON_RANKING_CATEGORY_KEYS]);
+      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]);
       return {
         cards: [
           {
@@ -7861,6 +7883,42 @@
       document.getElementById('quiz-play-title').textContent = `${quiz.title.replace(' 퀴즈', '')} ${modeLabel}`;
     }
 
+    function getKoreanInitials(value) {
+      const initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+      return String(value || '').split('').map(char => {
+        const code = char.charCodeAt(0);
+        if(code >= 0xac00 && code <= 0xd7a3) return initials[Math.floor((code - 0xac00) / 588)] || char;
+        return /\s/.test(char) ? ' ' : char;
+      }).join('');
+    }
+
+    function getCurrentQuestionAnswerText(question) {
+      if(!question) return '';
+      if(question.answerText) return String(question.answerText).trim();
+      if(Array.isArray(question.choices) && Number.isInteger(question.answer)) {
+        return String(question.choices[question.answer] || '').trim();
+      }
+      return '';
+    }
+
+    function getQuestionHintText(question) {
+      const answerText = getCurrentQuestionAnswerText(question);
+      if(normalizeFirebaseQuizId(currentQuizId) === 'tiniping' && answerText) {
+        return `초성 힌트: ${getKoreanInitials(answerText)}`;
+      }
+      return String(question?.hint || '').trim();
+    }
+
+    function getWrongAnswerFeedbackText(question, rankingEndedByWrongAnswer, overrideMessage) {
+      const answerText = getCurrentQuestionAnswerText(question);
+      const parts = [];
+      if(overrideMessage) parts.push(overrideMessage);
+      if(answerText) parts.push(`정답은 '${answerText}'입니다.`);
+      if(rankingEndedByWrongAnswer) parts.push('생명력이 모두 소진되어 랭킹전이 종료됩니다.');
+      if(parts.length) return parts.join(' ');
+      return '괜찮아요. 다음 문제에서 다시 확인해 봅니다.';
+    }
+
     function renderQuestion() {
       const questionSet = getCurrentQuestionSet();
       const question = questionSet[currentQuestionIndex];
@@ -7874,7 +7932,7 @@
       const title = document.createElement('h3');
       const choices = document.createElement('div');
       const submit = document.createElement('button');
-      const hintText = String(question.hint || '').trim();
+      const hintText = getQuestionHintText(question);
       const shouldRenderHint = !!hintText && !(currentModeId === 'ranking' && currentRankingModeId === 'nohint');
 
       card.className = 'quiz-question-card';
@@ -8077,6 +8135,7 @@
 
     function showQuizResult(isCorrect, overrideMessage) {
       const root = document.getElementById('quiz-play-root');
+      const question = getCurrentQuestionSet()[currentQuestionIndex];
       const card = document.createElement('article');
       const title = document.createElement('h3');
       const desc = document.createElement('p');
@@ -8089,7 +8148,9 @@
 
       card.className = `quiz-result-card ${isCorrect ? 'is-correct' : 'is-wrong'}`;
       title.textContent = isCorrect ? '정답입니다!' : '오답입니다!';
-      desc.textContent = overrideMessage || (rankingEndedByWrongAnswer ? '생명력이 모두 소진되어 랭킹전이 종료됩니다.' : (isCorrect ? '좋아요. 다음 문제도 이어서 풀어봅니다.' : '괜찮아요. 다음 문제에서 다시 확인해 봅니다.'));
+      desc.textContent = isCorrect
+        ? (overrideMessage || '좋아요. 다음 문제도 이어서 풀어봅니다.')
+        : getWrongAnswerFeedbackText(question, rankingEndedByWrongAnswer, overrideMessage);
       saveStatus.id = 'practice-save-status';
       saveStatus.className = 'quiz-progress';
       saveStatus.textContent = isCorrect && currentModeId === 'practice' ? '기록 저장 중' : '';
@@ -8202,7 +8263,7 @@
         'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
         idol: { category: '인물(아이돌)', subFilter: '아이돌' },
         anime: { category: '인물(애니)', subFilter: '애니' },
-        tiniping: { category: '인물(티니핑)', subFilter: '티니핑' }
+        tiniping: { category: '티니핑', subFilter: '티니핑' }
       };
       const target = targets[id];
       if(!target) return null;
@@ -8236,6 +8297,7 @@
 
     function buildUserRankingSummaryUpdate(summary, record, updatedAt) {
       const existing = summary || {};
+      const categoryKey = getRankingCategoryKey(record);
       const byMode = { ...(existing.byMode || {}) };
       const bestScoresByMode = { ...(existing.bestScoresByMode || {}) };
       const modeSummary = {
@@ -8243,19 +8305,19 @@
         byCategory: { ...((byMode[record.rankingMode] || {}).byCategory || {}) }
       };
       const bestModeSummary = { ...(bestScoresByMode[record.rankingMode] || {}) };
-      const currentEntry = modeSummary.byCategory[record.categoryKey];
+      const currentEntry = modeSummary.byCategory[categoryKey];
 
       if(isBetterRankingEntry(record, currentEntry)) {
-        modeSummary.byCategory[record.categoryKey] = {
+        modeSummary.byCategory[categoryKey] = {
           rank: Number(currentEntry?.rank) || 0,
           total: Number(currentEntry?.total) || 0,
           score: record.score,
           elapsedSeconds: record.elapsedSeconds,
           elapsedText: record.elapsedText,
           recordId: record.recordId,
-          category: record.category
+          category: categoryKey === '티니핑' ? '티니핑' : record.category
         };
-        bestModeSummary[record.categoryKey] = {
+        bestModeSummary[categoryKey] = {
           score: record.score,
           elapsedSeconds: record.elapsedSeconds,
           recordId: record.recordId
@@ -8281,14 +8343,15 @@
 
     function buildQuizKingSummaryUpdate(summary, record, updatedAt) {
       const existing = summary || {};
+      const categoryKey = getRankingCategoryKey(record);
       const categories = Array.isArray(existing.categories) ? [...existing.categories] : [];
-      const index = categories.findIndex(item => item?.categoryKey === record.categoryKey);
+      const index = categories.findIndex(item => normalizeRankingCategoryKey(item?.categoryKey, item?.category) === categoryKey);
       const current = index >= 0 ? categories[index] : null;
 
       if(isBetterRankingEntry(record, current)) {
         const nextCategory = {
-          categoryKey: record.categoryKey,
-          category: record.category,
+          categoryKey,
+          category: categoryKey === '티니핑' ? '티니핑' : record.category,
           score: record.score,
           elapsedSeconds: record.elapsedSeconds,
           elapsedText: record.elapsedText,
