@@ -3669,6 +3669,13 @@
       return [mode];
     }
 
+    function getSubjectRankingModeFilterValues(modeId) {
+      const mode = String(modeId || '').trim();
+      if(!mode || mode === 'all') return null;
+      if(mode === 'normal') return ['normal', 'legacy'];
+      return [mode];
+    }
+
     function isRankingModeAllowed(record, allowedModes) {
       if(!allowedModes) return true;
       return allowedModes.has(getRankingRecordMode(record));
@@ -3985,9 +3992,72 @@
         groupPanel.className = 'ranking-sub-panel';
         groupPanel.dataset.rankingSubPanel = group.id;
         groupPanel.hidden = index !== 0;
-        renderRankingRows(groupPanel, group.rows, board);
+        renderRankingGroupPanel(groupPanel, group, board);
         panel.appendChild(groupPanel);
       });
+    }
+
+    function getRankingRowsForGroup(group, modeId = 'all') {
+      if(group.keys?.length && Array.isArray(group.sourceRows)) {
+        const modeValues = getSubjectRankingModeFilterValues(modeId);
+        return getTopRankingRecordsByCategoryKeys(group.sourceRows, group.keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
+      }
+      if(modeId === 'all') return group.rows || [];
+      const modeValues = getSubjectRankingModeFilterValues(modeId);
+      const keys = Array.from(new Set((group.rows || []).map(row => row.categoryKey).filter(Boolean)));
+      return getTopRankingRecordsByCategoryKeys(group.rows || [], keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
+    }
+
+    function getRankingModeFilterOptions() {
+      return [
+        { id: 'all', label: '전체', value: '' },
+        { id: 'normal', label: '일반', value: 'normal' },
+        { id: 'onechance', label: '원코', value: 'onechance' },
+        { id: 'speed', label: '스피드', value: 'speed' },
+        { id: 'nohint', label: '노힌트', value: 'nohint' }
+      ];
+    }
+
+    function getSupportedRankingModeIdsForKeys(keys = []) {
+      const limitedKeys = new Set([
+        '맞춤법',
+        '독서지엠오-아이',
+        '독서시간가게',
+        '사회삼국지',
+        '사회고대사-삼국시대',
+        '수학곱셈과-나눗셈'
+      ]);
+      const hasFullModeQuiz = keys.some(key => !limitedKeys.has(key));
+      return hasFullModeQuiz
+        ? ['all', 'normal', 'onechance', 'speed', 'nohint']
+        : ['all', 'normal', 'onechance'];
+    }
+
+    function renderRankingGroupPanel(panel, group, board) {
+      panel.innerHTML = '';
+      if(board.id === 'quizKing') {
+        renderRankingRows(panel, group.rows || [], board);
+        return;
+      }
+      const filters = document.createElement('div');
+      const filterRow = document.createElement('div');
+      const rowsWrap = document.createElement('div');
+      filters.className = 'ranking-popular-detail-filters ranking-mode-filter-box';
+      filterRow.className = 'ranking-popular-filter-row';
+      rowsWrap.className = 'ranking-mode-filter-results';
+      const supportedModes = new Set(getSupportedRankingModeIdsForKeys(group.keys || []));
+      getRankingModeFilterOptions().filter(option => supportedModes.has(option.id)).forEach(option => {
+        filterRow.appendChild(createPopularFilterButton(option.label, option.id === 'all', event => {
+          filterRow.querySelectorAll('.ranking-sub-tab').forEach(tab => {
+            tab.classList.toggle('is-active', tab === event.currentTarget);
+          });
+          rowsWrap.innerHTML = '';
+          renderRankingRows(rowsWrap, getRankingRowsForGroup(group, option.id), board);
+        }));
+      });
+      filters.appendChild(filterRow);
+      panel.append(filters, rowsWrap);
+      renderRankingRows(rowsWrap, getRankingRowsForGroup(group), board);
     }
 
     function getPopularRankingAreas() {
@@ -4332,13 +4402,15 @@
       return definitions.map(definition => ({
         id: definition.id,
         label: definition.label,
+        keys: definition.keys,
+        sourceRows: records,
         rows: getTopRankingRecordsByCategoryKeys(records, definition.keys, RANKING_PLAZA_ROW_LIMIT, definition.rankingModes || null)
       }));
     }
 
     function buildSubjectRankingGroups(records, allKeys, definitions) {
       return [
-        { id: 'all', label: '전체', rows: getTopRankingRecordsByCategoryKeys(records, allKeys) },
+        { id: 'all', label: '전체', keys: allKeys, sourceRows: records, rows: getTopRankingRecordsByCategoryKeys(records, allKeys) },
         ...buildRankingGroups(records, definitions)
       ];
     }
