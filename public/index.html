@@ -7738,13 +7738,7 @@
           completionType: completionType || 'loop'
         };
       }
-      const pokemonDifficultyTargets = {
-        'pokemon-easy': { area: '포켓몬', detail: '쉬움', areaKey: '포켓몬/easy', completionType: completionType || 'loop' },
-        'pokemon-normal': { area: '포켓몬', detail: '보통', areaKey: '포켓몬/normal', completionType: completionType || 'loop' },
-        'pokemon-hard': { area: '포켓몬', detail: '어려움', areaKey: '포켓몬/hard', completionType: completionType || 'loop' },
-        'pokemon-very-hard': { area: '포켓몬', detail: '헬', areaKey: '포켓몬/very-hard', completionType: completionType || 'loop' }
-      };
-      if(pokemonDifficultyTargets[id]) return pokemonDifficultyTargets[id];
+      if(/^pokemon-(easy|normal|hard|very-hard)$/.test(id)) return null;
       const targets = {
         'random-basic': { area: '수학', detail: '곱셈과 나눗셈', areaKey: '수학/random-basic', completionType: 'loop' },
         spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
