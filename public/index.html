@@ -7405,6 +7405,7 @@
       progress.className = 'quiz-progress';
       progress.textContent = getQuizProgressText();
       title.textContent = question.question;
+      title.className = 'quiz-question-title';
       choices.className = 'quiz-choice-list';
       submit.className = 'quiz-submit-button';
       submit.type = 'button';
@@ -7455,25 +7456,27 @@
         });
       }
 
-      card.append(progress, title);
+      const titleRow = document.createElement('div');
+      titleRow.className = 'quiz-question-title-row';
+      titleRow.appendChild(title);
       if(shouldRenderHint) {
-        const hintWrap = document.createElement('div');
         const hintButton = document.createElement('button');
         const hintDisplay = document.createElement('p');
-        hintWrap.className = 'quiz-hint-box';
         hintButton.className = 'quiz-hint-button';
         hintButton.type = 'button';
-        hintButton.textContent = '힌트 보기';
+        hintButton.textContent = '힌트';
         hintDisplay.className = 'quiz-hint-text';
         hintDisplay.textContent = hintText;
         hintDisplay.hidden = true;
         hintButton.addEventListener('click', () => {
           const nextHidden = !hintDisplay.hidden;
           hintDisplay.hidden = nextHidden;
-          hintButton.textContent = nextHidden ? '힌트 보기' : '힌트 숨기기';
+          hintButton.textContent = nextHidden ? '힌트' : '닫기';
         });
-        hintWrap.append(hintButton, hintDisplay);
-        card.appendChild(hintWrap);
+        titleRow.appendChild(hintButton);
+        card.append(progress, titleRow, hintDisplay);
+      } else {
+        card.append(progress, titleRow);
       }
       card.append(choices, submit);
       root.appendChild(card);

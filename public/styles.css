@@ -4599,6 +4599,13 @@ h2 {
   font-weight: 900;
 }
 
+.quiz-question-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .quiz-question-card h3,
 .quiz-result-card h3,
 .quiz-complete-card h3 {
@@ -4609,37 +4616,50 @@ h2 {
   word-break: keep-all;
 }
 
-.quiz-hint-box {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-  margin-top: 14px;
+.quiz-question-title {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .quiz-hint-button {
-  min-height: 34px;
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 32px;
   margin: 0;
-  padding: 7px 12px;
-  border: 1px solid rgba(47, 125, 68, 0.18);
+  padding: 7px 12px 7px 26px;
+  border: 1px solid rgba(132, 180, 80, 0.34);
   border-radius: 999px;
-  background: #fff8d8;
+  background: linear-gradient(180deg, #fbfff1 0%, #eaf8d3 100%);
   color: var(--green-dark);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(47, 125, 68, 0.07);
+  box-shadow: 0 7px 14px rgba(47, 125, 68, 0.1);
+  white-space: nowrap;
+}
+
+.quiz-hint-button::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 10px 10px 10px 2px;
+  background: #7fbf57;
+  transform: translateY(-50%) rotate(-22deg);
 }
 
 .quiz-hint-button:hover,
 .quiz-hint-button:focus-visible {
   outline: none;
-  border-color: rgba(47, 125, 68, 0.4);
-  background: #fff1ba;
+  border-color: rgba(47, 125, 68, 0.44);
+  background: linear-gradient(180deg, #fff8d8 0%, #e9f8cf 100%);
 }
 
 .quiz-hint-text {
   max-width: 100%;
-  margin: 0;
+  margin: 12px 0 0;
   padding: 10px 12px;
   border: 1px solid rgba(255, 183, 77, 0.3);
   border-radius: 14px;
@@ -5258,6 +5278,15 @@ h2 {
   .pokemon-hub-practice-grid,
   .pokemon-hub-ranking-mode-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quiz-question-title-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .quiz-hint-button {
+    margin-left: auto;
   }
 
   .quiz-choice-list {
