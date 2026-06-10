@@ -6791,6 +6791,7 @@
         ['연결 없음', data.metrics?.missingAuthUid || 0],
         ['연습 orphan', data.metrics?.orphanPracticeRecords || 0],
         ['랭킹 orphan', data.metrics?.orphanRankingRecords || 0],
+        ['이름기반 legacy', data.metrics?.legacyNameRankingRecords || 0],
         ['퀴즈왕 불일치', data.metrics?.quizKingMismatch || 0]
       ].forEach(([label, value]) => {
         summaryRoot.appendChild(createAdminDetailMetric(label, value));
@@ -6799,7 +6800,7 @@
       const sections = [
         ['회원 연결 점검', data.issues?.memberAuth || [], item => `${item.memberUserId} · ${item.nickname || '-'} · ${item.reason}`],
         ['연습기록 orphan 후보', data.issues?.orphanPracticeRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.area || '-'} / ${item.detail || '-'}`],
-        ['랭킹기록 orphan 후보', data.issues?.orphanRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점`],
+        ['랭킹기록 orphan 후보', data.issues?.orphanRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점${item.legacyNameOnly ? ' · 이름만 있던 과거 기록' : ''}`],
         ['퀴즈왕 summary 불일치 후보', data.issues?.quizKingMismatch || [], item => `${item.memberUserId} · 저장 ${item.storedTotalScore}점/${item.storedCategoryCount}영역 · 계산 ${item.calculatedTotalScore}점/${item.calculatedCategoryCount}영역`],
         ['비정상 랭킹 후보', data.issues?.suspiciousRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점 · ${item.elapsedSeconds || 0}초`]
       ];

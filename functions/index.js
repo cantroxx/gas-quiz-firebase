@@ -1819,13 +1819,16 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
       const memberUserId = String(row.memberUserId || row.userId || "").trim();
       return memberUserId && !userIds.has(memberUserId);
     });
+  const legacyNameRankingRecordRows = orphanRankingRecordRows
+    .filter(row => String(row.memberUserId || row.userId || "").startsWith("legacy_name_"));
   const orphanRankingRecords = orphanRankingRecordRows
     .slice(0, 20)
     .map(row => ({
       recordId: row.recordId,
       memberUserId: row.memberUserId || row.userId || "",
       category: row.category || row.categoryKey || "",
-      score: Number(row.score) || 0
+      score: Number(row.score) || 0,
+      legacyNameOnly: String(row.memberUserId || row.userId || "").startsWith("legacy_name_")
     }));
 
   const suspiciousRankingRecordRows = rankingRows
@@ -1872,6 +1875,7 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
         missingCredentials: activeStudents.filter(user => !credentialIds.has(user.memberUserId)).length,
         orphanPracticeRecords: orphanPracticeRecordRows.length,
         orphanRankingRecords: orphanRankingRecordRows.length,
+        legacyNameRankingRecords: legacyNameRankingRecordRows.length,
         suspiciousRankingRecords: suspiciousRankingRecordRows.length,
         quizKingMismatch: quizKingMismatchRows.length
       },
@@ -1904,6 +1908,7 @@ function isImageQuestion(data) {
 }
 
 function isChoiceQuestion(data) {
+  if (isImageQuestion(data)) return false;
   const type = String(data.questionType || data.type || "").trim();
   return type.includes("Choice") || type === "choice" || Array.isArray(data.choices);
 }
