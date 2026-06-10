@@ -4044,12 +4044,24 @@
     async function loadLimitedRankingRecordsForPlaza(db) {
       const enabledCategoryKeys = getEnabledRankingCategoryKeys(RANKING_PLAZA_CATEGORY_KEYS);
       if(!enabledCategoryKeys.length) return [];
-      const snapshots = await Promise.all(enabledCategoryKeys.map(categoryKey =>
-        db.collection('rankingRecords')
+      const loadCategoryRecords = async categoryKey => {
+        const limit = getRankingPlazaCategoryRecordLimit(categoryKey);
+        const baseQuery = db.collection('rankingRecords')
           .where('categoryKey', '==', categoryKey)
-          .limit(getRankingPlazaCategoryRecordLimit(categoryKey))
-          .get()
-      ));
+          .limit(limit);
+        try {
+          return await db.collection('rankingRecords')
+            .where('categoryKey', '==', categoryKey)
+            .orderBy('score', 'desc')
+            .orderBy('elapsedSeconds', 'asc')
+            .limit(limit)
+            .get();
+        } catch(error) {
+          console.warn('Firestore ranking ordered query failed. Falling back to limited category query.', { categoryKey, error });
+          return baseQuery.get();
+        }
+      };
+      const snapshots = await Promise.all(enabledCategoryKeys.map(loadCategoryRecords));
       const byRecordId = new Map();
       snapshots.forEach((snapshot, index) => {
         const categoryKey = enabledCategoryKeys[index];
@@ -4334,8 +4346,8 @@
           const userKey = getRankingRecordUserKey(record);
           if(!userKey) return;
           const area = getPopularAreaForRecord(record);
-          const bucket = area.id === 'pokemon'
-            ? 'pokemon'
+          const bucket = area.id === 'pokemon' || area.id === 'tiniping'
+            ? area.id
             : `${getRankingCategoryKey(record)}::${getRankingRecordMode(record)}`;
           const key = `${bucket}::${userKey}`;
           const current = bestByUserAndBucket.get(key);
@@ -4359,6 +4371,15 @@
       return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, RANKING_PLAZA_ROW_LIMIT);
     }
 
+    function getPopularUniqueUserRows(records, keys, modeValues) {
+      const allowedModes = Array.isArray(modeValues) && modeValues.length ? new Set(modeValues) : null;
+      const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
+      const filtered = records
+        .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
+        .filter(record => isRankingModeAllowed(record, allowedModes));
+      return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, RANKING_PLAZA_ROW_LIMIT);
+    }
+
     function getPopularFilteredRows(records) {
       const areaId = getActivePopularArea();
       const area = getPopularRankingAreas().find(item => item.id === areaId) || getPopularRankingAreas()[0];
@@ -4371,6 +4392,7 @@
       const activeMode = getActivePopularMode(records, areaId);
       const modeValues = getRankingModeFilterValues(activeMode);
       if(areaId === 'pokemon') return getPopularPokemonRows(records, keys, modeValues);
+      if(areaId === 'tiniping') return getPopularUniqueUserRows(records, keys, modeValues);
       return getTopRankingRecordsByCategoryKeys(records, keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
     }
 

@@ -1,0 +1,23 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "rankingRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "categoryKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "score",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "elapsedSeconds",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
