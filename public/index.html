@@ -3530,7 +3530,7 @@
     }
 
     function getProfileRankingCategoryKey(record) {
-      return String(record?.categoryKey || '').trim() || slugPracticeKey(record?.category || record?.quizId || '');
+      return getRankingCategoryKey(record) || slugPracticeKey(record?.category || record?.quizId || '');
     }
 
     function getProfileBestRankingRecords(records = []) {
@@ -3556,16 +3556,26 @@
     async function loadProfileRankingRankContext(db, bestRows = []) {
       const categoryKeys = Array.from(new Set(bestRows.map(getProfileRankingCategoryKey).filter(Boolean)));
       if(!db || !categoryKeys.length) return {};
-      const snapshots = await Promise.all(categoryKeys.map(categoryKey =>
-        db.collection('rankingRecords')
+      const snapshots = await Promise.all(categoryKeys.map(async categoryKey => {
+        const limit = Math.max(PROFILE_RANKING_CONTEXT_LIMIT, getRankingPlazaCategoryRecordLimit(categoryKey));
+        const baseQuery = db.collection('rankingRecords')
           .where('categoryKey', '==', categoryKey)
-          .limit(80)
-          .get()
-          .catch(error => {
-            console.warn('Firestore profile ranking rank read failed.', { categoryKey, error });
+          .limit(limit);
+        try {
+          return await db.collection('rankingRecords')
+            .where('categoryKey', '==', categoryKey)
+            .orderBy('score', 'desc')
+            .orderBy('elapsedSeconds', 'asc')
+            .limit(limit)
+            .get();
+        } catch(error) {
+          console.warn('Firestore profile ranking ordered rank read failed. Falling back to limited category query.', { categoryKey, error });
+          return baseQuery.get().catch(fallbackError => {
+            console.warn('Firestore profile ranking rank read failed.', { categoryKey, error: fallbackError });
             return null;
-          })
-      ));
+          });
+        }
+      }));
       const rankContext = {};
       snapshots.forEach((snapshot, index) => {
         if(!snapshot) return;
@@ -3573,7 +3583,7 @@
         const topRows = getTopRankingRecordsByCategoryKeys(
           snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) })),
           [categoryKey],
-          80
+          Math.max(PROFILE_RANKING_CONTEXT_LIMIT, getRankingPlazaCategoryRecordLimit(categoryKey))
         );
         topRows.forEach((row, rowIndex) => {
           const rankInfo = {
@@ -3686,7 +3696,7 @@
       }
       const snapshot = await db.collection('rankingRecords')
         .where('memberUserId', '==', currentMemberUserId)
-        .limit(80)
+        .limit(PROFILE_RANKING_RECORD_LIMIT)
         .get();
       const records = snapshot.docs
         .map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }))
@@ -3858,6 +3868,9 @@
 
     const RANKING_PLAZA_ROW_LIMIT = 10;
     const RANKING_PLAZA_CATEGORY_RECORD_LIMIT = 40;
+    const RANKING_PROFILE_LOOKUP_LIMIT = 180;
+    const PROFILE_RANKING_RECORD_LIMIT = 500;
+    const PROFILE_RANKING_CONTEXT_LIMIT = 240;
     const POKEMON_RANKING_CATEGORY_KEYS = [
       '포켓몬1세대',
       '포켓몬2세대',
@@ -3974,7 +3987,7 @@
     }
 
     async function loadMemberProfilesForRankingRows(db, rows) {
-      const userIds = Array.from(new Set(rows.map(getRankingMemberUserId).filter(Boolean))).slice(0, 60);
+      const userIds = Array.from(new Set(rows.map(getRankingMemberUserId).filter(Boolean))).slice(0, RANKING_PROFILE_LOOKUP_LIMIT);
       if(!userIds.length) return {};
       const snapshots = await Promise.all(userIds.map(userId => Promise.all([
         db.collection('users').doc(userId).get().catch(() => null),
