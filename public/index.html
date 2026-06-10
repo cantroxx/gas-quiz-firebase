@@ -379,6 +379,7 @@
       <div class="admin-section-tabs" aria-label="관리자 메뉴">
         <button class="admin-section-tab is-active" type="button" data-admin-section-target="dashboard">대시보드</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="audit" data-super-admin-only>운영 점검</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="quiz-quality" data-super-admin-only>문제 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
@@ -421,6 +422,24 @@
           <p id="admin-audit-status" class="admin-status" aria-live="polite"></p>
           <div id="admin-audit-summary" class="admin-summary"></div>
           <div id="admin-audit-list" class="admin-audit-list"></div>
+        </div>
+      </section>
+
+      <section id="admin-section-quiz-quality" class="admin-section" aria-labelledby="admin-quiz-quality-heading" data-super-admin-only>
+        <button class="admin-section-toggle" type="button" data-admin-section-target="quiz-quality" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Quiz QA</span>
+            <strong id="admin-quiz-quality-heading">문제 품질 점검</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-notice-actions">
+            <button id="admin-quiz-quality-refresh" class="button secondary" type="button">점검 실행</button>
+          </div>
+          <p id="admin-quiz-quality-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-quiz-quality-summary" class="admin-summary"></div>
+          <div id="admin-quiz-quality-list" class="admin-audit-list"></div>
         </div>
       </section>
 
@@ -6803,6 +6822,55 @@
       return result.audit;
     }
 
+    function setAdminQuizQualityStatus(message, isError = false) {
+      const status = document.getElementById('admin-quiz-quality-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function renderAdminQuizQualityAudit(audit) {
+      const summaryRoot = document.getElementById('admin-quiz-quality-summary');
+      const listRoot = document.getElementById('admin-quiz-quality-list');
+      if(!summaryRoot || !listRoot) return;
+      const data = audit || {};
+      summaryRoot.innerHTML = '';
+      listRoot.innerHTML = '';
+      [
+        ['퀴즈', data.metrics?.quizCount || 0],
+        ['문항', data.metrics?.questionCount || 0],
+        ['비활성 퀴즈', data.metrics?.disabledQuizCount || 0],
+        ['오류 후보', data.metrics?.invalidQuestionCount || 0],
+        ['이미지 누락', data.metrics?.missingImageCount || 0],
+        ['중복 ID 후보', data.metrics?.duplicateQuestionIdCount || 0]
+      ].forEach(([label, value]) => {
+        summaryRoot.appendChild(createAdminDetailMetric(label, value));
+      });
+
+      [
+        ['퀴즈별 문항 수', data.quizSummaries || [], row => `${row.quizId} · ${row.title || '-'} · ${row.questionCount}문항${row.disabled ? ' · 닫힘' : ''}`],
+        ['문항 오류 후보', data.issues?.invalidQuestions || [], row => `${row.quizId}/${row.questionId} · ${row.reason}`],
+        ['이미지 누락 후보', data.issues?.missingImages || [], row => `${row.quizId}/${row.questionId} · ${row.answer || row.prompt || '-'}`],
+        ['중복 questionId 후보', data.issues?.duplicateQuestionIds || [], row => `${row.quizId} · ${row.questionId} · ${row.count}건`]
+      ].forEach(([title, rows, formatter]) => {
+        listRoot.appendChild(createAdminDetailList(title, rows, formatter));
+      });
+    }
+
+    async function loadAdminQuizQualityAudit() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminQuizQualityStatus('문제 데이터를 점검하는 중입니다...');
+      const callable = functions.httpsCallable('adminGetQuizQualityAudit');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-quiz-quality-load-failed');
+      renderAdminQuizQualityAudit(result.audit);
+      setAdminQuizQualityStatus(`읽기 전용 점검 완료 · ${formatAdminTimestamp(result.audit?.checkedAt)}`);
+      return result.audit;
+    }
+
     function renderAdminSummary(summary) {
       const root = document.getElementById('admin-summary');
       if(!root) return;
@@ -9113,6 +9181,10 @@
             console.warn('Admin operational audit load failed.', error);
             setAdminAuditStatus('운영 점검을 불러오지 못했습니다.', true);
           });
+          loadAdminQuizQualityAudit().catch(error => {
+            console.warn('Admin quiz quality audit load failed.', error);
+            setAdminQuizQualityStatus('문제 점검을 불러오지 못했습니다.', true);
+          });
         }
       }).catch(error => {
         console.warn('Admin dashboard load failed.', error);
@@ -9536,6 +9608,13 @@
       loadAdminOperationalAudit().catch(error => {
         console.warn('Admin operational audit refresh failed.', error);
         setAdminAuditStatus('운영 점검을 다시 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-quiz-quality-refresh').addEventListener('click', () => {
+      loadAdminQuizQualityAudit().catch(error => {
+        console.warn('Admin quiz quality audit refresh failed.', error);
+        setAdminQuizQualityStatus('문제 점검을 다시 불러오지 못했습니다.', true);
       });
     });
 

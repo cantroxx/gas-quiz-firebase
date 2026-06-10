@@ -1886,6 +1886,146 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
   };
 });
 
+function getQuestionPrompt(data) {
+  return String(data.prompt || data.question || data.text || "").trim();
+}
+
+function getQuestionAnswer(data) {
+  return String(data.answer || data.answerText || data.correctAnswer || "").trim();
+}
+
+function getQuestionImageRef(data) {
+  return String(data.imageUrl || data.imageFileId || data.imageStoragePath || "").trim();
+}
+
+function isImageQuestion(data) {
+  const type = String(data.questionType || data.type || "").trim();
+  return type === "imageInput" || type === "image-choice" || Boolean(data.imageRequired);
+}
+
+function isChoiceQuestion(data) {
+  const type = String(data.questionType || data.type || "").trim();
+  return type.includes("Choice") || type === "choice" || Array.isArray(data.choices);
+}
+
+function getQuestionQualityReason(data) {
+  const prompt = getQuestionPrompt(data);
+  const answer = getQuestionAnswer(data);
+  const choices = Array.isArray(data.choices) ? data.choices.filter(choice => String(choice || "").trim()) : [];
+  const answerIndex = Number(data.answerIndex);
+  if (!prompt) return "문항/프롬프트가 비어 있음";
+  if (!answer && !Number.isInteger(answerIndex)) return "정답이 비어 있음";
+  if (isChoiceQuestion(data)) {
+    if (choices.length < 2) return "보기 수 부족";
+    if (Number.isInteger(answerIndex) && (answerIndex < 0 || answerIndex >= choices.length)) return "answerIndex 범위 오류";
+  }
+  if (isImageQuestion(data) && !getQuestionImageRef(data)) return "이미지 참조 없음";
+  return "";
+}
+
+exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+
+  const [quizSnapshot, featureFlags] = await Promise.all([
+    db.collection("quizzes").limit(300).get(),
+    getFeatureFlags().catch(() => DEFAULT_FEATURE_FLAGS)
+  ]);
+  const disabledQuizIds = new Set(publicFeatureFlags(featureFlags).disabledQuizIds || []);
+  const quizDocs = quizSnapshot.docs.map(doc => ({ quizId: doc.id, ...(doc.data() || {}) }));
+  const questionSnapshots = await Promise.all(quizDocs.map(quiz =>
+    db.collection("quizQuestions").doc(quiz.quizId).collection("questions").limit(1200).get()
+      .catch(error => {
+        console.warn("Admin quiz quality question read failed.", quiz.quizId, error);
+        return null;
+      })
+  ));
+
+  const quizSummaries = [];
+  const invalidQuestions = [];
+  const missingImages = [];
+  const duplicateQuestionIds = [];
+  let questionCount = 0;
+  let invalidQuestionCount = 0;
+  let missingImageCount = 0;
+  let duplicateQuestionIdCount = 0;
+
+  quizDocs.forEach((quiz, index) => {
+    const snapshot = questionSnapshots[index];
+    const questions = snapshot ? snapshot.docs.map(publicAuditRecord) : [];
+    const seenIds = new Map();
+    questionCount += questions.length;
+
+    questions.forEach(question => {
+      const questionId = String(question.questionId || question.recordId || "").trim();
+      if (questionId) seenIds.set(questionId, (seenIds.get(questionId) || 0) + 1);
+      const reason = getQuestionQualityReason(question);
+      if (reason) {
+        invalidQuestionCount += 1;
+        if (invalidQuestions.length < 30) {
+          invalidQuestions.push({
+            quizId: quiz.quizId,
+            questionId: questionId || question.recordId,
+            reason
+          });
+        }
+      }
+      if (isImageQuestion(question) && !getQuestionImageRef(question)) {
+        missingImageCount += 1;
+        if (missingImages.length < 30) {
+          missingImages.push({
+            quizId: quiz.quizId,
+            questionId: questionId || question.recordId,
+            answer: getQuestionAnswer(question),
+            prompt: getQuestionPrompt(question)
+          });
+        }
+      }
+    });
+
+    seenIds.forEach((count, questionId) => {
+      if (count <= 1) return;
+      duplicateQuestionIdCount += count;
+      if (duplicateQuestionIds.length < 30) {
+        duplicateQuestionIds.push({ quizId: quiz.quizId, questionId, count });
+      }
+    });
+
+    quizSummaries.push({
+      quizId: quiz.quizId,
+      title: quiz.title || quiz.name || "",
+      questionCount: questions.length,
+      expectedQuestionCount: Number(quiz.questionCount) || 0,
+      disabled: disabledQuizIds.has(quiz.quizId),
+      generatorType: quiz.generatorType || ""
+    });
+  });
+
+  quizSummaries.sort((a, b) => String(a.quizId).localeCompare(String(b.quizId)));
+
+  return {
+    success: true,
+    audit: {
+      checkedAt: Timestamp.now(),
+      metrics: {
+        quizCount: quizDocs.length,
+        questionCount,
+        disabledQuizCount: quizSummaries.filter(quiz => quiz.disabled).length,
+        invalidQuestionCount,
+        missingImageCount,
+        duplicateQuestionIdCount
+      },
+      quizSummaries,
+      issues: {
+        invalidQuestions,
+        missingImages,
+        duplicateQuestionIds
+      }
+    }
+  };
+});
+
 exports.adminListMembers = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
