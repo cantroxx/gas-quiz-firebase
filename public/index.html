@@ -1318,7 +1318,7 @@
         icon: '🎯',
         title: '원코 모드',
         desc: '한 번 틀리면 종료되는 도전 모드입니다.',
-        enabled: false
+        enabled: true
       },
       records: {
         icon: '📊',
@@ -1942,6 +1942,13 @@
     let currentQuizId = 'spelling';
     let currentModeId = 'practice';
     let currentRankingModeId = 'normal';
+    let activePokemonHubDifficulty = '';
+    let currentSessionQuestions = null;
+    let rankingPlazaModelCache = null;
+    let activeRankingBoardId = 'quizKing';
+    let activePopularRankingArea = 'all';
+    let activePopularRankingDifficulty = 'all';
+    let activePopularRankingMode = 'all';
     let currentQuizStartedAtMs = 0;
     let currentRankingLives = 0;
     let currentRankingQuestionTimer = null;
@@ -2328,14 +2335,16 @@
     function normalizeDisplayImageUrl(value) {
       const raw = String(value || '').trim();
       if(!raw || raw === 'TODO') return '';
+      const buildDriveImageUrl = fileId =>
+        `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}`;
       if(/^https?:\/\//.test(raw)) {
         const fileMatch = raw.match(/\/file\/d\/([^/]+)/);
-        if(fileMatch?.[1]) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileMatch[1])}`;
+        if(fileMatch?.[1]) return buildDriveImageUrl(fileMatch[1]);
         const idMatch = raw.match(/[?&]id=([^&]+)/);
-        if(raw.includes('drive.google.com') && idMatch?.[1]) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(idMatch[1])}`;
+        if(raw.includes('drive.google.com') && idMatch?.[1]) return buildDriveImageUrl(idMatch[1]);
         return raw;
       }
-      if(/^[A-Za-z0-9_-]{20,}$/.test(raw)) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(raw)}`;
+      if(/^[A-Za-z0-9_-]{20,}$/.test(raw)) return buildDriveImageUrl(raw);
       return '';
     }
 
@@ -3381,7 +3390,14 @@
     }
 
     function normalizeRankingDisplayName(data) {
-      return String(data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
+      return String(data?.displayNickname || data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
+    }
+
+    function appendRankingDisplayName(root, row) {
+      const nameText = document.createElement('span');
+      nameText.className = 'ranking-display-name';
+      nameText.textContent = normalizeRankingDisplayName(row);
+      root.appendChild(nameText);
     }
 
     function createRankingTitleChip(row) {
@@ -3395,7 +3411,7 @@
 
     function renderRankingAvatar(root, row, fallbackText) {
       root.innerHTML = '';
-      const imageUrl = normalizeDisplayImageUrl(row?.profileImageUrl);
+      const imageUrl = normalizeDisplayImageUrl(row?.profileImageUrl || row?.imageUrl || row?.avatarUrl || row?.profileImageId);
       if(imageUrl) {
         const image = document.createElement('img');
         image.src = imageUrl;
@@ -3642,6 +3658,32 @@
       return String(record?.memberUserId || record?.userId || record?.displayName || record?.nickname || '').trim();
     }
 
+    function getRankingRecordMode(record) {
+      return String(record?.rankingMode || 'normal').trim() || 'normal';
+    }
+
+    function getRankingModeFilterValues(modeId) {
+      const mode = String(modeId || '').trim();
+      if(!mode || mode === 'all') return null;
+      if(mode === 'normal') return ['normal', 'legacy', 'nohint'];
+      return [mode];
+    }
+
+    function isRankingModeAllowed(record, allowedModes) {
+      if(!allowedModes) return true;
+      return allowedModes.has(getRankingRecordMode(record));
+    }
+
+    function getRankingRecordGroupMode(record, allowedModes) {
+      const mode = getRankingRecordMode(record);
+      if(allowedModes?.has('normal') && (mode === 'legacy' || mode === 'nohint')) return 'normal';
+      return mode;
+    }
+
+    function isPokemonRankingCategoryKey(categoryKey) {
+      return POKEMON_RANKING_CATEGORY_KEYS.includes(String(categoryKey || '').trim());
+    }
+
     function isBetterCategoryRankingRecord(candidate, current) {
       if(!current) return true;
       const scoreDiff = (Number(candidate.score) || 0) - (Number(current.score) || 0);
@@ -3652,28 +3694,45 @@
       return getRankingRecordTimeValue(candidate) > getRankingRecordTimeValue(current);
     }
 
-    function getBestRankingRecordsByUserAndCategory(records, categoryKeys) {
+    function sortRankingRows(rows) {
+      return rows.slice().sort((a, b) => {
+        const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+        if(scoreDiff) return scoreDiff;
+        return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
+      });
+    }
+
+    function getBestRankingRecordsByUser(records) {
+      const bestByUser = new Map();
+      records.forEach(record => {
+        const userKey = getRankingRecordUserKey(record);
+        if(!userKey) return;
+        const current = bestByUser.get(userKey);
+        if(isBetterCategoryRankingRecord(record, current)) bestByUser.set(userKey, record);
+      });
+      return Array.from(bestByUser.values());
+    }
+
+    function getBestRankingRecordsByUserAndCategory(records, categoryKeys, rankingModes = null) {
+      const allowedModes = Array.isArray(rankingModes) && rankingModes.length
+        ? new Set(rankingModes.map(mode => String(mode || '').trim()).filter(Boolean))
+        : null;
       const bestByUserAndCategory = new Map();
       records
         .filter(record => categoryKeys.includes(record.categoryKey))
+        .filter(record => isRankingModeAllowed(record, allowedModes))
         .forEach(record => {
           const userKey = getRankingRecordUserKey(record);
           if(!userKey) return;
-          const key = `${record.categoryKey}::${userKey}`;
+          const key = `${record.categoryKey}::${getRankingRecordGroupMode(record, allowedModes)}::${userKey}`;
           const current = bestByUserAndCategory.get(key);
           if(isBetterCategoryRankingRecord(record, current)) bestByUserAndCategory.set(key, record);
         });
       return Array.from(bestByUserAndCategory.values());
     }
 
-    function getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit = 10) {
-      return getBestRankingRecordsByUserAndCategory(records, categoryKeys)
-        .sort((a, b) => {
-          const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
-          if(scoreDiff) return scoreDiff;
-          return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
-        })
-        .slice(0, limit);
+    function getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit = 10, rankingModes = null) {
+      return sortRankingRows(getBestRankingRecordsByUserAndCategory(records, categoryKeys, rankingModes)).slice(0, limit);
     }
 
     function getLatestRankingRecords(records, limit = 10) {
@@ -3727,6 +3786,10 @@
       return { recordId: doc.id, ...doc.data() };
     }
 
+    function getRankingPlazaCategoryRecordLimit(categoryKey) {
+      return isPokemonRankingCategoryKey(categoryKey) ? 240 : RANKING_PLAZA_CATEGORY_RECORD_LIMIT;
+    }
+
     function getRankingMemberUserId(row) {
       return String(row?.memberUserId || row?.userId || '').trim();
     }
@@ -3737,9 +3800,13 @@
       if(!profile) return row;
       return {
         ...row,
+        displayNickname: profile.nickname || row.nickname || row.displayName || row.name || '',
         displayName: profile.nickname || row.displayName || row.nickname || row.name,
         nickname: profile.nickname || row.nickname || row.displayName || row.name,
-        profileImageUrl: profile.profileImageUrl || row.profileImageUrl || '',
+        profileImageUrl: profile.profileImageUrl || profile.profileImageId || row.profileImageUrl || row.profileImageId || row.imageUrl || '',
+        profileImageId: profile.profileImageId || row.profileImageId || '',
+        profileImageSource: profile.profileImageSource || row.profileImageSource || '',
+        profileImageStoragePath: profile.profileImageStoragePath || row.profileImageStoragePath || '',
         profileImageScale: profile.profileImageScale ?? row.profileImageScale,
         profileImageOffsetX: profile.profileImageOffsetX ?? row.profileImageOffsetX,
         profileImageOffsetY: profile.profileImageOffsetY ?? row.profileImageOffsetY,
@@ -3773,6 +3840,9 @@
           classNumber: data.classNumber || '',
           studentNumber: data.studentNumber || '',
           profileImageUrl: data.profileImageUrl || '',
+          profileImageId: data.profileImageId || '',
+          profileImageSource: data.profileImageSource || '',
+          profileImageStoragePath: data.profileImageStoragePath || '',
           profileImageScale: data.profileImageScale,
           profileImageOffsetX: data.profileImageOffsetX,
           profileImageOffsetY: data.profileImageOffsetY,
@@ -3803,6 +3873,18 @@
           stillMissingTitleUsers[index].selectedTitleName = titleData.titleName || titleData.title || titleData.name || '';
         });
       }
+      const storage = getFirebaseStorage();
+      const storageImageUsers = storage
+        ? Object.values(profileMap).filter(profile => !profile.profileImageUrl && profile.profileImageStoragePath)
+        : [];
+      if(storageImageUsers.length) {
+        const imageUrls = await Promise.all(storageImageUsers.map(profile =>
+          storage.ref(profile.profileImageStoragePath).getDownloadURL().catch(() => '')
+        ));
+        imageUrls.forEach((url, index) => {
+          if(url) storageImageUsers[index].profileImageUrl = url;
+        });
+      }
       return profileMap;
     }
 
@@ -3810,14 +3892,15 @@
       const snapshots = await Promise.all(RANKING_PLAZA_CATEGORY_KEYS.map(categoryKey =>
         db.collection('rankingRecords')
           .where('categoryKey', '==', categoryKey)
-          .limit(RANKING_PLAZA_CATEGORY_RECORD_LIMIT)
+          .limit(getRankingPlazaCategoryRecordLimit(categoryKey))
           .get()
       ));
       const byRecordId = new Map();
-      snapshots.forEach(snapshot => {
+      snapshots.forEach((snapshot, index) => {
+        const categoryKey = RANKING_PLAZA_CATEGORY_KEYS[index];
         snapshot.docs.map(normalizeRankingRecordFromFirestore).filter(record => {
           const mode = String(record.rankingMode || '').trim();
-          return !mode || mode === 'normal' || mode === 'legacy';
+          return !mode || mode === 'normal' || mode === 'speed' || mode === 'onechance' || mode === 'legacy' || mode === 'nohint';
         }).forEach(record => {
           byRecordId.set(record.recordId, record);
         });
@@ -3826,6 +3909,7 @@
     }
 
     function renderRankingBoards(model) {
+      rankingPlazaModelCache = model || rankingPlazaModelCache;
       const root = document.getElementById('ranking-board-root');
       if(!root) return;
       root.innerHTML = '';
@@ -3842,17 +3926,21 @@
       const panels = document.createElement('div');
       tabs.className = 'ranking-board-tabs';
       panels.className = 'ranking-board-panels';
+      const activeBoardId = model.boards.some(board => board.id === activeRankingBoardId)
+        ? activeRankingBoardId
+        : (model.boards[0]?.id || '');
 
-      model.boards.forEach((board, index) => {
+      model.boards.forEach(board => {
         const button = document.createElement('button');
         const panel = document.createElement('section');
+        const isActive = board.id === activeBoardId;
         button.type = 'button';
-        button.className = `ranking-board-tab${index === 0 ? ' is-active' : ''}`;
+        button.className = `ranking-board-tab${isActive ? ' is-active' : ''}`;
         button.textContent = board.label;
         button.dataset.rankingBoardId = board.id;
         panel.className = 'ranking-board-panel';
         panel.dataset.rankingBoardPanel = board.id;
-        panel.hidden = index !== 0;
+        panel.hidden = !isActive;
         renderRankingBoardPanel(panel, board);
         tabs.appendChild(button);
         panels.appendChild(panel);
@@ -3863,6 +3951,10 @@
 
     function renderRankingBoardPanel(panel, board) {
       panel.innerHTML = '';
+      if(board.id === 'popular') {
+        renderPopularRankingBoardPanel(panel, board);
+        return;
+      }
       const groups = board.groups || [{ id: 'all', label: '전체', rows: board.rows }];
       const header = document.createElement('div');
       const title = document.createElement('h3');
@@ -3898,6 +3990,260 @@
       });
     }
 
+    function getPopularRankingAreas() {
+      return [
+        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS] },
+        { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
+        { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
+        { id: 'anime', label: '애니', keys: ['인물애니'] },
+        { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
+      ];
+    }
+
+    function getPopularPokemonDifficulties() {
+      return [
+        { id: 'all', label: '전체', keys: POKEMON_RANKING_CATEGORY_KEYS },
+        { id: 'easy', label: '쉬움', keys: ['포켓몬쉬움'] },
+        { id: 'normal', label: '보통', keys: ['포켓몬보통'] },
+        { id: 'hard', label: '어려움', keys: ['포켓몬어려움'] },
+        { id: 'veryHard', label: '헬', keys: ['포켓몬헬'] }
+      ];
+    }
+
+    function getPopularModeOptions(records, areaId) {
+      return [
+        { id: 'all', label: '전체', value: '' },
+        { id: 'normal', label: '일반', value: 'normal' },
+        { id: 'speed', label: '스피드', value: 'speed' },
+        { id: 'onechance', label: '원코', value: 'onechance' }
+      ];
+    }
+
+    function getPopularAreaForRecord(record) {
+      const key = String(record?.categoryKey || '').trim();
+      if(key === '아재개그') return { id: 'dadJoke', label: '아재개그' };
+      if(key === '인물아이돌') return { id: 'idol', label: '아이돌' };
+      if(key === '인물애니') return { id: 'anime', label: '애니' };
+      if(isPokemonRankingCategoryKey(key)) return { id: 'pokemon', label: '포켓몬' };
+      return { id: 'popular', label: getRankingCategoryLabel(record) || '인기' };
+    }
+
+    function getRankingModeLabelForDisplay(record) {
+      const mode = getRankingRecordMode(record);
+      if(mode === 'speed') return '스피드';
+      if(mode === 'onechance') return '원코';
+      return '일반';
+    }
+
+    function getPopularRankingDetailLabel(record) {
+      const area = getPopularAreaForRecord(record);
+      const modeLabel = getRankingModeLabelForDisplay(record);
+      if(area.id === 'pokemon') {
+        const difficulty = String(record?.subFilter || getRankingCategoryLabel(record) || '').trim();
+        return [difficulty, modeLabel].filter(Boolean).join('/');
+      }
+      return modeLabel;
+    }
+
+    function getPopularRankingConditionParts(record) {
+      const areaId = getActivePopularArea();
+      const modeId = getActivePopularMode([], areaId);
+      if(areaId === 'all') return [getPopularRankingDetailLabel(record)].filter(Boolean);
+      if(areaId === 'pokemon') {
+        const difficulty = String(record?.subFilter || getRankingCategoryLabel(record) || '').trim();
+        const modeLabel = getRankingModeLabelForDisplay(record);
+        const parts = [];
+        if(getActivePopularDifficulty() === 'all' && difficulty) parts.push(difficulty);
+        if(modeId === 'all' && modeLabel) parts.push(modeLabel);
+        return parts;
+      }
+      if(modeId === 'all') return [getRankingModeLabelForDisplay(record)];
+      return [];
+    }
+
+    function createPopularRankingMeta(row) {
+      const area = getPopularAreaForRecord(row);
+      const shouldShowTag = getActivePopularArea() === 'all';
+      const wrap = document.createElement('span');
+      const detail = document.createElement('strong');
+      const detailText = getPopularRankingConditionParts(row).join('/');
+      wrap.className = 'ranking-popular-meta';
+      if(shouldShowTag) {
+        const tag = document.createElement('span');
+        tag.className = `ranking-popular-tag ranking-popular-tag-${area.id}`;
+        tag.textContent = area.label;
+        wrap.appendChild(tag);
+      }
+      if(detailText) {
+        detail.textContent = detailText;
+        wrap.appendChild(detail);
+      }
+      return wrap;
+    }
+
+    function getActivePopularArea() {
+      return getPopularRankingAreas().some(item => item.id === activePopularRankingArea) ? activePopularRankingArea : 'all';
+    }
+
+    function getActivePopularDifficulty() {
+      return getPopularPokemonDifficulties().some(item => item.id === activePopularRankingDifficulty) ? activePopularRankingDifficulty : 'all';
+    }
+
+    function getActivePopularMode(records, areaId) {
+      return getPopularModeOptions(records, areaId).some(item => item.id === activePopularRankingMode) ? activePopularRankingMode : 'all';
+    }
+
+    function getPopularOverallRows(records, keys) {
+      const bestByUserAndBucket = new Map();
+      records
+        .filter(record => keys.includes(record.categoryKey))
+        .forEach(record => {
+          const userKey = getRankingRecordUserKey(record);
+          if(!userKey) return;
+          const area = getPopularAreaForRecord(record);
+          const bucket = area.id === 'pokemon'
+            ? 'pokemon'
+            : `${record.categoryKey}::${getRankingRecordMode(record)}`;
+          const key = `${bucket}::${userKey}`;
+          const current = bestByUserAndBucket.get(key);
+          if(isBetterCategoryRankingRecord(record, current)) bestByUserAndBucket.set(key, record);
+        });
+      return Array.from(bestByUserAndBucket.values())
+        .sort((a, b) => {
+          const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+          if(scoreDiff) return scoreDiff;
+          return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
+        })
+        .slice(0, RANKING_PLAZA_ROW_LIMIT);
+    }
+
+    function getPopularPokemonRows(records, keys, modeValues) {
+      const allowedModes = Array.isArray(modeValues) && modeValues.length ? new Set(modeValues) : null;
+      const filtered = records
+        .filter(record => keys.includes(record.categoryKey))
+        .filter(record => isRankingModeAllowed(record, allowedModes));
+      return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, RANKING_PLAZA_ROW_LIMIT);
+    }
+
+    function getPopularFilteredRows(records) {
+      const areaId = getActivePopularArea();
+      const area = getPopularRankingAreas().find(item => item.id === areaId) || getPopularRankingAreas()[0];
+      let keys = area.keys;
+      if(areaId === 'all') return getPopularOverallRows(records, keys);
+      if(areaId === 'pokemon') {
+        const difficulty = getPopularPokemonDifficulties().find(item => item.id === getActivePopularDifficulty());
+        keys = difficulty ? difficulty.keys : POKEMON_RANKING_CATEGORY_KEYS;
+      }
+      const activeMode = getActivePopularMode(records, areaId);
+      const modeValues = getRankingModeFilterValues(activeMode);
+      if(areaId === 'pokemon') return getPopularPokemonRows(records, keys, modeValues);
+      return getTopRankingRecordsByCategoryKeys(records, keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
+    }
+
+    function createRankingMetaLine(row, board) {
+      const line = document.createElement('p');
+      line.className = 'ranking-card-line';
+      let hasContent = false;
+      if(board.metaElement) {
+        const metaElement = board.metaElement(row);
+        if(metaElement?.textContent?.trim()) {
+          line.appendChild(metaElement);
+          hasContent = true;
+        }
+      } else if(typeof board.meta === 'function') {
+        const metaText = String(board.meta(row) || '').trim();
+        if(metaText) {
+          const meta = document.createElement('span');
+          meta.className = 'ranking-card-condition';
+          meta.textContent = metaText;
+          line.appendChild(meta);
+          hasContent = true;
+        }
+      }
+      if(row.rankingMessage) {
+        if(hasContent) {
+          const divider = document.createElement('span');
+          divider.className = 'ranking-card-line-divider';
+          divider.textContent = '·';
+          line.appendChild(divider);
+        }
+        const message = document.createElement('span');
+        message.className = 'ranking-card-message-inline';
+        message.textContent = `💬 ${String(row.rankingMessage).slice(0, 24)}`;
+        line.appendChild(message);
+        hasContent = true;
+      }
+      return hasContent ? line : null;
+    }
+
+    function createPopularFilterButton(label, isActive, onClick) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `ranking-sub-tab${isActive ? ' is-active' : ''}`;
+      button.textContent = label;
+      button.addEventListener('click', onClick);
+      return button;
+    }
+
+    function renderPopularRankingBoardPanel(panel, board) {
+      const records = board.sourceRows || [];
+      const header = document.createElement('div');
+      const title = document.createElement('h3');
+      const desc = document.createElement('p');
+      const areaTabs = document.createElement('div');
+      const detailFilters = document.createElement('div');
+      const rowsPanel = document.createElement('div');
+      header.className = 'ranking-board-header';
+      title.textContent = board.title || board.label;
+      desc.textContent = board.desc || '인기 퀴즈 랭킹전 기록입니다.';
+      header.append(title, desc);
+      areaTabs.className = 'ranking-sub-tabs ranking-popular-area-tabs';
+      detailFilters.className = 'ranking-popular-detail-filters';
+      rowsPanel.className = 'ranking-sub-panel';
+
+      const areaId = getActivePopularArea();
+      getPopularRankingAreas().forEach(area => {
+        areaTabs.appendChild(createPopularFilterButton(area.label, area.id === areaId, () => {
+          activeRankingBoardId = 'popular';
+          activePopularRankingArea = area.id;
+          activePopularRankingDifficulty = 'all';
+          activePopularRankingMode = 'all';
+          renderRankingBoards(rankingPlazaModelCache);
+        }));
+      });
+
+      if(areaId !== 'all') {
+        const modeId = getActivePopularMode(records, areaId);
+        if(areaId === 'pokemon') {
+          const difficultyRow = document.createElement('div');
+          difficultyRow.className = 'ranking-popular-filter-row';
+          getPopularPokemonDifficulties().forEach(difficulty => {
+            difficultyRow.appendChild(createPopularFilterButton(difficulty.label, difficulty.id === getActivePopularDifficulty(), () => {
+              activeRankingBoardId = 'popular';
+              activePopularRankingDifficulty = difficulty.id;
+              renderRankingBoards(rankingPlazaModelCache);
+            }));
+          });
+          detailFilters.appendChild(difficultyRow);
+        }
+        const modeRow = document.createElement('div');
+        modeRow.className = 'ranking-popular-filter-row';
+        getPopularModeOptions(records, areaId).forEach(mode => {
+          modeRow.appendChild(createPopularFilterButton(mode.label, mode.id === modeId, () => {
+            activeRankingBoardId = 'popular';
+            activePopularRankingMode = mode.id;
+            renderRankingBoards(rankingPlazaModelCache);
+          }));
+        });
+        detailFilters.appendChild(modeRow);
+      }
+
+      panel.append(header, areaTabs);
+      if(detailFilters.children.length) panel.appendChild(detailFilters);
+      renderRankingRows(rowsPanel, getPopularFilteredRows(records), board);
+      panel.appendChild(rowsPanel);
+    }
+
     function renderRankingRows(panel, rows, board) {
       if(!rows.length) {
         const empty = document.createElement('p');
@@ -3925,29 +4271,22 @@
         const rank = document.createElement('strong');
         const body = document.createElement('div');
         const name = document.createElement('p');
-        const meta = document.createElement('p');
-        const message = document.createElement('p');
         const score = document.createElement('p');
 
         item.className = 'ranking-board-row';
         rank.className = 'ranking-board-rank';
         body.className = 'ranking-board-body';
         name.className = 'ranking-board-name';
-        meta.className = 'ranking-board-meta';
         score.className = 'ranking-board-score';
         rank.textContent = `${index + 4}`;
         const titleChip = createRankingTitleChip(row);
         if(titleChip) name.appendChild(titleChip);
-        name.appendChild(document.createTextNode(normalizeRankingDisplayName(row)));
-        meta.textContent = board.meta(row);
-        if(row.rankingMessage) {
-          message.className = 'ranking-list-message';
-          message.textContent = `💬 ${String(row.rankingMessage).slice(0, 24)}`;
-        }
+        appendRankingDisplayName(name, row);
+        const meta = createRankingMetaLine(row, board);
         score.textContent = board.score(row);
 
-        body.append(name, meta);
-        if(row.rankingMessage) body.appendChild(message);
+        body.appendChild(name);
+        if(meta) body.appendChild(meta);
         item.append(rank, body, score);
         list.appendChild(item);
       });
@@ -3962,34 +4301,24 @@
       const badge = document.createElement('span');
       const avatar = document.createElement('div');
       const name = document.createElement('h4');
-      const meta = document.createElement('p');
       const score = document.createElement('p');
 
       card.className = `ranking-podium-card ranking-medal-${classes[index]} rank-${rank}`;
       badge.className = 'ranking-medal-badge';
       avatar.className = 'ranking-avatar';
       name.className = 'ranking-card-name';
-      meta.className = 'ranking-card-meta';
       score.className = 'ranking-card-score';
       badge.textContent = `${medals[index]} ${rank}위`;
       renderRankingAvatar(avatar, row, `${rank}`);
       const titleChip = createRankingTitleChip(row);
       if(titleChip) name.appendChild(titleChip);
-      name.appendChild(document.createTextNode(normalizeRankingDisplayName(row)));
-      meta.textContent = board.meta(row);
+      appendRankingDisplayName(name, row);
+      const meta = createRankingMetaLine(row, board);
       score.textContent = board.score(row);
 
-      card.append(badge, avatar, name, meta, score);
-      if(row.rankingMessage) {
-        const message = document.createElement('p');
-        message.className = 'ranking-message-bubble';
-        const label = document.createElement('span');
-        const text = document.createElement('strong');
-        label.textContent = '💬';
-        text.textContent = String(row.rankingMessage).slice(0, 24);
-        message.append(label, text);
-        card.insertBefore(message, score);
-      }
+      card.append(badge, avatar, name);
+      if(meta) card.appendChild(meta);
+      card.appendChild(score);
       return card;
     }
 
@@ -4003,7 +4332,7 @@
       return definitions.map(definition => ({
         id: definition.id,
         label: definition.label,
-        rows: getTopRankingRecordsByCategoryKeys(records, definition.keys)
+        rows: getTopRankingRecordsByCategoryKeys(records, definition.keys, RANKING_PLAZA_ROW_LIMIT, definition.rankingModes || null)
       }));
     }
 
@@ -4033,12 +4362,6 @@
       ]);
       const mathGroups = buildSubjectRankingGroups(rankingRecords, mathKeys, [
         { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] }
-      ]);
-      const popularGroups = buildSubjectRankingGroups(rankingRecords, popularKeys, [
-        { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
-        { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
-        { id: 'anime', label: '애니', keys: ['인물애니'] },
-        { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
       ]);
       return [
         {
@@ -4084,10 +4407,11 @@
           id: 'popular',
           label: '인기',
           title: '인기 퀴즈 랭킹',
-          desc: '아재개그, 아이돌, 애니 퀴즈의 랭킹 기록입니다.',
+          desc: '아재개그, 아이돌, 애니, 포켓몬 퀴즈의 랭킹 기록입니다.',
           rows: getTopRankingRecordsByCategoryKeys(rankingRecords, popularKeys),
-          groups: popularGroups,
-          meta: row => getRankingCategoryLabel(row) || '인기',
+          sourceRows: rankingRecords,
+          meta: row => `[${getPopularAreaForRecord(row).label}] ${getPopularRankingDetailLabel(row)}`,
+          metaElement: createPopularRankingMeta,
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
         },
       ];
@@ -4255,6 +4579,34 @@
     function normalizeFirebaseRankingMode(rankingMode) {
       const mode = String(rankingMode || '').trim();
       return ['normal', 'onechance', 'nohint', 'speed'].includes(mode) ? mode : 'normal';
+    }
+
+    function getRankingModeOptionsForQuiz(quizId) {
+      const id = normalizeFirebaseQuizId(quizId);
+      const base = [
+        { label: '일반', value: 'normal' },
+        { label: '원코', value: 'onechance' },
+        { label: '노힌트', value: 'nohint' },
+        { label: '스피드', value: 'speed' }
+      ];
+      const limitedToNormalAndOneChance = new Set([
+        'random-basic',
+        'spelling',
+        'gmo',
+        'time_store',
+        'samgukji',
+        'ancient-history'
+      ]);
+      if(limitedToNormalAndOneChance.has(id)) {
+        return base.filter(item => item.value === 'normal' || item.value === 'onechance');
+      }
+      return base;
+    }
+
+    function getSupportedRankingModeForQuiz(quizId, rankingMode) {
+      const requestedMode = normalizeFirebaseRankingMode(rankingMode);
+      const options = getRankingModeOptionsForQuiz(quizId);
+      return options.some(option => option.value === requestedMode) ? requestedMode : 'normal';
     }
 
     function slugPracticeKey(value) {
@@ -6721,7 +7073,7 @@
         if(isPlayable) button.dataset.quizId = quizId;
 
         item.append(icon, title, desc);
-        if(quiz.groupLabel) {
+        if(quiz.groupLabel && quizId !== 'pokemon') {
           badge.className = 'subject-quiz-badge';
           badge.textContent = quiz.groupLabel;
           item.appendChild(badge);
@@ -6752,6 +7104,7 @@
       const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
       modeIds.forEach(modeId => {
         if(modeId === 'records') return;
+        if(modeId === 'oneChance') return;
         const baseMode = MODE_CATALOG[modeId] || MODE_CATALOG.practice;
         const playable = FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(lastQuizId));
         const featureEnabled = modeId !== 'ranking' || flags.rankingEnabled !== false;
@@ -6782,7 +7135,23 @@
         button.textContent = mode.enabled ? '시작하기' : '준비 중';
         button.dataset.modeId = modeId;
 
-        item.append(icon, title, desc, button);
+        item.append(icon, title, desc);
+        if(modeId === 'ranking' && mode.enabled) {
+          const rankingModes = document.createElement('div');
+          rankingModes.className = 'quiz-ranking-mode-grid';
+          getRankingModeOptionsForQuiz(lastQuizId).forEach(option => {
+            const modeButton = document.createElement('button');
+            modeButton.type = 'button';
+            modeButton.className = `quiz-ranking-mode-button ranking-mode-${option.value}`;
+            modeButton.textContent = option.label;
+            modeButton.dataset.modeId = 'ranking';
+            modeButton.dataset.rankingMode = option.value;
+            rankingModes.appendChild(modeButton);
+          });
+          item.appendChild(rankingModes);
+        } else {
+          item.appendChild(button);
+        }
         grid.appendChild(item);
       });
     }
@@ -6813,60 +7182,105 @@
       grid.appendChild(item);
     }
 
+    function appendPokemonPracticeButton(grid, generation) {
+      const button = document.createElement('button');
+      button.className = 'pokemon-hub-practice-button';
+      button.type = 'button';
+      button.textContent = `${generation}세대`;
+      button.dataset.quizId = `pokemon-gen${generation}`;
+      button.dataset.modeId = 'practice';
+      grid.appendChild(button);
+    }
+
+    function getPokemonHubRankingDifficulties() {
+      return [
+        { quizId: 'pokemon-easy', label: '쉬움', value: 'easy', range: '1세대', className: 'pokemon-difficulty-easy' },
+        { quizId: 'pokemon-normal', label: '보통', value: 'normal', range: '1~2세대', className: 'pokemon-difficulty-normal' },
+        { quizId: 'pokemon-hard', label: '어려움', value: 'hard', range: '1~3세대', className: 'pokemon-difficulty-hard' },
+        { quizId: 'pokemon-very-hard', label: '헬', value: 'very-hard', range: '전체 세대', className: 'pokemon-difficulty-extreme' }
+      ];
+    }
+
+    function getPokemonHubRankingModes() {
+      return [
+        { label: '일반', value: 'normal' },
+        { label: '스피드', value: 'speed' },
+        { label: '원코', value: 'onechance' }
+      ];
+    }
+
+    function normalizePokemonHubRankingMode(rankingMode) {
+      const mode = normalizeFirebaseRankingMode(rankingMode);
+      return getPokemonHubRankingModes().some(item => item.value === mode) ? mode : 'normal';
+    }
+
+    function selectPokemonHubDifficulty(difficultyValue) {
+      activePokemonHubDifficulty = activePokemonHubDifficulty === difficultyValue ? '' : difficultyValue;
+      const grid = document.getElementById('quiz-mode-grid');
+      if(grid) renderPokemonHubCards(grid);
+    }
+
+    function appendPokemonRankingDifficultyPanel(grid, difficulty, rankingDisabled) {
+      const panel = document.createElement('article');
+      const button = document.createElement('button');
+      const detail = document.createElement('div');
+      const range = document.createElement('p');
+      const modeGrid = document.createElement('div');
+      const isOpen = activePokemonHubDifficulty === difficulty.value;
+      panel.className = `pokemon-hub-difficulty ${difficulty.className || ''} ${isOpen ? 'is-open' : ''}`;
+      button.className = 'pokemon-hub-difficulty-button';
+      button.type = 'button';
+      button.textContent = difficulty.label;
+      button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      button.addEventListener('click', () => selectPokemonHubDifficulty(difficulty.value));
+      panel.appendChild(button);
+      if(isOpen) {
+        detail.className = 'pokemon-hub-ranking-detail';
+        range.className = 'pokemon-hub-ranking-range';
+        range.textContent = `포함 범위: ${difficulty.range}`;
+        modeGrid.className = 'pokemon-hub-ranking-mode-grid';
+        if(rankingDisabled) {
+          const disabled = document.createElement('p');
+          disabled.className = 'profile-ranking-empty';
+          disabled.textContent = '랭킹전은 지금 점검 중입니다.';
+          detail.append(range, disabled);
+        } else {
+          getPokemonHubRankingModes().forEach(mode => {
+            const modeButton = document.createElement('button');
+            modeButton.className = `pokemon-hub-ranking-mode ranking-mode-${mode.value}`;
+            modeButton.type = 'button';
+            modeButton.textContent = mode.label;
+            modeButton.dataset.quizId = difficulty.quizId;
+            modeButton.dataset.modeId = 'ranking';
+            modeButton.dataset.rankingMode = normalizePokemonHubRankingMode(mode.value);
+            modeGrid.appendChild(modeButton);
+          });
+          detail.append(range, modeGrid);
+        }
+        panel.appendChild(detail);
+      }
+      grid.appendChild(panel);
+    }
+
     function renderPokemonHubCards(grid) {
       const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
-      const section = document.createElement('div');
       const practiceTitle = document.createElement('p');
       const rankingTitle = document.createElement('p');
       const rankingDisabled = flags.rankingEnabled === false;
-      section.className = 'quiz-mode-hub';
+      grid.innerHTML = '';
       practiceTitle.className = 'profile-ranking-subtitle';
       practiceTitle.textContent = '연습전: 세대별 도감 채우기';
       rankingTitle.className = 'profile-ranking-subtitle';
-      rankingTitle.textContent = '랭킹전: 난이도와 모드 선택';
+      rankingTitle.textContent = '랭킹전: 난이도를 고른 뒤 모드를 선택';
       grid.appendChild(practiceTitle);
+      const practiceGrid = document.createElement('div');
+      practiceGrid.className = 'pokemon-hub-practice-grid';
       for(let gen = 1; gen <= 9; gen += 1) {
-        appendPokemonHubCard(grid, {
-          quizId: `pokemon-gen${gen}`,
-          modeId: 'practice',
-          icon: '🌲',
-          title: `${gen}세대 연습전`,
-          desc: '맞힌 포켓몬 도감 번호를 누적해 세대별 뱃지를 채웁니다.',
-          buttonLabel: '연습 시작'
-        });
+        appendPokemonPracticeButton(practiceGrid, gen);
       }
+      grid.appendChild(practiceGrid);
       grid.appendChild(rankingTitle);
-      [
-        { quizId: 'pokemon-easy', title: '쉬움 · 일반', mode: 'normal', desc: '1세대 범위 랭킹전입니다.' },
-        { quizId: 'pokemon-easy', title: '쉬움 · 원코', mode: 'onechance', desc: '1세대 범위, 한 번 틀리면 종료됩니다.' },
-        { quizId: 'pokemon-easy', title: '쉬움 · 스피드', mode: 'speed', desc: '1세대 범위, 제한 시간이 짧습니다.' },
-        { quizId: 'pokemon-normal', title: '보통 · 일반', mode: 'normal', desc: '1~2세대 범위 랭킹전입니다.' },
-        { quizId: 'pokemon-normal', title: '보통 · 원코', mode: 'onechance', desc: '1~2세대 범위, 한 번 틀리면 종료됩니다.' },
-        { quizId: 'pokemon-normal', title: '보통 · 스피드', mode: 'speed', desc: '1~2세대 범위, 제한 시간이 짧습니다.' },
-        { quizId: 'pokemon-hard', title: '어려움 · 일반', mode: 'normal', desc: '1~3세대 범위 랭킹전입니다.' },
-        { quizId: 'pokemon-hard', title: '어려움 · 원코', mode: 'onechance', desc: '1~3세대 범위, 한 번 틀리면 종료됩니다.' },
-        { quizId: 'pokemon-hard', title: '어려움 · 스피드', mode: 'speed', desc: '1~3세대 범위, 제한 시간이 짧습니다.' },
-        { quizId: 'pokemon-very-hard', title: '헬 · 일반', mode: 'normal', desc: '전체 세대 범위 랭킹전입니다.' },
-        { quizId: 'pokemon-very-hard', title: '헬 · 원코', mode: 'onechance', desc: '전체 세대 범위, 한 번 틀리면 종료됩니다.' },
-        { quizId: 'pokemon-very-hard', title: '헬 · 스피드', mode: 'speed', desc: '전체 세대 범위, 제한 시간이 짧습니다.' }
-      ].forEach(option => {
-        if(rankingDisabled) return;
-        appendPokemonHubCard(grid, {
-          quizId: option.quizId,
-          modeId: 'ranking',
-          rankingMode: option.mode,
-          icon: option.mode === 'onechance' ? '🎯' : (option.mode === 'speed' ? '⚡' : '🏅'),
-          title: option.title,
-          desc: option.desc,
-          buttonLabel: '랭킹전 시작'
-        });
-      });
-      if(rankingDisabled) {
-        const disabled = document.createElement('p');
-        disabled.className = 'profile-ranking-empty';
-        disabled.textContent = '랭킹전은 지금 점검 중입니다.';
-        grid.appendChild(disabled);
-      }
+      getPokemonHubRankingDifficulties().forEach(difficulty => appendPokemonRankingDifficultyPanel(grid, difficulty, rankingDisabled));
     }
 
     async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
@@ -6880,19 +7294,24 @@
       }
       currentQuizId = quizId;
       currentModeId = modeId;
-      currentRankingModeId = modeId === 'ranking' ? normalizeFirebaseRankingMode(rankingModeId) : 'normal';
+      currentRankingModeId = modeId === 'ranking' ? getSupportedRankingModeForQuiz(quizId, rankingModeId) : 'normal';
       currentQuestionIndex = 0;
       selectedChoiceIndex = null;
       correctAnswerCount = 0;
       currentQuizStartedAtMs = Date.now();
       currentRankingLives = modeId === 'ranking' ? (currentRankingModeId === 'onechance' ? 1 : 3) : 0;
       currentQuestionResolved = false;
+      currentSessionQuestions = null;
       clearRankingQuestionTimer();
       try {
         await buildFirebaseQuizData(quizId);
       } catch(error) {
         console.warn('Firestore quiz load failed. Falling back to local QUESTION_BANK.', error);
       }
+      currentSessionQuestions = await buildQuizSessionQuestions(quizId, modeId).catch(error => {
+        console.warn('Quiz session shuffle failed. Using cached question order.', error);
+        return null;
+      });
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
@@ -6910,13 +7329,59 @@
 
     function getCurrentQuestionSet() {
       const firebaseQuizId = normalizeFirebaseQuizId(currentQuizId);
+      if(Array.isArray(currentSessionQuestions) && currentSessionQuestions.length) return currentSessionQuestions;
       return firebaseQuizDataCache[firebaseQuizId] || QUESTION_BANK[currentQuizId] || QUESTION_BANK.spelling;
+    }
+
+    async function loadSolvedPracticeIds(quizId) {
+      if(currentModeId !== 'practice') return new Set();
+      const id = normalizeFirebaseQuizId(quizId);
+      const db = getFirestoreDb();
+      const memberUserId = getCurrentDataOwnerId();
+      if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return new Set();
+      const meta = await loadFirebaseQuizMeta(id);
+      const target = getPracticeTargetForQuiz(id, meta);
+      if(!target) return new Set();
+      const recordId = buildPracticeProgressRecordId(memberUserId, target.areaKey);
+      const snapshot = await db.collection('practiceRecords').doc(recordId).get();
+      if(!snapshot.exists) return new Set();
+      const data = snapshot.data() || {};
+      return new Set((Array.isArray(data.correctIds) ? data.correctIds : []).map(value => String(value || '').trim()).filter(Boolean));
+    }
+
+    function hasSolvedPracticeQuestion(question, solvedIds) {
+      if(!solvedIds || !solvedIds.size) return false;
+      return getPracticeQuestionIdCandidates(question).some(id => solvedIds.has(id));
+    }
+
+    async function buildQuizSessionQuestions(quizId, modeId) {
+      const id = normalizeFirebaseQuizId(quizId);
+      const baseQuestions = firebaseQuizDataCache[id] || QUESTION_BANK[quizId] || QUESTION_BANK[id] || QUESTION_BANK.spelling;
+      if(!Array.isArray(baseQuestions) || !baseQuestions.length) return null;
+      if(modeId === 'ranking') return shuffleList(baseQuestions.slice());
+      if(modeId !== 'practice') return baseQuestions;
+      try {
+        const solvedIds = await loadSolvedPracticeIds(id);
+        if(!solvedIds.size) return shuffleList(baseQuestions.slice());
+        const unsolved = [];
+        const solved = [];
+        baseQuestions.forEach(question => {
+          if(hasSolvedPracticeQuestion(question, solvedIds)) solved.push(question);
+          else unsolved.push(question);
+        });
+        if(!unsolved.length) return shuffleList(baseQuestions.slice());
+        return shuffleList(unsolved).concat(shuffleList(solved));
+      } catch(error) {
+        console.warn('Practice unsolved-first order unavailable. Using random order.', error);
+        return shuffleList(baseQuestions.slice());
+      }
     }
 
     function renderQuizPlayHeader() {
       const quiz = QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling;
       const mode = MODE_CATALOG[currentModeId] || MODE_CATALOG.practice;
-      const modeLabel = mode.title;
+      const rankingModeLabel = currentModeId === 'ranking' ? getRankingModeLabelForDisplay({ rankingMode: currentRankingModeId }) : '';
+      const modeLabel = currentModeId === 'ranking' && rankingModeLabel ? `${mode.title} · ${rankingModeLabel}` : mode.title;
       document.getElementById('quiz-play-title').textContent = `${quiz.title.replace(' 퀴즈', '')} ${modeLabel}`;
     }
 
@@ -6933,6 +7398,8 @@
       const title = document.createElement('h3');
       const choices = document.createElement('div');
       const submit = document.createElement('button');
+      const hintText = String(question.hint || '').trim();
+      const shouldRenderHint = !!hintText && !(currentModeId === 'ranking' && currentRankingModeId === 'nohint');
 
       card.className = 'quiz-question-card';
       progress.className = 'quiz-progress';
@@ -6988,7 +7455,27 @@
         });
       }
 
-      card.append(progress, title, choices, submit);
+      card.append(progress, title);
+      if(shouldRenderHint) {
+        const hintWrap = document.createElement('div');
+        const hintButton = document.createElement('button');
+        const hintDisplay = document.createElement('p');
+        hintWrap.className = 'quiz-hint-box';
+        hintButton.className = 'quiz-hint-button';
+        hintButton.type = 'button';
+        hintButton.textContent = '힌트 보기';
+        hintDisplay.className = 'quiz-hint-text';
+        hintDisplay.textContent = hintText;
+        hintDisplay.hidden = true;
+        hintButton.addEventListener('click', () => {
+          const nextHidden = !hintDisplay.hidden;
+          hintDisplay.hidden = nextHidden;
+          hintButton.textContent = nextHidden ? '힌트 보기' : '힌트 숨기기';
+        });
+        hintWrap.append(hintButton, hintDisplay);
+        card.appendChild(hintWrap);
+      }
+      card.append(choices, submit);
       root.appendChild(card);
       startRankingQuestionTimerIfNeeded();
     }
@@ -7247,7 +7734,7 @@
       return {
         ...target,
         categoryKey: slugPracticeKey(target.category),
-        rankingMode: 'normal'
+        rankingMode: getSupportedRankingModeForQuiz(id, currentRankingModeId)
       };
     }
 
@@ -8248,6 +8735,7 @@
       const button = event.target.closest('[data-ranking-board-id]');
       if(!button) return;
       const boardId = button.dataset.rankingBoardId;
+      activeRankingBoardId = boardId;
       document.querySelectorAll('.ranking-board-tab').forEach(tab => {
         tab.classList.toggle('is-active', tab === button);
       });

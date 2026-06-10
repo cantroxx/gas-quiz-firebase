@@ -3184,6 +3184,7 @@ h2 {
   display: block;
   color: var(--ink);
   font-size: 1.02rem;
+  font-weight: 800;
   line-height: 1.35;
   word-break: keep-all;
 }
@@ -3280,6 +3281,62 @@ h2 {
   color: var(--green-dark);
 }
 
+.ranking-popular-area-tabs {
+  margin-bottom: 10px;
+}
+
+.ranking-popular-detail-filters {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.ranking-popular-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ranking-popular-meta {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+.ranking-popular-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid rgba(47, 125, 68, 0.2);
+  border-radius: 999px;
+  background: #f7ffe8;
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 1000;
+}
+
+.ranking-popular-meta strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.ranking-popular-tag-pokemon {
+  background: #fff8d8;
+}
+
+.ranking-popular-tag-idol,
+.ranking-popular-tag-anime {
+  background: #eef9ff;
+}
+
 .ranking-board-list {
   display: grid;
   gap: 8px;
@@ -3304,11 +3361,11 @@ h2 {
   align-items: center;
   min-width: 0;
   min-height: 190px;
-  padding: 18px 12px 14px;
+  padding: 20px 12px 14px;
   border: 1px solid rgba(47, 125, 68, 0.14);
   border-top-width: 6px;
-  border-radius: 16px;
-  background: #fff;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfff4 100%);
   text-align: center;
   box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
 }
@@ -3340,7 +3397,7 @@ h2 {
   color: var(--ink);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -3481,7 +3538,7 @@ h2 {
 }
 
 .ranking-card-name,
-.ranking-card-meta,
+.ranking-card-line,
 .ranking-card-score {
   margin: 0;
   line-height: 1.35;
@@ -3489,11 +3546,55 @@ h2 {
 }
 
 .ranking-card-name {
-  display: grid;
-  justify-items: center;
-  gap: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px 6px;
   color: var(--ink);
-  font-size: 1rem;
+  font-size: 1.03rem;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+.ranking-display-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.28;
+}
+
+.ranking-card-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  max-width: 100%;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ranking-board-body .ranking-card-line {
+  justify-content: flex-start;
+  margin-top: 3px;
+}
+
+.ranking-card-condition {
+  color: var(--muted);
+}
+
+.ranking-card-message-inline {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  color: #38666f;
+}
+
+.ranking-card-line-divider {
+  color: rgba(58, 88, 67, 0.4);
+  font-weight: 800;
 }
 
 .ranking-title-chip {
@@ -3505,7 +3606,7 @@ h2 {
   background: #fff8d8;
   color: #8a5300;
   font-size: 0.74rem;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.25;
 }
 
@@ -3514,69 +3615,12 @@ h2 {
   vertical-align: middle;
 }
 
-.ranking-message-bubble {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  max-width: 100%;
-  margin: 8px 0 0;
-  padding: 6px 9px;
-  border: 1px solid rgba(108, 185, 255, 0.28);
-  border-radius: 14px;
-  background: #f7fcff;
-  color: #38666f;
-  font-size: 0.78rem;
-  font-weight: 900;
-  line-height: 1.3;
-  word-break: keep-all;
-}
-
-.ranking-message-bubble::after {
-  content: "";
-  position: absolute;
-  left: 18px;
-  bottom: -5px;
-  width: 9px;
-  height: 9px;
-  border-right: 1px solid rgba(108, 185, 255, 0.28);
-  border-bottom: 1px solid rgba(108, 185, 255, 0.28);
-  background: #f7fcff;
-  transform: rotate(45deg);
-}
-
-.ranking-message-bubble strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ranking-list-message {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  margin: 5px 0 0;
-  padding: 4px 8px;
-  border: 1px solid rgba(108, 185, 255, 0.24);
-  border-radius: 999px;
-  background: #f7fcff;
-  color: #38666f;
-  font-size: 0.76rem;
-  font-weight: 900;
-  line-height: 1.3;
-}
-
-.ranking-card-meta {
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 0.84rem;
-}
-
 .ranking-card-score {
   margin-top: auto;
   padding-top: 8px;
   color: var(--green-dark);
-  font-weight: 900;
+  font-size: 1.02rem;
+  font-weight: 850;
 }
 
 .ranking-board-row {
@@ -3584,10 +3628,10 @@ h2 {
   grid-template-columns: 38px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  padding: 10px 12px;
+  padding: 11px 12px;
   border: 0;
   border-bottom: 1px solid rgba(47, 125, 68, 0.1);
-  border-radius: 0;
+  border-radius: 12px;
   background: #fff;
 }
 
@@ -3616,19 +3660,26 @@ h2 {
 }
 
 .ranking-board-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
   color: var(--ink);
-  font-weight: 900;
+  font-size: 0.98rem;
+  font-weight: 750;
+  letter-spacing: 0;
 }
 
 .ranking-board-meta,
 .ranking-board-empty {
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 
 .ranking-board-score {
   color: var(--green-dark);
-  font-weight: 900;
+  font-size: 0.96rem;
+  font-weight: 850;
   text-align: right;
   white-space: nowrap;
 }
@@ -4335,6 +4386,193 @@ h2 {
   cursor: not-allowed;
 }
 
+.quiz-ranking-mode-grid {
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.quiz-ranking-mode-button {
+  min-height: 40px;
+  margin: 0;
+  padding: 9px 8px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 7px 14px rgba(47, 125, 68, 0.08);
+}
+
+.quiz-ranking-mode-button:hover,
+.quiz-ranking-mode-button:focus-visible {
+  outline: none;
+  filter: brightness(0.97);
+  box-shadow: 0 8px 16px rgba(47, 125, 68, 0.13);
+}
+
+.quiz-ranking-mode-button.ranking-mode-normal {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.quiz-ranking-mode-button.ranking-mode-speed {
+  background: #fff4e5;
+  color: #9a4c00;
+}
+
+.quiz-ranking-mode-button.ranking-mode-onechance {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.quiz-ranking-mode-button.ranking-mode-nohint {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.pokemon-hub-practice-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.07);
+}
+
+.pokemon-hub-practice-button {
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.2);
+  border-radius: 999px;
+  background: #f7ffe8;
+  color: var(--green-dark);
+  font-weight: 1000;
+  cursor: pointer;
+  box-shadow: 0 7px 14px rgba(47, 125, 68, 0.08);
+}
+
+.pokemon-hub-practice-button:hover,
+.pokemon-hub-practice-button:focus-visible {
+  border-color: rgba(47, 125, 68, 0.45);
+  background: #e9f8cf;
+  outline: none;
+}
+
+.pokemon-hub-difficulty {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.pokemon-hub-difficulty.is-open {
+  border-color: rgba(132, 180, 80, 0.42);
+  background: #fbfff1;
+}
+
+.pokemon-hub-difficulty-button {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--green-dark);
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.pokemon-hub-difficulty-button:hover,
+.pokemon-hub-difficulty-button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(47, 125, 68, 0.2);
+}
+
+.pokemon-hub-difficulty.is-open .pokemon-hub-difficulty-button {
+  border: 2px solid rgba(47, 125, 68, 0.46);
+  background: #fff8d8;
+  color: var(--green-dark);
+  box-shadow: 0 7px 15px rgba(47, 125, 68, 0.13);
+}
+
+.pokemon-difficulty-easy .pokemon-hub-difficulty-button {
+  background: #e0f2f1;
+}
+
+.pokemon-difficulty-normal .pokemon-hub-difficulty-button {
+  background: #fff8d8;
+}
+
+.pokemon-difficulty-hard .pokemon-hub-difficulty-button {
+  background: #ffe9cf;
+}
+
+.pokemon-difficulty-extreme .pokemon-hub-difficulty-button {
+  background: #ffe1e5;
+}
+
+.pokemon-hub-ranking-detail {
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(47, 125, 68, 0.22);
+}
+
+.pokemon-hub-ranking-range {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.pokemon-hub-ranking-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pokemon-hub-ranking-mode {
+  min-height: 42px;
+  margin: 0;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.pokemon-hub-ranking-mode:hover,
+.pokemon-hub-ranking-mode:focus-visible {
+  outline: none;
+  filter: brightness(0.97);
+  box-shadow: 0 6px 14px rgba(47, 125, 68, 0.1);
+}
+
+.pokemon-hub-ranking-mode.ranking-mode-normal {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.pokemon-hub-ranking-mode.ranking-mode-speed {
+  background: #fff4e5;
+  color: #9a4c00;
+}
+
+.pokemon-hub-ranking-mode.ranking-mode-onechance {
+  background: #ffebee;
+  color: #c62828;
+}
+
 .quiz-play-root {
   display: grid;
   gap: 14px;
@@ -4368,6 +4606,49 @@ h2 {
   color: var(--green-dark);
   font-size: 1.45rem;
   line-height: 1.25;
+  word-break: keep-all;
+}
+
+.quiz-hint-box {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.quiz-hint-button {
+  min-height: 34px;
+  margin: 0;
+  padding: 7px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 999px;
+  background: #fff8d8;
+  color: var(--green-dark);
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(47, 125, 68, 0.07);
+}
+
+.quiz-hint-button:hover,
+.quiz-hint-button:focus-visible {
+  outline: none;
+  border-color: rgba(47, 125, 68, 0.4);
+  background: #fff1ba;
+}
+
+.quiz-hint-text {
+  max-width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 183, 77, 0.3);
+  border-radius: 14px;
+  background: #fffaf0;
+  color: #6f5520;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.45;
+  white-space: pre-line;
   word-break: keep-all;
 }
 
@@ -4972,6 +5253,11 @@ h2 {
   .subject-quiz-card,
   .quiz-mode-card {
     min-height: 0;
+  }
+
+  .pokemon-hub-practice-grid,
+  .pokemon-hub-ranking-mode-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .quiz-choice-list {

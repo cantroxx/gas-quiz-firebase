@@ -284,7 +284,7 @@ service cloud.firestore {
         && request.resource.data.recordId == recordId
         && recordId.matches('firebase_.*')
         && request.resource.data.userId == request.resource.data.memberUserId
-        && request.resource.data.rankingMode == 'normal'
+        && request.resource.data.rankingMode in ['normal', 'speed', 'onechance', 'nohint']
         && request.resource.data.legacy == false
         && request.resource.data.hasUserId == true
         && request.resource.data.sourceSheet == 'firebase-app'
