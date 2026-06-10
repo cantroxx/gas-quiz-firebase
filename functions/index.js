@@ -2292,3 +2292,215 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     ...result
   };
 });
+
+function numberFromText(text, fallback = 1) {
+  const match = String(text || "").match(/(\d+)/);
+  return match ? Number(match[1]) || fallback : fallback;
+}
+
+function isEarnedBadge(data = {}) {
+  return data.available === true
+    || data.completed === true
+    || Number(data.starCount || 0) > 0;
+}
+
+function practiceTitleBadgeId(title = {}) {
+  const id = String(title.titleId || "").trim();
+  const condition = String(title.conditionText || "").trim();
+  if (/^pokemon_gen[1-9]_/.test(id)) return id.replace(/_trainer$/, "");
+  if (id.startsWith("spelling_")) return "daily_맞춤법";
+  if (id.startsWith("word_relation_")) return "korean_word_relation";
+  if (id === "reading_gmo_complete") return "korean_gmo";
+  if (id.startsWith("math_muldiv_")) return "math_random_basic";
+  if (id.startsWith("people_") || id === "history_god") return "people_역사인물";
+  if (id.startsWith("three_kingdoms_")) return "social_three_kingdoms";
+  if (id.startsWith("ancient_three_kingdoms_")) return "social_ancient_three_kingdoms";
+  if (id.startsWith("idol_")) return "people_아이돌";
+  if (id.startsWith("anime_")) return "people_애니";
+  if (id.startsWith("dad_joke_") || id === "ten_million_youtuber") return "daily_아재개그";
+  if (id.startsWith("tiniping_")) return "people_티니핑";
+  if (condition.includes("시간가게")) return "korean_독서:시간가게";
+  return "";
+}
+
+function ownedTitleDoc(title, memberUserId, source) {
+  return {
+    userId: memberUserId,
+    memberUserId,
+    titleId: title.titleId,
+    titleName: title.titleName || title.titleId,
+    description: title.description || title.conditionText || "",
+    conditionText: title.conditionText || "",
+    category: title.category || "",
+    subjectGroup: title.subjectGroup || "",
+    sourceType: title.sourceType || "",
+    sourceCategory: title.sourceCategory || "",
+    themeClass: title.themeClass || "",
+    tierClass: title.tierClass || "",
+    effectClass: title.effectClass || "",
+    selected: false,
+    migrationSource: source,
+    awardedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+}
+
+function titleSummaryDoc(memberUserId, ownedTitleIds, selectedTitleId, selectedTitleName) {
+  return {
+    userId: memberUserId,
+    memberUserId,
+    titleCount: ownedTitleIds.size,
+    ownedCount: ownedTitleIds.size,
+    selectedTitleId: selectedTitleId || "",
+    selectedTitleName: selectedTitleName || "",
+    missingSelectedTitle: !!selectedTitleId && !ownedTitleIds.has(selectedTitleId),
+    migrationSource: "firebase_title_sync",
+    updatedAt: FieldValue.serverTimestamp()
+  };
+}
+
+function bestRankingScoreTotal(records) {
+  const bestByCategory = new Map();
+  records.forEach(record => {
+    const key = String(record.categoryKey || record.category || "").trim();
+    if (!key) return;
+    const score = Number(record.score || 0);
+    const elapsedSeconds = Number(record.elapsedSeconds || 999999999);
+    const current = bestByCategory.get(key);
+    if (!current || score > current.score || (score === current.score && elapsedSeconds < current.elapsedSeconds)) {
+      bestByCategory.set(key, { score, elapsedSeconds });
+    }
+  });
+  return Array.from(bestByCategory.values()).reduce((sum, item) => sum + item.score, 0);
+}
+
+function evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTitleIds) {
+  const eligible = new Map();
+  const earnedBadges = badges.filter(badge => isEarnedBadge(badge));
+  const earnedBadgeIds = new Set(earnedBadges.map(badge => badge.badgeId));
+  const earnedGroups = new Set(earnedBadges.map(badge => badge.group || "other"));
+  const pokemonGenCount = earnedBadges.filter(badge => /^pokemon_gen[1-9]$/.test(badge.badgeId)).length;
+  const normal50Count = rankingRecords.filter(record => {
+    const mode = String(record.rankingMode || "normal");
+    return (mode === "normal" || mode === "legacy") && Number(record.score || 0) >= 50;
+  }).length;
+  const rankingBestTotal = bestRankingScoreTotal(rankingRecords);
+
+  function add(title) {
+    if (title.titleId) eligible.set(title.titleId, title);
+  }
+
+  titleCatalog.forEach(title => {
+    const sourceType = String(title.sourceType || "").trim();
+    const required = numberFromText(title.conditionText, 1);
+    if (sourceType === "practiceStars") {
+      const badgeId = practiceTitleBadgeId(title);
+      const badge = badges.find(item => item.badgeId === badgeId);
+      if (badge && Number(badge.starCount || 0) >= required) add(title);
+    } else if (sourceType === "pokemonGenCount") {
+      const needAll = String(title.conditionText || "").includes("모든");
+      const threshold = needAll ? 9 : required;
+      if (pokemonGenCount >= threshold) add(title);
+    } else if (sourceType === "badgeFields") {
+      if (earnedGroups.size >= required) add(title);
+    } else if (sourceType === "badge") {
+      if (earnedBadgeIds.size >= required) add(title);
+    } else if (sourceType === "rankingNormal50") {
+      if (normal50Count >= required) add(title);
+    } else if (sourceType === "rankingBestScoreTotal300") {
+      if (rankingBestTotal >= 300) add(title);
+    }
+  });
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const ownedOrEligibleIds = new Set([...existingTitleIds, ...eligible.keys()]);
+    titleCatalog.forEach(title => {
+      if (eligible.has(title.titleId)) return;
+      if (String(title.sourceType || "") !== "subjectDetailTitles") return;
+      const subjectGroup = String(title.subjectGroup || "").trim();
+      const required = numberFromText(title.conditionText, 1);
+      const count = titleCatalog.filter(candidate => {
+        if (candidate.titleId === title.titleId) return false;
+        if (!ownedOrEligibleIds.has(candidate.titleId)) return false;
+        return String(candidate.subjectGroup || "").trim() === subjectGroup
+          && String(candidate.sourceType || "").trim() === "practiceStars";
+      }).length;
+      if (count >= required) {
+        add(title);
+        changed = true;
+      }
+    });
+  }
+
+  return Array.from(eligible.values()).filter(title => !existingTitleIds.has(title.titleId));
+}
+
+exports.syncMemberTitles = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+
+  await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+  });
+
+  const [
+    titleCatalogSnapshot,
+    badgeSnapshot,
+    titleSnapshot,
+    titleSummarySnapshot,
+    rankingSnapshot
+  ] = await Promise.all([
+    db.collection("titleCatalog").get(),
+    db.collection("userBadges").doc(memberUserId).collection("badges").get(),
+    db.collection("userTitles").doc(memberUserId).collection("titles").get(),
+    db.collection("userTitleSummary").doc(memberUserId).get(),
+    db.collection("rankingRecords").where("memberUserId", "==", memberUserId).limit(500).get()
+  ]);
+
+  const titleCatalog = titleCatalogSnapshot.docs.map(doc => ({ titleId: doc.id, ...(doc.data() || {}) }));
+  const badges = badgeSnapshot.docs.map(doc => ({ badgeId: doc.id, ...(doc.data() || {}) }));
+  const rankingRecords = rankingSnapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
+  const existingTitleIds = new Set(titleSnapshot.docs.map(doc => doc.id));
+  const existingTitleNames = {};
+  titleSnapshot.docs.forEach(doc => {
+    const data = doc.data() || {};
+    existingTitleNames[doc.id] = data.titleName || data.name || doc.id;
+  });
+  const eligibleNewTitles = evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTitleIds);
+
+  const summaryData = titleSummarySnapshot.exists ? titleSummarySnapshot.data() || {} : {};
+  const selectedTitleId = String(summaryData.selectedTitleId || "").trim();
+  const selectedTitleName = selectedTitleId
+    ? (existingTitleNames[selectedTitleId] || eligibleNewTitles.find(title => title.titleId === selectedTitleId)?.titleName || summaryData.selectedTitleName || "")
+    : "";
+  const allTitleIds = new Set([...existingTitleIds, ...eligibleNewTitles.map(title => title.titleId)]);
+
+  const batch = db.batch();
+  eligibleNewTitles.forEach(title => {
+    batch.set(
+      db.collection("userTitles").doc(memberUserId).collection("titles").doc(title.titleId),
+      ownedTitleDoc(title, memberUserId, "firebase_title_sync"),
+      { merge: true }
+    );
+  });
+  batch.set(
+    db.collection("userTitleSummary").doc(memberUserId),
+    titleSummaryDoc(memberUserId, allTitleIds, selectedTitleId, selectedTitleName),
+    { merge: true }
+  );
+  await batch.commit();
+
+  return {
+    success: true,
+    memberUserId,
+    awardedCount: eligibleNewTitles.length,
+    awardedTitles: eligibleNewTitles.map(title => ({
+      titleId: title.titleId,
+      titleName: title.titleName || title.titleId
+    })),
+    titleCount: allTitleIds.size
+  };
+});

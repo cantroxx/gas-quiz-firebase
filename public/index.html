@@ -8118,6 +8118,29 @@
       return result.economyPath || null;
     }
 
+    async function syncMemberTitlesAfterPracticeCompletion(memberUserId, context) {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
+      const response = await syncMemberTitles({ memberUserId });
+      const result = response?.data || {};
+      if(Number(result.awardedCount) > 0) {
+        console.info('Firestore title sync awarded titles:', {
+          awardedCount: result.awardedCount,
+          awardedTitles: result.awardedTitles || [],
+          context
+        });
+        titleCatalogCache = null;
+        titleCatalogMapCache = null;
+      } else {
+        console.info('Firestore title sync completed with no new titles:', {
+          titleCount: result.titleCount || 0,
+          context
+        });
+      }
+      return result;
+    }
+
     async function savePracticeProgressAfterCorrectAnswer(question) {
       if(currentModeId !== 'practice') return null;
 
@@ -8312,6 +8335,13 @@
           previousStarCount: saveResult.previousStarCount,
           nextStarCount: saveResult.nextStarCount,
           badgePath: saveResult.badgePath
+        });
+        syncMemberTitlesAfterPracticeCompletion(memberUserId, {
+          recordId: saveResult.recordId,
+          quizId,
+          completionType: saveResult.completionType
+        }).catch(error => {
+          console.warn('Firestore title sync after practice completion failed.', error);
         });
       }
       if(saveResult && saveResult.rewardCoin > 0) {
