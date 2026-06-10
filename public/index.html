@@ -4696,8 +4696,11 @@
       const rawQuizKingSummaries = quizKingSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...doc.data() }));
       const filteredRankingRecords = rankingRecords.filter(row => isRankingRowEnabledByFlags(row));
       const profileMap = await loadMemberProfilesForRankingRows(db, rawQuizKingSummaries.concat(filteredRankingRecords));
+      const enrichedQuizKingSummaries = rawQuizKingSummaries.map(row => mergeRankingRowWithMemberProfile(row, profileMap));
       const enrichedRankingRecords = filteredRankingRecords.map(row => mergeRankingRowWithMemberProfile(row, profileMap));
-      const quizKingSummaries = buildQuizKingSummariesFromRankingRecords(enrichedRankingRecords);
+      const quizKingSummaries = enrichedQuizKingSummaries.length
+        ? enrichedQuizKingSummaries
+        : buildQuizKingSummariesFromRankingRecords(enrichedRankingRecords);
       const quizKing = getTopQuizKingSummaries(quizKingSummaries, 1)[0] || null;
       const koreanBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
       const socialBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
