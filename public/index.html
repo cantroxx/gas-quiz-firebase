@@ -3736,6 +3736,10 @@
       return POKEMON_RANKING_CATEGORY_KEYS.includes(String(categoryKey || '').trim());
     }
 
+    function isTinipingRankingCategoryKey(categoryKey) {
+      return TINIPING_RANKING_CATEGORY_KEYS.includes(String(categoryKey || '').trim());
+    }
+
     function isBetterCategoryRankingRecord(candidate, current) {
       if(!current) return true;
       const scoreDiff = (Number(candidate.score) || 0) - (Number(current.score) || 0);
@@ -3935,6 +3939,7 @@
     }
 
     function getRankingPlazaCategoryRecordLimit(categoryKey) {
+      if(isTinipingRankingCategoryKey(categoryKey)) return 800;
       return isPokemonRankingCategoryKey(categoryKey) ? 240 : RANKING_PLAZA_CATEGORY_RECORD_LIMIT;
     }
 
