@@ -80,13 +80,17 @@ function extractQuizzes(input) {
 
 function normalizeQuiz(rawQuiz) {
   const questions = Array.isArray(rawQuiz.questions) ? rawQuiz.questions : [];
+  const category = normalizeString(rawQuiz.category);
+  const uiType = category === '티니핑'
+    ? 'imageInput'
+    : normalizeString(rawQuiz.uiType || 'input');
   return {
     quizId: normalizeString(rawQuiz.quizId || rawQuiz.id),
     title: normalizeString(rawQuiz.title),
     subject: normalizeString(rawQuiz.subject),
-    category: normalizeString(rawQuiz.category),
+    category,
     type: normalizeString(rawQuiz.type || 'sheet'),
-    uiType: normalizeString(rawQuiz.uiType || 'input'),
+    uiType,
     completionType: normalizeString(rawQuiz.completionType || 'loop'),
     badgeGroup: normalizeString(rawQuiz.badgeGroup),
     subjectGroup: normalizeString(rawQuiz.subjectGroup),
@@ -103,6 +107,8 @@ function normalizeQuiz(rawQuiz) {
 
 function normalizeQuestion(quiz, rawQuestion, index) {
   const questionId = normalizeString(rawQuestion.questionId || rawQuestion.id) || `${quiz.quizId}-${index + 1}`;
+  const rawPrompt = normalizeString(rawQuestion.prompt || rawQuestion.question);
+  const promptLooksLikeImageUrl = /^https?:\/\//i.test(rawPrompt);
   const base = {
     quizId: quiz.quizId,
     questionId,
@@ -113,7 +119,7 @@ function normalizeQuestion(quiz, rawQuestion, index) {
     title: normalizeString(rawQuestion.title || `${quiz.title} 퀴즈`),
     subject: normalizeString(rawQuestion.subject || quiz.subject),
     category: normalizeString(rawQuestion.category || quiz.category),
-    prompt: normalizeString(rawQuestion.prompt || rawQuestion.question),
+    prompt: rawPrompt,
     answer: normalizeString(rawQuestion.answer),
     hint: normalizeString(rawQuestion.hint),
     explanation: normalizeString(rawQuestion.explanation || rawQuestion.hint),
@@ -121,19 +127,26 @@ function normalizeQuestion(quiz, rawQuestion, index) {
     migrationSource: MIGRATION_SOURCE
   };
 
-  if (quiz.category === '포켓몬' || quiz.uiType === 'imageInput') {
+  if (quiz.category === '포켓몬' || quiz.category === '티니핑' || quiz.uiType === 'imageInput') {
     const pokemonNo = normalizeNumber(rawQuestion.no || rawQuestion.pokemonNo);
     const pokemonPracticeId = pokemonNo > 0 ? String(pokemonNo) : '';
+    const isTiniping = quiz.category === '티니핑';
+    const imageUrl = normalizeString(rawQuestion.imageUrl || rawQuestion.question || (promptLooksLikeImageUrl ? rawPrompt : ''));
+    const answerPracticeId = isTiniping ? base.answer : '';
     return {
       ...base,
       questionType: 'imageInput',
-      prompt: base.prompt || '이미지를 보고 정답을 입력하세요.',
-      imageUrl: normalizeString(rawQuestion.imageUrl || rawQuestion.question),
+      prompt: isTiniping ? '이미지를 보고 티니핑 이름을 입력하세요.' : (base.prompt || '이미지를 보고 정답을 입력하세요.'),
+      imageUrl,
       imageFileId: normalizeString(rawQuestion.imageFileId),
       sourceImageRef: normalizeString(rawQuestion.sourceImageRef),
       pokemonNo,
-      practiceQuestionId: normalizeString(rawQuestion.practiceQuestionId) || pokemonPracticeId || questionId,
+      practiceQuestionId: isTiniping
+        ? (answerPracticeId || normalizeString(rawQuestion.practiceQuestionId) || questionId)
+        : (normalizeString(rawQuestion.practiceQuestionId) || pokemonPracticeId || questionId),
       legacyPracticeIds: uniqueStrings([
+        answerPracticeId,
+        ...(isTiniping ? base.aliases : []),
         pokemonPracticeId,
         questionId,
         ...(Array.isArray(rawQuestion.legacyPracticeIds) ? rawQuestion.legacyPracticeIds : [])
