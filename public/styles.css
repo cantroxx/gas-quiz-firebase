@@ -2288,6 +2288,12 @@ h2 {
   margin-top: 12px;
 }
 
+.admin-audit-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 .admin-log-card {
   padding: 14px 16px;
   border: 1px solid rgba(47, 125, 68, 0.12);

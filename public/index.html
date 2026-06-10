@@ -378,6 +378,7 @@
 
       <div class="admin-section-tabs" aria-label="관리자 메뉴">
         <button class="admin-section-tab is-active" type="button" data-admin-section-target="dashboard">대시보드</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="audit" data-super-admin-only>운영 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
@@ -402,6 +403,24 @@
           <p id="admin-dashboard-status" class="admin-status" aria-live="polite"></p>
           <div id="admin-dashboard-grid" class="admin-dashboard-grid"></div>
           <div id="admin-dashboard-recent" class="admin-dashboard-recent"></div>
+        </div>
+      </section>
+
+      <section id="admin-section-audit" class="admin-section" aria-labelledby="admin-audit-heading" data-super-admin-only>
+        <button class="admin-section-toggle" type="button" data-admin-section-target="audit" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Audit</span>
+            <strong id="admin-audit-heading">운영 점검</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-notice-actions">
+            <button id="admin-audit-refresh" class="button secondary" type="button">점검 실행</button>
+          </div>
+          <p id="admin-audit-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-audit-summary" class="admin-summary"></div>
+          <div id="admin-audit-list" class="admin-audit-list"></div>
         </div>
       </section>
 
@@ -6733,6 +6752,57 @@
       return adminDashboardCache;
     }
 
+    function setAdminAuditStatus(message, isError = false) {
+      const status = document.getElementById('admin-audit-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function renderAdminOperationalAudit(audit) {
+      const summaryRoot = document.getElementById('admin-audit-summary');
+      const listRoot = document.getElementById('admin-audit-list');
+      if(!summaryRoot || !listRoot) return;
+      const data = audit || {};
+      summaryRoot.innerHTML = '';
+      listRoot.innerHTML = '';
+      [
+        ['회원', data.metrics?.users || 0],
+        ['활성 학생', data.metrics?.activeStudents || 0],
+        ['연결 없음', data.metrics?.missingAuthUid || 0],
+        ['연습 orphan', data.metrics?.orphanPracticeRecords || 0],
+        ['랭킹 orphan', data.metrics?.orphanRankingRecords || 0],
+        ['퀴즈왕 불일치', data.metrics?.quizKingMismatch || 0]
+      ].forEach(([label, value]) => {
+        summaryRoot.appendChild(createAdminDetailMetric(label, value));
+      });
+
+      const sections = [
+        ['회원 연결 점검', data.issues?.memberAuth || [], item => `${item.memberUserId} · ${item.nickname || '-'} · ${item.reason}`],
+        ['연습기록 orphan 후보', data.issues?.orphanPracticeRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.area || '-'} / ${item.detail || '-'}`],
+        ['랭킹기록 orphan 후보', data.issues?.orphanRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점`],
+        ['퀴즈왕 summary 불일치 후보', data.issues?.quizKingMismatch || [], item => `${item.memberUserId} · 저장 ${item.storedTotalScore}점/${item.storedCategoryCount}영역 · 계산 ${item.calculatedTotalScore}점/${item.calculatedCategoryCount}영역`],
+        ['비정상 랭킹 후보', data.issues?.suspiciousRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점 · ${item.elapsedSeconds || 0}초`]
+      ];
+      sections.forEach(([title, rows, formatter]) => {
+        listRoot.appendChild(createAdminDetailList(title, rows, formatter));
+      });
+    }
+
+    async function loadAdminOperationalAudit() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminAuditStatus('운영 데이터를 점검하는 중입니다...');
+      const callable = functions.httpsCallable('adminGetOperationalAudit');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-audit-load-failed');
+      renderAdminOperationalAudit(result.audit);
+      setAdminAuditStatus(`읽기 전용 점검 완료 · ${formatAdminTimestamp(result.audit?.checkedAt)}`);
+      return result.audit;
+    }
+
     function renderAdminSummary(summary) {
       const root = document.getElementById('admin-summary');
       if(!root) return;
@@ -9039,6 +9109,10 @@
             console.warn('Admin logs load failed.', error);
             setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true);
           });
+          loadAdminOperationalAudit().catch(error => {
+            console.warn('Admin operational audit load failed.', error);
+            setAdminAuditStatus('운영 점검을 불러오지 못했습니다.', true);
+          });
         }
       }).catch(error => {
         console.warn('Admin dashboard load failed.', error);
@@ -9455,6 +9529,13 @@
       loadAdminDashboard().catch(error => {
         console.warn('Admin dashboard refresh failed.', error);
         setAdminDashboardStatus('대시보드를 다시 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-audit-refresh').addEventListener('click', () => {
+      loadAdminOperationalAudit().catch(error => {
+        console.warn('Admin operational audit refresh failed.', error);
+        setAdminAuditStatus('운영 점검을 다시 불러오지 못했습니다.', true);
       });
     });
 

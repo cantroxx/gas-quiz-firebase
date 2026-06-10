@@ -1721,6 +1721,171 @@ exports.adminGetDashboard = onCall({ region: REGION }, async request => {
   };
 });
 
+function normalizeAuditRankingCategoryKey(categoryKey, category = "") {
+  const key = String(categoryKey || "").trim();
+  const label = String(category || "").trim();
+  if (key === "티니핑" || key === "인물티니핑" || label.includes("티니핑")) return "티니핑";
+  return key;
+}
+
+function isBetterAuditRankingRecord(next, current) {
+  if (!current) return true;
+  const scoreDiff = (Number(next.score) || 0) - (Number(current.score) || 0);
+  if (scoreDiff) return scoreDiff > 0;
+  return (Number(next.elapsedSeconds) || 999999999) < (Number(current.elapsedSeconds) || 999999999);
+}
+
+function buildAuditQuizKingSummary(rows) {
+  const bestByUser = new Map();
+  const allowedModes = new Set(["normal", "speed", "onechance", "nohint"]);
+  rows.forEach(record => {
+    const memberUserId = String(record.memberUserId || record.userId || "").trim();
+    const rankingMode = String(record.rankingMode || "").trim();
+    const categoryKey = normalizeAuditRankingCategoryKey(record.categoryKey, record.category);
+    if (!memberUserId || !categoryKey || !allowedModes.has(rankingMode) || Number(record.score) <= 0) return;
+    if (!bestByUser.has(memberUserId)) bestByUser.set(memberUserId, new Map());
+    const byCategory = bestByUser.get(memberUserId);
+    const current = byCategory.get(categoryKey);
+    if (isBetterAuditRankingRecord(record, current)) byCategory.set(categoryKey, record);
+  });
+  const summaries = new Map();
+  bestByUser.forEach((byCategory, memberUserId) => {
+    const bestRows = Array.from(byCategory.values());
+    summaries.set(memberUserId, {
+      memberUserId,
+      totalScore: bestRows.reduce((sum, row) => sum + (Number(row.score) || 0), 0),
+      categoryCount: bestRows.length
+    });
+  });
+  return summaries;
+}
+
+function publicAuditRecord(doc) {
+  return { recordId: doc.id, ...(doc.data() || {}) };
+}
+
+exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+
+  const [
+    userSnapshot,
+    credentialSnapshot,
+    practiceSnapshot,
+    rankingSnapshot,
+    quizKingSnapshot
+  ] = await Promise.all([
+    db.collection("users").limit(2000).get(),
+    db.collection("memberCredentials").limit(2000).get(),
+    db.collection("practiceRecords").limit(5000).get(),
+    db.collection("rankingRecords").limit(5000).get(),
+    db.collection("quizKingSummary").limit(2000).get()
+  ]);
+
+  const users = userSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...(doc.data() || {}) }));
+  const userIds = new Set(users.map(user => user.memberUserId));
+  const credentialIds = new Set(credentialSnapshot.docs.map(doc => doc.id));
+  const practiceRows = practiceSnapshot.docs.map(publicAuditRecord);
+  const rankingRows = rankingSnapshot.docs.map(publicAuditRecord);
+  const quizKingRows = quizKingSnapshot.docs.map(publicAuditRecord);
+
+  const activeStudents = users.filter(user => user.role !== "admin" && user.active === true && user.status === "active");
+  const memberAuthIssues = activeStudents
+    .filter(user => !user.authUid || !credentialIds.has(user.memberUserId))
+    .slice(0, 20)
+    .map(user => ({
+      memberUserId: user.memberUserId,
+      nickname: user.nickname || user.name || "",
+      reason: !user.authUid ? "authUid 없음" : "비밀번호 credential 없음"
+    }));
+
+  const orphanPracticeRecordRows = practiceRows
+    .filter(row => {
+      const memberUserId = String(row.memberUserId || row.userId || "").trim();
+      return memberUserId && !userIds.has(memberUserId);
+    });
+  const orphanPracticeRecords = orphanPracticeRecordRows
+    .slice(0, 20)
+    .map(row => ({
+      recordId: row.recordId,
+      memberUserId: row.memberUserId || row.userId || "",
+      area: row.area || "",
+      detail: row.detail || row.areaKey || ""
+    }));
+
+  const orphanRankingRecordRows = rankingRows
+    .filter(row => {
+      const memberUserId = String(row.memberUserId || row.userId || "").trim();
+      return memberUserId && !userIds.has(memberUserId);
+    });
+  const orphanRankingRecords = orphanRankingRecordRows
+    .slice(0, 20)
+    .map(row => ({
+      recordId: row.recordId,
+      memberUserId: row.memberUserId || row.userId || "",
+      category: row.category || row.categoryKey || "",
+      score: Number(row.score) || 0
+    }));
+
+  const suspiciousRankingRecordRows = rankingRows
+    .filter(row => {
+      const score = Number(row.score) || 0;
+      const elapsedSeconds = Number(row.elapsedSeconds) || 0;
+      return score < 0 || score > 1000 || elapsedSeconds > 21600;
+    });
+  const suspiciousRankingRecords = suspiciousRankingRecordRows
+    .slice(0, 20)
+    .map(row => ({
+      recordId: row.recordId,
+      memberUserId: row.memberUserId || row.userId || "",
+      category: row.category || row.categoryKey || "",
+      score: Number(row.score) || 0,
+      elapsedSeconds: Number(row.elapsedSeconds) || 0
+    }));
+
+  const calculatedQuizKing = buildAuditQuizKingSummary(rankingRows);
+  const quizKingMismatchRows = quizKingRows
+    .map(row => {
+      const memberUserId = String(row.memberUserId || row.recordId || "").trim();
+      const calculated = calculatedQuizKing.get(memberUserId) || { totalScore: 0, categoryCount: 0 };
+      return {
+        memberUserId,
+        storedTotalScore: Number(row.totalScore) || 0,
+        storedCategoryCount: Number(row.categoryCount) || 0,
+        calculatedTotalScore: calculated.totalScore,
+        calculatedCategoryCount: calculated.categoryCount
+      };
+    })
+    .filter(row => row.storedTotalScore !== row.calculatedTotalScore || row.storedCategoryCount !== row.calculatedCategoryCount);
+  const quizKingMismatch = quizKingMismatchRows
+    .slice(0, 20);
+
+  return {
+    success: true,
+    audit: {
+      checkedAt: Timestamp.now(),
+      metrics: {
+        users: users.length,
+        activeStudents: activeStudents.length,
+        missingAuthUid: activeStudents.filter(user => !user.authUid).length,
+        missingCredentials: activeStudents.filter(user => !credentialIds.has(user.memberUserId)).length,
+        orphanPracticeRecords: orphanPracticeRecordRows.length,
+        orphanRankingRecords: orphanRankingRecordRows.length,
+        suspiciousRankingRecords: suspiciousRankingRecordRows.length,
+        quizKingMismatch: quizKingMismatchRows.length
+      },
+      issues: {
+        memberAuth: memberAuthIssues,
+        orphanPracticeRecords,
+        orphanRankingRecords,
+        suspiciousRankingRecords,
+        quizKingMismatch
+      }
+    }
+  };
+});
+
 exports.adminListMembers = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
