@@ -3841,6 +3841,48 @@
       '인물애니',
       ...POKEMON_RANKING_CATEGORY_KEYS
     ];
+    const RANKING_CATEGORY_QUIZ_ID_MAP = {
+      '맞춤법': 'spelling',
+      '아재개그': 'dad-joke',
+      '단어다의어-동형이의어': 'word-relation',
+      '독서지엠오-아이': 'gmo',
+      '독서시간가게': 'time_store',
+      '사회삼국지': 'samgukji',
+      '사회고대사-삼국시대': 'ancient-history',
+      '인물역사-인물': 'history-people',
+      '수학곱셈과-나눗셈': 'random-basic',
+      '인물아이돌': 'idol',
+      '인물애니': 'anime',
+      '포켓몬1세대': 'pokemon-gen1',
+      '포켓몬2세대': 'pokemon-gen2',
+      '포켓몬3세대': 'pokemon-gen3',
+      '포켓몬4세대': 'pokemon-gen4',
+      '포켓몬5세대': 'pokemon-gen5',
+      '포켓몬6세대': 'pokemon-gen6',
+      '포켓몬7세대': 'pokemon-gen7',
+      '포켓몬8세대': 'pokemon-gen8',
+      '포켓몬9세대': 'pokemon-gen9',
+      '포켓몬쉬움': 'pokemon-easy',
+      '포켓몬보통': 'pokemon-normal',
+      '포켓몬어려움': 'pokemon-hard',
+      '포켓몬헬': 'pokemon-very-hard'
+    };
+
+    function getEnabledRankingCategoryKeys(keys) {
+      return (keys || []).filter(key => {
+        const quizId = RANKING_CATEGORY_QUIZ_ID_MAP[key];
+        return quizId ? isQuizEnabledByFlags(quizId) : true;
+      });
+    }
+
+    function getEnabledRankingGroupDefinitions(definitions) {
+      return (definitions || [])
+        .map(definition => ({
+          ...definition,
+          keys: getEnabledRankingCategoryKeys(definition.keys)
+        }))
+        .filter(definition => definition.keys.length);
+    }
 
     function normalizeRankingRecordFromFirestore(doc) {
       return { recordId: doc.id, ...doc.data() };
@@ -3949,7 +3991,9 @@
     }
 
     async function loadLimitedRankingRecordsForPlaza(db) {
-      const snapshots = await Promise.all(RANKING_PLAZA_CATEGORY_KEYS.map(categoryKey =>
+      const enabledCategoryKeys = getEnabledRankingCategoryKeys(RANKING_PLAZA_CATEGORY_KEYS);
+      if(!enabledCategoryKeys.length) return [];
+      const snapshots = await Promise.all(enabledCategoryKeys.map(categoryKey =>
         db.collection('rankingRecords')
           .where('categoryKey', '==', categoryKey)
           .limit(getRankingPlazaCategoryRecordLimit(categoryKey))
@@ -3957,7 +4001,7 @@
       ));
       const byRecordId = new Map();
       snapshots.forEach((snapshot, index) => {
-        const categoryKey = RANKING_PLAZA_CATEGORY_KEYS[index];
+        const categoryKey = enabledCategoryKeys[index];
         snapshot.docs.map(normalizeRankingRecordFromFirestore).filter(record => {
           const mode = String(record.rankingMode || '').trim();
           return !mode || mode === 'normal' || mode === 'speed' || mode === 'onechance' || mode === 'legacy' || mode === 'nohint';
@@ -4114,23 +4158,35 @@
     }
 
     function getPopularRankingAreas() {
-      return [
+      const areas = [
         { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
         { id: 'anime', label: '애니', keys: ['인물애니'] },
         { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
       ];
+      return areas
+        .map(area => ({
+          ...area,
+          keys: getEnabledRankingCategoryKeys(area.keys)
+        }))
+        .filter(area => area.id === 'all' || area.keys.length);
     }
 
     function getPopularPokemonDifficulties() {
-      return [
+      const difficulties = [
         { id: 'all', label: '전체', keys: POKEMON_RANKING_CATEGORY_KEYS },
         { id: 'easy', label: '쉬움', keys: ['포켓몬쉬움'] },
         { id: 'normal', label: '보통', keys: ['포켓몬보통'] },
         { id: 'hard', label: '어려움', keys: ['포켓몬어려움'] },
         { id: 'veryHard', label: '헬', keys: ['포켓몬헬'] }
       ];
+      return difficulties
+        .map(difficulty => ({
+          ...difficulty,
+          keys: getEnabledRankingCategoryKeys(difficulty.keys)
+        }))
+        .filter(difficulty => difficulty.id === 'all' || difficulty.keys.length);
     }
 
     function getPopularModeOptions(records, areaId) {
@@ -4469,24 +4525,33 @@
     }
 
     function getRankingBoardModels(quizKingSummaries, rankingRecords) {
-      const koreanKeys = ['맞춤법', '아재개그', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게'];
-      const socialKeys = ['사회삼국지', '사회고대사-삼국시대', '인물역사-인물'];
-      const mathKeys = ['수학곱셈과-나눗셈'];
-      const popularKeys = ['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS];
-      const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
+      const koreanDefinitions = getEnabledRankingGroupDefinitions([
         { id: 'spelling', label: '맞춤법', keys: ['맞춤법'] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'wordRelation', label: '다의어·동형이의어', keys: ['단어다의어-동형이의어'] },
         { id: 'readingGmo', label: '지엠오 아이', keys: ['독서지엠오-아이'] },
         { id: 'timeStore', label: '시간가게', keys: ['독서시간가게'] }
       ]);
-      const socialGroups = buildSubjectRankingGroups(rankingRecords, socialKeys, [
+      const socialDefinitions = getEnabledRankingGroupDefinitions([
         { id: 'samgukji', label: '삼국지', keys: ['사회삼국지'] },
         { id: 'ancientHistory', label: '고대사~삼국시대', keys: ['사회고대사-삼국시대'] },
         { id: 'historyPeople', label: '역사 인물', keys: ['인물역사-인물'] }
       ]);
-      const mathGroups = buildSubjectRankingGroups(rankingRecords, mathKeys, [
+      const mathDefinitions = getEnabledRankingGroupDefinitions([
         { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] }
+      ]);
+      const koreanKeys = koreanDefinitions.flatMap(definition => definition.keys);
+      const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
+      const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
+      const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', ...POKEMON_RANKING_CATEGORY_KEYS]);
+      const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
+        ...koreanDefinitions
+      ]);
+      const socialGroups = buildSubjectRankingGroups(rankingRecords, socialKeys, [
+        ...socialDefinitions
+      ]);
+      const mathGroups = buildSubjectRankingGroups(rankingRecords, mathKeys, [
+        ...mathDefinitions
       ]);
       return [
         {
