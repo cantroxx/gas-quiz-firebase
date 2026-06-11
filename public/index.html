@@ -1030,6 +1030,13 @@
       }
     };
 
+    const MAX_RANKING_ELAPSED_SECONDS = 20 * 60;
+    const INVALID_RANKING_TIME_MESSAGE = '20분이 초과되어 랭킹 기록이 되지 않습니다.';
+    const DAILY_POPULAR_SOFT_LIMIT_SECONDS = 10 * 60;
+    const DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS = 30 * 60;
+    const DAILY_POPULAR_UNLOCK_CORRECT_COUNT = 15;
+    const POPULAR_USAGE_FLUSH_INTERVAL_MS = 30 * 1000;
+
     const USER_REWARD_DATA = {
       coin: 0,
       exp: 340,
@@ -2017,8 +2024,11 @@
     let currentQuizStartedAtMs = 0;
     let currentRankingLives = 0;
     let currentRankingQuestionTimer = null;
+    let currentRankingSessionTimer = null;
     let currentRankingTimeLeft = 0;
     let currentQuestionResolved = false;
+    let currentPopularUsageSession = null;
+    let currentPopularUsageFlushTimer = null;
     const firebaseQuizDataCache = {};
     let titleCatalogCache = null;
     let titleCatalogMapCache = null;
@@ -5133,6 +5143,189 @@
       return options.some(option => option.value === requestedMode) ? requestedMode : 'normal';
     }
 
+    function getKstDateKey(date = new Date()) {
+      const shifted = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+      return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
+    }
+
+    function isAfter4PmKst(date = new Date()) {
+      const shifted = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+      return shifted.getUTCHours() >= 16;
+    }
+
+    function isPopularQuiz(quizId) {
+      const quiz = QUIZ_CATALOG[normalizeFirebaseQuizId(quizId)] || QUIZ_CATALOG[quizId] || {};
+      return quiz.subjectId === 'popular';
+    }
+
+    function isEducationUnlockQuiz(quizId) {
+      const quiz = QUIZ_CATALOG[normalizeFirebaseQuizId(quizId)] || QUIZ_CATALOG[quizId] || {};
+      return ['korean', 'social', 'math'].includes(quiz.subjectId);
+    }
+
+    function buildDailyUsageRecordId(memberUserId, dateKey = getKstDateKey()) {
+      return `${memberUserId}__${dateKey}`;
+    }
+
+    function normalizeDailyUsageData(data = {}, memberUserId = getCurrentDataOwnerId(), dateKey = getKstDateKey()) {
+      return {
+        recordId: data.recordId || buildDailyUsageRecordId(memberUserId, dateKey),
+        memberUserId: data.memberUserId || memberUserId || '',
+        userId: data.userId || data.memberUserId || memberUserId || '',
+        date: data.date || dateKey,
+        funSeconds: Math.max(0, Math.round(Number(data.funSeconds) || 0)),
+        after4FunSeconds: Math.max(0, Math.round(Number(data.after4FunSeconds) || 0)),
+        eduCorrectCount: Math.max(0, Math.round(Number(data.eduCorrectCount) || 0)),
+        unlockBaseEduCorrectCount: Math.max(0, Math.round(Number(data.unlockBaseEduCorrectCount) || 0))
+      };
+    }
+
+    async function getDailyUsageForToday(memberUserId = getCurrentDataOwnerId()) {
+      const db = getFirestoreDb();
+      const dateKey = getKstDateKey();
+      if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) {
+        return normalizeDailyUsageData({}, memberUserId, dateKey);
+      }
+      const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
+      const snapshot = await db.collection('dailyUsage').doc(recordId).get();
+      return normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, memberUserId, dateKey);
+    }
+
+    function getDailyUsageAccessStatus(usage) {
+      const funSeconds = Number(usage.funSeconds) || 0;
+      const after4FunSeconds = Number(usage.after4FunSeconds) || 0;
+      const unlockBase = Math.max(0, Number(usage.unlockBaseEduCorrectCount) || 0);
+      const unlockProgress = funSeconds >= DAILY_POPULAR_SOFT_LIMIT_SECONDS
+        ? Math.max(0, (Number(usage.eduCorrectCount) || 0) - unlockBase)
+        : 0;
+      const softLocked = funSeconds >= DAILY_POPULAR_SOFT_LIMIT_SECONDS && unlockProgress < DAILY_POPULAR_UNLOCK_CORRECT_COUNT;
+      const hardLocked = after4FunSeconds >= DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS;
+      const locked = softLocked || hardLocked;
+      return {
+        ...usage,
+        unlockProgress,
+        unlockRemainingCorrect: Math.max(0, DAILY_POPULAR_UNLOCK_CORRECT_COUNT - unlockProgress),
+        softLocked,
+        hardLocked,
+        locked,
+        message: hardLocked
+          ? '오늘의 인기퀴즈 이용 시간이 모두 끝났어요. 오후 4시 이후 인기퀴즈는 하루 최대 30분까지 이용할 수 있어요.'
+          : (softLocked ? `오늘의 인기퀴즈 기본 시간이 끝났어요. 국어·사회·수학 퀴즈에서 ${Math.max(0, DAILY_POPULAR_UNLOCK_CORRECT_COUNT - unlockProgress)}문제를 더 맞히면 다시 이용할 수 있어요.` : '')
+      };
+    }
+
+    async function ensurePopularQuizAccess(quizId) {
+      if(!isPopularQuiz(quizId)) return { canAccess: true };
+      const memberUserId = getCurrentDataOwnerId();
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return { canAccess: true };
+      try {
+        const usage = await getDailyUsageForToday(memberUserId);
+        const status = getDailyUsageAccessStatus(usage);
+        if(status.locked) {
+          window.alert(status.message || '오늘은 인기퀴즈를 더 이용할 수 없어요.');
+          return { canAccess: false, status };
+        }
+        return { canAccess: true, status };
+      } catch(error) {
+        console.warn('Popular quiz access check failed.', error);
+        window.alert('인기퀴즈 이용 시간을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        return { canAccess: false, error };
+      }
+    }
+
+    async function updateDailyUsageForToday(delta = {}) {
+      const db = getFirestoreDb();
+      const memberUserId = getCurrentDataOwnerId();
+      if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return null;
+      const dateKey = getKstDateKey();
+      const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
+      const ref = db.collection('dailyUsage').doc(recordId);
+      const fieldValue = getFirestoreFieldValue();
+      return db.runTransaction(async transaction => {
+        const snapshot = await transaction.get(ref);
+        const current = normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, memberUserId, dateKey);
+        const funDelta = Math.max(0, Math.round(Number(delta.funSeconds) || 0));
+        const after4FunDelta = Math.max(0, Math.round(Number(delta.after4FunSeconds) || 0));
+        const eduCorrectDelta = Math.max(0, Math.round(Number(delta.eduCorrectCount) || 0));
+        let unlockBase = current.unlockBaseEduCorrectCount;
+        if(current.funSeconds + funDelta >= DAILY_POPULAR_SOFT_LIMIT_SECONDS && unlockBase <= 0) {
+          unlockBase = current.eduCorrectCount;
+        }
+        const next = {
+          recordId,
+          memberUserId,
+          userId: memberUserId,
+          date: dateKey,
+          funSeconds: current.funSeconds + funDelta,
+          after4FunSeconds: current.after4FunSeconds + after4FunDelta,
+          eduCorrectCount: current.eduCorrectCount + eduCorrectDelta,
+          unlockBaseEduCorrectCount: unlockBase,
+          migrationSource: 'firebase_app_daily_usage',
+          updatedAt: fieldValue.serverTimestamp()
+        };
+        if(!snapshot.exists) next.createdAt = fieldValue.serverTimestamp();
+        transaction.set(ref, next, { merge: true });
+        return next;
+      });
+    }
+
+    async function recordEducationCorrectForPopularUnlock(quizId) {
+      if(!isEducationUnlockQuiz(quizId)) return null;
+      try {
+        return await updateDailyUsageForToday({ eduCorrectCount: 1 });
+      } catch(error) {
+        console.warn('Daily education correct usage update failed.', error);
+        return null;
+      }
+    }
+
+    async function flushPopularUsageSession(force = false) {
+      if(!currentPopularUsageSession) return null;
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - currentPopularUsageSession.lastFlushedAtMs) / 1000);
+      if(!force && elapsedSeconds < 1) return null;
+      const cappedSeconds = Math.max(0, Math.min(elapsedSeconds, 60));
+      currentPopularUsageSession.lastFlushedAtMs = now;
+      if(cappedSeconds <= 0) return null;
+      try {
+        const delta = {
+          funSeconds: cappedSeconds,
+          after4FunSeconds: (currentPopularUsageSession.after4Window || isAfter4PmKst()) ? cappedSeconds : 0
+        };
+        return await updateDailyUsageForToday(delta);
+      } catch(error) {
+        console.warn('Popular quiz usage update failed.', error);
+        return null;
+      }
+    }
+
+    function clearPopularUsageFlushTimer() {
+      if(currentPopularUsageFlushTimer) clearInterval(currentPopularUsageFlushTimer);
+      currentPopularUsageFlushTimer = null;
+    }
+
+    function startPopularUsageSessionIfNeeded(quizId) {
+      clearPopularUsageFlushTimer();
+      currentPopularUsageSession = null;
+      if(!isPopularQuiz(quizId)) return;
+      currentPopularUsageSession = {
+        quizId: normalizeFirebaseQuizId(quizId),
+        startedAtMs: Date.now(),
+        lastFlushedAtMs: Date.now(),
+        after4Window: isAfter4PmKst()
+      };
+      currentPopularUsageFlushTimer = setInterval(() => {
+        flushPopularUsageSession(false);
+      }, POPULAR_USAGE_FLUSH_INTERVAL_MS);
+    }
+
+    async function finishPopularUsageSession() {
+      clearPopularUsageFlushTimer();
+      const result = await flushPopularUsageSession(true);
+      currentPopularUsageSession = null;
+      return result;
+    }
+
     function slugPracticeKey(value) {
       return String(value || '')
         .trim()
@@ -8091,6 +8284,7 @@
     }
 
     async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
+      await finishPopularUsageSession();
       if(modeId === 'ranking') {
         const flags = await loadFeatureFlags();
         if(!isQuizEnabledByFlags(quizId, flags)) {
@@ -8111,6 +8305,11 @@
           return;
         }
       }
+      const access = await ensurePopularQuizAccess(quizId);
+      if(!access.canAccess) {
+        showQuizSelectView(quizId);
+        return;
+      }
       currentQuizId = quizId;
       currentModeId = modeId;
       currentRankingModeId = modeId === 'ranking' ? getSupportedRankingModeForQuiz(quizId, rankingModeId) : 'normal';
@@ -8122,6 +8321,9 @@
       currentQuestionResolved = false;
       currentSessionQuestions = null;
       clearRankingQuestionTimer();
+      clearRankingSessionTimer();
+      startPopularUsageSessionIfNeeded(quizId);
+      startRankingSessionTimerIfNeeded();
       try {
         await buildFirebaseQuizData(quizId);
       } catch(error) {
@@ -8351,6 +8553,40 @@
       currentRankingQuestionTimer = null;
     }
 
+    function clearRankingSessionTimer() {
+      if(currentRankingSessionTimer) clearInterval(currentRankingSessionTimer);
+      currentRankingSessionTimer = null;
+    }
+
+    function getRankingElapsedSeconds() {
+      return Math.max(1, Math.round((Date.now() - (currentQuizStartedAtMs || Date.now())) / 1000));
+    }
+
+    function startRankingSessionTimerIfNeeded() {
+      clearRankingSessionTimer();
+      if(currentModeId !== 'ranking') return;
+      currentRankingSessionTimer = setInterval(() => {
+        if(currentModeId !== 'ranking') {
+          clearRankingSessionTimer();
+          return;
+        }
+        if(getRankingElapsedSeconds() >= MAX_RANKING_ELAPSED_SECONDS) {
+          handleRankingSessionTimeout();
+        }
+      }, 1000);
+    }
+
+    function handleRankingSessionTimeout() {
+      if(currentModeId !== 'ranking') return;
+      clearRankingQuestionTimer();
+      clearRankingSessionTimer();
+      currentQuestionResolved = true;
+      document.querySelectorAll('.quiz-choice, .quiz-submit-button, .quiz-answer-input').forEach(element => {
+        element.disabled = true;
+      });
+      showQuizComplete({ skipped: true, reason: 'elapsed-too-long', forced: true });
+    }
+
     function getRankingTimeLimitSecondsForQuiz(quizId) {
       if(currentRankingModeId === 'speed') return 5;
       const id = normalizeFirebaseQuizId(quizId);
@@ -8429,6 +8665,7 @@
       currentQuestionResolved = true;
       clearRankingQuestionTimer();
       if(isCorrect) correctAnswerCount += 1;
+      if(isCorrect) recordEducationCorrectForPopularUnlock(currentQuizId);
       let progressSavePromise = null;
       if(isCorrect && currentModeId === 'practice') {
         debugLog('Practice progress correct questionId:', {
@@ -8719,7 +8956,20 @@
       if(!target) throw new Error('unsupported-ranking-target');
 
       const profile = currentMemberProfile || {};
-      const elapsedSeconds = Math.max(1, Math.round((Date.now() - (currentQuizStartedAtMs || Date.now())) / 1000));
+      const elapsedSeconds = getRankingElapsedSeconds();
+      if(elapsedSeconds > MAX_RANKING_ELAPSED_SECONDS) {
+        console.warn('Ranking record skipped because elapsed time is too long.', {
+          quizId,
+          elapsedSeconds,
+          maxElapsedSeconds: MAX_RANKING_ELAPSED_SECONDS
+        });
+        return {
+          skipped: true,
+          reason: 'elapsed-too-long',
+          elapsedSeconds,
+          elapsedText: formatRankingElapsedText(elapsedSeconds)
+        };
+      }
       const fieldValue = getFirestoreFieldValue();
       const recordId = buildRankingRecordId(memberUserId, target.categoryKey, target.rankingMode);
       const recordRef = db.collection('rankingRecords').doc(recordId);
@@ -9151,8 +9401,10 @@
       return saveResult || { recordId, questionId };
     }
 
-    function showQuizComplete() {
+    function showQuizComplete(options = {}) {
       clearRankingQuestionTimer();
+      clearRankingSessionTimer();
+      finishPopularUsageSession();
       const root = document.getElementById('quiz-play-root');
       root.innerHTML = '';
 
@@ -9189,11 +9441,13 @@
         rewardGrid.appendChild(item);
       });
       note.textContent = currentModeId === 'ranking'
-        ? '랭킹전 기록은 점수가 높을수록, 점수가 같으면 시간이 짧을수록 위에 표시됩니다.'
+        ? (options.reason === 'elapsed-too-long' ? INVALID_RANKING_TIME_MESSAGE : '랭킹전 기록은 점수가 높을수록, 점수가 같으면 시간이 짧을수록 위에 표시됩니다.')
         : `이미 맞힌 문제는 중복 보상이 없고, 새로 맞힌 문제만 기록과 DJ코인이 반영됩니다.`;
       saveStatus.id = 'ranking-save-status';
       saveStatus.className = 'quiz-progress';
-      saveStatus.textContent = currentModeId === 'ranking' ? '랭킹 기록 저장 중' : '';
+      saveStatus.textContent = currentModeId === 'ranking'
+        ? (options.reason === 'elapsed-too-long' ? INVALID_RANKING_TIME_MESSAGE : '랭킹 기록 저장 중')
+        : '';
       back.className = 'button primary';
       back.type = 'button';
       back.dataset.backToQuizSelect = 'true';
@@ -9202,7 +9456,14 @@
       card.append(title, score, rewardGrid, note, saveStatus, back);
       root.appendChild(card);
 
-      if(currentModeId === 'ranking') {
+      if(currentModeId === 'ranking' && options.reason === 'elapsed-too-long') {
+        renderRankingSaveStatus({
+          skipped: true,
+          reason: 'elapsed-too-long',
+          elapsedSeconds: getRankingElapsedSeconds(),
+          elapsedText: formatRankingElapsedText(getRankingElapsedSeconds())
+        });
+      } else if(currentModeId === 'ranking') {
         saveRankingRecordOnQuizComplete()
           .then(result => renderRankingSaveStatus(result))
           .catch(error => {
@@ -9223,10 +9484,21 @@
         status.textContent = '점수가 0점이라 랭킹 기록은 저장하지 않았어요.';
         return;
       }
+      if(result.skipped && result.reason === 'elapsed-too-long') {
+        status.textContent = INVALID_RANKING_TIME_MESSAGE;
+        return;
+      }
       status.textContent = `랭킹 기록 저장 완료 · ${result.score}점 · ${result.elapsedText}`;
     }
 
+    function leaveQuizPlaySession() {
+      clearRankingQuestionTimer();
+      clearRankingSessionTimer();
+      finishPopularUsageSession();
+    }
+
     function showSchoolView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       renderSchoolQuizCards();
       const externalSection = document.getElementById('external-quiz-section');
@@ -9245,6 +9517,7 @@
     }
 
     function showTownView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       startServerFreshnessPolling();
       document.getElementById('app-hero').hidden = true;
@@ -9263,6 +9536,7 @@
     }
 
     function showLoginView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = false;
@@ -9280,6 +9554,7 @@
     }
 
     function showAdminView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = true;
@@ -9340,6 +9615,7 @@
     }
 
     function showHomeView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       renderHomeView();
       initializeAuthUser().then(renderHomeView);
@@ -9359,6 +9635,7 @@
     }
 
     async function showRankingView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       const flags = await loadFeatureFlags();
       if(flags.rankingEnabled === false) {
@@ -9382,6 +9659,7 @@
     }
 
     async function showShopView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       const flags = await loadFeatureFlags();
       if(flags.shopEnabled === false) {
@@ -9408,6 +9686,7 @@
     }
 
     async function showEventView() {
+      leaveQuizPlaySession();
       closePlaceModal();
       const flags = await loadFeatureFlags();
       if(flags.eventPlazaEnabled === false) {
@@ -9432,6 +9711,7 @@
     }
 
     function showSubjectView(subjectId) {
+      leaveQuizPlaySession();
       currentSubjectId = subjectId;
       renderSubjectQuizCards(subjectId);
       document.getElementById('admin-view').hidden = true;
@@ -9448,6 +9728,7 @@
     }
 
     function showQuizSelectView(quizId) {
+      leaveQuizPlaySession();
       clearRankingQuestionTimer();
       const quiz = QUIZ_CATALOG[quizId] || QUIZ_CATALOG.spelling;
       lastQuizId = quizId;
@@ -9682,7 +9963,12 @@
       const modeId = card?.dataset.modeId;
       const quizId = card?.dataset.quizId || lastQuizId;
       const rankingMode = card?.dataset.rankingMode || 'normal';
-      if(modeId === 'practice' || modeId === 'ranking') showQuizPlayView(quizId, modeId, rankingMode);
+      if(modeId === 'practice' || modeId === 'ranking') {
+        showQuizPlayView(quizId, modeId, rankingMode).catch(error => {
+          console.warn('Quiz play view open failed.', error);
+          window.alert('퀴즈를 시작하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        });
+      }
     });
 
     document.querySelector('[data-back-to-quiz-select]').addEventListener('click', () => showQuizSelectView(lastQuizId));
@@ -9717,6 +10003,14 @@
       if(event.target.dataset.backToQuizSelect) {
         showQuizSelectView(lastQuizId);
       }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if(document.visibilityState === 'hidden') flushPopularUsageSession(true);
+    });
+
+    window.addEventListener('beforeunload', () => {
+      flushPopularUsageSession(true);
     });
 
     document.getElementById('shop-item-grid').addEventListener('click', event => {

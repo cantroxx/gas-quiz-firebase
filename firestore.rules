@@ -292,6 +292,7 @@ service cloud.firestore {
         && request.resource.data.score > 0
         && request.resource.data.elapsedSeconds is number
         && request.resource.data.elapsedSeconds > 0
+        && request.resource.data.elapsedSeconds <= 1200
         && request.resource.data.keys().hasOnly([
           'recordId',
           'memberUserId',
@@ -322,6 +323,49 @@ service cloud.firestore {
           'migrationSource',
           'migratedAt'
         ]);
+    }
+
+    function hasValidDailyUsageShape(recordId) {
+      return isSignedIn()
+        && request.resource.data.memberUserId is string
+        && canAccessUserScopedData(request.resource.data.memberUserId)
+        && request.resource.data.userId == request.resource.data.memberUserId
+        && request.resource.data.recordId == recordId
+        && request.resource.data.date is string
+        && recordId == request.resource.data.memberUserId + '__' + request.resource.data.date
+        && request.resource.data.funSeconds is number
+        && request.resource.data.funSeconds >= 0
+        && request.resource.data.after4FunSeconds is number
+        && request.resource.data.after4FunSeconds >= 0
+        && request.resource.data.eduCorrectCount is number
+        && request.resource.data.eduCorrectCount >= 0
+        && request.resource.data.unlockBaseEduCorrectCount is number
+        && request.resource.data.unlockBaseEduCorrectCount >= 0
+        && request.resource.data.keys().hasOnly([
+          'recordId',
+          'memberUserId',
+          'userId',
+          'date',
+          'funSeconds',
+          'after4FunSeconds',
+          'eduCorrectCount',
+          'unlockBaseEduCorrectCount',
+          'migrationSource',
+          'createdAt',
+          'updatedAt'
+        ]);
+    }
+
+    function canUpdateDailyUsage(recordId) {
+      return hasValidDailyUsageShape(recordId)
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId
+        && resource.data.recordId == request.resource.data.recordId
+        && resource.data.date == request.resource.data.date
+        && request.resource.data.funSeconds >= resource.data.funSeconds
+        && request.resource.data.after4FunSeconds >= resource.data.after4FunSeconds
+        && request.resource.data.eduCorrectCount >= resource.data.eduCorrectCount
+        && request.resource.data.unlockBaseEduCorrectCount >= resource.data.unlockBaseEduCorrectCount;
     }
 
     function hasValidUserRankingSummaryShape(userId) {
@@ -452,6 +496,15 @@ service cloud.firestore {
 
     match /userRoomSettings/{userId} {
       allow read, write: if canAccessUserScopedData(userId);
+    }
+
+    match /dailyUsage/{recordId} {
+      allow read: if isSignedIn()
+        && recordId.matches('.*__.*')
+        && canAccessUserScopedData(recordId.split('__')[0]);
+      allow create: if hasValidDailyUsageShape(recordId);
+      allow update: if canUpdateDailyUsage(recordId);
+      allow delete: if false;
     }
 
     match /purchaseLogs/{logId} {
