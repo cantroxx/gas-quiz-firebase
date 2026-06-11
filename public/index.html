@@ -778,7 +778,10 @@
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
         <div>
           <p id="subject-kicker" class="eyebrow">Subject Hall</p>
-          <h2 id="subject-title">국어관</h2>
+          <div class="subject-title-row">
+            <h2 id="subject-title">국어관</h2>
+            <span id="subject-popular-usage-notice" class="popular-usage-notice subject-title-usage" data-popular-usage-notice hidden></span>
+          </div>
           <p id="subject-desc">과목별 퀴즈를 고르고 연습전이나 랭킹전에 도전합니다.</p>
         </div>
       </div>
@@ -5213,9 +5216,53 @@
         hardLocked,
         locked,
         message: hardLocked
-          ? '오늘의 인기퀴즈 이용 시간이 모두 끝났어요. 오후 4시 이후 인기퀴즈는 하루 최대 30분까지 이용할 수 있어요.'
-          : (softLocked ? `오늘의 인기퀴즈 기본 시간이 끝났어요. 국어·사회·수학 퀴즈에서 ${Math.max(0, DAILY_POPULAR_UNLOCK_CORRECT_COUNT - unlockProgress)}문제를 더 맞히면 다시 이용할 수 있어요.` : '')
+          ? '오늘의 인기퀴즈 이용 시간이 모두 끝났어요. 국어·수학·사회 퀴즈를 풀며 내일 다시 도전해 주세요.'
+          : (softLocked ? `인기퀴즈 시간이 끝났어요. 국어·수학·사회 퀴즈에서 ${Math.max(0, DAILY_POPULAR_UNLOCK_CORRECT_COUNT - unlockProgress)}문제를 더 맞히면 다시 이용할 수 있어요.` : '')
       };
+    }
+
+    function getPopularUsageNoticeText(status) {
+      if(!status) return '인기퀴즈 이용 시간을 확인하지 못했어요.';
+      if(status.locked) return '오늘은 마감';
+      const baseRemaining = Math.max(0, DAILY_POPULAR_SOFT_LIMIT_SECONDS - (Number(status.funSeconds) || 0));
+      const after4Remaining = Math.max(0, DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS - (Number(status.after4FunSeconds) || 0));
+      const effectiveRemaining = isAfter4PmKst() ? Math.min(baseRemaining, after4Remaining) : baseRemaining;
+      return effectiveRemaining >= 60 ? '이용가능' : '끝이 보여요';
+    }
+
+    async function refreshPopularUsageNotices() {
+      const targets = Array.from(document.querySelectorAll('[data-popular-usage-notice]'));
+      if(!targets.length) return;
+      const memberUserId = getCurrentDataOwnerId();
+      targets.forEach(target => {
+        target.hidden = false;
+        target.textContent = memberUserId && memberUserId !== TEST_SHOP_USER_ID
+          ? '확인 중'
+          : '로그인 후 표시';
+      });
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return;
+      try {
+        const usage = await getDailyUsageForToday(memberUserId);
+        const status = getDailyUsageAccessStatus(usage);
+        targets.forEach(target => {
+          const card = target.closest('.school-quiz-card, .subject-quiz-card');
+          const noticeText = getPopularUsageNoticeText(status);
+          target.textContent = noticeText;
+          target.dataset.state = status.locked ? 'locked' : 'available';
+          if(status.locked) {
+            delete target.dataset.urgency;
+          } else {
+            target.dataset.urgency = noticeText === '끝이 보여요' ? 'low' : 'normal';
+          }
+          if(card) card.classList.toggle('is-popular-locked', !!status.locked);
+        });
+      } catch(error) {
+        console.warn('Popular usage notice refresh failed.', error);
+        targets.forEach(target => {
+          target.textContent = '확인 실패';
+          target.dataset.state = 'error';
+        });
+      }
     }
 
     async function ensurePopularQuizAccess(quizId) {
@@ -5226,7 +5273,7 @@
         const usage = await getDailyUsageForToday(memberUserId);
         const status = getDailyUsageAccessStatus(usage);
         if(status.locked) {
-          window.alert(status.message || '오늘은 인기퀴즈를 더 이용할 수 없어요.');
+          window.alert(status.message || '오늘은 인기퀴즈를 더 이용할 수 없어요. 국어·수학·사회 퀴즈를 풀고 다시 도전해 주세요.');
           return { canAccess: false, status };
         }
         return { canAccess: true, status };
@@ -5234,6 +5281,23 @@
         console.warn('Popular quiz access check failed.', error);
         window.alert('인기퀴즈 이용 시간을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
         return { canAccess: false, error };
+      }
+    }
+
+    async function ensurePopularSubjectAccess() {
+      const memberUserId = getCurrentDataOwnerId();
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return true;
+      try {
+        const usage = await getDailyUsageForToday(memberUserId);
+        const status = getDailyUsageAccessStatus(usage);
+        await refreshPopularUsageNotices();
+        if(!status.locked) return true;
+        window.alert(status.message || '인기퀴즈 시간이 끝났어요. 국어·수학·사회 퀴즈를 먼저 풀고 다시 도전해 주세요.');
+        return false;
+      } catch(error) {
+        console.warn('Popular subject access check failed.', error);
+        window.alert('인기퀴즈 이용 시간을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        return false;
       }
     }
 
@@ -7117,10 +7181,10 @@
         ['연습기록 orphan 후보', data.issues?.orphanPracticeRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.area || '-'} / ${item.detail || '-'}`],
         ['랭킹기록 orphan 후보', data.issues?.orphanRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점${item.legacyNameOnly ? ' · 이름만 있던 과거 기록' : ''}`],
         ['퀴즈왕 summary 불일치 후보', data.issues?.quizKingMismatch || [], item => `${item.memberUserId} · 저장 ${item.storedTotalScore}점/${item.storedCategoryCount}영역 · 계산 ${item.calculatedTotalScore}점/${item.calculatedCategoryCount}영역`],
-        ['20분 초과 랭킹 후보', data.issues?.overLimitRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점 · ${item.elapsedSeconds || 0}초 · ${item.rankingMode || 'normal'}`],
-        ['인기퀴즈 사용기록 최근 후보', data.issues?.latestDailyUsage || [], item => `${item.recordId} · 인기 ${item.funSeconds || 0}초 · 16시 이후 ${item.after4FunSeconds || 0}초 · 교육 정답 ${item.eduCorrectCount || 0}개 · ${formatAdminTimestamp(item.updatedAt)}`],
         ['비정상 랭킹 후보', data.issues?.suspiciousRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점 · ${item.elapsedSeconds || 0}초`]
       ];
+      listRoot.appendChild(createAdminRankingCleanupList('20분 초과 랭킹 후보', data.issues?.overLimitRankingRecords || []));
+      listRoot.appendChild(createAdminDailyUsageList('인기퀴즈 사용기록 최근 후보', data.issues?.latestDailyUsage || []));
       sections.forEach(([title, rows, formatter]) => {
         listRoot.appendChild(createAdminDetailList(title, rows, formatter));
       });
@@ -7263,6 +7327,71 @@
       }
       section.append(heading, list);
       return section;
+    }
+
+    function createAdminInfoChip(label, value) {
+      const chip = document.createElement('span');
+      chip.className = 'admin-info-chip';
+      chip.textContent = `${label} ${value ?? '-'}`;
+      return chip;
+    }
+
+    function createAdminStructuredSection(title, rows, renderRow) {
+      const section = document.createElement('section');
+      const heading = document.createElement('h3');
+      const list = document.createElement('div');
+      section.className = 'admin-detail-section';
+      heading.textContent = title;
+      list.className = 'admin-structured-list';
+      if(!rows?.length) {
+        const empty = document.createElement('p');
+        empty.className = 'admin-empty';
+        empty.textContent = '표시할 데이터가 없습니다.';
+        list.appendChild(empty);
+      } else {
+        rows.forEach(row => list.appendChild(renderRow(row)));
+      }
+      section.append(heading, list);
+      return section;
+    }
+
+    function createAdminRankingCleanupList(title, rows) {
+      return createAdminStructuredSection(title, rows, row => {
+        const card = document.createElement('article');
+        const heading = document.createElement('strong');
+        const meta = document.createElement('div');
+        const command = document.createElement('code');
+        card.className = 'admin-audit-card';
+        heading.textContent = `${row.category || '-'} · ${row.score || 0}점 · ${formatRankingElapsedText(row.elapsedSeconds || 0)}`;
+        meta.className = 'admin-audit-card-meta';
+        meta.append(
+          createAdminInfoChip('학생', row.memberUserId || '-'),
+          createAdminInfoChip('모드', row.rankingMode || 'normal'),
+          createAdminInfoChip('기록ID', row.recordId || '-')
+        );
+        command.textContent = `node scripts/cleanup-long-ranking-records.js --dry-run --record-id ${row.recordId || ''}`;
+        card.append(heading, meta, command);
+        return card;
+      });
+    }
+
+    function createAdminDailyUsageList(title, rows) {
+      return createAdminStructuredSection(title, rows, row => {
+        const card = document.createElement('article');
+        const heading = document.createElement('strong');
+        const meta = document.createElement('div');
+        card.className = 'admin-audit-card';
+        heading.textContent = `${row.memberUserId || '-'} · ${row.date || '-'}`;
+        meta.className = 'admin-audit-card-meta';
+        meta.append(
+          createAdminInfoChip('인기', formatRankingElapsedText(row.funSeconds || 0)),
+          createAdminInfoChip('16시 이후', formatRankingElapsedText(row.after4FunSeconds || 0)),
+          createAdminInfoChip('교육 정답', `${row.eduCorrectCount || 0}개`),
+          createAdminInfoChip('갱신', formatAdminTimestamp(row.updatedAt))
+        );
+        card.append(heading, meta);
+        return card;
+      });
     }
 
     function closeAdminMemberDetailModal() {
@@ -7936,6 +8065,7 @@
         const title = document.createElement('h3');
         const desc = document.createElement('p');
         const button = document.createElement('button');
+        const usageNotice = document.createElement('p');
 
         item.className = 'school-quiz-card';
         if(viewModel.subjectId) item.classList.add(`school-quiz-card-${viewModel.subjectId}`);
@@ -7957,9 +8087,17 @@
         if(viewModel.subjectId) button.dataset.subjectId = viewModel.subjectId;
         if(viewModel.externalQuizHub) button.dataset.externalQuizHub = 'true';
 
-        item.append(icon, title, desc, button);
+        item.append(icon, title, desc);
+        if(viewModel.subjectId === 'popular') {
+          usageNotice.className = 'popular-usage-notice';
+          usageNotice.dataset.popularUsageNotice = 'true';
+          usageNotice.textContent = '인기퀴즈 이용 시간을 확인하는 중입니다...';
+          item.appendChild(usageNotice);
+        }
+        item.appendChild(button);
         grid.appendChild(item);
       });
+      refreshPopularUsageNotices();
     }
 
     function renderExternalQuizLinks(externalQuizzes) {
@@ -8010,10 +8148,17 @@
     function renderSubjectQuizCards(subjectId) {
       const subject = SUBJECT_CATALOG[subjectId] || SUBJECT_CATALOG.korean;
       const grid = document.getElementById('subject-quiz-grid');
+      const subjectUsageNotice = document.getElementById('subject-popular-usage-notice');
       document.getElementById('subject-kicker').textContent = subject.kicker;
       document.getElementById('subject-title').textContent = subject.hallTitle;
       document.getElementById('subject-desc').textContent = subject.desc;
       document.getElementById('subject-board').textContent = subject.board;
+      if(subjectUsageNotice) {
+        subjectUsageNotice.hidden = subjectId !== 'popular';
+        subjectUsageNotice.textContent = subjectId === 'popular' ? '확인 중' : '';
+        delete subjectUsageNotice.dataset.state;
+        delete subjectUsageNotice.dataset.urgency;
+      }
       grid.setAttribute('aria-label', `${subject.hallTitle} 퀴즈 카드`);
       grid.innerHTML = '';
       subject.quizzes.forEach(quizId => {
@@ -8052,6 +8197,7 @@
         item.appendChild(button);
         grid.appendChild(item);
       });
+      if(subjectId === 'popular') refreshPopularUsageNotices();
     }
 
     function renderQuizSelectView(quizId) {
@@ -8295,7 +8441,11 @@
       }
       const access = await ensurePopularQuizAccess(quizId);
       if(!access.canAccess) {
-        showQuizSelectView(quizId);
+        if(isPopularQuiz(quizId)) {
+          showSchoolView();
+        } else {
+          showQuizSelectView(quizId);
+        }
         return;
       }
       currentQuizId = quizId;
@@ -9894,7 +10044,7 @@
       claimEventQuestReward(button.dataset.questClaimId || '');
     });
 
-    document.getElementById('school-quiz-grid').addEventListener('click', event => {
+    document.getElementById('school-quiz-grid').addEventListener('click', async event => {
       const externalCard = event.target.closest('[data-external-quiz-hub]');
       if(externalCard) {
         showExternalQuizLinks().catch(error => {
@@ -9907,7 +10057,10 @@
         return;
       }
       const card = event.target.closest('[data-subject-id]');
-      if(card) showSubjectView(card.dataset.subjectId);
+      if(card) {
+        if(card.dataset.subjectId === 'popular' && !(await ensurePopularSubjectAccess())) return;
+        showSubjectView(card.dataset.subjectId);
+      }
     });
 
     document.getElementById('ranking-board-root').addEventListener('click', event => {
