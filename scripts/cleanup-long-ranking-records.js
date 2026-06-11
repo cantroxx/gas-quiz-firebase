@@ -1,7 +1,10 @@
 const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
 const DEFAULT_LIMIT_SECONDS = 20 * 60;
 const DEFAULT_SAMPLE_LIMIT = 20;
+const DEFAULT_BACKUP_DIR = path.join('private', 'backups', 'ranking-cleanup');
 
 function parseArgs(argv) {
   const args = {
@@ -10,7 +13,9 @@ function parseArgs(argv) {
     limitSeconds: DEFAULT_LIMIT_SECONDS,
     sample: DEFAULT_SAMPLE_LIMIT,
     categoryContains: '',
-    recordId: ''
+    recordId: '',
+    backup: true,
+    backupDir: DEFAULT_BACKUP_DIR
   };
 
   for (let index = 2; index < argv.length; index += 1) {
@@ -41,6 +46,13 @@ function parseArgs(argv) {
       args.recordId = String(argv[index] || '').trim();
     } else if (arg.startsWith('--record-id=')) {
       args.recordId = String(arg.slice('--record-id='.length)).trim();
+    } else if (arg === '--no-backup') {
+      args.backup = false;
+    } else if (arg === '--backup-dir') {
+      index += 1;
+      args.backupDir = String(argv[index] || '').trim() || DEFAULT_BACKUP_DIR;
+    } else if (arg.startsWith('--backup-dir=')) {
+      args.backupDir = String(arg.slice('--backup-dir='.length)).trim() || DEFAULT_BACKUP_DIR;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -70,6 +82,42 @@ function serializeTimestamp(value) {
   if (!value) return '';
   if (typeof value.toDate === 'function') return value.toDate().toISOString();
   return String(value);
+}
+
+function serializeForBackup(value) {
+  if (!value) return value;
+  if (typeof value.toDate === 'function') return value.toDate().toISOString();
+  if (Array.isArray(value)) return value.map(serializeForBackup);
+  if (typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, serializeForBackup(entry)]));
+  }
+  return value;
+}
+
+function buildBackupFilePath(args) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const suffix = args.recordId ? `record-${args.recordId}` : `over-${args.limitSeconds}s`;
+  return path.join(args.backupDir, `${timestamp}-${suffix}.json`);
+}
+
+function writeCleanupBackup(args, records) {
+  if (!args.backup || !records.length) return '';
+  fs.mkdirSync(args.backupDir, { recursive: true });
+  const backupPath = buildBackupFilePath(args);
+  const payload = {
+    createdAt: new Date().toISOString(),
+    script: 'cleanup-long-ranking-records',
+    args: {
+      limitSeconds: args.limitSeconds,
+      sample: args.sample,
+      categoryContains: args.categoryContains,
+      recordId: args.recordId
+    },
+    recordCount: records.length,
+    records: records.map(serializeForBackup)
+  };
+  fs.writeFileSync(backupPath, JSON.stringify(payload, null, 2));
+  return backupPath;
 }
 
 function normalizeRankingCategoryKey(record) {
@@ -222,6 +270,7 @@ async function main() {
   console.log(`Mode: ${args.commit ? 'commit' : 'dry-run'}`);
   console.log(`Category filter: ${categoryNeedle || '(none)'}`);
   console.log(`Record filter: ${args.recordId || '(none)'}`);
+  console.log(`Backup: ${args.commit && args.backup ? args.backupDir : '(dry-run or disabled)'}`);
   console.log(`Matched: ${records.length}`);
 
   records.forEach(record => {
@@ -243,6 +292,9 @@ async function main() {
   });
 
   if (!args.commit || !records.length) return;
+
+  const backupPath = writeCleanupBackup(args, records);
+  if (backupPath) console.log(`Backup written: ${backupPath}`);
 
   const batch = db.batch();
   records.forEach(record => {

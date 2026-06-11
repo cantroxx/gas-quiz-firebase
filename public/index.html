@@ -5181,14 +5181,18 @@
     }
 
     async function getDailyUsageForToday(memberUserId = getCurrentDataOwnerId()) {
-      const db = getFirestoreDb();
       const dateKey = getKstDateKey();
-      if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) {
+      const functions = getFirebaseFunctions();
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) {
         return normalizeDailyUsageData({}, memberUserId, dateKey);
       }
-      const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
-      const snapshot = await db.collection('dailyUsage').doc(recordId).get();
-      return normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, memberUserId, dateKey);
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      const callable = functions.httpsCallable('getPopularQuizUsageStatus');
+      const response = await callable({ memberUserId });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('popular-usage-status-failed');
+      return normalizeDailyUsageData(result.status || {}, memberUserId, dateKey);
     }
 
     function getDailyUsageAccessStatus(usage) {
@@ -5234,39 +5238,19 @@
     }
 
     async function updateDailyUsageForToday(delta = {}) {
-      const db = getFirestoreDb();
+      const functions = getFirebaseFunctions();
       const memberUserId = getCurrentDataOwnerId();
-      if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return null;
+      if(!functions || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return null;
       const dateKey = getKstDateKey();
-      const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
-      const ref = db.collection('dailyUsage').doc(recordId);
-      const fieldValue = getFirestoreFieldValue();
-      return db.runTransaction(async transaction => {
-        const snapshot = await transaction.get(ref);
-        const current = normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, memberUserId, dateKey);
-        const funDelta = Math.max(0, Math.round(Number(delta.funSeconds) || 0));
-        const after4FunDelta = Math.max(0, Math.round(Number(delta.after4FunSeconds) || 0));
-        const eduCorrectDelta = Math.max(0, Math.round(Number(delta.eduCorrectCount) || 0));
-        let unlockBase = current.unlockBaseEduCorrectCount;
-        if(current.funSeconds + funDelta >= DAILY_POPULAR_SOFT_LIMIT_SECONDS && unlockBase <= 0) {
-          unlockBase = current.eduCorrectCount;
-        }
-        const next = {
-          recordId,
-          memberUserId,
-          userId: memberUserId,
-          date: dateKey,
-          funSeconds: current.funSeconds + funDelta,
-          after4FunSeconds: current.after4FunSeconds + after4FunDelta,
-          eduCorrectCount: current.eduCorrectCount + eduCorrectDelta,
-          unlockBaseEduCorrectCount: unlockBase,
-          migrationSource: 'firebase_app_daily_usage',
-          updatedAt: fieldValue.serverTimestamp()
-        };
-        if(!snapshot.exists) next.createdAt = fieldValue.serverTimestamp();
-        transaction.set(ref, next, { merge: true });
-        return next;
-      });
+      await initializeAuthUser();
+      const funSeconds = Math.max(0, Math.round(Number(delta.funSeconds) || 0));
+      const eduCorrectCount = Math.max(0, Math.round(Number(delta.eduCorrectCount) || 0));
+      const callableName = eduCorrectCount > 0 ? 'recordEducationCorrectForPopularUnlock' : 'recordPopularQuizUsageSeconds';
+      const callable = functions.httpsCallable(callableName);
+      const response = await callable({ memberUserId, seconds: funSeconds });
+      const result = response?.data || {};
+      if(!result.success) throw new Error('popular-usage-update-failed');
+      return normalizeDailyUsageData(result.status || {}, memberUserId, dateKey);
     }
 
     async function recordEducationCorrectForPopularUnlock(quizId) {
@@ -7121,6 +7105,8 @@
         ['연습 orphan', data.metrics?.orphanPracticeRecords || 0],
         ['랭킹 orphan', data.metrics?.orphanRankingRecords || 0],
         ['이름기반 legacy', data.metrics?.legacyNameRankingRecords || 0],
+        ['20분 초과 랭킹', data.metrics?.overLimitRankingRecords || 0],
+        ['인기퀴즈 사용기록', data.metrics?.dailyUsageRecords || 0],
         ['퀴즈왕 불일치', data.metrics?.quizKingMismatch || 0]
       ].forEach(([label, value]) => {
         summaryRoot.appendChild(createAdminDetailMetric(label, value));
@@ -7131,6 +7117,8 @@
         ['연습기록 orphan 후보', data.issues?.orphanPracticeRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.area || '-'} / ${item.detail || '-'}`],
         ['랭킹기록 orphan 후보', data.issues?.orphanRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점${item.legacyNameOnly ? ' · 이름만 있던 과거 기록' : ''}`],
         ['퀴즈왕 summary 불일치 후보', data.issues?.quizKingMismatch || [], item => `${item.memberUserId} · 저장 ${item.storedTotalScore}점/${item.storedCategoryCount}영역 · 계산 ${item.calculatedTotalScore}점/${item.calculatedCategoryCount}영역`],
+        ['20분 초과 랭킹 후보', data.issues?.overLimitRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점 · ${item.elapsedSeconds || 0}초 · ${item.rankingMode || 'normal'}`],
+        ['인기퀴즈 사용기록 최근 후보', data.issues?.latestDailyUsage || [], item => `${item.recordId} · 인기 ${item.funSeconds || 0}초 · 16시 이후 ${item.after4FunSeconds || 0}초 · 교육 정답 ${item.eduCorrectCount || 0}개 · ${formatAdminTimestamp(item.updatedAt)}`],
         ['비정상 랭킹 후보', data.issues?.suspiciousRankingRecords || [], item => `${item.recordId} · ${item.memberUserId || '-'} · ${item.category || '-'} · ${item.score || 0}점 · ${item.elapsedSeconds || 0}초`]
       ];
       sections.forEach(([title, rows, formatter]) => {

@@ -20,6 +20,10 @@ const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
 const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
 const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
+const POPULAR_USAGE_SOFT_LIMIT_SECONDS = 10 * 60;
+const POPULAR_USAGE_AFTER4_HARD_LIMIT_SECONDS = 30 * 60;
+const POPULAR_USAGE_UNLOCK_CORRECT_COUNT = 15;
+const POPULAR_USAGE_MAX_HEARTBEAT_SECONDS = 60;
 const db = getFirestore();
 
 const DEFAULT_FEATURE_FLAGS = {
@@ -234,6 +238,101 @@ function publicExternalQuizzes(data = {}) {
     .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 
   return { items };
+}
+
+function getKstDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function isAfter4PmKst(date = new Date()) {
+  const hour = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    hour: "numeric",
+    hourCycle: "h23"
+  }).format(date));
+  return hour >= 16;
+}
+
+function buildDailyUsageRecordId(memberUserId, dateKey = getKstDateKey()) {
+  return `${memberUserId}__${dateKey}`;
+}
+
+function normalizeDailyUsageData(data = {}, memberUserId = "", dateKey = getKstDateKey()) {
+  return {
+    recordId: String(data.recordId || buildDailyUsageRecordId(memberUserId, dateKey)),
+    memberUserId: String(data.memberUserId || memberUserId || ""),
+    userId: String(data.userId || data.memberUserId || memberUserId || ""),
+    date: String(data.date || dateKey),
+    funSeconds: Math.max(0, Math.round(Number(data.funSeconds) || 0)),
+    after4FunSeconds: Math.max(0, Math.round(Number(data.after4FunSeconds) || 0)),
+    eduCorrectCount: Math.max(0, Math.round(Number(data.eduCorrectCount) || 0)),
+    unlockBaseEduCorrectCount: Math.max(0, Math.round(Number(data.unlockBaseEduCorrectCount) || 0))
+  };
+}
+
+function getDailyUsageAccessStatus(usage) {
+  const funSeconds = Number(usage.funSeconds) || 0;
+  const after4FunSeconds = Number(usage.after4FunSeconds) || 0;
+  const unlockBase = Math.max(0, Number(usage.unlockBaseEduCorrectCount) || 0);
+  const unlockProgress = funSeconds >= POPULAR_USAGE_SOFT_LIMIT_SECONDS
+    ? Math.max(0, (Number(usage.eduCorrectCount) || 0) - unlockBase)
+    : 0;
+  const softLocked = funSeconds >= POPULAR_USAGE_SOFT_LIMIT_SECONDS
+    && unlockProgress < POPULAR_USAGE_UNLOCK_CORRECT_COUNT;
+  const hardLocked = after4FunSeconds >= POPULAR_USAGE_AFTER4_HARD_LIMIT_SECONDS;
+  return {
+    ...usage,
+    unlockProgress,
+    unlockRemainingCorrect: Math.max(0, POPULAR_USAGE_UNLOCK_CORRECT_COUNT - unlockProgress),
+    softLocked,
+    hardLocked,
+    locked: softLocked || hardLocked
+  };
+}
+
+async function updateDailyUsageForLinkedMember(authUid, memberUserId, delta = {}) {
+  const safeMemberUserId = normalizeId(memberUserId, "memberUserId");
+  const dateKey = getKstDateKey();
+  const recordId = buildDailyUsageRecordId(safeMemberUserId, dateKey);
+  const usageRef = db.collection("dailyUsage").doc(recordId);
+  return db.runTransaction(async transaction => {
+    const memberData = await assertLinkedMemberAuth(transaction, safeMemberUserId, authUid);
+    assertActiveStudent(memberData);
+    const snapshot = await transaction.get(usageRef);
+    const current = normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, safeMemberUserId, dateKey);
+    const funDelta = Math.max(0, Math.min(
+      Math.round(Number(delta.funSeconds) || 0),
+      POPULAR_USAGE_MAX_HEARTBEAT_SECONDS
+    ));
+    const eduCorrectDelta = Math.max(0, Math.min(Math.round(Number(delta.eduCorrectCount) || 0), 5));
+    let unlockBase = current.unlockBaseEduCorrectCount;
+    if (current.funSeconds + funDelta >= POPULAR_USAGE_SOFT_LIMIT_SECONDS && unlockBase <= 0) {
+      unlockBase = current.eduCorrectCount;
+    }
+    const after4FunDelta = isAfter4PmKst() ? funDelta : 0;
+    const next = {
+      recordId,
+      memberUserId: safeMemberUserId,
+      userId: safeMemberUserId,
+      date: dateKey,
+      funSeconds: current.funSeconds + funDelta,
+      after4FunSeconds: current.after4FunSeconds + after4FunDelta,
+      eduCorrectCount: current.eduCorrectCount + eduCorrectDelta,
+      unlockBaseEduCorrectCount: unlockBase,
+      migrationSource: "cloud_function_daily_usage",
+      updatedAt: FieldValue.serverTimestamp()
+    };
+    if (!snapshot.exists) next.createdAt = FieldValue.serverTimestamp();
+    transaction.set(usageRef, next, { merge: true });
+    return getDailyUsageAccessStatus(next);
+  });
 }
 
 function normalizePassword(value) {
@@ -621,6 +720,48 @@ async function loadLinkedMemberForEvent(authUid, memberUserId) {
   }
   return { memberUserId: safeMemberUserId, memberData };
 }
+
+exports.getPopularQuizUsageStatus = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  await loadLinkedMemberForEvent(authUid, memberUserId);
+  const dateKey = getKstDateKey();
+  const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
+  const snapshot = await db.collection("dailyUsage").doc(recordId).get();
+  const usage = normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, memberUserId, dateKey);
+  return {
+    success: true,
+    status: getDailyUsageAccessStatus(usage)
+  };
+});
+
+exports.recordPopularQuizUsageSeconds = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  await loadLinkedMemberForEvent(authUid, memberUserId);
+  const seconds = Math.max(0, Math.round(Number(payload.seconds) || 0));
+  if (seconds <= 0) {
+    const dateKey = getKstDateKey();
+    const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
+    const snapshot = await db.collection("dailyUsage").doc(recordId).get();
+    return {
+      success: true,
+      status: getDailyUsageAccessStatus(normalizeDailyUsageData(snapshot.exists ? snapshot.data() : { recordId }, memberUserId, dateKey))
+    };
+  }
+  const status = await updateDailyUsageForLinkedMember(authUid, memberUserId, { funSeconds: seconds });
+  return { success: true, status };
+});
+
+exports.recordEducationCorrectForPopularUnlock = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const status = await updateDailyUsageForLinkedMember(authUid, memberUserId, { eduCorrectCount: 1 });
+  return { success: true, status };
+});
 
 async function loadMemberPracticeRecords(memberUserId) {
   const snapshot = await db.collection("practiceRecords")
@@ -1774,13 +1915,15 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
     credentialSnapshot,
     practiceSnapshot,
     rankingSnapshot,
-    quizKingSnapshot
+    quizKingSnapshot,
+    dailyUsageSnapshot
   ] = await Promise.all([
     db.collection("users").limit(2000).get(),
     db.collection("memberCredentials").limit(2000).get(),
     db.collection("practiceRecords").limit(5000).get(),
     db.collection("rankingRecords").limit(5000).get(),
-    db.collection("quizKingSummary").limit(2000).get()
+    db.collection("quizKingSummary").limit(2000).get(),
+    db.collection("dailyUsage").limit(5000).get()
   ]);
 
   const users = userSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...(doc.data() || {}) }));
@@ -1789,6 +1932,7 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
   const practiceRows = practiceSnapshot.docs.map(publicAuditRecord);
   const rankingRows = rankingSnapshot.docs.map(publicAuditRecord);
   const quizKingRows = quizKingSnapshot.docs.map(publicAuditRecord);
+  const dailyUsageRows = dailyUsageSnapshot.docs.map(publicAuditRecord);
 
   const activeStudents = users.filter(user => user.role !== "admin" && user.active === true && user.status === "active");
   const memberAuthIssues = activeStudents
@@ -1846,6 +1990,34 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
       score: Number(row.score) || 0,
       elapsedSeconds: Number(row.elapsedSeconds) || 0
     }));
+  const overLimitRankingRecordRows = rankingRows
+    .filter(row => (Number(row.elapsedSeconds) || 0) > 1200)
+    .sort((a, b) => (Number(b.elapsedSeconds) || 0) - (Number(a.elapsedSeconds) || 0));
+  const overLimitRankingRecords = overLimitRankingRecordRows
+    .slice(0, 20)
+    .map(row => ({
+      recordId: row.recordId,
+      memberUserId: row.memberUserId || row.userId || "",
+      category: row.category || row.categoryKey || "",
+      score: Number(row.score) || 0,
+      elapsedSeconds: Number(row.elapsedSeconds) || 0,
+      rankingMode: row.rankingMode || "normal"
+    }));
+
+  const latestDailyUsageRows = dailyUsageRows
+    .slice()
+    .sort((a, b) => Number(b.updatedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0) - Number(a.updatedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0))
+    .slice(0, 20)
+    .map(row => ({
+      recordId: row.recordId,
+      memberUserId: row.memberUserId || row.userId || "",
+      date: row.date || "",
+      funSeconds: Number(row.funSeconds) || 0,
+      after4FunSeconds: Number(row.after4FunSeconds) || 0,
+      eduCorrectCount: Number(row.eduCorrectCount) || 0,
+      unlockBaseEduCorrectCount: Number(row.unlockBaseEduCorrectCount) || 0,
+      updatedAt: row.updatedAt || row.createdAt || null
+    }));
 
   const calculatedQuizKing = buildAuditQuizKingSummary(rankingRows);
   const quizKingMismatchRows = quizKingRows
@@ -1877,6 +2049,8 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
         orphanRankingRecords: orphanRankingRecordRows.length,
         legacyNameRankingRecords: legacyNameRankingRecordRows.length,
         suspiciousRankingRecords: suspiciousRankingRecordRows.length,
+        overLimitRankingRecords: overLimitRankingRecordRows.length,
+        dailyUsageRecords: dailyUsageRows.length,
         quizKingMismatch: quizKingMismatchRows.length
       },
       issues: {
@@ -1884,6 +2058,8 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
         orphanPracticeRecords,
         orphanRankingRecords,
         suspiciousRankingRecords,
+        overLimitRankingRecords,
+        latestDailyUsage: latestDailyUsageRows,
         quizKingMismatch
       }
     }
