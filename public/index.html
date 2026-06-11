@@ -3900,7 +3900,7 @@
     function getRankingModeFilterValues(modeId) {
       const mode = String(modeId || '').trim();
       if(!mode || mode === 'all') return null;
-      if(mode === 'normal') return ['normal', 'legacy', 'nohint'];
+      if(mode === 'normal') return ['normal', 'legacy'];
       return [mode];
     }
 
@@ -3918,7 +3918,7 @@
 
     function getRankingRecordGroupMode(record, allowedModes) {
       const mode = getRankingRecordMode(record);
-      if(allowedModes?.has('normal') && (mode === 'legacy' || mode === 'nohint')) return 'normal';
+      if(allowedModes?.has('normal') && mode === 'legacy') return 'normal';
       return mode;
     }
 
@@ -4372,19 +4372,13 @@
     }
 
     function getSupportedRankingModeIdsForKeys(keys = []) {
-      const limitedKeys = new Set([
-        '맞춤법',
-        '단어다의어-동형이의어',
-        '독서지엠오-아이',
-        '독서시간가게',
-        '사회삼국지',
-        '사회고대사-삼국시대',
-        '수학곱셈과-나눗셈'
-      ]);
-      const hasFullModeQuiz = keys.some(key => !limitedKeys.has(key));
-      return hasFullModeQuiz
-        ? ['all', 'normal', 'onechance', 'speed', 'nohint']
-        : ['all', 'normal', 'onechance'];
+      const safeKeys = (keys || []).map(key => String(key || '').trim()).filter(Boolean);
+      const speedDisabledKeys = new Set(['독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈']);
+      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈']);
+      const modes = ['all', 'normal', 'onechance'];
+      if(safeKeys.some(key => !speedDisabledKeys.has(key))) modes.push('speed');
+      if(safeKeys.some(key => !noHintDisabledKeys.has(key))) modes.push('nohint');
+      return modes;
     }
 
     function renderRankingGroupPanel(panel, group, board) {
@@ -5128,13 +5122,13 @@
         { label: '노힌트', value: 'nohint' },
         { label: '스피드', value: 'speed' }
       ];
+      if(id === 'spelling') {
+        return base.filter(item => item.value === 'normal' || item.value === 'onechance' || item.value === 'speed');
+      }
       const limitedToNormalAndOneChance = new Set([
         'random-basic',
-        'spelling',
         'gmo',
-        'time_store',
-        'samgukji',
-        'ancient-history'
+        'time_store'
       ]);
       if(limitedToNormalAndOneChance.has(id)) {
         return base.filter(item => item.value === 'normal' || item.value === 'onechance');
@@ -5252,6 +5246,12 @@
       const relationAnswer = String(question.answer || '').trim();
       const choices = ['다의어', '동형이의어'];
       const answerIndex = choices.indexOf(relationAnswer);
+      const meaning1 = String(question.meaning1 || question.definition1 || question.firstMeaning || '').trim();
+      const meaning2 = String(question.meaning2 || question.definition2 || question.secondMeaning || '').trim();
+      const hint = [
+        meaning1 ? `뜻 1: ${meaning1}` : '',
+        meaning2 ? `뜻 2: ${meaning2}` : ''
+      ].filter(Boolean).join('\n') || String(question.hint || '').trim();
       const promptParts = [
         `${question.word || '낱말'}의 쓰임을 고르세요.`,
         question.sentence1,
@@ -5261,7 +5261,8 @@
         practiceQuestionId: String(question.questionId || '').trim(),
         question: promptParts.join('\n'),
         choices,
-        answer: answerIndex >= 0 ? answerIndex : 0
+        answer: answerIndex >= 0 ? answerIndex : 0,
+        hint
       };
     }
 
@@ -8016,7 +8017,8 @@
       return [
         { label: '일반', value: 'normal' },
         { label: '스피드', value: 'speed' },
-        { label: '원코', value: 'onechance' }
+        { label: '원코', value: 'onechance' },
+        { label: '노힌트', value: 'nohint' }
       ];
     }
 
@@ -8229,7 +8231,9 @@
 
     function getQuestionHintText(question) {
       const answerText = getCurrentQuestionAnswerText(question);
-      if(normalizeFirebaseQuizId(currentQuizId) === 'tiniping' && answerText) {
+      const quizId = normalizeFirebaseQuizId(currentQuizId);
+      if(quizId === 'gmo' || quizId === 'time_store' || quizId === 'reading') return '';
+      if(quizId === 'tiniping' && answerText) {
         return `초성 힌트: ${getKoreanInitials(answerText)}`;
       }
       return String(question?.hint || '').trim();
