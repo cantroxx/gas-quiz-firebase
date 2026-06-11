@@ -763,14 +763,15 @@
         </div>
       </div>
 
-      <div class="school-scene" aria-hidden="true">
+      <div class="school-scene">
+        <span class="school-scene-title" aria-hidden="true">퀴즈 학교</span>
         <span class="school-board">오늘의 수업</span>
         <span class="school-desk desk-a"></span>
         <span class="school-desk desk-b"></span>
         <span class="school-window"></span>
+        <div id="school-quiz-grid" class="school-quiz-grid" aria-label="학교 퀴즈 카드"></div>
       </div>
 
-      <div id="school-quiz-grid" class="school-quiz-grid" aria-label="학교 퀴즈 카드"></div>
       <section id="external-quiz-section" class="external-quiz-section" aria-labelledby="external-quiz-heading" hidden>
         <div class="event-section-heading">
           <p class="eyebrow">External Quizzes</p>
@@ -7766,6 +7767,8 @@
         const button = document.createElement('button');
 
         item.className = 'school-quiz-card';
+        if(viewModel.subjectId) item.classList.add(`school-quiz-card-${viewModel.subjectId}`);
+        if(viewModel.externalQuizHub) item.classList.add('school-quiz-card-external');
         if(viewModel.enabled && (viewModel.subjectId || viewModel.externalQuizHub)) {
           if(viewModel.subjectId) item.dataset.subjectId = viewModel.subjectId;
           if(viewModel.externalQuizHub) item.dataset.externalQuizHub = 'true';
