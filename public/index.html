@@ -12,7 +12,7 @@
 </head>
 <body>
   <main class="shell">
-    <section id="app-hero" class="town-hero" aria-labelledby="page-title">
+    <section id="app-hero" class="town-hero" aria-labelledby="page-title" hidden>
       <div class="hero-copy">
         <p class="eyebrow">Quiz Town</p>
         <h1 id="page-title">DJ48 퀴즈타운</h1>
@@ -9271,7 +9271,7 @@
 
     function showLoginView() {
       closePlaceModal();
-      document.getElementById('app-hero').hidden = false;
+      document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = false;
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;

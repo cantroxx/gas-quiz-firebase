@@ -195,16 +195,16 @@ h2 {
   position: relative;
   overflow: hidden;
   display: grid;
-  place-items: center;
+  place-items: center start;
   min-height: 650px;
   margin-bottom: 18px;
-  padding: 44px 18px 58px;
+  padding: 44px clamp(18px, 5vw, 58px) 58px;
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: 28px;
   background:
-    linear-gradient(180deg, rgba(214, 244, 255, 0.9) 0 44%, transparent 44%),
-    radial-gradient(ellipse at 50% 104%, rgba(229, 198, 134, 0.9) 0 19%, transparent 20%),
-    radial-gradient(circle at 18% 72%, rgba(255, 207, 58, 0.28), transparent 17%),
+    linear-gradient(90deg, rgba(255, 252, 239, 0.7), rgba(255, 252, 239, 0.18) 48%, rgba(232, 248, 236, 0.45)),
+    linear-gradient(180deg, rgba(35, 84, 58, 0.04), rgba(35, 84, 58, 0.18)),
+    url("/images/town-map-bg-v2.png") center / cover no-repeat,
     linear-gradient(180deg, #dff5ff 0%, #edfbe9 58%, #9fdc93 100%);
   box-shadow: var(--shadow);
 }
@@ -212,6 +212,7 @@ h2 {
 .login-town-decor {
   position: absolute;
   inset: 0;
+  display: none;
   pointer-events: none;
 }
 
@@ -353,13 +354,14 @@ h2 {
 .login-panel {
   position: relative;
   z-index: 1;
-  width: min(820px, 100%);
+  width: min(720px, 100%);
   padding: 28px;
   border: 4px solid rgba(255, 255, 255, 0.86);
   border-radius: 30px;
-  background: rgba(255, 252, 239, 0.94);
+  background: rgba(255, 252, 239, 0.96);
+  backdrop-filter: blur(8px);
   box-shadow:
-    0 24px 48px rgba(60, 112, 67, 0.18),
+    0 28px 58px rgba(39, 79, 48, 0.24),
     inset 0 0 0 1px rgba(137, 91, 49, 0.08);
 }
 
@@ -669,22 +671,23 @@ h2 {
 
 .town-map {
   position: relative;
-  min-height: 590px;
+  min-height: 0;
+  aspect-ratio: 3 / 2;
   overflow: hidden;
   border: 1px solid rgba(47, 125, 68, 0.16);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(223, 245, 255, 0.92) 0 38%, transparent 38%),
-    radial-gradient(ellipse at 50% 51%, rgba(255, 244, 198, 0.9) 0 13%, transparent 14%),
-    radial-gradient(circle at 18% 74%, rgba(255, 207, 58, 0.42), transparent 17%),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.22), transparent 16%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    url("/images/town-map-bg-v2.png") center / cover no-repeat,
     linear-gradient(180deg, #c1efb8 0%, #8fd18a 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26), 0 18px 34px rgba(47, 83, 52, 0.12);
 }
 
 .sky-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  display: none;
 }
 
 .sun {
@@ -741,6 +744,7 @@ h2 {
 .road {
   position: absolute;
   z-index: 1;
+  display: none;
   border-radius: 999px;
   background:
     repeating-linear-gradient(90deg, transparent 0 36px, rgba(255, 255, 255, 0.34) 36px 52px),
@@ -771,6 +775,7 @@ h2 {
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  display: none;
 }
 
 .decor-tree,
@@ -1158,33 +1163,35 @@ h2 {
 
 .place {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   display: grid;
   justify-items: center;
-  align-content: center;
-  width: 166px;
-  min-height: 148px;
-  padding: 10px 8px;
-  border: 1px solid transparent;
-  border-radius: 22px;
-  background: transparent;
+  align-content: end;
+  width: 16%;
+  min-width: 112px;
+  min-height: 16%;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
   color: var(--ink);
   cursor: pointer;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
-  transition: transform 160ms ease, filter 160ms ease, background 160ms ease;
+  text-shadow: none;
+  transition: transform 160ms ease, filter 160ms ease, background 160ms ease, border-color 160ms ease;
 }
 
 .place:hover,
 .place:focus-visible {
-  transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.24);
   filter: drop-shadow(0 14px 14px rgba(47, 125, 68, 0.2));
   outline: none;
 }
 
 .place-art {
   position: relative;
-  display: grid;
+  display: none;
   place-items: center;
   width: 116px;
   height: 92px;
@@ -1376,22 +1383,23 @@ h2 {
 }
 
 .place-name {
-  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(119, 85, 42, 0.18);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 249, 224, 0.92);
+  color: #4b3424;
   font-size: 1.03rem;
   font-weight: 900;
-  box-shadow: 0 7px 14px rgba(47, 125, 68, 0.1);
+  box-shadow: 0 8px 14px rgba(69, 86, 45, 0.14);
+  white-space: nowrap;
 }
 
 .place-tag {
-  margin-top: 5px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.54);
-  color: var(--green-dark);
-  font-size: 0.74rem;
-  font-weight: 900;
+  display: none;
 }
 
 .notice-board-button {
@@ -1399,33 +1407,24 @@ h2 {
   z-index: 4;
   top: 18px;
   left: 18px;
+  bottom: auto;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 48px;
-  padding: 10px 16px 10px 13px;
-  border: 3px solid #8b6b4f;
-  border-radius: 12px 12px 16px 16px;
-  background:
-    radial-gradient(circle at 18% 26%, rgba(255, 255, 255, 0.42) 0 7px, transparent 8px),
-    linear-gradient(180deg, #fff1ad, #e7bc77);
-  color: #6f4b2b;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid rgba(119, 85, 42, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 249, 224, 0.92);
+  color: #4b3424;
   font-weight: 900;
-  box-shadow:
-    0 9px 16px rgba(80, 61, 34, 0.14),
-    inset 0 -3px 0 rgba(111, 75, 43, 0.12);
+  box-shadow: 0 8px 14px rgba(69, 86, 45, 0.14);
   cursor: pointer;
 }
 
 .notice-board-button::before,
 .notice-board-button::after {
-  content: "";
-  position: absolute;
-  bottom: -18px;
-  width: 7px;
-  height: 20px;
-  border-radius: 999px;
-  background: #8b6b4f;
+  content: none;
 }
 
 .notice-board-button::before {
@@ -1469,34 +1468,33 @@ h2 {
 }
 
 .my-home {
-  left: 8%;
-  bottom: 48px;
+  right: 20%;
+  top: 19%;
 }
 
 .school {
-  right: 8%;
-  bottom: 48px;
+  left: 7%;
+  top: 28%;
 }
 
 .shop {
-  top: 170px;
-  left: 13%;
+  right: 5%;
+  top: 47%;
 }
 
 .ranking {
-  top: 170px;
-  right: 13%;
+  left: 42%;
+  bottom: 15%;
 }
 
 .event {
-  top: 44px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 19%;
+  bottom: 26%;
 }
 
 .event:hover,
 .event:focus-visible {
-  transform: translate(-50%, -4px);
+  transform: translateY(-3px);
 }
 
 .map-buttons {
@@ -5067,11 +5065,14 @@ h2 {
 
   .login-view {
     min-height: 0;
+    place-items: center;
     padding: 34px 12px 44px;
+    background-position: center top, center top, center top, center top;
   }
 
   .login-panel {
     padding: 22px;
+    background: rgba(255, 252, 239, 0.98);
   }
 
   .login-tree-left,
@@ -5238,6 +5239,11 @@ h2 {
   .login-view {
     padding: 22px 8px 34px;
     border-radius: 20px;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 239, 0.82), rgba(255, 252, 239, 0.48)),
+      linear-gradient(180deg, rgba(35, 84, 58, 0.06), rgba(35, 84, 58, 0.2)),
+      url("/images/town-map-bg-v2.png") center top / cover no-repeat,
+      linear-gradient(180deg, #dff5ff 0%, #edfbe9 58%, #9fdc93 100%);
   }
 
   .login-sun,
@@ -5250,6 +5256,7 @@ h2 {
   .login-panel {
     padding: 18px;
     border-radius: 24px;
+    background: rgba(255, 252, 239, 0.99);
   }
 
   .login-sign {
@@ -5318,34 +5325,32 @@ h2 {
   }
 
   .town-map {
+    display: none;
+  }
+
+  .map-buttons {
     grid-template-columns: 1fr;
+    gap: 9px;
+    margin-top: 0;
+  }
+
+  .map-buttons button {
+    min-height: 52px;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 1rem;
   }
 
   .place {
-    grid-template-columns: 108px 1fr;
-    justify-items: start;
+    grid-template-columns: 1fr;
+    justify-items: center;
     align-content: center;
-    column-gap: 12px;
     min-height: 112px;
-    text-align: left;
-  }
-
-  .place-art {
-    grid-row: span 2;
-    width: 100px;
-    height: 78px;
-    margin: 0;
-    transform: scale(0.86);
-    transform-origin: left center;
-  }
-
-  .place-name {
-    align-self: end;
+    text-align: center;
   }
 
   .place-tag {
-    align-self: start;
-    margin-top: 3px;
+    display: none;
   }
 
   .place-info {
