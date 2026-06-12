@@ -3031,7 +3031,9 @@
       const card = document.createElement('article');
       const avatar = document.createElement('div');
       const body = document.createElement('div');
+      const nameRow = document.createElement('div');
       const name = document.createElement('h3');
+      const decorateButton = document.createElement('button');
       const school = document.createElement('p');
       const meta = document.createElement('div');
       const title = document.createElement('p');
@@ -3071,13 +3073,20 @@
       const messageInput = document.createElement('input');
       const messageButton = document.createElement('button');
       const messageHelp = document.createElement('p');
+      const toggleGrid = document.createElement('div');
+      const detailRoot = document.createElement('div');
 
       root.innerHTML = '';
       card.className = 'profile-card';
       avatar.className = 'profile-avatar';
       renderProfileAvatar(avatar, profile);
       body.className = 'profile-body';
+      nameRow.className = 'profile-name-row';
       name.textContent = profile.nickname;
+      decorateButton.className = 'profile-decorate-button';
+      decorateButton.type = 'button';
+      decorateButton.dataset.profileDecorateHome = 'true';
+      decorateButton.textContent = '집꾸미기';
       school.className = 'profile-school';
       school.textContent = profile.school;
       meta.className = 'profile-meta';
@@ -3092,7 +3101,8 @@
       badge.append(badgeLabel, badgeValue);
       coin.append(coinLabel, coinValue);
       meta.append(title, badge, coin);
-      nicknamePanel.className = 'profile-ranking-message-panel profile-account-panel';
+      nicknamePanel.className = 'profile-ranking-message-panel profile-account-panel profile-detail-panel';
+      nicknamePanel.dataset.profileDetailPanel = 'nickname';
       nicknameLabel.className = 'profile-ranking-message-label';
       nicknameLabel.htmlFor = 'profile-nickname-input';
       nicknameLabel.textContent = '닉네임';
@@ -3111,7 +3121,8 @@
       nicknameHelp.textContent = '닉네임은 랭킹과 내 집에 표시됩니다. 불건전한 말은 사용할 수 없습니다.';
       nicknameRow.append(nicknameInput, nicknameButton);
       nicknamePanel.append(nicknameLabel, nicknameRow, nicknameHelp);
-      passwordPanel.className = 'profile-ranking-message-panel profile-account-panel';
+      passwordPanel.className = 'profile-ranking-message-panel profile-account-panel profile-detail-panel';
+      passwordPanel.dataset.profileDetailPanel = 'password';
       passwordLabel.className = 'profile-ranking-message-label';
       passwordLabel.textContent = '비밀번호 변경';
       passwordRow.className = 'profile-password-change-row';
@@ -3141,7 +3152,8 @@
       passwordHelp.textContent = '현재 비밀번호를 입력한 뒤 4자리 이상의 새 비밀번호로 바꿉니다.';
       passwordRow.append(currentPasswordInput, newPasswordInput, confirmPasswordInput, passwordButton);
       passwordPanel.append(passwordLabel, passwordRow, passwordHelp);
-      imagePanel.className = 'profile-ranking-message-panel profile-image-url-panel';
+      imagePanel.className = 'profile-ranking-message-panel profile-image-url-panel profile-detail-panel';
+      imagePanel.dataset.profileDetailPanel = 'image';
       imageLabel.className = 'profile-ranking-message-label profile-image-url-label';
       imageLabel.htmlFor = 'profile-image-search-input';
       imageLabel.textContent = '프로필 이미지';
@@ -3170,7 +3182,8 @@
       imageResults.className = 'profile-image-search-results';
       imageRow.append(imageInput, imageButton, uploadButton, uploadInput);
       imagePanel.append(imageLabel, imageRow, imageHelp, imageResults);
-      messagePanel.className = 'profile-ranking-message-panel';
+      messagePanel.className = 'profile-ranking-message-panel profile-detail-panel';
+      messagePanel.dataset.profileDetailPanel = 'message';
       messageLabel.className = 'profile-ranking-message-label';
       messageLabel.htmlFor = 'profile-ranking-message-input';
       messageLabel.textContent = '나의 한마디';
@@ -3189,7 +3202,25 @@
       messageHelp.textContent = '랭킹 단상에 최대 24자까지 표시됩니다.';
       messageRow.append(messageInput, messageButton);
       messagePanel.append(messageLabel, messageRow, messageHelp);
-      body.append(name, school, meta, nicknamePanel, passwordPanel, imagePanel, messagePanel);
+      toggleGrid.className = 'profile-detail-toggle-grid';
+      [
+        ['nickname', '닉네임'],
+        ['password', '비밀번호 변경'],
+        ['image', '프로필 이미지'],
+        ['message', '나의 한마디']
+      ].forEach(([key, label]) => {
+        const button = document.createElement('button');
+        button.className = 'profile-detail-toggle';
+        button.type = 'button';
+        button.dataset.profileDetailToggle = key;
+        button.setAttribute('aria-expanded', 'false');
+        button.textContent = label;
+        toggleGrid.appendChild(button);
+      });
+      detailRoot.className = 'profile-detail-root';
+      detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
+      nameRow.append(name, decorateButton);
+      body.append(nameRow, school, meta, toggleGrid, detailRoot);
       card.append(avatar, body);
       root.appendChild(card);
     }
@@ -7949,19 +7980,33 @@
       students.forEach(student => {
         const card = document.createElement('article');
         const badge = document.createElement('span');
+        const identity = document.createElement('div');
         const title = document.createElement('h4');
+        const portrait = document.createElement('div');
+        const imageUrl = normalizeDisplayImageUrl(student.profileImageUrl || '');
         const desc = document.createElement('p');
         const status = document.createElement('span');
-        card.className = 'classroom-card';
+        card.className = 'classroom-card classroom-student-card';
         badge.className = 'classroom-card-badge';
         badge.textContent = `${student.studentNumber || '-'}번`;
+        identity.className = 'classroom-student-identity';
         title.textContent = student.nickname || student.name || student.memberUserId || '학생';
+        portrait.className = 'classroom-student-portrait';
+        if(imageUrl) {
+          const image = document.createElement('img');
+          image.src = imageUrl;
+          image.alt = `${student.nickname || student.name || '학생'} 프로필`;
+          portrait.appendChild(image);
+        } else {
+          portrait.textContent = '🙂';
+        }
+        identity.append(title, portrait);
         desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · 베리 ${Number(student.berry || 0).toLocaleString('ko-KR')}`;
         status.className = `quest-status ${student.selectedBadge?.label ? 'quest-status-claimed' : 'quest-status-ready'}`;
         status.textContent = student.selectedBadge?.label
           ? `대표 뱃지: ${student.selectedBadge.label}`
           : '대표 뱃지 미설정';
-        card.append(badge, title, desc, status);
+        card.append(badge, identity, desc, status);
         grid.appendChild(card);
       });
     }
@@ -11852,6 +11897,29 @@
     });
 
     document.getElementById('profile-card-root').addEventListener('click', event => {
+      const profileToggle = event.target.closest('[data-profile-detail-toggle]');
+      if(profileToggle) {
+        const key = profileToggle.dataset.profileDetailToggle || '';
+        const root = document.getElementById('profile-card-root');
+        const wasActive = profileToggle.classList.contains('is-active');
+        root.querySelectorAll('[data-profile-detail-toggle]').forEach(button => {
+          button.classList.remove('is-active');
+          button.setAttribute('aria-expanded', 'false');
+        });
+        root.querySelectorAll('[data-profile-detail-panel]').forEach(panel => {
+          panel.classList.remove('is-active');
+        });
+        if(!wasActive) {
+          profileToggle.classList.add('is-active');
+          profileToggle.setAttribute('aria-expanded', 'true');
+          root.querySelector(`[data-profile-detail-panel="${key}"]`)?.classList.add('is-active');
+        }
+        return;
+      }
+      if(event.target.closest('[data-profile-decorate-home]')) {
+        window.alert('집꾸미기 화면은 다음 단계에서 연결할 예정입니다.');
+        return;
+      }
       if(event.target.closest('#profile-nickname-save-button')) {
         saveProfileNicknameFromHome();
         return;
