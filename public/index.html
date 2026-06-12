@@ -500,7 +500,16 @@
               </label>
               <label>
                 아이콘
-                <input id="classroom-badge-icon-input" type="text" maxlength="12" value="🏅">
+                <select id="classroom-badge-icon-input">
+                  <option value="🏅">🏅 메달</option>
+                  <option value="👑">👑 왕관</option>
+                  <option value="⭐">⭐ 별</option>
+                  <option value="💎">💎 보석</option>
+                  <option value="📘">📘 책</option>
+                  <option value="✏️">✏️ 연필</option>
+                  <option value="🔥">🔥 열정</option>
+                  <option value="🌱">🌱 성장</option>
+                </select>
               </label>
               <label>
                 색상
@@ -509,6 +518,50 @@
               <button class="button primary" type="submit">뱃지 스캔 후 지급</button>
             </form>
             <p id="classroom-badge-campaign-status" class="classroom-review-status" aria-live="polite"></p>
+          </div>
+          <div class="classroom-quest-editor">
+            <div class="event-section-heading">
+              <p class="eyebrow">Class Jobs</p>
+              <h3>직업 만들기</h3>
+            </div>
+            <form id="classroom-job-form" class="classroom-quest-form">
+              <label>
+                직업 이름
+                <input id="classroom-job-title-input" type="text" maxlength="40" placeholder="예: 칠판 관리자">
+              </label>
+              <label>
+                직업 설명
+                <input id="classroom-job-desc-input" type="text" maxlength="160" placeholder="역할과 책임">
+              </label>
+              <label>
+                월급
+                <input id="classroom-job-pay-input" type="number" min="1" max="1000" inputmode="numeric" value="20">
+              </label>
+              <button class="button primary" type="submit">직업 저장</button>
+            </form>
+            <p id="classroom-job-editor-status" class="classroom-review-status" aria-live="polite"></p>
+          </div>
+          <div class="classroom-quest-editor">
+            <div class="event-section-heading">
+              <p class="eyebrow">Class Shop</p>
+              <h3>교실 상점 상품 만들기</h3>
+            </div>
+            <form id="classroom-shop-item-form" class="classroom-quest-form">
+              <label>
+                상품 이름
+                <input id="classroom-shop-title-input" type="text" maxlength="40" placeholder="예: 숙제 면제권">
+              </label>
+              <label>
+                상품 설명
+                <input id="classroom-shop-desc-input" type="text" maxlength="160" placeholder="학생에게 보일 설명">
+              </label>
+              <label>
+                가격
+                <input id="classroom-shop-price-input" type="number" min="1" max="10000" inputmode="numeric" value="50">
+              </label>
+              <button class="button primary" type="submit">상품 저장</button>
+            </form>
+            <p id="classroom-shop-editor-status" class="classroom-review-status" aria-live="polite"></p>
           </div>
           <div class="event-section-heading">
             <p class="eyebrow">Teacher Review</p>
@@ -522,6 +575,8 @@
           <button class="classroom-tab is-active" type="button" data-classroom-tab="quests" role="tab" aria-selected="true">퀘스트</button>
           <button class="classroom-tab" type="button" data-classroom-tab="students" role="tab" aria-selected="false">학생카드</button>
           <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="shop" role="tab" aria-selected="false">교실상점</button>
           <button class="classroom-tab" type="button" data-classroom-tab="routines" role="tab" aria-selected="false">성장루틴</button>
         </div>
 
@@ -549,11 +604,55 @@
           <div id="classroom-gem-grid" class="classroom-card-grid"></div>
         </section>
 
+        <section class="classroom-panel" data-classroom-panel="jobs" aria-labelledby="classroom-job-heading">
+          <div class="event-section-heading">
+            <p class="eyebrow">Class Jobs</p>
+            <h3 id="classroom-job-heading">직업</h3>
+          </div>
+          <div id="classroom-job-grid" class="classroom-card-grid"></div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="shop" aria-labelledby="classroom-shop-heading">
+          <div class="event-section-heading">
+            <p class="eyebrow">Class Shop</p>
+            <h3 id="classroom-shop-heading">교실 상점</h3>
+          </div>
+          <div id="classroom-shop-grid" class="classroom-card-grid"></div>
+        </section>
+
         <section class="classroom-panel" data-classroom-panel="routines" aria-labelledby="classroom-routine-heading">
           <div class="event-section-heading">
             <p class="eyebrow">Growth Routines</p>
             <h3 id="classroom-routine-heading">성장루틴</h3>
           </div>
+          <form id="classroom-routine-form" class="classroom-quest-form">
+            <label>
+              루틴 이름
+              <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
+            </label>
+            <label>
+              목표 횟수
+              <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
+            </label>
+            <label>
+              시작일
+              <input id="classroom-routine-start-input" type="date">
+            </label>
+            <label>
+              종료일
+              <input id="classroom-routine-end-input" type="date">
+            </label>
+            <fieldset class="classroom-weekday-fieldset">
+              <legend>체크 요일</legend>
+              <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
+              <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
+              <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
+              <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
+              <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
+            </fieldset>
+            <button class="button primary" type="submit">내 루틴 만들기</button>
+          </form>
+          <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
           <div id="classroom-routine-grid" class="classroom-card-grid"></div>
         </section>
       </section>
@@ -1553,6 +1652,8 @@
     let classroomGemProgressLoadPromise = null;
     let classroomStudentCardsCache = null;
     let classroomStudentCardsLoadPromise = null;
+    let classroomEconomyBoardCache = null;
+    let classroomEconomyBoardLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -6118,6 +6219,8 @@
       classroomGemProgressLoadPromise = null;
       classroomStudentCardsCache = null;
       classroomStudentCardsLoadPromise = null;
+      classroomEconomyBoardCache = null;
+      classroomEconomyBoardLoadPromise = null;
       userDataMigrationPromise = null;
     }
 
@@ -7331,7 +7434,7 @@
         rewardCoin,
         rewardCurrency,
         status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
-        studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim(),
+        studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim().replace(/코인/g, '베리'),
         linkedGemId,
         linkedGemName,
         gemXp,
@@ -7522,6 +7625,43 @@
         classroomStudentCardsLoadPromise = null;
       });
       return classroomStudentCardsLoadPromise;
+    }
+
+    async function loadClassroomEconomyBoard(settings, forceRefresh = false) {
+      if(classroomEconomyBoardCache && !forceRefresh) return classroomEconomyBoardCache;
+      if(classroomEconomyBoardLoadPromise && !forceRefresh) return classroomEconomyBoardLoadPromise;
+      if(!currentMemberUserId) {
+        classroomEconomyBoardCache = { jobs: [], shopItems: [], applications: [], assignments: [], routines: [] };
+        return classroomEconomyBoardCache;
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        classroomEconomyBoardCache = { jobs: [], shopItems: [], applications: [], assignments: [], routines: [] };
+        return classroomEconomyBoardCache;
+      }
+      const callable = functions.httpsCallable('getClassroomEconomyBoard');
+      classroomEconomyBoardLoadPromise = callable({
+        classId: settings.classId,
+        memberUserId: currentMemberUserId
+      }).then(response => {
+        const data = response?.data || {};
+        classroomEconomyBoardCache = {
+          jobs: Array.isArray(data.jobs) ? data.jobs : [],
+          shopItems: Array.isArray(data.shopItems) ? data.shopItems : [],
+          applications: Array.isArray(data.applications) ? data.applications : [],
+          assignments: Array.isArray(data.assignments) ? data.assignments : [],
+          routines: Array.isArray(data.routines) ? data.routines : [],
+          myAssignment: data.myAssignment || null
+        };
+        return classroomEconomyBoardCache;
+      }).catch(error => {
+        console.warn('Classroom economy board load failed.', error);
+        classroomEconomyBoardCache = { jobs: [], shopItems: [], applications: [], assignments: [], routines: [] };
+        return classroomEconomyBoardCache;
+      }).finally(() => {
+        classroomEconomyBoardLoadPromise = null;
+      });
+      return classroomEconomyBoardLoadPromise;
     }
 
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
@@ -7826,11 +7966,193 @@
       });
     }
 
-    function renderClassroomRoutineCards() {
+    function renderClassroomJobCards(settings, economyBoard = {}) {
+      const grid = document.getElementById('classroom-job-grid');
+      if(!grid) return;
+      const jobs = Array.isArray(economyBoard.jobs) ? economyBoard.jobs : [];
+      const applications = Array.isArray(economyBoard.applications) ? economyBoard.applications : [];
+      const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
+      const canManage = isCurrentClassroomTeacher(settings);
+      const myAssignment = economyBoard.myAssignment || assignments.find(item => item.memberUserId === currentMemberUserId && item.status === 'active') || null;
+      grid.innerHTML = '';
+      if(!jobs.length) {
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = '준비 중';
+        title.textContent = '아직 등록된 직업이 없습니다';
+        desc.textContent = canManage ? '담임 관리 영역에서 직업을 먼저 만들어 주세요.' : '담임이 직업을 만들면 이곳에서 지원할 수 있습니다.';
+        card.append(badge, title, desc);
+        grid.appendChild(card);
+        return;
+      }
+      jobs.forEach(job => {
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        const reward = document.createElement('p');
+        const status = document.createElement('span');
+        const actions = document.createElement('div');
+        const ownApplication = applications.find(item => item.jobId === job.jobId && item.memberUserId === currentMemberUserId);
+        const assignedHere = assignments.find(item => item.jobId === job.jobId && item.status === 'active');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = assignedHere ? '배정됨' : '모집 중';
+        title.textContent = job.title || '교실 직업';
+        desc.textContent = job.desc || '직업 설명이 없습니다.';
+        reward.className = 'classroom-card-reward';
+        reward.textContent = `월급: ${Number(job.weeklyPayBerry || 0).toLocaleString('ko-KR')} 베리`;
+        status.className = `quest-status ${assignedHere ? 'quest-status-claimed' : ownApplication ? 'quest-status-ready' : 'quest-status-active'}`;
+        status.textContent = assignedHere
+          ? `담당: ${assignedHere.memberUserId || '-'}`
+          : ownApplication
+            ? '지원 완료'
+            : myAssignment
+              ? '이미 맡은 직업이 있습니다'
+              : '지원 가능';
+        actions.className = 'classroom-review-actions';
+        if(canManage) {
+          if(assignedHere) {
+            const releaseButton = document.createElement('button');
+            releaseButton.className = 'quest-claim-button danger';
+            releaseButton.type = 'button';
+            releaseButton.dataset.classroomJobReleaseId = assignedHere.assignmentId || assignedHere.memberUserId || '';
+            releaseButton.textContent = `${assignedHere.memberUserId || '학생'} 해제`;
+            const salaryButton = document.createElement('button');
+            salaryButton.className = 'quest-claim-button';
+            salaryButton.type = 'button';
+            salaryButton.dataset.classroomJobSalaryId = assignedHere.assignmentId || assignedHere.memberUserId || '';
+            salaryButton.textContent = `${assignedHere.memberUserId || '학생'} 월급 지급`;
+            actions.appendChild(salaryButton);
+            actions.appendChild(releaseButton);
+          }
+          applications
+            .filter(item => item.jobId === job.jobId && item.status === 'pending')
+            .forEach(application => {
+              const assignButton = document.createElement('button');
+              assignButton.className = 'quest-claim-button';
+              assignButton.type = 'button';
+              assignButton.dataset.classroomJobAssignId = application.applicationId || '';
+              assignButton.textContent = `${application.memberUserId || '학생'} 배정`;
+              actions.appendChild(assignButton);
+            });
+          if(!actions.children.length) {
+            const empty = document.createElement('p');
+            empty.textContent = '대기 중인 지원자가 없습니다.';
+            actions.appendChild(empty);
+          }
+        } else {
+          const button = document.createElement('button');
+          button.className = 'quest-claim-button';
+          button.type = 'button';
+          button.dataset.classroomJobApplyId = job.jobId || '';
+          button.disabled = !!myAssignment || !!ownApplication || !!assignedHere;
+          button.textContent = myAssignment
+            ? '이미 직업 배정됨'
+            : ownApplication
+              ? '지원 완료'
+              : assignedHere
+                ? '모집 마감'
+                : '지원하기';
+          actions.appendChild(button);
+        }
+        card.append(badge, title, desc, reward, status, actions);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderClassroomShopCards(settings, economyBoard = {}, wallet = {}) {
+      const grid = document.getElementById('classroom-shop-grid');
+      if(!grid) return;
+      const items = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
+      const berry = Number(wallet.berry || 0);
+      grid.innerHTML = '';
+      if(!items.length) {
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = '준비 중';
+        title.textContent = '아직 등록된 교실 상품이 없습니다';
+        desc.textContent = isCurrentClassroomTeacher(settings) ? '담임 관리 영역에서 교실 상품을 만들어 주세요.' : '담임이 상품을 만들면 베리로 구매할 수 있습니다.';
+        card.append(badge, title, desc);
+        grid.appendChild(card);
+        return;
+      }
+      items.forEach(item => {
+        const price = Number(item.priceBerry || 0);
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        const reward = document.createElement('p');
+        const status = document.createElement('span');
+        const button = document.createElement('button');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = '쿠폰';
+        title.textContent = item.title || '교실 상품';
+        desc.textContent = item.desc || '상품 설명이 없습니다.';
+        reward.className = 'classroom-card-reward';
+        reward.textContent = `가격: ${price.toLocaleString('ko-KR')} 베리`;
+        status.className = `quest-status ${berry >= price ? 'quest-status-active' : 'quest-status-ready'}`;
+        status.textContent = berry >= price ? '구매 가능' : '베리가 부족합니다';
+        button.className = 'quest-claim-button';
+        button.type = 'button';
+        button.dataset.classroomShopBuyId = item.itemId || '';
+        button.disabled = price <= 0 || berry < price;
+        button.textContent = '구매하기';
+        card.append(badge, title, desc, reward, status, button);
+        grid.appendChild(card);
+      });
+    }
+
+    function getClassroomRoutineScheduleLabel(routine = {}) {
+      const labels = {
+        1: '월',
+        2: '화',
+        3: '수',
+        4: '목',
+        5: '금'
+      };
+      const weekdays = Array.isArray(routine.weekdays) && routine.weekdays.length
+        ? routine.weekdays.map(day => labels[day]).filter(Boolean).join(',')
+        : '월~금';
+      const start = String(routine.startDate || '').trim();
+      const end = String(routine.endDate || '').trim();
+      const period = start && end ? `${start}~${end}` : '기간 미설정';
+      return `${period} · ${weekdays}`;
+    }
+
+    function renderClassroomRoutineCards(economyBoard = {}) {
       const grid = document.getElementById('classroom-routine-grid');
       if(!grid) return;
+      const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
       grid.innerHTML = '';
-      CLASSROOM_PROTOTYPE.routines.forEach(routine => {
+      if(!routines.length) {
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = '준비 중';
+        title.textContent = '아직 만든 성장루틴이 없습니다';
+        desc.textContent = '내가 반복하고 싶은 습관을 만들고 매일 체크해 보세요.';
+        card.append(badge, title, desc);
+        grid.appendChild(card);
+        return;
+      }
+      routines.forEach(routine => {
+        const currentCount = Number(routine.currentCount || 0);
+        const targetCount = Math.max(1, Number(routine.targetCount || 1));
+        const completed = routine.status === 'completed' || currentCount >= targetCount;
         const card = document.createElement('article');
         const badge = document.createElement('span');
         const title = document.createElement('h4');
@@ -7840,17 +8162,24 @@
         const button = document.createElement('button');
         card.className = 'classroom-card';
         badge.className = 'classroom-card-badge';
-        badge.textContent = '학생 설정형';
-        title.textContent = routine.title;
-        desc.textContent = routine.desc;
+        badge.textContent = completed ? '달성 완료' : '학생 설정형';
+        title.textContent = routine.title || '성장루틴';
+        desc.textContent = routine.desc || '학생이 직접 만든 루틴입니다.';
         progress.className = 'classroom-card-progress';
-        progress.textContent = `진행도 ${routine.progress}`;
+        progress.textContent = `진행도 ${currentCount}/${targetCount}회 · ${getClassroomRoutineScheduleLabel(routine)}`;
         reward.className = 'classroom-card-reward';
-        reward.textContent = `달성 보상: ${routine.rewardCoin} 베리`;
+        reward.textContent = `달성 보상: ${Number(routine.rewardBerry || 0).toLocaleString('ko-KR')} 베리`;
         button.className = 'quest-claim-button';
         button.type = 'button';
-        button.disabled = true;
-        button.textContent = '오늘 체크 준비 중';
+        button.dataset.classroomRoutineCheckId = routine.routineId || '';
+        button.disabled = completed || routine.checkedToday === true || routine.canCheckToday === false;
+        button.textContent = completed
+          ? '달성 완료'
+          : routine.checkedToday
+            ? '오늘 체크 완료'
+            : routine.canCheckToday === false
+              ? '체크 요일 아님'
+              : '오늘 체크';
         card.append(badge, title, desc, progress, reward, button);
         grid.appendChild(card);
       });
@@ -7858,19 +8187,22 @@
 
     async function renderClassroomPrototype(forceRefresh = false) {
       const settings = await loadClassroomSettings(forceRefresh);
-      const [progressMap, reviewItems, wallet, gemProgress, studentCards] = await Promise.all([
+      const [progressMap, reviewItems, wallet, gemProgress, studentCards, economyBoard] = await Promise.all([
         loadClassroomQuestProgress(forceRefresh),
         loadClassroomReviewItems(settings, forceRefresh),
         loadClassroomWallet(settings, forceRefresh),
         loadClassroomGemProgress(settings, forceRefresh),
-        loadClassroomStudentCards(settings, forceRefresh)
+        loadClassroomStudentCards(settings, forceRefresh),
+        loadClassroomEconomyBoard(settings, forceRefresh)
       ]);
       renderClassroomRoleState(settings, wallet);
       renderClassroomReviewPanel(settings, reviewItems);
       renderClassroomQuestCards(settings, progressMap);
       renderClassroomStudentCards(studentCards);
       renderClassroomGemCards(gemProgress);
-      renderClassroomRoutineCards();
+      renderClassroomJobCards(settings, economyBoard);
+      renderClassroomShopCards(settings, economyBoard, wallet);
+      renderClassroomRoutineCards(economyBoard);
     }
 
     function setClassroomQuestEditorStatus(message, isError = false) {
@@ -7882,6 +8214,27 @@
 
     function setClassroomBadgeCampaignStatus(message, isError = false) {
       const status = document.getElementById('classroom-badge-campaign-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function setClassroomJobEditorStatus(message, isError = false) {
+      const status = document.getElementById('classroom-job-editor-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function setClassroomShopEditorStatus(message, isError = false) {
+      const status = document.getElementById('classroom-shop-editor-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function setClassroomRoutineStatus(message, isError = false) {
+      const status = document.getElementById('classroom-routine-status');
       if(!status) return;
       status.textContent = message || '';
       status.classList.toggle('is-error', !!isError);
@@ -7933,7 +8286,7 @@
         return;
       }
       if(values.rewardCoin <= 0) {
-        setClassroomQuestEditorStatus('지급 코인은 1 이상이어야 합니다.', true);
+        setClassroomQuestEditorStatus('지급 베리는 1 이상이어야 합니다.', true);
         return;
       }
       const functions = getFirebaseFunctions();
@@ -8021,6 +8374,262 @@
       } catch(error) {
         console.warn('Classroom badge campaign award failed.', error);
         setClassroomBadgeCampaignStatus('뱃지 지급 중 문제가 생겼습니다.', true);
+      }
+    }
+
+    function getClassroomJobFormValues() {
+      return {
+        title: String(document.getElementById('classroom-job-title-input')?.value || '').trim(),
+        desc: String(document.getElementById('classroom-job-desc-input')?.value || '').trim(),
+        weeklyPayBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0))
+      };
+    }
+
+    function resetClassroomJobForm() {
+      const title = document.getElementById('classroom-job-title-input');
+      const desc = document.getElementById('classroom-job-desc-input');
+      const pay = document.getElementById('classroom-job-pay-input');
+      if(title) title.value = '';
+      if(desc) desc.value = '';
+      if(pay) pay.value = '20';
+    }
+
+    async function saveClassroomJobFromForm(event) {
+      event?.preventDefault();
+      const settings = await loadClassroomSettings();
+      if(!isCurrentClassroomTeacher(settings)) {
+        setClassroomJobEditorStatus('담임 권한이 있어야 직업을 만들 수 있습니다.', true);
+        return;
+      }
+      const values = getClassroomJobFormValues();
+      if(!values.title) {
+        setClassroomJobEditorStatus('직업 이름을 입력해 주세요.', true);
+        return;
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        setClassroomJobEditorStatus('직업 저장 기능을 불러오지 못했습니다.', true);
+        return;
+      }
+      setClassroomJobEditorStatus('직업을 저장하는 중입니다.');
+      try {
+        const callable = functions.httpsCallable('saveClassroomJob');
+        await callable({ classId: settings.classId, job: values });
+        classroomEconomyBoardCache = null;
+        resetClassroomJobForm();
+        setClassroomJobEditorStatus('직업을 저장했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom job save failed.', error);
+        setClassroomJobEditorStatus('직업 저장 중 문제가 생겼습니다.', true);
+      }
+    }
+
+    function getClassroomShopItemFormValues() {
+      return {
+        title: String(document.getElementById('classroom-shop-title-input')?.value || '').trim(),
+        desc: String(document.getElementById('classroom-shop-desc-input')?.value || '').trim(),
+        priceBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0))
+      };
+    }
+
+    function resetClassroomShopItemForm() {
+      const title = document.getElementById('classroom-shop-title-input');
+      const desc = document.getElementById('classroom-shop-desc-input');
+      const price = document.getElementById('classroom-shop-price-input');
+      if(title) title.value = '';
+      if(desc) desc.value = '';
+      if(price) price.value = '50';
+    }
+
+    async function saveClassroomShopItemFromForm(event) {
+      event?.preventDefault();
+      const settings = await loadClassroomSettings();
+      if(!isCurrentClassroomTeacher(settings)) {
+        setClassroomShopEditorStatus('담임 권한이 있어야 상품을 만들 수 있습니다.', true);
+        return;
+      }
+      const values = getClassroomShopItemFormValues();
+      if(!values.title) {
+        setClassroomShopEditorStatus('상품 이름을 입력해 주세요.', true);
+        return;
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        setClassroomShopEditorStatus('상품 저장 기능을 불러오지 못했습니다.', true);
+        return;
+      }
+      setClassroomShopEditorStatus('상품을 저장하는 중입니다.');
+      try {
+        const callable = functions.httpsCallable('saveClassroomShopItem');
+        await callable({ classId: settings.classId, item: values });
+        classroomEconomyBoardCache = null;
+        resetClassroomShopItemForm();
+        setClassroomShopEditorStatus('상품을 저장했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom shop item save failed.', error);
+        setClassroomShopEditorStatus('상품 저장 중 문제가 생겼습니다.', true);
+      }
+    }
+
+    async function callClassroomEconomyAction(functionName, payload, button, progressText) {
+      const settings = await loadClassroomSettings();
+      const functions = getFirebaseFunctions();
+      if(!functions || !currentMemberUserId) {
+        window.alert('교실 기능을 불러오지 못했어요.');
+        return null;
+      }
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = progressText;
+      }
+      try {
+        const callable = functions.httpsCallable(functionName);
+        const response = await callable({
+          classId: settings.classId,
+          memberUserId: currentMemberUserId,
+          ...payload
+        });
+        classroomEconomyBoardCache = null;
+        classroomWalletCache = null;
+        await renderClassroomPrototype(true);
+        return response?.data || {};
+      } catch(error) {
+        console.warn(`Classroom economy action failed: ${functionName}`, error);
+        window.alert('교실 작업 처리 중 문제가 생겼어요.');
+        await renderClassroomPrototype(true);
+        return null;
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
+    async function applyClassroomJob(jobId, button) {
+      if(!jobId) return;
+      const result = await callClassroomEconomyAction('applyClassroomJob', { jobId }, button, '지원 중...');
+      if(result?.success) window.alert(result.duplicate ? '이미 지원한 직업입니다.' : '직업 지원이 저장됐습니다.');
+    }
+
+    async function assignClassroomJob(applicationId, button) {
+      if(!applicationId) return;
+      const result = await callClassroomEconomyAction('assignClassroomJob', { applicationId }, button, '배정 중...');
+      if(result?.success) window.alert('직업을 배정했습니다.');
+    }
+
+    async function releaseClassroomJob(assignmentId, button) {
+      if(!assignmentId) return;
+      const result = await callClassroomEconomyAction('releaseClassroomJob', { assignmentId }, button, '해제 중...');
+      if(result?.success) window.alert('직업 배정을 해제했습니다.');
+    }
+
+    async function claimClassroomJobSalary(assignmentId, button) {
+      if(!assignmentId) return;
+      const result = await callClassroomEconomyAction('claimClassroomJobSalary', { assignmentId }, button, '지급 중...');
+      if(result?.success) {
+        const amount = Number(result.rewardAmount || 0);
+        window.alert(result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 베리를 지급했습니다.`);
+      }
+    }
+
+    async function purchaseClassroomShopItem(itemId, button) {
+      if(!itemId) return;
+      const result = await callClassroomEconomyAction('purchaseClassroomShopItem', { itemId }, button, '구매 중...');
+      if(result?.success) {
+        const amount = Number(result.priceBerry || 0);
+        window.alert(`${amount} 베리로 구매했습니다.`);
+      }
+    }
+
+    function getClassroomRoutineFormValues() {
+      const weekdays = Array.from(document.querySelectorAll('input[name="classroom-routine-weekday"]:checked'))
+        .map(input => Number(input.value))
+        .filter(day => day >= 1 && day <= 5);
+      return {
+        title: String(document.getElementById('classroom-routine-title-input')?.value || '').trim(),
+        targetCount: Math.max(2, Math.min(30, Math.round(Number(document.getElementById('classroom-routine-target-input')?.value) || 5))),
+        startDate: String(document.getElementById('classroom-routine-start-input')?.value || '').trim(),
+        endDate: String(document.getElementById('classroom-routine-end-input')?.value || '').trim(),
+        weekdays
+      };
+    }
+
+    function resetClassroomRoutineForm() {
+      const title = document.getElementById('classroom-routine-title-input');
+      const target = document.getElementById('classroom-routine-target-input');
+      const start = document.getElementById('classroom-routine-start-input');
+      const end = document.getElementById('classroom-routine-end-input');
+      if(title) title.value = '';
+      if(target) target.value = '5';
+      if(start) start.value = '';
+      if(end) end.value = '';
+      document.querySelectorAll('input[name="classroom-routine-weekday"]').forEach(input => {
+        input.checked = true;
+      });
+    }
+
+    async function saveClassroomRoutineFromForm(event) {
+      event?.preventDefault();
+      if(!currentMemberUserId) {
+        setClassroomRoutineStatus('회원 연결 후 성장루틴을 만들 수 있습니다.', true);
+        return;
+      }
+      const values = getClassroomRoutineFormValues();
+      if(!values.title) {
+        setClassroomRoutineStatus('루틴 이름을 입력해 주세요.', true);
+        return;
+      }
+      if(!values.startDate || !values.endDate) {
+        setClassroomRoutineStatus('시작일과 종료일을 선택해 주세요.', true);
+        return;
+      }
+      if(values.startDate > values.endDate) {
+        setClassroomRoutineStatus('종료일은 시작일 이후여야 합니다.', true);
+        return;
+      }
+      if(!values.weekdays.length) {
+        setClassroomRoutineStatus('체크할 요일을 1개 이상 선택해 주세요.', true);
+        return;
+      }
+      const settings = await loadClassroomSettings();
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        setClassroomRoutineStatus('성장루틴 저장 기능을 불러오지 못했습니다.', true);
+        return;
+      }
+      setClassroomRoutineStatus('성장루틴을 저장하는 중입니다.');
+      try {
+        const callable = functions.httpsCallable('saveClassroomRoutine');
+        await callable({
+          classId: settings.classId,
+          memberUserId: currentMemberUserId,
+          routine: values
+        });
+        classroomEconomyBoardCache = null;
+        resetClassroomRoutineForm();
+        setClassroomRoutineStatus('성장루틴을 저장했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom routine save failed.', error);
+        setClassroomRoutineStatus('성장루틴 저장 중 문제가 생겼습니다.', true);
+      }
+    }
+
+    async function checkClassroomRoutine(routineId, button) {
+      if(!routineId) return;
+      const result = await callClassroomEconomyAction('checkClassroomRoutine', { routineId }, button, '체크 중...');
+      if(result?.success) {
+        if(result.duplicate) {
+          window.alert('오늘 이미 체크한 루틴입니다.');
+        } else if(result.completed) {
+          window.alert(`목표를 달성해 ${Number(result.rewardAmount || 0)} 베리를 받았습니다.`);
+        } else {
+          window.alert('오늘 체크했습니다.');
+        }
       }
     }
 
@@ -11367,6 +11976,18 @@
       awardClassroomBadgeCampaignFromForm(event);
     });
 
+    document.getElementById('classroom-job-form')?.addEventListener('submit', event => {
+      saveClassroomJobFromForm(event);
+    });
+
+    document.getElementById('classroom-shop-item-form')?.addEventListener('submit', event => {
+      saveClassroomShopItemFromForm(event);
+    });
+
+    document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
+      saveClassroomRoutineFromForm(event);
+    });
+
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {
       button.addEventListener('click', () => setActiveClassroomTab(button.dataset.classroomTab || 'quests'));
     });
@@ -11381,6 +12002,40 @@
       const button = event.target.closest('[data-classroom-badge-gem-id]');
       if(!button || button.disabled) return;
       setClassroomSelectedGemBadge(button.dataset.classroomBadgeGemId || '');
+    });
+
+    document.getElementById('classroom-job-grid')?.addEventListener('click', event => {
+      const applyButton = event.target.closest('[data-classroom-job-apply-id]');
+      if(applyButton && !applyButton.disabled) {
+        applyClassroomJob(applyButton.dataset.classroomJobApplyId || '', applyButton);
+        return;
+      }
+      const assignButton = event.target.closest('[data-classroom-job-assign-id]');
+      if(assignButton && !assignButton.disabled) {
+        assignClassroomJob(assignButton.dataset.classroomJobAssignId || '', assignButton);
+        return;
+      }
+      const releaseButton = event.target.closest('[data-classroom-job-release-id]');
+      if(releaseButton && !releaseButton.disabled) {
+        releaseClassroomJob(releaseButton.dataset.classroomJobReleaseId || '', releaseButton);
+        return;
+      }
+      const salaryButton = event.target.closest('[data-classroom-job-salary-id]');
+      if(salaryButton && !salaryButton.disabled) {
+        claimClassroomJobSalary(salaryButton.dataset.classroomJobSalaryId || '', salaryButton);
+      }
+    });
+
+    document.getElementById('classroom-shop-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-shop-buy-id]');
+      if(!button || button.disabled) return;
+      purchaseClassroomShopItem(button.dataset.classroomShopBuyId || '', button);
+    });
+
+    document.getElementById('classroom-routine-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-routine-check-id]');
+      if(!button || button.disabled) return;
+      checkClassroomRoutine(button.dataset.classroomRoutineCheckId || '', button);
     });
 
     document.getElementById('classroom-review-grid')?.addEventListener('click', event => {

@@ -699,7 +699,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     gemXp,
     gemTargetXp: linkedGemId ? Math.max(1, Math.min(1000, Math.round(Number(rawQuest.gemTargetXp) || 10))) : 10,
     gemRewardBerry: linkedGemId ? Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardBerry) || 0))) : 0,
-    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().slice(0, 60)
+    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().replace(/코인/g, "베리").slice(0, 60)
   };
 }
 
@@ -895,6 +895,113 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
 
 function getKstDateKey(date = new Date()) {
   return date.toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+}
+
+function getKstMonthKey(date = new Date()) {
+  return getKstDateKey(date).slice(0, 7);
+}
+
+function getKstWeekdayNumber(date = new Date()) {
+  const [year, month, day] = getKstDateKey(date).split("-").map(Number);
+  const localDate = new Date(Date.UTC(year, month - 1, day));
+  return localDate.getUTCDay() || 7;
+}
+
+function isIsoDateKey(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+}
+
+function isClassroomTeacherMember(memberData = {}, settings = {}) {
+  if (memberData.role !== "admin") return false;
+  const adminLevel = String(memberData.adminLevel || "").toLowerCase();
+  if (["superadmin", "fulladmin"].includes(adminLevel)) return true;
+  if (adminLevel !== "classadmin") return false;
+  const scopeGrade = String(memberData.adminScopeGrade || memberData.grade || "");
+  const scopeClassNumber = String(memberData.adminScopeClassNumber || memberData.classNumber || "");
+  return scopeGrade === String(settings.grade || "") && scopeClassNumber === String(settings.classNumber || "");
+}
+
+function normalizeClassroomJob(rawJob = {}) {
+  const jobId = String(rawJob.jobId || rawJob.id || `job-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
+    .trim()
+    .replace(/[^0-9A-Za-z_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  if (!jobId) {
+    throw new HttpsError("invalid-argument", "Job id is invalid.");
+  }
+  const title = String(rawJob.title || "").trim().slice(0, 40);
+  if (!title) {
+    throw new HttpsError("invalid-argument", "Job title is required.");
+  }
+  return {
+    jobId,
+    title,
+    desc: String(rawJob.desc || "").trim().slice(0, 160),
+    weeklyPayBerry: Math.max(1, Math.min(1000, Math.round(Number(rawJob.weeklyPayBerry || rawJob.payBerry) || 1))),
+    active: rawJob.active !== false
+  };
+}
+
+function normalizeClassroomShopItem(rawItem = {}) {
+  const itemId = String(rawItem.itemId || rawItem.id || `shop-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
+    .trim()
+    .replace(/[^0-9A-Za-z_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  if (!itemId) {
+    throw new HttpsError("invalid-argument", "Shop item id is invalid.");
+  }
+  const title = String(rawItem.title || "").trim().slice(0, 40);
+  if (!title) {
+    throw new HttpsError("invalid-argument", "Shop item title is required.");
+  }
+  return {
+    itemId,
+    title,
+    desc: String(rawItem.desc || "").trim().slice(0, 160),
+    priceBerry: Math.max(1, Math.min(10000, Math.round(Number(rawItem.priceBerry || rawItem.price) || 1))),
+    active: rawItem.active !== false
+  };
+}
+
+function normalizeClassroomRoutine(rawRoutine = {}) {
+  const routineId = String(rawRoutine.routineId || rawRoutine.id || `routine-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
+    .trim()
+    .replace(/[^0-9A-Za-z_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  if (!routineId) {
+    throw new HttpsError("invalid-argument", "Routine id is invalid.");
+  }
+  const title = String(rawRoutine.title || "").trim().slice(0, 40);
+  if (!title) {
+    throw new HttpsError("invalid-argument", "Routine title is required.");
+  }
+  const targetCount = Math.max(2, Math.min(30, Math.round(Number(rawRoutine.targetCount) || 5)));
+  const startDate = String(rawRoutine.startDate || "").trim();
+  const endDate = String(rawRoutine.endDate || "").trim();
+  if (!isIsoDateKey(startDate) || !isIsoDateKey(endDate) || startDate > endDate) {
+    throw new HttpsError("invalid-argument", "Routine period is invalid.");
+  }
+  const weekdays = Array.from(new Set((Array.isArray(rawRoutine.weekdays) ? rawRoutine.weekdays : [])
+    .map(day => Math.round(Number(day)))
+    .filter(day => day >= 1 && day <= 5)))
+    .sort((a, b) => a - b);
+  if (!weekdays.length) {
+    throw new HttpsError("invalid-argument", "Routine weekdays are required.");
+  }
+  return {
+    routineId,
+    title,
+    desc: String(rawRoutine.desc || "").trim().slice(0, 160),
+    targetCount,
+    startDate,
+    endDate,
+    weekdays,
+    rewardBerry: Math.max(5, Math.min(100, targetCount * 5)),
+    active: rawRoutine.active !== false
+  };
 }
 
 function chunkArray(items, size) {
@@ -3700,6 +3807,643 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
       metricValue: Number(winner.currentXp || 0)
     }))
   };
+});
+
+exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+
+  const authResult = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    const settings = classroomResult.settings;
+    assertMemberCanEnterClassroom(memberData, settings);
+    return { memberData, settings, canManage: isClassroomTeacherMember(memberData, settings) };
+  });
+
+  const jobsSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("jobs")
+    .where("active", "==", true)
+    .limit(100)
+    .get();
+  const shopSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("shopItems")
+    .where("active", "==", true)
+    .limit(100)
+    .get();
+  const assignmentSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("jobAssignments")
+    .where("status", "==", "active")
+    .limit(200)
+    .get();
+  const routineSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("studentRoutines")
+    .where("memberUserId", "==", memberUserId)
+    .limit(50)
+    .get();
+  const applicationQuery = authResult.canManage
+    ? db.collection("classrooms").doc(classId).collection("jobApplications").where("status", "==", "pending").limit(200)
+    : db.collection("classrooms").doc(classId).collection("jobApplications").where("memberUserId", "==", memberUserId).limit(50);
+  const applicationSnapshot = await applicationQuery.get();
+
+  const jobs = jobsSnapshot.docs
+    .map(doc => ({ jobId: doc.id, ...(doc.data() || {}) }))
+    .sort((a, b) => String(a.title || a.jobId).localeCompare(String(b.title || b.jobId), "ko"));
+  const shopItems = shopSnapshot.docs
+    .map(doc => ({ itemId: doc.id, ...(doc.data() || {}) }))
+    .sort((a, b) => String(a.title || a.itemId).localeCompare(String(b.title || b.itemId), "ko"));
+  const assignments = assignmentSnapshot.docs.map(doc => {
+    const data = doc.data() || {};
+    return {
+      assignmentId: doc.id,
+      jobId: String(data.jobId || ""),
+      memberUserId: String(data.memberUserId || ""),
+      status: String(data.status || "")
+    };
+  });
+  const applications = applicationSnapshot.docs.map(doc => {
+    const data = doc.data() || {};
+    return {
+      applicationId: doc.id,
+      jobId: String(data.jobId || ""),
+      memberUserId: String(data.memberUserId || ""),
+      status: String(data.status || "pending")
+    };
+  });
+  const todayKey = getKstDateKey();
+  const todayWeekday = getKstWeekdayNumber();
+  const routines = routineSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      const weekdays = Array.isArray(data.weekdays)
+        ? data.weekdays.map(day => Math.round(Number(day))).filter(day => day >= 1 && day <= 5)
+        : [];
+      const startDate = String(data.startDate || "");
+      const endDate = String(data.endDate || "");
+      const withinPeriod = (!startDate || todayKey >= startDate) && (!endDate || todayKey <= endDate);
+      const canCheckToday = withinPeriod && weekdays.includes(todayWeekday);
+      return {
+        routineId: doc.id,
+        title: String(data.title || ""),
+        desc: String(data.desc || ""),
+        targetCount: Number(data.targetCount || 0),
+        currentCount: Number(data.currentCount || 0),
+        rewardBerry: Number(data.rewardBerry || 0),
+        startDate,
+        endDate,
+        weekdays,
+        status: String(data.status || "active"),
+        checkedToday: data.lastCheckDateKey === todayKey,
+        canCheckToday
+      };
+    })
+    .filter(item => item.status !== "deleted");
+
+  return {
+    success: true,
+    classId,
+    canManage: authResult.canManage,
+    jobs,
+    shopItems,
+    assignments,
+    applications,
+    routines,
+    myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
+  };
+});
+
+exports.saveClassroomJob = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const job = normalizeClassroomJob(payload.job && typeof payload.job === "object" ? payload.job : {});
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const jobRef = db.collection("classrooms").doc(classId).collection("jobs").doc(job.jobId);
+    transaction.set(jobRef, {
+      ...job,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_job_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, job };
+});
+
+exports.applyClassroomJob = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const jobId = normalizeId(payload.jobId, "jobId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    if (memberData.role === "admin") {
+      throw new HttpsError("failed-precondition", "Teacher accounts cannot apply for classroom jobs.");
+    }
+    const jobRef = db.collection("classrooms").doc(classId).collection("jobs").doc(jobId);
+    const assignmentRef = db.collection("classrooms").doc(classId).collection("jobAssignments").doc(memberUserId);
+    const applicationRef = db.collection("classrooms").doc(classId).collection("jobApplications").doc(`${jobId}__${memberUserId}`);
+    const [jobSnapshot, assignmentSnapshot, applicationSnapshot] = await Promise.all([
+      transaction.get(jobRef),
+      transaction.get(assignmentRef),
+      transaction.get(applicationRef)
+    ]);
+    if (!jobSnapshot.exists || jobSnapshot.data()?.active === false) {
+      throw new HttpsError("not-found", "Classroom job not found.");
+    }
+    if (assignmentSnapshot.exists && assignmentSnapshot.data()?.status === "active") {
+      throw new HttpsError("failed-precondition", "Student already has a classroom job.");
+    }
+    if (applicationSnapshot.exists && ["pending", "assigned"].includes(applicationSnapshot.data()?.status)) {
+      return { duplicate: true, applicationId: applicationRef.id };
+    }
+    const job = jobSnapshot.data() || {};
+    transaction.set(applicationRef, {
+      applicationId: applicationRef.id,
+      classId,
+      jobId,
+      jobTitle: job.title || "",
+      memberUserId,
+      userId: memberUserId,
+      status: "pending",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "apply_classroom_job_function"
+    }, { merge: true });
+    return { duplicate: false, applicationId: applicationRef.id };
+  });
+
+  return { success: true, classId, jobId, memberUserId, ...result };
+});
+
+exports.assignClassroomJob = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const applicationId = normalizeId(payload.applicationId, "applicationId");
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const applicationRef = db.collection("classrooms").doc(classId).collection("jobApplications").doc(applicationId);
+    const applicationSnapshot = await transaction.get(applicationRef);
+    if (!applicationSnapshot.exists) {
+      throw new HttpsError("not-found", "Job application not found.");
+    }
+    const application = applicationSnapshot.data() || {};
+    if (application.status !== "pending") {
+      return {
+        duplicate: true,
+        jobId: application.jobId || "",
+        memberUserId: application.memberUserId || ""
+      };
+    }
+    const jobId = normalizeId(application.jobId, "jobId");
+    const memberUserId = normalizeId(application.memberUserId, "memberUserId");
+    const jobRef = db.collection("classrooms").doc(classId).collection("jobs").doc(jobId);
+    const assignmentRef = db.collection("classrooms").doc(classId).collection("jobAssignments").doc(memberUserId);
+    const [jobSnapshot, assignmentSnapshot] = await Promise.all([
+      transaction.get(jobRef),
+      transaction.get(assignmentRef)
+    ]);
+    if (!jobSnapshot.exists || jobSnapshot.data()?.active === false) {
+      throw new HttpsError("not-found", "Classroom job not found.");
+    }
+    if (assignmentSnapshot.exists && assignmentSnapshot.data()?.status === "active") {
+      throw new HttpsError("failed-precondition", "Student already has a classroom job.");
+    }
+    const job = jobSnapshot.data() || {};
+    transaction.set(applicationRef, {
+      status: "assigned",
+      assignedBy: adminMember.memberUserId,
+      assignedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(assignmentRef, {
+      assignmentId: memberUserId,
+      classId,
+      jobId,
+      jobTitle: job.title || "",
+      memberUserId,
+      userId: memberUserId,
+      weeklyPayBerry: Number(job.weeklyPayBerry || 0),
+      status: "active",
+      assignedBy: adminMember.memberUserId,
+      assignedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "assign_classroom_job_function"
+    }, { merge: true });
+    return { duplicate: false, jobId, memberUserId };
+  });
+
+  return { success: true, classId, applicationId, ...result };
+});
+
+exports.releaseClassroomJob = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const assignmentId = normalizeId(payload.assignmentId, "assignmentId");
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const assignmentRef = db.collection("classrooms").doc(classId).collection("jobAssignments").doc(assignmentId);
+    const assignmentSnapshot = await transaction.get(assignmentRef);
+    if (!assignmentSnapshot.exists) {
+      throw new HttpsError("not-found", "Job assignment not found.");
+    }
+    const assignment = assignmentSnapshot.data() || {};
+    if (assignment.status !== "active") {
+      return {
+        duplicate: true,
+        jobId: assignment.jobId || "",
+        memberUserId: assignment.memberUserId || assignmentId
+      };
+    }
+    transaction.set(assignmentRef, {
+      status: "released",
+      releasedBy: adminMember.memberUserId,
+      releasedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return {
+      duplicate: false,
+      jobId: assignment.jobId || "",
+      memberUserId: assignment.memberUserId || assignmentId
+    };
+  });
+
+  return { success: true, classId, assignmentId, ...result };
+});
+
+exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const assignmentId = normalizeId(payload.assignmentId || payload.memberUserId, "assignmentId");
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const assignmentRef = db.collection("classrooms").doc(classId).collection("jobAssignments").doc(assignmentId);
+    const assignmentSnapshot = await transaction.get(assignmentRef);
+    if (!assignmentSnapshot.exists || assignmentSnapshot.data()?.status !== "active") {
+      throw new HttpsError("failed-precondition", "Active classroom job is required.");
+    }
+    const assignment = assignmentSnapshot.data() || {};
+    const memberUserId = normalizeId(assignment.memberUserId || assignmentId, "memberUserId");
+    const jobId = normalizeId(assignment.jobId, "jobId");
+    const monthKey = getKstMonthKey();
+    const rewardAmount = Math.max(1, Math.min(1000, Math.round(Number(assignment.weeklyPayBerry) || 0)));
+    const logId = rewardLogId(["classroom_job_salary", classId, monthKey, memberUserId, jobId]);
+    const logRef = db.collection("rewardLogs").doc(logId);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId);
+    const logSnapshot = await transaction.get(logRef);
+    if (logSnapshot.exists) {
+      return { duplicate: true, rewardAmount: 0, monthKey };
+    }
+    transaction.set(walletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId,
+      berry: FieldValue.increment(rewardAmount),
+      totalEarnedBerry: FieldValue.increment(rewardAmount),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomJobSalaryAt: FieldValue.serverTimestamp(),
+      source: "claim_classroom_job_salary_function"
+    }, { merge: true });
+    transaction.set(berryLogRef, {
+      type: "classroom_job_salary",
+      classId,
+      jobId,
+      jobTitle: assignment.jobTitle || "",
+      monthKey,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      paidBy: adminMember.memberUserId,
+      rewardCurrency: "berry",
+      rewardBerry: rewardAmount,
+      rewardAmount,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(logRef, {
+      type: "classroom_job_salary",
+      classId,
+      jobId,
+      jobTitle: assignment.jobTitle || "",
+      monthKey,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      paidBy: adminMember.memberUserId,
+      rewardCurrency: "berry",
+      rewardCoin: 0,
+      rewardBerry: rewardAmount,
+      rewardAmount,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(assignmentRef, {
+      lastSalaryMonthKey: monthKey,
+      lastSalaryAt: FieldValue.serverTimestamp(),
+      lastSalaryPaidBy: adminMember.memberUserId,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { duplicate: false, rewardAmount, monthKey, memberUserId, jobId };
+  });
+
+  return { success: true, classId, assignmentId, ...result };
+});
+
+exports.saveClassroomShopItem = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const item = normalizeClassroomShopItem(payload.item && typeof payload.item === "object" ? payload.item : {});
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const itemRef = db.collection("classrooms").doc(classId).collection("shopItems").doc(item.itemId);
+    transaction.set(itemRef, {
+      ...item,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_shop_item_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, item };
+});
+
+exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const itemId = normalizeId(payload.itemId, "itemId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const itemRef = db.collection("classrooms").doc(classId).collection("shopItems").doc(itemId);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const [itemSnapshot, walletSnapshot] = await Promise.all([
+      transaction.get(itemRef),
+      transaction.get(walletRef)
+    ]);
+    if (!itemSnapshot.exists || itemSnapshot.data()?.active === false) {
+      throw new HttpsError("not-found", "Classroom shop item not found.");
+    }
+    const item = itemSnapshot.data() || {};
+    const priceBerry = Math.max(1, Math.min(10000, Math.round(Number(item.priceBerry) || 0)));
+    const currentBerry = Math.max(0, Math.round(Number(walletSnapshot.exists ? walletSnapshot.data()?.berry : 0) || 0));
+    if (currentBerry < priceBerry) {
+      throw new HttpsError("failed-precondition", "Not enough classroom berry.");
+    }
+    const purchaseId = rewardLogId(["classroom_shop_purchase", classId, Date.now(), memberUserId, itemId]).slice(0, 180);
+    const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
+    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(purchaseId);
+    transaction.set(walletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId,
+      berry: FieldValue.increment(-priceBerry),
+      totalSpentBerry: FieldValue.increment(priceBerry),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomShopPurchaseAt: FieldValue.serverTimestamp(),
+      source: "purchase_classroom_shop_item_function"
+    }, { merge: true });
+    transaction.set(purchaseRef, {
+      purchaseId,
+      classId,
+      itemId,
+      itemTitle: item.title || "",
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      priceBerry,
+      status: "purchased",
+      source: "purchase_classroom_shop_item_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(berryLogRef, {
+      type: "classroom_shop_purchase",
+      classId,
+      itemId,
+      itemTitle: item.title || "",
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCurrency: "berry",
+      rewardBerry: -priceBerry,
+      rewardAmount: -priceBerry,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { purchaseId, itemId, priceBerry, remainingBerry: currentBerry - priceBerry };
+  });
+
+  return { success: true, classId, memberUserId, ...result };
+});
+
+exports.saveClassroomRoutine = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const routine = normalizeClassroomRoutine(payload.routine && typeof payload.routine === "object" ? payload.routine : {});
+
+  await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    if (memberData.role === "admin") {
+      throw new HttpsError("failed-precondition", "Teacher accounts cannot create student routines.");
+    }
+    const routineRef = db.collection("classrooms").doc(classId).collection("studentRoutines").doc(`${memberUserId}__${routine.routineId}`);
+    transaction.set(routineRef, {
+      ...routine,
+      routineId: routineRef.id,
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      currentCount: 0,
+      status: "active",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "save_classroom_routine_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, memberUserId, routine };
+});
+
+exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const routineId = normalizeId(payload.routineId, "routineId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const routineRef = db.collection("classrooms").doc(classId).collection("studentRoutines").doc(routineId);
+    const routineSnapshot = await transaction.get(routineRef);
+    if (!routineSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom routine not found.");
+    }
+    const routine = routineSnapshot.data() || {};
+    if (routine.memberUserId !== memberUserId || routine.active === false || routine.status === "deleted") {
+      throw new HttpsError("permission-denied", "Classroom routine cannot be checked.");
+    }
+    if (routine.status === "completed") {
+      return { duplicate: true, completed: true, rewardAmount: 0 };
+    }
+    const dateKey = getKstDateKey();
+    const todayWeekday = getKstWeekdayNumber();
+    const weekdays = Array.isArray(routine.weekdays)
+      ? routine.weekdays.map(day => Math.round(Number(day))).filter(day => day >= 1 && day <= 5)
+      : [];
+    const startDate = String(routine.startDate || "");
+    const endDate = String(routine.endDate || "");
+    if (startDate && dateKey < startDate) {
+      throw new HttpsError("failed-precondition", "Routine has not started.");
+    }
+    if (endDate && dateKey > endDate) {
+      throw new HttpsError("failed-precondition", "Routine period is over.");
+    }
+    if (!weekdays.includes(todayWeekday)) {
+      throw new HttpsError("failed-precondition", "Routine cannot be checked today.");
+    }
+    const checkLogId = rewardLogId(["classroom_routine_check", classId, dateKey, memberUserId, routineId]);
+    const checkLogRef = db.collection("classrooms").doc(classId).collection("routineCheckLogs").doc(checkLogId);
+    const checkLogSnapshot = await transaction.get(checkLogRef);
+    if (checkLogSnapshot.exists || routine.lastCheckDateKey === dateKey) {
+      return { duplicate: true, completed: false, rewardAmount: 0 };
+    }
+    const currentCount = Math.max(0, Math.round(Number(routine.currentCount) || 0));
+    const targetCount = Math.max(1, Math.round(Number(routine.targetCount) || 1));
+    const nextCount = currentCount + 1;
+    const completed = nextCount >= targetCount;
+    const rewardAmount = completed ? Math.max(0, Math.min(100, Math.round(Number(routine.rewardBerry) || 0))) : 0;
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const rewardLogRef = completed && rewardAmount > 0
+      ? db.collection("rewardLogs").doc(rewardLogId(["classroom_routine_reward", classId, memberUserId, routineId]))
+      : null;
+    const berryLogRef = completed && rewardAmount > 0
+      ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(rewardLogRef.id)
+      : null;
+    const rewardLogSnapshot = rewardLogRef ? await transaction.get(rewardLogRef) : null;
+    const canReward = completed && rewardAmount > 0 && !rewardLogSnapshot?.exists;
+
+    transaction.set(checkLogRef, {
+      checkLogId,
+      classId,
+      routineId,
+      routineTitle: routine.title || "",
+      memberUserId,
+      userId: memberUserId,
+      dateKey,
+      source: "check_classroom_routine_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(routineRef, {
+      currentCount: nextCount,
+      lastCheckDateKey: dateKey,
+      lastCheckedAt: FieldValue.serverTimestamp(),
+      status: completed ? "completed" : "active",
+      updatedAt: FieldValue.serverTimestamp(),
+      ...(completed ? { completedAt: FieldValue.serverTimestamp() } : {})
+    }, { merge: true });
+    if (canReward) {
+      transaction.set(walletRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        berry: FieldValue.increment(rewardAmount),
+        totalEarnedBerry: FieldValue.increment(rewardAmount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
+        source: "check_classroom_routine_function"
+      }, { merge: true });
+      transaction.set(berryLogRef, {
+        type: "classroom_routine_reward",
+        classId,
+        routineId,
+        routineTitle: routine.title || "",
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        rewardCurrency: "berry",
+        rewardBerry: rewardAmount,
+        rewardAmount,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+      transaction.set(rewardLogRef, {
+        type: "classroom_routine_reward",
+        classId,
+        routineId,
+        routineTitle: routine.title || "",
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        rewardCurrency: "berry",
+        rewardCoin: 0,
+        rewardBerry: rewardAmount,
+        rewardAmount,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+    }
+    return {
+      duplicate: false,
+      completed,
+      currentCount: nextCount,
+      targetCount,
+      rewardAmount: canReward ? rewardAmount : 0
+    };
+  });
+
+  return { success: true, classId, memberUserId, routineId, ...result };
 });
 
 exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request => {
