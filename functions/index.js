@@ -3513,6 +3513,72 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const badgeId = normalizeId(payload.badgeId, "badgeId");
+  const badgeType = String(payload.badgeType || "gem").trim();
+  if (badgeType !== "gem") {
+    throw new HttpsError("invalid-argument", "Unsupported classroom badge type.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    const settings = classroomResult.settings;
+    assertMemberCanEnterClassroom(memberData, settings);
+
+    const gemRef = db.collection("classrooms")
+      .doc(classId)
+      .collection("studentGemProgress")
+      .doc(`${memberUserId}__${badgeId}`);
+    const profileRef = db.collection("classrooms")
+      .doc(classId)
+      .collection("studentProfiles")
+      .doc(memberUserId);
+    const gemSnapshot = await transaction.get(gemRef);
+    if (!gemSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom badge candidate not found.");
+    }
+    const gem = gemSnapshot.data() || {};
+    if (gem.memberUserId !== memberUserId || gem.completed !== true) {
+      throw new HttpsError("failed-precondition", "Only completed gemstones can be selected.");
+    }
+    const selectedBadge = {
+      badgeId,
+      type: "gem",
+      label: String(gem.gemName || gem.gemId || badgeId).slice(0, 30),
+      icon: "gem",
+      color: "#7cddff"
+    };
+    transaction.set(profileRef, {
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      selectedBadgeId: selectedBadge.badgeId,
+      selectedBadgeType: selectedBadge.type,
+      selectedBadgeLabel: selectedBadge.label,
+      selectedBadgeIcon: selectedBadge.icon,
+      selectedBadgeColor: selectedBadge.color,
+      selectedBadge,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "set_classroom_selected_badge_function"
+    }, { merge: true });
+    return { selectedBadge };
+  });
+
+  return {
+    success: true,
+    classId,
+    memberUserId,
+    ...result
+  };
+});
+
 exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);

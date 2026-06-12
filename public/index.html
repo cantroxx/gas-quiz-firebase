@@ -7706,6 +7706,7 @@
         const progress = document.createElement('p');
         const reward = document.createElement('p');
         const status = document.createElement('span');
+        const button = document.createElement('button');
         card.className = 'classroom-card';
         badge.className = 'classroom-card-badge';
         badge.textContent = gem.completed ? '획득 완료' : '진행 중';
@@ -7716,9 +7717,45 @@
         reward.textContent = `획득 보상: ${Number(gem.rewardBerry || 0)} 베리`;
         status.className = `quest-status ${gem.completed ? 'quest-status-claimed' : 'quest-status-active'}`;
         status.textContent = gem.completed ? '젬을 획득했습니다' : '연결 퀘스트를 완료해 경험치를 모으세요';
-        card.append(badge, title, progress, reward, status);
+        button.className = 'quest-claim-button';
+        button.type = 'button';
+        button.dataset.classroomBadgeGemId = gem.gemId || '';
+        button.disabled = !gem.completed;
+        button.textContent = gem.completed ? '대표 뱃지로 설정' : '목표 달성 후 설정';
+        card.append(badge, title, progress, reward, status, button);
         grid.appendChild(card);
       });
+    }
+
+    async function setClassroomSelectedGemBadge(gemId) {
+      if(!gemId || !currentMemberUserId) return;
+      const settings = await loadClassroomSettings();
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        window.alert('대표 뱃지 설정 기능을 불러오지 못했어요.');
+        return;
+      }
+      const button = document.querySelector(`[data-classroom-badge-gem-id="${gemId}"]`);
+      if(button) {
+        button.disabled = true;
+        button.textContent = '설정 중...';
+      }
+      try {
+        const callable = functions.httpsCallable('setClassroomSelectedBadge');
+        await callable({
+          classId: settings.classId,
+          memberUserId: currentMemberUserId,
+          badgeType: 'gem',
+          badgeId: gemId
+        });
+        classroomStudentCardsCache = null;
+        await renderClassroomPrototype(true);
+        window.alert('대표 뱃지를 설정했습니다.');
+      } catch(error) {
+        console.warn('Classroom selected badge save failed.', error);
+        window.alert('대표 뱃지를 설정하지 못했어요.');
+        await renderClassroomPrototype(true);
+      }
     }
 
     function renderClassroomStudentCards(students = []) {
@@ -11247,6 +11284,12 @@
       const button = event.target.closest('[data-classroom-quest-action]');
       if(!button || button.disabled) return;
       completeClassroomCheckQuest(button.dataset.classroomQuestAction || '');
+    });
+
+    document.getElementById('classroom-gem-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-badge-gem-id]');
+      if(!button || button.disabled) return;
+      setClassroomSelectedGemBadge(button.dataset.classroomBadgeGemId || '');
     });
 
     document.getElementById('classroom-review-grid')?.addEventListener('click', event => {
