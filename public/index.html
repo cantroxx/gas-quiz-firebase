@@ -10651,21 +10651,9 @@
         console.warn('Quiz session shuffle failed. Using cached question order.', error);
         return null;
       });
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('classroom-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = false;
+      showOnlyAppView('quiz-play-view');
       renderQuizPlayHeader();
       renderQuestion();
-      document.getElementById('quiz-play-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function getCurrentQuestionSet() {
@@ -11881,82 +11869,58 @@
       if(classroomView) classroomView.hidden = true;
     }
 
+    const APP_VIEW_IDS = [
+      'login-view',
+      'admin-view',
+      'home-view',
+      'room-view',
+      'ranking-view',
+      'shop-view',
+      'event-view',
+      'quiz-play-view',
+      'quiz-select-view',
+      'subject-view',
+      'school-view',
+      'town-view',
+      'classroom-view'
+    ];
+
+    function showOnlyAppView(viewId) {
+      const hero = document.getElementById('app-hero');
+      if(hero) hero.hidden = true;
+      APP_VIEW_IDS.forEach(id => {
+        const view = document.getElementById(id);
+        if(view) view.hidden = id !== viewId;
+      });
+      document.getElementById(viewId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function showSchoolView() {
       leaveQuizPlaySession();
       closePlaceModal();
       renderSchoolQuizCards();
       const externalSection = document.getElementById('external-quiz-section');
       if(externalSection) externalSection.hidden = true;
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('school-view').hidden = false;
-      document.getElementById('school-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('school-view');
     }
 
     function showTownView() {
       leaveQuizPlaySession();
       closePlaceModal();
       startServerFreshnessPolling();
-      document.getElementById('app-hero').hidden = true;
-      document.getElementById('login-view').hidden = true;
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = false;
-      document.getElementById('town-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('town-view');
     }
 
     function showLoginView() {
       leaveQuizPlaySession();
       closePlaceModal();
-      document.getElementById('app-hero').hidden = true;
-      document.getElementById('login-view').hidden = false;
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('login-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('login-view');
     }
 
     function showAdminView() {
       leaveQuizPlaySession();
       closePlaceModal();
-      document.getElementById('app-hero').hidden = true;
-      document.getElementById('login-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('admin-view').hidden = false;
-      document.getElementById('admin-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('admin-view');
       setActiveAdminSection('dashboard');
       loadAdminDashboard().then(dashboard => {
         if(dashboard?.adminLevel === 'superAdmin') {
@@ -12005,22 +11969,16 @@
     function showHomeView() {
       leaveQuizPlaySession();
       closePlaceModal();
-      renderHomeView();
-      initializeAuthUser().then(renderHomeView);
+      if(currentMemberUserId) {
+        renderHomeView();
+      } else {
+        initializeAuthUser().then(() => {
+          if(!document.getElementById('home-view')?.hidden) renderHomeView();
+        });
+      }
       updatePlaceInfo(PLACE_DETAILS.home);
       updatePlayerLocation(PLACE_DETAILS.home);
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('home-view').hidden = false;
-      document.getElementById('home-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('home-view');
     }
 
     function isRoomDecorPortraitBlocked() {
@@ -12035,24 +11993,7 @@
         showHomeView();
         return;
       }
-      document.getElementById('app-hero').hidden = true;
-      document.getElementById('login-view').hidden = true;
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('classroom-view').hidden = true;
-      const roomView = document.getElementById('room-view');
-      if(roomView) {
-        roomView.hidden = false;
-        roomView.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      showOnlyAppView('room-view');
       try {
         if(window.RoomDecor && typeof window.RoomDecor.open === 'function') {
           window.RoomDecor.open().catch(error => console.warn('RoomDecor open failed.', error));
@@ -12073,18 +12014,7 @@
       renderRankingView();
       updatePlaceInfo(PLACE_DETAILS.ranking);
       updatePlayerLocation(PLACE_DETAILS.ranking);
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('ranking-view').hidden = false;
-      document.getElementById('ranking-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('ranking-view');
     }
 
     async function showShopView() {
@@ -12099,18 +12029,7 @@
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       updatePlaceInfo(PLACE_DETAILS.shop);
       updatePlayerLocation(PLACE_DETAILS.shop);
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('shop-view').hidden = false;
-      document.getElementById('shop-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('shop-view');
 
       initializeAuthUser().then(renderShopFromFirestore);
     }
@@ -12126,18 +12045,7 @@
       renderEventLoadingState();
       updatePlaceInfo(PLACE_DETAILS.event);
       updatePlayerLocation(PLACE_DETAILS.event);
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('event-view').hidden = false;
-      document.getElementById('event-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('event-view');
       renderEventProgressFromFunctions();
     }
 
@@ -12155,19 +12063,7 @@
       updatePlaceInfo(PLACE_DETAILS.classroom);
       updatePlayerLocation(PLACE_DETAILS.classroom);
       setClassroomUnlocked(unlocked);
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('classroom-view').hidden = false;
-      document.getElementById('classroom-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('classroom-view');
     }
 
     async function handleClassroomEntrySubmit(event) {
@@ -12206,18 +12102,7 @@
       leaveQuizPlaySession();
       currentSubjectId = subjectId;
       renderSubjectQuizCards(subjectId);
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('subject-view').hidden = false;
-      document.getElementById('subject-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('subject-view');
     }
 
     function showQuizSelectView(quizId) {
@@ -12230,19 +12115,7 @@
       loadFeatureFlags().then(() => {
         if(lastQuizId === quizId && !document.getElementById('quiz-select-view').hidden) renderQuizModeCards(quiz.modes);
       });
-      document.getElementById('admin-view').hidden = true;
-      document.getElementById('home-view').hidden = true;
-      document.getElementById('room-view').hidden = true;
-      document.getElementById('ranking-view').hidden = true;
-      document.getElementById('shop-view').hidden = true;
-      document.getElementById('event-view').hidden = true;
-      document.getElementById('town-view').hidden = true;
-      document.getElementById('classroom-view').hidden = true;
-      document.getElementById('school-view').hidden = true;
-      document.getElementById('subject-view').hidden = true;
-      document.getElementById('quiz-select-view').hidden = false;
-      document.getElementById('quiz-play-view').hidden = true;
-      document.getElementById('quiz-select-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showOnlyAppView('quiz-select-view');
     }
 
     function updatePlaceInfo(place) {

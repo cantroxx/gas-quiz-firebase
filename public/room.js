@@ -246,6 +246,7 @@ window.RoomDecor = (function () {
   let placingType = null, movingId = null, selectedId = null, hover = null;
   let zoom = 1;
   let curTab = 'furniture';
+  let openVersion = 0;
   let unsubs = [], saveTimer = null, opened = false;
   let $view, $svg, $grid, $styleGrid, $coin, $tip, $bar, $toast, $zoomLabel;
   let toastTimer = null;
@@ -722,9 +723,12 @@ window.RoomDecor = (function () {
   async function open() {
     const uid = getUserId && getUserId();
     if (!uid) { console.warn('[room] 로그인 사용자 없음'); return; }
+    const version = ++openVersion;
     opened = true;
     await loadCatalog();
+    if (!opened || version !== openVersion) return;
     await loadRoom(uid);
+    if (!opened || version !== openVersion) return;
     watchEconomy(uid);
     watchInventory(uid);
     setZoom(1);
@@ -734,6 +738,7 @@ window.RoomDecor = (function () {
   function close() {
     if (!opened) return;
     opened = false;
+    openVersion += 1;
     unsubs.forEach(u => { try { u(); } catch (e) {} });
     unsubs = [];
     clearTimeout(saveTimer);
