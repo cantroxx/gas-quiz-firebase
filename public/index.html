@@ -7776,8 +7776,8 @@
         window.alert('담임 권한이 있어야 처리할 수 있어요.');
         return;
       }
-      const db = getFirestoreDb();
-      if(!db) {
+      const functions = getFirebaseFunctions();
+      if(!functions) {
         window.alert('교실 퀘스트 검토 기능을 불러오지 못했어요.');
         return;
       }
@@ -7789,22 +7789,25 @@
       });
 
       try {
-        const fieldValue = getFirestoreFieldValue();
-        await db.collection('classrooms')
-          .doc(settings.classId)
-          .collection('questProgress')
-          .doc(recordId)
-          .set({
-            rewardStatus: nextStatus,
-            reviewedBy: currentMemberUserId,
-            reviewedAt: fieldValue.serverTimestamp(),
-            updatedAt: fieldValue.serverTimestamp()
-          }, { merge: true });
+        const callable = functions.httpsCallable('reviewClassroomQuestProgress');
+        const response = await callable({
+          classId: settings.classId,
+          recordId,
+          nextStatus
+        });
+        const result = response?.data || {};
         classroomReviewCache = null;
         classroomProgressCache = null;
+        classroomWalletCache = null;
+        firestoreUserEconomy = null;
+        userEconomyLoadPromise = null;
         await renderClassroomPrototype(true);
         if(document.getElementById('admin-section-classroom')?.classList.contains('is-active')) {
           await renderAdminClassroomReview(true);
+        }
+        if(nextStatus === 'approved' && !result.duplicate) {
+          const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardBerry || 0);
+          window.alert(`${amount} ${getClassroomRewardCurrencyLabel(result.rewardCurrency)}를 지급했습니다.`);
         }
       } catch(error) {
         console.warn('Classroom quest review failed.', error);

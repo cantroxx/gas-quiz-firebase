@@ -3270,6 +3270,185 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const recordId = normalizeId(payload.recordId, "recordId");
+  const nextStatus = String(payload.nextStatus || "").trim();
+  if (!["approved", "rejected"].includes(nextStatus)) {
+    throw new HttpsError("invalid-argument", "Invalid review status.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    const settings = classroomResult.settings;
+    assertAdminCanManageClassroom(adminMember, settings);
+
+    const progressRef = db.collection("classrooms")
+      .doc(classId)
+      .collection("questProgress")
+      .doc(recordId);
+    const progressSnapshot = await transaction.get(progressRef);
+    if (!progressSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom quest progress not found.");
+    }
+    const progress = progressSnapshot.data() || {};
+    if (progress.classId !== classId || progress.recordId !== recordId) {
+      throw new HttpsError("failed-precondition", "Classroom quest progress is inconsistent.");
+    }
+    if (progress.rewardStatus !== "pending_teacher_review") {
+      return {
+        duplicate: true,
+        rewardStatus: progress.rewardStatus || "",
+        rewardAmount: 0,
+        rewardCurrency: progress.rewardCurrency === "berry" ? "berry" : "djCoin"
+      };
+    }
+
+    if (nextStatus === "rejected") {
+      transaction.set(progressRef, {
+        rewardStatus: "rejected",
+        reviewedBy: adminMember.memberUserId,
+        reviewedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      return {
+        duplicate: false,
+        rewardStatus: "rejected",
+        rewardAmount: 0,
+        rewardCurrency: progress.rewardCurrency === "berry" ? "berry" : "djCoin"
+      };
+    }
+
+    const quest = settings.quests.find(item => item.id === progress.questId || item.questId === progress.questId) || {};
+    const rewardCurrency = progress.rewardCurrency === "berry" || quest.rewardCurrency === "berry" ? "berry" : "djCoin";
+    const rewardAmount = Math.max(0, Math.min(1000, Math.round(Number(progress.rewardCoin || quest.rewardCoin) || 0)));
+    if (rewardAmount <= 0) {
+      throw new HttpsError("failed-precondition", "Classroom quest reward is invalid.");
+    }
+    const memberUserId = normalizeId(progress.memberUserId || progress.userId, "memberUserId");
+    const logId = rewardLogId([
+      "classroom_review_quest",
+      classId,
+      recordId,
+      memberUserId,
+      rewardCurrency
+    ]);
+    const logRef = db.collection("rewardLogs").doc(logId);
+    const logSnapshot = await transaction.get(logRef);
+    if (logSnapshot.exists) {
+      transaction.set(progressRef, {
+        rewardStatus: "paid",
+        reviewedBy: adminMember.memberUserId,
+        reviewedAt: FieldValue.serverTimestamp(),
+        rewardedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      return {
+        duplicate: true,
+        rewardStatus: "paid",
+        rewardAmount: 0,
+        rewardCurrency
+      };
+    }
+
+    const walletRef = rewardCurrency === "berry"
+      ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
+      : db.collection("userEconomy").doc(memberUserId);
+    const berryLogRef = rewardCurrency === "berry"
+      ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId)
+      : null;
+
+    transaction.set(progressRef, {
+      rewardStatus: "paid",
+      status: "completed",
+      rewardCurrency,
+      rewardCoin: rewardAmount,
+      reviewedBy: adminMember.memberUserId,
+      reviewedAt: FieldValue.serverTimestamp(),
+      rewardedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    if (rewardCurrency === "berry") {
+      transaction.set(walletRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        berry: FieldValue.increment(rewardAmount),
+        totalEarnedBerry: FieldValue.increment(rewardAmount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
+        source: "classroom_review_quest_function"
+      }, { merge: true });
+      transaction.set(berryLogRef, {
+        type: "classroom_review_quest",
+        classId,
+        questId: progress.questId || "",
+        questTitle: progress.questTitle || quest.title || "",
+        recordId,
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        reviewedBy: adminMember.memberUserId,
+        rewardCurrency,
+        rewardBerry: rewardAmount,
+        rewardAmount,
+        progressPath: progressRef.path,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+    } else {
+      transaction.set(walletRef, {
+        userId: memberUserId,
+        djCoin: FieldValue.increment(rewardAmount),
+        totalEarned: FieldValue.increment(rewardAmount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
+        source: "classroom_review_quest_function"
+      }, { merge: true });
+    }
+
+    transaction.set(logRef, {
+      type: "classroom_review_quest",
+      classId,
+      questId: progress.questId || "",
+      questTitle: progress.questTitle || quest.title || "",
+      recordId,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      reviewedBy: adminMember.memberUserId,
+      rewardCurrency,
+      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
+      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardAmount,
+      progressPath: progressRef.path,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      duplicate: false,
+      rewardStatus: "paid",
+      rewardCurrency,
+      rewardAmount,
+      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
+      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0
+    };
+  });
+
+  return {
+    success: true,
+    classId,
+    recordId,
+    nextStatus,
+    ...result
+  };
+});
+
 exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
