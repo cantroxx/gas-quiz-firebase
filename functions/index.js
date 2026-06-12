@@ -661,6 +661,15 @@ function rewardLogId(parts) {
     .slice(0, 1400);
 }
 
+function slugifyClassroomGemId(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^0-9a-z가-힣_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
 function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rawId = String(rawQuest.id || rawQuest.questId || "").trim();
   const id = rawId || `quest-${index + 1}`;
@@ -670,6 +679,9 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     ? rawQuest.rewardMode
     : "auto";
   const rewardLabel = "베리";
+  const linkedGemName = String(rawQuest.linkedGemName || "").trim().slice(0, 40);
+  const linkedGemId = slugifyClassroomGemId(rawQuest.linkedGemId || linkedGemName);
+  const gemXp = linkedGemId ? Math.max(0, Math.min(100, Math.round(Number(rawQuest.gemXp) || 0))) : 0;
   return {
     id,
     questId: id,
@@ -682,7 +694,127 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     rewardCurrency,
     saveEnabled: rawQuest.saveEnabled !== false,
     active: rawQuest.active !== false,
+    linkedGemId,
+    linkedGemName,
+    gemXp,
+    gemTargetXp: linkedGemId ? Math.max(1, Math.min(1000, Math.round(Number(rawQuest.gemTargetXp) || 10))) : 10,
+    gemRewardBerry: linkedGemId ? Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardBerry) || 0))) : 0,
     studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().slice(0, 60)
+  };
+}
+
+async function applyClassroomGemProgress(transaction, {
+  classId,
+  memberUserId,
+  quest,
+  authUid,
+  source,
+  progressPath
+}) {
+  const gemId = slugifyClassroomGemId(quest?.linkedGemId || quest?.linkedGemName);
+  const gemXp = Math.max(0, Math.min(100, Math.round(Number(quest?.gemXp) || 0)));
+  if (!gemId || gemXp <= 0) return null;
+
+  const gemName = String(quest?.linkedGemName || gemId).trim().slice(0, 40);
+  const targetXp = Math.max(1, Math.min(1000, Math.round(Number(quest?.gemTargetXp) || 10)));
+  const rewardBerry = Math.max(0, Math.min(1000, Math.round(Number(quest?.gemRewardBerry) || 0)));
+  const progressId = `${memberUserId}__${gemId}`;
+  const gemRef = db.collection("classrooms")
+    .doc(classId)
+    .collection("studentGemProgress")
+    .doc(progressId);
+  const gemSnapshot = await transaction.get(gemRef);
+  const previous = gemSnapshot.exists ? gemSnapshot.data() || {} : {};
+  const previousXp = Math.max(0, Math.round(Number(previous.currentXp) || 0));
+  const nextXp = previousXp + gemXp;
+  const wasCompleted = previous.completed === true || previousXp >= targetXp;
+  const isCompleted = nextXp >= targetXp;
+  const newlyCompleted = isCompleted && !wasCompleted;
+  const awardLogId = rewardLogId([
+    "classroom_gem_award",
+    classId,
+    memberUserId,
+    gemId
+  ]);
+  const awardLogRef = db.collection("rewardLogs").doc(awardLogId);
+  const awardLogSnapshot = newlyCompleted && rewardBerry > 0 ? await transaction.get(awardLogRef) : null;
+  const canAward = newlyCompleted && rewardBerry > 0 && !awardLogSnapshot?.exists;
+
+  transaction.set(gemRef, {
+    progressId,
+    classId,
+    memberUserId,
+    userId: memberUserId,
+    gemId,
+    gemName,
+    currentXp: nextXp,
+    totalXp: FieldValue.increment(gemXp),
+    targetXp,
+    rewardBerry,
+    completed: isCompleted,
+    status: isCompleted ? "completed" : "in_progress",
+    lastQuestId: quest?.id || quest?.questId || "",
+    lastQuestTitle: quest?.title || "",
+    lastProgressPath: progressPath || "",
+    updatedAt: FieldValue.serverTimestamp(),
+    ...(newlyCompleted ? { completedAt: FieldValue.serverTimestamp() } : {})
+  }, { merge: true });
+
+  if (canAward) {
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(awardLogId);
+    transaction.set(walletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId,
+      berry: FieldValue.increment(rewardBerry),
+      totalEarnedBerry: FieldValue.increment(rewardBerry),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomGemRewardAt: FieldValue.serverTimestamp(),
+      source: source || "classroom_gem_progress_function"
+    }, { merge: true });
+    transaction.set(berryLogRef, {
+      type: "classroom_gem_award",
+      classId,
+      gemId,
+      gemName,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCurrency: "berry",
+      rewardBerry,
+      rewardAmount: rewardBerry,
+      progressPath: progressPath || "",
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(awardLogRef, {
+      type: "classroom_gem_award",
+      classId,
+      gemId,
+      gemName,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCurrency: "berry",
+      rewardCoin: 0,
+      rewardBerry,
+      rewardAmount: rewardBerry,
+      progressPath: progressPath || "",
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+  }
+
+  return {
+    gemId,
+    gemName,
+    gemXp,
+    currentXp: nextXp,
+    targetXp,
+    completed: isCompleted,
+    newlyCompleted,
+    rewardBerry: canAward ? rewardBerry : 0
   };
 }
 
@@ -3100,6 +3232,15 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       };
     }
 
+    const gemResult = await applyClassroomGemProgress(transaction, {
+      classId,
+      memberUserId,
+      quest,
+      authUid,
+      source: "classroom_auto_quest_function",
+      progressPath: progressRef.path
+    });
+
     transaction.set(progressRef, {
       recordId,
       classId,
@@ -3188,7 +3329,8 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       recordId,
       progressPath: progressRef.path,
       rewardLogPath: logRef.path,
-      economyPath: economyRef.path
+      economyPath: economyRef.path,
+      gem: gemResult
     };
   });
 
@@ -3241,6 +3383,11 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       rewardMode,
       rewardCurrency,
       rewardCoin,
+      linkedGemId: rawQuest.linkedGemId || "",
+      linkedGemName: rawQuest.linkedGemName || "",
+      gemXp: rawQuest.gemXp || 0,
+      gemTargetXp: rawQuest.gemTargetXp || 10,
+      gemRewardBerry: rawQuest.gemRewardBerry || 0,
       saveEnabled: rawQuest.saveEnabled !== false,
       active: rawQuest.active !== false,
       studentAction: rawQuest.studentAction || ""
@@ -3360,6 +3507,14 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
     const berryLogRef = rewardCurrency === "berry"
       ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId)
       : null;
+    const gemResult = await applyClassroomGemProgress(transaction, {
+      classId,
+      memberUserId,
+      quest,
+      authUid,
+      source: "classroom_review_quest_function",
+      progressPath: progressRef.path
+    });
 
     transaction.set(progressRef, {
       rewardStatus: "paid",
@@ -3436,7 +3591,8 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       rewardCurrency,
       rewardAmount,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0
+      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      gem: gemResult
     };
   });
 

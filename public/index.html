@@ -460,6 +460,22 @@
                   <option value="quizAchieved">퀴즈 달성형</option>
                 </select>
               </label>
+              <label>
+                연결 젬
+                <input id="classroom-quest-gem-name-input" type="text" maxlength="40" placeholder="예: 일기젬">
+              </label>
+              <label>
+                젬 경험치
+                <input id="classroom-quest-gem-xp-input" type="number" min="0" max="100" inputmode="numeric" value="0">
+              </label>
+              <label>
+                젬 목표 경험치
+                <input id="classroom-quest-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
+              </label>
+              <label>
+                젬 획득 보상
+                <input id="classroom-quest-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="30">
+              </label>
               <button class="button primary" type="submit">퀘스트 저장</button>
             </form>
             <p id="classroom-quest-editor-status" class="classroom-review-status" aria-live="polite"></p>
@@ -474,6 +490,7 @@
 
         <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
           <button class="classroom-tab is-active" type="button" data-classroom-tab="quests" role="tab" aria-selected="true">퀘스트</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
           <button class="classroom-tab" type="button" data-classroom-tab="routines" role="tab" aria-selected="false">성장루틴</button>
         </div>
 
@@ -483,6 +500,14 @@
             <h3 id="classroom-quest-heading">교실 퀘스트</h3>
           </div>
           <div id="classroom-quest-grid" class="classroom-card-grid"></div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="gems" aria-labelledby="classroom-gem-heading">
+          <div class="event-section-heading">
+            <p class="eyebrow">Gemstones</p>
+            <h3 id="classroom-gem-heading">젬스톤</h3>
+          </div>
+          <div id="classroom-gem-grid" class="classroom-card-grid"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="routines" aria-labelledby="classroom-routine-heading">
@@ -1485,6 +1510,8 @@
     let classroomReviewLoadPromise = null;
     let classroomWalletCache = null;
     let classroomWalletLoadPromise = null;
+    let classroomGemProgressCache = null;
+    let classroomGemProgressLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -6046,6 +6073,8 @@
       classroomReviewLoadPromise = null;
       classroomWalletCache = null;
       classroomWalletLoadPromise = null;
+      classroomGemProgressCache = null;
+      classroomGemProgressLoadPromise = null;
       userDataMigrationPromise = null;
     }
 
@@ -7246,6 +7275,9 @@
       const rewardCurrency = 'berry';
       const rewardMode = ['auto', 'teacherReview', 'quizAchieved'].includes(rawQuest.rewardMode) ? rawQuest.rewardMode : 'auto';
       const rewardLabel = getClassroomRewardCurrencyLabel(rewardCurrency);
+      const linkedGemName = String(rawQuest.linkedGemName || '').trim();
+      const linkedGemId = String(rawQuest.linkedGemId || slugifyClassroomGemId(linkedGemName)).trim();
+      const gemXp = Math.max(0, Math.round(Number(rawQuest.gemXp) || 0));
       return {
         id,
         questId: id,
@@ -7257,6 +7289,11 @@
         rewardCurrency,
         status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
         studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim(),
+        linkedGemId,
+        linkedGemName,
+        gemXp,
+        gemTargetXp: Math.max(1, Math.round(Number(rawQuest.gemTargetXp) || 10)),
+        gemRewardBerry: Math.max(0, Math.round(Number(rawQuest.gemRewardBerry) || 0)),
         saveEnabled: rawQuest.saveEnabled !== false,
         active: rawQuest.active !== false
       };
@@ -7264,6 +7301,15 @@
 
     function getClassroomRewardCurrencyLabel(currency) {
       return currency === 'djCoin' ? 'DJ코인' : '베리';
+    }
+
+    function slugifyClassroomGemId(name) {
+      return String(name || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^0-9a-z가-힣_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60);
     }
 
     function normalizeClassroomSettings(data = {}) {
@@ -7372,6 +7418,38 @@
           classroomWalletLoadPromise = null;
         });
       return classroomWalletLoadPromise;
+    }
+
+    async function loadClassroomGemProgress(settings, forceRefresh = false) {
+      if(classroomGemProgressCache && !forceRefresh) return classroomGemProgressCache;
+      if(classroomGemProgressLoadPromise && !forceRefresh) return classroomGemProgressLoadPromise;
+      if(!currentMemberUserId) {
+        classroomGemProgressCache = [];
+        return classroomGemProgressCache;
+      }
+      const db = getFirestoreDb();
+      if(!db) {
+        classroomGemProgressCache = [];
+        return classroomGemProgressCache;
+      }
+      classroomGemProgressLoadPromise = db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('studentGemProgress')
+        .where('memberUserId', '==', currentMemberUserId)
+        .get()
+        .then(snapshot => {
+          classroomGemProgressCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          return classroomGemProgressCache;
+        })
+        .catch(error => {
+          console.warn('Classroom gem progress load failed.', error);
+          classroomGemProgressCache = [];
+          return classroomGemProgressCache;
+        })
+        .finally(() => {
+          classroomGemProgressLoadPromise = null;
+        });
+      return classroomGemProgressLoadPromise;
     }
 
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
@@ -7543,7 +7621,9 @@
         title.textContent = quest.title;
         desc.textContent = quest.desc;
         reward.className = 'classroom-card-reward';
-        reward.textContent = `예상 보상: ${quest.rewardCoin} ${getClassroomRewardCurrencyLabel(quest.rewardCurrency)}`;
+        reward.textContent = quest.linkedGemId && quest.gemXp > 0
+          ? `예상 보상: ${quest.rewardCoin} ${getClassroomRewardCurrencyLabel(quest.rewardCurrency)} · ${quest.linkedGemName || quest.linkedGemId} +${quest.gemXp}xp`
+          : `예상 보상: ${quest.rewardCoin} ${getClassroomRewardCurrencyLabel(quest.rewardCurrency)}`;
         status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
         status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
         button.className = 'quest-claim-button';
@@ -7552,6 +7632,49 @@
         button.disabled = !quest.saveEnabled || !!progress;
         button.textContent = progress ? getClassroomProgressButtonLabel(progress) : (quest.studentAction || '저장 연결 예정');
         card.append(badge, title, desc, reward, status, button);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderClassroomGemCards(gemProgress = []) {
+      const grid = document.getElementById('classroom-gem-grid');
+      if(!grid) return;
+      grid.innerHTML = '';
+      if(!gemProgress.length) {
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = '진행 전';
+        title.textContent = '아직 쌓인 젬 경험치가 없습니다';
+        desc.textContent = '젬이 연결된 교실 퀘스트를 완료하면 이곳에 진행도가 표시됩니다.';
+        card.append(badge, title, desc);
+        grid.appendChild(card);
+        return;
+      }
+      gemProgress.forEach(gem => {
+        const currentXp = Number(gem.currentXp || 0);
+        const targetXp = Math.max(1, Number(gem.targetXp || 1));
+        const percent = Math.min(100, Math.round((currentXp / targetXp) * 100));
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const progress = document.createElement('p');
+        const reward = document.createElement('p');
+        const status = document.createElement('span');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = gem.completed ? '획득 완료' : '진행 중';
+        title.textContent = gem.gemName || gem.gemId || '교실 젬';
+        progress.className = 'classroom-card-progress';
+        progress.textContent = `진행도 ${currentXp}/${targetXp}xp (${percent}%)`;
+        reward.className = 'classroom-card-reward';
+        reward.textContent = `획득 보상: ${Number(gem.rewardBerry || 0)} 베리`;
+        status.className = `quest-status ${gem.completed ? 'quest-status-claimed' : 'quest-status-active'}`;
+        status.textContent = gem.completed ? '젬을 획득했습니다' : '연결 퀘스트를 완료해 경험치를 모으세요';
+        card.append(badge, title, progress, reward, status);
         grid.appendChild(card);
       });
     }
@@ -7588,14 +7711,16 @@
 
     async function renderClassroomPrototype(forceRefresh = false) {
       const settings = await loadClassroomSettings(forceRefresh);
-      const [progressMap, reviewItems, wallet] = await Promise.all([
+      const [progressMap, reviewItems, wallet, gemProgress] = await Promise.all([
         loadClassroomQuestProgress(forceRefresh),
         loadClassroomReviewItems(settings, forceRefresh),
-        loadClassroomWallet(settings, forceRefresh)
+        loadClassroomWallet(settings, forceRefresh),
+        loadClassroomGemProgress(settings, forceRefresh)
       ]);
       renderClassroomRoleState(settings, wallet);
       renderClassroomReviewPanel(settings, reviewItems);
       renderClassroomQuestCards(settings, progressMap);
+      renderClassroomGemCards(gemProgress);
       renderClassroomRoutineCards();
     }
 
@@ -7612,7 +7737,12 @@
       const rewardCoin = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-coin-input')?.value) || 0));
       const rewardCurrency = 'berry';
       const rewardMode = String(document.getElementById('classroom-quest-mode-input')?.value || 'auto').trim();
-      return { title, desc, rewardCoin, rewardCurrency, rewardMode };
+      const linkedGemName = String(document.getElementById('classroom-quest-gem-name-input')?.value || '').trim();
+      const linkedGemId = slugifyClassroomGemId(linkedGemName);
+      const gemXp = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-xp-input')?.value) || 0));
+      const gemTargetXp = Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10));
+      const gemRewardBerry = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0));
+      return { title, desc, rewardCoin, rewardCurrency, rewardMode, linkedGemName, linkedGemId, gemXp, gemTargetXp, gemRewardBerry };
     }
 
     function resetClassroomQuestForm() {
@@ -7620,10 +7750,18 @@
       const desc = document.getElementById('classroom-quest-desc-input');
       const coin = document.getElementById('classroom-quest-coin-input');
       const mode = document.getElementById('classroom-quest-mode-input');
+      const gemName = document.getElementById('classroom-quest-gem-name-input');
+      const gemXp = document.getElementById('classroom-quest-gem-xp-input');
+      const gemTarget = document.getElementById('classroom-quest-gem-target-input');
+      const gemReward = document.getElementById('classroom-quest-gem-reward-input');
       if(title) title.value = '';
       if(desc) desc.value = '';
       if(coin) coin.value = '5';
       if(mode) mode.value = 'auto';
+      if(gemName) gemName.value = '';
+      if(gemXp) gemXp.value = '0';
+      if(gemTarget) gemTarget.value = '10';
+      if(gemReward) gemReward.value = '30';
     }
 
     async function saveClassroomQuestFromForm(event) {
@@ -7658,6 +7796,11 @@
             rewardCoin: values.rewardCoin,
             rewardCurrency: values.rewardCurrency,
             rewardMode: values.rewardMode,
+            linkedGemId: values.linkedGemId,
+            linkedGemName: values.linkedGemName,
+            gemXp: values.gemXp,
+            gemTargetXp: values.gemTargetXp,
+            gemRewardBerry: values.gemRewardBerry,
             type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
           }
         });
@@ -7665,6 +7808,7 @@
         classroomProgressCache = null;
         classroomReviewCache = null;
         classroomWalletCache = null;
+        classroomGemProgressCache = null;
         resetClassroomQuestForm();
         setClassroomQuestEditorStatus('퀘스트를 저장했습니다.');
         await renderClassroomPrototype(true);
@@ -7706,6 +7850,7 @@
           const result = response?.data || {};
           classroomProgressCache = null;
           classroomWalletCache = null;
+          classroomGemProgressCache = null;
           firestoreUserEconomy = null;
           userEconomyLoadPromise = null;
           await renderClassroomPrototype(true);
@@ -7787,6 +7932,7 @@
         classroomReviewCache = null;
         classroomProgressCache = null;
         classroomWalletCache = null;
+        classroomGemProgressCache = null;
         firestoreUserEconomy = null;
         userEconomyLoadPromise = null;
         await renderClassroomPrototype(true);
