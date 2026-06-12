@@ -1876,6 +1876,12 @@ h2 {
   flex-wrap: wrap;
   gap: 10px;
   margin: 18px 0 0;
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  padding: 8px 0;
+  background: rgba(244, 252, 239, 0.92);
+  backdrop-filter: blur(10px);
 }
 
 .admin-section-tab {
@@ -1905,7 +1911,7 @@ h2 {
   background: rgba(248, 255, 245, 0.82);
 }
 
-.admin-section:not(.is-active) .admin-section-body {
+.admin-section:not(.is-active) {
   display: none;
 }
 
@@ -1949,6 +1955,22 @@ h2 {
 
 .admin-section-body {
   margin-top: 16px;
+}
+
+@media (max-width: 760px) {
+  .admin-section-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    margin-inline: -14px;
+    padding-inline: 14px;
+  }
+
+  .admin-section-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
 }
 
 .admin-feature-switch-grid {
