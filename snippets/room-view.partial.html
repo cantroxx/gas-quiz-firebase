@@ -1,0 +1,41 @@
+<!-- ============================================================
+  room-view 마크업 (public/index.html에 붙여넣기)
+  위치: 다른 *-view 섹션들과 같은 레벨 (예: home-view 다음)
+  기존 SPA 패턴과 동일하게 hidden 속성으로 토글
+============================================================ -->
+<section id="room-view" hidden>
+  <div class="rd-header">
+    <button id="rd-back" class="rd-back-btn">← 내 집으로</button>
+    <div class="rd-title">🏠 내 방 꾸미기</div>
+    <div class="rd-badge"><span class="rd-coin-dot"></span><span id="rd-coin">0</span> DJ코인</div>
+  </div>
+
+  <div class="rd-main">
+    <div class="rd-roomwrap">
+      <svg id="rd-svg" viewBox="-310 -150 620 460" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="rd-tip"></div>
+      <div id="rd-actionbar">
+        <span class="nm" id="rd-ab-name"></span>
+        <button class="move" id="rd-ab-move">이동</button>
+        <button class="del" id="rd-ab-del">삭제</button>
+        <button id="rd-ab-cancel">닫기</button>
+      </div>
+      <div id="rd-toast"></div>
+    </div>
+
+    <aside class="rd-side">
+      <div class="rd-tabs">
+        <button data-tab="furniture" class="on">가구</button>
+        <button data-tab="deco">장식</button>
+        <button data-tab="style">꾸미기</button>
+      </div>
+      <div class="rd-grid" id="rd-grid"></div>
+      <div class="rd-style" id="rd-style" style="display:none"></div>
+      <div class="rd-hint">
+        아이템을 누르고 바닥 칸을 클릭하면 배치돼요.<br>
+        배치된 가구를 누르면 이동·삭제할 수 있어요.<br>
+        🔒 아이템은 DJ코인으로 구매!
+      </div>
+    </aside>
+  </div>
+</section>

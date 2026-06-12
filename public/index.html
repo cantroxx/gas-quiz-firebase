@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/room.css">
 </head>
 <body>
   <main class="shell">
@@ -304,6 +305,43 @@
           </div>
           <div id="owned-item-grid" class="collection-grid"></div>
         </section>
+      </div>
+    </section>
+
+    <section id="room-view" hidden>
+      <div class="rd-header">
+        <button id="rd-back" class="rd-back-btn">← 내 집으로</button>
+        <div class="rd-title">🏠 내 방 꾸미기</div>
+        <div class="rd-badge"><span class="rd-coin-dot"></span><span id="rd-coin">0</span> DJ코인</div>
+      </div>
+
+      <div class="rd-main">
+        <div class="rd-roomwrap">
+          <svg id="rd-svg" viewBox="-310 -150 620 460" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div id="rd-tip"></div>
+          <div id="rd-actionbar">
+            <span class="nm" id="rd-ab-name"></span>
+            <button class="move" id="rd-ab-move">이동</button>
+            <button class="del" id="rd-ab-del">삭제</button>
+            <button id="rd-ab-cancel">닫기</button>
+          </div>
+          <div id="rd-toast"></div>
+        </div>
+
+        <aside class="rd-side">
+          <div class="rd-tabs">
+            <button data-tab="furniture" class="on">가구</button>
+            <button data-tab="deco">장식</button>
+            <button data-tab="style">꾸미기</button>
+          </div>
+          <div class="rd-grid" id="rd-grid"></div>
+          <div class="rd-style" id="rd-style" style="display:none"></div>
+          <div class="rd-hint">
+            아이템을 누르고 바닥 칸을 클릭하면 배치돼요.<br>
+            배치된 가구를 누르면 이동·삭제할 수 있어요.<br>
+            🔒 아이템은 DJ코인으로 구매!
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -10320,6 +10358,7 @@
       });
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11555,6 +11594,7 @@
       if(externalSection) externalSection.hidden = true;
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11574,6 +11614,7 @@
       document.getElementById('login-view').hidden = true;
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11592,6 +11633,7 @@
       document.getElementById('login-view').hidden = false;
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11609,6 +11651,7 @@
       document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11673,6 +11716,7 @@
       updatePlayerLocation(PLACE_DETAILS.home);
       document.getElementById('admin-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
@@ -11682,6 +11726,36 @@
       document.getElementById('town-view').hidden = true;
       document.getElementById('home-view').hidden = false;
       document.getElementById('home-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showRoomView() {
+      leaveQuizPlaySession();
+      closePlaceModal();
+      document.getElementById('app-hero').hidden = true;
+      document.getElementById('login-view').hidden = true;
+      document.getElementById('admin-view').hidden = true;
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
+      document.getElementById('shop-view').hidden = true;
+      document.getElementById('event-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('subject-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('classroom-view').hidden = true;
+      const roomView = document.getElementById('room-view');
+      if(roomView) {
+        roomView.hidden = false;
+        roomView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      try {
+        if(window.RoomDecor && typeof window.RoomDecor.open === 'function') {
+          window.RoomDecor.open().catch(error => console.warn('RoomDecor open failed.', error));
+        }
+      } catch(error) {
+        console.warn('RoomDecor open failed.', error);
+      }
     }
 
     async function showRankingView() {
@@ -11697,6 +11771,7 @@
       updatePlayerLocation(PLACE_DETAILS.ranking);
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
@@ -11722,6 +11797,7 @@
       updatePlayerLocation(PLACE_DETAILS.shop);
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('event-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
@@ -11748,6 +11824,7 @@
       updatePlayerLocation(PLACE_DETAILS.event);
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('quiz-play-view').hidden = true;
@@ -11776,6 +11853,7 @@
       setClassroomUnlocked(unlocked);
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11826,6 +11904,7 @@
       renderSubjectQuizCards(subjectId);
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11849,6 +11928,7 @@
       });
       document.getElementById('admin-view').hidden = true;
       document.getElementById('home-view').hidden = true;
+      document.getElementById('room-view').hidden = true;
       document.getElementById('ranking-view').hidden = true;
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
@@ -11924,7 +12004,7 @@
         return;
       }
       if(event.target.closest('[data-profile-decorate-home]')) {
-        window.alert('집꾸미기 화면은 다음 단계에서 연결할 예정입니다.');
+        showRoomView();
         return;
       }
       if(event.target.closest('#profile-nickname-save-button')) {
@@ -12512,7 +12592,27 @@
       if(event.key === 'Escape') closePlaceModal();
     });
 
-    initializeAuthUser();
+    let roomDecorInitialized = false;
+    function initializeRoomDecorIfAvailable() {
+      if(roomDecorInitialized) return;
+      if(!window.RoomDecor || typeof window.RoomDecor.init !== 'function') return;
+      try {
+        window.RoomDecor.init({
+          getUserId: () => getCurrentDataOwnerId(),
+          onBack: () => showHomeView()
+        });
+        roomDecorInitialized = true;
+      } catch(error) {
+        console.warn('RoomDecor init failed.', error);
+      }
+    }
+
+    initializeAuthUser().finally(() => {
+      initializeRoomDecorIfAvailable();
+      window.addEventListener('load', initializeRoomDecorIfAvailable, { once: true });
+      setTimeout(initializeRoomDecorIfAvailable, 0);
+    });
   </script>
+  <script src="/room.js"></script>
 </body>
 </html>
