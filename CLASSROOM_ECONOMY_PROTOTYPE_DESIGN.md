@@ -9,7 +9,7 @@ DJ48 퀴즈타운에 `우리 교실`을 추가해 퀴즈, 학급화폐, 교실 �
 - 타운 중앙에서 `우리 교실`로 진입한다.
 - 4학년 8반을 기준으로 먼저 검증한다.
 - 교실 안에서 `퀘스트`와 `성장루틴`의 사용감을 확인한다.
-- 궁극적으로 퀴즈 풀이 결과가 DJ코인, 퀘스트, 학급 미션으로 이어지게 한다.
+- 궁극적으로 퀴즈타운 활동은 DJ코인, 교실 활동은 베리로 보상 축을 분리한다.
 
 ## 2. 현재 프로토타입 범위
 
@@ -34,7 +34,7 @@ DJ48 퀴즈타운에 `우리 교실`을 추가해 퀴즈, 학급화폐, 교실 �
 - 퀘스트/성장루틴 카드 표시
 - 체크형 퀘스트 `desk-check` 자동 지급
 - 담임 권한 사용자의 퀘스트 생성
-- 교사가 퀘스트 이름, 설명, 지급 코인, 보상 방식을 설정
+- 교사가 퀘스트 이름, 설명, 지급 베리, 보상 방식을 설정
 
 포함하지 않는다.
 
@@ -107,7 +107,7 @@ classroomPrototype = {
 rewardMode: "auto" | "teacherReview" | "quizAchieved"
 ```
 
-- `auto`: 학생이 완료를 누르면 즉시 DJ코인 지급
+- `auto`: 학생이 완료를 누르면 즉시 베리 지급
 - `teacherReview`: 학생이 완료 후보를 저장하고 담임 승인 후 지급
 - `quizAchieved`: 교실 전용 퀴즈 결과 조건을 만족하면 자동 지급
 
@@ -140,7 +140,7 @@ rewardMode: "auto" | "teacherReview" | "quizAchieved"
 
 ## 6. 성장루틴 구조
 
-성장루틴은 학생이 자기 목표를 세우고, 반복 달성하면 DJ코인을 받는 구조다.
+성장루틴은 학생이 자기 목표를 세우고, 반복 달성하면 베리를 받는 구조다.
 
 1차 권장 규칙:
 
@@ -160,7 +160,7 @@ classroomRoutines/{routineId}
   title: "매일 독서 10분",
   targetType: "dailyCheck",
   targetCount: 7,
-  rewardCoin: 10,
+  rewardBerry: 10,
   status: "active"
 }
 ```
@@ -205,6 +205,7 @@ classrooms/G4-C8/questProgress/{memberUserId__questId__dateKey__attemptKey}
   checked: true,
   status: "completed",
   rewardCoin: 5,
+  rewardCurrency: "berry",
   rewardStatus: "paid",
   dateKey: "2026-06-11",
   source: "classroom_auto_quest_function",
@@ -212,7 +213,7 @@ classrooms/G4-C8/questProgress/{memberUserId__questId__dateKey__attemptKey}
 }
 ```
 
-`desk-check`는 Cloud Function `completeClassroomAutoQuest`에서 `questProgress`, `userEconomy`, `rewardLogs`를 트랜잭션으로 함께 처리한다.
+`desk-check`는 Cloud Function `completeClassroomAutoQuest`에서 `questProgress`, `studentWallets`, `berryLogs`, `rewardLogs`를 트랜잭션으로 함께 처리한다.
 자동 지급형은 같은 날짜에도 여러 번 완료할 수 있다. 각 완료는 별도 `attemptKey`로 기록된다.
 
 담임이 생성한 퀘스트는 Cloud Function `saveClassroomQuest`가 `classrooms/G4-C8.quests` 배열에 저장한다.
@@ -225,6 +226,7 @@ classrooms/G4-C8/questProgress/{memberUserId__questId__dateKey__attemptKey}
   desc: "수업 후 책상과 주변 정리",
   rewardMode: "auto" | "teacherReview" | "quizAchieved",
   rewardCoin: 5,
+  rewardCurrency: "berry",
   active: true,
   saveEnabled: true
 }
@@ -257,14 +259,14 @@ classrooms/G4-C8/questProgress/{memberUserId__questId__dateKey__attemptKey}
 교실 화면:
 
 - 상단 교실 이름
-- DJ코인/퀘스트/성장루틴 요약
+- 베리/퀘스트/성장루틴 요약
 - 담임 관리 영역
 - 학생 수행 영역
 - 탭: `퀘스트`, `성장루틴`
 - 퀘스트 카드
 - 성장루틴 카드
 - 체크형 퀘스트 1개 완료 후보 저장 버튼
-- `desk-check` 완료 시 즉시 DJ코인 지급
+- `desk-check` 완료 시 즉시 베리 지급
 - 담임 권한 사용자의 퀘스트 생성 폼
 - 담임 권한 사용자에게 `담임 확인 대기` 목록 표시
 - 승인/반려 버튼
@@ -282,7 +284,7 @@ classrooms/G4-C8/questProgress/{memberUserId__questId__dateKey__attemptKey}
 2. Cloud Function 기반 교실 입장 코드 검증
 3. 담임 권한 scope 서버 검증
 4. 퀘스트 수정/비활성화 화면 추가
-5. 승인 완료 퀘스트 DJ코인 지급
+5. 승인 완료 퀘스트 베리 지급
 6. 교실 전용 미니퀴즈 모드 추가
 7. 성장루틴은 별도 기획 확정 후 구현
 
@@ -301,7 +303,12 @@ DJ48에서는 기존 퀴즈타운 기능을 유지하면서, `우리 교실` 내
 
 ## 11. 화폐 구조: DJ코인과 베리
 
-교실 경제는 `베리`를 별도 화폐로 두는 방향을 우선 권장한다.
+교실 경제는 `베리`를 별도 화폐로 둔다.
+
+운영 기준:
+
+- DJ코인: 퀴즈타운 활동에서 획득하고 전역 상점, 내 방, 아바타 등에서 사용한다.
+- 베리: 우리 교실 내부의 퀘스트, 성장루틴, 직업, 젬스톤, 교실 상점 활동에서 획득/사용한다.
 
 이유:
 

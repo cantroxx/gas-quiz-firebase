@@ -376,7 +376,7 @@
         <div>
           <p class="eyebrow">Our Classroom</p>
           <h2 id="classroom-title">4학년 8반 우리 교실</h2>
-          <p>퀘스트와 성장루틴을 통해 퀴즈 활동을 DJ코인과 연결하는 실험 공간입니다.</p>
+          <p>퀘스트와 성장루틴을 통해 교실 활동을 베리와 연결하는 실험 공간입니다.</p>
         </div>
       </div>
 
@@ -412,7 +412,7 @@
           </article>
           <article>
             <span>보상</span>
-            <strong id="classroom-summary-reward-currency">DJ코인</strong>
+            <strong id="classroom-summary-reward-currency">베리</strong>
           </article>
           <article>
             <span>내 베리</span>
@@ -451,13 +451,6 @@
               <label>
                 지급 수량
                 <input id="classroom-quest-coin-input" type="number" min="1" max="1000" inputmode="numeric" value="5">
-              </label>
-              <label>
-                보상 화폐
-                <select id="classroom-quest-currency-input">
-                  <option value="djCoin">DJ코인</option>
-                  <option value="berry">베리</option>
-                </select>
               </label>
               <label>
                 보상 방식
@@ -1132,7 +1125,7 @@
         features: [
           { label: '퀘스트', value: '수락형/달성형 교실 미션' },
           { label: '성장루틴', value: '학생 목표 달성 보상' },
-          { label: '학급화폐', value: 'DJ코인과 교실 활동 연결' }
+          { label: '학급화폐', value: '베리와 교실 활동 연결' }
         ],
         actions: [
           { label: '우리 교실 입장하기', enabled: true, action: 'openClassroom' }
@@ -1230,7 +1223,7 @@
           rewardMode: 'auto',
           rewardCoin: 5,
           status: '완료 체크 시 즉시 지급',
-          studentAction: '완료하고 5 DJ코인 받기',
+          studentAction: '완료하고 5 베리 받기',
           saveEnabled: true
         },
         {
@@ -7250,7 +7243,7 @@
     function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
       const id = String(rawQuest.id || rawQuest.questId || `quest-${index + 1}`).trim();
       const rewardCoin = Math.max(0, Math.round(Number(rawQuest.rewardCoin) || 0));
-      const rewardCurrency = rawQuest.rewardCurrency === 'berry' ? 'berry' : 'djCoin';
+      const rewardCurrency = 'berry';
       const rewardMode = ['auto', 'teacherReview', 'quizAchieved'].includes(rawQuest.rewardMode) ? rawQuest.rewardMode : 'auto';
       const rewardLabel = getClassroomRewardCurrencyLabel(rewardCurrency);
       return {
@@ -7270,7 +7263,7 @@
     }
 
     function getClassroomRewardCurrencyLabel(currency) {
-      return currency === 'berry' ? '베리' : 'DJ코인';
+      return currency === 'djCoin' ? 'DJ코인' : '베리';
     }
 
     function normalizeClassroomSettings(data = {}) {
@@ -7513,10 +7506,7 @@
         questCount.textContent = `${settings.quests.filter(quest => quest.active !== false).length}개`;
       }
       if(rewardCurrency) {
-        const activeCurrencies = new Set(settings.quests
-          .filter(quest => quest.active !== false)
-          .map(quest => quest.rewardCurrency || 'djCoin'));
-        rewardCurrency.textContent = activeCurrencies.has('berry') ? 'DJ코인/베리' : 'DJ코인';
+        rewardCurrency.textContent = '베리';
       }
       if(berryCount) {
         berryCount.textContent = `${Number(wallet.berry || 0).toLocaleString('ko-KR')}`;
@@ -7586,7 +7576,7 @@
         progress.className = 'classroom-card-progress';
         progress.textContent = `진행도 ${routine.progress}`;
         reward.className = 'classroom-card-reward';
-        reward.textContent = `달성 보상: ${routine.rewardCoin} DJ코인`;
+        reward.textContent = `달성 보상: ${routine.rewardCoin} 베리`;
         button.className = 'quest-claim-button';
         button.type = 'button';
         button.disabled = true;
@@ -7620,7 +7610,7 @@
       const title = String(document.getElementById('classroom-quest-title-input')?.value || '').trim();
       const desc = String(document.getElementById('classroom-quest-desc-input')?.value || '').trim();
       const rewardCoin = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-coin-input')?.value) || 0));
-      const rewardCurrency = String(document.getElementById('classroom-quest-currency-input')?.value || 'djCoin').trim() === 'berry' ? 'berry' : 'djCoin';
+      const rewardCurrency = 'berry';
       const rewardMode = String(document.getElementById('classroom-quest-mode-input')?.value || 'auto').trim();
       return { title, desc, rewardCoin, rewardCurrency, rewardMode };
     }
@@ -7629,12 +7619,10 @@
       const title = document.getElementById('classroom-quest-title-input');
       const desc = document.getElementById('classroom-quest-desc-input');
       const coin = document.getElementById('classroom-quest-coin-input');
-      const currency = document.getElementById('classroom-quest-currency-input');
       const mode = document.getElementById('classroom-quest-mode-input');
       if(title) title.value = '';
       if(desc) desc.value = '';
       if(coin) coin.value = '5';
-      if(currency) currency.value = 'djCoin';
       if(mode) mode.value = 'auto';
     }
 
@@ -7750,7 +7738,7 @@
             checked: true,
             status: 'student_checked',
             rewardCoin: Number(quest.rewardCoin) || 0,
-            rewardCurrency: quest.rewardCurrency || 'djCoin',
+            rewardCurrency: 'berry',
             rewardStatus: 'pending_teacher_review',
             source: 'firebase-app',
             version: 1,

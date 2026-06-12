@@ -83,7 +83,7 @@ const DEFAULT_CLASSROOM_SETTINGS = {
         rewardCoin: 5,
         saveEnabled: true,
         active: true,
-        studentAction: "완료하고 5 DJ코인 받기"
+        studentAction: "완료하고 5 베리 받기"
       }
     ]
   }
@@ -665,11 +665,11 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rawId = String(rawQuest.id || rawQuest.questId || "").trim();
   const id = rawId || `quest-${index + 1}`;
   const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(rawQuest.rewardCoin) || 0)));
-  const rewardCurrency = rawQuest.rewardCurrency === "berry" ? "berry" : "djCoin";
+  const rewardCurrency = "berry";
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
-  const rewardLabel = rewardCurrency === "berry" ? "베리" : "DJ코인";
+  const rewardLabel = "베리";
   return {
     id,
     questId: id,
@@ -3064,7 +3064,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       .doc(classId)
       .collection("questProgress")
       .doc(recordId);
-    const rewardCurrency = quest.rewardCurrency === "berry" ? "berry" : "djCoin";
+    const rewardCurrency = "berry";
     const rewardAmount = Number(quest.rewardCoin) || 0;
     const logId = rewardLogId([
       "classroom_auto_quest",
@@ -3218,7 +3218,7 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
-  const rewardCurrency = rawQuest.rewardCurrency === "berry" ? "berry" : "djCoin";
+  const rewardCurrency = "berry";
   const questId = String(rawQuest.id || rawQuest.questId || `class-quest-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
     .trim()
     .replace(/[^0-9A-Za-z_-]+/g, "-")
@@ -3303,7 +3303,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         duplicate: true,
         rewardStatus: progress.rewardStatus || "",
         rewardAmount: 0,
-        rewardCurrency: progress.rewardCurrency === "berry" ? "berry" : "djCoin"
+        rewardCurrency: "berry"
       };
     }
 
@@ -3318,12 +3318,12 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         duplicate: false,
         rewardStatus: "rejected",
         rewardAmount: 0,
-        rewardCurrency: progress.rewardCurrency === "berry" ? "berry" : "djCoin"
+        rewardCurrency: "berry"
       };
     }
 
     const quest = settings.quests.find(item => item.id === progress.questId || item.questId === progress.questId) || {};
-    const rewardCurrency = progress.rewardCurrency === "berry" || quest.rewardCurrency === "berry" ? "berry" : "djCoin";
+    const rewardCurrency = "berry";
     const rewardAmount = Math.max(0, Math.min(1000, Math.round(Number(progress.rewardCoin || quest.rewardCoin) || 0)));
     if (rewardAmount <= 0) {
       throw new HttpsError("failed-precondition", "Classroom quest reward is invalid.");

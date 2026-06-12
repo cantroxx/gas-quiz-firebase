@@ -405,7 +405,7 @@ service cloud.firestore {
         && request.resource.data.checked == true
         && request.resource.data.status == 'student_checked'
         && request.resource.data.rewardCoin is number
-        && (!request.resource.data.keys().hasAny(['rewardCurrency']) || request.resource.data.rewardCurrency in ['djCoin', 'berry'])
+        && (!request.resource.data.keys().hasAny(['rewardCurrency']) || request.resource.data.rewardCurrency == 'berry')
         && request.resource.data.rewardStatus in ['pending_teacher_review', 'approved', 'rejected']
         && request.resource.data.source == 'firebase-app'
         && request.resource.data.version == 1
