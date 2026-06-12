@@ -2942,6 +2942,149 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
   };
 });
 
+const ROOM_CATALOG_DRAW_KEYS = new Set([
+  "bed", "desk", "chair", "shelf", "piano", "rug",
+  "plant", "lamp", "bear", "tv", "aquarium", "trophy"
+]);
+
+function normalizeRoomCatalogItemPayload(payload = {}) {
+  const itemId = normalizeId(payload.itemId || payload.assetId, "itemId");
+  if (!itemId.startsWith("room_")) {
+    throw new HttpsError("invalid-argument", "Room catalog itemId must start with room_.");
+  }
+  const name = String(payload.name || "").trim().slice(0, 40);
+  if (!name) throw new HttpsError("invalid-argument", "Room catalog name is required.");
+  const cat = String(payload.cat || "furniture").trim();
+  if (!["furniture", "deco"].includes(cat)) {
+    throw new HttpsError("invalid-argument", "Room catalog category is invalid.");
+  }
+  const drawKey = String(payload.drawKey || "").trim();
+  if (!ROOM_CATALOG_DRAW_KEYS.has(drawKey)) {
+    throw new HttpsError("invalid-argument", "Room catalog drawKey is invalid.");
+  }
+  const w = Math.max(1, Math.min(4, Math.round(Number(payload.w) || 1)));
+  const d = Math.max(1, Math.min(4, Math.round(Number(payload.d) || 1)));
+  const h = Math.max(1, Math.min(120, Math.round(Number(payload.h) || 30)));
+  const sortOrder = Math.max(0, Math.min(9999, Math.round(Number(payload.sortOrder) || 100)));
+  const free = payload.free === true;
+  const price = free ? 0 : Math.max(0, Math.min(100000, Math.round(Number(payload.price) || 0)));
+  if (!free && price <= 0) {
+    throw new HttpsError("invalid-argument", "Paid room catalog price is required.");
+  }
+  return {
+    itemId,
+    name,
+    cat,
+    drawKey,
+    w,
+    d,
+    h,
+    flat: payload.flat === true,
+    free,
+    price,
+    sortOrder,
+    enabled: payload.enabled !== false
+  };
+}
+
+function publicRoomCatalogItem(assetDoc, shopDoc = null) {
+  const asset = assetDoc.data ? assetDoc.data() || {} : assetDoc || {};
+  const shop = shopDoc?.exists ? shopDoc.data() || {} : {};
+  const itemId = assetDoc.id || asset.itemId || asset.assetId || shop.itemId || "";
+  return {
+    itemId,
+    assetId: itemId,
+    name: String(asset.name || shop.name || itemId),
+    cat: String(asset.cat || "furniture"),
+    drawKey: String(asset.drawKey || ""),
+    w: Number(asset.w || 1),
+    d: Number(asset.d || 1),
+    h: Number(asset.h || 30),
+    flat: asset.flat === true,
+    free: asset.free === true,
+    price: Number(asset.price ?? shop.price ?? 0) || 0,
+    sortOrder: Number(asset.sortOrder || 100),
+    enabled: asset.free === true ? true : shop.enabled === true,
+    hasShopItem: !!shopDoc?.exists,
+    updatedAt: asset.updatedAt || shop.updatedAt || null
+  };
+}
+
+exports.adminListRoomCatalog = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const assetSnapshot = await db.collection("assetCatalog")
+    .where("type", "==", "roomFurniture")
+    .get();
+  const shopSnapshots = assetSnapshot.empty
+    ? []
+    : await db.getAll(...assetSnapshot.docs.map(doc => db.collection("shopItems").doc(doc.id)));
+  const shopById = new Map(shopSnapshots.map(snapshot => [snapshot.id, snapshot]));
+  const items = assetSnapshot.docs
+    .map(doc => publicRoomCatalogItem(doc, shopById.get(doc.id)))
+    .sort((a, b) => (a.cat || "").localeCompare(b.cat || "") || a.sortOrder - b.sortOrder || a.itemId.localeCompare(b.itemId));
+  return { success: true, items };
+});
+
+exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const item = normalizeRoomCatalogItemPayload(payload);
+  const assetRef = db.collection("assetCatalog").doc(item.itemId);
+  const shopRef = db.collection("shopItems").doc(item.itemId);
+
+  await db.runTransaction(async transaction => {
+    transaction.set(assetRef, {
+      type: "roomFurniture",
+      assetId: item.itemId,
+      itemId: item.itemId,
+      name: item.name,
+      cat: item.cat,
+      w: item.w,
+      d: item.d,
+      h: item.h,
+      flat: item.flat,
+      drawKey: item.drawKey,
+      free: item.free,
+      price: item.price,
+      sortOrder: item.sortOrder,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedByAdminUserId: adminMember.memberUserId
+    }, { merge: true });
+    if (item.free) {
+      transaction.delete(shopRef);
+    } else {
+      transaction.set(shopRef, {
+        itemId: item.itemId,
+        name: item.name,
+        desc: "내 방 꾸미기에서 사용하는 방 가구입니다.",
+        price: item.price,
+        priceType: "djCoin",
+        enabled: item.enabled,
+        assetId: item.itemId,
+        category: "방 가구",
+        sortOrder: item.sortOrder,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedByAdminUserId: adminMember.memberUserId
+      }, { merge: true });
+    }
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminSaveRoomCatalogItem",
+    targetUserId: item.itemId,
+    before: null,
+    after: item,
+    reason: "room catalog item save"
+  });
+
+  return { success: true, item };
+});
+
 exports.adminSetClassAdmin = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);

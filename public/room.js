@@ -307,11 +307,22 @@ window.RoomDecor = (function () {
       showToast('구매 중...');
       // 운영 시그니처: { memberUserId, itemId } — index.html:7251 클라이언트 호출부와 동일
       await fns.httpsCallable(CONFIG.PURCHASE_FN)({ memberUserId: getUserId(), itemId: id });
+      owned.add(id);
+      selectedId = null;
+      movingId = null;
+      placingType = id;
+      setTip(`「${it.name}」 구매 완료! 놓을 바닥 칸을 눌러 배치하세요`);
+      renderSidebar();
+      render();
       showToast(`🎉 ${it.name} 구매 완료!`);
     } catch (e) {
       console.error('[room] 구매 실패', e);
       const code = e && e.code;
-      showToast(code === 'functions/failed-precondition' ? 'DJ코인이 부족하거나 상점이 닫혀 있어요.'
+      const message = String(e && e.message || '');
+      showToast(code === 'functions/not-found' ? '상품 정보가 아직 등록되지 않았어요.'
+        : code === 'functions/failed-precondition' && message.includes('disabled') ? '지금은 판매 중지된 가구예요.'
+        : code === 'functions/failed-precondition' && message.includes('Not enough') ? 'DJ코인이 부족해요.'
+        : code === 'functions/failed-precondition' ? '구매 조건을 확인해 주세요.'
         : code === 'functions/already-exists' ? '이미 가지고 있는 아이템이에요!'
         : '구매에 실패했어요.');
     }

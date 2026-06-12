@@ -343,9 +343,9 @@
           <div class="rd-grid" id="rd-grid"></div>
           <div class="rd-style" id="rd-style" style="display:none"></div>
           <div class="rd-hint">
-            아이템을 누르고 바닥 칸을 클릭하면 배치돼요.<br>
-            배치된 가구를 누르면 이동·삭제할 수 있어요.<br>
-            🔒 아이템은 DJ코인으로 구매!
+            기본 가구는 바로 배치할 수 있어요.<br>
+            🔒 표시 가구는 DJ코인으로 구매하면 바로 배치 모드가 켜져요.<br>
+            배치한 가구는 이동·회전·삭제할 수 있어요.
           </div>
         </aside>
       </div>
@@ -732,6 +732,7 @@
         <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="login" data-super-admin-only>로그인 설정</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="features" data-super-admin-only>기능 관리</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="room-catalog" data-super-admin-only>방 가구</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="permissions" data-super-admin-only>권한 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="logs" data-super-admin-only>작업 이력</button>
       </div>
@@ -1042,6 +1043,91 @@
             <button id="admin-feature-flags-save" class="button primary" type="button">저장</button>
           </div>
           <p id="admin-feature-flags-status" class="admin-status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="admin-section-room-catalog" class="admin-section" aria-labelledby="admin-room-catalog-heading" data-super-admin-only>
+        <button class="admin-section-toggle" type="button" data-admin-section-target="room-catalog" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Room Shop</span>
+            <strong id="admin-room-catalog-heading">방 가구 상품 관리</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-settings-form">
+            <label>
+              itemId
+              <input id="admin-room-item-id-input" type="text" maxlength="80" placeholder="예: room_piano">
+            </label>
+            <label>
+              이름
+              <input id="admin-room-name-input" type="text" maxlength="40" placeholder="예: 피아노">
+            </label>
+            <label>
+              분류
+              <select id="admin-room-cat-input">
+                <option value="furniture">가구</option>
+                <option value="deco">장식</option>
+              </select>
+            </label>
+            <label>
+              모양(drawKey)
+              <select id="admin-room-draw-key-input">
+                <option value="bed">침대</option>
+                <option value="desk">책상</option>
+                <option value="chair">의자</option>
+                <option value="shelf">책장</option>
+                <option value="piano">피아노</option>
+                <option value="rug">러그</option>
+                <option value="plant">화분</option>
+                <option value="lamp">램프</option>
+                <option value="bear">곰인형</option>
+                <option value="tv">TV</option>
+                <option value="aquarium">어항</option>
+                <option value="trophy">트로피</option>
+              </select>
+            </label>
+            <label>
+              가로 칸
+              <input id="admin-room-width-input" type="number" min="1" max="4" inputmode="numeric" value="1">
+            </label>
+            <label>
+              세로 칸
+              <input id="admin-room-depth-input" type="number" min="1" max="4" inputmode="numeric" value="1">
+            </label>
+            <label>
+              높이
+              <input id="admin-room-height-input" type="number" min="1" max="120" inputmode="numeric" value="30">
+            </label>
+            <label>
+              가격
+              <input id="admin-room-price-input" type="number" min="0" max="100000" inputmode="numeric" value="0">
+            </label>
+            <label>
+              정렬
+              <input id="admin-room-sort-input" type="number" min="0" max="9999" inputmode="numeric" value="100">
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-room-flat-input" type="checkbox">
+              바닥 장식
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-room-free-input" type="checkbox">
+              무료 기본 가구
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-room-enabled-input" type="checkbox" checked>
+              유료 판매 활성
+            </label>
+          </div>
+          <div class="admin-notice-actions">
+            <button id="admin-room-catalog-new" class="button secondary" type="button">새 입력</button>
+            <button id="admin-room-catalog-load" class="button secondary" type="button">불러오기</button>
+            <button id="admin-room-catalog-save" class="button primary" type="button">저장</button>
+          </div>
+          <p id="admin-room-catalog-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-room-catalog-list" class="admin-audit-list"></div>
         </div>
       </section>
 
@@ -6784,6 +6870,13 @@
       };
     }
 
+    function isRoomFurnitureShopItem(item) {
+      const rawCategory = String(item?.rawCategory || item?.category || '').trim();
+      const assetId = String(item?.assetId || '').trim();
+      const itemId = String(item?.itemId || '').trim();
+      return rawCategory === '방 가구' || assetId.startsWith('room_') || itemId.startsWith('room_');
+    }
+
     function normalizeAssetCatalogFromFirestore(doc) {
       const data = doc.data();
       const assetId = data.assetId || doc.id;
@@ -6879,7 +6972,7 @@
       const snapshot = await db.collection('shopItems').get();
       return snapshot.docs
         .map(normalizeShopItemFromFirestore)
-        .filter(item => item.enabled)
+        .filter(item => item.enabled && !isRoomFurnitureShopItem(item))
         .sort((a, b) => a.sortOrder - b.sortOrder);
     }
 
@@ -8955,6 +9048,11 @@
           const status = document.getElementById('admin-classroom-status');
           if(status) status.textContent = '우리 교실 확인 대기 목록을 불러오지 못했습니다.';
         });
+      } else if(targetName === 'room-catalog') {
+        loadAdminRoomCatalog().catch(error => {
+          console.warn('Admin room catalog load failed.', error);
+          setAdminRoomCatalogStatus('방 가구 목록을 불러오지 못했습니다.', true);
+        });
       }
     }
 
@@ -9924,6 +10022,132 @@
       return featureFlagsCache;
     }
 
+    function setAdminRoomCatalogStatus(message, isError = false) {
+      const status = document.getElementById('admin-room-catalog-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function resetAdminRoomCatalogForm() {
+      document.getElementById('admin-room-item-id-input').value = '';
+      document.getElementById('admin-room-name-input').value = '';
+      document.getElementById('admin-room-cat-input').value = 'furniture';
+      document.getElementById('admin-room-draw-key-input').value = 'bed';
+      document.getElementById('admin-room-width-input').value = '1';
+      document.getElementById('admin-room-depth-input').value = '1';
+      document.getElementById('admin-room-height-input').value = '30';
+      document.getElementById('admin-room-price-input').value = '0';
+      document.getElementById('admin-room-sort-input').value = '100';
+      document.getElementById('admin-room-flat-input').checked = false;
+      document.getElementById('admin-room-free-input').checked = false;
+      document.getElementById('admin-room-enabled-input').checked = true;
+      setAdminRoomCatalogStatus('');
+    }
+
+    function setAdminRoomCatalogForm(item = {}) {
+      document.getElementById('admin-room-item-id-input').value = item.itemId || item.assetId || '';
+      document.getElementById('admin-room-name-input').value = item.name || '';
+      document.getElementById('admin-room-cat-input').value = item.cat || 'furniture';
+      document.getElementById('admin-room-draw-key-input').value = item.drawKey || 'bed';
+      document.getElementById('admin-room-width-input').value = String(item.w || 1);
+      document.getElementById('admin-room-depth-input').value = String(item.d || 1);
+      document.getElementById('admin-room-height-input').value = String(item.h || 30);
+      document.getElementById('admin-room-price-input').value = String(item.price || 0);
+      document.getElementById('admin-room-sort-input').value = String(item.sortOrder || 100);
+      document.getElementById('admin-room-flat-input').checked = item.flat === true;
+      document.getElementById('admin-room-free-input').checked = item.free === true;
+      document.getElementById('admin-room-enabled-input').checked = item.enabled !== false;
+    }
+
+    function getAdminRoomCatalogFormValues() {
+      return {
+        itemId: String(document.getElementById('admin-room-item-id-input')?.value || '').trim(),
+        name: String(document.getElementById('admin-room-name-input')?.value || '').trim(),
+        cat: document.getElementById('admin-room-cat-input')?.value || 'furniture',
+        drawKey: document.getElementById('admin-room-draw-key-input')?.value || 'bed',
+        w: Number(document.getElementById('admin-room-width-input')?.value || 1),
+        d: Number(document.getElementById('admin-room-depth-input')?.value || 1),
+        h: Number(document.getElementById('admin-room-height-input')?.value || 30),
+        price: Number(document.getElementById('admin-room-price-input')?.value || 0),
+        sortOrder: Number(document.getElementById('admin-room-sort-input')?.value || 100),
+        flat: document.getElementById('admin-room-flat-input')?.checked === true,
+        free: document.getElementById('admin-room-free-input')?.checked === true,
+        enabled: document.getElementById('admin-room-enabled-input')?.checked === true
+      };
+    }
+
+    function renderAdminRoomCatalogList(items = []) {
+      const root = document.getElementById('admin-room-catalog-list');
+      if(!root) return;
+      root.innerHTML = '';
+      if(!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'admin-empty';
+        empty.textContent = '등록된 방 가구가 없습니다.';
+        root.appendChild(empty);
+        return;
+      }
+      items.forEach(item => {
+        const card = document.createElement('article');
+        const heading = document.createElement('strong');
+        const meta = document.createElement('div');
+        const actions = document.createElement('div');
+        const editButton = document.createElement('button');
+        card.className = 'admin-audit-card';
+        heading.textContent = `${item.name || item.itemId} · ${item.itemId}`;
+        meta.className = 'admin-audit-card-meta';
+        meta.append(
+          createAdminInfoChip(item.cat === 'deco' ? '장식' : '가구', item.drawKey || '-'),
+          createAdminInfoChip('크기', `${item.w || 1}x${item.d || 1} / h${item.h || 0}`),
+          createAdminInfoChip('가격', item.free ? '무료' : `${Number(item.price || 0).toLocaleString('ko-KR')} DJ코인`),
+          createAdminInfoChip('판매', item.free ? '기본 제공' : (item.enabled === false ? '중지' : '활성'))
+        );
+        actions.className = 'admin-notice-actions';
+        editButton.type = 'button';
+        editButton.className = 'admin-action-button';
+        editButton.textContent = '수정';
+        editButton.addEventListener('click', () => setAdminRoomCatalogForm(item));
+        actions.appendChild(editButton);
+        card.append(heading, meta, actions);
+        root.appendChild(card);
+      });
+    }
+
+    async function loadAdminRoomCatalog() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      setAdminRoomCatalogStatus('방 가구 목록을 불러오는 중입니다...');
+      const callable = functions.httpsCallable('adminListRoomCatalog');
+      const response = await callable({});
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-room-catalog-load-failed');
+      renderAdminRoomCatalogList(result.items || []);
+      setAdminRoomCatalogStatus(`방 가구 ${result.items?.length || 0}개를 표시했습니다.`);
+      return result.items || [];
+    }
+
+    async function saveAdminRoomCatalogItem() {
+      const functions = getFirebaseFunctions();
+      if(!functions) throw new Error('functions-unavailable');
+      await initializeAuthUser();
+      const values = getAdminRoomCatalogFormValues();
+      if(!values.itemId || !values.name) throw new Error('admin-room-catalog-required');
+      setAdminRoomCatalogStatus('방 가구 상품을 저장하는 중입니다...');
+      const callable = functions.httpsCallable('adminSaveRoomCatalogItem');
+      const response = await callable(values);
+      const result = response?.data || {};
+      if(!result.success) throw new Error('admin-room-catalog-save-failed');
+      firestoreShopItems = null;
+      shopItemsLoadPromise = null;
+      firestoreAssetCatalogMap = null;
+      assetCatalogLoadPromise = null;
+      await loadAdminRoomCatalog();
+      setAdminRoomCatalogStatus(`${values.name} 저장 완료`);
+      return result.item;
+    }
+
     function setAdminLogsStatus(message, isError = false) {
       const status = document.getElementById('admin-logs-status');
       if(!status) return;
@@ -9944,6 +10168,7 @@
         adminUpdateExternalQuizzes: '외부 퀴즈 수정',
         adminUpdatePasswordSetupSettings: '로그인 설정 변경',
         adminUpdateFeatureFlags: '기능 설정 변경',
+        adminSaveRoomCatalogItem: '방 가구 상품 저장',
         adminGrantClassAdmin: '반 관리자 지정',
         adminRevokeClassAdmin: '관리자 해제'
       }[action] || action || '관리자 작업';
@@ -12599,6 +12824,27 @@
           'functions/invalid-argument': '기능 설정 값을 확인해 주세요.'
         };
         setAdminFeatureFlagsStatus(messages[error.message] || '기능 설정 저장 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-room-catalog-new')?.addEventListener('click', resetAdminRoomCatalogForm);
+
+    document.getElementById('admin-room-catalog-load')?.addEventListener('click', () => {
+      loadAdminRoomCatalog().catch(error => {
+        console.warn('Admin room catalog load failed.', error);
+        setAdminRoomCatalogStatus('방 가구 목록을 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-room-catalog-save')?.addEventListener('click', () => {
+      saveAdminRoomCatalogItem().catch(error => {
+        console.warn('Admin room catalog save failed.', error);
+        const messages = {
+          'admin-room-catalog-required': 'itemId와 이름을 입력해 주세요.',
+          'functions/permission-denied': '전체 관리자만 방 가구 상품을 바꿀 수 있습니다.',
+          'functions/invalid-argument': '방 가구 상품 값을 확인해 주세요.'
+        };
+        setAdminRoomCatalogStatus(messages[error.message] || '방 가구 상품 저장 중 문제가 생겼습니다.', true);
       });
     });
 
