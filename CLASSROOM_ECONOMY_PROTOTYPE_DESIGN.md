@@ -285,3 +285,254 @@ classrooms/G4-C8/questProgress/{memberUserId__questId__dateKey__attemptKey}
 5. 승인 완료 퀘스트 DJ코인 지급
 6. 교실 전용 미니퀴즈 모드 추가
 7. 성장루틴은 별도 기획 확정 후 구현
+
+## 10. 그라운드식 교실 경제 확장 방향
+
+그라운드 분석에서 확인한 핵심 축은 `퀘스트`, `젬스톤`, `뱃지`, `직업`, `마켓`이다.
+DJ48에서는 기존 퀴즈타운 기능을 유지하면서, `우리 교실` 내부에 학급 운영용 경제를 별도 축으로 붙인다.
+
+확장 원칙:
+
+- 기존 퀴즈/랭킹/전역 상점/내 방 구조는 변경하지 않는다.
+- 교실 경제는 `classrooms/{classId}` 하위 구조를 중심으로 분리한다.
+- 보상 지급, 급여 지급, 화폐 교환은 클라이언트 직접 쓰기가 아니라 Cloud Function 트랜잭션으로 처리한다.
+- 4학년 8반 `G4-C8`에서 먼저 검증한 뒤 다른 반으로 확장한다.
+- 성장루틴은 별도 기획이 확정될 때까지 이번 확장 범위에서 제외한다.
+
+## 11. 화폐 구조: DJ코인과 베리
+
+교실 경제는 `베리`를 별도 화폐로 두는 방향을 우선 권장한다.
+
+이유:
+
+- DJ코인은 퀴즈타운 전체 상점, 내 방, 아바타 등 전역 보상과 연결되어 있다.
+- 교실 퀘스트, 직업 급여, 교실 쿠폰 구매까지 DJ코인을 직접 사용하면 전역 상점 가격과 교실 운영 가격이 서로 영향을 준다.
+- 교사가 학급별로 경제 규모를 조정하려면 교실 전용 화폐가 더 안전하다.
+
+권장 구조:
+
+```txt
+classrooms/{classId}/studentWallets/{memberUserId}
+classrooms/{classId}/berryLogs/{logId}
+```
+
+예상 필드:
+
+```js
+studentWallets/{memberUserId} {
+  memberUserId: "G4-C8-N05",
+  classId: "G4-C8",
+  berry: 120,
+  totalEarnedBerry: 300,
+  totalSpentBerry: 180,
+  updatedAt: serverTimestamp()
+}
+```
+
+DJ코인 교환은 교사가 설정한 비율로 제한적으로 운영한다.
+
+```js
+classrooms/{classId} {
+  currencySettings: {
+    berryEnabled: true,
+    exchangeEnabled: true,
+    berryToCoinRate: 10,
+    weeklyExchangeLimitCoin: 50,
+    teacherApprovalRequired: true
+  }
+}
+```
+
+## 12. 젬스톤 구조
+
+젬스톤은 화폐가 아니라 특정 활동의 누적 성취 트랙이다.
+교사가 퀘스트를 만들 때 특정 젬과 연결하면, 학생이 퀘스트를 완료할 때 젬 경험치가 쌓인다.
+
+예시:
+
+- 교사: `일기 제출` 퀘스트 생성
+- 연결 젬: `일기젬`
+- 학생이 퀘스트 완료: `일기젬 xp +1`
+- `10xp` 달성: `일기젬` 획득
+- 획득 보상: `베리 30`
+
+권장 구조:
+
+```txt
+classrooms/{classId}/gemTracks/{gemId}
+classrooms/{classId}/studentGemProgress/{memberUserId__gemId}
+classrooms/{classId}/gemAwards/{awardId}
+```
+
+예상 필드:
+
+```js
+gemTracks/{gemId} {
+  name: "일기젬",
+  description: "일기 제출 퀘스트를 꾸준히 완료하면 얻는 젬",
+  linkedQuestIds: ["diary-submit"],
+  xpThreshold: 10,
+  rewardCurrency: "berry",
+  rewardAmount: 30,
+  icon: "gem",
+  color: "#7cddff",
+  active: true
+}
+```
+
+## 13. 뱃지 구조
+
+뱃지는 젬스톤과 다르게 월간 또는 기간제 기록을 스캔해 지급하는 상품이다.
+교사가 캠페인을 만들고, 정해진 기간의 퀘스트 완료 수나 젬 경험치를 기준으로 수상자를 계산한다.
+
+예시:
+
+- `5월의 일기왕`
+- 기간: 2026-05-01 ~ 2026-05-31
+- 기준: `일기 제출` 퀘스트 완료 수 또는 `일기젬 xp`
+- 지급 대상: 1명 또는 top N
+- 학생은 보유 뱃지 중 하나를 대표 뱃지로 선택
+- 교실 학생 카드 우측 하단에 대표 뱃지 표시
+
+권장 구조:
+
+```txt
+classrooms/{classId}/badgeCampaigns/{badgeId}
+classrooms/{classId}/studentBadges/{memberUserId__badgeId}
+classrooms/{classId}/studentProfiles/{memberUserId}
+```
+
+예상 필드:
+
+```js
+badgeCampaigns/{badgeId} {
+  title: "5월의 일기왕",
+  metric: "questCompletionCount",
+  targetQuestIds: ["diary-submit"],
+  periodStart: "2026-05-01",
+  periodEnd: "2026-05-31",
+  awardPolicy: "topN",
+  awardLimit: 1,
+  icon: "book",
+  color: "#ffcf5a",
+  status: "draft" | "active" | "awarded"
+}
+```
+
+## 14. 직업 구조
+
+직업은 교사가 역할과 급여를 만들고, 학생이 지원하면 교사가 배정하는 구조로 운영한다.
+학생은 직업에 배정된 상태에서는 다른 직업에 지원하거나 기존 지원을 수정할 수 없게 한다.
+
+권장 흐름:
+
+1. 교사가 직업 생성
+2. 학생이 직업 지원
+3. 교사가 지원자 중 배정
+4. 배정 상태 유지
+5. 주 1회 급여 지급 또는 학생 수령
+6. 교사가 배정 해제하면 학생이 다시 지원 가능
+
+권장 구조:
+
+```txt
+classrooms/{classId}/jobs/{jobId}
+classrooms/{classId}/jobApplications/{applicationId}
+classrooms/{classId}/jobAssignments/{memberUserId}
+classrooms/{classId}/jobSalaryLogs/{memberUserId__jobId__weekKey}
+```
+
+예상 필드:
+
+```js
+jobs/{jobId} {
+  title: "도서 관리",
+  description: "학급 도서를 정리하고 대출 상태를 확인합니다.",
+  salaryBerry: 50,
+  payPeriod: "weekly",
+  active: true
+}
+```
+
+## 15. 교실 상점 구조
+
+교실 상점은 퀴즈타운 전역 상점과 분리한다.
+같은 `상점`이라는 이름을 쓰더라도, 실제 데이터와 구매 내역은 `classrooms/{classId}` 하위에 둔다.
+
+운영 예시:
+
+- 장난감 가져오기
+- 물건 판매권
+- 숙제 면제권
+- 1일 DJ권
+
+권장 구조:
+
+```txt
+classrooms/{classId}/shopItems/{itemId}
+classrooms/{classId}/shopPurchases/{purchaseId}
+```
+
+구매 상태:
+
+```js
+shopPurchases/{purchaseId} {
+  memberUserId: "G4-C8-N05",
+  itemId: "homework-pass",
+  priceBerry: 100,
+  status: "purchased" | "requested_use" | "used" | "cancelled",
+  purchasedAt: serverTimestamp(),
+  usedAt: null
+}
+```
+
+## 16. 퀴즈타운 전체 레벨 시스템
+
+교실 경제와 별개로, 퀴즈타운 전체 활동에 대한 전역 레벨 시스템을 둘 수 있다.
+
+권장 방향:
+
+- 퀴즈 풀이, 연습 진행, 랭킹전 완료, 이벤트 퀘스트 등에서 경험치 지급
+- 레벨업 시 DJ코인 50 지급
+- 레벨과 훈장은 전역 프로필/랭킹/내 방에서 표시 가능
+- 경험치 지급은 반복 파밍 방지를 위해 일일 상한과 중복 제한을 적용
+
+권장 구조:
+
+```txt
+userLevelSummary/{memberUserId}
+levelXpLogs/{logId}
+```
+
+예상 필드:
+
+```js
+userLevelSummary/{memberUserId} {
+  memberUserId: "G4-C8-N05",
+  level: 7,
+  xp: 35,
+  totalXp: 635,
+  medalId: "bronze-07",
+  lastLevelRewardAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+}
+```
+
+주의:
+
+- `크레이지 아케이드` 훈장 아이콘을 그대로 복제하거나 추출해 쓰는 것은 저작권/상표 리스크가 있다.
+- 방향성은 참고하되, DJ48 전용의 자체 훈장 아이콘 세트를 제작해 사용한다.
+
+## 17. 확장 구현 순서
+
+1. 이 문서를 기준 설계로 고정한다.
+2. `베리` 사용 여부와 DJ코인 교환 정책을 확정한다.
+3. 교실 데이터 구조를 subcollection 중심으로 정리한다.
+4. 젬스톤 MVP를 퀘스트 완료 흐름에 연결한다.
+5. 학생 카드와 대표 뱃지 표시 UI를 만든다.
+6. 월간 뱃지 캠페인 생성/스캔/지급을 구현한다.
+7. 직업 생성/지원/배정/급여 지급을 구현한다.
+8. 교실 상점 쿠폰 구매/사용 흐름을 구현한다.
+9. 퀴즈타운 전체 레벨 시스템을 별도 작업으로 추가한다.
+
+초기 구현에서는 `젬스톤 -> 학생 카드/뱃지 -> 직업 -> 교실 상점 -> 전역 레벨` 순서를 권장한다.
