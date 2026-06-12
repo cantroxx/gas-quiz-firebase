@@ -480,6 +480,36 @@
             </form>
             <p id="classroom-quest-editor-status" class="classroom-review-status" aria-live="polite"></p>
           </div>
+          <div class="classroom-quest-editor">
+            <div class="event-section-heading">
+              <p class="eyebrow">Badge Campaign</p>
+              <h3>월간 뱃지 지급</h3>
+            </div>
+            <form id="classroom-badge-campaign-form" class="classroom-quest-form">
+              <label>
+                뱃지 이름
+                <input id="classroom-badge-title-input" type="text" maxlength="40" placeholder="예: 6월의 일기왕">
+              </label>
+              <label>
+                기준 젬
+                <input id="classroom-badge-gem-input" type="text" maxlength="40" placeholder="예: 일기젬">
+              </label>
+              <label>
+                지급 인원
+                <input id="classroom-badge-limit-input" type="number" min="1" max="10" inputmode="numeric" value="1">
+              </label>
+              <label>
+                아이콘
+                <input id="classroom-badge-icon-input" type="text" maxlength="12" value="🏅">
+              </label>
+              <label>
+                색상
+                <input id="classroom-badge-color-input" type="text" maxlength="30" value="#ffcf5a">
+              </label>
+              <button class="button primary" type="submit">뱃지 스캔 후 지급</button>
+            </form>
+            <p id="classroom-badge-campaign-status" class="classroom-review-status" aria-live="polite"></p>
+          </div>
           <div class="event-section-heading">
             <p class="eyebrow">Teacher Review</p>
             <h3 id="classroom-review-heading">담임 확인 대기</h3>
@@ -7850,6 +7880,13 @@
       status.classList.toggle('is-error', !!isError);
     }
 
+    function setClassroomBadgeCampaignStatus(message, isError = false) {
+      const status = document.getElementById('classroom-badge-campaign-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
     function getClassroomQuestFormValues() {
       const title = String(document.getElementById('classroom-quest-title-input')?.value || '').trim();
       const desc = String(document.getElementById('classroom-quest-desc-input')?.value || '').trim();
@@ -7934,6 +7971,56 @@
       } catch(error) {
         console.warn('Classroom quest save failed.', error);
         setClassroomQuestEditorStatus('퀘스트 저장 중 문제가 생겼습니다.', true);
+      }
+    }
+
+    function getClassroomBadgeCampaignFormValues() {
+      const title = String(document.getElementById('classroom-badge-title-input')?.value || '').trim();
+      const targetGemName = String(document.getElementById('classroom-badge-gem-input')?.value || '').trim();
+      const awardLimit = Math.max(1, Math.min(10, Math.round(Number(document.getElementById('classroom-badge-limit-input')?.value) || 1)));
+      const icon = String(document.getElementById('classroom-badge-icon-input')?.value || '🏅').trim().slice(0, 12);
+      const color = String(document.getElementById('classroom-badge-color-input')?.value || '#ffcf5a').trim().slice(0, 30);
+      return { title, targetGemName, targetGemId: slugifyClassroomGemId(targetGemName), awardLimit, icon, color };
+    }
+
+    async function awardClassroomBadgeCampaignFromForm(event) {
+      event?.preventDefault();
+      const settings = await loadClassroomSettings();
+      if(!isCurrentClassroomTeacher(settings)) {
+        setClassroomBadgeCampaignStatus('담임 권한이 있어야 뱃지를 지급할 수 있습니다.', true);
+        return;
+      }
+      const values = getClassroomBadgeCampaignFormValues();
+      if(!values.title) {
+        setClassroomBadgeCampaignStatus('뱃지 이름을 입력해 주세요.', true);
+        return;
+      }
+      if(!values.targetGemId) {
+        setClassroomBadgeCampaignStatus('기준 젬을 입력해 주세요.', true);
+        return;
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        setClassroomBadgeCampaignStatus('뱃지 지급 기능을 불러오지 못했습니다.', true);
+        return;
+      }
+      setClassroomBadgeCampaignStatus('젬 기록을 스캔하는 중입니다.');
+      try {
+        const callable = functions.httpsCallable('awardClassroomBadgeCampaign');
+        const response = await callable({
+          classId: settings.classId,
+          campaign: values
+        });
+        const result = response?.data || {};
+        classroomStudentCardsCache = null;
+        await renderClassroomPrototype(true);
+        const winnerText = Array.isArray(result.winners) && result.winners.length
+          ? `${result.winners.length}명에게 뱃지를 지급했습니다.`
+          : '지급 대상이 없습니다.';
+        setClassroomBadgeCampaignStatus(winnerText, !result.winners?.length);
+      } catch(error) {
+        console.warn('Classroom badge campaign award failed.', error);
+        setClassroomBadgeCampaignStatus('뱃지 지급 중 문제가 생겼습니다.', true);
       }
     }
 
@@ -11274,6 +11361,10 @@
 
     document.getElementById('classroom-quest-form')?.addEventListener('submit', event => {
       saveClassroomQuestFromForm(event);
+    });
+
+    document.getElementById('classroom-badge-campaign-form')?.addEventListener('submit', event => {
+      awardClassroomBadgeCampaignFromForm(event);
     });
 
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {

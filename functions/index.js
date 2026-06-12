@@ -3579,6 +3579,129 @@ exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => 
   };
 });
 
+exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const rawCampaign = payload.campaign && typeof payload.campaign === "object" ? payload.campaign : {};
+  const title = String(rawCampaign.title || "").trim().slice(0, 40);
+  const targetGemName = String(rawCampaign.targetGemName || "").trim().slice(0, 40);
+  const targetGemId = slugifyClassroomGemId(rawCampaign.targetGemId || targetGemName);
+  const awardLimit = Math.max(1, Math.min(10, Math.round(Number(rawCampaign.awardLimit) || 1)));
+  const icon = String(rawCampaign.icon || "🏅").trim().slice(0, 12);
+  const color = String(rawCampaign.color || "#ffcf5a").trim().slice(0, 30);
+  if (!title || !targetGemId) {
+    throw new HttpsError("invalid-argument", "Badge title and target gemstone are required.");
+  }
+
+  const classroomResult = await db.runTransaction(async transaction => {
+    const result = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, result.settings);
+    return result.settings;
+  });
+  const settings = classroomResult;
+  const campaignId = rewardLogId([
+    "badge-campaign",
+    classId,
+    title,
+    targetGemId,
+    getKstDateKey()
+  ]).slice(0, 180);
+
+  const progressSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("studentGemProgress")
+    .where("gemId", "==", targetGemId)
+    .get();
+  const candidates = progressSnapshot.docs
+    .map(doc => ({ id: doc.id, ...(doc.data() || {}) }))
+    .filter(row => String(row.memberUserId || "") && Number(row.currentXp || 0) > 0)
+    .sort((a, b) => {
+      const completedDelta = (b.completed === true ? 1 : 0) - (a.completed === true ? 1 : 0);
+      if (completedDelta) return completedDelta;
+      return Number(b.currentXp || 0) - Number(a.currentXp || 0);
+    })
+    .slice(0, awardLimit);
+
+  const batch = db.batch();
+  const campaignRef = db.collection("classrooms").doc(classId).collection("badgeCampaigns").doc(campaignId);
+  batch.set(campaignRef, {
+    campaignId,
+    classId,
+    title,
+    targetGemId,
+    targetGemName: targetGemName || targetGemId,
+    awardLimit,
+    icon,
+    color,
+    status: "awarded",
+    winnerCount: candidates.length,
+    awardedBy: adminMember.memberUserId,
+    awardedAt: FieldValue.serverTimestamp(),
+    source: "award_classroom_badge_campaign_function"
+  }, { merge: true });
+
+  candidates.forEach((winner, index) => {
+    const memberUserId = normalizeId(winner.memberUserId, "memberUserId");
+    const badgeId = `${campaignId}__${memberUserId}`;
+    const selectedBadge = {
+      badgeId,
+      type: "campaign",
+      label: title,
+      icon,
+      color
+    };
+    const badgeRef = db.collection("classrooms").doc(classId).collection("studentBadges").doc(badgeId);
+    const profileRef = db.collection("classrooms").doc(classId).collection("studentProfiles").doc(memberUserId);
+    batch.set(badgeRef, {
+      badgeId,
+      campaignId,
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      title,
+      targetGemId,
+      targetGemName: targetGemName || targetGemId,
+      icon,
+      color,
+      rank: index + 1,
+      metricValue: Number(winner.currentXp || 0),
+      awardedAt: FieldValue.serverTimestamp(),
+      awardedBy: adminMember.memberUserId,
+      source: "award_classroom_badge_campaign_function"
+    }, { merge: true });
+    batch.set(profileRef, {
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      selectedBadgeId: selectedBadge.badgeId,
+      selectedBadgeType: selectedBadge.type,
+      selectedBadgeLabel: selectedBadge.label,
+      selectedBadgeIcon: selectedBadge.icon,
+      selectedBadgeColor: selectedBadge.color,
+      selectedBadge,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "award_classroom_badge_campaign_function"
+    }, { merge: true });
+  });
+  await batch.commit();
+
+  return {
+    success: true,
+    classId,
+    className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
+    campaignId,
+    title,
+    targetGemId,
+    winners: candidates.map((winner, index) => ({
+      memberUserId: winner.memberUserId,
+      rank: index + 1,
+      metricValue: Number(winner.currentXp || 0)
+    }))
+  };
+});
+
 exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
