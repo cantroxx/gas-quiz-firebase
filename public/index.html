@@ -259,19 +259,25 @@
       </div>
 
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
-      <section class="collection-panel profile-ranking-panel" aria-labelledby="profile-ranking-heading">
-        <div class="collection-heading collection-heading-row">
-          <div>
-            <p class="eyebrow">My Ranking</p>
-            <h3 id="profile-ranking-heading">내 랭킹 기록</h3>
+      <div class="home-detail-toggle-grid" aria-label="내 집 상세 메뉴">
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="ranking" aria-expanded="false">내 랭킹 기록</button>
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="titles" aria-expanded="false">보유 칭호</button>
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="badges" aria-expanded="false">뱃지·연습 현황</button>
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="items" aria-expanded="false">보유 꾸미기 아이템</button>
+      </div>
+      <div class="home-detail-root">
+        <section class="collection-panel profile-ranking-panel home-detail-panel" data-home-detail-panel="ranking" aria-labelledby="profile-ranking-heading">
+          <div class="collection-heading collection-heading-row">
+            <div>
+              <p class="eyebrow">My Ranking</p>
+              <h3 id="profile-ranking-heading">내 랭킹 기록</h3>
+            </div>
+            <button id="profile-ranking-refresh-button" class="mini-pill-button" type="button">다시 불러오기</button>
           </div>
-          <button id="profile-ranking-refresh-button" class="mini-pill-button" type="button">다시 불러오기</button>
-        </div>
-        <div id="profile-ranking-root" class="profile-ranking-root"></div>
-      </section>
+          <div id="profile-ranking-root" class="profile-ranking-root"></div>
+        </section>
 
-      <div class="collection-layout">
-        <section class="collection-panel" aria-labelledby="title-list-heading">
+        <section class="collection-panel home-detail-panel" data-home-detail-panel="titles" aria-labelledby="title-list-heading">
           <div class="collection-heading collection-heading-row">
             <div>
               <p class="eyebrow">Titles</p>
@@ -282,7 +288,7 @@
           <div id="title-card-grid" class="collection-grid"></div>
         </section>
 
-        <section class="collection-panel" aria-labelledby="badge-list-heading">
+        <section class="collection-panel home-detail-panel" data-home-detail-panel="badges" aria-labelledby="badge-list-heading">
           <div class="collection-heading">
             <p class="eyebrow">Badges</p>
             <h3 id="badge-list-heading">뱃지·연습 현황</h3>
@@ -290,10 +296,11 @@
           <div id="badge-card-grid" class="collection-grid"></div>
         </section>
 
-        <section class="collection-panel" aria-labelledby="owned-item-heading">
+        <section class="collection-panel home-detail-panel" data-home-detail-panel="items" aria-labelledby="owned-item-heading">
           <div class="collection-heading">
             <p class="eyebrow">Room Items</p>
             <h3 id="owned-item-heading">보유 꾸미기 아이템</h3>
+            <p class="collection-note">집 관련 꾸미기는 집 꾸미기에서 관리할 수 있습니다.</p>
           </div>
           <div id="owned-item-grid" class="collection-grid"></div>
         </section>
@@ -11951,6 +11958,26 @@
       }
       if(event.target.closest('#profile-ranking-message-save-button')) {
         saveProfileRankingMessageFromHome();
+      }
+    });
+
+    document.getElementById('home-view')?.addEventListener('click', event => {
+      const homeToggle = event.target.closest('[data-home-detail-toggle]');
+      if(!homeToggle) return;
+      const key = homeToggle.dataset.homeDetailToggle || '';
+      const homeView = document.getElementById('home-view');
+      const wasActive = homeToggle.classList.contains('is-active');
+      homeView.querySelectorAll('[data-home-detail-toggle]').forEach(button => {
+        button.classList.remove('is-active');
+        button.setAttribute('aria-expanded', 'false');
+      });
+      homeView.querySelectorAll('[data-home-detail-panel]').forEach(panel => {
+        panel.classList.remove('is-active');
+      });
+      if(!wasActive) {
+        homeToggle.classList.add('is-active');
+        homeToggle.setAttribute('aria-expanded', 'true');
+        homeView.querySelector(`[data-home-detail-panel="${key}"]`)?.classList.add('is-active');
       }
     });
 
