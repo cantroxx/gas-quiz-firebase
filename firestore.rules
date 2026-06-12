@@ -24,6 +24,10 @@ service cloud.firestore {
       return recordId.split('__')[0];
     }
 
+    function classroomProgressOwnerFromId(progressId) {
+      return progressId.split('__')[0];
+    }
+
     function isAdmin() {
       return isSignedIn() && request.auth.token.admin == true;
     }
@@ -387,6 +391,79 @@ service cloud.firestore {
         && resource.data.userId == request.resource.data.userId;
     }
 
+    function hasValidClassroomQuestProgressBaseShape(classId, progressId) {
+      return isSignedIn()
+        && request.resource.data.recordId == progressId
+        && request.resource.data.classId == classId
+        && request.resource.data.memberUserId is string
+        && request.resource.data.memberUserId == classroomProgressOwnerFromId(progressId)
+        && canAccessUserScopedData(request.resource.data.memberUserId)
+        && request.resource.data.userId == request.resource.data.memberUserId
+        && request.resource.data.questId is string
+        && request.resource.data.questType is string
+        && request.resource.data.checked is bool
+        && request.resource.data.checked == true
+        && request.resource.data.status == 'student_checked'
+        && request.resource.data.rewardCoin is number
+        && request.resource.data.rewardStatus in ['pending_teacher_review', 'approved', 'rejected']
+        && request.resource.data.source == 'firebase-app'
+        && request.resource.data.version == 1
+        && (!request.resource.data.keys().hasAny(['reviewedBy']) || request.resource.data.reviewedBy is string)
+        && request.resource.data.keys().hasOnly([
+          'recordId',
+          'classId',
+          'questId',
+          'questType',
+          'memberUserId',
+          'userId',
+          'checked',
+          'status',
+          'rewardCoin',
+          'rewardStatus',
+          'reviewedBy',
+          'reviewedAt',
+          'source',
+          'version',
+          'createdAt',
+          'updatedAt'
+        ]);
+    }
+
+    function canCreateClassroomQuestProgress(classId, progressId) {
+      return hasValidClassroomQuestProgressBaseShape(classId, progressId)
+        && request.resource.data.rewardStatus == 'pending_teacher_review'
+        && !request.resource.data.keys().hasAny(['reviewedBy', 'reviewedAt']);
+    }
+
+    function canUpdateClassroomQuestProgress(classId, progressId) {
+      return hasValidClassroomQuestProgressBaseShape(classId, progressId)
+        && request.resource.data.rewardStatus == 'pending_teacher_review'
+        && resource.data.recordId == request.resource.data.recordId
+        && resource.data.classId == request.resource.data.classId
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId
+        && resource.data.questId == request.resource.data.questId;
+    }
+
+    function canReviewClassroomQuestProgress(classId, progressId) {
+      return isAdmin()
+        && hasValidClassroomQuestProgressBaseShape(classId, progressId)
+        && resource.data.recordId == request.resource.data.recordId
+        && resource.data.classId == request.resource.data.classId
+        && resource.data.memberUserId == request.resource.data.memberUserId
+        && resource.data.userId == request.resource.data.userId
+        && resource.data.questId == request.resource.data.questId
+        && resource.data.rewardStatus == 'pending_teacher_review'
+        && request.resource.data.rewardStatus in ['approved', 'rejected']
+        && request.resource.data.reviewedBy is string
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'rewardStatus',
+          'reviewedBy',
+          'reviewedAt',
+          'updatedAt'
+        ]);
+    }
+
     match /shopItems/{itemId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -511,6 +588,20 @@ service cloud.firestore {
     match /noticeBoard/{noticeId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
+    }
+
+    match /classrooms/{classId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+
+      match /questProgress/{progressId} {
+        allow read: if isSignedIn()
+          && (isAdmin() || canAccessUserScopedData(classroomProgressOwnerFromId(progressId)));
+        allow create: if canCreateClassroomQuestProgress(classId, progressId);
+        allow update: if canUpdateClassroomQuestProgress(classId, progressId)
+          || canReviewClassroomQuestProgress(classId, progressId);
+        allow delete: if false;
+      }
     }
 
     match /rankingRecords/{recordId} {

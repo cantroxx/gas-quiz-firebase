@@ -65,6 +65,30 @@ const EVENT_QUEST_DEFINITIONS = {
   }
 };
 
+const DEFAULT_CLASSROOM_SETTINGS = {
+  "G4-C8": {
+    classId: "G4-C8",
+    grade: "4",
+    classNumber: "8",
+    name: "4학년 8반",
+    entryCode: "4822",
+    quests: [
+      {
+        id: "desk-check",
+        title: "오늘 책상 정리하기",
+        desc: "수업 전후 책상과 주변을 스스로 정리합니다.",
+        questType: "수락형 · 체크형",
+        type: "수락형 · 체크형",
+        rewardMode: "auto",
+        rewardCoin: 5,
+        saveEnabled: true,
+        active: true,
+        studentAction: "완료하고 5 DJ코인 받기"
+      }
+    ]
+  }
+};
+
 const CLASS_MISSION_DEFINITIONS = [
   {
     missionId: "class_quiz_100",
@@ -635,6 +659,65 @@ function rewardLogId(parts) {
     .filter(Boolean)
     .join("__")
     .slice(0, 1400);
+}
+
+function normalizeClassroomQuest(rawQuest = {}, index = 0) {
+  const rawId = String(rawQuest.id || rawQuest.questId || "").trim();
+  const id = rawId || `quest-${index + 1}`;
+  const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(rawQuest.rewardCoin) || 0)));
+  const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
+    ? rawQuest.rewardMode
+    : "auto";
+  return {
+    id,
+    questId: id,
+    title: String(rawQuest.title || "교실 퀘스트").trim().slice(0, 60),
+    desc: String(rawQuest.desc || "").trim().slice(0, 180),
+    type: String(rawQuest.type || rawQuest.questType || "수락형 · 체크형").trim().slice(0, 40),
+    questType: String(rawQuest.questType || rawQuest.type || "수락형 · 체크형").trim().slice(0, 40),
+    rewardMode,
+    rewardCoin,
+    saveEnabled: rawQuest.saveEnabled !== false,
+    active: rawQuest.active !== false,
+    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} DJ코인 받기` : "완료 체크")).trim().slice(0, 60)
+  };
+}
+
+function normalizeClassroomSettings(classId, data = {}) {
+  const fallback = DEFAULT_CLASSROOM_SETTINGS[classId] || {
+    classId,
+    grade: "",
+    classNumber: "",
+    name: classId,
+    entryCode: "",
+    quests: []
+  };
+  const merged = { ...fallback, ...data, classId };
+  const sourceQuests = Array.isArray(data.quests) && data.quests.length ? data.quests : fallback.quests;
+  return {
+    ...merged,
+    grade: String(merged.grade || ""),
+    classNumber: String(merged.classNumber || ""),
+    quests: sourceQuests.map(normalizeClassroomQuest)
+  };
+}
+
+async function loadClassroomSettingsForTransaction(transaction, classId) {
+  const ref = db.collection("classrooms").doc(classId);
+  const snapshot = await transaction.get(ref);
+  return {
+    ref,
+    exists: snapshot.exists,
+    settings: normalizeClassroomSettings(classId, snapshot.exists ? snapshot.data() || {} : {})
+  };
+}
+
+function assertAdminCanManageClassroom(adminMember, settings) {
+  if (adminMember?.isSuperAdmin) return;
+  if (String(settings.grade || "") !== String(adminMember?.scopeGrade || "")
+    || String(settings.classNumber || "") !== String(adminMember?.scopeClassNumber || "")) {
+    throw new HttpsError("permission-denied", "Class admin cannot manage this classroom.");
+  }
 }
 
 function getKstDateKey(date = new Date()) {
@@ -2945,6 +3028,193 @@ exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
     success: true,
     memberUserId,
     questId,
+    ...result
+  };
+});
+
+exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const questId = normalizeId(payload.questId, "questId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    const settings = classroomResult.settings;
+    const quest = settings.quests.find(item => item.id === questId || item.questId === questId) || null;
+    if (!quest || quest.rewardMode !== "auto" || quest.active === false || quest.saveEnabled === false) {
+      throw new HttpsError("invalid-argument", "Unknown classroom auto quest.");
+    }
+    if (String(memberData.grade || "") !== String(settings.grade || "")
+      || String(memberData.classNumber || "") !== String(settings.classNumber || "")) {
+      throw new HttpsError("permission-denied", "Member is outside classroom scope.");
+    }
+
+    const dateKey = getKstDateKey();
+    const attemptKey = `${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+    const recordId = `${memberUserId}__${questId}__${dateKey}__${attemptKey}`;
+    const progressRef = db.collection("classrooms")
+      .doc(classId)
+      .collection("questProgress")
+      .doc(recordId);
+    const logRef = db.collection("rewardLogs").doc(rewardLogId([
+      "classroom_auto_quest",
+      classId,
+      dateKey,
+      memberUserId,
+      questId,
+      attemptKey
+    ]));
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+
+    const [progressSnapshot, logSnapshot] = await Promise.all([
+      transaction.get(progressRef),
+      transaction.get(logRef)
+    ]);
+
+    if (progressSnapshot.exists || logSnapshot.exists) {
+      return {
+        duplicate: true,
+        rewardCoin: 0,
+        dateKey,
+        recordId,
+        progressPath: progressRef.path,
+        rewardLogPath: logRef.path,
+        economyPath: economyRef.path
+      };
+    }
+
+    transaction.set(progressRef, {
+      recordId,
+      classId,
+      questId,
+      questTitle: quest.title,
+      questType: quest.questType || quest.type,
+      rewardMode: quest.rewardMode,
+      memberUserId,
+      userId: memberUserId,
+      checked: true,
+      status: "completed",
+      rewardCoin: quest.rewardCoin,
+      rewardStatus: "paid",
+      dateKey,
+      source: "classroom_auto_quest_function",
+      version: 2,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      rewardedAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      djCoin: FieldValue.increment(quest.rewardCoin),
+      totalEarned: FieldValue.increment(quest.rewardCoin),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
+      source: "classroom_auto_quest_function"
+    }, { merge: true });
+    transaction.set(logRef, {
+      type: "classroom_auto_quest",
+      classId,
+      questId,
+      questTitle: quest.title,
+      dateKey,
+      attemptKey,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCoin: quest.rewardCoin,
+      progressPath: progressRef.path,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      duplicate: false,
+      rewardCoin: quest.rewardCoin,
+      dateKey,
+      recordId,
+      progressPath: progressRef.path,
+      rewardLogPath: logRef.path,
+      economyPath: economyRef.path
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    classId,
+    questId,
+    ...result
+  };
+});
+
+exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const rawQuest = payload.quest && typeof payload.quest === "object" ? payload.quest : {};
+  const title = String(rawQuest.title || "").trim();
+  if (!title) {
+    throw new HttpsError("invalid-argument", "Quest title is required.");
+  }
+  const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(rawQuest.rewardCoin) || 0)));
+  if (rewardCoin <= 0) {
+    throw new HttpsError("invalid-argument", "Quest rewardCoin must be positive.");
+  }
+  const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
+    ? rawQuest.rewardMode
+    : "auto";
+  const questId = String(rawQuest.id || rawQuest.questId || `class-quest-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
+    .trim()
+    .replace(/[^0-9A-Za-z_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  if (!questId) {
+    throw new HttpsError("invalid-argument", "Quest id is invalid.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    const settings = classroomResult.settings;
+    assertAdminCanManageClassroom(adminMember, settings);
+    const quest = normalizeClassroomQuest({
+      id: questId,
+      title,
+      desc: rawQuest.desc || "",
+      type: rawQuest.type || "수락형 · 체크형",
+      questType: rawQuest.questType || rawQuest.type || "수락형 · 체크형",
+      rewardMode,
+      rewardCoin,
+      saveEnabled: rawQuest.saveEnabled !== false,
+      active: rawQuest.active !== false,
+      studentAction: rawQuest.studentAction || ""
+    });
+    const nextQuests = settings.quests.filter(item => item.id !== quest.id && item.questId !== quest.id);
+    nextQuests.push(quest);
+    transaction.set(classroomResult.ref, {
+      classId,
+      grade: settings.grade,
+      classNumber: settings.classNumber,
+      name: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
+      entryCode: settings.entryCode || "",
+      teacherName: settings.teacherName || "",
+      teacherScope: settings.teacherScope || `${settings.grade}학년 ${settings.classNumber}반`,
+      quests: nextQuests,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_quest_function"
+    }, { merge: true });
+    return { quest, questCount: nextQuests.length };
+  });
+
+  return {
+    success: true,
+    classId,
     ...result
   };
 });

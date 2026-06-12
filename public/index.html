@@ -196,6 +196,16 @@
           <span class="place-tag">순위</span>
         </button>
 
+        <button class="place classroom" type="button" data-place="classroom">
+          <span class="place-art building classroom-building" aria-hidden="true">
+            <span class="roof"></span>
+            <span class="wall"></span>
+            <span class="door"></span>
+          </span>
+          <span class="place-name">우리 교실</span>
+          <span class="place-tag">학급</span>
+        </button>
+
         <button class="place event" type="button" data-place="event">
           <span class="place-art tent-building" aria-hidden="true">
             <span class="tent-top"></span>
@@ -214,6 +224,7 @@
         <button type="button" data-place="notice">알림판</button>
         <button type="button" data-place="home">내 집</button>
         <button type="button" data-place="school">학교</button>
+        <button type="button" data-place="classroom">우리 교실</button>
         <button type="button" data-place="shop">상점</button>
         <button type="button" data-place="ranking">랭킹 광장</button>
         <button type="button" data-place="event">이벤트 광장</button>
@@ -359,6 +370,127 @@
       </section>
     </section>
 
+    <section id="classroom-view" class="classroom-view app-view" aria-labelledby="classroom-title" hidden>
+      <div class="classroom-topbar">
+        <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
+        <div>
+          <p class="eyebrow">Our Classroom</p>
+          <h2 id="classroom-title">4학년 8반 우리 교실</h2>
+          <p>퀘스트와 성장루틴을 통해 퀴즈 활동을 DJ코인과 연결하는 실험 공간입니다.</p>
+        </div>
+      </div>
+
+      <section id="classroom-gate-panel" class="classroom-gate-panel" aria-labelledby="classroom-gate-heading">
+        <div>
+          <p class="eyebrow">Prototype Gate</p>
+          <h3 id="classroom-gate-heading">교실 비밀번호 입력</h3>
+          <p>현재는 4학년 8반 전용 프로토타입입니다. 실제 운영 권한과 저장은 다음 단계에서 연결합니다.</p>
+        </div>
+        <form id="classroom-entry-form" class="classroom-entry-form">
+          <label>
+            교실 비밀번호
+            <input id="classroom-entry-code" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호">
+          </label>
+          <button class="button primary" type="submit">우리 교실 입장</button>
+        </form>
+        <p id="classroom-entry-status" class="classroom-entry-status" aria-live="polite"></p>
+      </section>
+
+      <section id="classroom-main-panel" class="classroom-main-panel" hidden>
+        <div class="classroom-summary-grid" aria-label="교실 요약">
+          <article>
+            <span>교실</span>
+            <strong>4학년 8반</strong>
+          </article>
+          <article>
+            <span>오늘 퀘스트</span>
+            <strong id="classroom-summary-quest-count">3개</strong>
+          </article>
+          <article>
+            <span>성장루틴</span>
+            <strong>2개</strong>
+          </article>
+          <article>
+            <span>보상</span>
+            <strong>DJ코인</strong>
+          </article>
+        </div>
+
+        <div class="classroom-role-grid" aria-label="교실 운영 상태">
+          <article class="classroom-role-card teacher">
+            <p class="eyebrow">Teacher</p>
+            <h3>담임 관리 영역</h3>
+            <p id="classroom-teacher-state">4학년 8반 담임 권한과 퀘스트 설정 UI를 연결할 예정입니다.</p>
+          </article>
+          <article class="classroom-role-card student">
+            <p class="eyebrow">Student</p>
+            <h3>학생 수행 영역</h3>
+            <p id="classroom-student-state">학생은 체크형 퀘스트를 완료 후보로 저장할 수 있습니다. 보상 지급은 아직 대기 상태입니다.</p>
+          </article>
+        </div>
+
+        <section id="classroom-teacher-review-panel" class="classroom-teacher-review-panel" aria-labelledby="classroom-review-heading" hidden>
+          <div class="classroom-quest-editor">
+            <div class="event-section-heading">
+              <p class="eyebrow">Quest Builder</p>
+              <h3>퀘스트 만들기</h3>
+            </div>
+            <form id="classroom-quest-form" class="classroom-quest-form">
+              <label>
+                퀘스트 이름
+                <input id="classroom-quest-title-input" type="text" maxlength="60" placeholder="예: 책상 정리 1회">
+              </label>
+              <label>
+                설명
+                <input id="classroom-quest-desc-input" type="text" maxlength="180" placeholder="학생에게 보일 설명">
+              </label>
+              <label>
+                지급 코인
+                <input id="classroom-quest-coin-input" type="number" min="1" max="1000" inputmode="numeric" value="5">
+              </label>
+              <label>
+                보상 방식
+                <select id="classroom-quest-mode-input">
+                  <option value="auto">학생 완료 즉시 지급</option>
+                  <option value="teacherReview">담임 확인 후 지급</option>
+                  <option value="quizAchieved">퀴즈 달성형</option>
+                </select>
+              </label>
+              <button class="button primary" type="submit">퀘스트 저장</button>
+            </form>
+            <p id="classroom-quest-editor-status" class="classroom-review-status" aria-live="polite"></p>
+          </div>
+          <div class="event-section-heading">
+            <p class="eyebrow">Teacher Review</p>
+            <h3 id="classroom-review-heading">담임 확인 대기</h3>
+          </div>
+          <p id="classroom-review-status" class="classroom-review-status" aria-live="polite"></p>
+          <div id="classroom-review-grid" class="classroom-review-grid"></div>
+        </section>
+
+        <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
+          <button class="classroom-tab is-active" type="button" data-classroom-tab="quests" role="tab" aria-selected="true">퀘스트</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="routines" role="tab" aria-selected="false">성장루틴</button>
+        </div>
+
+        <section class="classroom-panel is-active" data-classroom-panel="quests" aria-labelledby="classroom-quest-heading">
+          <div class="event-section-heading">
+            <p class="eyebrow">Classroom Quests</p>
+            <h3 id="classroom-quest-heading">교실 퀘스트</h3>
+          </div>
+          <div id="classroom-quest-grid" class="classroom-card-grid"></div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="routines" aria-labelledby="classroom-routine-heading">
+          <div class="event-section-heading">
+            <p class="eyebrow">Growth Routines</p>
+            <h3 id="classroom-routine-heading">성장루틴</h3>
+          </div>
+          <div id="classroom-routine-grid" class="classroom-card-grid"></div>
+        </section>
+      </section>
+    </section>
+
     <section id="admin-view" class="admin-view app-view" aria-labelledby="admin-title" hidden>
       <div class="event-topbar">
         <div>
@@ -366,11 +498,15 @@
           <h2 id="admin-title">관리자 센터</h2>
           <p>회원 상태, 비밀번호, 브라우저 연결을 관리합니다.</p>
         </div>
-        <button class="back-to-town" type="button" data-admin-logout>로그아웃</button>
+        <div class="admin-topbar-actions">
+          <button class="button secondary" type="button" data-admin-open-town>타운으로 가기</button>
+          <button class="back-to-town" type="button" data-admin-logout>로그아웃</button>
+        </div>
       </div>
 
       <div class="admin-section-tabs" aria-label="관리자 메뉴">
         <button class="admin-section-tab is-active" type="button" data-admin-section-target="dashboard">대시보드</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="classroom">우리 교실</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="audit" data-super-admin-only>운영 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="quiz-quality" data-super-admin-only>문제 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
@@ -397,6 +533,24 @@
           <p id="admin-dashboard-status" class="admin-status" aria-live="polite"></p>
           <div id="admin-dashboard-grid" class="admin-dashboard-grid"></div>
           <div id="admin-dashboard-recent" class="admin-dashboard-recent"></div>
+        </div>
+      </section>
+
+      <section id="admin-section-classroom" class="admin-section" aria-labelledby="admin-classroom-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="classroom" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Classroom</span>
+            <strong id="admin-classroom-heading">우리 교실 관리</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-notice-actions">
+            <button id="admin-classroom-refresh" class="button secondary" type="button">새로고침</button>
+            <button class="button primary" type="button" data-admin-open-classroom>교실 화면으로 이동</button>
+          </div>
+          <p id="admin-classroom-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-classroom-review-grid" class="classroom-review-grid"></div>
         </div>
       </section>
 
@@ -958,6 +1112,21 @@
           { label: '학교 입장하기', enabled: true, action: 'openSchool' }
         ]
       },
+      classroom: {
+        icon: '🏫',
+        title: '우리 교실',
+        kicker: 'Our Classroom',
+        desc: '4학년 8반 전용 퀘스트와 성장루틴을 실험하는 공간입니다.',
+        summary: '담임 권한, 교실 비밀번호, 퀘스트, 성장루틴, 교실 전용 미니퀴즈를 단계적으로 검증합니다.',
+        features: [
+          { label: '퀘스트', value: '수락형/달성형 교실 미션' },
+          { label: '성장루틴', value: '학생 목표 달성 보상' },
+          { label: '학급화폐', value: 'DJ코인과 교실 활동 연결' }
+        ],
+        actions: [
+          { label: '우리 교실 입장하기', enabled: true, action: 'openClassroom' }
+        ]
+      },
       shop: {
         icon: '🛍️',
         title: '상점',
@@ -1031,6 +1200,67 @@
         titleFrame: 250,
         rareSeasonItemMin: 500
       }
+    };
+
+    const CLASSROOM_PROTOTYPE = {
+      classId: 'G4-C8',
+      grade: '4',
+      classNumber: '8',
+      name: '4학년 8반',
+      entryCode: '4822',
+      teacherName: '담임 설정 예정',
+      teacherScope: '4학년 8반',
+      quests: [
+        {
+          id: 'desk-check',
+          type: '수락형 · 체크형',
+          title: '오늘 책상 정리하기',
+          desc: '수업 전후 책상과 주변을 스스로 정리합니다.',
+          rewardMode: 'auto',
+          rewardCoin: 5,
+          status: '완료 체크 시 즉시 지급',
+          studentAction: '완료하고 5 DJ코인 받기',
+          saveEnabled: true
+        },
+        {
+          id: 'kindness-list',
+          type: '수락형 · 리스트형',
+          title: '친절 미션 3단계',
+          desc: '인사하기, 도와주기, 고마움 표현하기를 순서대로 체크합니다.',
+          rewardMode: 'teacherReview',
+          rewardCoin: 10,
+          status: '리스트 3개 모두 체크 시 완료',
+          studentAction: '리스트 연결 예정',
+          saveEnabled: false
+        },
+        {
+          id: 'korean-mini',
+          type: '달성형 · 미니퀴즈',
+          title: '국어 10문제 미니 퀴즈',
+          desc: '우리 교실에서만 운영되는 국어 미니 퀴즈입니다. 랭킹에는 반영하지 않습니다.',
+          rewardMode: 'quizAchieved',
+          rewardCoin: 15,
+          status: '퀴즈 완료 데이터와 연동 예정',
+          studentAction: '미니퀴즈 연결 예정',
+          saveEnabled: false
+        }
+      ],
+      routines: [
+        {
+          id: 'reading-10',
+          title: '매일 독서 10분',
+          desc: '하루 한 번 체크하고 7일 달성을 목표로 합니다.',
+          progress: '3/7일',
+          rewardCoin: 10
+        },
+        {
+          id: 'planner',
+          title: '내일 준비 루틴',
+          desc: '알림장 확인, 준비물 챙기기, 가방 정리를 체크합니다.',
+          progress: '1/3단계',
+          rewardCoin: 5
+        }
+      ]
     };
 
     const MAX_RANKING_ELAPSED_SECONDS = 20 * 60;
@@ -1244,6 +1474,11 @@
     let firebaseStorageInstance = null;
     let eventProgressCache = null;
     let eventProgressLoadPromise = null;
+    let classroomSettingsCache = null;
+    let classroomProgressCache = null;
+    let classroomProgressLoadPromise = null;
+    let classroomReviewCache = null;
+    let classroomReviewLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -2169,6 +2404,8 @@
           await renderShopFromFirestore();
         } else if(!document.getElementById('event-view')?.hidden) {
           await renderEventProgressFromFunctions(true);
+        } else if(!document.getElementById('classroom-view')?.hidden) {
+          await renderClassroomPrototype(true);
         } else if(!document.getElementById('school-view')?.hidden) {
           renderSchoolQuizCards();
         } else if(!document.getElementById('subject-view')?.hidden) {
@@ -2197,6 +2434,10 @@
       }
       if(placeId === 'school') {
         showSchoolView();
+        return;
+      }
+      if(placeId === 'classroom') {
+        showClassroomView(false);
         return;
       }
       if(placeId === 'ranking') {
@@ -3987,7 +4228,7 @@
           const userKey = getRankingRecordUserKey(record);
           const categoryKey = getRankingCategoryKey(record);
           if(!userKey) return;
-          const key = `${categoryKey}::${getRankingRecordGroupMode(record, allowedModes)}::${userKey}`;
+          const key = `${categoryKey}::${userKey}`;
           const current = bestByUserAndCategory.get(key);
           if(isBetterCategoryRankingRecord(record, current)) bestByUserAndCategory.set(key, record);
         });
@@ -5552,9 +5793,16 @@
       };
     }
 
+    function isImagePromptQuestion(question) {
+      const category = String(question.category || '').trim();
+      const prompt = String(question.prompt || question.question || '').trim();
+      return category === '티니핑' || /^https?:\/\//i.test(prompt);
+    }
+
     function buildFirestoreQuestion(question) {
       const questionType = String(question.questionType || '').trim();
       if(questionType === 'imageInput') return buildImageInputQuestion(question);
+      if(isImagePromptQuestion(question) && question.answer) return buildImageInputQuestion(question);
       if(questionType === 'input' || questionType === 'textInput') return buildInputQuestion(question);
       if(questionType === 'readingMultipleChoice' || questionType === 'sheetMultipleChoice4') return buildChoiceQuestion(question);
       if(Array.isArray(question.choices) && question.choices.length) return buildChoiceQuestion(question);
@@ -5698,6 +5946,9 @@
         studentNumber: data.studentNumber || '',
         nickname: data.nickname || '',
         role: data.role || 'student',
+        adminLevel: data.adminLevel || '',
+        adminScopeGrade: data.adminScopeGrade || '',
+        adminScopeClassNumber: data.adminScopeClassNumber || '',
         status: data.status || 'active',
         active: data.active === true,
         profileImageUrl: data.profileImageUrl || '',
@@ -5783,6 +6034,10 @@
     function resetUserScopedRuntimeData() {
       resetShopRuntimeData();
       resetRoomSettingsCache();
+      classroomProgressCache = null;
+      classroomProgressLoadPromise = null;
+      classroomReviewCache = null;
+      classroomReviewLoadPromise = null;
       userDataMigrationPromise = null;
     }
 
@@ -6977,6 +7232,511 @@
       renderSeasonEvents(SEASON_EVENT_DATA);
     }
 
+    function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
+      const id = String(rawQuest.id || rawQuest.questId || `quest-${index + 1}`).trim();
+      const rewardCoin = Math.max(0, Math.round(Number(rawQuest.rewardCoin) || 0));
+      const rewardMode = ['auto', 'teacherReview', 'quizAchieved'].includes(rawQuest.rewardMode) ? rawQuest.rewardMode : 'auto';
+      return {
+        id,
+        questId: id,
+        type: String(rawQuest.type || rawQuest.questType || '수락형 · 체크형').trim(),
+        title: String(rawQuest.title || '교실 퀘스트').trim(),
+        desc: String(rawQuest.desc || '').trim(),
+        rewardMode,
+        rewardCoin,
+        status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
+        studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} DJ코인 받기` : '완료 체크')).trim(),
+        saveEnabled: rawQuest.saveEnabled !== false,
+        active: rawQuest.active !== false
+      };
+    }
+
+    function normalizeClassroomSettings(data = {}) {
+      const quests = Array.isArray(data.quests) && data.quests.length ? data.quests : CLASSROOM_PROTOTYPE.quests;
+      return {
+        ...CLASSROOM_PROTOTYPE,
+        ...data,
+        quests: quests.map(normalizeClassroomQuestConfig),
+        routines: CLASSROOM_PROTOTYPE.routines
+      };
+    }
+
+    async function loadClassroomSettings(forceRefresh = false) {
+      if(classroomSettingsCache && !forceRefresh) return classroomSettingsCache;
+      const db = getFirestoreDb();
+      if(!db) {
+        classroomSettingsCache = normalizeClassroomSettings();
+        return classroomSettingsCache;
+      }
+      try {
+        const snapshot = await db.collection('classrooms').doc(CLASSROOM_PROTOTYPE.classId).get();
+        classroomSettingsCache = normalizeClassroomSettings(snapshot.exists ? snapshot.data() : {});
+      } catch(error) {
+        console.warn('Classroom settings load failed. Using prototype fallback.', error);
+        classroomSettingsCache = normalizeClassroomSettings();
+      }
+      return classroomSettingsCache;
+    }
+
+    function buildClassroomQuestProgressId(memberUserId, questId, dateKey = '') {
+      return dateKey ? `${memberUserId}__${questId}__${dateKey}` : `${memberUserId}__${questId}`;
+    }
+
+    function isCurrentClassroomTeacher(settings = CLASSROOM_PROTOTYPE) {
+      const profile = currentMemberProfile || {};
+      if(profile.role !== 'admin') return false;
+      const adminLevel = String(profile.adminLevel || '').toLowerCase();
+      if(['superadmin', 'fulladmin'].includes(adminLevel)) return true;
+      if(adminLevel !== 'classadmin') return false;
+      return String(profile.adminScopeGrade || profile.grade || '') === String(settings.grade || '')
+        && String(profile.adminScopeClassNumber || profile.classNumber || '') === String(settings.classNumber || '');
+    }
+
+    async function loadClassroomQuestProgress(forceRefresh = false) {
+      if(classroomProgressCache && !forceRefresh) return classroomProgressCache;
+      if(classroomProgressLoadPromise && !forceRefresh) return classroomProgressLoadPromise;
+      if(!currentMemberUserId) {
+        classroomProgressCache = {};
+        return classroomProgressCache;
+      }
+      const db = getFirestoreDb();
+      if(!db) {
+        classroomProgressCache = {};
+        return classroomProgressCache;
+      }
+      const settings = await loadClassroomSettings();
+      const saveEnabledQuests = settings.quests.filter(quest => quest.saveEnabled && quest.rewardMode !== 'auto');
+      classroomProgressLoadPromise = Promise.all(saveEnabledQuests.map(async quest => {
+        const recordId = buildClassroomQuestProgressId(
+          currentMemberUserId,
+          quest.id
+        );
+        const snapshot = await db.collection('classrooms')
+          .doc(settings.classId)
+          .collection('questProgress')
+          .doc(recordId)
+          .get()
+          .catch(() => null);
+        return [quest.id, snapshot?.exists ? snapshot.data() : null];
+      })).then(entries => {
+        classroomProgressCache = Object.fromEntries(entries.filter(([, data]) => !!data));
+        return classroomProgressCache;
+      }).finally(() => {
+        classroomProgressLoadPromise = null;
+      });
+      return classroomProgressLoadPromise;
+    }
+
+    async function loadClassroomReviewItems(settings, forceRefresh = false) {
+      if(!isCurrentClassroomTeacher(settings)) return [];
+      if(classroomReviewCache && !forceRefresh) return classroomReviewCache;
+      if(classroomReviewLoadPromise && !forceRefresh) return classroomReviewLoadPromise;
+      const db = getFirestoreDb();
+      if(!db) return [];
+      classroomReviewLoadPromise = db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('questProgress')
+        .where('rewardStatus', '==', 'pending_teacher_review')
+        .get()
+        .then(snapshot => {
+          classroomReviewCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          return classroomReviewCache;
+        })
+        .catch(error => {
+          console.warn('Classroom review items load failed.', error);
+          classroomReviewCache = [];
+          return classroomReviewCache;
+        })
+        .finally(() => {
+          classroomReviewLoadPromise = null;
+        });
+      return classroomReviewLoadPromise;
+    }
+
+    function getClassroomQuestTitle(settings, questId) {
+      const quest = settings.quests.find(item => item.id === questId);
+      return quest?.title || questId || '교실 퀘스트';
+    }
+
+    function getClassroomProgressStatusLabel(progress) {
+      if(!progress) return '';
+      if(progress.rewardStatus === 'paid') return '지급 완료';
+      if(progress.rewardStatus === 'approved') return '담임 승인됨';
+      if(progress.rewardStatus === 'rejected') return '담임 반려됨';
+      return '완료 후보 저장됨';
+    }
+
+    function getClassroomProgressButtonLabel(progress) {
+      if(!progress) return '';
+      if(progress.rewardStatus === 'paid') return '오늘 지급 완료';
+      if(progress.rewardStatus === 'approved') return '승인 완료';
+      if(progress.rewardStatus === 'rejected') return '반려됨';
+      return '저장 완료';
+    }
+
+    function getClassroomProgressStatusClass(progress) {
+      if(progress?.rewardStatus === 'paid') return 'quest-status-claimed';
+      if(progress?.rewardStatus === 'approved') return 'quest-status-claimed';
+      if(progress?.rewardStatus === 'rejected') return 'quest-status-waiting';
+      return 'quest-status-ready';
+    }
+
+    function renderClassroomReviewList(settings, reviewItems = [], options = {}) {
+      const status = document.getElementById(options.statusId || 'classroom-review-status');
+      const grid = document.getElementById(options.gridId || 'classroom-review-grid');
+      if(!status || !grid) return;
+
+      const canReview = isCurrentClassroomTeacher(settings);
+      grid.innerHTML = '';
+      if(!canReview) {
+        status.textContent = '담임 권한이 있어야 확인 대기 목록을 볼 수 있습니다.';
+        return;
+      }
+
+      if(!reviewItems.length) {
+        status.textContent = '현재 확인 대기 중인 퀘스트가 없습니다.';
+        return;
+      }
+
+      status.textContent = `${reviewItems.length}건이 담임 확인을 기다리고 있습니다.`;
+      reviewItems.forEach(item => {
+        const card = document.createElement('article');
+        const title = document.createElement('h4');
+        const meta = document.createElement('p');
+        const state = document.createElement('span');
+        const actions = document.createElement('div');
+        const approveButton = document.createElement('button');
+        const rejectButton = document.createElement('button');
+        card.className = 'classroom-review-card';
+        title.textContent = getClassroomQuestTitle(settings, item.questId);
+        meta.textContent = `${item.memberUserId || '-'} · 보상 예정 ${Number(item.rewardCoin || 0)} DJ코인`;
+        state.className = 'quest-status quest-status-ready';
+        state.textContent = '확인 대기';
+        actions.className = 'classroom-review-actions';
+        approveButton.className = 'quest-claim-button';
+        approveButton.type = 'button';
+        approveButton.dataset.classroomReviewAction = 'approved';
+        approveButton.dataset.classroomReviewId = item.recordId || item.id || '';
+        approveButton.textContent = '승인';
+        rejectButton.className = 'quest-claim-button danger';
+        rejectButton.type = 'button';
+        rejectButton.dataset.classroomReviewAction = 'rejected';
+        rejectButton.dataset.classroomReviewId = item.recordId || item.id || '';
+        rejectButton.textContent = '반려';
+        actions.append(approveButton, rejectButton);
+        card.append(title, meta, state, actions);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderClassroomReviewPanel(settings, reviewItems = []) {
+      const panel = document.getElementById('classroom-teacher-review-panel');
+      if(!panel) return;
+      panel.hidden = !isCurrentClassroomTeacher(settings);
+      if(panel.hidden) return;
+      renderClassroomReviewList(settings, reviewItems, {
+        statusId: 'classroom-review-status',
+        gridId: 'classroom-review-grid'
+      });
+    }
+
+    async function renderAdminClassroomReview(forceRefresh = false) {
+      const settings = await loadClassroomSettings(forceRefresh);
+      const reviewItems = await loadClassroomReviewItems(settings, forceRefresh);
+      renderClassroomReviewList(settings, reviewItems, {
+        statusId: 'admin-classroom-status',
+        gridId: 'admin-classroom-review-grid'
+      });
+    }
+
+    function renderClassroomRoleState(settings) {
+      const teacherState = document.getElementById('classroom-teacher-state');
+      const studentState = document.getElementById('classroom-student-state');
+      const questCount = document.getElementById('classroom-summary-quest-count');
+      if(questCount) {
+        questCount.textContent = `${settings.quests.filter(quest => quest.active !== false).length}개`;
+      }
+      if(teacherState) {
+        teacherState.textContent = isCurrentClassroomTeacher(settings)
+          ? `${settings.teacherScope || settings.name} 담임 권한으로 완료 후보를 확인할 수 있습니다. 현재 담임: ${settings.teacherName || '담임 설정 예정'}`
+          : `${settings.teacherScope || settings.name} 담임 권한과 퀘스트 설정 UI를 연결할 예정입니다. 현재 담임: ${settings.teacherName || '담임 설정 예정'}`;
+      }
+      if(studentState) {
+        studentState.textContent = currentMemberUserId
+          ? '학생은 체크형 퀘스트를 완료 후보로 저장할 수 있습니다. 보상 지급은 아직 대기 상태입니다.'
+          : '회원 연결 후 체크형 퀘스트 저장을 확인할 수 있습니다.';
+      }
+    }
+
+    function renderClassroomQuestCards(settings = CLASSROOM_PROTOTYPE, progressMap = {}) {
+      const grid = document.getElementById('classroom-quest-grid');
+      if(!grid) return;
+      grid.innerHTML = '';
+      settings.quests.filter(quest => quest.active !== false).forEach(quest => {
+        const progress = progressMap[quest.id] || null;
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        const reward = document.createElement('p');
+        const status = document.createElement('span');
+        const button = document.createElement('button');
+        card.className = 'classroom-card';
+        card.dataset.classroomQuestId = quest.id;
+        badge.className = 'classroom-card-badge';
+        badge.textContent = quest.type;
+        title.textContent = quest.title;
+        desc.textContent = quest.desc;
+        reward.className = 'classroom-card-reward';
+        reward.textContent = `예상 보상: ${quest.rewardCoin} DJ코인`;
+        status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
+        status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
+        button.className = 'quest-claim-button';
+        button.type = 'button';
+        button.dataset.classroomQuestAction = quest.id;
+        button.disabled = !quest.saveEnabled || !!progress;
+        button.textContent = progress ? getClassroomProgressButtonLabel(progress) : (quest.studentAction || '저장 연결 예정');
+        card.append(badge, title, desc, reward, status, button);
+        grid.appendChild(card);
+      });
+    }
+
+    function renderClassroomRoutineCards() {
+      const grid = document.getElementById('classroom-routine-grid');
+      if(!grid) return;
+      grid.innerHTML = '';
+      CLASSROOM_PROTOTYPE.routines.forEach(routine => {
+        const card = document.createElement('article');
+        const badge = document.createElement('span');
+        const title = document.createElement('h4');
+        const desc = document.createElement('p');
+        const progress = document.createElement('p');
+        const reward = document.createElement('p');
+        const button = document.createElement('button');
+        card.className = 'classroom-card';
+        badge.className = 'classroom-card-badge';
+        badge.textContent = '학생 설정형';
+        title.textContent = routine.title;
+        desc.textContent = routine.desc;
+        progress.className = 'classroom-card-progress';
+        progress.textContent = `진행도 ${routine.progress}`;
+        reward.className = 'classroom-card-reward';
+        reward.textContent = `달성 보상: ${routine.rewardCoin} DJ코인`;
+        button.className = 'quest-claim-button';
+        button.type = 'button';
+        button.disabled = true;
+        button.textContent = '오늘 체크 준비 중';
+        card.append(badge, title, desc, progress, reward, button);
+        grid.appendChild(card);
+      });
+    }
+
+    async function renderClassroomPrototype(forceRefresh = false) {
+      const settings = await loadClassroomSettings(forceRefresh);
+      const progressMap = await loadClassroomQuestProgress(forceRefresh);
+      const reviewItems = await loadClassroomReviewItems(settings, forceRefresh);
+      renderClassroomRoleState(settings);
+      renderClassroomReviewPanel(settings, reviewItems);
+      renderClassroomQuestCards(settings, progressMap);
+      renderClassroomRoutineCards();
+    }
+
+    function setClassroomQuestEditorStatus(message, isError = false) {
+      const status = document.getElementById('classroom-quest-editor-status');
+      if(!status) return;
+      status.textContent = message || '';
+      status.classList.toggle('is-error', !!isError);
+    }
+
+    function getClassroomQuestFormValues() {
+      const title = String(document.getElementById('classroom-quest-title-input')?.value || '').trim();
+      const desc = String(document.getElementById('classroom-quest-desc-input')?.value || '').trim();
+      const rewardCoin = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-coin-input')?.value) || 0));
+      const rewardMode = String(document.getElementById('classroom-quest-mode-input')?.value || 'auto').trim();
+      return { title, desc, rewardCoin, rewardMode };
+    }
+
+    function resetClassroomQuestForm() {
+      const title = document.getElementById('classroom-quest-title-input');
+      const desc = document.getElementById('classroom-quest-desc-input');
+      const coin = document.getElementById('classroom-quest-coin-input');
+      const mode = document.getElementById('classroom-quest-mode-input');
+      if(title) title.value = '';
+      if(desc) desc.value = '';
+      if(coin) coin.value = '5';
+      if(mode) mode.value = 'auto';
+    }
+
+    async function saveClassroomQuestFromForm(event) {
+      event?.preventDefault();
+      const settings = await loadClassroomSettings();
+      if(!isCurrentClassroomTeacher(settings)) {
+        setClassroomQuestEditorStatus('담임 권한이 있어야 퀘스트를 만들 수 있습니다.', true);
+        return;
+      }
+      const values = getClassroomQuestFormValues();
+      if(!values.title) {
+        setClassroomQuestEditorStatus('퀘스트 이름을 입력해 주세요.', true);
+        return;
+      }
+      if(values.rewardCoin <= 0) {
+        setClassroomQuestEditorStatus('지급 코인은 1 이상이어야 합니다.', true);
+        return;
+      }
+      const functions = getFirebaseFunctions();
+      if(!functions) {
+        setClassroomQuestEditorStatus('퀘스트 저장 기능을 불러오지 못했습니다.', true);
+        return;
+      }
+      setClassroomQuestEditorStatus('퀘스트를 저장하는 중입니다.');
+      try {
+        const callable = functions.httpsCallable('saveClassroomQuest');
+        await callable({
+          classId: settings.classId,
+          quest: {
+            title: values.title,
+            desc: values.desc,
+            rewardCoin: values.rewardCoin,
+            rewardMode: values.rewardMode,
+            type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
+          }
+        });
+        classroomSettingsCache = null;
+        classroomProgressCache = null;
+        classroomReviewCache = null;
+        resetClassroomQuestForm();
+        setClassroomQuestEditorStatus('퀘스트를 저장했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest save failed.', error);
+        setClassroomQuestEditorStatus('퀘스트 저장 중 문제가 생겼습니다.', true);
+      }
+    }
+
+    async function completeClassroomCheckQuest(questId) {
+      const settings = await loadClassroomSettings();
+      const quest = settings.quests.find(item => item.id === questId);
+      if(!quest?.saveEnabled) return;
+      if(!currentMemberUserId) {
+        window.alert('회원 연결 후 교실 퀘스트를 저장할 수 있어요.');
+        return;
+      }
+      const functions = getFirebaseFunctions();
+      if(quest.rewardMode === 'auto' && !functions) {
+        window.alert('교실 퀘스트 보상 기능을 불러오지 못했어요.');
+        return;
+      }
+      const db = getFirestoreDb();
+
+      const button = document.querySelector(`[data-classroom-quest-action="${questId}"]`);
+      if(button) {
+        button.disabled = true;
+        button.textContent = quest.rewardMode === 'auto' ? '지급 중...' : '저장 중...';
+      }
+
+      try {
+        if(quest.rewardMode === 'auto') {
+          const callable = functions.httpsCallable('completeClassroomAutoQuest');
+          const response = await callable({
+            memberUserId: currentMemberUserId,
+            classId: settings.classId,
+            questId
+          });
+          const result = response?.data || {};
+          classroomProgressCache = null;
+          firestoreUserEconomy = null;
+          userEconomyLoadPromise = null;
+          await renderClassroomPrototype(true);
+          if(result.duplicate) {
+            window.alert('오늘 이미 완료한 퀘스트예요.');
+          } else {
+            window.alert(`${Number(result.rewardCoin || quest.rewardCoin || 0)} DJ코인을 받았어요.`);
+          }
+          return;
+        }
+
+        if(!db) {
+          window.alert('교실 퀘스트 저장 기능을 불러오지 못했어요.');
+          return;
+        }
+        const fieldValue = getFirestoreFieldValue();
+        const recordId = buildClassroomQuestProgressId(currentMemberUserId, questId);
+        await db.collection('classrooms')
+          .doc(settings.classId)
+          .collection('questProgress')
+          .doc(recordId)
+          .set({
+            recordId,
+            classId: settings.classId,
+            questId,
+            questType: quest.type || '수락형 · 체크형',
+            memberUserId: currentMemberUserId,
+            userId: currentMemberUserId,
+            checked: true,
+            status: 'student_checked',
+            rewardCoin: Number(quest.rewardCoin) || 0,
+            rewardStatus: 'pending_teacher_review',
+            source: 'firebase-app',
+            version: 1,
+            createdAt: fieldValue.serverTimestamp(),
+            updatedAt: fieldValue.serverTimestamp()
+          }, { merge: true });
+        classroomProgressCache = null;
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest progress save failed.', error);
+        window.alert('교실 퀘스트 저장 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.');
+        if(button) {
+          button.disabled = false;
+          button.textContent = quest.studentAction || '완료 체크';
+        }
+      }
+    }
+
+    async function reviewClassroomQuestProgress(recordId, nextStatus) {
+      if(!recordId || !['approved', 'rejected'].includes(nextStatus)) return;
+      const settings = await loadClassroomSettings();
+      if(!isCurrentClassroomTeacher(settings)) {
+        window.alert('담임 권한이 있어야 처리할 수 있어요.');
+        return;
+      }
+      const db = getFirestoreDb();
+      if(!db) {
+        window.alert('교실 퀘스트 검토 기능을 불러오지 못했어요.');
+        return;
+      }
+
+      const buttons = document.querySelectorAll(`[data-classroom-review-id="${recordId}"]`);
+      buttons.forEach(button => {
+        button.disabled = true;
+        button.textContent = nextStatus === 'approved' ? '승인 중...' : '반려 중...';
+      });
+
+      try {
+        const fieldValue = getFirestoreFieldValue();
+        await db.collection('classrooms')
+          .doc(settings.classId)
+          .collection('questProgress')
+          .doc(recordId)
+          .set({
+            rewardStatus: nextStatus,
+            reviewedBy: currentMemberUserId,
+            reviewedAt: fieldValue.serverTimestamp(),
+            updatedAt: fieldValue.serverTimestamp()
+          }, { merge: true });
+        classroomReviewCache = null;
+        classroomProgressCache = null;
+        await renderClassroomPrototype(true);
+        if(document.getElementById('admin-section-classroom')?.classList.contains('is-active')) {
+          await renderAdminClassroomReview(true);
+        }
+      } catch(error) {
+        console.warn('Classroom quest review failed.', error);
+        window.alert('교실 퀘스트 검토 저장 중 문제가 생겼어요.');
+        await renderClassroomPrototype(true);
+      }
+    }
+
     async function loadEventProgress(forceRefresh = false) {
       if(eventProgressCache && !forceRefresh) return eventProgressCache;
       if(eventProgressLoadPromise && !forceRefresh) return eventProgressLoadPromise;
@@ -7065,6 +7825,13 @@
       document.querySelectorAll('.admin-section').forEach(section => {
         section.classList.toggle('is-active', section.id === `admin-section-${targetName}`);
       });
+      if(targetName === 'classroom') {
+        renderAdminClassroomReview(true).catch(error => {
+          console.warn('Admin classroom review load failed.', error);
+          const status = document.getElementById('admin-classroom-status');
+          if(status) status.textContent = '우리 교실 확인 대기 목록을 불러오지 못했습니다.';
+        });
+      }
     }
 
     function getAdminFilterValues() {
@@ -8477,6 +9244,7 @@
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
       document.getElementById('town-view').hidden = true;
+      document.getElementById('classroom-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('subject-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = true;
@@ -8829,6 +9597,68 @@
             renderPracticeSaveStatus({ error: true });
           });
       }
+    }
+
+    function isTypingTarget(target) {
+      const tagName = String(target?.tagName || '').toLowerCase();
+      return tagName === 'input' || tagName === 'textarea' || target?.isContentEditable === true;
+    }
+
+    function isQuizPlayActive() {
+      return document.getElementById('quiz-play-view')?.hidden === false;
+    }
+
+    function getNumericChoiceKey(event) {
+      const key = String(event.key || '');
+      if(['1', '2', '3', '4'].includes(key)) return Number(key);
+      const code = String(event.code || '');
+      const digitMatch = code.match(/^(Digit|Numpad)([1-4])$/);
+      return digitMatch ? Number(digitMatch[2]) : 0;
+    }
+
+    function selectChoiceByIndex(index, submitImmediately = false) {
+      if(currentQuestionResolved) return false;
+      const question = getCurrentQuestionSet()[currentQuestionIndex];
+      if(!question || question.type === 'imageInput' || question.type === 'textInput') return false;
+      const button = document.querySelector(`.quiz-choice[data-choice-index="${index}"]`);
+      if(!button || button.disabled) return false;
+      selectedChoiceIndex = index;
+      document.querySelectorAll('.quiz-choice').forEach(choice => {
+        choice.classList.toggle('quiz-choice-selected', choice === button);
+      });
+      const submit = document.querySelector('.quiz-submit-button');
+      if(submit) submit.disabled = false;
+      if(submitImmediately) submitAnswer();
+      return true;
+    }
+
+    function handleQuizPlayKeydown(event) {
+      if(!isQuizPlayActive()) return;
+      if(event.defaultPrevented) return;
+      const key = String(event.key || '');
+      const input = event.target?.classList?.contains('quiz-answer-input') ? event.target : null;
+
+      if(input && key === 'Enter') {
+        event.preventDefault();
+        if(!currentQuestionResolved && input.value.trim()) submitAnswer();
+        return;
+      }
+
+      if(currentQuestionResolved && key === 'Enter') {
+        const next = document.querySelector('[data-next-question]');
+        if(next && !next.disabled) {
+          event.preventDefault();
+          if(next.dataset.completeQuiz) showQuizComplete();
+          else nextQuestion();
+        }
+        return;
+      }
+
+      if(isTypingTarget(event.target)) return;
+      const choiceNumber = getNumericChoiceKey(event);
+      if(!choiceNumber) return;
+      const selected = selectChoiceByIndex(choiceNumber - 1, true);
+      if(selected) event.preventDefault();
     }
 
     function showQuizResult(isCorrect, overrideMessage) {
@@ -9633,6 +10463,8 @@
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
       finishPopularUsageSession();
+      const classroomView = document.getElementById('classroom-view');
+      if(classroomView) classroomView.hidden = true;
     }
 
     function showSchoolView() {
@@ -9848,6 +10680,66 @@
       renderEventProgressFromFunctions();
     }
 
+    function setClassroomUnlocked(unlocked) {
+      const gate = document.getElementById('classroom-gate-panel');
+      const main = document.getElementById('classroom-main-panel');
+      if(gate) gate.hidden = !!unlocked;
+      if(main) main.hidden = !unlocked;
+      if(unlocked) renderClassroomPrototype();
+    }
+
+    function showClassroomView(unlocked = false) {
+      leaveQuizPlaySession();
+      closePlaceModal();
+      updatePlaceInfo(PLACE_DETAILS.classroom);
+      updatePlayerLocation(PLACE_DETAILS.classroom);
+      setClassroomUnlocked(unlocked);
+      document.getElementById('admin-view').hidden = true;
+      document.getElementById('home-view').hidden = true;
+      document.getElementById('ranking-view').hidden = true;
+      document.getElementById('shop-view').hidden = true;
+      document.getElementById('event-view').hidden = true;
+      document.getElementById('quiz-play-view').hidden = true;
+      document.getElementById('quiz-select-view').hidden = true;
+      document.getElementById('subject-view').hidden = true;
+      document.getElementById('school-view').hidden = true;
+      document.getElementById('town-view').hidden = true;
+      document.getElementById('classroom-view').hidden = false;
+      document.getElementById('classroom-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function handleClassroomEntrySubmit(event) {
+      event.preventDefault();
+      const input = document.getElementById('classroom-entry-code');
+      const status = document.getElementById('classroom-entry-status');
+      const value = String(input?.value || '').trim();
+      const settings = await loadClassroomSettings(true);
+      if(value !== String(settings.entryCode || '').trim()) {
+        if(status) {
+          status.textContent = '비밀번호가 맞지 않습니다. 1차 프로토타입 비밀번호를 확인해 주세요.';
+          status.classList.add('is-error');
+        }
+        return;
+      }
+      if(status) {
+        status.textContent = `${settings.name || CLASSROOM_PROTOTYPE.name} 교실에 입장했습니다.`;
+        status.classList.remove('is-error');
+      }
+      if(input) input.value = '';
+      setClassroomUnlocked(true);
+    }
+
+    function setActiveClassroomTab(tabName = 'quests') {
+      document.querySelectorAll('[data-classroom-tab]').forEach(button => {
+        const active = button.dataset.classroomTab === tabName;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-selected', String(active));
+      });
+      document.querySelectorAll('[data-classroom-panel]').forEach(panel => {
+        panel.classList.toggle('is-active', panel.dataset.classroomPanel === tabName);
+      });
+    }
+
     function showSubjectView(subjectId) {
       leaveQuizPlaySession();
       currentSubjectId = subjectId;
@@ -9881,6 +10773,7 @@
       document.getElementById('shop-view').hidden = true;
       document.getElementById('event-view').hidden = true;
       document.getElementById('town-view').hidden = true;
+      document.getElementById('classroom-view').hidden = true;
       document.getElementById('school-view').hidden = true;
       document.getElementById('subject-view').hidden = true;
       document.getElementById('quiz-select-view').hidden = false;
@@ -9923,6 +10816,7 @@
       if(event.target.dataset.panelAction === 'openRanking') showRankingView();
       if(event.target.dataset.panelAction === 'openShop') showShopView();
       if(event.target.dataset.panelAction === 'openEvent') showEventView();
+      if(event.target.dataset.panelAction === 'openClassroom') showClassroomView(false);
       if(event.target.dataset.panelAction === 'openRecommendedQuiz' && event.target.dataset.quizId) {
         closePlaceModal();
         showQuizSelectView(event.target.dataset.quizId);
@@ -10044,6 +10938,40 @@
       claimEventQuestReward(button.dataset.questClaimId || '');
     });
 
+    document.getElementById('classroom-entry-form')?.addEventListener('submit', handleClassroomEntrySubmit);
+
+    document.getElementById('classroom-quest-form')?.addEventListener('submit', event => {
+      saveClassroomQuestFromForm(event);
+    });
+
+    document.querySelectorAll('[data-classroom-tab]').forEach(button => {
+      button.addEventListener('click', () => setActiveClassroomTab(button.dataset.classroomTab || 'quests'));
+    });
+
+    document.getElementById('classroom-quest-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-quest-action]');
+      if(!button || button.disabled) return;
+      completeClassroomCheckQuest(button.dataset.classroomQuestAction || '');
+    });
+
+    document.getElementById('classroom-review-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-review-action]');
+      if(!button || button.disabled) return;
+      reviewClassroomQuestProgress(
+        button.dataset.classroomReviewId || '',
+        button.dataset.classroomReviewAction || ''
+      );
+    });
+
+    document.getElementById('admin-classroom-review-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-review-action]');
+      if(!button || button.disabled) return;
+      reviewClassroomQuestProgress(
+        button.dataset.classroomReviewId || '',
+        button.dataset.classroomReviewAction || ''
+      );
+    });
+
     document.getElementById('school-quiz-grid').addEventListener('click', async event => {
       const externalCard = event.target.closest('[data-external-quiz-hub]');
       if(externalCard) {
@@ -10125,11 +11053,7 @@
 
     document.getElementById('quiz-play-root').addEventListener('click', event => {
       if(event.target.dataset.choiceIndex !== undefined) {
-        selectedChoiceIndex = Number(event.target.dataset.choiceIndex);
-        document.querySelectorAll('.quiz-choice').forEach(choice => {
-          choice.classList.toggle('quiz-choice-selected', choice === event.target);
-        });
-        document.querySelector('.quiz-submit-button').disabled = false;
+        selectChoiceByIndex(Number(event.target.dataset.choiceIndex), false);
       }
 
       if(event.target.classList.contains('quiz-submit-button') && !event.target.dataset.nextQuestion) {
@@ -10145,6 +11069,9 @@
         showQuizSelectView(lastQuizId);
       }
     });
+
+    document.getElementById('quiz-play-root').addEventListener('keydown', handleQuizPlayKeydown);
+    document.addEventListener('keydown', handleQuizPlayKeydown);
 
     document.addEventListener('visibilitychange', () => {
       if(document.visibilityState === 'hidden') flushPopularUsageSession(true);
@@ -10250,6 +11177,18 @@
       logoutAdminMember().catch(error => {
         console.warn('Admin logout failed.', error);
         setAdminStatus('로그아웃 중 문제가 생겼습니다.', true);
+      });
+    });
+
+    document.querySelector('[data-admin-open-town]')?.addEventListener('click', showTownView);
+
+    document.querySelector('[data-admin-open-classroom]')?.addEventListener('click', () => showClassroomView(false));
+
+    document.getElementById('admin-classroom-refresh')?.addEventListener('click', () => {
+      renderAdminClassroomReview(true).catch(error => {
+        console.warn('Admin classroom refresh failed.', error);
+        const status = document.getElementById('admin-classroom-status');
+        if(status) status.textContent = '우리 교실 확인 대기 목록을 다시 불러오지 못했습니다.';
       });
     });
 

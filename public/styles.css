@@ -1141,6 +1141,17 @@ h2 {
   background: #6fb0ff;
 }
 
+.classroom-building .wall {
+  background:
+    radial-gradient(circle at 28% 42%, #dff5ff 0 7px, transparent 8px),
+    radial-gradient(circle at 72% 42%, #dff5ff 0 7px, transparent 8px),
+    #ffe9b8;
+}
+
+.classroom-building .roof {
+  background: #7fcf8f;
+}
+
 .shop-building .wall {
   background: #ffe6f2;
 }
@@ -1360,9 +1371,21 @@ h2 {
   bottom: 15%;
 }
 
+.classroom {
+  left: 50%;
+  top: 42%;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+}
+
 .event {
   left: 19%;
   bottom: 26%;
+}
+
+.classroom:hover,
+.classroom:focus-visible {
+  transform: translate(-50%, calc(-50% - 3px));
 }
 
 .event:hover,
@@ -1787,6 +1810,7 @@ h2 {
 .ranking-view,
 .shop-view,
 .event-view,
+.classroom-view,
 .school-view,
 .subject-view,
 .quiz-select-view,
@@ -1824,6 +1848,12 @@ h2 {
     linear-gradient(135deg, #e9f7ff 0%, #fff2e3 100%);
 }
 
+.classroom-view {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.62)),
+    linear-gradient(135deg, #fff4da 0%, #e8f8ec 100%);
+}
+
 .admin-view {
   padding: 22px;
   border: 1px solid rgba(255, 255, 255, 0.82);
@@ -1832,6 +1862,13 @@ h2 {
     linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.62)),
     linear-gradient(135deg, #e8f8ec 0%, #fff8d8 100%);
   box-shadow: var(--shadow);
+}
+
+.admin-topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
 .admin-section-tabs {
@@ -2515,6 +2552,7 @@ h2 {
 .ranking-topbar,
 .shop-topbar,
 .event-topbar,
+.classroom-topbar,
 .school-topbar,
 .subject-topbar,
 .quiz-select-topbar,
@@ -2530,6 +2568,7 @@ h2 {
 .ranking-topbar p,
 .shop-topbar p,
 .event-topbar p,
+.classroom-topbar p,
 .school-topbar p,
 .subject-topbar p,
 .quiz-select-topbar p,
@@ -4004,6 +4043,302 @@ h2 {
   color: var(--green-dark);
 }
 
+.classroom-gate-panel,
+.classroom-main-panel {
+  padding: 18px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 24px rgba(47, 83, 52, 0.08);
+}
+
+.classroom-gate-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  gap: 18px;
+  align-items: start;
+}
+
+.classroom-gate-panel h3,
+.classroom-gate-panel p {
+  margin: 0;
+}
+
+.classroom-entry-form {
+  display: grid;
+  gap: 10px;
+}
+
+.classroom-entry-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--green-dark);
+  font-weight: 900;
+}
+
+.classroom-entry-form input {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+}
+
+.classroom-entry-status {
+  grid-column: 1 / -1;
+  min-height: 20px;
+  margin: 0;
+  color: var(--green-dark);
+  font-weight: 900;
+}
+
+.classroom-entry-status.is-error {
+  color: #b3261e;
+}
+
+.classroom-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.classroom-summary-grid article {
+  padding: 13px;
+  border-radius: 16px;
+  background: rgba(248, 255, 245, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(47, 125, 68, 0.1);
+}
+
+.classroom-summary-grid span,
+.classroom-summary-grid strong {
+  display: block;
+}
+
+.classroom-summary-grid span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.classroom-summary-grid strong {
+  margin-top: 4px;
+  color: var(--green-dark);
+  font-size: 1.02rem;
+}
+
+.classroom-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.classroom-role-card {
+  padding: 15px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.classroom-role-card.teacher {
+  background: rgba(255, 248, 218, 0.78);
+}
+
+.classroom-role-card.student {
+  background: rgba(232, 248, 236, 0.78);
+}
+
+.classroom-role-card h3,
+.classroom-role-card p {
+  margin: 0;
+}
+
+.classroom-role-card h3 {
+  color: var(--green-dark);
+  font-size: 1.02rem;
+}
+
+.classroom-role-card p:last-child {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.classroom-teacher-review-panel {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 248, 218, 0.72);
+}
+
+.classroom-review-status {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.classroom-review-status.is-error {
+  color: #b3261e;
+}
+
+.classroom-quest-editor {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(47, 125, 68, 0.14);
+}
+
+.classroom-quest-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.4fr) minmax(90px, 0.5fr) minmax(150px, 0.8fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.classroom-quest-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--green-dark);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.classroom-quest-form input,
+.classroom-quest-form select {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.classroom-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.classroom-review-card {
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.classroom-review-card h4,
+.classroom-review-card p {
+  margin: 0;
+}
+
+.classroom-review-card h4 {
+  color: var(--green-dark);
+  font-size: 1rem;
+}
+
+.classroom-review-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.classroom-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quest-claim-button.danger {
+  border-color: rgba(179, 38, 30, 0.24);
+  background: linear-gradient(180deg, #fff4f1, #ffd8d0);
+  color: #9b221a;
+}
+
+.classroom-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.classroom-tab {
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid rgba(47, 125, 68, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--green-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.classroom-tab.is-active {
+  background: var(--green);
+  color: #fff;
+}
+
+.classroom-panel {
+  display: none;
+}
+
+.classroom-panel.is-active {
+  display: block;
+}
+
+.classroom-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.classroom-card {
+  display: grid;
+  align-content: start;
+  min-height: 230px;
+  padding: 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.classroom-card-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--green-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.classroom-card h4 {
+  margin: 12px 0 8px;
+  color: var(--green-dark);
+  font-size: 1.04rem;
+  line-height: 1.28;
+}
+
+.classroom-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.52;
+  word-break: keep-all;
+}
+
+.classroom-card-reward,
+.classroom-card-progress {
+  margin-top: 9px;
+  color: var(--green-dark);
+  font-weight: 900;
+}
+
 .school-scene {
   position: relative;
   height: clamp(430px, 52vw, 575px);
@@ -5204,6 +5539,7 @@ h2 {
   .ranking-view,
   .shop-view,
   .event-view,
+  .classroom-view,
   .school-view,
   .subject-view,
   .quiz-select-view,
@@ -5215,6 +5551,7 @@ h2 {
   .ranking-topbar,
   .shop-topbar,
   .event-topbar,
+  .classroom-topbar,
   .school-topbar,
   .subject-topbar,
   .quiz-select-topbar,
@@ -5233,12 +5570,33 @@ h2 {
   .subject-quiz-grid,
   .ranking-card-grid,
   .shop-item-grid,
+  .classroom-card-grid,
   .quest-card-grid,
   .class-mission-grid,
   .season-event-grid,
   .quiz-reward-grid,
   .quiz-mode-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .classroom-gate-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .classroom-role-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-quest-form {
+    grid-template-columns: 1fr;
   }
 
   .collection-layout {
@@ -5442,10 +5800,15 @@ h2 {
   .collection-grid,
   .ranking-card-grid,
   .shop-item-grid,
+  .classroom-card-grid,
   .quest-card-grid,
   .class-mission-grid,
   .season-event-grid,
   .quiz-reward-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-summary-grid {
     grid-template-columns: 1fr;
   }
 
