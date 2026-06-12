@@ -2760,8 +2760,15 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
   }
   const memberData = userSnapshot.data() || {};
   assertAdminCanAccessMember(adminMember, memberUserId, memberData, { allowSelf: true });
+  const classroomId = memberData.grade && memberData.classNumber
+    ? `G${memberData.grade}-C${memberData.classNumber}`
+    : "";
+  const classroomWalletSnapshot = classroomId
+    ? await db.collection("classrooms").doc(classroomId).collection("studentWallets").doc(memberUserId).get()
+    : null;
 
   const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+  const classroomWallet = classroomWalletSnapshot?.exists ? classroomWalletSnapshot.data() || {} : {};
   const summary = summarySnapshot.exists ? summarySnapshot.data() || {} : {};
   const titleSummary = titleSummarySnapshot.exists ? titleSummarySnapshot.data() || {} : {};
   const badges = badgeSnapshot.docs.map(doc => {
@@ -2800,6 +2807,11 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
       totalSpent: Number(economy.totalSpent || 0),
       updatedAt: economy.updatedAt || null
     },
+    classroomWallet: {
+      classId: classroomId,
+      berry: Number(classroomWallet.berry || 0),
+      updatedAt: classroomWallet.updatedAt || null
+    },
     practiceSummary: {
       totalStars: Number(summary.totalStars || 0),
       recordCount: Number(summary.recordCount || 0),
@@ -2821,6 +2833,112 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
     badges: badges.slice(0, 20),
     titles: titles.slice(0, 24),
     practiceRecords
+  };
+});
+
+exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const currency = String(payload.currency || "").trim();
+  const delta = Math.round(Number(payload.delta));
+  const reason = String(payload.reason || "").trim().slice(0, 200);
+  if (!["djCoin", "berry"].includes(currency)) {
+    throw new HttpsError("invalid-argument", "currency must be djCoin or berry.");
+  }
+  if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 100000) {
+    throw new HttpsError("invalid-argument", "delta must be between -100000 and 100000, excluding zero.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+    const memberData = memberSnapshot.data() || {};
+    if (memberData.role === "admin") {
+      throw new HttpsError("failed-precondition", "Admin wallet cannot be adjusted here.");
+    }
+    assertActiveStudent(memberData);
+
+    const classId = currency === "berry"
+      ? normalizeId(payload.classId || `G${memberData.grade}-C${memberData.classNumber}`, "classId")
+      : "";
+    const walletRef = currency === "djCoin"
+      ? db.collection("userEconomy").doc(memberUserId)
+      : db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const walletSnapshot = await transaction.get(walletRef);
+    const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
+    const currentAmount = Number(currency === "djCoin" ? (wallet.djCoin ?? wallet.coin ?? 0) : wallet.berry || 0) || 0;
+    const nextAmount = currentAmount + delta;
+    if (nextAmount < 0) {
+      throw new HttpsError("failed-precondition", "Wallet balance cannot become negative.");
+    }
+
+    const update = currency === "djCoin"
+      ? {
+          userId: memberUserId,
+          djCoin: nextAmount,
+          adminAdjustedDjCoin: FieldValue.increment(delta),
+          lastAdminAdjustmentDelta: delta,
+          lastAdminAdjustedBy: adminMember.memberUserId,
+          lastAdminAdjustmentReason: reason,
+          updatedAt: FieldValue.serverTimestamp(),
+          adminAdjustedAt: FieldValue.serverTimestamp()
+        }
+      : {
+          memberUserId,
+          userId: memberUserId,
+          classId,
+          berry: nextAmount,
+          adminAdjustedBerry: FieldValue.increment(delta),
+          lastAdminAdjustmentDelta: delta,
+          lastAdminAdjustedBy: adminMember.memberUserId,
+          lastAdminAdjustmentReason: reason,
+          updatedAt: FieldValue.serverTimestamp(),
+          adminAdjustedAt: FieldValue.serverTimestamp()
+        };
+    transaction.set(walletRef, update, { merge: true });
+
+    return {
+      classId,
+      beforeAmount: currentAmount,
+      afterAmount: nextAmount,
+      walletPath: walletRef.path,
+      memberProfile: publicMemberProfile(memberUserId, memberData)
+    };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminAdjustMemberWallet",
+    targetUserId: memberUserId,
+    before: {
+      currency,
+      amount: result.beforeAmount,
+      classId: result.classId || ""
+    },
+    after: {
+      currency,
+      amount: result.afterAmount,
+      delta,
+      classId: result.classId || "",
+      walletPath: result.walletPath
+    },
+    reason: reason || "wallet adjustment"
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    currency,
+    delta,
+    classId: result.classId || "",
+    beforeAmount: result.beforeAmount,
+    afterAmount: result.afterAmount,
+    walletPath: result.walletPath,
+    profile: result.memberProfile
   };
 });
 
