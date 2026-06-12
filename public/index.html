@@ -414,6 +414,10 @@
             <span>보상</span>
             <strong id="classroom-summary-reward-currency">DJ코인</strong>
           </article>
+          <article>
+            <span>내 베리</span>
+            <strong id="classroom-summary-berry-count">0</strong>
+          </article>
         </div>
 
         <div class="classroom-role-grid" aria-label="교실 운영 상태">
@@ -1486,6 +1490,8 @@
     let classroomProgressLoadPromise = null;
     let classroomReviewCache = null;
     let classroomReviewLoadPromise = null;
+    let classroomWalletCache = null;
+    let classroomWalletLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -6045,6 +6051,8 @@
       classroomProgressLoadPromise = null;
       classroomReviewCache = null;
       classroomReviewLoadPromise = null;
+      classroomWalletCache = null;
+      classroomWalletLoadPromise = null;
       userDataMigrationPromise = null;
     }
 
@@ -7341,6 +7349,38 @@
       return classroomProgressLoadPromise;
     }
 
+    async function loadClassroomWallet(settings, forceRefresh = false) {
+      if(classroomWalletCache && !forceRefresh) return classroomWalletCache;
+      if(classroomWalletLoadPromise && !forceRefresh) return classroomWalletLoadPromise;
+      if(!currentMemberUserId) {
+        classroomWalletCache = { berry: 0 };
+        return classroomWalletCache;
+      }
+      const db = getFirestoreDb();
+      if(!db) {
+        classroomWalletCache = { berry: 0 };
+        return classroomWalletCache;
+      }
+      classroomWalletLoadPromise = db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('studentWallets')
+        .doc(currentMemberUserId)
+        .get()
+        .then(snapshot => {
+          classroomWalletCache = snapshot.exists ? snapshot.data() : { berry: 0 };
+          return classroomWalletCache;
+        })
+        .catch(error => {
+          console.warn('Classroom wallet load failed.', error);
+          classroomWalletCache = { berry: 0 };
+          return classroomWalletCache;
+        })
+        .finally(() => {
+          classroomWalletLoadPromise = null;
+        });
+      return classroomWalletLoadPromise;
+    }
+
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
       if(!isCurrentClassroomTeacher(settings)) return [];
       if(classroomReviewCache && !forceRefresh) return classroomReviewCache;
@@ -7463,11 +7503,12 @@
       });
     }
 
-    function renderClassroomRoleState(settings) {
+    function renderClassroomRoleState(settings, wallet = {}) {
       const teacherState = document.getElementById('classroom-teacher-state');
       const studentState = document.getElementById('classroom-student-state');
       const questCount = document.getElementById('classroom-summary-quest-count');
       const rewardCurrency = document.getElementById('classroom-summary-reward-currency');
+      const berryCount = document.getElementById('classroom-summary-berry-count');
       if(questCount) {
         questCount.textContent = `${settings.quests.filter(quest => quest.active !== false).length}개`;
       }
@@ -7476,6 +7517,9 @@
           .filter(quest => quest.active !== false)
           .map(quest => quest.rewardCurrency || 'djCoin'));
         rewardCurrency.textContent = activeCurrencies.has('berry') ? 'DJ코인/베리' : 'DJ코인';
+      }
+      if(berryCount) {
+        berryCount.textContent = `${Number(wallet.berry || 0).toLocaleString('ko-KR')}`;
       }
       if(teacherState) {
         teacherState.textContent = isCurrentClassroomTeacher(settings)
@@ -7554,9 +7598,12 @@
 
     async function renderClassroomPrototype(forceRefresh = false) {
       const settings = await loadClassroomSettings(forceRefresh);
-      const progressMap = await loadClassroomQuestProgress(forceRefresh);
-      const reviewItems = await loadClassroomReviewItems(settings, forceRefresh);
-      renderClassroomRoleState(settings);
+      const [progressMap, reviewItems, wallet] = await Promise.all([
+        loadClassroomQuestProgress(forceRefresh),
+        loadClassroomReviewItems(settings, forceRefresh),
+        loadClassroomWallet(settings, forceRefresh)
+      ]);
+      renderClassroomRoleState(settings, wallet);
       renderClassroomReviewPanel(settings, reviewItems);
       renderClassroomQuestCards(settings, progressMap);
       renderClassroomRoutineCards();
@@ -7629,6 +7676,7 @@
         classroomSettingsCache = null;
         classroomProgressCache = null;
         classroomReviewCache = null;
+        classroomWalletCache = null;
         resetClassroomQuestForm();
         setClassroomQuestEditorStatus('퀘스트를 저장했습니다.');
         await renderClassroomPrototype(true);
@@ -7669,6 +7717,7 @@
           });
           const result = response?.data || {};
           classroomProgressCache = null;
+          classroomWalletCache = null;
           firestoreUserEconomy = null;
           userEconomyLoadPromise = null;
           await renderClassroomPrototype(true);
