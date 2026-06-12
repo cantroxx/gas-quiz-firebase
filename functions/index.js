@@ -855,6 +855,44 @@ function assertAdminCanManageClassroom(adminMember, settings) {
   }
 }
 
+function assertMemberCanEnterClassroom(memberData, settings) {
+  if (memberData?.role === "admin") {
+    const isFullAdmin = memberData.adminLevel === "superAdmin" || memberData.adminLevel === "fullAdmin";
+    if (isFullAdmin) return;
+    const scopeGrade = String(memberData.adminScopeGrade || memberData.grade || "");
+    const scopeClassNumber = String(memberData.adminScopeClassNumber || memberData.classNumber || "");
+    if (scopeGrade === String(settings.grade || "") && scopeClassNumber === String(settings.classNumber || "")) return;
+    throw new HttpsError("permission-denied", "Admin is outside classroom scope.");
+  }
+  if (String(memberData?.grade || "") !== String(settings.grade || "")
+    || String(memberData?.classNumber || "") !== String(settings.classNumber || "")) {
+    throw new HttpsError("permission-denied", "Member is outside classroom scope.");
+  }
+}
+
+function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
+  const data = doc.data() || {};
+  const selectedBadge = profile.selectedBadge && typeof profile.selectedBadge === "object"
+    ? profile.selectedBadge
+    : {};
+  return {
+    memberUserId: doc.id,
+    grade: String(data.grade || ""),
+    classNumber: String(data.classNumber || ""),
+    studentNumber: Number(data.studentNumber || 0),
+    nickname: String(data.nickname || data.name || "").slice(0, 24),
+    name: String(data.name || data.nickname || "").slice(0, 24),
+    profileImageUrl: String(data.profileImageUrl || "").slice(0, 1200),
+    berry: Number(wallet.berry || 0),
+    selectedBadge: {
+      badgeId: String(profile.selectedBadgeId || selectedBadge.badgeId || "").slice(0, 80),
+      label: String(profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
+      icon: String(profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 12),
+      color: String(profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
+    }
+  };
+}
+
 function getKstDateKey(date = new Date()) {
   return date.toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
 }
@@ -3414,6 +3452,64 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
     success: true,
     classId,
     ...result
+  };
+});
+
+exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+
+  const authResult = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    const settings = classroomResult.settings;
+    assertMemberCanEnterClassroom(memberData, settings);
+    return { memberData, settings };
+  });
+  const settings = authResult.settings;
+
+  const usersSnapshot = await db.collection("users")
+    .where("role", "==", "student")
+    .limit(500)
+    .get();
+  const studentDocs = usersSnapshot.docs
+    .filter(doc => {
+      const data = doc.data() || {};
+      return data.role === "student"
+        && data.status === "active"
+        && data.active === true
+        && String(data.grade || "") === String(settings.grade || "")
+        && String(data.classNumber || "") === String(settings.classNumber || "");
+    })
+    .sort((a, b) => {
+      const aData = a.data() || {};
+      const bData = b.data() || {};
+      return (Number(aData.studentNumber || 999) - Number(bData.studentNumber || 999))
+        || String(aData.nickname || a.id).localeCompare(String(bData.nickname || b.id), "ko");
+    });
+
+  const walletRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentWallets").doc(doc.id));
+  const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
+  const [walletSnapshots, profileSnapshots] = await Promise.all([
+    walletRefs.length ? db.getAll(...walletRefs) : [],
+    profileRefs.length ? db.getAll(...profileRefs) : []
+  ]);
+  const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+  const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+
+  return {
+    success: true,
+    classId,
+    className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
+    students: studentDocs.map(doc => publicClassroomStudentCard(
+      doc,
+      walletByUserId.get(doc.id) || {},
+      profileByUserId.get(doc.id) || {}
+    ))
   };
 });
 
