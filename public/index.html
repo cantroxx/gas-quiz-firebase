@@ -322,8 +322,14 @@
           <div id="rd-actionbar">
             <span class="nm" id="rd-ab-name"></span>
             <button class="move" id="rd-ab-move">이동</button>
+            <button class="rotate" id="rd-ab-rotate">회전</button>
             <button class="del" id="rd-ab-del">삭제</button>
             <button id="rd-ab-cancel">닫기</button>
+          </div>
+          <div id="rd-zoom">
+            <button id="rd-zoom-out" type="button" aria-label="방 축소">−</button>
+            <span id="rd-zoom-label">100%</span>
+            <button id="rd-zoom-in" type="button" aria-label="방 확대">＋</button>
           </div>
           <div id="rd-toast"></div>
         </div>
@@ -11790,9 +11796,18 @@
       document.getElementById('home-view').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function isRoomDecorPortraitBlocked() {
+      return window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+    }
+
     function showRoomView() {
       leaveQuizPlaySession();
       closePlaceModal();
+      if(isRoomDecorPortraitBlocked()) {
+        window.alert('방 꾸미기는 화면을 가로로 돌린 뒤 이용할 수 있어요.');
+        showHomeView();
+        return;
+      }
       document.getElementById('app-hero').hidden = true;
       document.getElementById('login-view').hidden = true;
       document.getElementById('admin-view').hidden = true;
@@ -12652,6 +12667,18 @@
 
     document.addEventListener('keydown', event => {
       if(event.key === 'Escape') closePlaceModal();
+    });
+
+    window.addEventListener('resize', () => {
+      const roomView = document.getElementById('room-view');
+      if(!roomView || roomView.hidden || !isRoomDecorPortraitBlocked()) return;
+      try {
+        if(window.RoomDecor && typeof window.RoomDecor.close === 'function') window.RoomDecor.close();
+      } catch(error) {
+        console.warn('RoomDecor close failed after portrait resize.', error);
+      }
+      window.alert('방 꾸미기는 화면을 가로로 돌린 뒤 이용할 수 있어요.');
+      showHomeView();
     });
 
     let roomDecorInitialized = false;

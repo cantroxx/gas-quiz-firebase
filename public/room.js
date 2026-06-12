@@ -23,6 +23,9 @@ window.RoomDecor = (function () {
     CATALOG_TYPE: 'roomFurniture',
     PURCHASE_FN: 'purchaseShopItem',    // 파라미터: { memberUserId, itemId } (운영 시그니처 확인됨)
     SAVE_DEBOUNCE_MS: 800,
+    MIN_ZOOM: 0.75,
+    MAX_ZOOM: 1.45,
+    ZOOM_STEP: 0.1,
   };
   // getUserId는 운영 코드의 getCurrentDataOwnerId()를 연결할 것 (memberUserId = 'G학년-C반-N번호')
   // userEconomy/userInventory/userRoomSettings 문서 키와 동일한 ID 체계.
@@ -207,9 +210,10 @@ window.RoomDecor = (function () {
   let room = null;            // {floor, wall, placed}
   let nextId = 1;
   let placingType = null, movingId = null, selectedId = null, hover = null;
+  let zoom = 1;
   let curTab = 'furniture';
   let unsubs = [], saveTimer = null, opened = false;
-  let $view, $svg, $grid, $styleGrid, $coin, $tip, $bar, $toast;
+  let $view, $svg, $grid, $styleGrid, $coin, $tip, $bar, $toast, $zoomLabel;
   let toastTimer = null;
 
   /* ---------- Firestore ---------- */
@@ -255,9 +259,30 @@ window.RoomDecor = (function () {
       }, e => console.warn('[room] userInventory 구독 실패', e)));
   }
   function isOwned(id) { return catalog[id] && (catalog[id].free || owned.has(id)); }
+  function getRotation(value) {
+    const rot = Math.round(Number(value) || 0) % 360;
+    return rot < 0 ? rot + 360 : rot;
+  }
+  function getFootprint(type, rot) {
+    const it = catalog[type];
+    const rotation = getRotation(rot);
+    if (!it) return { w: 0, d: 0 };
+    return rotation === 90 || rotation === 270
+      ? { w: it.d, d: it.w }
+      : { w: it.w, d: it.d };
+  }
+  function normalizePlacedItem(item) {
+    return {
+      id: item.id,
+      type: item.type,
+      gx: item.gx,
+      gy: item.gy,
+      rot: getRotation(item.rot)
+    };
+  }
   function roomPayload() {
     return {
-      [CONFIG.ROOM_FIELD]: { floor: room.floor, wall: room.wall, placed: room.placed },
+      [CONFIG.ROOM_FIELD]: { floor: room.floor, wall: room.wall, placed: room.placed.map(normalizePlacedItem) },
       userId: getUserId(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
@@ -294,18 +319,43 @@ window.RoomDecor = (function () {
 
   /* ---------- 배치 검사 ---------- */
   function fits(type, gx, gy, ignoreId) {
+    const moving = room.placed.find(p => p.id === ignoreId);
+    return fitsWithRotation(type, gx, gy, moving ? moving.rot : 0, ignoreId);
+  }
+  function fitsWithRotation(type, gx, gy, rot = 0, ignoreId) {
     const it = catalog[type];
     if (!it) return false;
-    if (gx < 0 || gy < 0 || gx + it.w > CONFIG.GRID || gy + it.d > CONFIG.GRID) return false;
+    const fp = getFootprint(type, rot);
+    if (gx < 0 || gy < 0 || gx + fp.w > CONFIG.GRID || gy + fp.d > CONFIG.GRID) return false;
     return !room.placed.some(p => {
       if (p.id === ignoreId) return false;
       const o = catalog[p.type];
       if (!o || !!o.flat !== !!it.flat) return false;
-      return gx < p.gx + o.w && gx + it.w > p.gx && gy < p.gy + o.d && gy + it.d > p.gy;
+      const ofp = getFootprint(p.type, p.rot);
+      return gx < p.gx + ofp.w && gx + fp.w > p.gx && gy < p.gy + ofp.d && gy + fp.d > p.gy;
     });
   }
 
   /* ---------- 렌더링 ---------- */
+  function getObjectMarkup(item) {
+    const it = catalog[item.type];
+    if (!it) return '';
+    const rot = getRotation(item.rot);
+    const raw = DRAW[it.drawKey](item.gx, item.gy);
+    if (!rot) return raw;
+    const fp = getFootprint(item.type, rot);
+    const center = C(item.gx + fp.w / 2, item.gy + fp.d / 2, Math.max(4, Number(it.h || 0) / 2));
+    return `<g transform="rotate(${rot} ${center[0].toFixed(1)} ${center[1].toFixed(1)})">${raw}</g>`;
+  }
+  function applyZoom() {
+    if (!$svg) return;
+    $svg.style.transform = `scale(${zoom.toFixed(2)})`;
+    if ($zoomLabel) $zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+  }
+  function setZoom(nextZoom) {
+    zoom = Math.min(CONFIG.MAX_ZOOM, Math.max(CONFIG.MIN_ZOOM, Number(nextZoom) || 1));
+    applyZoom();
+  }
   function render() {
     if (!$svg || !room) return;
     const F = FLOORS[room.floor] || FLOORS.wood, W = WALLS[room.wall] || WALLS.cream, G = CONFIG.GRID;
@@ -329,21 +379,27 @@ window.RoomDecor = (function () {
     const sorted = room.placed.filter(p => catalog[p.type]).sort((a, b) => {
       const A = catalog[a.type], B = catalog[b.type];
       if (!!A.flat !== !!B.flat) return A.flat ? -1 : 1;
-      return (a.gx + A.w + a.gy + A.d) - (b.gx + B.w + b.gy + B.d);
+      const afp = getFootprint(a.type, a.rot);
+      const bfp = getFootprint(b.type, b.rot);
+      return (a.gx + afp.w + a.gy + afp.d) - (b.gx + bfp.w + b.gy + bfp.d);
     });
     for (const p of sorted) {
       if (p.id === movingId) continue;
-      s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${DRAW[catalog[p.type].drawKey](p.gx, p.gy)}</g>`;
+      s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
     }
     const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
     if (ghostType && hover && catalog[ghostType]) {
       const it = catalog[ghostType], ok = fits(ghostType, hover.gx, hover.gy, movingId);
+      const moving = movingId ? room.placed.find(p => p.id === movingId) : null;
+      const rot = moving ? moving.rot : 0;
+      const fp = getFootprint(ghostType, rot);
       s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' :
-        `<polygon points="${P([C(hover.gx, hover.gy), C(hover.gx + it.w, hover.gy), C(hover.gx + it.w, hover.gy + it.d), C(hover.gx, hover.gy + it.d)])}" fill="#e2574c" fill-opacity="0.6"/>`
-      }${DRAW[it.drawKey](hover.gx, hover.gy)}</g>`;
+        `<polygon points="${P([C(hover.gx, hover.gy), C(hover.gx + fp.w, hover.gy), C(hover.gx + fp.w, hover.gy + fp.d), C(hover.gx, hover.gy + fp.d)])}" fill="#e2574c" fill-opacity="0.6"/>`
+      }${getObjectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
     }
     $svg.innerHTML = s;
     $svg.classList.toggle('placing', !!(placingType || movingId));
+    applyZoom();
   }
   function itemThumb(it) {
     const minX = -it.d * TW2 - 6, w = (it.w + it.d) * TW2 + 12;
@@ -431,7 +487,7 @@ window.RoomDecor = (function () {
         const type = placingType || room.placed.find(p => p.id === movingId).type;
         if (!fits(type, gx, gy, movingId)) { showToast('여기에는 놓을 수 없어요!'); return; }
         if (placingType) {
-          room.placed.push({ id: nextId++, type: placingType, gx, gy });
+          room.placed.push({ id: nextId++, type: placingType, gx, gy, rot: 0 });
           showToast(`${catalog[placingType].name} 배치 완료!`);
         } else {
           const p = room.placed.find(p => p.id === movingId);
@@ -451,12 +507,26 @@ window.RoomDecor = (function () {
       setTip(`「${catalog[p.type].name}」 새 위치를 누르세요`);
       updateActionBar(); render();
     };
+    $view.querySelector('#rd-ab-rotate').onclick = () => {
+      const p = room.placed.find(p => p.id === selectedId);
+      if (!p) return;
+      const nextRot = (getRotation(p.rot) + 90) % 360;
+      if (!fitsWithRotation(p.type, p.gx, p.gy, nextRot, p.id)) {
+        showToast('이 위치에서는 회전할 수 없어요!');
+        return;
+      }
+      p.rot = nextRot;
+      showToast('아이템을 회전했어요');
+      updateActionBar(); render(); scheduleSave();
+    };
     $view.querySelector('#rd-ab-del').onclick = () => {
       room.placed = room.placed.filter(p => p.id !== selectedId);
       selectedId = null; updateActionBar(); render(); scheduleSave();
       showToast('아이템을 보관함에 넣었어요');
     };
     $view.querySelector('#rd-ab-cancel').onclick = () => { selectedId = null; updateActionBar(); render(); };
+    $view.querySelector('#rd-zoom-out').onclick = () => setZoom(zoom - CONFIG.ZOOM_STEP);
+    $view.querySelector('#rd-zoom-in').onclick = () => setZoom(zoom + CONFIG.ZOOM_STEP);
     $view.querySelector('#rd-back').onclick = () => { close(); if (onBack) onBack(); };
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && opened) clearModes();
@@ -478,6 +548,7 @@ window.RoomDecor = (function () {
     $tip = $view.querySelector('#rd-tip');
     $bar = $view.querySelector('#rd-actionbar');
     $toast = $view.querySelector('#rd-toast');
+    $zoomLabel = $view.querySelector('#rd-zoom-label');
     bindEvents();
     // 다른 show*View가 room-view를 hidden 처리하면 자동으로 정리/저장
     new MutationObserver(() => {
@@ -492,6 +563,7 @@ window.RoomDecor = (function () {
     await loadRoom(uid);
     watchEconomy(uid);
     watchInventory(uid);
+    setZoom(1);
     curTab = 'furniture';
     clearModes();
   }
