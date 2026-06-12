@@ -665,9 +665,11 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rawId = String(rawQuest.id || rawQuest.questId || "").trim();
   const id = rawId || `quest-${index + 1}`;
   const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(rawQuest.rewardCoin) || 0)));
+  const rewardCurrency = rawQuest.rewardCurrency === "berry" ? "berry" : "djCoin";
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
+  const rewardLabel = rewardCurrency === "berry" ? "베리" : "DJ코인";
   return {
     id,
     questId: id,
@@ -677,9 +679,10 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     questType: String(rawQuest.questType || rawQuest.type || "수락형 · 체크형").trim().slice(0, 40),
     rewardMode,
     rewardCoin,
+    rewardCurrency,
     saveEnabled: rawQuest.saveEnabled !== false,
     active: rawQuest.active !== false,
-    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} DJ코인 받기` : "완료 체크")).trim().slice(0, 60)
+    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().slice(0, 60)
   };
 }
 
@@ -3061,15 +3064,23 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       .doc(classId)
       .collection("questProgress")
       .doc(recordId);
-    const logRef = db.collection("rewardLogs").doc(rewardLogId([
+    const rewardCurrency = quest.rewardCurrency === "berry" ? "berry" : "djCoin";
+    const rewardAmount = Number(quest.rewardCoin) || 0;
+    const logId = rewardLogId([
       "classroom_auto_quest",
       classId,
       dateKey,
       memberUserId,
       questId,
       attemptKey
-    ]));
-    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    ]);
+    const logRef = db.collection("rewardLogs").doc(logId);
+    const economyRef = rewardCurrency === "berry"
+      ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
+      : db.collection("userEconomy").doc(memberUserId);
+    const berryLogRef = rewardCurrency === "berry"
+      ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId)
+      : null;
 
     const [progressSnapshot, logSnapshot] = await Promise.all([
       transaction.get(progressRef),
@@ -3080,6 +3091,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       return {
         duplicate: true,
         rewardCoin: 0,
+        rewardCurrency,
         dateKey,
         recordId,
         progressPath: progressRef.path,
@@ -3099,7 +3111,8 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       userId: memberUserId,
       checked: true,
       status: "completed",
-      rewardCoin: quest.rewardCoin,
+      rewardCoin: rewardAmount,
+      rewardCurrency,
       rewardStatus: "paid",
       dateKey,
       source: "classroom_auto_quest_function",
@@ -3108,14 +3121,44 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       updatedAt: FieldValue.serverTimestamp(),
       rewardedAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    transaction.set(economyRef, {
-      userId: memberUserId,
-      djCoin: FieldValue.increment(quest.rewardCoin),
-      totalEarned: FieldValue.increment(quest.rewardCoin),
-      updatedAt: FieldValue.serverTimestamp(),
-      lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
-      source: "classroom_auto_quest_function"
-    }, { merge: true });
+    if (rewardCurrency === "berry") {
+      transaction.set(economyRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        berry: FieldValue.increment(rewardAmount),
+        totalEarnedBerry: FieldValue.increment(rewardAmount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
+        source: "classroom_auto_quest_function"
+      }, { merge: true });
+      transaction.set(berryLogRef, {
+        type: "classroom_auto_quest",
+        classId,
+        questId,
+        questTitle: quest.title,
+        dateKey,
+        attemptKey,
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        rewardCurrency,
+        rewardBerry: rewardAmount,
+        rewardAmount,
+        progressPath: progressRef.path,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+    } else {
+      transaction.set(economyRef, {
+        userId: memberUserId,
+        djCoin: FieldValue.increment(rewardAmount),
+        totalEarned: FieldValue.increment(rewardAmount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
+        source: "classroom_auto_quest_function"
+      }, { merge: true });
+    }
     transaction.set(logRef, {
       type: "classroom_auto_quest",
       classId,
@@ -3126,7 +3169,10 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       userId: memberUserId,
       memberUserId,
       authUid,
-      rewardCoin: quest.rewardCoin,
+      rewardCurrency,
+      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
+      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardAmount,
       progressPath: progressRef.path,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -3134,7 +3180,10 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
 
     return {
       duplicate: false,
-      rewardCoin: quest.rewardCoin,
+      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
+      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardCurrency,
+      rewardAmount,
       dateKey,
       recordId,
       progressPath: progressRef.path,
@@ -3169,6 +3218,7 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
+  const rewardCurrency = rawQuest.rewardCurrency === "berry" ? "berry" : "djCoin";
   const questId = String(rawQuest.id || rawQuest.questId || `class-quest-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
     .trim()
     .replace(/[^0-9A-Za-z_-]+/g, "-")
@@ -3189,6 +3239,7 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       type: rawQuest.type || "수락형 · 체크형",
       questType: rawQuest.questType || rawQuest.type || "수락형 · 체크형",
       rewardMode,
+      rewardCurrency,
       rewardCoin,
       saveEnabled: rawQuest.saveEnabled !== false,
       active: rawQuest.active !== false,
