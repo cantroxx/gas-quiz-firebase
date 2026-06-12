@@ -2944,7 +2944,8 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
 
 const ROOM_CATALOG_DRAW_KEYS = new Set([
   "bed", "desk", "chair", "shelf", "piano", "rug",
-  "plant", "lamp", "bear", "tv", "aquarium", "trophy"
+  "plant", "lamp", "bear", "tv", "aquarium", "trophy",
+  "window", "frame"
 ]);
 
 function normalizeRoomCatalogItemPayload(payload = {}) {
@@ -2965,6 +2966,10 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
   const w = Math.max(1, Math.min(4, Math.round(Number(payload.w) || 1)));
   const d = Math.max(1, Math.min(4, Math.round(Number(payload.d) || 1)));
   const h = Math.max(1, Math.min(120, Math.round(Number(payload.h) || 30)));
+  const isWall = drawKey === "window" || drawKey === "frame" || String(payload.surface || "").trim() === "wall";
+  const wall = String(payload.wall || (drawKey === "frame" ? "right" : "left")).trim() === "right" ? "right" : "left";
+  const ww = Math.max(0, Math.min(8, Number(payload.ww || (drawKey === "window" ? 2.6 : drawKey === "frame" ? 1.8 : 0))));
+  const wh = Math.max(0, Math.min(104, Number(payload.wh || h)));
   const sortOrder = Math.max(0, Math.min(9999, Math.round(Number(payload.sortOrder) || 100)));
   const free = payload.free === true;
   const price = free ? 0 : Math.max(0, Math.min(100000, Math.round(Number(payload.price) || 0)));
@@ -2979,6 +2984,10 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
     w,
     d,
     h,
+    surface: isWall ? "wall" : "",
+    wall: isWall ? wall : "",
+    ww: isWall ? ww : 0,
+    wh: isWall ? wh : 0,
     flat: payload.flat === true,
     free,
     price,
@@ -3000,6 +3009,10 @@ function publicRoomCatalogItem(assetDoc, shopDoc = null) {
     w: Number(asset.w || 1),
     d: Number(asset.d || 1),
     h: Number(asset.h || 30),
+    surface: String(asset.surface || ""),
+    wall: String(asset.wall || ""),
+    ww: Number(asset.ww || 0),
+    wh: Number(asset.wh || 0),
     flat: asset.flat === true,
     free: asset.free === true,
     price: Number(asset.price ?? shop.price ?? 0) || 0,
@@ -3046,6 +3059,10 @@ exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
       w: item.w,
       d: item.d,
       h: item.h,
+      surface: item.surface,
+      wall: item.wall,
+      ww: item.ww,
+      wh: item.wh,
       flat: item.flat,
       drawKey: item.drawKey,
       free: item.free,

@@ -49,30 +49,47 @@ window.RoomDecor = (function () {
     return `rgb(${r | 0},${g | 0},${b | 0})`;
   };
   const col = hex => ({ t: shade(hex, 1.12), r: shade(hex, 0.92), l: shade(hex, 0.74) });
+  function orientRect(baseW, baseD, rot, lx, ly, w, d) {
+    const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
+    if (rotation === 90) return { x: baseD - ly - d, y: lx, w: d, d: w };
+    if (rotation === 180) return { x: baseW - lx - w, y: baseD - ly - d, w, d };
+    if (rotation === 270) return { x: ly, y: baseW - lx - w, w: d, d: w };
+    return { x: lx, y: ly, w, d };
+  }
+  function obox(gx, gy, baseW, baseD, rot, lx, ly, w, d, z, h, c, op) {
+    const rect = orientRect(baseW, baseD, rot, lx, ly, w, d);
+    return box(gx + rect.x, gy + rect.y, rect.w, rect.d, z, h, c, op);
+  }
+  function wallRect(wall, u, z, w, h, fill, op) {
+    const pts = wall === 'right'
+      ? [C(u, 0, z + h), C(u + w, 0, z + h), C(u + w, 0, z), C(u, 0, z)]
+      : [C(0, u, z + h), C(0, u + w, z + h), C(0, u + w, z), C(0, u, z)];
+    return poly(pts, fill, op);
+  }
 
   /* ---------- 가구 드로잉 ---------- */
   const DRAW = {
-    bed(x, y) {
-      return box(x, y, 1, 2, 0, 10, col('#a9743f'))
-        + box(x + .05, y + .05, .9, 1.9, 10, 6, col('#f4efe2'))
-        + box(x + .05, y + .8, .9, 1.13, 16, 5, col('#e2574c'))
-        + box(x + .16, y + .14, .68, .44, 16, 6, col('#ffffff'));
+    bed(x, y, rot = 0) {
+      return obox(x, y, 1, 2, rot, 0, 0, 1, 2, 0, 10, col('#a9743f'))
+        + obox(x, y, 1, 2, rot, .05, .05, .9, 1.9, 10, 6, col('#f4efe2'))
+        + obox(x, y, 1, 2, rot, .05, .8, .9, 1.13, 16, 5, col('#e2574c'))
+        + obox(x, y, 1, 2, rot, .16, .14, .68, .44, 16, 6, col('#ffffff'));
     },
-    desk(x, y) {
+    desk(x, y, rot = 0) {
       let s = '';
       [[.06, .06], [1.7, .06], [.06, .72], [1.7, .72]].forEach(([a, b]) =>
-        s += box(x + a, y + b, .14, .14, 0, 24, col('#7a5430')));
-      s += box(x, y, 2, 1, 24, 7, col('#c89a62'));
-      s += box(x + .25, y + .2, .55, .4, 31, 3, col('#5b87b8'));
+        s += obox(x, y, 2, 1, rot, a, b, .14, .14, 0, 24, col('#7a5430')));
+      s += obox(x, y, 2, 1, rot, 0, 0, 2, 1, 24, 7, col('#c89a62'));
+      s += obox(x, y, 2, 1, rot, .25, .2, .55, .4, 31, 3, col('#5b87b8'));
       return s;
     },
-    chair(x, y) {
-      return box(x + .32, y + .32, .36, .36, 0, 13, col('#6b4a2e'))
-        + box(x + .1, y + .1, .8, .8, 13, 6, col('#5fa3d8'))
-        + box(x + .1, y + .1, .8, .16, 19, 24, col('#4a8cc0'));
+    chair(x, y, rot = 0) {
+      return obox(x, y, 1, 1, rot, .32, .32, .36, .36, 0, 13, col('#6b4a2e'))
+        + obox(x, y, 1, 1, rot, .1, .1, .8, .8, 13, 6, col('#5fa3d8'))
+        + obox(x, y, 1, 1, rot, .1, .1, .8, .16, 19, 24, col('#4a8cc0'));
     },
-    shelf(x, y) {
-      let s = box(x, y, 1, .5, 0, 58, col('#9a6a3c'));
+    shelf(x, y, rot = 0) {
+      let s = obox(x, y, 1, .5, rot, 0, 0, 1, .5, 0, 58, col('#9a6a3c'));
       const fy = y + .5, books = ['#e2574c', '#4f9dd6', '#f0b840', '#69b56b', '#9b6fc9', '#e58fb0'];
       [8, 26, 44].forEach((z0, row) => {
         s += poly([C(x + .06, fy, z0 - 2), C(x + .94, fy, z0 - 2), C(x + .94, fy, z0 + 13), C(x + .06, fy, z0 + 13)], '#5e3c1e');
@@ -84,6 +101,29 @@ window.RoomDecor = (function () {
         }
       });
       return s;
+    },
+    window(x, y, rot = 0, item = {}) {
+      const wall = item.wall || 'left';
+      const u = Number(item.wx ?? 2.2);
+      const z = Number(item.wz ?? 36);
+      const w = Number(catalog[item.type]?.ww || 2.6);
+      const h = Number(catalog[item.type]?.wh || 50);
+      const mid = u + w / 2;
+      return wallRect(wall, u, z, w, h, '#9fd9f0')
+        + wallRect(wall, u, z + h - 4, w, 4, '#ffffff')
+        + wallRect(wall, mid - .04, z, .08, h, '#ffffff')
+        + wallRect(wall, u + .5, z + h - 22, .5, 8, '#ffe27a');
+    },
+    frame(x, y, rot = 0, item = {}) {
+      const wall = item.wall || 'right';
+      const u = Number(item.wx ?? 2.4);
+      const z = Number(item.wz ?? 52);
+      const w = Number(catalog[item.type]?.ww || 1.8);
+      const h = Number(catalog[item.type]?.wh || 32);
+      return wallRect(wall, u, z, w, h, '#a9743f')
+        + wallRect(wall, u + .15, z + 4, Math.max(.2, w - .3), Math.max(4, h - 8), '#cfe9d8')
+        + wallRect(wall, u + .25, z + 4, .55, 12, '#69b56b')
+        + wallRect(wall, u + .8, z + 4, .45, 8, '#79bd7b');
     },
     plant(x, y) {
       let s = box(x + .3, y + .3, .4, .4, 0, 13, col('#c1683f'))
@@ -123,12 +163,10 @@ window.RoomDecor = (function () {
         + `<circle cx="${cx + 4}" cy="${cy - 28}" r="1.6" fill="#3a2f28"/>`
         + `<circle cx="${cx}" cy="${cy - 24}" r="1.8" fill="#3a2f28"/>`;
     },
-    tv(x, y) {
-      let s = box(x + .12, y + .4, .76, .3, 0, 7, col('#5a4a3a'))
-        + box(x + .05, y + .5, .9, .1, 7, 27, col('#3a3a44'));
-      const fy = y + .6;
-      s += poly([C(x + .1, fy, 11), C(x + .9, fy, 11), C(x + .9, fy, 30), C(x + .1, fy, 30)], '#7fe3e8');
-      s += poly([C(x + .14, fy, 22), C(x + .5, fy, 22), C(x + .5, fy, 28), C(x + .14, fy, 28)], '#ffffff', .55);
+    tv(x, y, rot = 0) {
+      let s = obox(x, y, 1, 1, rot, .12, .4, .76, .3, 0, 7, col('#5a4a3a'))
+        + obox(x, y, 1, 1, rot, .05, .5, .9, .1, 7, 27, col('#3a3a44'));
+      s += obox(x, y, 1, 1, rot, .1, .58, .8, .04, 11, 19, col('#7fe3e8'), .82);
       return s;
     },
     aquarium(x, y) {
@@ -154,13 +192,12 @@ window.RoomDecor = (function () {
         + `<circle cx="${cx - 4}" cy="${cy - 27}" r="2" fill="#fff" fill-opacity="0.85"/>`;
       return s;
     },
-    piano(x, y) {
-      let s = box(x, y, 2, .72, 0, 34, col('#33333d'))
-        + box(x + .05, y + .72, 1.9, .24, 20, 6, col('#f5f1e6'));
+    piano(x, y, rot = 0) {
+      let s = obox(x, y, 2, .96, rot, 0, 0, 2, .72, 0, 34, col('#33333d'))
+        + obox(x, y, 2, .96, rot, .05, .72, 1.9, .24, 20, 6, col('#f5f1e6'));
       for (let k = 0; k < 7; k++)
-        s += box(x + .17 + k * .26, y + .73, .1, .13, 26, 2, col('#26262e'));
-      const fy = y + .72;
-      s += poly([C(x + .3, fy, 30), C(x + .75, fy, 30), C(x + .75, fy, 33), C(x + .3, fy, 33)], '#ffd23f', .8);
+        s += obox(x, y, 2, .96, rot, .17 + k * .26, .73, .1, .13, 26, 2, col('#26262e'));
+      s += obox(x, y, 2, .96, rot, .3, .72, .45, .05, 30, 3, col('#ffd23f'), .8);
       return s;
     },
   };
@@ -172,6 +209,8 @@ window.RoomDecor = (function () {
     { id: 'room_chair',    name: '의자',       cat: 'furniture', w: 1, d: 1, h: 44, drawKey: 'chair',    free: true },
     { id: 'room_shelf',    name: '책장',       cat: 'furniture', w: 1, d: 1, h: 60, drawKey: 'shelf',    free: true },
     { id: 'room_piano',    name: '피아노',     cat: 'furniture', w: 2, d: 1, h: 36, drawKey: 'piano',    free: false, price: 150 },
+    { id: 'room_window',   name: '창문',       cat: 'deco', w: 1, d: 1, h: 50, surface: 'wall', wall: 'left',  ww: 2.6, wh: 50, drawKey: 'window', free: true, sortOrder: 5 },
+    { id: 'room_frame',    name: '액자',       cat: 'deco', w: 1, d: 1, h: 32, surface: 'wall', wall: 'right', ww: 1.8, wh: 32, drawKey: 'frame',  free: true, sortOrder: 6 },
     { id: 'room_rug',      name: '러그',       cat: 'deco', w: 2, d: 2, h: 4, flat: true, drawKey: 'rug', free: true },
     { id: 'room_plant',    name: '화분',       cat: 'deco', w: 1, d: 1, h: 42, drawKey: 'plant',    free: true },
     { id: 'room_lamp',     name: '램프',       cat: 'deco', w: 1, d: 1, h: 62, drawKey: 'lamp',     free: true },
@@ -194,12 +233,7 @@ window.RoomDecor = (function () {
   };
   const DEFAULT_ROOM = {
     floor: 'wood', wall: 'cream',
-    placed: [
-      { id: 1, type: 'room_bed', gx: 0, gy: 1 },
-      { id: 2, type: 'room_desk', gx: 4, gy: 0 },
-      { id: 3, type: 'room_chair', gx: 4, gy: 1 },
-      { id: 4, type: 'room_rug', gx: 3, gy: 3 },
-    ],
+    placed: [],
   };
 
   /* ---------- 모듈 상태 ---------- */
@@ -259,6 +293,13 @@ window.RoomDecor = (function () {
       }, e => console.warn('[room] userInventory 구독 실패', e)));
   }
   function isOwned(id) { return catalog[id] && (catalog[id].free || owned.has(id)); }
+  function isWallItem(type) {
+    const it = catalog[type];
+    return !!it && (it.surface === 'wall' || it.drawKey === 'window' || it.drawKey === 'frame');
+  }
+  function normalizeWall(value) {
+    return value === 'right' ? 'right' : 'left';
+  }
   function getRotation(value) {
     const rot = Math.round(Number(value) || 0) % 360;
     return rot < 0 ? rot + 360 : rot;
@@ -267,11 +308,29 @@ window.RoomDecor = (function () {
     const it = catalog[type];
     const rotation = getRotation(rot);
     if (!it) return { w: 0, d: 0 };
+    if (isWallItem(type)) return { w: 0, d: 0 };
+    if (!canRotateItem(type)) return { w: it.w, d: it.d };
     return rotation === 90 || rotation === 270
       ? { w: it.d, d: it.w }
       : { w: it.w, d: it.d };
   }
+  function canRotateItem(type) {
+    const drawKey = catalog[type]?.drawKey || '';
+    return ['bed', 'desk', 'chair', 'shelf', 'piano', 'tv', 'rug'].includes(drawKey);
+  }
   function normalizePlacedItem(item) {
+    if (isWallItem(item.type) || item.surface === 'wall') {
+      const it = catalog[item.type] || {};
+      return {
+        id: item.id,
+        type: item.type,
+        surface: 'wall',
+        wall: normalizeWall(item.wall || it.wall),
+        wx: Number(item.wx ?? 2),
+        wz: Number(item.wz ?? 42),
+        rot: 0
+      };
+    }
     return {
       id: item.id,
       type: item.type,
@@ -311,7 +370,7 @@ window.RoomDecor = (function () {
       selectedId = null;
       movingId = null;
       placingType = id;
-      setTip(`「${it.name}」 구매 완료! 놓을 바닥 칸을 눌러 배치하세요`);
+      setTip(`「${it.name}」 구매 완료! 놓을 ${isWallItem(id) ? '벽 위치' : '바닥 칸'}을 눌러 배치하세요`);
       renderSidebar();
       render();
       showToast(`🎉 ${it.name} 구매 완료!`);
@@ -330,21 +389,69 @@ window.RoomDecor = (function () {
 
   /* ---------- 배치 검사 ---------- */
   function fits(type, gx, gy, ignoreId) {
+    if (isWallItem(type)) return false;
     const moving = room.placed.find(p => p.id === ignoreId);
     return fitsWithRotation(type, gx, gy, moving ? moving.rot : 0, ignoreId);
   }
   function fitsWithRotation(type, gx, gy, rot = 0, ignoreId) {
     const it = catalog[type];
     if (!it) return false;
+    if (isWallItem(type)) return false;
     const fp = getFootprint(type, rot);
     if (gx < 0 || gy < 0 || gx + fp.w > CONFIG.GRID || gy + fp.d > CONFIG.GRID) return false;
     return !room.placed.some(p => {
       if (p.id === ignoreId) return false;
       const o = catalog[p.type];
+      if (isWallItem(p.type)) return false;
       if (!o || !!o.flat !== !!it.flat) return false;
       const ofp = getFootprint(p.type, p.rot);
       return gx < p.gx + ofp.w && gx + fp.w > p.gx && gy < p.gy + ofp.d && gy + fp.d > p.gy;
     });
+  }
+  function getWallSize(type) {
+    const it = catalog[type] || {};
+    return {
+      w: Math.max(.5, Math.min(CONFIG.GRID, Number(it.ww || it.w || 1.8))),
+      h: Math.max(10, Math.min(WALL_H - 8, Number(it.wh || it.h || 32)))
+    };
+  }
+  function fitsWall(type, wall, wx, wz, ignoreId) {
+    if (!isWallItem(type)) return false;
+    const size = getWallSize(type);
+    const u = Number(wx), z = Number(wz);
+    if (!Number.isFinite(u) || !Number.isFinite(z)) return false;
+    if (u < .25 || u + size.w > CONFIG.GRID - .25 || z < 12 || z + size.h > WALL_H - 8) return false;
+    return !room.placed.some(p => {
+      if (p.id === ignoreId || !isWallItem(p.type)) return false;
+      if (normalizeWall(p.wall) !== normalizeWall(wall)) return false;
+      const other = getWallSize(p.type);
+      const pu = Number(p.wx ?? 0), pz = Number(p.wz ?? 0);
+      return u < pu + other.w && u + size.w > pu && z < pz + other.h && z + size.h > pz;
+    });
+  }
+  function wallSlots() {
+    const slots = [];
+    ['left', 'right'].forEach(wall => {
+      [1, 3.2, 5.4].forEach(wx => {
+        [30, 62].forEach(wz => slots.push({ wall, wx, wz }));
+      });
+    });
+    return slots;
+  }
+  function getHoverItem(type, item) {
+    if (!type || !item) return null;
+    if (isWallItem(type)) {
+      const it = catalog[type] || {};
+      return {
+        type,
+        surface: 'wall',
+        wall: normalizeWall(item.wall || it.wall),
+        wx: Number(item.wx ?? 2),
+        wz: Number(item.wz ?? 42),
+        rot: 0
+      };
+    }
+    return { type, gx: item.gx, gy: item.gy, rot: item.rot || 0 };
   }
 
   /* ---------- 렌더링 ---------- */
@@ -352,11 +459,7 @@ window.RoomDecor = (function () {
     const it = catalog[item.type];
     if (!it) return '';
     const rot = getRotation(item.rot);
-    const raw = DRAW[it.drawKey](item.gx, item.gy);
-    if (!rot) return raw;
-    const fp = getFootprint(item.type, rot);
-    const center = C(item.gx + fp.w / 2, item.gy + fp.d / 2, Math.max(4, Number(it.h || 0) / 2));
-    return `<g transform="rotate(${rot} ${center[0].toFixed(1)} ${center[1].toFixed(1)})">${raw}</g>`;
+    return DRAW[it.drawKey](item.gx || 0, item.gy || 0, canRotateItem(item.type) ? rot : 0, item);
   }
   function applyZoom() {
     if (!$svg) return;
@@ -373,21 +476,29 @@ window.RoomDecor = (function () {
     let s = `<polygon points="${P([C(-.3, -.3, -6), C(G + .3, -.3, -6), C(G + .3, G + .3, -6), C(-.3, G + .3, -6)])}" fill="#000" fill-opacity="0.3"/>`;
     s += poly([C(0, 0, WALL_H), C(0, G, WALL_H), C(0, G, 0), C(0, 0, 0)], W.l);
     s += poly([C(0, 0, WALL_H), C(G, 0, WALL_H), C(G, 0, 0), C(0, 0, 0)], W.r);
-    s += poly([C(0, 2.2, 86), C(0, 4.8, 86), C(0, 4.8, 36), C(0, 2.2, 36)], '#9fd9f0');
-    s += poly([C(0, 2.2, 86), C(0, 4.8, 86), C(0, 4.8, 82), C(0, 2.2, 82)], '#ffffff');
-    s += `<line x1="${C(0, 3.5, 86)[0]}" y1="${C(0, 3.5, 86)[1]}" x2="${C(0, 3.5, 36)[0]}" y2="${C(0, 3.5, 36)[1]}" stroke="#fff" stroke-width="3"/>`;
-    s += poly([C(0, 2.7, 72), C(0, 3.2, 72), C(0, 3.2, 64), C(0, 2.7, 64)], '#ffe27a');
-    s += poly([C(2.4, 0, 84), C(4.2, 0, 84), C(4.2, 0, 52), C(2.4, 0, 52)], '#a9743f');
-    s += poly([C(2.6, 0, 80), C(4.0, 0, 80), C(4.0, 0, 56), C(2.6, 0, 56)], '#cfe9d8');
-    s += poly([C(2.7, 0, 64), C(3.2, 0, 72), C(3.6, 0, 62), C(4.0, 0, 68), C(4.0, 0, 56), C(2.7, 0, 56)], '#69b56b');
+    const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
+    const wallActive = ghostType && isWallItem(ghostType);
+    if (wallActive) {
+      for (const slot of wallSlots()) {
+        const hov = hover && hover.surface === 'wall'
+          && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
+        s += wallRect(slot.wall, slot.wx, slot.wz, 1.45, 24, hov ? '#ffd23f' : '#ffffff', hov ? .34 : .12)
+          .replace('<polygon ', `<polygon class="rd-wall-tile" data-wall="${slot.wall}" data-wx="${slot.wx}" data-wz="${slot.wz}" `);
+      }
+    }
+    const wallItems = room.placed.filter(p => catalog[p.type] && isWallItem(p.type));
+    for (const p of wallItems) {
+      if (p.id === movingId && hover) continue;
+      s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
+    }
     s += poly([C(0, 0, 7), C(0, G, 7), C(0, G, 0), C(0, 0, 0)], shade(W.l, .82));
     s += poly([C(0, 0, 7), C(G, 0, 7), C(G, 0, 0), C(0, 0, 0)], shade(W.r, .82));
     for (let gy = 0; gy < G; gy++) for (let gx = 0; gx < G; gx++) {
       const c = (gx + gy) % 2 ? F.b : F.a;
-      const hov = (placingType || movingId) && hover && hover.gx === gx && hover.gy === gy;
+      const hov = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
       s += `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${P([C(gx, gy), C(gx + 1, gy), C(gx + 1, gy + 1), C(gx, gy + 1)])}" fill="${c}" stroke="${shade(F.b, .8)}" stroke-width="1" ${hov ? 'opacity="0.85"' : ''}/>`;
     }
-    const sorted = room.placed.filter(p => catalog[p.type]).sort((a, b) => {
+    const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type)).sort((a, b) => {
       const A = catalog[a.type], B = catalog[b.type];
       if (!!A.flat !== !!B.flat) return A.flat ? -1 : 1;
       const afp = getFootprint(a.type, a.rot);
@@ -395,24 +506,32 @@ window.RoomDecor = (function () {
       return (a.gx + afp.w + a.gy + afp.d) - (b.gx + bfp.w + b.gy + bfp.d);
     });
     for (const p of sorted) {
-      if (p.id === movingId) continue;
+      if (p.id === movingId && hover) continue;
       s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
     }
-    const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
     if (ghostType && hover && catalog[ghostType]) {
-      const it = catalog[ghostType], ok = fits(ghostType, hover.gx, hover.gy, movingId);
       const moving = movingId ? room.placed.find(p => p.id === movingId) : null;
       const rot = moving ? moving.rot : 0;
-      const fp = getFootprint(ghostType, rot);
-      s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' :
-        `<polygon points="${P([C(hover.gx, hover.gy), C(hover.gx + fp.w, hover.gy), C(hover.gx + fp.w, hover.gy + fp.d), C(hover.gx, hover.gy + fp.d)])}" fill="#e2574c" fill-opacity="0.6"/>`
-      }${getObjectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
+      if (isWallItem(ghostType) && hover.surface === 'wall') {
+        const ok = fitsWall(ghostType, hover.wall, hover.wx, hover.wz, movingId);
+        const ghost = getHoverItem(ghostType, hover);
+        s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' : wallRect(hover.wall, hover.wx, hover.wz, getWallSize(ghostType).w, getWallSize(ghostType).h, '#e2574c', .55)}${getObjectMarkup(ghost)}</g>`;
+      } else if (!isWallItem(ghostType) && hover.surface !== 'wall') {
+        const ok = fits(ghostType, hover.gx, hover.gy, movingId);
+        const fp = getFootprint(ghostType, rot);
+        s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' :
+          `<polygon points="${P([C(hover.gx, hover.gy), C(hover.gx + fp.w, hover.gy), C(hover.gx + fp.w, hover.gy + fp.d), C(hover.gx, hover.gy + fp.d)])}" fill="#e2574c" fill-opacity="0.6"/>`
+        }${getObjectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
+      }
     }
     $svg.innerHTML = s;
     $svg.classList.toggle('placing', !!(placingType || movingId));
     applyZoom();
   }
   function itemThumb(it) {
+    if (isWallItem(it.id)) {
+      return `<svg viewBox="-90 -120 180 150">${DRAW[it.drawKey](0, 0, 0, { type: it.id, wall: it.wall || 'left', wx: 1.2, wz: 22 })}</svg>`;
+    }
     const minX = -it.d * TW2 - 6, w = (it.w + it.d) * TW2 + 12;
     const minY = -it.h - 8, h = (it.w + it.d) * TH2 + it.h + 16;
     return `<svg viewBox="${minX} ${minY} ${w} ${h}">${DRAW[it.drawKey](0, 0)}</svg>`;
@@ -456,7 +575,11 @@ window.RoomDecor = (function () {
   function updateActionBar() {
     const p = room && room.placed.find(p => p.id === selectedId);
     $bar.style.display = p ? 'flex' : 'none';
-    if (p) $view.querySelector('#rd-ab-name').textContent = catalog[p.type].name;
+    if (p) {
+      $view.querySelector('#rd-ab-name').textContent = catalog[p.type].name;
+      const rotateButton = $view.querySelector('#rd-ab-rotate');
+      if (rotateButton) rotateButton.disabled = !canRotateItem(p.type);
+    }
   }
   function clearModes() {
     placingType = null; movingId = null; selectedId = null; hover = null;
@@ -475,7 +598,7 @@ window.RoomDecor = (function () {
       if (!isOwned(id)) { purchase(id); return; }
       selectedId = null; movingId = null; updateActionBar();
       placingType = placingType === id ? null : id;
-      setTip(placingType ? `바닥 칸을 눌러 「${catalog[id].name}」 배치` : '');
+      setTip(placingType ? `${isWallItem(id) ? '벽 위치' : '바닥 칸'}을 눌러 「${catalog[id].name}」 배치` : '');
       renderSidebar(); render();
     };
     $styleGrid.onclick = e => {
@@ -486,16 +609,38 @@ window.RoomDecor = (function () {
     };
     $svg.addEventListener('mousemove', e => {
       if (!placingType && !movingId) return;
-      const t = e.target.closest('.rd-tile');
-      const nh = t ? { gx: +t.dataset.gx, gy: +t.dataset.gy } : null;
+      const type = placingType || (room.placed.find(p => p.id === movingId) || {}).type;
+      const wallTile = e.target.closest('.rd-wall-tile');
+      const floorTile = e.target.closest('.rd-tile');
+      const nh = isWallItem(type)
+        ? (wallTile ? { surface: 'wall', wall: normalizeWall(wallTile.dataset.wall), wx: +wallTile.dataset.wx, wz: +wallTile.dataset.wz } : null)
+        : (floorTile ? { surface: 'floor', gx: +floorTile.dataset.gx, gy: +floorTile.dataset.gy } : null);
       if (JSON.stringify(nh) !== JSON.stringify(hover)) { hover = nh; render(); }
     });
     $svg.addEventListener('click', e => {
       const tile = e.target.closest('.rd-tile');
+      const wallTile = e.target.closest('.rd-wall-tile');
       const obj = e.target.closest('.rd-obj');
-      if ((placingType || movingId) && tile) {
+      if (placingType || movingId) {
+        const current = movingId ? room.placed.find(p => p.id === movingId) : null;
+        const type = placingType || current?.type;
+        if (!type) return;
+        if (isWallItem(type) && wallTile) {
+          const wall = normalizeWall(wallTile.dataset.wall);
+          const wx = +wallTile.dataset.wx, wz = +wallTile.dataset.wz;
+          if (!fitsWall(type, wall, wx, wz, movingId)) { showToast('여기에는 놓을 수 없어요!'); return; }
+          if (placingType) {
+            room.placed.push({ id: nextId++, type: placingType, surface: 'wall', wall, wx, wz, rot: 0 });
+            showToast(`${catalog[placingType].name} 배치 완료!`);
+          } else if (current) {
+            current.surface = 'wall'; current.wall = wall; current.wx = wx; current.wz = wz; current.rot = 0;
+          }
+          clearModes(); scheduleSave();
+          return;
+        }
+        if (isWallItem(type)) return;
+        if (!tile) return;
         const gx = +tile.dataset.gx, gy = +tile.dataset.gy;
-        const type = placingType || room.placed.find(p => p.id === movingId).type;
         if (!fits(type, gx, gy, movingId)) { showToast('여기에는 놓을 수 없어요!'); return; }
         if (placingType) {
           room.placed.push({ id: nextId++, type: placingType, gx, gy, rot: 0 });
@@ -508,12 +653,16 @@ window.RoomDecor = (function () {
         return;
       }
       if (obj && !placingType && !movingId) {
-        selectedId = +obj.dataset.id; updateActionBar(); render(); return;
+        selectedId = +obj.dataset.id;
+        movingId = selectedId;
+        const p = room.placed.find(p => p.id === movingId);
+        setTip(`「${catalog[p.type].name}」 새 위치를 누르세요`);
+        updateActionBar(); render(); return;
       }
-      if (!obj) { selectedId = null; updateActionBar(); render(); }
+      if (!obj) { clearModes(); }
     });
     $view.querySelector('#rd-ab-move').onclick = () => {
-      movingId = selectedId; selectedId = null;
+      movingId = selectedId;
       const p = room.placed.find(p => p.id === movingId);
       setTip(`「${catalog[p.type].name}」 새 위치를 누르세요`);
       updateActionBar(); render();
@@ -521,6 +670,10 @@ window.RoomDecor = (function () {
     $view.querySelector('#rd-ab-rotate').onclick = () => {
       const p = room.placed.find(p => p.id === selectedId);
       if (!p) return;
+      if (!canRotateItem(p.type)) {
+        showToast('이 아이템은 회전하지 않아도 되는 장식이에요.');
+        return;
+      }
       const nextRot = (getRotation(p.rot) + 90) % 360;
       if (!fitsWithRotation(p.type, p.gx, p.gy, nextRot, p.id)) {
         showToast('이 위치에서는 회전할 수 없어요!');
@@ -535,7 +688,7 @@ window.RoomDecor = (function () {
       selectedId = null; updateActionBar(); render(); scheduleSave();
       showToast('아이템을 보관함에 넣었어요');
     };
-    $view.querySelector('#rd-ab-cancel').onclick = () => { selectedId = null; updateActionBar(); render(); };
+    $view.querySelector('#rd-ab-cancel').onclick = () => { clearModes(); };
     $view.querySelector('#rd-zoom-out').onclick = () => setZoom(zoom - CONFIG.ZOOM_STEP);
     $view.querySelector('#rd-zoom-in').onclick = () => setZoom(zoom + CONFIG.ZOOM_STEP);
     $view.querySelector('#rd-back').onclick = () => { close(); if (onBack) onBack(); };
