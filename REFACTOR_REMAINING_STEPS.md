@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 5.
-- Latest committed step 1-4 baseline: `7e2816f refactor: split static app data and core helpers`
+- Completed through step 6.
+- Latest committed step 5 baseline: `e18da87 refactor: split admin render helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -44,7 +44,7 @@
 
 ### Step 5: Admin Read/Render Helpers
 
-Implemented locally:
+Implemented:
 
 - Moved display-only admin helpers into `public/js/features/admin-render.js`.
 - `public/index.html` keeps wrapper functions for:
@@ -60,33 +60,24 @@ Kept in `public/index.html`:
 - Callable invocation flows
 - Admin auth/session flows
 
-## Remaining Steps
-
 ### Step 6: Home Profile Rendering
 
-Target:
+Implemented:
 
-- Move DOM render helpers only.
-- Candidate functions:
+- Moved DOM render helpers into `public/js/features/home-render.js`.
+- `public/index.html` keeps wrapper functions for:
   - `renderProfileAvatar`
   - `renderCollectionCards`
   - `renderBadgeProgressGroups`
 
-Keep in `public/index.html`:
+Kept in `public/index.html`:
 
 - Nickname save
 - Password change
 - Profile image search/upload/save
 - Firestore write flows
 
-Validation:
-
-- Home entry.
-- Profile card.
-- Titles, badges, owned items.
-- Home detail tabs.
-
-Risk: medium.
+## Remaining Steps
 
 ### Step 7: Shop Display Logic
 
@@ -149,6 +140,15 @@ Validation:
 - Reward and title sync.
 
 Risk: high.
+
+## Step 6 Validation Checklist
+
+- Home entry.
+- Profile card.
+- Titles, badges, owned items.
+- Home detail tabs.
+
+These require browser smoke testing before deployment.
 
 ## Step 5 Validation Checklist
 
