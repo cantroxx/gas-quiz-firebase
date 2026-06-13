@@ -1368,120 +1368,12 @@
   <script src="/__/firebase/10.12.2/firebase-storage-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
+  <script src="/js/data/place-details.js"></script>
+  <script src="/js/data/quiz-catalog.js"></script>
+  <script src="/js/core/format.js"></script>
+  <script src="/js/core/firebase.js"></script>
   <script>
-    const PLACE_DETAILS = {
-      notice: {
-        icon: '',
-        title: '알림판',
-        kicker: 'Notice Board',
-        desc: '공지와 오늘 추천 활동을 확인하고 바로 이동할 수 있습니다.',
-        summary: '관리자 공지, 오늘의 퀘스트, 이벤트 추천 퀴즈를 보여줄 타운 알림판입니다.',
-        features: [
-          { label: '공지', value: '오늘도 연습전과 랭킹전을 자유롭게 이용할 수 있어요' },
-          { label: '오늘의 퀘스트', value: '이벤트 광장에서 개인 미션을 확인하세요' },
-          { label: '추천 퀴즈', value: '학교에서 과목관을 골라 바로 시작하세요' }
-        ],
-        actions: [
-          { label: '학교로 바로가기', enabled: true, action: 'openSchool' },
-          { label: '이벤트 보기', enabled: true, action: 'openEvent' },
-          { label: '랭킹 보기', enabled: true, action: 'openRanking' }
-        ]
-      },
-      home: {
-        icon: '🏠',
-        title: '내 집',
-        kicker: 'My Room',
-        desc: '회원 프로필, 보유 칭호, 뱃지, 내 방 꾸미기 상태를 확인하는 개인 공간입니다.',
-        summary: '회원 연결 후 내 프로필, 칭호, 뱃지, 꾸미기 아이템을 보여줍니다.',
-        features: [
-          { label: '닉네임', value: 'DJ48 학생' },
-          { label: '칭호', value: '보유 타이틀 표시' },
-          { label: '뱃지', value: '연습기록 기반 표시' }
-        ],
-        actions: [
-          { label: '내 집 입장하기', enabled: true, action: 'openHome' },
-          { label: '한마디·칭호 설정하기', enabled: true, action: 'openHome' }
-        ]
-      },
-      school: {
-        icon: '🏫',
-        title: '학교',
-        kicker: 'Quiz School',
-        desc: '과목관에서 퀴즈를 고르고 연습전과 랭킹전을 시작합니다.',
-        summary: '퀴즈 카테고리를 고르고 연습전/랭킹전으로 들어갈 핵심 장소입니다.',
-        features: [
-          { label: '오늘의 추천 퀴즈', value: '역사 인물 10문제' },
-          { label: '국어', value: '맞춤법, 다의어, 독서 퀴즈' },
-          { label: '사회/수학', value: '역사, 곱셈나눗셈' }
-        ],
-        actions: [
-          { label: '학교 입장하기', enabled: true, action: 'openSchool' }
-        ]
-      },
-      classroom: {
-        icon: '🏫',
-        title: '우리 교실',
-        kicker: 'Our Classroom',
-        desc: '4학년 8반 전용 퀘스트와 성장루틴을 실험하는 공간입니다.',
-        summary: '담임 권한, 교실 비밀번호, 퀘스트, 성장루틴, 교실 전용 미니퀴즈를 단계적으로 검증합니다.',
-        features: [
-          { label: '퀘스트', value: '수락형/달성형 교실 미션' },
-          { label: '성장루틴', value: '학생 목표 달성 보상' },
-          { label: '학급화폐', value: '베리와 교실 활동 연결' }
-        ],
-        actions: [
-          { label: '우리 교실 입장하기', enabled: true, action: 'openClassroom' }
-        ]
-      },
-      shop: {
-        icon: '🛍️',
-        title: '상점',
-        kicker: 'Town Shop',
-        desc: 'DJ코인으로 배경, 아바타, 장식 아이템을 구매합니다.',
-        summary: 'DJ코인으로 꾸미기 아이템을 사고 내 방에 적용할 수 있습니다.',
-        features: [
-          { label: '배경', value: '숲속 배경, 별빛 배경' },
-          { label: '아바타', value: '고양이, 탐험가 아바타' },
-          { label: '장식 아이템', value: '책장, 화분, 칭호 프레임' }
-        ],
-        actions: [
-          { label: '상점 입장하기', enabled: true, action: 'openShop' },
-          { label: '내 집에서 적용하기', enabled: true, action: 'openHome' }
-        ]
-      },
-      ranking: {
-        icon: '🏆',
-        title: '랭킹 광장',
-        kicker: 'Ranking Plaza',
-        desc: '랭킹전 기록과 퀴즈왕 순위를 확인합니다.',
-        summary: '랭킹전 완료 기록을 기준으로 주요 랭킹과 분야별 목록을 보여줍니다.',
-        features: [
-          { label: '퀴즈왕', value: '종합 요약 표시' },
-          { label: '카테고리 랭킹', value: '국어/사회/수학 분리' },
-          { label: '인기 퀴즈 랭킹', value: '아재개그/아이돌/애니 표시' }
-        ],
-        actions: [
-          { label: '랭킹 광장 입장하기', enabled: true, action: 'openRanking' },
-          { label: '분야별 목록 보기', enabled: true, action: 'openRanking' }
-        ]
-      },
-      event: {
-        icon: '🎪',
-        title: '이벤트 광장',
-        kicker: 'Event Plaza',
-        desc: '오늘의 퀘스트와 학급 이벤트를 보여줄 공간입니다.',
-        summary: '퀘스트, 학급 미션, 시즌 이벤트를 정적 데이터로 확인하는 공간입니다.',
-        features: [
-          { label: '오늘의 퀘스트', value: '개인 미션 3개' },
-          { label: '학급 미션', value: '주간 공동 목표 3개' },
-          { label: '시즌 이벤트', value: '기간 한정 이벤트 3개' }
-        ],
-        actions: [
-          { label: '이벤트 광장 입장하기', enabled: true, action: 'openEvent' },
-          { label: '보상 받기 준비 중', enabled: false }
-        ]
-      }
-    };
+    const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
 
     const ECONOMY_CONSTANTS = {
       dailyCoinLimit: 100,
@@ -1775,9 +1667,6 @@
     let memberLinkSubmitAction = 'login';
     let pendingPasswordChange = null;
     let userDataMigrationPromise = null;
-    let firestoreDbInstance = null;
-    let firebaseFunctionsInstance = null;
-    let firebaseStorageInstance = null;
     let eventProgressCache = null;
     let eventProgressLoadPromise = null;
     let classroomSettingsCache = null;
@@ -1915,429 +1804,7 @@
       }
     ];
 
-    const MODE_CATALOG = {
-      practice: {
-        icon: '📝',
-        title: '연습전',
-        desc: '정답마다 연습기록과 보상을 저장하는 모드입니다.',
-        enabled: true
-      },
-      ranking: {
-        icon: '🏅',
-        title: '일반 랭킹전',
-        desc: '하트가 다 닳을 때까지 점수와 시간을 기록하는 모드입니다.',
-        enabled: true
-      },
-      oneChance: {
-        icon: '🎯',
-        title: '원코 모드',
-        desc: '한 번 틀리면 종료되는 도전 모드입니다.',
-        enabled: true
-      },
-      records: {
-        icon: '📊',
-        title: '개인 기록',
-        desc: '개인 기록과 뱃지 현황은 내 집에서 확인합니다.',
-        enabled: false
-      }
-    };
-
-    const SUBJECT_CATALOG = {
-      korean: {
-        icon: '📚',
-        title: '국어 퀴즈',
-        hallTitle: '국어관',
-        kicker: 'Korean Hall',
-        desc: '맞춤법, 낱말, 독서 퀴즈를 과목관에서 선택합니다.',
-        board: '낱말과 문장을 탐험해요',
-        cardDesc: '맞춤법, 독서, 속담, 사자성어 문제를 고르는 화면입니다.',
-        quizzes: ['spelling', 'word-relation', 'gmo', 'time_store', 'proverb', 'idiom'],
-        enabled: true
-      },
-      social: {
-        icon: '🏛️',
-        title: '사회 퀴즈',
-        hallTitle: '사회관',
-        kicker: 'Social Studies Hall',
-        desc: '역사와 사회 퀴즈를 골라 연습전과 랭킹전에 도전합니다.',
-        board: '역사와 사회를 살펴봐요',
-        cardDesc: '삼국시대, 역사 인물, 문화유산, 사회 개념 퀴즈를 고르는 화면입니다.',
-        quizzes: ['samgukji', 'ancient-history', 'history-people', 'cultural_heritage', 'social_concepts'],
-        enabled: true
-      },
-      popular: {
-        icon: '⭐',
-        title: '인기 퀴즈',
-        hallTitle: '인기관',
-        kicker: 'Popular Quiz Hall',
-        desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
-        board: '사진과 문장을 보고 정답을 맞혀요',
-        cardDesc: '아이돌, 애니, 아재개그, 티니핑, 포켓몬 퀴즈를 고르는 화면입니다.',
-        quizzes: ['idol', 'anime', 'dad-joke', 'tiniping', 'pokemon'],
-        enabled: true
-      },
-      math: {
-        icon: '➗',
-        title: '수학 퀴즈',
-        hallTitle: '수학관',
-        kicker: 'Math Hall',
-        desc: '곱셈과 나눗셈을 차근차근 풀며 계산 감각을 키웁니다.',
-        board: '차근차근 계산해요',
-        cardDesc: '곱셈과 나눗셈, 계산 연습 퀴즈를 고르는 화면입니다.',
-        quizzes: ['random-basic', 'calculation_practice'],
-        enabled: true
-      }
-    };
-
-    const SCHOOL_QUIZ_CARDS = [
-      { subjectId: 'korean' },
-      { subjectId: 'social' },
-      { subjectId: 'math' },
-      { subjectId: 'popular' },
-      {
-        externalQuizHub: true,
-        icon: '🔗',
-        title: '외부 퀴즈',
-        desc: '관리자가 연결한 외부 퀴즈 사이트로 새 탭에서 이동합니다.',
-        enabled: true
-      }
-    ];
-
-    const QUIZ_CATALOG = {
-      spelling: {
-        title: '맞춤법 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '✏️',
-        desc: '헷갈리는 맞춤법을 문제로 풀며 익힙니다.',
-        summary: '연습전과 랭킹전에서 맞춤법 문제를 풉니다.',
-        subjectId: 'korean',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
-      },
-      'word-relation': {
-        title: '다의어·동형이의어 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '🔤',
-        desc: '한 낱말이 여러 뜻으로 쓰이는지, 소리는 같고 뜻이 다른지 확인합니다.',
-        summary: '낱말의 뜻과 쓰임을 비교하며 다의어와 동형이의어를 구분합니다.',
-        subjectId: 'korean',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
-      },
-      gmo: {
-        title: '지엠오 아이 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '📗',
-        desc: '지엠오 아이 내용을 떠올리며 독서 문제를 풉니다.',
-        summary: '작품 내용을 바탕으로 한 4지선다 문제에 도전합니다.',
-        subjectId: 'korean',
-        parentQuizId: 'reading',
-        groupLabel: '독서 하위',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
-      },
-      reading: {
-        title: '독서 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '📖',
-        desc: '작품의 내용과 인물을 떠올리는 독서 퀴즈입니다.',
-        summary: '독서 하위 퀴즈와 같은 문제 풀이 엔진을 사용합니다.',
-        subjectId: 'korean',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
-      },
-      time_store: {
-        title: '시간가게 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '⏰',
-        desc: '시간가게 작품 내용을 바탕으로 한 독서 퀴즈입니다.',
-        summary: '독서 하위의 작품별 퀴즈로 표시하되, 선택 화면과 문제 풀이 엔진은 그대로 재사용합니다.',
-        subjectId: 'korean',
-        parentQuizId: 'reading',
-        groupLabel: '독서 하위',
-        modes: ['practice', 'ranking', 'oneChance', 'records']
-      },
-      proverb: {
-        title: '속담 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '💬',
-        desc: '속담의 뜻과 쓰임을 맞히는 퀴즈입니다.',
-        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
-        subjectId: 'korean',
-        modes: ['records'],
-        enabled: false
-      },
-      idiom: {
-        title: '사자성어 퀴즈',
-        kicker: 'Korean Hall',
-        icon: '🐉',
-        desc: '사자성어의 뜻과 쓰임을 확인하는 퀴즈입니다.',
-        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
-        subjectId: 'korean',
-        modes: ['records'],
-        enabled: false
-      },
-      samgukji: {
-        title: '삼국지 퀴즈',
-        kicker: 'Social Studies Hall',
-        icon: '🏯',
-        desc: '삼국지 이야기를 바탕으로 4지선다 문제를 풉니다.',
-        summary: '인물과 사건을 떠올리며 삼국지 문제에 도전합니다.',
-        subjectId: 'social',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      'ancient-history': {
-        title: '고대사 퀴즈',
-        kicker: 'Social Studies Hall',
-        icon: '🏺',
-        desc: '고대사와 삼국시대 내용을 4지선다로 확인합니다.',
-        summary: '역사의 흐름과 주요 사건을 문제로 복습합니다.',
-        subjectId: 'social',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      'history-people': {
-        title: '역사 인물 퀴즈',
-        kicker: 'Social Studies Hall',
-        icon: '🧭',
-        desc: '역사 인물 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 역사 인물의 이름을 입력합니다.',
-        subjectId: 'social',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      idol: {
-        title: '아이돌 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🎤',
-        desc: '아이돌 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 아이돌 이름을 입력합니다.',
-        subjectId: 'popular',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      anime: {
-        title: '애니 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🎬',
-        desc: '애니 캐릭터 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 애니 캐릭터 이름을 입력합니다.',
-        subjectId: 'popular',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      'dad-joke': {
-        title: '아재개그 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '😄',
-        desc: '아재개그 문제를 보고 정답을 맞히는 퀴즈입니다.',
-        summary: '문장을 보고 웃긴 정답을 떠올려 입력합니다.',
-        subjectId: 'popular',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      tiniping: {
-        title: '티니핑 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌸',
-        desc: '티니핑 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 티니핑 이름을 입력합니다.',
-        subjectId: 'popular',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      pokemon: {
-        title: '포켓몬 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '세대별 연습전과 난이도별 랭킹전을 고르는 포켓몬 탭입니다.',
-        summary: '연습전은 세대별 도감을 채우고, 랭킹전은 쉬움/보통/헬 난이도와 모드를 골라 도전합니다.',
-        subjectId: 'popular',
-        groupLabel: '포켓몬',
-        modes: ['pokemonHub']
-      },
-      'pokemon-gen1': {
-        title: '포켓몬 1세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 1세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen2': {
-        title: '포켓몬 2세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 2세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen3': {
-        title: '포켓몬 3세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 3세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen4': {
-        title: '포켓몬 4세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 4세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen5': {
-        title: '포켓몬 5세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 5세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen6': {
-        title: '포켓몬 6세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 6세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen7': {
-        title: '포켓몬 7세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 7세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen8': {
-        title: '포켓몬 8세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 8세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-gen9': {
-        title: '포켓몬 9세대 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '포켓몬 9세대 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '이미지를 보고 포켓몬 이름을 입력합니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['practice', 'records']
-      },
-      'pokemon-easy': {
-        title: '포켓몬 쉬움 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '1세대 범위의 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '기존 포켓몬 쉬움 모드입니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['ranking']
-      },
-      'pokemon-normal': {
-        title: '포켓몬 보통 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '2세대까지의 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '기존 포켓몬 보통 모드입니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['ranking']
-      },
-      'pokemon-hard': {
-        title: '포켓몬 어려움 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '3세대까지의 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '기존 포켓몬 어려움 모드입니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['ranking']
-      },
-      'pokemon-very-hard': {
-        title: '포켓몬 헬 퀴즈',
-        kicker: 'Popular Quiz Hall',
-        icon: '🌲',
-        desc: '전체 포켓몬 이미지를 보고 이름을 맞히는 퀴즈입니다.',
-        summary: '기존 포켓몬 헬 모드입니다.',
-        subjectId: 'popular',
-        parentQuizId: 'pokemon',
-        groupLabel: '포켓몬',
-        modes: ['ranking']
-      },
-      cultural_heritage: {
-        title: '문화유산 퀴즈',
-        kicker: 'Social Studies Hall',
-        icon: '🏺',
-        desc: '우리 문화유산의 이름과 특징을 확인하는 사회 퀴즈입니다.',
-        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
-        subjectId: 'social',
-        modes: ['records'],
-        enabled: false
-      },
-      social_concepts: {
-        title: '사회 개념 퀴즈',
-        kicker: 'Social Studies Hall',
-        icon: '🗺️',
-        desc: '지도, 지역, 공동체 같은 기본 사회 개념을 확인합니다.',
-        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
-        subjectId: 'social',
-        modes: ['records'],
-        enabled: false
-      },
-      multiplication_division: {
-        title: '곱셈과 나눗셈 퀴즈',
-        kicker: 'Math Hall',
-        icon: '✖️',
-        desc: '곱셈과 나눗셈의 기본 관계를 확인하는 수학 퀴즈입니다.',
-        summary: '수학관 문제도 별도 엔진 없이 같은 연습전 화면을 사용합니다.',
-        subjectId: 'math',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      'random-basic': {
-        title: '곱셈과 나눗셈 퀴즈',
-        kicker: 'Math Hall',
-        icon: '✖️',
-        desc: '곱셈과 나눗셈 문제를 무작위로 풀며 계산력을 기릅니다.',
-        summary: '100문항 단위로 연습하고, 랭킹전에서는 하트를 지키며 도전합니다.',
-        subjectId: 'math',
-        modes: ['practice', 'ranking', 'oneChance']
-      },
-      calculation_practice: {
-        title: '계산 연습 퀴즈',
-        kicker: 'Math Hall',
-        icon: '🧮',
-        desc: '간단한 사칙 계산을 빠르게 확인하는 수학 퀴즈입니다.',
-        summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
-        subjectId: 'math',
-        modes: ['records'],
-        enabled: false
-      }
-    };
+    const { MODE_CATALOG, SUBJECT_CATALOG, SCHOOL_QUIZ_CARDS, QUIZ_CATALOG } = window.DJ48QuizCatalog;
 
     const FIREBASE_PLAYABLE_QUIZ_IDS = new Set([
       'random-basic',
@@ -2603,12 +2070,7 @@
     }
 
     function getFirestoreTimestampMillis(value) {
-      if(!value) return 0;
-      if(value.toMillis) return value.toMillis();
-      if(value.seconds) return (Number(value.seconds) * 1000) + Math.floor(Number(value.nanoseconds || 0) / 1000000);
-      if(typeof value === 'number') return value;
-      const parsed = Date.parse(String(value));
-      return Number.isNaN(parsed) ? 0 : parsed;
+      return window.DJ48Format.getFirestoreTimestampMillis(value);
     }
 
     function getStoredServerFreshnessSignature() {
@@ -3112,19 +2574,7 @@
     }
 
     function normalizeDisplayImageUrl(value) {
-      const raw = String(value || '').trim();
-      if(!raw || raw === 'TODO') return '';
-      const buildDriveImageUrl = fileId =>
-        `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}`;
-      if(/^https?:\/\//.test(raw)) {
-        const fileMatch = raw.match(/\/file\/d\/([^/]+)/);
-        if(fileMatch?.[1]) return buildDriveImageUrl(fileMatch[1]);
-        const idMatch = raw.match(/[?&]id=([^&]+)/);
-        if(raw.includes('drive.google.com') && idMatch?.[1]) return buildDriveImageUrl(idMatch[1]);
-        return raw;
-      }
-      if(/^[A-Za-z0-9_-]{20,}$/.test(raw)) return buildDriveImageUrl(raw);
-      return '';
+      return window.DJ48Format.normalizeDisplayImageUrl(value);
     }
 
     function getProfileImageEditModel(profile) {
@@ -5505,33 +4955,15 @@
     }
 
     function getFirestoreDb() {
-      if(!window.firebase?.apps?.length || !window.firebase.firestore) return null;
-      if(firestoreDbInstance) return firestoreDbInstance;
-
-      firestoreDbInstance = window.firebase.firestore();
-      try {
-        firestoreDbInstance.settings({
-          ignoreUndefinedProperties: true,
-          merge: true
-        });
-      } catch(error) {
-        console.warn('Firestore settings could not be applied after initialization.', error);
-      }
-      return firestoreDbInstance;
+      return window.DJ48Firebase.getFirestoreDb();
     }
 
     function getFirebaseStorage() {
-      if(!window.firebase?.apps?.length || !window.firebase.storage) return null;
-      if(firebaseStorageInstance) return firebaseStorageInstance;
-      firebaseStorageInstance = window.firebase.storage();
-      return firebaseStorageInstance;
+      return window.DJ48Firebase.getFirebaseStorage();
     }
 
     function getFirebaseFunctions() {
-      if(!window.firebase?.apps?.length || !window.firebase.functions) return null;
-      if(firebaseFunctionsInstance) return firebaseFunctionsInstance;
-      firebaseFunctionsInstance = window.firebase.app().functions('asia-northeast3');
-      return firebaseFunctionsInstance;
+      return window.DJ48Firebase.getFirebaseFunctions();
     }
 
     function normalizeFeatureFlags(data = {}) {
@@ -6186,8 +5618,7 @@
     }
 
     function getFirebaseAuth() {
-      if(!window.firebase?.apps?.length || !window.firebase.auth) return null;
-      return window.firebase.auth();
+      return window.DJ48Firebase.getFirebaseAuth();
     }
 
     function getFirebaseAuthUser() {
@@ -7370,7 +6801,7 @@
     }
 
     function getFirestoreFieldValue() {
-      return window.firebase.firestore.FieldValue;
+      return window.DJ48Firebase.getFirestoreFieldValue();
     }
 
     function showShopPurchaseMessage(message) {
@@ -10936,7 +10367,7 @@
     }
 
     function normalizeQuizAnswer(value) {
-      return String(value || '').trim().replace(/\s+/g, '').toLowerCase();
+      return window.DJ48Format.normalizeQuizAnswer(value);
     }
 
     function isFirestoreQuotaExceededError(error) {
@@ -11211,10 +10642,7 @@
     }
 
     function formatRankingElapsedText(seconds) {
-      const safeSeconds = Math.max(0, Number(seconds) || 0);
-      const minutes = Math.floor(safeSeconds / 60);
-      const remain = safeSeconds % 60;
-      return minutes ? `${minutes}분 ${remain}초` : `${remain}초`;
+      return window.DJ48Format.formatRankingElapsedText(seconds);
     }
 
     function isBetterRankingEntry(next, current) {
