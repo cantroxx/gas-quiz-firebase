@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 6.
-- Latest committed step 5 baseline: `e18da87 refactor: split admin render helpers`
+- Completed through step 7.
+- Latest committed step 6 baseline: `06d04ec refactor: split home render helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -77,34 +77,25 @@ Kept in `public/index.html`:
 - Profile image search/upload/save
 - Firestore write flows
 
-## Remaining Steps
-
 ### Step 7: Shop Display Logic
 
-Target:
+Implemented:
 
-- Move read-only display/state helpers.
-- Candidate functions:
+- Moved read-only display/state helpers into `public/js/features/shop-render.js`.
+- `public/index.html` keeps wrapper functions for:
   - `resolveShopItemVisual`
   - `getShopItemState`
   - `renderShopWallet`
   - `renderShopItems`
 
-Keep in `public/index.html`:
+Kept in `public/index.html`:
 
 - Purchase callable
 - Inventory writes
 - Room setting writes
 - User data migration
 
-Validation:
-
-- Shop list.
-- Coin display.
-- Free, owned, insufficient coin, and purchasable states.
-- Owned item summary in home.
-
-Risk: medium.
+## Remaining Steps
 
 ### Step 8: Ranking Plaza Read/Render
 
@@ -140,6 +131,15 @@ Validation:
 - Reward and title sync.
 
 Risk: high.
+
+## Step 7 Validation Checklist
+
+- Shop list.
+- Coin display.
+- Free, owned, insufficient coin, and purchasable states.
+- Owned item summary in home.
+
+These require browser smoke testing before deployment.
 
 ## Step 6 Validation Checklist
 
