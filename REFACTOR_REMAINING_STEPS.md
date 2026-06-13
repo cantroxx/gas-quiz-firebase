@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 7.
-- Latest committed step 6 baseline: `06d04ec refactor: split home render helpers`
+- Completed through step 8A.
+- Latest committed step 7 baseline: `c88c937 refactor: split shop render helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -99,9 +99,21 @@ Kept in `public/index.html`:
 
 ### Step 8: Ranking Plaza Read/Render
 
+Step 8A implemented:
+
+- Moved low-risk ranking DOM helpers into `public/js/features/ranking-render.js`.
+- `public/index.html` keeps wrapper functions for:
+  - `renderRankingCards`
+  - `appendRankingDisplayName`
+  - `createRankingTitleChip`
+  - `renderRankingAvatar`
+  - `createRankingMetaLine`
+  - `renderRankingRows`
+  - `createRankingPodiumCard`
+
 Target:
 
-- Move ranking plaza read/render helpers first.
+- Continue with ranking board panel render helpers after 8A verification.
 - Keep `saveRankingRecordOnQuizComplete` in `public/index.html`.
 
 Validation:
