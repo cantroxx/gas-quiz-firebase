@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed and committed through step 4.
-- Latest refactor commit: `7e2816f refactor: split static app data and core helpers`
+- Completed through step 5.
+- Latest committed step 1-4 baseline: `7e2816f refactor: split static app data and core helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -42,35 +42,25 @@
 - Moved `MODE_CATALOG`, `SUBJECT_CATALOG`, `SCHOOL_QUIZ_CARDS`, and `QUIZ_CATALOG` into `public/js/data/quiz-catalog.js`.
 - `QUESTION_BANK` intentionally remains in `public/index.html`.
 
-## Remaining Steps
-
 ### Step 5: Admin Read/Render Helpers
 
-Target:
+Implemented locally:
 
-- Move display-only admin helpers into a small module, likely `public/js/features/admin-render.js`.
-- Candidate functions:
+- Moved display-only admin helpers into `public/js/features/admin-render.js`.
+- `public/index.html` keeps wrapper functions for:
   - `formatAdminTimestamp`
   - `createAdminInfoChip`
   - `renderAdminLogs`
   - `renderAdminDashboard`
 
-Keep in `public/index.html`:
+Kept in `public/index.html`:
 
 - Admin save functions
 - Permission-changing functions
 - Callable invocation flows
 - Admin auth/session flows
 
-Validation:
-
-- Admin login view still opens.
-- Dashboard renders.
-- Member list still renders.
-- Logs render.
-- Super admin-only UI visibility still behaves as before.
-
-Risk: medium.
+## Remaining Steps
 
 ### Step 6: Home Profile Rendering
 
@@ -159,6 +149,16 @@ Validation:
 - Reward and title sync.
 
 Risk: high.
+
+## Step 5 Validation Checklist
+
+- Admin login view still opens.
+- Dashboard renders.
+- Member list still renders.
+- Logs render.
+- Super admin-only UI visibility still behaves as before.
+
+These require browser/admin smoke testing before deployment.
 
 ## WIP Files
 
