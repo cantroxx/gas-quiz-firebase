@@ -96,6 +96,53 @@
     return 12;
   }
 
+  function getQuizResultViewModel(options = {}) {
+    const isCorrect = !!options.isCorrect;
+    const rankingEndedByWrongAnswer = !!options.rankingEndedByWrongAnswer;
+    const isLastQuestion = !!options.isLastQuestion;
+    return {
+      cardClassName: `quiz-result-card ${isCorrect ? 'is-correct' : 'is-wrong'}`,
+      titleText: isCorrect ? '정답입니다!' : '오답입니다!',
+      descriptionText: isCorrect
+        ? (options.overrideMessage || '좋아요. 다음 문제도 이어서 풀어봅니다.')
+        : getWrongAnswerFeedbackText(options.question, rankingEndedByWrongAnswer, options.overrideMessage),
+      saveStatusText: isCorrect && options.modeId === 'practice' ? '기록 저장 중' : '',
+      nextButtonText: rankingEndedByWrongAnswer || isLastQuestion ? '결과 보기' : '다음 문제',
+      completeQuiz: rankingEndedByWrongAnswer
+    };
+  }
+
+  function getQuizCompleteViewModel(options = {}) {
+    const modeId = options.modeId || 'practice';
+    const isRanking = modeId === 'ranking';
+    const correctAnswerCount = Math.max(0, Number(options.correctAnswerCount) || 0);
+    const questionCount = Math.max(0, Number(options.questionCount) || 0);
+    const currentQuestionIndex = Math.max(0, Number(options.currentQuestionIndex) || 0);
+    const answeredCount = isRanking ? Math.min(currentQuestionIndex + 1, questionCount) : questionCount;
+    const correctRewardCoin = Math.max(0, Number(options.correctRewardCoin) || 0);
+    const elapsedTooLong = options.reason === 'elapsed-too-long';
+    const invalidRankingTimeMessage = options.invalidRankingTimeMessage || '';
+    return {
+      titleText: isRanking ? '랭킹전 종료' : '연습 완료',
+      scoreText: `${answeredCount}문제 중 ${correctAnswerCount}개`,
+      rewardItems: isRanking
+        ? [
+          { label: '랭킹 점수', value: `${correctAnswerCount}점` },
+          { label: '기록 기준', value: '점수와 시간' }
+        ]
+        : [
+          { label: '정답 기록', value: `${correctAnswerCount}개` },
+          { label: '정답 보상', value: `새 문제 정답 +${correctRewardCoin} DJ코인` }
+        ],
+      noteText: isRanking
+        ? (elapsedTooLong ? invalidRankingTimeMessage : '랭킹전 기록은 점수가 높을수록, 점수가 같으면 시간이 짧을수록 위에 표시됩니다.')
+        : '이미 맞힌 문제는 중복 보상이 없고, 새로 맞힌 문제만 기록과 DJ코인이 반영됩니다.',
+      saveStatusText: isRanking
+        ? (elapsedTooLong ? invalidRankingTimeMessage : '랭킹 기록 저장 중')
+        : ''
+    };
+  }
+
   function createQuizAnswerInput(onInput) {
     const input = document.createElement('input');
     input.className = 'quiz-answer-input';
@@ -160,6 +207,8 @@
     getQuizPlayHeaderTitle,
     getQuizProgressText,
     getRankingTimeLimitSecondsForQuiz,
+    getQuizResultViewModel,
+    getQuizCompleteViewModel,
     createQuizAnswerInput,
     createQuizImageAnswerField,
     createQuizChoiceButton,

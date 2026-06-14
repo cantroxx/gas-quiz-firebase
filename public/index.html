@@ -9769,20 +9769,26 @@
         currentRankingLives = Math.max(0, currentRankingLives - 1);
       }
       const rankingEndedByWrongAnswer = currentModeId === 'ranking' && !isCorrect && currentRankingLives <= 0;
+      const viewModel = window.DJ48QuizPlay.getQuizResultViewModel({
+        isCorrect,
+        question,
+        modeId: currentModeId,
+        rankingEndedByWrongAnswer,
+        overrideMessage,
+        isLastQuestion: currentQuestionIndex + 1 >= getCurrentQuestionSet().length
+      });
 
-      card.className = `quiz-result-card ${isCorrect ? 'is-correct' : 'is-wrong'}`;
-      title.textContent = isCorrect ? '정답입니다!' : '오답입니다!';
-      desc.textContent = isCorrect
-        ? (overrideMessage || '좋아요. 다음 문제도 이어서 풀어봅니다.')
-        : getWrongAnswerFeedbackText(question, rankingEndedByWrongAnswer, overrideMessage);
+      card.className = viewModel.cardClassName;
+      title.textContent = viewModel.titleText;
+      desc.textContent = viewModel.descriptionText;
       saveStatus.id = 'practice-save-status';
       saveStatus.className = 'quiz-progress';
-      saveStatus.textContent = isCorrect && currentModeId === 'practice' ? '기록 저장 중' : '';
+      saveStatus.textContent = viewModel.saveStatusText;
       next.className = 'quiz-submit-button';
       next.type = 'button';
-      next.textContent = rankingEndedByWrongAnswer || currentQuestionIndex + 1 >= getCurrentQuestionSet().length ? '결과 보기' : '다음 문제';
+      next.textContent = viewModel.nextButtonText;
       next.dataset.nextQuestion = 'true';
-      if(rankingEndedByWrongAnswer) next.dataset.completeQuiz = 'true';
+      if(viewModel.completeQuiz) next.dataset.completeQuiz = 'true';
 
       card.append(title, desc, saveStatus, next);
       root.appendChild(card);
@@ -10476,22 +10482,23 @@
       const note = document.createElement('p');
       const saveStatus = document.createElement('p');
       const back = document.createElement('button');
+      const questionSet = getCurrentQuestionSet();
+      const viewModel = window.DJ48QuizPlay.getQuizCompleteViewModel({
+        modeId: currentModeId,
+        currentQuestionIndex,
+        questionCount: questionSet.length,
+        correctAnswerCount,
+        correctRewardCoin: USER_REWARD_DATA.completeReward.correctCoin,
+        reason: options.reason,
+        invalidRankingTimeMessage: INVALID_RANKING_TIME_MESSAGE
+      });
 
       card.className = 'quiz-complete-card';
-      title.textContent = currentModeId === 'ranking' ? '랭킹전 종료' : '연습 완료';
+      title.textContent = viewModel.titleText;
       score.className = 'quiz-complete-score';
-      score.textContent = `${currentModeId === 'ranking' ? Math.min(currentQuestionIndex + 1, getCurrentQuestionSet().length) : getCurrentQuestionSet().length}문제 중 ${correctAnswerCount}개`;
+      score.textContent = viewModel.scoreText;
       rewardGrid.className = 'quiz-reward-grid';
-      const rewardItems = currentModeId === 'ranking'
-        ? [
-          { label: '랭킹 점수', value: `${correctAnswerCount}점` },
-          { label: '기록 기준', value: '점수와 시간' }
-        ]
-        : [
-          { label: '정답 기록', value: `${correctAnswerCount}개` },
-          { label: '정답 보상', value: `새 문제 정답 +${USER_REWARD_DATA.completeReward.correctCoin} DJ코인` }
-        ];
-      rewardItems.forEach(reward => {
+      viewModel.rewardItems.forEach(reward => {
         const item = document.createElement('p');
         const label = document.createElement('span');
         const value = document.createElement('strong');
@@ -10501,14 +10508,10 @@
         item.append(label, value);
         rewardGrid.appendChild(item);
       });
-      note.textContent = currentModeId === 'ranking'
-        ? (options.reason === 'elapsed-too-long' ? INVALID_RANKING_TIME_MESSAGE : '랭킹전 기록은 점수가 높을수록, 점수가 같으면 시간이 짧을수록 위에 표시됩니다.')
-        : `이미 맞힌 문제는 중복 보상이 없고, 새로 맞힌 문제만 기록과 DJ코인이 반영됩니다.`;
+      note.textContent = viewModel.noteText;
       saveStatus.id = 'ranking-save-status';
       saveStatus.className = 'quiz-progress';
-      saveStatus.textContent = currentModeId === 'ranking'
-        ? (options.reason === 'elapsed-too-long' ? INVALID_RANKING_TIME_MESSAGE : '랭킹 기록 저장 중')
-        : '';
+      saveStatus.textContent = viewModel.saveStatusText;
       back.className = 'button primary';
       back.type = 'button';
       back.dataset.backToQuizSelect = 'true';

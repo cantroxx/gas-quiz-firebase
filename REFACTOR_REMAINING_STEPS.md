@@ -271,6 +271,14 @@ Step 9E implemented:
 - `public/index.html` still owns the actual quiz session variables and assigns them explicitly from the helper result.
 - Timer start/stop, answer submit, practice save, ranking save, reward, title sync, and completion rendering remain in `public/index.html`.
 
+Step 9F implemented:
+
+- Added result/complete display model helpers to `public/js/features/quiz-play.js`:
+  - `getQuizResultViewModel`
+  - `getQuizCompleteViewModel`
+- `showQuizResult` and `showQuizComplete` still create DOM in `public/index.html`.
+- Ranking save, practice save, reward, title sync, timer cleanup, and popular usage finish remain in `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
