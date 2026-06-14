@@ -148,6 +148,18 @@
       });
   }
 
+  function attachRankingSaveStatus(rankingSavePromise, deps = {}) {
+    if(!rankingSavePromise) return null;
+    const renderRankingSaveStatus = deps.renderRankingSaveStatus || (() => {});
+    const warn = deps.warn || console.warn;
+    return rankingSavePromise
+      .then(result => renderRankingSaveStatus(result))
+      .catch(error => {
+        warn('Firestore ranking record save failed.', error);
+        renderRankingSaveStatus({ error: true });
+      });
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -463,6 +475,7 @@
     getQuizAnswerSubmitResult,
     shouldSavePracticeProgress,
     attachPracticeProgressSaveStatus,
+    attachRankingSaveStatus,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,

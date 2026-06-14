@@ -10400,12 +10400,10 @@
           elapsedText: formatRankingElapsedText(getRankingElapsedSeconds())
         });
       } else if(currentModeId === 'ranking') {
-        saveRankingRecordOnQuizComplete()
-          .then(result => renderRankingSaveStatus(result))
-          .catch(error => {
-            console.warn('Firestore ranking record save failed.', error);
-            renderRankingSaveStatus({ error: true });
-          });
+        window.DJ48QuizPlay.attachRankingSaveStatus(saveRankingRecordOnQuizComplete(), {
+          renderRankingSaveStatus,
+          warn: console.warn
+        });
       }
     }
 

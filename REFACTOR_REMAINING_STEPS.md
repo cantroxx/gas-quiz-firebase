@@ -377,6 +377,13 @@ Step 9Q implemented:
 - `submitAnswer` now delegates only the Promise success/error status rendering connection.
 - Practice save execution, Firestore write logic, reward, title sync, and ranking record flows remain owned by `public/index.html`.
 
+Step 9R implemented:
+
+- Added ranking save status attachment helper to `public/js/features/quiz-play.js`:
+  - `attachRankingSaveStatus`
+- `showQuizComplete` now delegates only the ranking-save Promise success/error status rendering connection.
+- Ranking save execution, Firestore write logic, elapsed-too-long skip status, reward, and title sync flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
