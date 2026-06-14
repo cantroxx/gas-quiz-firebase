@@ -502,6 +502,17 @@ Step 11C implemented:
 - Routed `saveRankingRecordOnQuizComplete` through those adapter accessors.
 - Firestore collection names, record payload shape, batch write order, and ranking summary update behavior remain unchanged.
 
+Step 11D implemented:
+
+- Extended `getQuizPlayDeps` with practice save helper accessors:
+  - practice question id candidate builders
+  - practice target lookup and reward coin value
+  - practice progress id, summary update, and badge update builders
+  - practice reward and title sync call wrappers
+- Routed `savePracticeProgressAfterCorrectAnswer` through those adapter accessors.
+- Routed practice reward/title sync debug logging through the same adapter.
+- Firestore collection names, progress payload shape, reward callable payloads, badge updates, and title sync behavior remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

@@ -9428,6 +9428,15 @@
         buildRankingRecordId,
         buildUserRankingSummaryUpdate,
         buildQuizKingSummaryUpdate,
+        getPracticeQuestionId,
+        getPracticeQuestionIdCandidates,
+        getPracticeTargetForQuiz,
+        getPracticeCorrectCoin: () => ECONOMY_CONSTANTS.practiceCorrectCoin,
+        buildPracticeProgressRecordId,
+        buildPracticeSummaryUpdate,
+        buildPracticeBadgeUpdate,
+        grantPracticeCorrectReward,
+        syncMemberTitlesAfterPracticeCompletion,
         debugLog,
         loadFeatureFlags,
         loadFirebaseQuizMeta,
@@ -10153,7 +10162,7 @@
       const functions = deps.getFirebaseFunctions();
       if(!functions) throw new Error('functions-unavailable');
 
-      debugLog('Practice reward economy update queued:', {
+      deps.debugLog('Practice reward economy update queued:', {
         rewardCoin,
         context
       });
@@ -10166,7 +10175,7 @@
       });
       const result = response?.data || {};
       deps.resetUserEconomyCache();
-      debugLog('Firestore practice reward update succeeded:', {
+      deps.debugLog('Firestore practice reward update succeeded:', {
         economyPath: result.economyPath || '',
         rewardLogPath: result.rewardLogPath || '',
         rewardCoin: result.rewardCoin || 0,
@@ -10184,14 +10193,14 @@
       const response = await syncMemberTitles({ memberUserId });
       const result = response?.data || {};
       if(Number(result.awardedCount) > 0) {
-        debugLog('Firestore title sync awarded titles:', {
+        deps.debugLog('Firestore title sync awarded titles:', {
           awardedCount: result.awardedCount,
           awardedTitles: result.awardedTitles || [],
           context
         });
         deps.resetTitleCatalogCache();
       } else {
-        debugLog('Firestore title sync completed with no new titles:', {
+        deps.debugLog('Firestore title sync completed with no new titles:', {
           titleCount: result.titleCount || 0,
           context
         });
@@ -10200,28 +10209,27 @@
     }
 
     async function savePracticeProgressAfterCorrectAnswer(question) {
-      if(currentModeId !== 'practice') return null;
-
       const deps = getQuizPlayDeps();
+      if(deps.getCurrentModeId() !== 'practice') return null;
       const db = deps.getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
 
       const memberUserId = deps.getCurrentDataOwnerId();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) throw new Error('member-required');
 
-      const questionId = getPracticeQuestionId(question);
+      const questionId = deps.getPracticeQuestionId(question);
       if(!questionId) throw new Error('missing-question-id');
-      const questionIdCandidates = getPracticeQuestionIdCandidates(question);
+      const questionIdCandidates = deps.getPracticeQuestionIdCandidates(question);
 
-      const quizId = deps.normalizeFirebaseQuizId(currentQuizId);
+      const quizId = deps.normalizeFirebaseQuizId(deps.getCurrentQuizId());
       const meta = await deps.loadFirebaseQuizMeta(quizId);
-      const target = getPracticeTargetForQuiz(quizId, meta);
+      const target = deps.getPracticeTargetForQuiz(quizId, meta);
       if(!target) throw new Error('unsupported-practice-target');
 
       const totalCount = Number(meta?.questionCount) || deps.getCurrentQuestionSet().length;
       if(!totalCount || totalCount <= 0) throw new Error('invalid-total-count');
 
-      const recordId = buildPracticeProgressRecordId(memberUserId, target.areaKey);
+      const recordId = deps.buildPracticeProgressRecordId(memberUserId, target.areaKey);
       const recordRef = db.collection('practiceRecords').doc(recordId);
       const summaryRef = db.collection('userPracticeSummary').doc(memberUserId);
       const authUid = deps.getFirebaseAuthUser()?.uid || '';
@@ -10267,7 +10275,7 @@
       const existingStarCount = Number(existing.starCount) || 0;
       const flags = await deps.loadFeatureFlags();
       const rewardDisabled = flags.practiceRewardEnabled === false;
-      const rewardCoin = (isDuplicateCorrectId || rewardDisabled) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
+      const rewardCoin = (isDuplicateCorrectId || rewardDisabled) ? 0 : deps.getPracticeCorrectCoin();
       const completed = mergedIds.length >= totalCount;
       const isCompleteType = target.completionType === 'complete';
       let nextIds = mergedIds;
@@ -10320,7 +10328,7 @@
       nextData.correctIds = readFallback ? fieldValue.arrayUnion(questionId) : nextIds;
       nextData.correctCount = readFallback ? fieldValue.increment(1) : nextCorrectCount;
       nextData.starCount = nextStarCount;
-      const summaryData = buildPracticeSummaryUpdate(existingSummary, {
+      const summaryData = deps.buildPracticeSummaryUpdate(existingSummary, {
         memberUserId,
         recordExists: !!snapshot?.exists,
         area: target.area,
@@ -10332,7 +10340,7 @@
         nextCorrectCount,
         updatedAt: fieldValue.serverTimestamp()
       });
-      const badgeData = buildPracticeBadgeUpdate({
+      const badgeData = deps.buildPracticeBadgeUpdate({
         memberUserId,
         area: target.area,
         detail: target.detail,
@@ -10360,16 +10368,16 @@
         badgePath: badgeRef.path
       };
       if(isDuplicateCorrectId) {
-        debugLog('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
-        debugLog('Practice reward skipped for duplicate correctId:', {
+        deps.debugLog('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
+        deps.debugLog('Practice reward skipped for duplicate correctId:', {
           recordId,
           questionId,
           rewardCoin
         });
       } else {
-        debugLog('Practice progress new correctId added:', saveResult);
+        deps.debugLog('Practice progress new correctId added:', saveResult);
       }
-      debugLog('Practice progress write paths:', {
+      deps.debugLog('Practice progress write paths:', {
         recordPath: recordRef.path,
         summaryPath: summaryRef.path,
         badgePath: badgeRef.path,
@@ -10383,19 +10391,19 @@
       await batch.commit();
 
       if(readFallback) {
-        debugLog('Practice progress primary record update succeeded with write-only fallback; summary and badge were merged after the write.', saveResult);
+        deps.debugLog('Practice progress primary record update succeeded with write-only fallback; summary and badge were merged after the write.', saveResult);
       }
 
-      debugLog('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
+      deps.debugLog('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
       if(saveResult && saveResult.completedRound) {
-        debugLog('Practice completion round applied:', {
+        deps.debugLog('Practice completion round applied:', {
           recordId: saveResult.recordId,
           completionType: saveResult.completionType,
           previousStarCount: saveResult.previousStarCount,
           nextStarCount: saveResult.nextStarCount,
           badgePath: saveResult.badgePath
         });
-        syncMemberTitlesAfterPracticeCompletion(memberUserId, {
+        deps.syncMemberTitlesAfterPracticeCompletion(memberUserId, {
           recordId: saveResult.recordId,
           quizId,
           completionType: saveResult.completionType
@@ -10404,13 +10412,13 @@
         });
       }
       if(saveResult && saveResult.rewardCoin > 0) {
-        await grantPracticeCorrectReward(memberUserId, saveResult.rewardCoin, {
+        await deps.grantPracticeCorrectReward(memberUserId, saveResult.rewardCoin, {
           recordId: saveResult.recordId,
           questionId: saveResult.questionId,
           quizId
         });
       } else if(saveResult && saveResult.rewardDisabled && !saveResult.duplicate) {
-        debugLog('Practice reward skipped because reward feature is disabled:', {
+        deps.debugLog('Practice reward skipped because reward feature is disabled:', {
           recordId: saveResult.recordId,
           questionId: saveResult.questionId
         });
