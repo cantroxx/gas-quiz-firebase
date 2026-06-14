@@ -600,10 +600,46 @@ Step 12C implemented:
 - Kept the existing function names in `public/index.html` as thin wrappers around `window.DJ48QuizPlay`.
 - Firestore reads/writes, error handling call sites, practice save execution, and render/timer flows remain unchanged.
 
+Step 12D implemented:
+
+- Reviewed the remaining quiz play wrapper helpers in `public/index.html`.
+- Decided not to move these wrappers further in this phase:
+  - `normalizeQuizAnswer`
+  - `formatRankingElapsedText`
+  - `getKoreanInitials`
+  - `getCurrentQuestionAnswerText`
+  - `getQuestionHintText`
+  - `getWrongAnswerFeedbackText`
+  - `hasSolvedPracticeQuestion`
+- Reason: these are already thin delegation wrappers around `DJ48Format` or `DJ48QuizPlay`; moving/removing them would create call-site churn with little architectural benefit.
+
+Step 12E implemented:
+
+- Reorganized `getQuizPlayDeps` internally into grouped dependency objects:
+  - Firebase/data owner dependencies
+  - quiz session state dependencies
+  - catalog/static data dependencies
+  - ranking dependencies
+  - practice dependencies
+  - cache reset dependencies
+- Kept the returned dependency key names unchanged to avoid call-site churn.
+- Save execution, Firestore reads/writes, DOM rendering, timers, reward callable execution, and title sync remain unchanged.
+
+Step 12F implemented:
+
+- Closed the low-risk pure helper movement phase.
+- Final smoke-test scope for this phase:
+  - practice quiz start, answer submit, next question, completion
+  - practice progress save, duplicate handling, coin reward, badge update
+  - ranking quiz start, answer submit, heart loss, question/session timeout
+  - ranking record save and profile ranking reflection
+  - popular quiz access/time limits
+  - home profile badge/title/ranking summary display
+
 Next:
 
-- Continue moving only pure helper logic while wrappers remain in place.
-- Do not move `saveRankingRecordOnQuizComplete`, `savePracticeProgressAfterCorrectAnswer`, reward callables, or timer/DOM handlers until another full smoke-test pass is complete.
+- Treat any further quiz play extraction as Step 13.
+- Do not move `saveRankingRecordOnQuizComplete`, `savePracticeProgressAfterCorrectAnswer`, reward callables, or timer/DOM handlers without a separate high-risk plan and fresh smoke-test checkpoint.
 
 ## Step 7 Validation Checklist
 

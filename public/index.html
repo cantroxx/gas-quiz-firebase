@@ -9403,12 +9403,17 @@
     }
 
     function getQuizPlayDeps() {
-      return {
+      const firebaseDeps = {
         getFirestoreDb,
         getFirestoreFieldValue,
         getFirebaseFunctions,
         getFirebaseAuthUser,
         getCurrentDataOwnerId,
+        loadFeatureFlags,
+        loadFirebaseQuizMeta,
+        isFirestorePermissionDeniedError
+      };
+      const sessionStateDeps = {
         getCurrentQuestionSet,
         getCurrentSessionQuestions: () => currentSessionQuestions,
         setCurrentSessionQuestions: questions => {
@@ -9463,13 +9468,17 @@
         decreaseCurrentRankingTimeLeft: value => {
           currentRankingTimeLeft -= value;
           return currentRankingTimeLeft;
-        },
+        }
+      };
+      const catalogDeps = {
         getCurrentQuizMetaForHeader: () => QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling,
         getCurrentModeMetaForHeader: () => MODE_CATALOG[currentModeId] || MODE_CATALOG.practice,
         getQuestionBank: () => QUESTION_BANK,
         getFirebaseQuizDataCache: () => firebaseQuizDataCache,
         getCorrectRewardCoin: () => USER_REWARD_DATA.completeReward.correctCoin,
-        getInvalidRankingTimeMessage: () => INVALID_RANKING_TIME_MESSAGE,
+        getInvalidRankingTimeMessage: () => INVALID_RANKING_TIME_MESSAGE
+      };
+      const rankingDeps = {
         getRankingElapsedSeconds,
         getRankingTimeLimitSecondsForQuiz,
         getRankingTargetForQuiz,
@@ -9480,6 +9489,9 @@
         buildRankingRecordId,
         buildUserRankingSummaryUpdate,
         buildQuizKingSummaryUpdate,
+        formatRankingElapsedText
+      };
+      const practiceDeps = {
         getPracticeQuestionId,
         getPracticeQuestionIdCandidates,
         getPracticeTargetForQuiz,
@@ -9488,13 +9500,9 @@
         buildPracticeSummaryUpdate,
         buildPracticeBadgeUpdate,
         grantPracticeCorrectReward,
-        syncMemberTitlesAfterPracticeCompletion,
-        debugLog,
-        loadFeatureFlags,
-        loadFirebaseQuizMeta,
-        normalizeFirebaseQuizId,
-        formatRankingElapsedText,
-        isFirestorePermissionDeniedError,
+        syncMemberTitlesAfterPracticeCompletion
+      };
+      const cacheDeps = {
         resetUserEconomyCache: () => {
           firestoreUserEconomy = null;
           userEconomyLoadPromise = null;
@@ -9503,6 +9511,16 @@
           titleCatalogCache = null;
           titleCatalogMapCache = null;
         }
+      };
+      return {
+        ...firebaseDeps,
+        ...sessionStateDeps,
+        ...catalogDeps,
+        ...rankingDeps,
+        ...practiceDeps,
+        ...cacheDeps,
+        debugLog,
+        normalizeFirebaseQuizId
       };
     }
 
