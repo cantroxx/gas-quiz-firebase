@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 8A.
-- Latest committed step 7 baseline: `c88c937 refactor: split shop render helpers`
+- Completed through step 8B.
+- Latest committed step 8A baseline: `aedcd56 refactor: split ranking render helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -111,9 +111,25 @@ Step 8A implemented:
   - `renderRankingRows`
   - `createRankingPodiumCard`
 
+Step 8B implemented:
+
+- Moved ranking plaza read/model helper implementations into `public/js/features/ranking-data.js`.
+- `public/index.html` keeps wrapper functions for:
+  - `getEnabledRankingCategoryKeys`
+  - `getEnabledRankingGroupDefinitions`
+  - `normalizeRankingRecordFromFirestore`
+  - `getRankingPlazaCategoryRecordLimit`
+  - `getRankingMemberUserId`
+  - `mergeRankingRowWithMemberProfile`
+  - `loadMemberProfilesForRankingRows`
+  - `loadLimitedRankingRecordsForPlaza`
+  - `buildRankingGroups`
+  - `buildSubjectRankingGroups`
+  - `getRankingBoardModels`
+
 Target:
 
-- Continue with ranking board panel render helpers after 8A verification.
+- Continue with ranking board panel render helpers and any remaining ranking plaza helpers only after 8B verification.
 - Keep `saveRankingRecordOnQuizComplete` in `public/index.html`.
 
 Validation:
