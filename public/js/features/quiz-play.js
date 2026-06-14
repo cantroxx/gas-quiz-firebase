@@ -220,6 +220,37 @@
     return { unsolved, solved };
   }
 
+  function getPracticeQuestionId(question) {
+    return String(question?.practiceQuestionId || question?.questionId || question?.answerText || question?.question || '').trim();
+  }
+
+  function getPracticeQuestionIdCandidates(question) {
+    const candidates = [
+      question?.practiceQuestionId,
+      ...(Array.isArray(question?.legacyPracticeIds) ? question.legacyPracticeIds : []),
+      question?.questionId,
+      question?.answerText,
+      question?.question
+    ].map(id => String(id || '').trim()).filter(Boolean);
+    return Array.from(new Set(candidates));
+  }
+
+  function isFirestoreQuotaExceededError(error) {
+    const code = String(error?.code || '').toLowerCase();
+    const message = String(error?.message || error?.name || '').toLowerCase();
+    return code.includes('resource-exhausted')
+      || message.includes('quota exceeded')
+      || message.includes('too many requests')
+      || message.includes('resource-exhausted');
+  }
+
+  function isFirestorePermissionDeniedError(error) {
+    const code = String(error?.code || '').toLowerCase();
+    const message = String(error?.message || error?.name || '').toLowerCase();
+    return code.includes('permission-denied')
+      || message.includes('missing or insufficient permissions');
+  }
+
   function getPracticeTargetForQuiz(quizId, meta = {}, deps = {}) {
     const normalizeQuizId = deps.normalizeFirebaseQuizId || (value => String(value || '').trim());
     const id = normalizeQuizId(quizId);
@@ -785,6 +816,10 @@
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,
+    getPracticeQuestionId,
+    getPracticeQuestionIdCandidates,
+    isFirestoreQuotaExceededError,
+    isFirestorePermissionDeniedError,
     getPracticeTargetForQuiz,
     buildPracticeProgressRecordId,
     getRankingTargetForQuiz,

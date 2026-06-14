@@ -590,6 +590,16 @@ Step 12A/12B implemented:
 - Kept the existing function names in `public/index.html` as thin wrappers around `window.DJ48QuizPlay`.
 - Save execution, Firestore reads/writes, DOM rendering, timers, reward callable execution, and title sync remain in `public/index.html`.
 
+Step 12C implemented:
+
+- Added more pure quiz helper functions to `public/js/features/quiz-play.js`:
+  - practice question id extraction
+  - practice question id candidate extraction
+  - Firestore quota error detection
+  - Firestore permission-denied error detection
+- Kept the existing function names in `public/index.html` as thin wrappers around `window.DJ48QuizPlay`.
+- Firestore reads/writes, error handling call sites, practice save execution, and render/timer flows remain unchanged.
+
 Next:
 
 - Continue moving only pure helper logic while wrappers remain in place.

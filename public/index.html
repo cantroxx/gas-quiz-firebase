@@ -9704,19 +9704,11 @@
     }
 
     function isFirestoreQuotaExceededError(error) {
-      const code = String(error?.code || '').toLowerCase();
-      const message = String(error?.message || error?.name || '').toLowerCase();
-      return code.includes('resource-exhausted')
-        || message.includes('quota exceeded')
-        || message.includes('too many requests')
-        || message.includes('resource-exhausted');
+      return window.DJ48QuizPlay.isFirestoreQuotaExceededError(error);
     }
 
     function isFirestorePermissionDeniedError(error) {
-      const code = String(error?.code || '').toLowerCase();
-      const message = String(error?.message || error?.name || '').toLowerCase();
-      return code.includes('permission-denied')
-        || message.includes('missing or insufficient permissions');
+      return window.DJ48QuizPlay.isFirestorePermissionDeniedError(error);
     }
 
     function submitAnswer() {
@@ -10002,18 +9994,11 @@
     }
 
     function getPracticeQuestionId(question) {
-      return String(question?.practiceQuestionId || question?.questionId || question?.answerText || question?.question || '').trim();
+      return window.DJ48QuizPlay.getPracticeQuestionId(question);
     }
 
     function getPracticeQuestionIdCandidates(question) {
-      const candidates = [
-        question?.practiceQuestionId,
-        ...(Array.isArray(question?.legacyPracticeIds) ? question.legacyPracticeIds : []),
-        question?.questionId,
-        question?.answerText,
-        question?.question
-      ].map(id => String(id || '').trim()).filter(Boolean);
-      return Array.from(new Set(candidates));
+      return window.DJ48QuizPlay.getPracticeQuestionIdCandidates(question);
     }
 
     function getPracticeBadgeMeta(areaKey, area, detail) {
