@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 9A.
-- Latest committed step 8D baseline: `98fef44 refactor: split ranking board event handler`
+- Completed through step 9C.
+- Latest committed step 9A baseline: `86c7abd docs: inventory quiz play session state`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -238,10 +238,23 @@ Low-risk candidates for a later Step 9B/9C review:
 - `getNumericChoiceKey`
 - pure ranking/practice target builders only after verifying their dependence on `currentQuizId` and `currentRankingModeId`
 
+Step 9B/9C implemented:
+
+- Created `public/js/features/quiz-play.js` for low-risk quiz play helpers.
+- `public/index.html` keeps wrapper functions for:
+  - `getKoreanInitials`
+  - `getCurrentQuestionAnswerText`
+  - `getQuestionHintText`
+  - `getWrongAnswerFeedbackText`
+  - `isTypingTarget`
+  - `getNumericChoiceKey`
+- Kept `isQuizPlayActive` in `public/index.html` because it directly reads the current DOM view state.
+- `getQuestionHintText` now receives `currentQuizId` and `normalizeFirebaseQuizId` through a wrapper dependency object instead of reading quiz session state directly in the helper file.
+
 Target:
 
-- Review low-risk helper candidates before creating any `quiz-play` helper file.
-- Keep quiz play state and save flows in `public/index.html` until Step 9B confirms boundaries.
+- Keep quiz play state and save flows in `public/index.html`.
+- Do not move DOM render, timer, save, reward, or title sync flows yet.
 - Consider grouping session state into a smaller internal object only after helper extraction is proven safe.
 
 Validation:
