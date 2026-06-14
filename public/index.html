@@ -9376,16 +9376,22 @@
         }
         return;
       }
-      currentQuizId = quizId;
-      currentModeId = modeId;
-      currentRankingModeId = modeId === 'ranking' ? getSupportedRankingModeForQuiz(quizId, rankingModeId) : 'normal';
-      currentQuestionIndex = 0;
-      selectedChoiceIndex = null;
-      correctAnswerCount = 0;
-      currentQuizStartedAtMs = Date.now();
-      currentRankingLives = modeId === 'ranking' ? (currentRankingModeId === 'onechance' ? 1 : 3) : 0;
-      currentQuestionResolved = false;
-      currentSessionQuestions = null;
+      const nextSessionState = window.DJ48QuizPlay.createQuizPlaySessionState({
+        quizId,
+        modeId,
+        rankingModeId: modeId === 'ranking' ? getSupportedRankingModeForQuiz(quizId, rankingModeId) : 'normal',
+        startedAtMs: Date.now()
+      });
+      currentQuizId = nextSessionState.currentQuizId;
+      currentModeId = nextSessionState.currentModeId;
+      currentRankingModeId = nextSessionState.currentRankingModeId;
+      currentQuestionIndex = nextSessionState.currentQuestionIndex;
+      selectedChoiceIndex = nextSessionState.selectedChoiceIndex;
+      correctAnswerCount = nextSessionState.correctAnswerCount;
+      currentQuizStartedAtMs = nextSessionState.currentQuizStartedAtMs;
+      currentRankingLives = nextSessionState.currentRankingLives;
+      currentQuestionResolved = nextSessionState.currentQuestionResolved;
+      currentSessionQuestions = nextSessionState.currentSessionQuestions;
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
       startPopularUsageSessionIfNeeded(quizId);
@@ -9458,8 +9464,12 @@
       const quiz = QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling;
       const mode = MODE_CATALOG[currentModeId] || MODE_CATALOG.practice;
       const rankingModeLabel = currentModeId === 'ranking' ? getRankingModeLabelForDisplay({ rankingMode: currentRankingModeId }) : '';
-      const modeLabel = currentModeId === 'ranking' && rankingModeLabel ? `${mode.title} · ${rankingModeLabel}` : mode.title;
-      document.getElementById('quiz-play-title').textContent = `${quiz.title.replace(' 퀴즈', '')} ${modeLabel}`;
+      document.getElementById('quiz-play-title').textContent = window.DJ48QuizPlay.getQuizPlayHeaderTitle({
+        quizTitle: quiz.title,
+        modeTitle: mode.title,
+        rankingModeLabel,
+        isRanking: currentModeId === 'ranking'
+      });
     }
 
     function getKoreanInitials(value) {
@@ -9541,9 +9551,12 @@
     }
 
     function getQuizProgressText() {
-      const base = `문제 ${currentQuestionIndex + 1} / ${getCurrentQuestionSet().length}`;
-      if(currentModeId !== 'ranking') return base;
-      return `${base} · 생명력 ${'♥'.repeat(Math.max(currentRankingLives, 0))}`;
+      return window.DJ48QuizPlay.getQuizProgressText({
+        questionIndex: currentQuestionIndex,
+        questionCount: getCurrentQuestionSet().length,
+        modeId: currentModeId,
+        rankingLives: currentRankingLives
+      });
     }
 
     function clearRankingQuestionTimer() {
@@ -9586,13 +9599,9 @@
     }
 
     function getRankingTimeLimitSecondsForQuiz(quizId) {
-      if(currentRankingModeId === 'speed') return 5;
-      const id = normalizeFirebaseQuizId(quizId);
-      if(id === 'gmo' || id === 'time_store') return 60;
-      if(id === 'random-basic') return 60;
-      if(id === 'word-relation') return 30;
-      if(id === 'samgukji' || id === 'ancient-history') return 15;
-      return 12;
+      return window.DJ48QuizPlay.getRankingTimeLimitSecondsForQuiz(quizId, currentRankingModeId, {
+        normalizeFirebaseQuizId
+      });
     }
 
     function startRankingQuestionTimerIfNeeded() {

@@ -261,6 +261,16 @@ Step 9D implemented:
 - `renderQuestion` remains in `public/index.html` and still owns quiz session state reset, progress text, hint visibility decision, root append order, and ranking timer start.
 - No timer, save, reward, title sync, or quiz completion flow was moved.
 
+Step 9E implemented:
+
+- Added calculation-only quiz play helpers to `public/js/features/quiz-play.js`:
+  - `createQuizPlaySessionState`
+  - `getQuizPlayHeaderTitle`
+  - `getQuizProgressText`
+  - `getRankingTimeLimitSecondsForQuiz`
+- `public/index.html` still owns the actual quiz session variables and assigns them explicitly from the helper result.
+- Timer start/stop, answer submit, practice save, ranking save, reward, title sync, and completion rendering remain in `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

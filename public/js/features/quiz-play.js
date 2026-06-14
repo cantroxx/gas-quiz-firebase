@@ -51,6 +51,51 @@
     return digitMatch ? Number(digitMatch[2]) : 0;
   }
 
+  function createQuizPlaySessionState(options = {}) {
+    const modeId = options.modeId || 'practice';
+    const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
+    return {
+      currentQuizId: options.quizId || 'spelling',
+      currentModeId: modeId,
+      currentRankingModeId: rankingModeId,
+      currentQuestionIndex: 0,
+      selectedChoiceIndex: null,
+      correctAnswerCount: 0,
+      currentQuizStartedAtMs: Number(options.startedAtMs) || Date.now(),
+      currentRankingLives: modeId === 'ranking' ? (rankingModeId === 'onechance' ? 1 : 3) : 0,
+      currentQuestionResolved: false,
+      currentSessionQuestions: null
+    };
+  }
+
+  function getQuizPlayHeaderTitle(options = {}) {
+    const quizTitle = String(options.quizTitle || '').replace(' 퀴즈', '');
+    const modeTitle = String(options.modeTitle || '');
+    const rankingModeLabel = String(options.rankingModeLabel || '');
+    const modeLabel = options.isRanking && rankingModeLabel ? `${modeTitle} · ${rankingModeLabel}` : modeTitle;
+    return `${quizTitle} ${modeLabel}`.trim();
+  }
+
+  function getQuizProgressText(options = {}) {
+    const questionIndex = Math.max(0, Number(options.questionIndex) || 0);
+    const questionCount = Math.max(0, Number(options.questionCount) || 0);
+    const base = `문제 ${questionIndex + 1} / ${questionCount}`;
+    if(options.modeId !== 'ranking') return base;
+    const rankingLives = Math.max(0, Number(options.rankingLives) || 0);
+    return `${base} · 생명력 ${'♥'.repeat(rankingLives)}`;
+  }
+
+  function getRankingTimeLimitSecondsForQuiz(quizId, rankingModeId, deps = {}) {
+    if(rankingModeId === 'speed') return 5;
+    const normalizeQuizId = deps.normalizeFirebaseQuizId || (value => String(value || '').trim());
+    const id = normalizeQuizId(quizId);
+    if(id === 'gmo' || id === 'time_store') return 60;
+    if(id === 'random-basic') return 60;
+    if(id === 'word-relation') return 30;
+    if(id === 'samgukji' || id === 'ancient-history') return 15;
+    return 12;
+  }
+
   function createQuizAnswerInput(onInput) {
     const input = document.createElement('input');
     input.className = 'quiz-answer-input';
@@ -111,6 +156,10 @@
     getWrongAnswerFeedbackText,
     isTypingTarget,
     getNumericChoiceKey,
+    createQuizPlaySessionState,
+    getQuizPlayHeaderTitle,
+    getQuizProgressText,
+    getRankingTimeLimitSecondsForQuiz,
     createQuizAnswerInput,
     createQuizImageAnswerField,
     createQuizChoiceButton,
