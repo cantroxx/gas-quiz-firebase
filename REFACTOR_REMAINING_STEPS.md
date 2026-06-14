@@ -398,6 +398,13 @@ Step 9T implemented:
 - `showQuizComplete` now delegates only the ranking completion save/skip/none branch decision.
 - Ranking save execution, Firestore write logic, timer cleanup, reward, and title sync flows remain owned by `public/index.html`.
 
+Step 9U implemented:
+
+- Added ranking wrong-answer state helper to `public/js/features/quiz-play.js`:
+  - `getRankingWrongAnswerState`
+- `showQuizResult` now delegates only the next ranking life count and wrong-answer end decision.
+- Ranking life state assignment, result rendering, timer cleanup, save, reward, and title sync flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

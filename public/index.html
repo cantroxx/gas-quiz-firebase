@@ -9693,15 +9693,17 @@
     function showQuizResult(isCorrect, overrideMessage) {
       const root = document.getElementById('quiz-play-root');
       const question = getCurrentQuestionSet()[currentQuestionIndex];
-      if(currentModeId === 'ranking' && !isCorrect) {
-        currentRankingLives = Math.max(0, currentRankingLives - 1);
-      }
-      const rankingEndedByWrongAnswer = currentModeId === 'ranking' && !isCorrect && currentRankingLives <= 0;
+      const rankingWrongAnswerState = window.DJ48QuizPlay.getRankingWrongAnswerState({
+        modeId: currentModeId,
+        isCorrect,
+        currentRankingLives
+      });
+      currentRankingLives = rankingWrongAnswerState.nextRankingLives;
       const viewModel = window.DJ48QuizPlay.getQuizResultViewModel({
         isCorrect,
         question,
         modeId: currentModeId,
-        rankingEndedByWrongAnswer,
+        rankingEndedByWrongAnswer: rankingWrongAnswerState.rankingEndedByWrongAnswer,
         overrideMessage,
         isLastQuestion: currentQuestionIndex + 1 >= getCurrentQuestionSet().length
       });

@@ -179,6 +179,16 @@
     return 'save-record';
   }
 
+  function getRankingWrongAnswerState(options = {}) {
+    const currentLives = Math.max(0, Number(options.currentRankingLives) || 0);
+    const isRankingWrongAnswer = options.modeId === 'ranking' && !options.isCorrect;
+    const nextRankingLives = isRankingWrongAnswer ? Math.max(0, currentLives - 1) : currentLives;
+    return {
+      nextRankingLives,
+      rankingEndedByWrongAnswer: isRankingWrongAnswer && nextRankingLives <= 0
+    };
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -497,6 +507,7 @@
     attachRankingSaveStatus,
     getElapsedTooLongRankingSkipResult,
     getRankingCompleteSaveAction,
+    getRankingWrongAnswerState,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,
