@@ -9421,13 +9421,49 @@
         getCurrentModeId: () => currentModeId,
         getCurrentQuizId: () => currentQuizId,
         getCurrentQuestionIndex: () => currentQuestionIndex,
+        advanceCurrentQuestionIndex: () => {
+          currentQuestionIndex += 1;
+          return currentQuestionIndex;
+        },
         getCorrectAnswerCount: () => correctAnswerCount,
+        incrementCorrectAnswerCount: () => {
+          correctAnswerCount += 1;
+          return correctAnswerCount;
+        },
         getCurrentMemberProfile: () => currentMemberProfile || {},
+        getCurrentRankingModeId: () => currentRankingModeId,
+        getCurrentRankingLives: () => currentRankingLives,
+        setCurrentRankingLives: value => {
+          currentRankingLives = value;
+        },
+        getCurrentQuestionResolved: () => currentQuestionResolved,
+        setCurrentQuestionResolved: value => {
+          currentQuestionResolved = !!value;
+        },
+        getSelectedChoiceIndex: () => selectedChoiceIndex,
+        resetSelectedChoiceIndex: () => {
+          selectedChoiceIndex = null;
+        },
+        setSelectedChoiceIndex: value => {
+          selectedChoiceIndex = value;
+        },
+        getCurrentRankingTimeLeft: () => currentRankingTimeLeft,
+        setCurrentRankingTimeLeft: value => {
+          currentRankingTimeLeft = value;
+        },
+        decreaseCurrentRankingTimeLeft: value => {
+          currentRankingTimeLeft -= value;
+          return currentRankingTimeLeft;
+        },
+        getCurrentQuizMetaForHeader: () => QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling,
+        getCurrentModeMetaForHeader: () => MODE_CATALOG[currentModeId] || MODE_CATALOG.practice,
         getCorrectRewardCoin: () => USER_REWARD_DATA.completeReward.correctCoin,
         getInvalidRankingTimeMessage: () => INVALID_RANKING_TIME_MESSAGE,
         getRankingElapsedSeconds,
+        getRankingTimeLimitSecondsForQuiz,
         getRankingTargetForQuiz,
         getMaxRankingElapsedSeconds: () => MAX_RANKING_ELAPSED_SECONDS,
+        getRankingModeLabelForDisplay,
         buildRankingRecordId,
         buildUserRankingSummaryUpdate,
         buildQuizKingSummaryUpdate,
@@ -9511,14 +9547,16 @@
     }
 
     function renderQuizPlayHeader() {
-      const quiz = QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling;
-      const mode = MODE_CATALOG[currentModeId] || MODE_CATALOG.practice;
-      const rankingModeLabel = currentModeId === 'ranking' ? getRankingModeLabelForDisplay({ rankingMode: currentRankingModeId }) : '';
+      const deps = getQuizPlayDeps();
+      const quiz = deps.getCurrentQuizMetaForHeader();
+      const mode = deps.getCurrentModeMetaForHeader();
+      const isRanking = deps.getCurrentModeId() === 'ranking';
+      const rankingModeLabel = isRanking ? deps.getRankingModeLabelForDisplay({ rankingMode: deps.getCurrentRankingModeId() }) : '';
       document.getElementById('quiz-play-title').textContent = window.DJ48QuizPlay.getQuizPlayHeaderTitle({
         quizTitle: quiz.title,
         modeTitle: mode.title,
         rankingModeLabel,
-        isRanking: currentModeId === 'ranking'
+        isRanking
       });
     }
 
@@ -9532,7 +9570,7 @@
 
     function getQuestionHintText(question) {
       return window.DJ48QuizPlay.getQuestionHintText(question, {
-        currentQuizId,
+        currentQuizId: getQuizPlayDeps().getCurrentQuizId(),
         normalizeFirebaseQuizId
       });
     }
@@ -9542,15 +9580,16 @@
     }
 
     function renderQuestion() {
-      const questionSet = getCurrentQuestionSet();
-      const question = questionSet[currentQuestionIndex];
+      const deps = getQuizPlayDeps();
+      const questionSet = deps.getCurrentQuestionSet();
+      const question = questionSet[deps.getCurrentQuestionIndex()];
       const root = document.getElementById('quiz-play-root');
-      selectedChoiceIndex = null;
-      currentQuestionResolved = false;
+      deps.resetSelectedChoiceIndex();
+      deps.setCurrentQuestionResolved(false);
       root.innerHTML = '';
 
       const hintText = getQuestionHintText(question);
-      const shouldRenderHint = !!hintText && !(currentModeId === 'ranking' && currentRankingModeId === 'nohint');
+      const shouldRenderHint = !!hintText && !(deps.getCurrentModeId() === 'ranking' && deps.getCurrentRankingModeId() === 'nohint');
       const card = window.DJ48QuizPlay.createQuizQuestionCard({
         question,
         progressText: getQuizProgressText(),
@@ -9562,11 +9601,12 @@
     }
 
     function getQuizProgressText() {
+      const deps = getQuizPlayDeps();
       return window.DJ48QuizPlay.getQuizProgressText({
-        questionIndex: currentQuestionIndex,
-        questionCount: getCurrentQuestionSet().length,
-        modeId: currentModeId,
-        rankingLives: currentRankingLives
+        questionIndex: deps.getCurrentQuestionIndex(),
+        questionCount: deps.getCurrentQuestionSet().length,
+        modeId: deps.getCurrentModeId(),
+        rankingLives: deps.getCurrentRankingLives()
       });
     }
 
@@ -9585,53 +9625,57 @@
     }
 
     function startRankingSessionTimerIfNeeded() {
+      const deps = getQuizPlayDeps();
       clearRankingSessionTimer();
-      if(currentModeId !== 'ranking') return;
+      if(deps.getCurrentModeId() !== 'ranking') return;
       currentRankingSessionTimer = setInterval(() => {
-        if(currentModeId !== 'ranking') {
+        if(deps.getCurrentModeId() !== 'ranking') {
           clearRankingSessionTimer();
           return;
         }
-        if(getRankingElapsedSeconds() >= MAX_RANKING_ELAPSED_SECONDS) {
+        if(deps.getRankingElapsedSeconds() >= deps.getMaxRankingElapsedSeconds()) {
           handleRankingSessionTimeout();
         }
       }, 1000);
     }
 
     function handleRankingSessionTimeout() {
-      if(currentModeId !== 'ranking') return;
+      const deps = getQuizPlayDeps();
+      if(deps.getCurrentModeId() !== 'ranking') return;
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
-      currentQuestionResolved = true;
+      deps.setCurrentQuestionResolved(true);
       window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
       showQuizComplete({ skipped: true, reason: 'elapsed-too-long', forced: true });
     }
 
     function getRankingTimeLimitSecondsForQuiz(quizId) {
-      return window.DJ48QuizPlay.getRankingTimeLimitSecondsForQuiz(quizId, currentRankingModeId, {
+      return window.DJ48QuizPlay.getRankingTimeLimitSecondsForQuiz(quizId, getQuizPlayDeps().getCurrentRankingModeId(), {
         normalizeFirebaseQuizId
       });
     }
 
     function startRankingQuestionTimerIfNeeded() {
+      const deps = getQuizPlayDeps();
       clearRankingQuestionTimer();
-      if(currentModeId !== 'ranking') return;
-      currentRankingTimeLeft = getRankingTimeLimitSecondsForQuiz(currentQuizId);
+      if(deps.getCurrentModeId() !== 'ranking') return;
+      deps.setCurrentRankingTimeLeft(deps.getRankingTimeLimitSecondsForQuiz(deps.getCurrentQuizId()));
       const updateProgress = () => {
         const progress = document.querySelector('.quiz-progress');
-        if(progress) progress.textContent = window.DJ48QuizPlay.getRankingTimedProgressText(getQuizProgressText(), currentRankingTimeLeft);
+        if(progress) progress.textContent = window.DJ48QuizPlay.getRankingTimedProgressText(getQuizProgressText(), deps.getCurrentRankingTimeLeft());
       };
       updateProgress();
       currentRankingQuestionTimer = setInterval(() => {
-        currentRankingTimeLeft -= 0.1;
+        deps.decreaseCurrentRankingTimeLeft(0.1);
         updateProgress();
-        if(currentRankingTimeLeft <= 0) handleRankingTimeout();
+        if(deps.getCurrentRankingTimeLeft() <= 0) handleRankingTimeout();
       }, 100);
     }
 
     function handleRankingTimeout() {
-      if(currentModeId !== 'ranking' || currentQuestionResolved) return;
-      currentQuestionResolved = true;
+      const deps = getQuizPlayDeps();
+      if(deps.getCurrentModeId() !== 'ranking' || deps.getCurrentQuestionResolved()) return;
+      deps.setCurrentQuestionResolved(true);
       clearRankingQuestionTimer();
       window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
       showQuizResult(false, '시간 초과로 하트가 1개 줄었어요.');
@@ -9658,12 +9702,13 @@
     }
 
     function submitAnswer() {
-      if(currentQuestionResolved) return;
-      const question = getCurrentQuestionSet()[currentQuestionIndex];
+      const deps = getQuizPlayDeps();
+      if(deps.getCurrentQuestionResolved()) return;
+      const question = deps.getCurrentQuestionSet()[deps.getCurrentQuestionIndex()];
       const input = document.querySelector('.quiz-answer-input');
       const submitResult = window.DJ48QuizPlay.getQuizAnswerSubmitResult(question, {
         submittedAnswer: input?.value,
-        selectedChoiceIndex,
+        selectedChoiceIndex: deps.getSelectedChoiceIndex(),
         normalizeQuizAnswer
       });
       if(!submitResult.canSubmit) return;
@@ -9671,15 +9716,15 @@
       if(question.type === 'imageInput' || question.type === 'textInput') {
         if(input) input.disabled = true;
       }
-      currentQuestionResolved = true;
+      deps.setCurrentQuestionResolved(true);
       clearRankingQuestionTimer();
-      if(isCorrect) correctAnswerCount += 1;
-      if(isCorrect) recordEducationCorrectForPopularUnlock(currentQuizId);
+      if(isCorrect) deps.incrementCorrectAnswerCount();
+      if(isCorrect) recordEducationCorrectForPopularUnlock(deps.getCurrentQuizId());
       let progressSavePromise = null;
-      if(window.DJ48QuizPlay.shouldSavePracticeProgress({ isCorrect, modeId: currentModeId })) {
-        debugLog('Practice progress correct questionId:', {
-          questionId: getPracticeQuestionId(question),
-          quizId: normalizeFirebaseQuizId(currentQuizId)
+      if(window.DJ48QuizPlay.shouldSavePracticeProgress({ isCorrect, modeId: deps.getCurrentModeId() })) {
+        deps.debugLog('Practice progress correct questionId:', {
+          questionId: deps.getPracticeQuestionId(question),
+          quizId: deps.normalizeFirebaseQuizId(deps.getCurrentQuizId())
         });
         progressSavePromise = savePracticeProgressAfterCorrectAnswer(question);
       }
@@ -9697,8 +9742,9 @@
     }
 
     function selectChoiceByIndex(index, submitImmediately = false) {
-      const question = getCurrentQuestionSet()[currentQuestionIndex];
-      if(!window.DJ48QuizPlay.canSelectQuizChoice(question, { currentQuestionResolved })) return false;
+      const deps = getQuizPlayDeps();
+      const question = deps.getCurrentQuestionSet()[deps.getCurrentQuestionIndex()];
+      if(!window.DJ48QuizPlay.canSelectQuizChoice(question, { currentQuestionResolved: deps.getCurrentQuestionResolved() })) return false;
       const button = document.querySelector(`.quiz-choice[data-choice-index="${index}"]`);
       const selected = window.DJ48QuizPlay.applyQuizChoiceSelection({
         button,
@@ -9706,15 +9752,16 @@
         submitButton: document.querySelector('.quiz-submit-button')
       });
       if(!selected) return false;
-      selectedChoiceIndex = index;
+      deps.setSelectedChoiceIndex(index);
       if(submitImmediately) submitAnswer();
       return true;
     }
 
     function handleQuizPlayKeydown(event) {
+      const deps = getQuizPlayDeps();
       const action = window.DJ48QuizPlay.getQuizPlayKeyAction(event, {
         quizPlayActive: isQuizPlayActive(),
-        currentQuestionResolved
+        currentQuestionResolved: deps.getCurrentQuestionResolved()
       });
       if(action.type === 'submit-input') {
         event.preventDefault();
@@ -9738,21 +9785,23 @@
     }
 
     function showQuizResult(isCorrect, overrideMessage) {
+      const deps = getQuizPlayDeps();
       const root = document.getElementById('quiz-play-root');
-      const question = getCurrentQuestionSet()[currentQuestionIndex];
+      const questionSet = deps.getCurrentQuestionSet();
+      const question = questionSet[deps.getCurrentQuestionIndex()];
       const rankingWrongAnswerState = window.DJ48QuizPlay.getRankingWrongAnswerState({
-        modeId: currentModeId,
+        modeId: deps.getCurrentModeId(),
         isCorrect,
-        currentRankingLives
+        currentRankingLives: deps.getCurrentRankingLives()
       });
-      currentRankingLives = rankingWrongAnswerState.nextRankingLives;
+      deps.setCurrentRankingLives(rankingWrongAnswerState.nextRankingLives);
       const viewModel = window.DJ48QuizPlay.getQuizResultViewModel({
         isCorrect,
         question,
-        modeId: currentModeId,
+        modeId: deps.getCurrentModeId(),
         rankingEndedByWrongAnswer: rankingWrongAnswerState.rankingEndedByWrongAnswer,
         overrideMessage,
-        isLastQuestion: currentQuestionIndex + 1 >= getCurrentQuestionSet().length
+        isLastQuestion: deps.getCurrentQuestionIndex() + 1 >= questionSet.length
       });
 
       root.appendChild(window.DJ48QuizPlay.createQuizResultCard(viewModel));
@@ -9765,11 +9814,12 @@
     }
 
     function nextQuestion() {
+      const deps = getQuizPlayDeps();
       clearRankingQuestionTimer();
-      currentQuestionIndex += 1;
+      const nextQuestionIndex = deps.advanceCurrentQuestionIndex();
       const action = window.DJ48QuizPlay.getNextQuestionAction({
-        nextQuestionIndex: currentQuestionIndex,
-        questionCount: getCurrentQuestionSet().length
+        nextQuestionIndex,
+        questionCount: deps.getCurrentQuestionSet().length
       });
       if(action === 'complete') {
         showQuizComplete();

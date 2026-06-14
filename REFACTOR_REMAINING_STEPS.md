@@ -523,6 +523,25 @@ Step 11E implemented:
 - Routed `renderRankingSaveStatus` message lookup through the adapter.
 - Completion card rendering, ranking save execution, timer cleanup, and popular usage cleanup remain unchanged.
 
+Step 11F implemented:
+
+- Extended `getQuizPlayDeps` with quiz session render/progress state accessors and small state mutators:
+  - current ranking mode/lives, question resolved flag, selected choice, ranking time left
+  - current header quiz/mode metadata
+  - question index advance and correct count increment
+- Routed these quiz play functions through the adapter:
+  - `renderQuizPlayHeader`
+  - `getQuestionHintText`
+  - `renderQuestion`
+  - `getQuizProgressText`
+  - ranking session/question timer handlers
+  - `submitAnswer`
+  - `selectChoiceByIndex`
+  - `handleQuizPlayKeydown`
+  - `showQuizResult`
+  - `nextQuestion`
+- DOM structure, answer validation, timer intervals, heart behavior, progress save, and completion routing remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
