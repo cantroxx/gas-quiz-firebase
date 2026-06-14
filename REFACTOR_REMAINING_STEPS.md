@@ -384,6 +384,13 @@ Step 9R implemented:
 - `showQuizComplete` now delegates only the ranking-save Promise success/error status rendering connection.
 - Ranking save execution, Firestore write logic, elapsed-too-long skip status, reward, and title sync flows remain owned by `public/index.html`.
 
+Step 9S implemented:
+
+- Added elapsed-too-long ranking skip result helper to `public/js/features/quiz-play.js`:
+  - `getElapsedTooLongRankingSkipResult`
+- `showQuizComplete` now delegates only the skipped status object creation for overlong ranking sessions.
+- Ranking save execution, Firestore write logic, timer cleanup, reward, and title sync flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

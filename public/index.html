@@ -10393,12 +10393,10 @@
       root.appendChild(window.DJ48QuizPlay.createQuizCompleteCard(viewModel));
 
       if(currentModeId === 'ranking' && options.reason === 'elapsed-too-long') {
-        renderRankingSaveStatus({
-          skipped: true,
-          reason: 'elapsed-too-long',
+        renderRankingSaveStatus(window.DJ48QuizPlay.getElapsedTooLongRankingSkipResult({
           elapsedSeconds: getRankingElapsedSeconds(),
-          elapsedText: formatRankingElapsedText(getRankingElapsedSeconds())
-        });
+          formatRankingElapsedText
+        }));
       } else if(currentModeId === 'ranking') {
         window.DJ48QuizPlay.attachRankingSaveStatus(saveRankingRecordOnQuizComplete(), {
           renderRankingSaveStatus,

@@ -160,6 +160,19 @@
       });
   }
 
+  function getElapsedTooLongRankingSkipResult(options = {}) {
+    const elapsedSeconds = Math.max(1, Number(options.elapsedSeconds) || 1);
+    const formatElapsedText = typeof options.formatRankingElapsedText === 'function'
+      ? options.formatRankingElapsedText
+      : value => `${value}초`;
+    return {
+      skipped: true,
+      reason: 'elapsed-too-long',
+      elapsedSeconds,
+      elapsedText: formatElapsedText(elapsedSeconds)
+    };
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -476,6 +489,7 @@
     shouldSavePracticeProgress,
     attachPracticeProgressSaveStatus,
     attachRankingSaveStatus,
+    getElapsedTooLongRankingSkipResult,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,
