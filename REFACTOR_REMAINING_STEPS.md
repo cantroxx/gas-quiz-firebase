@@ -482,6 +482,16 @@ Step 11A implemented:
   - Firestore permission error detection
 - Save execution, Firestore write logic, reward, title sync, timer, and popular usage flows remain owned by `public/index.html`.
 
+Step 11B implemented:
+
+- Extended `getQuizPlayDeps` with cache reset hooks:
+  - `resetUserEconomyCache`
+  - `resetTitleCatalogCache`
+- Applied the adapter inside these callable wrapper functions without moving them:
+  - `grantPracticeCorrectReward`
+  - `syncMemberTitlesAfterPracticeCompletion`
+- Callable names, request payloads, reward logic, title sync logic, and cache invalidation behavior remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

@@ -9422,7 +9422,15 @@
         loadFirebaseQuizMeta,
         normalizeFirebaseQuizId,
         formatRankingElapsedText,
-        isFirestorePermissionDeniedError
+        isFirestorePermissionDeniedError,
+        resetUserEconomyCache: () => {
+          firestoreUserEconomy = null;
+          userEconomyLoadPromise = null;
+        },
+        resetTitleCatalogCache: () => {
+          titleCatalogCache = null;
+          titleCatalogMapCache = null;
+        }
       };
     }
 
@@ -10128,7 +10136,8 @@
 
     async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {
       if(!rewardCoin || rewardCoin <= 0) return null;
-      const functions = getFirebaseFunctions();
+      const deps = getQuizPlayDeps();
+      const functions = deps.getFirebaseFunctions();
       if(!functions) throw new Error('functions-unavailable');
 
       debugLog('Practice reward economy update queued:', {
@@ -10143,8 +10152,7 @@
         quizId: context?.quizId || ''
       });
       const result = response?.data || {};
-      firestoreUserEconomy = null;
-      userEconomyLoadPromise = null;
+      deps.resetUserEconomyCache();
       debugLog('Firestore practice reward update succeeded:', {
         economyPath: result.economyPath || '',
         rewardLogPath: result.rewardLogPath || '',
@@ -10156,7 +10164,8 @@
     }
 
     async function syncMemberTitlesAfterPracticeCompletion(memberUserId, context) {
-      const functions = getFirebaseFunctions();
+      const deps = getQuizPlayDeps();
+      const functions = deps.getFirebaseFunctions();
       if(!functions) throw new Error('functions-unavailable');
       const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
       const response = await syncMemberTitles({ memberUserId });
@@ -10167,8 +10176,7 @@
           awardedTitles: result.awardedTitles || [],
           context
         });
-        titleCatalogCache = null;
-        titleCatalogMapCache = null;
+        deps.resetTitleCatalogCache();
       } else {
         debugLog('Firestore title sync completed with no new titles:', {
           titleCount: result.titleCount || 0,
