@@ -9705,17 +9705,16 @@
     }
 
     function selectChoiceByIndex(index, submitImmediately = false) {
-      if(currentQuestionResolved) return false;
       const question = getCurrentQuestionSet()[currentQuestionIndex];
-      if(!question || question.type === 'imageInput' || question.type === 'textInput') return false;
+      if(!window.DJ48QuizPlay.canSelectQuizChoice(question, { currentQuestionResolved })) return false;
       const button = document.querySelector(`.quiz-choice[data-choice-index="${index}"]`);
-      if(!button || button.disabled) return false;
-      selectedChoiceIndex = index;
-      document.querySelectorAll('.quiz-choice').forEach(choice => {
-        choice.classList.toggle('quiz-choice-selected', choice === button);
+      const selected = window.DJ48QuizPlay.applyQuizChoiceSelection({
+        button,
+        choices: document.querySelectorAll('.quiz-choice'),
+        submitButton: document.querySelector('.quiz-submit-button')
       });
-      const submit = document.querySelector('.quiz-submit-button');
-      if(submit) submit.disabled = false;
+      if(!selected) return false;
+      selectedChoiceIndex = index;
       if(submitImmediately) submitAnswer();
       return true;
     }

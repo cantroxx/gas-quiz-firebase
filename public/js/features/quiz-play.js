@@ -77,6 +77,23 @@
     };
   }
 
+  function canSelectQuizChoice(question, options = {}) {
+    if(options.currentQuestionResolved) return false;
+    if(!question) return false;
+    return question.type !== 'imageInput' && question.type !== 'textInput';
+  }
+
+  function applyQuizChoiceSelection(options = {}) {
+    const button = options.button;
+    if(!button || button.disabled) return false;
+    const choices = Array.from(options.choices || []);
+    choices.forEach(choice => {
+      choice.classList.toggle('quiz-choice-selected', choice === button);
+    });
+    if(options.submitButton) options.submitButton.disabled = false;
+    return true;
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -305,6 +322,8 @@
     isTypingTarget,
     getNumericChoiceKey,
     getQuizPlayKeyAction,
+    canSelectQuizChoice,
+    applyQuizChoiceSelection,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,

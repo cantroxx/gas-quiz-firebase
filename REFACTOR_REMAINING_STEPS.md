@@ -311,6 +311,14 @@ Step 9I implemented:
   - `selectChoiceByIndex`
 - `selectChoiceByIndex` still owns selected choice state and submit button state in `public/index.html`.
 
+Step 9J implemented:
+
+- Added choice selection helpers to `public/js/features/quiz-play.js`:
+  - `canSelectQuizChoice`
+  - `applyQuizChoiceSelection`
+- `selectChoiceByIndex` still owns `selectedChoiceIndex` assignment and optional `submitAnswer` call in `public/index.html`.
+- Answer submission, save flows, timers, reward, and title sync remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
