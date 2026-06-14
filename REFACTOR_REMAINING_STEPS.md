@@ -319,6 +319,15 @@ Step 9J implemented:
 - `selectChoiceByIndex` still owns `selectedChoiceIndex` assignment and optional `submitAnswer` call in `public/index.html`.
 - Answer submission, save flows, timers, reward, and title sync remain unchanged.
 
+Step 9K implemented:
+
+- Added question set and practice partition helpers to `public/js/features/quiz-play.js`:
+  - `resolveCurrentQuestionSet`
+  - `hasSolvedPracticeQuestion`
+  - `splitPracticeQuestionsBySolvedState`
+- `getCurrentQuestionSet` still owns current quiz/session state access in `public/index.html`.
+- `buildQuizSessionQuestions` still owns async Firestore solved-id loading and shuffle order in `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

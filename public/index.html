@@ -9412,8 +9412,13 @@
 
     function getCurrentQuestionSet() {
       const firebaseQuizId = normalizeFirebaseQuizId(currentQuizId);
-      if(Array.isArray(currentSessionQuestions) && currentSessionQuestions.length) return currentSessionQuestions;
-      return firebaseQuizDataCache[firebaseQuizId] || QUESTION_BANK[currentQuizId] || QUESTION_BANK.spelling;
+      return window.DJ48QuizPlay.resolveCurrentQuestionSet({
+        currentSessionQuestions,
+        firebaseQuizDataCache,
+        firebaseQuizId,
+        questionBank: QUESTION_BANK,
+        currentQuizId
+      });
     }
 
     async function loadSolvedPracticeIds(quizId) {
@@ -9433,8 +9438,7 @@
     }
 
     function hasSolvedPracticeQuestion(question, solvedIds) {
-      if(!solvedIds || !solvedIds.size) return false;
-      return getPracticeQuestionIdCandidates(question).some(id => solvedIds.has(id));
+      return window.DJ48QuizPlay.hasSolvedPracticeQuestion(question, solvedIds, getPracticeQuestionIdCandidates);
     }
 
     async function buildQuizSessionQuestions(quizId, modeId) {
@@ -9446,12 +9450,11 @@
       try {
         const solvedIds = await loadSolvedPracticeIds(id);
         if(!solvedIds.size) return shuffleList(baseQuestions.slice());
-        const unsolved = [];
-        const solved = [];
-        baseQuestions.forEach(question => {
-          if(hasSolvedPracticeQuestion(question, solvedIds)) solved.push(question);
-          else unsolved.push(question);
-        });
+        const { unsolved, solved } = window.DJ48QuizPlay.splitPracticeQuestionsBySolvedState(
+          baseQuestions,
+          solvedIds,
+          getPracticeQuestionIdCandidates
+        );
         if(!unsolved.length) return shuffleList(baseQuestions.slice());
         return shuffleList(unsolved).concat(shuffleList(solved));
       } catch(error) {

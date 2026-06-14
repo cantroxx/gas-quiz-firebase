@@ -94,6 +94,31 @@
     return true;
   }
 
+  function resolveCurrentQuestionSet(options = {}) {
+    if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
+    const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
+    const questionBank = options.questionBank || {};
+    return firebaseQuizDataCache[options.firebaseQuizId]
+      || questionBank[options.currentQuizId]
+      || questionBank.spelling
+      || [];
+  }
+
+  function hasSolvedPracticeQuestion(question, solvedIds, getPracticeQuestionIdCandidates) {
+    if(!solvedIds || !solvedIds.size || typeof getPracticeQuestionIdCandidates !== 'function') return false;
+    return getPracticeQuestionIdCandidates(question).some(id => solvedIds.has(id));
+  }
+
+  function splitPracticeQuestionsBySolvedState(baseQuestions, solvedIds, getPracticeQuestionIdCandidates) {
+    const unsolved = [];
+    const solved = [];
+    (Array.isArray(baseQuestions) ? baseQuestions : []).forEach(question => {
+      if(hasSolvedPracticeQuestion(question, solvedIds, getPracticeQuestionIdCandidates)) solved.push(question);
+      else unsolved.push(question);
+    });
+    return { unsolved, solved };
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -324,6 +349,9 @@
     getQuizPlayKeyAction,
     canSelectQuizChoice,
     applyQuizChoiceSelection,
+    resolveCurrentQuestionSet,
+    hasSolvedPracticeQuestion,
+    splitPracticeQuestionsBySolvedState,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,
