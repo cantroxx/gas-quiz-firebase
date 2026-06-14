@@ -412,6 +412,25 @@ Step 9V implemented:
 - `nextQuestion` now delegates only the render-next-question vs complete decision.
 - Question index state, timer cleanup, question rendering, completion rendering, save, reward, and title sync flows remain owned by `public/index.html`.
 
+Step 9W implemented:
+
+- Documented remaining high-risk quiz play ownership boundaries before moving save/reward logic.
+- Keep these functions in `public/index.html` unless a later step introduces an explicit state/dependency adapter:
+  - `saveRankingRecordOnQuizComplete`
+  - `savePracticeProgressAfterCorrectAnswer`
+  - `grantPracticeCorrectReward`
+  - `syncMemberTitlesAfterPracticeCompletion`
+  - ranking timer start/timeout functions
+  - popular usage session functions
+- Current high-risk dependencies:
+  - Firestore/Functions adapters: `getFirestoreDb`, `getFirestoreFieldValue`, `getFirebaseFunctions`, callable names.
+  - User/session state: `currentModeId`, `currentQuizId`, `currentRankingModeId`, `correctAnswerCount`, `currentMemberProfile`.
+  - Ranking state: `currentQuizStartedAtMs`, `MAX_RANKING_ELAPSED_SECONDS`, `getRankingElapsedSeconds`, `getRankingTargetForQuiz`.
+  - Practice state: `getCurrentQuestionSet`, `loadFirebaseQuizMeta`, `getPracticeTargetForQuiz`, progress record ids.
+  - Reward/title side effects: `firestoreUserEconomy`, `userEconomyLoadPromise`, `titleCatalogCache`, `titleCatalogMapCache`.
+  - Feature flags and guards: `loadFeatureFlags`, `TEST_SHOP_USER_ID`, permission/quota error helpers.
+- Step 9 should stop after final verification unless the next goal is explicitly to introduce an adapter object for these dependencies.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
