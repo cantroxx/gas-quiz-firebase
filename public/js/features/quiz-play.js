@@ -131,6 +131,23 @@
     return !!options.isCorrect && options.modeId === 'practice';
   }
 
+  function attachPracticeProgressSaveStatus(progressSavePromise, deps = {}) {
+    if(!progressSavePromise) return null;
+    const renderPracticeSaveStatus = deps.renderPracticeSaveStatus || (() => {});
+    const isQuotaExceeded = deps.isFirestoreQuotaExceededError || (() => false);
+    const warn = deps.warn || console.warn;
+    return progressSavePromise
+      .then(result => renderPracticeSaveStatus(result))
+      .catch(error => {
+        if(isQuotaExceeded(error)) {
+          warn('Firestore practice progress save deferred because Firestore quota is exhausted.', error);
+        } else {
+          warn('Firestore practice progress save failed.', error);
+        }
+        renderPracticeSaveStatus({ error: true });
+      });
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -445,6 +462,7 @@
     disableQuizAnswerControls,
     getQuizAnswerSubmitResult,
     shouldSavePracticeProgress,
+    attachPracticeProgressSaveStatus,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,

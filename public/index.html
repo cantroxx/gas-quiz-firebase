@@ -9638,18 +9638,11 @@
       }
       window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
       showQuizResult(isCorrect);
-      if(progressSavePromise) {
-        progressSavePromise
-          .then(result => renderPracticeSaveStatus(result))
-          .catch(error => {
-            if(isFirestoreQuotaExceededError(error)) {
-              console.warn('Firestore practice progress save deferred because Firestore quota is exhausted.', error);
-            } else {
-              console.warn('Firestore practice progress save failed.', error);
-            }
-            renderPracticeSaveStatus({ error: true });
-          });
-      }
+      window.DJ48QuizPlay.attachPracticeProgressSaveStatus(progressSavePromise, {
+        renderPracticeSaveStatus,
+        isFirestoreQuotaExceededError,
+        warn: console.warn
+      });
     }
 
     function isQuizPlayActive() {

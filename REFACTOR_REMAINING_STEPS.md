@@ -370,6 +370,13 @@ Step 9P implemented:
 - `submitAnswer` now delegates only the practice-save eligibility check.
 - Practice save execution, Firestore error handling, reward, title sync, and ranking record flows remain owned by `public/index.html`.
 
+Step 9Q implemented:
+
+- Added practice save status attachment helper to `public/js/features/quiz-play.js`:
+  - `attachPracticeProgressSaveStatus`
+- `submitAnswer` now delegates only the Promise success/error status rendering connection.
+- Practice save execution, Firestore write logic, reward, title sync, and ranking record flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
