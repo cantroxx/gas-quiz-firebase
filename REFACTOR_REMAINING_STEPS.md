@@ -452,6 +452,19 @@ Step 9X implemented:
   - Run one full browser smoke test across practice, ranking, timer, heart, save status, reward, and title sync.
   - Start a new goal before introducing a dependency adapter for save/reward/timer flows.
 
+Step 10 implemented:
+
+- Closed Step 9 as complete after repeated deployed smoke checks from Step 9K through Step 9V and the final source-boundary review in Step 9X.
+- Step 9 final architecture boundary:
+  - `public/index.html` owns quiz session state, Firebase writes, timers, reward, title sync, and app navigation.
+  - `public/js/features/quiz-play.js` owns pure calculations, view models, DOM factories, small action decisions, and save-status attachment helpers.
+- No further save, reward, title sync, ranking record, timer, or popular usage logic should be moved under the Step 9 goal.
+- Next clean-architecture goal should start as Step 11: dependency adapter design.
+- Step 11 entry condition:
+  - First create/document `getQuizPlayDeps` or equivalent.
+  - Do not move `saveRankingRecordOnQuizComplete` or `savePracticeProgressAfterCorrectAnswer` until their dependencies are passed through the adapter.
+  - Apply the adapter to one high-risk flow at a time, with browser smoke testing after each deployed change.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
