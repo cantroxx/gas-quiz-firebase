@@ -9621,17 +9621,16 @@
     function submitAnswer() {
       if(currentQuestionResolved) return;
       const question = getCurrentQuestionSet()[currentQuestionIndex];
-      let isCorrect = false;
+      const input = document.querySelector('.quiz-answer-input');
+      const submitResult = window.DJ48QuizPlay.getQuizAnswerSubmitResult(question, {
+        submittedAnswer: input?.value,
+        selectedChoiceIndex,
+        normalizeQuizAnswer
+      });
+      if(!submitResult.canSubmit) return;
+      const isCorrect = submitResult.isCorrect;
       if(question.type === 'imageInput' || question.type === 'textInput') {
-        const input = document.querySelector('.quiz-answer-input');
-        const submitted = normalizeQuizAnswer(input?.value);
-        const acceptedAnswers = [question.answerText, ...(question.aliases || [])].map(normalizeQuizAnswer).filter(Boolean);
-        if(!submitted) return;
-        isCorrect = acceptedAnswers.includes(submitted);
         if(input) input.disabled = true;
-      } else {
-        if(selectedChoiceIndex === null) return;
-        isCorrect = selectedChoiceIndex === question.answer;
       }
       currentQuestionResolved = true;
       clearRankingQuestionTimer();

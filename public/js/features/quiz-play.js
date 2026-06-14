@@ -94,6 +94,32 @@
     return true;
   }
 
+  function getQuizAnswerSubmitResult(question, options = {}) {
+    if(!question) return { canSubmit: false, isCorrect: false };
+    if(question.type === 'imageInput' || question.type === 'textInput') {
+      const normalizeAnswer = typeof options.normalizeQuizAnswer === 'function'
+        ? options.normalizeQuizAnswer
+        : value => String(value || '').trim();
+      const submitted = normalizeAnswer(options.submittedAnswer);
+      if(!submitted) return { canSubmit: false, isCorrect: false };
+      const acceptedAnswers = [
+        question.answerText,
+        ...(Array.isArray(question.aliases) ? question.aliases : [])
+      ].map(normalizeAnswer).filter(Boolean);
+      return {
+        canSubmit: true,
+        isCorrect: acceptedAnswers.includes(submitted)
+      };
+    }
+    if(options.selectedChoiceIndex === null || options.selectedChoiceIndex === undefined) {
+      return { canSubmit: false, isCorrect: false };
+    }
+    return {
+      canSubmit: true,
+      isCorrect: options.selectedChoiceIndex === question.answer
+    };
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -397,6 +423,7 @@
     getQuizPlayKeyAction,
     canSelectQuizChoice,
     applyQuizChoiceSelection,
+    getQuizAnswerSubmitResult,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,

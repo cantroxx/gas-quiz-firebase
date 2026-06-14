@@ -335,6 +335,13 @@ Step 9L implemented:
 - `renderQuestion` still owns current question lookup, per-question state reset, root replacement, and ranking timer start in `public/index.html`.
 - Submit, save, reward, title sync, and timer flows remain unchanged.
 
+Step 9M implemented:
+
+- Added answer submit calculation helper to `public/js/features/quiz-play.js`:
+  - `getQuizAnswerSubmitResult`
+- `submitAnswer` still owns resolved state changes, timer cleanup, correct count, popular unlock tracking, practice save, button disabling, and result rendering in `public/index.html`.
+- Save, reward, title sync, ranking record, and timer flows remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
