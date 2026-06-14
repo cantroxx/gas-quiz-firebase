@@ -391,6 +391,13 @@ Step 9S implemented:
 - `showQuizComplete` now delegates only the skipped status object creation for overlong ranking sessions.
 - Ranking save execution, Firestore write logic, timer cleanup, reward, and title sync flows remain owned by `public/index.html`.
 
+Step 9T implemented:
+
+- Added ranking completion save action helper to `public/js/features/quiz-play.js`:
+  - `getRankingCompleteSaveAction`
+- `showQuizComplete` now delegates only the ranking completion save/skip/none branch decision.
+- Ranking save execution, Firestore write logic, timer cleanup, reward, and title sync flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

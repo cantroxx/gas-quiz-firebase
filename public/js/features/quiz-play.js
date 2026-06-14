@@ -173,6 +173,12 @@
     };
   }
 
+  function getRankingCompleteSaveAction(options = {}) {
+    if(options.modeId !== 'ranking') return 'none';
+    if(options.reason === 'elapsed-too-long') return 'skip-elapsed-too-long';
+    return 'save-record';
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -490,6 +496,7 @@
     attachPracticeProgressSaveStatus,
     attachRankingSaveStatus,
     getElapsedTooLongRankingSkipResult,
+    getRankingCompleteSaveAction,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,
