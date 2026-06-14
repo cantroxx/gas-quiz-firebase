@@ -9847,95 +9847,32 @@
     }
 
     function getPracticeTargetForQuiz(quizId, meta) {
-      const id = normalizeFirebaseQuizId(quizId);
-      const completionType = String(meta?.completionType || '').trim();
-      const pokemonGenerationMatch = id.match(/^pokemon-gen([1-9])$/);
-      if(pokemonGenerationMatch) {
-        const generation = pokemonGenerationMatch[1];
-        return {
-          area: '포켓몬',
-          detail: `${generation}세대`,
-          areaKey: `포켓몬/gen${generation}`,
-          completionType: completionType || 'loop'
-        };
-      }
-      if(/^pokemon-(easy|normal|hard|very-hard)$/.test(id)) return null;
-      const targets = {
-        'random-basic': { area: '수학', detail: '곱셈과 나눗셈', areaKey: '수학/random-basic', completionType: 'loop' },
-        spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
-        'dad-joke': { area: '일상', detail: '아재개그', areaKey: '일상/아재개그', completionType: completionType || 'loop' },
-        'word-relation': { area: '국어', detail: '다의어·동형이의어', areaKey: '국어/word-relation', completionType: 'loop' },
-        gmo: { area: '국어', detail: '독서:지엠오 아이', areaKey: '국어/gmo', completionType: 'complete' },
-        time_store: { area: '국어', detail: '독서:시간가게', areaKey: '국어/독서:시간가게', completionType: completionType || 'complete' },
-        samgukji: { area: '사회', detail: '삼국지', areaKey: '사회/three-kingdoms', completionType: completionType || 'loop' },
-        'ancient-history': { area: '사회', detail: '고대사~삼국시대', areaKey: '사회/ancient-three-kingdoms', completionType: completionType || 'loop' },
-        'history-people': { area: '인물', detail: '역사인물', areaKey: '인물/역사인물', completionType: completionType || 'loop' },
-        idol: { area: '인물', detail: '아이돌', areaKey: '인물/아이돌', completionType: completionType || 'loop' },
-        anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' },
-        tiniping: { area: '인물', detail: '티니핑', areaKey: '인물/티니핑', completionType: completionType || 'loop' }
-      };
-      return targets[id] || null;
+      return window.DJ48QuizPlay.getPracticeTargetForQuiz(quizId, meta, {
+        normalizeFirebaseQuizId
+      });
     }
 
     function buildPracticeProgressRecordId(memberUserId, areaKey) {
-      return `${memberUserId}__${slugPracticeKey(areaKey).replace(/-/g, '_')}`;
+      return window.DJ48QuizPlay.buildPracticeProgressRecordId(memberUserId, areaKey, {
+        slugPracticeKey
+      });
     }
 
     function getRankingTargetForQuiz(quizId) {
-      const id = normalizeFirebaseQuizId(quizId);
-      const pokemonGenerationMatch = id.match(/^pokemon-gen([1-9])$/);
-      if(pokemonGenerationMatch) {
-        const generation = pokemonGenerationMatch[1];
-        return {
-          category: `포켓몬(${generation}세대)`,
-          subFilter: `${generation}세대`,
-          categoryKey: slugPracticeKey(`포켓몬(${generation}세대)`),
-          rankingMode: 'normal'
-        };
-      }
-      const pokemonDifficultyTargets = {
-        'pokemon-easy': { category: '포켓몬(쉬움)', subFilter: '쉬움' },
-        'pokemon-normal': { category: '포켓몬(보통)', subFilter: '보통' },
-        'pokemon-hard': { category: '포켓몬(어려움)', subFilter: '어려움' },
-        'pokemon-very-hard': { category: '포켓몬(헬)', subFilter: '헬' }
-      };
-      if(pokemonDifficultyTargets[id]) {
-        const target = pokemonDifficultyTargets[id];
-        const deps = getQuizPlayDeps();
-        return {
-          ...target,
-          categoryKey: slugPracticeKey(target.category),
-          rankingMode: deps.normalizeFirebaseRankingMode(deps.getCurrentRankingModeId())
-        };
-      }
-      const targets = {
-        'random-basic': { category: '수학(곱셈과 나눗셈)', subFilter: '곱셈과 나눗셈' },
-        spelling: { category: '맞춤법', subFilter: '' },
-        'dad-joke': { category: '아재개그', subFilter: '' },
-        'word-relation': { category: '단어(다의어·동형이의어)', subFilter: '다의어·동형이의어' },
-        gmo: { category: '독서(지엠오 아이)', subFilter: '지엠오 아이' },
-        time_store: { category: '독서(시간가게)', subFilter: '시간가게' },
-        samgukji: { category: '사회(삼국지)', subFilter: '삼국지' },
-        'ancient-history': { category: '사회(고대사~삼국시대)', subFilter: '고대사~삼국시대' },
-        'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
-        idol: { category: '인물(아이돌)', subFilter: '아이돌' },
-        anime: { category: '인물(애니)', subFilter: '애니' },
-        tiniping: { category: '티니핑', subFilter: '티니핑' }
-      };
-      const target = targets[id];
-      if(!target) return null;
       const deps = getQuizPlayDeps();
-      return {
-        ...target,
-        categoryKey: slugPracticeKey(target.category),
-        rankingMode: deps.getSupportedRankingModeForQuiz(id, deps.getCurrentRankingModeId())
-      };
+      return window.DJ48QuizPlay.getRankingTargetForQuiz(quizId, {
+        normalizeFirebaseQuizId,
+        slugPracticeKey,
+        normalizeFirebaseRankingMode: deps.normalizeFirebaseRankingMode,
+        getSupportedRankingModeForQuiz: deps.getSupportedRankingModeForQuiz,
+        currentRankingModeId: deps.getCurrentRankingModeId()
+      });
     }
 
     function buildRankingRecordId(memberUserId, categoryKey, rankingMode) {
-      const safeUserId = slugPracticeKey(memberUserId).replace(/-/g, '_');
-      const safeCategory = slugPracticeKey(categoryKey).replace(/-/g, '_');
-      return `firebase_${safeUserId}_${safeCategory}_${rankingMode}_${Date.now()}`;
+      return window.DJ48QuizPlay.buildRankingRecordId(memberUserId, categoryKey, rankingMode, {
+        slugPracticeKey
+      });
     }
 
     function formatRankingElapsedText(seconds) {
@@ -9943,93 +9880,20 @@
     }
 
     function isBetterRankingEntry(next, current) {
-      if(!current) return true;
-      if((next.score || 0) !== (current.score || 0)) return (next.score || 0) > (current.score || 0);
-      const nextTime = Number(next.elapsedSeconds) || 999999999;
-      const currentTime = Number(current.elapsedSeconds) || 999999999;
-      return nextTime < currentTime;
+      return window.DJ48QuizPlay.isBetterRankingEntry(next, current);
     }
 
     function buildUserRankingSummaryUpdate(summary, record, updatedAt) {
-      const existing = summary || {};
-      const categoryKey = getRankingCategoryKey(record);
-      const byMode = { ...(existing.byMode || {}) };
-      const bestScoresByMode = { ...(existing.bestScoresByMode || {}) };
-      const modeSummary = {
-        ...(byMode[record.rankingMode] || {}),
-        byCategory: { ...((byMode[record.rankingMode] || {}).byCategory || {}) }
-      };
-      const bestModeSummary = { ...(bestScoresByMode[record.rankingMode] || {}) };
-      const currentEntry = modeSummary.byCategory[categoryKey];
-
-      if(isBetterRankingEntry(record, currentEntry)) {
-        modeSummary.byCategory[categoryKey] = {
-          rank: Number(currentEntry?.rank) || 0,
-          total: Number(currentEntry?.total) || 0,
-          score: record.score,
-          elapsedSeconds: record.elapsedSeconds,
-          elapsedText: record.elapsedText,
-          recordId: record.recordId,
-          category: categoryKey === '티니핑' ? '티니핑' : record.category
-        };
-        bestModeSummary[categoryKey] = {
-          score: record.score,
-          elapsedSeconds: record.elapsedSeconds,
-          recordId: record.recordId
-        };
-      }
-
-      byMode[record.rankingMode] = modeSummary;
-      bestScoresByMode[record.rankingMode] = bestModeSummary;
-
-      return {
-        memberUserId: record.memberUserId,
-        userId: record.userId,
-        displayName: record.displayName,
-        hasUserId: true,
-        totalRecordCount: (Number(existing.totalRecordCount) || 0) + 1,
-        legacyRecordCount: Number(existing.legacyRecordCount) || 0,
-        byMode,
-        bestScoresByMode,
-        migrationSource: 'firebase_app_ranking',
-        updatedAt
-      };
+      return window.DJ48QuizPlay.buildUserRankingSummaryUpdate(summary, record, updatedAt, {
+        getRankingCategoryKey
+      });
     }
 
     function buildQuizKingSummaryUpdate(summary, record, updatedAt) {
-      const existing = summary || {};
-      const categoryKey = getRankingCategoryKey(record);
-      const categories = Array.isArray(existing.categories) ? [...existing.categories] : [];
-      const index = categories.findIndex(item => normalizeRankingCategoryKey(item?.categoryKey, item?.category) === categoryKey);
-      const current = index >= 0 ? categories[index] : null;
-
-      if(isBetterRankingEntry(record, current)) {
-        const nextCategory = {
-          categoryKey,
-          category: categoryKey === '티니핑' ? '티니핑' : record.category,
-          score: record.score,
-          elapsedSeconds: record.elapsedSeconds,
-          elapsedText: record.elapsedText,
-          rankingMode: record.rankingMode,
-          recordId: record.recordId
-        };
-        if(index >= 0) categories[index] = nextCategory;
-        else categories.push(nextCategory);
-      }
-
-      categories.sort((a, b) => String(a.category || '').localeCompare(String(b.category || ''), 'ko'));
-      return {
-        memberUserId: record.memberUserId,
-        userId: record.userId,
-        displayName: record.displayName,
-        hasUserId: true,
-        categories,
-        totalScore: categories.reduce((sum, item) => sum + (Number(item.score) || 0), 0),
-        categoryCount: categories.length,
-        rank: Number(existing.rank) || 0,
-        migrationSource: 'firebase_app_ranking',
-        updatedAt
-      };
+      return window.DJ48QuizPlay.buildQuizKingSummaryUpdate(summary, record, updatedAt, {
+        getRankingCategoryKey,
+        normalizeRankingCategoryKey
+      });
     }
 
     async function saveRankingRecordOnQuizComplete() {
@@ -10153,80 +10017,21 @@
     }
 
     function getPracticeBadgeMeta(areaKey, area, detail) {
-      const parts = String(areaKey || '').split('/');
-      const groupRaw = parts[0] || area || '';
-      const detailRaw = parts[1] || detail || '';
-      const groupMap = {
-        '포켓몬': 'pokemon',
-        '인물': 'people',
-        '일상': 'daily',
-        '국어': 'korean',
-        '수학': 'math',
-        '사회': 'social'
-      };
-      const group = groupMap[groupRaw] || slugPracticeKey(groupRaw || area);
-      const badgeId = `${group}_${slugPracticeKey(detailRaw || detail).replace(/-/g, '_')}`;
-      return {
-        group,
-        badgeId,
-        label: detail || detailRaw || badgeId
-      };
+      return window.DJ48QuizPlay.getPracticeBadgeMeta(areaKey, area, detail, {
+        slugPracticeKey
+      });
     }
 
     function buildPracticeSummaryUpdate(summary, options) {
-      const existingSummary = summary || {};
-      const meta = getPracticeBadgeMeta(options.areaKey, options.area, options.detail);
-      const starDelta = Math.max(0, options.nextStarCount - options.previousStarCount);
-      const groupStars = { ...(existingSummary.groupStars || {}) };
-      const groups = { ...(existingSummary.groups || {}) };
-      const groupItems = { ...(groups[meta.group] || {}) };
-      const correct = Math.min(options.nextCorrectCount || 0, options.totalCount || 0);
-      const total = options.totalCount || 0;
-      const available = (options.nextStarCount || 0) > 0 || (!!total && correct >= total);
-
-      groupStars[meta.group] = (Number(groupStars[meta.group]) || 0) + starDelta;
-      groupItems[meta.badgeId] = {
-        correct,
-        total,
-        starCount: options.nextStarCount || 0,
-        available
-      };
-      groups[meta.group] = groupItems;
-
-      return {
-        userId: options.memberUserId,
-        memberUserId: options.memberUserId,
-        totalStars: (Number(existingSummary.totalStars) || 0) + starDelta,
-        recordCount: (Number(existingSummary.recordCount) || 0) + (options.recordExists ? 0 : 1),
-        groupStars,
-        groups,
-        updatedAt: options.updatedAt
-      };
+      return window.DJ48QuizPlay.buildPracticeSummaryUpdate(summary, options, {
+        slugPracticeKey
+      });
     }
 
     function buildPracticeBadgeUpdate(options) {
-      const meta = getPracticeBadgeMeta(options.areaKey, options.area, options.detail);
-      const correct = Math.min(options.nextCorrectCount || 0, options.totalCount || 0);
-      const total = options.totalCount || 0;
-      const completed = !!total && (correct >= total || (options.nextStarCount || 0) > 0);
-      const progressPercent = total ? Math.min(100, Math.round((correct / total) * 100)) : 0;
-      return {
-        userId: options.memberUserId,
-        memberUserId: options.memberUserId,
-        badgeId: meta.badgeId,
-        label: meta.label,
-        group: meta.group,
-        areaKey: options.areaKey,
-        sourceId: meta.badgeId,
-        correct,
-        total,
-        starCount: options.nextStarCount || 0,
-        completed,
-        progressPercent,
-        available: (options.nextStarCount || 0) > 0 || completed,
-        migrationSource: 'firebase_app_practice_progress',
-        updatedAt: options.updatedAt
-      };
+      return window.DJ48QuizPlay.buildPracticeBadgeUpdate(options, {
+        slugPracticeKey
+      });
     }
 
     async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {

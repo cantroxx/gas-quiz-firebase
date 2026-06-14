@@ -575,6 +575,26 @@ Validation:
 
 Risk: high.
 
+### Step 12: Low-Risk Pure Helper Movement
+
+Step 12A/12B implemented:
+
+- Started the post-adapter extraction phase with pure helper movement only.
+- Added quiz play target/summary/badge helpers to `public/js/features/quiz-play.js`:
+  - practice target lookup
+  - practice progress record id builder
+  - ranking target lookup
+  - ranking record id builder
+  - ranking summary update builders
+  - practice badge metadata, summary, and badge update builders
+- Kept the existing function names in `public/index.html` as thin wrappers around `window.DJ48QuizPlay`.
+- Save execution, Firestore reads/writes, DOM rendering, timers, reward callable execution, and title sync remain in `public/index.html`.
+
+Next:
+
+- Continue moving only pure helper logic while wrappers remain in place.
+- Do not move `saveRankingRecordOnQuizComplete`, `savePracticeProgressAfterCorrectAnswer`, reward callables, or timer/DOM handlers until another full smoke-test pass is complete.
+
 ## Step 7 Validation Checklist
 
 - Shop list.
