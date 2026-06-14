@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 8D.
-- Latest committed step 8C baseline: `a12cc0a refactor: split ranking board render helpers`
+- Completed through step 9A.
+- Latest committed step 8D baseline: `98fef44 refactor: split ranking board event handler`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -162,11 +162,87 @@ Risk: medium-high.
 
 ### Step 9: Quiz Play Split Preparation
 
+Step 9A implemented:
+
+- Inventoried quiz play session state and dependency boundaries before moving code.
+- No quiz play implementation moved yet.
+
+Session state groups:
+
+- Navigation and selected quiz:
+  - `lastQuizId`
+  - `currentSubjectId`
+  - `currentQuizId`
+  - `currentModeId`
+  - `currentRankingModeId`
+  - `currentSessionQuestions`
+- Per-question progress and input:
+  - `currentQuestionIndex`
+  - `selectedChoiceIndex`
+  - `correctAnswerCount`
+  - `currentQuestionResolved`
+- Ranking timers and lives:
+  - `currentQuizStartedAtMs`
+  - `currentRankingLives`
+  - `currentRankingQuestionTimer`
+  - `currentRankingSessionTimer`
+  - `currentRankingTimeLeft`
+- Popular quiz usage tracking:
+  - `currentPopularUsageSession`
+  - `currentPopularUsageFlushTimer`
+
+Primary quiz play functions currently coupled to state:
+
+- `showQuizPlayView`
+- `getCurrentQuestionSet`
+- `buildQuizSessionQuestions`
+- `renderQuizPlayHeader`
+- `renderQuestion`
+- `getQuizProgressText`
+- `clearRankingQuestionTimer`
+- `clearRankingSessionTimer`
+- `getRankingElapsedSeconds`
+- `startRankingSessionTimerIfNeeded`
+- `handleRankingSessionTimeout`
+- `getRankingTimeLimitSecondsForQuiz`
+- `startRankingQuestionTimerIfNeeded`
+- `handleRankingTimeout`
+- `submitAnswer`
+- `selectChoiceByIndex`
+- `handleQuizPlayKeydown`
+- `showQuizResult`
+- `nextQuestion`
+- `showQuizComplete`
+
+Do not move yet:
+
+- `showQuizPlayView`
+- `renderQuestion`
+- `submitAnswer`
+- `showQuizComplete`
+- `saveRankingRecordOnQuizComplete`
+- `savePracticeProgressAfterCorrectAnswer`
+- `grantPracticeCorrectReward`
+- `syncMemberTitlesAfterPracticeCompletion`
+- popular usage session functions
+- ranking timer start/stop functions
+
+Low-risk candidates for a later Step 9B/9C review:
+
+- `getCurrentQuestionAnswerText`
+- `getQuestionHintText`
+- `getWrongAnswerFeedbackText`
+- `getKoreanInitials`
+- `isTypingTarget`
+- `isQuizPlayActive`
+- `getNumericChoiceKey`
+- pure ranking/practice target builders only after verifying their dependence on `currentQuizId` and `currentRankingModeId`
+
 Target:
 
-- Do not move quiz play into a file yet.
-- First list session state dependencies.
-- Then group session state into a smaller internal object if safe.
+- Review low-risk helper candidates before creating any `quiz-play` helper file.
+- Keep quiz play state and save flows in `public/index.html` until Step 9B confirms boundaries.
+- Consider grouping session state into a smaller internal object only after helper extraction is proven safe.
 
 Validation:
 
