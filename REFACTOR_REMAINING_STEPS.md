@@ -465,6 +465,23 @@ Step 10 implemented:
   - Do not move `saveRankingRecordOnQuizComplete` or `savePracticeProgressAfterCorrectAnswer` until their dependencies are passed through the adapter.
   - Apply the adapter to one high-risk flow at a time, with browser smoke testing after each deployed change.
 
+### Step 11: Quiz Play Dependency Adapter
+
+Step 11A implemented:
+
+- Added `getQuizPlayDeps` in `public/index.html` as the first explicit dependency adapter for quiz play save flows.
+- Applied the adapter inside these functions without moving them:
+  - `saveRankingRecordOnQuizComplete`
+  - `savePracticeProgressAfterCorrectAnswer`
+- Adapter-covered dependencies now include:
+  - Firestore/Functions/auth accessors
+  - current data owner lookup
+  - current question set lookup
+  - feature flag and Firebase quiz meta loaders
+  - quiz id normalization and ranking elapsed text formatting
+  - Firestore permission error detection
+- Save execution, Firestore write logic, reward, title sync, timer, and popular usage flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

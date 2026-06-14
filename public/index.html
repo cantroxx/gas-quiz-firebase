@@ -9410,6 +9410,22 @@
       renderQuestion();
     }
 
+    function getQuizPlayDeps() {
+      return {
+        getFirestoreDb,
+        getFirestoreFieldValue,
+        getFirebaseFunctions,
+        getFirebaseAuthUser,
+        getCurrentDataOwnerId,
+        getCurrentQuestionSet,
+        loadFeatureFlags,
+        loadFirebaseQuizMeta,
+        normalizeFirebaseQuizId,
+        formatRankingElapsedText,
+        isFirestorePermissionDeniedError
+      };
+    }
+
     function getCurrentQuestionSet() {
       const firebaseQuizId = normalizeFirebaseQuizId(currentQuizId);
       return window.DJ48QuizPlay.resolveCurrentQuestionSet({
@@ -9917,19 +9933,20 @@
 
     async function saveRankingRecordOnQuizComplete() {
       if(currentModeId !== 'ranking') return null;
-      const db = getFirestoreDb();
+      const deps = getQuizPlayDeps();
+      const db = deps.getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
 
-      const memberUserId = getCurrentDataOwnerId();
+      const memberUserId = deps.getCurrentDataOwnerId();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) throw new Error('member-required');
       if(correctAnswerCount <= 0) {
         debugLog('Ranking record skipped because score is 0.', {
-          quizId: normalizeFirebaseQuizId(currentQuizId)
+          quizId: deps.normalizeFirebaseQuizId(currentQuizId)
         });
         return { skipped: true, reason: 'zero-score' };
       }
 
-      const quizId = normalizeFirebaseQuizId(currentQuizId);
+      const quizId = deps.normalizeFirebaseQuizId(currentQuizId);
       const target = getRankingTargetForQuiz(quizId);
       if(!target) throw new Error('unsupported-ranking-target');
 
@@ -9945,10 +9962,10 @@
           skipped: true,
           reason: 'elapsed-too-long',
           elapsedSeconds,
-          elapsedText: formatRankingElapsedText(elapsedSeconds)
+          elapsedText: deps.formatRankingElapsedText(elapsedSeconds)
         };
       }
-      const fieldValue = getFirestoreFieldValue();
+      const fieldValue = deps.getFirestoreFieldValue();
       const recordId = buildRankingRecordId(memberUserId, target.categoryKey, target.rankingMode);
       const recordRef = db.collection('rankingRecords').doc(recordId);
       const userSummaryRef = db.collection('userRankingSummary').doc(memberUserId);
@@ -9971,7 +9988,7 @@
         subFilter: target.subFilter,
         score: correctAnswerCount,
         elapsedSeconds,
-        elapsedText: formatRankingElapsedText(elapsedSeconds),
+        elapsedText: deps.formatRankingElapsedText(elapsedSeconds),
         rankingMode: target.rankingMode,
         sourceSheet: 'firebase-app',
         sourceRowNumber: 0,
@@ -10164,29 +10181,30 @@
     async function savePracticeProgressAfterCorrectAnswer(question) {
       if(currentModeId !== 'practice') return null;
 
-      const db = getFirestoreDb();
+      const deps = getQuizPlayDeps();
+      const db = deps.getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
 
-      const memberUserId = getCurrentDataOwnerId();
+      const memberUserId = deps.getCurrentDataOwnerId();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) throw new Error('member-required');
 
       const questionId = getPracticeQuestionId(question);
       if(!questionId) throw new Error('missing-question-id');
       const questionIdCandidates = getPracticeQuestionIdCandidates(question);
 
-      const quizId = normalizeFirebaseQuizId(currentQuizId);
-      const meta = await loadFirebaseQuizMeta(quizId);
+      const quizId = deps.normalizeFirebaseQuizId(currentQuizId);
+      const meta = await deps.loadFirebaseQuizMeta(quizId);
       const target = getPracticeTargetForQuiz(quizId, meta);
       if(!target) throw new Error('unsupported-practice-target');
 
-      const totalCount = Number(meta?.questionCount) || getCurrentQuestionSet().length;
+      const totalCount = Number(meta?.questionCount) || deps.getCurrentQuestionSet().length;
       if(!totalCount || totalCount <= 0) throw new Error('invalid-total-count');
 
       const recordId = buildPracticeProgressRecordId(memberUserId, target.areaKey);
       const recordRef = db.collection('practiceRecords').doc(recordId);
       const summaryRef = db.collection('userPracticeSummary').doc(memberUserId);
-      const authUid = getFirebaseAuthUser()?.uid || '';
-      const fieldValue = getFirestoreFieldValue();
+      const authUid = deps.getFirebaseAuthUser()?.uid || '';
+      const fieldValue = deps.getFirestoreFieldValue();
       let saveResult = null;
       let readFallback = false;
       let snapshot = null;
@@ -10200,7 +10218,7 @@
         snapshot = recordReadResult.value;
       } else {
         const error = recordReadResult.reason;
-        if(!isFirestorePermissionDeniedError(error)) throw error;
+        if(!deps.isFirestorePermissionDeniedError(error)) throw error;
         readFallback = true;
         console.warn('Practice progress record read blocked; using write-only fallback for legacy or missing progress document.', {
           recordPath: recordRef.path,
@@ -10212,7 +10230,7 @@
         summarySnapshot = summaryReadResult.value;
       } else {
         const error = summaryReadResult.reason;
-        if(!isFirestorePermissionDeniedError(error)) throw error;
+        if(!deps.isFirestorePermissionDeniedError(error)) throw error;
         console.warn('Practice summary read blocked; continuing with merge-only summary update.', {
           summaryPath: summaryRef.path,
           code: error?.code || '',
@@ -10226,7 +10244,7 @@
       const mergedIds = isDuplicateCorrectId ? existingIds : Array.from(new Set([...existingIds, questionId]));
       const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
       const existingStarCount = Number(existing.starCount) || 0;
-      const flags = await loadFeatureFlags();
+      const flags = await deps.loadFeatureFlags();
       const rewardDisabled = flags.practiceRewardEnabled === false;
       const rewardCoin = (isDuplicateCorrectId || rewardDisabled) ? 0 : ECONOMY_CONSTANTS.practiceCorrectCoin;
       const completed = mergedIds.length >= totalCount;
