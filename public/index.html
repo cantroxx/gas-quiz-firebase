@@ -9534,7 +9534,7 @@
     }
 
     function getRankingElapsedSeconds() {
-      return Math.max(1, Math.round((Date.now() - (currentQuizStartedAtMs || Date.now())) / 1000));
+      return window.DJ48QuizPlay.getRankingElapsedSeconds(currentQuizStartedAtMs);
     }
 
     function startRankingSessionTimerIfNeeded() {
@@ -9574,7 +9574,7 @@
       currentRankingTimeLeft = getRankingTimeLimitSecondsForQuiz(currentQuizId);
       const updateProgress = () => {
         const progress = document.querySelector('.quiz-progress');
-        if(progress) progress.textContent = `${getQuizProgressText()} · ${Math.max(0, Math.ceil(currentRankingTimeLeft))}초`;
+        if(progress) progress.textContent = window.DJ48QuizPlay.getRankingTimedProgressText(getQuizProgressText(), currentRankingTimeLeft);
       };
       updateProgress();
       currentRankingQuestionTimer = setInterval(() => {

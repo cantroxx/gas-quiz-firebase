@@ -190,6 +190,14 @@
     return 12;
   }
 
+  function getRankingElapsedSeconds(startedAtMs, nowMs = Date.now()) {
+    return Math.max(1, Math.round((nowMs - (startedAtMs || nowMs)) / 1000));
+  }
+
+  function getRankingTimedProgressText(progressText, timeLeft) {
+    return `${progressText} · ${Math.max(0, Math.ceil(Number(timeLeft) || 0))}초`;
+  }
+
   function getQuizResultViewModel(options = {}) {
     const isCorrect = !!options.isCorrect;
     const rankingEndedByWrongAnswer = !!options.rankingEndedByWrongAnswer;
@@ -431,6 +439,8 @@
     getQuizPlayHeaderTitle,
     getQuizProgressText,
     getRankingTimeLimitSecondsForQuiz,
+    getRankingElapsedSeconds,
+    getRankingTimedProgressText,
     getQuizResultViewModel,
     getQuizCompleteViewModel,
     createQuizResultCard,

@@ -342,6 +342,20 @@ Step 9M implemented:
 - `submitAnswer` still owns resolved state changes, timer cleanup, correct count, popular unlock tracking, practice save, button disabling, and result rendering in `public/index.html`.
 - Save, reward, title sync, ranking record, and timer flows remain unchanged.
 
+Step 9N implemented:
+
+- Added ranking timer calculation/display helpers to `public/js/features/quiz-play.js`:
+  - `getRankingElapsedSeconds`
+  - `getRankingTimedProgressText`
+- Ranking timer ownership remains in `public/index.html`:
+  - `clearRankingQuestionTimer`
+  - `clearRankingSessionTimer`
+  - `startRankingSessionTimerIfNeeded`
+  - `handleRankingSessionTimeout`
+  - `startRankingQuestionTimerIfNeeded`
+  - `handleRankingTimeout`
+- Timer state, DOM disabling, forced completion, heart reduction, and ranking save flows remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
