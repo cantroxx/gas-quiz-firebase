@@ -542,6 +542,22 @@ Step 11F implemented:
   - `nextQuestion`
 - DOM structure, answer validation, timer intervals, heart behavior, progress save, and completion routing remain unchanged.
 
+Step 11G implemented:
+
+- Extended `getQuizPlayDeps` with quiz session setup and data-source accessors:
+  - current session questions getter/setter
+  - quiz session state apply helper
+  - ranking elapsed started-at accessor
+  - question bank and Firebase quiz data cache accessors
+  - ranking mode normalization/support helpers
+- Routed these functions through the adapter:
+  - `showQuizPlayView` session state application and session question assignment
+  - `getCurrentQuestionSet`
+  - `loadSolvedPracticeIds`
+  - `buildQuizSessionQuestions`
+  - `getRankingTargetForQuiz` ranking mode selection
+- Quiz availability checks, popular quiz access, question ordering, Firestore read paths, and ranking target payloads remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

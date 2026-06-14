@@ -9382,16 +9382,8 @@
         rankingModeId: modeId === 'ranking' ? getSupportedRankingModeForQuiz(quizId, rankingModeId) : 'normal',
         startedAtMs: Date.now()
       });
-      currentQuizId = nextSessionState.currentQuizId;
-      currentModeId = nextSessionState.currentModeId;
-      currentRankingModeId = nextSessionState.currentRankingModeId;
-      currentQuestionIndex = nextSessionState.currentQuestionIndex;
-      selectedChoiceIndex = nextSessionState.selectedChoiceIndex;
-      correctAnswerCount = nextSessionState.correctAnswerCount;
-      currentQuizStartedAtMs = nextSessionState.currentQuizStartedAtMs;
-      currentRankingLives = nextSessionState.currentRankingLives;
-      currentQuestionResolved = nextSessionState.currentQuestionResolved;
-      currentSessionQuestions = nextSessionState.currentSessionQuestions;
+      const deps = getQuizPlayDeps();
+      deps.applyQuizPlaySessionState(nextSessionState);
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
       startPopularUsageSessionIfNeeded(quizId);
@@ -9401,10 +9393,10 @@
       } catch(error) {
         console.warn('Firestore quiz load failed. Falling back to local QUESTION_BANK.', error);
       }
-      currentSessionQuestions = await buildQuizSessionQuestions(quizId, modeId).catch(error => {
+      deps.setCurrentSessionQuestions(await buildQuizSessionQuestions(quizId, modeId).catch(error => {
         console.warn('Quiz session shuffle failed. Using cached question order.', error);
         return null;
-      });
+      }));
       showOnlyAppView('quiz-play-view');
       renderQuizPlayHeader();
       renderQuestion();
@@ -9418,6 +9410,22 @@
         getFirebaseAuthUser,
         getCurrentDataOwnerId,
         getCurrentQuestionSet,
+        getCurrentSessionQuestions: () => currentSessionQuestions,
+        setCurrentSessionQuestions: questions => {
+          currentSessionQuestions = questions;
+        },
+        applyQuizPlaySessionState: state => {
+          currentQuizId = state.currentQuizId;
+          currentModeId = state.currentModeId;
+          currentRankingModeId = state.currentRankingModeId;
+          currentQuestionIndex = state.currentQuestionIndex;
+          selectedChoiceIndex = state.selectedChoiceIndex;
+          correctAnswerCount = state.correctAnswerCount;
+          currentQuizStartedAtMs = state.currentQuizStartedAtMs;
+          currentRankingLives = state.currentRankingLives;
+          currentQuestionResolved = state.currentQuestionResolved;
+          currentSessionQuestions = state.currentSessionQuestions;
+        },
         getCurrentModeId: () => currentModeId,
         getCurrentQuizId: () => currentQuizId,
         getCurrentQuestionIndex: () => currentQuestionIndex,
@@ -9431,6 +9439,7 @@
           return correctAnswerCount;
         },
         getCurrentMemberProfile: () => currentMemberProfile || {},
+        getCurrentQuizStartedAtMs: () => currentQuizStartedAtMs,
         getCurrentRankingModeId: () => currentRankingModeId,
         getCurrentRankingLives: () => currentRankingLives,
         setCurrentRankingLives: value => {
@@ -9457,6 +9466,8 @@
         },
         getCurrentQuizMetaForHeader: () => QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling,
         getCurrentModeMetaForHeader: () => MODE_CATALOG[currentModeId] || MODE_CATALOG.practice,
+        getQuestionBank: () => QUESTION_BANK,
+        getFirebaseQuizDataCache: () => firebaseQuizDataCache,
         getCorrectRewardCoin: () => USER_REWARD_DATA.completeReward.correctCoin,
         getInvalidRankingTimeMessage: () => INVALID_RANKING_TIME_MESSAGE,
         getRankingElapsedSeconds,
@@ -9464,6 +9475,8 @@
         getRankingTargetForQuiz,
         getMaxRankingElapsedSeconds: () => MAX_RANKING_ELAPSED_SECONDS,
         getRankingModeLabelForDisplay,
+        getSupportedRankingModeForQuiz,
+        normalizeFirebaseRankingMode,
         buildRankingRecordId,
         buildUserRankingSummaryUpdate,
         buildQuizKingSummaryUpdate,
@@ -9494,26 +9507,28 @@
     }
 
     function getCurrentQuestionSet() {
-      const firebaseQuizId = normalizeFirebaseQuizId(currentQuizId);
+      const deps = getQuizPlayDeps();
+      const firebaseQuizId = deps.normalizeFirebaseQuizId(deps.getCurrentQuizId());
       return window.DJ48QuizPlay.resolveCurrentQuestionSet({
-        currentSessionQuestions,
-        firebaseQuizDataCache,
+        currentSessionQuestions: deps.getCurrentSessionQuestions(),
+        firebaseQuizDataCache: deps.getFirebaseQuizDataCache(),
         firebaseQuizId,
-        questionBank: QUESTION_BANK,
-        currentQuizId
+        questionBank: deps.getQuestionBank(),
+        currentQuizId: deps.getCurrentQuizId()
       });
     }
 
     async function loadSolvedPracticeIds(quizId) {
-      if(currentModeId !== 'practice') return new Set();
-      const id = normalizeFirebaseQuizId(quizId);
-      const db = getFirestoreDb();
-      const memberUserId = getCurrentDataOwnerId();
+      const deps = getQuizPlayDeps();
+      if(deps.getCurrentModeId() !== 'practice') return new Set();
+      const id = deps.normalizeFirebaseQuizId(quizId);
+      const db = deps.getFirestoreDb();
+      const memberUserId = deps.getCurrentDataOwnerId();
       if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return new Set();
-      const meta = await loadFirebaseQuizMeta(id);
-      const target = getPracticeTargetForQuiz(id, meta);
+      const meta = await deps.loadFirebaseQuizMeta(id);
+      const target = deps.getPracticeTargetForQuiz(id, meta);
       if(!target) return new Set();
-      const recordId = buildPracticeProgressRecordId(memberUserId, target.areaKey);
+      const recordId = deps.buildPracticeProgressRecordId(memberUserId, target.areaKey);
       const snapshot = await db.collection('practiceRecords').doc(recordId).get();
       if(!snapshot.exists) return new Set();
       const data = snapshot.data() || {};
@@ -9525,8 +9540,11 @@
     }
 
     async function buildQuizSessionQuestions(quizId, modeId) {
-      const id = normalizeFirebaseQuizId(quizId);
-      const baseQuestions = firebaseQuizDataCache[id] || QUESTION_BANK[quizId] || QUESTION_BANK[id] || QUESTION_BANK.spelling;
+      const deps = getQuizPlayDeps();
+      const id = deps.normalizeFirebaseQuizId(quizId);
+      const quizDataCache = deps.getFirebaseQuizDataCache();
+      const questionBank = deps.getQuestionBank();
+      const baseQuestions = quizDataCache[id] || questionBank[quizId] || questionBank[id] || questionBank.spelling;
       if(!Array.isArray(baseQuestions) || !baseQuestions.length) return null;
       if(modeId === 'ranking') return shuffleList(baseQuestions.slice());
       if(modeId !== 'practice') return baseQuestions;
@@ -9621,7 +9639,7 @@
     }
 
     function getRankingElapsedSeconds() {
-      return window.DJ48QuizPlay.getRankingElapsedSeconds(currentQuizStartedAtMs);
+      return window.DJ48QuizPlay.getRankingElapsedSeconds(getQuizPlayDeps().getCurrentQuizStartedAtMs());
     }
 
     function startRankingSessionTimerIfNeeded() {
@@ -9883,10 +9901,11 @@
       };
       if(pokemonDifficultyTargets[id]) {
         const target = pokemonDifficultyTargets[id];
+        const deps = getQuizPlayDeps();
         return {
           ...target,
           categoryKey: slugPracticeKey(target.category),
-          rankingMode: normalizeFirebaseRankingMode(currentRankingModeId)
+          rankingMode: deps.normalizeFirebaseRankingMode(deps.getCurrentRankingModeId())
         };
       }
       const targets = {
@@ -9905,10 +9924,11 @@
       };
       const target = targets[id];
       if(!target) return null;
+      const deps = getQuizPlayDeps();
       return {
         ...target,
         categoryKey: slugPracticeKey(target.category),
-        rankingMode: getSupportedRankingModeForQuiz(id, currentRankingModeId)
+        rankingMode: deps.getSupportedRankingModeForQuiz(id, deps.getCurrentRankingModeId())
       };
     }
 
