@@ -9700,16 +9700,8 @@
       }
     }
 
-    function isTypingTarget(target) {
-      return window.DJ48QuizPlay.isTypingTarget(target);
-    }
-
     function isQuizPlayActive() {
       return document.getElementById('quiz-play-view')?.hidden === false;
-    }
-
-    function getNumericChoiceKey(event) {
-      return window.DJ48QuizPlay.getNumericChoiceKey(event);
     }
 
     function selectChoiceByIndex(index, submitImmediately = false) {
@@ -9729,18 +9721,17 @@
     }
 
     function handleQuizPlayKeydown(event) {
-      if(!isQuizPlayActive()) return;
-      if(event.defaultPrevented) return;
-      const key = String(event.key || '');
-      const input = event.target?.classList?.contains('quiz-answer-input') ? event.target : null;
-
-      if(input && key === 'Enter') {
+      const action = window.DJ48QuizPlay.getQuizPlayKeyAction(event, {
+        quizPlayActive: isQuizPlayActive(),
+        currentQuestionResolved
+      });
+      if(action.type === 'submit-input') {
         event.preventDefault();
-        if(!currentQuestionResolved && input.value.trim()) submitAnswer();
+        if(action.shouldSubmit) submitAnswer();
         return;
       }
 
-      if(currentQuestionResolved && key === 'Enter') {
+      if(action.type === 'advance-after-result') {
         const next = document.querySelector('[data-next-question]');
         if(next && !next.disabled) {
           event.preventDefault();
@@ -9750,10 +9741,8 @@
         return;
       }
 
-      if(isTypingTarget(event.target)) return;
-      const choiceNumber = getNumericChoiceKey(event);
-      if(!choiceNumber) return;
-      const selected = selectChoiceByIndex(choiceNumber - 1, true);
+      if(action.type !== 'select-choice') return;
+      const selected = selectChoiceByIndex(action.choiceIndex, true);
       if(selected) event.preventDefault();
     }
 

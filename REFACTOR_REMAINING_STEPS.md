@@ -300,6 +300,17 @@ Step 9H implemented:
 - `renderPracticeSaveStatus` and `renderRankingSaveStatus` still own DOM lookup and text assignment in `public/index.html`.
 - Practice save, ranking save, reward, title sync, and Firestore error handling flows remain in `public/index.html`.
 
+Step 9I implemented:
+
+- Added quiz play key action helper to `public/js/features/quiz-play.js`:
+  - `getQuizPlayKeyAction`
+- `handleQuizPlayKeydown` still owns event prevention and calls to:
+  - `submitAnswer`
+  - `nextQuestion`
+  - `showQuizComplete`
+  - `selectChoiceByIndex`
+- `selectChoiceByIndex` still owns selected choice state and submit button state in `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

@@ -51,6 +51,32 @@
     return digitMatch ? Number(digitMatch[2]) : 0;
   }
 
+  function getQuizPlayKeyAction(event, options = {}) {
+    if(!options.quizPlayActive || event?.defaultPrevented) return { type: 'none' };
+    const key = String(event?.key || '');
+    const target = event?.target || null;
+    const input = target?.classList?.contains('quiz-answer-input') ? target : null;
+
+    if(input && key === 'Enter') {
+      return {
+        type: 'submit-input',
+        shouldSubmit: !options.currentQuestionResolved && !!String(input.value || '').trim()
+      };
+    }
+
+    if(options.currentQuestionResolved && key === 'Enter') {
+      return { type: 'advance-after-result' };
+    }
+
+    if(isTypingTarget(target)) return { type: 'none' };
+    const choiceNumber = getNumericChoiceKey(event);
+    if(!choiceNumber) return { type: 'none' };
+    return {
+      type: 'select-choice',
+      choiceIndex: choiceNumber - 1
+    };
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -278,6 +304,7 @@
     getWrongAnswerFeedbackText,
     isTypingTarget,
     getNumericChoiceKey,
+    getQuizPlayKeyAction,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,
