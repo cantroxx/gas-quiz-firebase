@@ -94,6 +94,13 @@
     return true;
   }
 
+  function disableQuizAnswerControls(root = document) {
+    const scope = root || document;
+    scope.querySelectorAll('.quiz-choice, .quiz-submit-button, .quiz-answer-input').forEach(element => {
+      element.disabled = true;
+    });
+  }
+
   function getQuizAnswerSubmitResult(question, options = {}) {
     if(!question) return { canSubmit: false, isCorrect: false };
     if(question.type === 'imageInput' || question.type === 'textInput') {
@@ -431,6 +438,7 @@
     getQuizPlayKeyAction,
     canSelectQuizChoice,
     applyQuizChoiceSelection,
+    disableQuizAnswerControls,
     getQuizAnswerSubmitResult,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,

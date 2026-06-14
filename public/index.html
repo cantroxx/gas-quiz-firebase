@@ -9556,9 +9556,7 @@
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
       currentQuestionResolved = true;
-      document.querySelectorAll('.quiz-choice, .quiz-submit-button, .quiz-answer-input').forEach(element => {
-        element.disabled = true;
-      });
+      window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
       showQuizComplete({ skipped: true, reason: 'elapsed-too-long', forced: true });
     }
 
@@ -9588,13 +9586,7 @@
       if(currentModeId !== 'ranking' || currentQuestionResolved) return;
       currentQuestionResolved = true;
       clearRankingQuestionTimer();
-      const input = document.querySelector('.quiz-answer-input');
-      if(input) input.disabled = true;
-      document.querySelectorAll('.quiz-choice').forEach(choice => {
-        choice.disabled = true;
-      });
-      const submit = document.querySelector('.quiz-submit-button');
-      if(submit) submit.disabled = true;
+      window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
       showQuizResult(false, '시간 초과로 하트가 1개 줄었어요.');
     }
 
@@ -9644,10 +9636,7 @@
         });
         progressSavePromise = savePracticeProgressAfterCorrectAnswer(question);
       }
-      document.querySelectorAll('.quiz-choice').forEach(choice => {
-        choice.disabled = true;
-      });
-      document.querySelector('.quiz-submit-button').disabled = true;
+      window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
       showQuizResult(isCorrect);
       if(progressSavePromise) {
         progressSavePromise

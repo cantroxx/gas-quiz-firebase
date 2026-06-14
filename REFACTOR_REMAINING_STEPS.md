@@ -356,6 +356,13 @@ Step 9N implemented:
   - `handleRankingTimeout`
 - Timer state, DOM disabling, forced completion, heart reduction, and ranking save flows remain unchanged.
 
+Step 9O implemented:
+
+- Added quiz answer control DOM helper to `public/js/features/quiz-play.js`:
+  - `disableQuizAnswerControls`
+- Replaced repeated `.quiz-choice`, `.quiz-submit-button`, and `.quiz-answer-input` disabling in `public/index.html`.
+- `submitAnswer`, ranking timeout, session timeout, save, reward, title sync, and ranking record flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
