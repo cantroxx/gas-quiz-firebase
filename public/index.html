@@ -9420,8 +9420,11 @@
         getCurrentQuestionSet,
         getCurrentModeId: () => currentModeId,
         getCurrentQuizId: () => currentQuizId,
+        getCurrentQuestionIndex: () => currentQuestionIndex,
         getCorrectAnswerCount: () => correctAnswerCount,
         getCurrentMemberProfile: () => currentMemberProfile || {},
+        getCorrectRewardCoin: () => USER_REWARD_DATA.completeReward.correctCoin,
+        getInvalidRankingTimeMessage: () => INVALID_RANKING_TIME_MESSAGE,
         getRankingElapsedSeconds,
         getRankingTargetForQuiz,
         getMaxRankingElapsedSeconds: () => MAX_RANKING_ELAPSED_SECONDS,
@@ -10432,27 +10435,28 @@
       finishPopularUsageSession();
       const root = document.getElementById('quiz-play-root');
       root.innerHTML = '';
-      const questionSet = getCurrentQuestionSet();
+      const deps = getQuizPlayDeps();
+      const questionSet = deps.getCurrentQuestionSet();
       const viewModel = window.DJ48QuizPlay.getQuizCompleteViewModel({
-        modeId: currentModeId,
-        currentQuestionIndex,
+        modeId: deps.getCurrentModeId(),
+        currentQuestionIndex: deps.getCurrentQuestionIndex(),
         questionCount: questionSet.length,
-        correctAnswerCount,
-        correctRewardCoin: USER_REWARD_DATA.completeReward.correctCoin,
+        correctAnswerCount: deps.getCorrectAnswerCount(),
+        correctRewardCoin: deps.getCorrectRewardCoin(),
         reason: options.reason,
-        invalidRankingTimeMessage: INVALID_RANKING_TIME_MESSAGE
+        invalidRankingTimeMessage: deps.getInvalidRankingTimeMessage()
       });
 
       root.appendChild(window.DJ48QuizPlay.createQuizCompleteCard(viewModel));
 
       const rankingSaveAction = window.DJ48QuizPlay.getRankingCompleteSaveAction({
-        modeId: currentModeId,
+        modeId: deps.getCurrentModeId(),
         reason: options.reason
       });
       if(rankingSaveAction === 'skip-elapsed-too-long') {
         renderRankingSaveStatus(window.DJ48QuizPlay.getElapsedTooLongRankingSkipResult({
-          elapsedSeconds: getRankingElapsedSeconds(),
-          formatRankingElapsedText
+          elapsedSeconds: deps.getRankingElapsedSeconds(),
+          formatRankingElapsedText: deps.formatRankingElapsedText
         }));
       } else if(rankingSaveAction === 'save-record') {
         window.DJ48QuizPlay.attachRankingSaveStatus(saveRankingRecordOnQuizComplete(), {
@@ -10465,8 +10469,9 @@
     function renderRankingSaveStatus(result) {
       const status = document.getElementById('ranking-save-status');
       if(!status) return;
+      const deps = getQuizPlayDeps();
       status.textContent = window.DJ48QuizPlay.getRankingSaveStatusText(result, {
-        invalidRankingTimeMessage: INVALID_RANKING_TIME_MESSAGE
+        invalidRankingTimeMessage: deps.getInvalidRankingTimeMessage()
       });
     }
 

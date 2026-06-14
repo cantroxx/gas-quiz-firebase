@@ -513,6 +513,16 @@ Step 11D implemented:
 - Routed practice reward/title sync debug logging through the same adapter.
 - Firestore collection names, progress payload shape, reward callable payloads, badge updates, and title sync behavior remain unchanged.
 
+Step 11E implemented:
+
+- Extended `getQuizPlayDeps` with quiz completion view state accessors:
+  - current question index
+  - completion reward coin
+  - invalid ranking time message
+- Routed `showQuizComplete` completion view model and ranking save action inputs through the adapter.
+- Routed `renderRankingSaveStatus` message lookup through the adapter.
+- Completion card rendering, ranking save execution, timer cleanup, and popular usage cleanup remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
