@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 9C.
-- Latest committed step 9A baseline: `86c7abd docs: inventory quiz play session state`
+- Completed through step 9D.
+- Latest committed step 9D baseline: `46a7fb3 refactor: split quiz question dom helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
