@@ -127,6 +127,10 @@
     };
   }
 
+  function shouldSavePracticeProgress(options = {}) {
+    return !!options.isCorrect && options.modeId === 'practice';
+  }
+
   function resolveCurrentQuestionSet(options = {}) {
     if(Array.isArray(options.currentSessionQuestions) && options.currentSessionQuestions.length) return options.currentSessionQuestions;
     const firebaseQuizDataCache = options.firebaseQuizDataCache || {};
@@ -440,6 +444,7 @@
     applyQuizChoiceSelection,
     disableQuizAnswerControls,
     getQuizAnswerSubmitResult,
+    shouldSavePracticeProgress,
     resolveCurrentQuestionSet,
     hasSolvedPracticeQuestion,
     splitPracticeQuestionsBySolvedState,

@@ -9629,7 +9629,7 @@
       if(isCorrect) correctAnswerCount += 1;
       if(isCorrect) recordEducationCorrectForPopularUnlock(currentQuizId);
       let progressSavePromise = null;
-      if(isCorrect && currentModeId === 'practice') {
+      if(window.DJ48QuizPlay.shouldSavePracticeProgress({ isCorrect, modeId: currentModeId })) {
         debugLog('Practice progress correct questionId:', {
           questionId: getPracticeQuestionId(question),
           quizId: normalizeFirebaseQuizId(currentQuizId)

@@ -363,6 +363,13 @@ Step 9O implemented:
 - Replaced repeated `.quiz-choice`, `.quiz-submit-button`, and `.quiz-answer-input` disabling in `public/index.html`.
 - `submitAnswer`, ranking timeout, session timeout, save, reward, title sync, and ranking record flows remain owned by `public/index.html`.
 
+Step 9P implemented:
+
+- Added practice save condition helper to `public/js/features/quiz-play.js`:
+  - `shouldSavePracticeProgress`
+- `submitAnswer` now delegates only the practice-save eligibility check.
+- Practice save execution, Firestore error handling, reward, title sync, and ranking record flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
