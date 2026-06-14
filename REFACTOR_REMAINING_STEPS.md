@@ -431,6 +431,27 @@ Step 9W implemented:
   - Feature flags and guards: `loadFeatureFlags`, `TEST_SHOP_USER_ID`, permission/quota error helpers.
 - Step 9 should stop after final verification unless the next goal is explicitly to introduce an adapter object for these dependencies.
 
+Step 9X implemented:
+
+- Ran a final source-boundary review for Step 9.
+- Confirmed these high-risk functions still stay in `public/index.html`:
+  - `showQuizPlayView`
+  - `buildQuizSessionQuestions`
+  - `renderQuestion`
+  - `submitAnswer`
+  - `showQuizResult`
+  - `nextQuestion`
+  - `showQuizComplete`
+  - `saveRankingRecordOnQuizComplete`
+  - `savePracticeProgressAfterCorrectAnswer`
+  - `grantPracticeCorrectReward`
+  - `syncMemberTitlesAfterPracticeCompletion`
+- Confirmed `public/js/features/quiz-play.js` owns only low-risk helpers, display models, DOM factories, and small decision helpers.
+- Recommended Step 9 completion criteria:
+  - No additional save/reward/timer function movement in this phase.
+  - Run one full browser smoke test across practice, ranking, timer, heart, save status, reward, and title sync.
+  - Start a new goal before introducing a dependency adapter for save/reward/timer flows.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
