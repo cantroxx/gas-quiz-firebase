@@ -9720,7 +9720,11 @@
     function nextQuestion() {
       clearRankingQuestionTimer();
       currentQuestionIndex += 1;
-      if(currentQuestionIndex >= getCurrentQuestionSet().length) {
+      const action = window.DJ48QuizPlay.getNextQuestionAction({
+        nextQuestionIndex: currentQuestionIndex,
+        questionCount: getCurrentQuestionSet().length
+      });
+      if(action === 'complete') {
         showQuizComplete();
         return;
       }

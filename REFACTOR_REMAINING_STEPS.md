@@ -405,6 +405,13 @@ Step 9U implemented:
 - `showQuizResult` now delegates only the next ranking life count and wrong-answer end decision.
 - Ranking life state assignment, result rendering, timer cleanup, save, reward, and title sync flows remain owned by `public/index.html`.
 
+Step 9V implemented:
+
+- Added next-question action helper to `public/js/features/quiz-play.js`:
+  - `getNextQuestionAction`
+- `nextQuestion` now delegates only the render-next-question vs complete decision.
+- Question index state, timer cleanup, question rendering, completion rendering, save, reward, and title sync flows remain owned by `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
