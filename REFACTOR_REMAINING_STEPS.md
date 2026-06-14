@@ -292,6 +292,14 @@ Step 9G implemented:
   - `practice-save-status`
   - `ranking-save-status`
 
+Step 9H implemented:
+
+- Added save status text helpers to `public/js/features/quiz-play.js`:
+  - `getPracticeSaveStatusText`
+  - `getRankingSaveStatusText`
+- `renderPracticeSaveStatus` and `renderRankingSaveStatus` still own DOM lookup and text assignment in `public/index.html`.
+- Practice save, ranking save, reward, title sync, and Firestore error handling flows remain in `public/index.html`.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

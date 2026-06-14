@@ -203,6 +203,21 @@
     return card;
   }
 
+  function getPracticeSaveStatusText(result) {
+    if(!result || result.error) return '기록 저장을 확인하지 못했어요.';
+    if(result.duplicate) return '이미 맞힌 문제라 기록과 보상은 그대로예요.';
+    const rewardText = result.rewardCoin > 0 ? ` · DJ코인 +${result.rewardCoin}` : '';
+    const completeText = result.completed ? ` · 완주 ${result.nextStarCount}회` : '';
+    return `기록 저장 완료${rewardText}${completeText}`;
+  }
+
+  function getRankingSaveStatusText(result, options = {}) {
+    if(!result || result.error) return '랭킹 기록 저장을 확인하지 못했어요.';
+    if(result.skipped && result.reason === 'zero-score') return '점수가 0점이라 랭킹 기록은 저장하지 않았어요.';
+    if(result.skipped && result.reason === 'elapsed-too-long') return options.invalidRankingTimeMessage || '';
+    return `랭킹 기록 저장 완료 · ${result.score}점 · ${result.elapsedText}`;
+  }
+
   function createQuizAnswerInput(onInput) {
     const input = document.createElement('input');
     input.className = 'quiz-answer-input';
@@ -271,6 +286,8 @@
     getQuizCompleteViewModel,
     createQuizResultCard,
     createQuizCompleteCard,
+    getPracticeSaveStatusText,
+    getRankingSaveStatusText,
     createQuizAnswerInput,
     createQuizImageAnswerField,
     createQuizChoiceButton,
