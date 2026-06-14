@@ -9502,53 +9502,14 @@
       currentQuestionResolved = false;
       root.innerHTML = '';
 
-      const card = document.createElement('article');
-      const progress = document.createElement('p');
-      const title = document.createElement('h3');
-      const choices = document.createElement('div');
-      const submit = document.createElement('button');
       const hintText = getQuestionHintText(question);
       const shouldRenderHint = !!hintText && !(currentModeId === 'ranking' && currentRankingModeId === 'nohint');
-
-      card.className = 'quiz-question-card';
-      progress.className = 'quiz-progress';
-      progress.textContent = getQuizProgressText();
-      title.textContent = question.question;
-      title.className = 'quiz-question-title';
-      choices.className = 'quiz-choice-list';
-      submit.className = 'quiz-submit-button';
-      submit.type = 'button';
-      submit.textContent = '정답 제출';
-      submit.disabled = true;
-
-      if(question.type === 'imageInput') {
-        const { imageWrap, input } = window.DJ48QuizPlay.createQuizImageAnswerField(question, () => {
-          submit.disabled = !input.value.trim();
-        });
-        choices.append(imageWrap, input);
-      } else if(question.type === 'textInput') {
-        const input = window.DJ48QuizPlay.createQuizAnswerInput(() => {
-          submit.disabled = !input.value.trim();
-        });
-        choices.appendChild(input);
-      } else {
-        question.choices.forEach((choice, index) => {
-          const button = window.DJ48QuizPlay.createQuizChoiceButton(choice, index);
-          choices.appendChild(button);
-        });
-      }
-
-      const titleRow = document.createElement('div');
-      titleRow.className = 'quiz-question-title-row';
-      titleRow.appendChild(title);
-      if(shouldRenderHint) {
-        const { hintButton, hintDisplay } = window.DJ48QuizPlay.createQuizHintToggle(hintText);
-        titleRow.appendChild(hintButton);
-        card.append(progress, titleRow, hintDisplay);
-      } else {
-        card.append(progress, titleRow);
-      }
-      card.append(choices, submit);
+      const card = window.DJ48QuizPlay.createQuizQuestionCard({
+        question,
+        progressText: getQuizProgressText(),
+        hintText,
+        shouldRenderHint
+      });
       root.appendChild(card);
       startRankingQuestionTimerIfNeeded();
     }

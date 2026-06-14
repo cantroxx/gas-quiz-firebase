@@ -339,6 +339,54 @@
     return { hintButton, hintDisplay };
   }
 
+  function createQuizQuestionCard(options = {}) {
+    const question = options.question || {};
+    const card = document.createElement('article');
+    const progress = document.createElement('p');
+    const title = document.createElement('h3');
+    const titleRow = document.createElement('div');
+    const choices = document.createElement('div');
+    const submit = document.createElement('button');
+
+    card.className = 'quiz-question-card';
+    progress.className = 'quiz-progress';
+    progress.textContent = options.progressText || '';
+    title.className = 'quiz-question-title';
+    title.textContent = question.question || '';
+    titleRow.className = 'quiz-question-title-row';
+    choices.className = 'quiz-choice-list';
+    submit.className = 'quiz-submit-button';
+    submit.type = 'button';
+    submit.textContent = '정답 제출';
+    submit.disabled = true;
+
+    const syncSubmitState = event => {
+      submit.disabled = !String(event?.target?.value || '').trim();
+    };
+
+    if(question.type === 'imageInput') {
+      const { imageWrap, input } = createQuizImageAnswerField(question, syncSubmitState);
+      choices.append(imageWrap, input);
+    } else if(question.type === 'textInput') {
+      choices.appendChild(createQuizAnswerInput(syncSubmitState));
+    } else {
+      (Array.isArray(question.choices) ? question.choices : []).forEach((choice, index) => {
+        choices.appendChild(createQuizChoiceButton(choice, index));
+      });
+    }
+
+    titleRow.appendChild(title);
+    if(options.shouldRenderHint) {
+      const { hintButton, hintDisplay } = createQuizHintToggle(options.hintText || '');
+      titleRow.appendChild(hintButton);
+      card.append(progress, titleRow, hintDisplay);
+    } else {
+      card.append(progress, titleRow);
+    }
+    card.append(choices, submit);
+    return card;
+  }
+
   window.DJ48QuizPlay = {
     getKoreanInitials,
     getCurrentQuestionAnswerText,
@@ -365,6 +413,7 @@
     createQuizAnswerInput,
     createQuizImageAnswerField,
     createQuizChoiceButton,
-    createQuizHintToggle
+    createQuizHintToggle,
+    createQuizQuestionCard
   };
 })();
