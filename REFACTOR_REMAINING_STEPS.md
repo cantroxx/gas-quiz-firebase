@@ -492,6 +492,16 @@ Step 11B implemented:
   - `syncMemberTitlesAfterPracticeCompletion`
 - Callable names, request payloads, reward logic, title sync logic, and cache invalidation behavior remain unchanged.
 
+Step 11C implemented:
+
+- Extended `getQuizPlayDeps` with ranking save state and helper accessors:
+  - current mode, quiz id, score, member profile, elapsed seconds
+  - ranking target lookup and elapsed guard value
+  - ranking record id and summary update builders
+  - debug logging hook
+- Routed `saveRankingRecordOnQuizComplete` through those adapter accessors.
+- Firestore collection names, record payload shape, batch write order, and ranking summary update behavior remain unchanged.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

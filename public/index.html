@@ -9418,6 +9418,17 @@
         getFirebaseAuthUser,
         getCurrentDataOwnerId,
         getCurrentQuestionSet,
+        getCurrentModeId: () => currentModeId,
+        getCurrentQuizId: () => currentQuizId,
+        getCorrectAnswerCount: () => correctAnswerCount,
+        getCurrentMemberProfile: () => currentMemberProfile || {},
+        getRankingElapsedSeconds,
+        getRankingTargetForQuiz,
+        getMaxRankingElapsedSeconds: () => MAX_RANKING_ELAPSED_SECONDS,
+        buildRankingRecordId,
+        buildUserRankingSummaryUpdate,
+        buildQuizKingSummaryUpdate,
+        debugLog,
         loadFeatureFlags,
         loadFirebaseQuizMeta,
         normalizeFirebaseQuizId,
@@ -9940,31 +9951,33 @@
     }
 
     async function saveRankingRecordOnQuizComplete() {
-      if(currentModeId !== 'ranking') return null;
       const deps = getQuizPlayDeps();
+      if(deps.getCurrentModeId() !== 'ranking') return null;
       const db = deps.getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
 
       const memberUserId = deps.getCurrentDataOwnerId();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) throw new Error('member-required');
-      if(correctAnswerCount <= 0) {
-        debugLog('Ranking record skipped because score is 0.', {
-          quizId: deps.normalizeFirebaseQuizId(currentQuizId)
+      const correctCount = deps.getCorrectAnswerCount();
+      const quizId = deps.normalizeFirebaseQuizId(deps.getCurrentQuizId());
+      if(correctCount <= 0) {
+        deps.debugLog('Ranking record skipped because score is 0.', {
+          quizId
         });
         return { skipped: true, reason: 'zero-score' };
       }
 
-      const quizId = deps.normalizeFirebaseQuizId(currentQuizId);
-      const target = getRankingTargetForQuiz(quizId);
+      const target = deps.getRankingTargetForQuiz(quizId);
       if(!target) throw new Error('unsupported-ranking-target');
 
-      const profile = currentMemberProfile || {};
-      const elapsedSeconds = getRankingElapsedSeconds();
-      if(elapsedSeconds > MAX_RANKING_ELAPSED_SECONDS) {
+      const profile = deps.getCurrentMemberProfile();
+      const elapsedSeconds = deps.getRankingElapsedSeconds();
+      const maxElapsedSeconds = deps.getMaxRankingElapsedSeconds();
+      if(elapsedSeconds > maxElapsedSeconds) {
         console.warn('Ranking record skipped because elapsed time is too long.', {
           quizId,
           elapsedSeconds,
-          maxElapsedSeconds: MAX_RANKING_ELAPSED_SECONDS
+          maxElapsedSeconds
         });
         return {
           skipped: true,
@@ -9974,7 +9987,7 @@
         };
       }
       const fieldValue = deps.getFirestoreFieldValue();
-      const recordId = buildRankingRecordId(memberUserId, target.categoryKey, target.rankingMode);
+      const recordId = deps.buildRankingRecordId(memberUserId, target.categoryKey, target.rankingMode);
       const recordRef = db.collection('rankingRecords').doc(recordId);
       const userSummaryRef = db.collection('userRankingSummary').doc(memberUserId);
       const quizKingSummaryRef = db.collection('quizKingSummary').doc(memberUserId);
@@ -9994,7 +10007,7 @@
         categoryKey: target.categoryKey,
         rawCategory: target.category,
         subFilter: target.subFilter,
-        score: correctAnswerCount,
+        score: correctCount,
         elapsedSeconds,
         elapsedText: deps.formatRankingElapsedText(elapsedSeconds),
         rankingMode: target.rankingMode,
@@ -10012,12 +10025,12 @@
         userSummaryRef.get(),
         quizKingSummaryRef.get()
       ]);
-      const userSummaryData = buildUserRankingSummaryUpdate(
+      const userSummaryData = deps.buildUserRankingSummaryUpdate(
         userSummarySnapshot.exists ? userSummarySnapshot.data() : {},
         record,
         fieldValue.serverTimestamp()
       );
-      const quizKingSummaryData = buildQuizKingSummaryUpdate(
+      const quizKingSummaryData = deps.buildQuizKingSummaryUpdate(
         quizKingSummarySnapshot.exists ? quizKingSummarySnapshot.data() : {},
         record,
         fieldValue.serverTimestamp()
@@ -10028,15 +10041,15 @@
       batch.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
       await batch.commit();
 
-      debugLog('Firestore ranking record save succeeded:', {
+      deps.debugLog('Firestore ranking record save succeeded:', {
         recordId,
-        score: correctAnswerCount,
+        score: correctCount,
         categoryKey: target.categoryKey,
         elapsedSeconds
       });
       return {
         recordId,
-        score: correctAnswerCount,
+        score: correctCount,
         categoryKey: target.categoryKey,
         elapsedText: record.elapsedText
       };
