@@ -143,6 +143,66 @@
     };
   }
 
+  function createQuizResultCard(viewModel) {
+    const card = document.createElement('article');
+    const title = document.createElement('h3');
+    const desc = document.createElement('p');
+    const saveStatus = document.createElement('p');
+    const next = document.createElement('button');
+
+    card.className = viewModel.cardClassName;
+    title.textContent = viewModel.titleText;
+    desc.textContent = viewModel.descriptionText;
+    saveStatus.id = 'practice-save-status';
+    saveStatus.className = 'quiz-progress';
+    saveStatus.textContent = viewModel.saveStatusText;
+    next.className = 'quiz-submit-button';
+    next.type = 'button';
+    next.textContent = viewModel.nextButtonText;
+    next.dataset.nextQuestion = 'true';
+    if(viewModel.completeQuiz) next.dataset.completeQuiz = 'true';
+
+    card.append(title, desc, saveStatus, next);
+    return card;
+  }
+
+  function createQuizCompleteCard(viewModel) {
+    const card = document.createElement('article');
+    const title = document.createElement('h3');
+    const score = document.createElement('p');
+    const rewardGrid = document.createElement('div');
+    const note = document.createElement('p');
+    const saveStatus = document.createElement('p');
+    const back = document.createElement('button');
+
+    card.className = 'quiz-complete-card';
+    title.textContent = viewModel.titleText;
+    score.className = 'quiz-complete-score';
+    score.textContent = viewModel.scoreText;
+    rewardGrid.className = 'quiz-reward-grid';
+    viewModel.rewardItems.forEach(reward => {
+      const item = document.createElement('p');
+      const label = document.createElement('span');
+      const value = document.createElement('strong');
+      item.className = 'quiz-reward-card';
+      label.textContent = reward.label;
+      value.textContent = reward.value;
+      item.append(label, value);
+      rewardGrid.appendChild(item);
+    });
+    note.textContent = viewModel.noteText;
+    saveStatus.id = 'ranking-save-status';
+    saveStatus.className = 'quiz-progress';
+    saveStatus.textContent = viewModel.saveStatusText;
+    back.className = 'button primary';
+    back.type = 'button';
+    back.dataset.backToQuizSelect = 'true';
+    back.textContent = '모드 선택으로 돌아가기';
+
+    card.append(title, score, rewardGrid, note, saveStatus, back);
+    return card;
+  }
+
   function createQuizAnswerInput(onInput) {
     const input = document.createElement('input');
     input.className = 'quiz-answer-input';
@@ -209,6 +269,8 @@
     getRankingTimeLimitSecondsForQuiz,
     getQuizResultViewModel,
     getQuizCompleteViewModel,
+    createQuizResultCard,
+    createQuizCompleteCard,
     createQuizAnswerInput,
     createQuizImageAnswerField,
     createQuizChoiceButton,

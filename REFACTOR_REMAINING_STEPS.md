@@ -279,6 +279,19 @@ Step 9F implemented:
 - `showQuizResult` and `showQuizComplete` still create DOM in `public/index.html`.
 - Ranking save, practice save, reward, title sync, timer cleanup, and popular usage finish remain in `public/index.html`.
 
+Step 9G implemented:
+
+- Added result/complete DOM factory helpers to `public/js/features/quiz-play.js`:
+  - `createQuizResultCard`
+  - `createQuizCompleteCard`
+- `showQuizResult` and `showQuizComplete` still own state changes, root append, timer cleanup, popular usage finish, and save calls in `public/index.html`.
+- Dataset hooks and status element ids remain unchanged:
+  - `data-next-question`
+  - `data-complete-quiz`
+  - `data-back-to-quiz-select`
+  - `practice-save-status`
+  - `ranking-save-status`
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.
