@@ -185,6 +185,184 @@
     return card;
   }
 
+  function createPopularFilterButton(label, isActive, onClick) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `ranking-sub-tab${isActive ? ' is-active' : ''}`;
+    button.textContent = label;
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  function renderRankingBoards(root, model, deps = {}) {
+    if(!root) return;
+    root.innerHTML = '';
+
+    if(!model) {
+      const loading = document.createElement('p');
+      loading.className = 'ranking-board-empty';
+      loading.textContent = '랭킹 목록을 불러오는 중입니다.';
+      root.appendChild(loading);
+      return;
+    }
+
+    const tabs = document.createElement('div');
+    const panels = document.createElement('div');
+    tabs.className = 'ranking-board-tabs';
+    panels.className = 'ranking-board-panels';
+    const activeRankingBoardId = deps.getActiveRankingBoardId?.() || '';
+    const activeBoardId = model.boards.some(board => board.id === activeRankingBoardId)
+      ? activeRankingBoardId
+      : (model.boards[0]?.id || '');
+
+    model.boards.forEach(board => {
+      const button = document.createElement('button');
+      const panel = document.createElement('section');
+      const isActive = board.id === activeBoardId;
+      button.type = 'button';
+      button.className = `ranking-board-tab${isActive ? ' is-active' : ''}`;
+      button.textContent = board.label;
+      button.dataset.rankingBoardId = board.id;
+      panel.className = 'ranking-board-panel';
+      panel.dataset.rankingBoardPanel = board.id;
+      panel.hidden = !isActive;
+      renderRankingBoardPanel(panel, board, deps);
+      tabs.appendChild(button);
+      panels.appendChild(panel);
+    });
+
+    root.append(tabs, panels);
+  }
+
+  function renderRankingBoardPanel(panel, board, deps = {}) {
+    panel.innerHTML = '';
+    if(board.id === 'popular') {
+      renderPopularRankingBoardPanel(panel, board, deps);
+      return;
+    }
+    const groups = board.groups || [{ id: 'all', label: '전체', rows: board.rows }];
+    const header = document.createElement('div');
+    const title = document.createElement('h3');
+    const desc = document.createElement('p');
+    header.className = 'ranking-board-header';
+    title.textContent = board.title || board.label;
+    desc.textContent = board.desc || '랭킹전 기록을 기준으로 정렬합니다.';
+    header.append(title, desc);
+    panel.appendChild(header);
+
+    if(groups.length > 1) {
+      const groupTabs = document.createElement('div');
+      groupTabs.className = 'ranking-sub-tabs';
+      groups.forEach((group, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `ranking-sub-tab${index === 0 ? ' is-active' : ''}`;
+        button.textContent = group.label;
+        button.dataset.rankingSubGroupId = group.id;
+        button.dataset.rankingParentBoardId = board.id;
+        groupTabs.appendChild(button);
+      });
+      panel.appendChild(groupTabs);
+    }
+
+    groups.forEach((group, index) => {
+      const groupPanel = document.createElement('div');
+      groupPanel.className = 'ranking-sub-panel';
+      groupPanel.dataset.rankingSubPanel = group.id;
+      groupPanel.hidden = index !== 0;
+      renderRankingGroupPanel(groupPanel, group, board, deps);
+      panel.appendChild(groupPanel);
+    });
+  }
+
+  function renderRankingGroupPanel(panel, group, board, deps = {}) {
+    panel.innerHTML = '';
+    if(board.id === 'quizKing') {
+      renderRankingRows(panel, group.rows || [], board, deps);
+      return;
+    }
+    const filters = document.createElement('div');
+    const filterRow = document.createElement('div');
+    const rowsWrap = document.createElement('div');
+    filters.className = 'ranking-popular-detail-filters ranking-mode-filter-box';
+    filterRow.className = 'ranking-popular-filter-row';
+    rowsWrap.className = 'ranking-mode-filter-results';
+    const getSupportedRankingModeIdsForKeys = deps.getSupportedRankingModeIdsForKeys || (() => ['all']);
+    const getRankingModeFilterOptions = deps.getRankingModeFilterOptions || (() => []);
+    const getRankingRowsForGroup = deps.getRankingRowsForGroup || (() => []);
+    const supportedModes = new Set(getSupportedRankingModeIdsForKeys(group.keys || []));
+    getRankingModeFilterOptions().filter(option => supportedModes.has(option.id)).forEach(option => {
+      filterRow.appendChild(createPopularFilterButton(option.label, option.id === 'all', event => {
+        filterRow.querySelectorAll('.ranking-sub-tab').forEach(tab => {
+          tab.classList.toggle('is-active', tab === event.currentTarget);
+        });
+        rowsWrap.innerHTML = '';
+        renderRankingRows(rowsWrap, getRankingRowsForGroup(group, option.id), board, deps);
+      }));
+    });
+    filters.appendChild(filterRow);
+    panel.append(filters, rowsWrap);
+    renderRankingRows(rowsWrap, getRankingRowsForGroup(group), board, deps);
+  }
+
+  function renderPopularRankingBoardPanel(panel, board, deps = {}) {
+    const records = board.sourceRows || [];
+    const header = document.createElement('div');
+    const title = document.createElement('h3');
+    const desc = document.createElement('p');
+    const areaTabs = document.createElement('div');
+    const detailFilters = document.createElement('div');
+    const rowsPanel = document.createElement('div');
+    header.className = 'ranking-board-header';
+    title.textContent = board.title || board.label;
+    desc.textContent = board.desc || '인기 퀴즈 랭킹전 기록입니다.';
+    header.append(title, desc);
+    areaTabs.className = 'ranking-sub-tabs ranking-popular-area-tabs';
+    detailFilters.className = 'ranking-popular-detail-filters';
+    rowsPanel.className = 'ranking-sub-panel';
+
+    const getPopularRankingAreas = deps.getPopularRankingAreas || (() => []);
+    const getActivePopularArea = deps.getActivePopularArea || (() => 'all');
+    const getActivePopularMode = deps.getActivePopularMode || (() => 'all');
+    const getPopularPokemonDifficulties = deps.getPopularPokemonDifficulties || (() => []);
+    const getActivePopularDifficulty = deps.getActivePopularDifficulty || (() => 'all');
+    const getPopularModeOptions = deps.getPopularModeOptions || (() => []);
+    const getPopularFilteredRows = deps.getPopularFilteredRows || (() => []);
+    const areaId = getActivePopularArea();
+    getPopularRankingAreas().forEach(area => {
+      areaTabs.appendChild(createPopularFilterButton(area.label, area.id === areaId, () => {
+        deps.onPopularAreaSelect?.(area.id);
+      }));
+    });
+
+    if(areaId !== 'all') {
+      const modeId = getActivePopularMode(records, areaId);
+      if(areaId === 'pokemon') {
+        const difficultyRow = document.createElement('div');
+        difficultyRow.className = 'ranking-popular-filter-row';
+        getPopularPokemonDifficulties().forEach(difficulty => {
+          difficultyRow.appendChild(createPopularFilterButton(difficulty.label, difficulty.id === getActivePopularDifficulty(), () => {
+            deps.onPopularDifficultySelect?.(difficulty.id);
+          }));
+        });
+        detailFilters.appendChild(difficultyRow);
+      }
+      const modeRow = document.createElement('div');
+      modeRow.className = 'ranking-popular-filter-row';
+      getPopularModeOptions(records, areaId).forEach(mode => {
+        modeRow.appendChild(createPopularFilterButton(mode.label, mode.id === modeId, () => {
+          deps.onPopularModeSelect?.(mode.id);
+        }));
+      });
+      detailFilters.appendChild(modeRow);
+    }
+
+    panel.append(header, areaTabs);
+    if(detailFilters.children.length) panel.appendChild(detailFilters);
+    renderRankingRows(rowsPanel, getPopularFilteredRows(records), board, deps);
+    panel.appendChild(rowsPanel);
+  }
+
   window.DJ48RankingRender = {
     normalizeRankingDisplayName,
     renderRankingCards,
@@ -193,6 +371,11 @@
     renderRankingAvatar,
     createRankingMetaLine,
     renderRankingRows,
-    createRankingPodiumCard
+    createRankingPodiumCard,
+    createPopularFilterButton,
+    renderRankingBoards,
+    renderRankingBoardPanel,
+    renderRankingGroupPanel,
+    renderPopularRankingBoardPanel
   };
 })();

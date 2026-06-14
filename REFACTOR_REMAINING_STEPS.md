@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 8B.
-- Latest committed step 8A baseline: `aedcd56 refactor: split ranking render helpers`
+- Completed through step 8C.
+- Latest committed step 8B baseline: `587b1f5 refactor: split ranking data helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -127,9 +127,20 @@ Step 8B implemented:
   - `buildSubjectRankingGroups`
   - `getRankingBoardModels`
 
+Step 8C implemented:
+
+- Moved ranking board panel render helpers into `public/js/features/ranking-render.js`.
+- `public/index.html` keeps wrapper functions and state callbacks for:
+  - `getRankingRenderDeps`
+  - `renderRankingBoards`
+  - `renderRankingBoardPanel`
+  - `renderRankingGroupPanel`
+  - `createPopularFilterButton`
+  - `renderPopularRankingBoardPanel`
+
 Target:
 
-- Continue with ranking board panel render helpers and any remaining ranking plaza helpers only after 8B verification.
+- Continue with ranking plaza event/state cleanup only after 8C verification.
 - Keep `saveRankingRecordOnQuizComplete` in `public/index.html`.
 
 Validation:
