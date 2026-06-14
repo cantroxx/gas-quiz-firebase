@@ -251,6 +251,16 @@ Step 9B/9C implemented:
 - Kept `isQuizPlayActive` in `public/index.html` because it directly reads the current DOM view state.
 - `getQuestionHintText` now receives `currentQuizId` and `normalizeFirebaseQuizId` through a wrapper dependency object instead of reading quiz session state directly in the helper file.
 
+Step 9D implemented:
+
+- Added low-risk DOM factory helpers to `public/js/features/quiz-play.js`:
+  - `createQuizAnswerInput`
+  - `createQuizImageAnswerField`
+  - `createQuizChoiceButton`
+  - `createQuizHintToggle`
+- `renderQuestion` remains in `public/index.html` and still owns quiz session state reset, progress text, hint visibility decision, root append order, and ranking timer start.
+- No timer, save, reward, title sync, or quiz completion flow was moved.
+
 Target:
 
 - Keep quiz play state and save flows in `public/index.html`.

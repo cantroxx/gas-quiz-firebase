@@ -51,12 +51,69 @@
     return digitMatch ? Number(digitMatch[2]) : 0;
   }
 
+  function createQuizAnswerInput(onInput) {
+    const input = document.createElement('input');
+    input.className = 'quiz-answer-input';
+    input.type = 'text';
+    input.autocomplete = 'off';
+    input.placeholder = '정답 입력';
+    input.setAttribute('aria-label', '정답 입력');
+    if(typeof onInput === 'function') input.addEventListener('input', onInput);
+    return input;
+  }
+
+  function createQuizImageAnswerField(question, onInput) {
+    const imageWrap = document.createElement('div');
+    const image = document.createElement('img');
+    const input = createQuizAnswerInput(onInput);
+    imageWrap.className = 'quiz-image-question';
+    image.src = question?.imageUrl || '';
+    image.alt = '퀴즈 이미지';
+    image.loading = 'lazy';
+    image.addEventListener('error', () => {
+      imageWrap.classList.add('is-image-error');
+    });
+    imageWrap.appendChild(image);
+    return { imageWrap, input };
+  }
+
+  function createQuizChoiceButton(choice, index) {
+    const button = document.createElement('button');
+    const choiceMarks = ['①', '②', '③', '④'];
+    button.className = 'quiz-choice';
+    button.type = 'button';
+    button.dataset.choiceIndex = String(index);
+    button.textContent = `${choiceMarks[index] || `${index + 1}.`} ${choice}`;
+    return button;
+  }
+
+  function createQuizHintToggle(hintText) {
+    const hintButton = document.createElement('button');
+    const hintDisplay = document.createElement('p');
+    hintButton.className = 'quiz-hint-button';
+    hintButton.type = 'button';
+    hintButton.textContent = '힌트';
+    hintDisplay.className = 'quiz-hint-text';
+    hintDisplay.textContent = hintText;
+    hintDisplay.hidden = true;
+    hintButton.addEventListener('click', () => {
+      const nextHidden = !hintDisplay.hidden;
+      hintDisplay.hidden = nextHidden;
+      hintButton.textContent = nextHidden ? '힌트' : '닫기';
+    });
+    return { hintButton, hintDisplay };
+  }
+
   window.DJ48QuizPlay = {
     getKoreanInitials,
     getCurrentQuestionAnswerText,
     getQuestionHintText,
     getWrongAnswerFeedbackText,
     isTypingTarget,
-    getNumericChoiceKey
+    getNumericChoiceKey,
+    createQuizAnswerInput,
+    createQuizImageAnswerField,
+    createQuizChoiceButton,
+    createQuizHintToggle
   };
 })();

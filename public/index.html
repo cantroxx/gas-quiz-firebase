@@ -9509,45 +9509,18 @@
       submit.disabled = true;
 
       if(question.type === 'imageInput') {
-        const imageWrap = document.createElement('div');
-        const image = document.createElement('img');
-        const input = document.createElement('input');
-        imageWrap.className = 'quiz-image-question';
-        image.src = question.imageUrl;
-        image.alt = '퀴즈 이미지';
-        image.loading = 'lazy';
-        image.addEventListener('error', () => {
-          imageWrap.classList.add('is-image-error');
-        });
-        input.className = 'quiz-answer-input';
-        input.type = 'text';
-        input.autocomplete = 'off';
-        input.placeholder = '정답 입력';
-        input.setAttribute('aria-label', '정답 입력');
-        input.addEventListener('input', () => {
+        const { imageWrap, input } = window.DJ48QuizPlay.createQuizImageAnswerField(question, () => {
           submit.disabled = !input.value.trim();
         });
-        imageWrap.appendChild(image);
         choices.append(imageWrap, input);
       } else if(question.type === 'textInput') {
-        const input = document.createElement('input');
-        input.className = 'quiz-answer-input';
-        input.type = 'text';
-        input.autocomplete = 'off';
-        input.placeholder = '정답 입력';
-        input.setAttribute('aria-label', '정답 입력');
-        input.addEventListener('input', () => {
+        const input = window.DJ48QuizPlay.createQuizAnswerInput(() => {
           submit.disabled = !input.value.trim();
         });
         choices.appendChild(input);
       } else {
         question.choices.forEach((choice, index) => {
-          const button = document.createElement('button');
-          const choiceMarks = ['①', '②', '③', '④'];
-          button.className = 'quiz-choice';
-          button.type = 'button';
-          button.dataset.choiceIndex = String(index);
-          button.textContent = `${choiceMarks[index] || `${index + 1}.`} ${choice}`;
+          const button = window.DJ48QuizPlay.createQuizChoiceButton(choice, index);
           choices.appendChild(button);
         });
       }
@@ -9556,19 +9529,7 @@
       titleRow.className = 'quiz-question-title-row';
       titleRow.appendChild(title);
       if(shouldRenderHint) {
-        const hintButton = document.createElement('button');
-        const hintDisplay = document.createElement('p');
-        hintButton.className = 'quiz-hint-button';
-        hintButton.type = 'button';
-        hintButton.textContent = '힌트';
-        hintDisplay.className = 'quiz-hint-text';
-        hintDisplay.textContent = hintText;
-        hintDisplay.hidden = true;
-        hintButton.addEventListener('click', () => {
-          const nextHidden = !hintDisplay.hidden;
-          hintDisplay.hidden = nextHidden;
-          hintButton.textContent = nextHidden ? '힌트' : '닫기';
-        });
+        const { hintButton, hintDisplay } = window.DJ48QuizPlay.createQuizHintToggle(hintText);
         titleRow.appendChild(hintButton);
         card.append(progress, titleRow, hintDisplay);
       } else {
