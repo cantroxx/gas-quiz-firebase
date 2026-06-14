@@ -2,8 +2,8 @@
 
 ## Current Baseline
 
-- Completed through step 8C.
-- Latest committed step 8B baseline: `587b1f5 refactor: split ranking data helpers`
+- Completed through step 8D.
+- Latest committed step 8C baseline: `a12cc0a refactor: split ranking board render helpers`
 - Main app source remains `public/index.html`.
 - New browser globals added so existing app code can keep its current function and constant names:
   - `window.DJ48_PLACE_DETAILS`
@@ -138,9 +138,17 @@ Step 8C implemented:
   - `createPopularFilterButton`
   - `renderPopularRankingBoardPanel`
 
+Step 8D implemented:
+
+- Moved ranking board click event delegation into `public/js/features/ranking-render.js`.
+- `public/index.html` keeps wrapper/state callback functions for:
+  - `handleRankingBoardRootClick`
+  - `onRankingBoardSelect`
+  - popular filter state callbacks in `getRankingRenderDeps`
+
 Target:
 
-- Continue with ranking plaza event/state cleanup only after 8C verification.
+- Run final Step 8 verification before moving to Step 9.
 - Keep `saveRankingRecordOnQuizComplete` in `public/index.html`.
 
 Validation:

@@ -363,6 +363,33 @@
     panel.appendChild(rowsPanel);
   }
 
+  function handleRankingBoardRootClick(event, deps = {}) {
+    const subButton = event.target.closest('[data-ranking-sub-group-id]');
+    if(subButton) {
+      const boardId = subButton.dataset.rankingParentBoardId;
+      const groupId = subButton.dataset.rankingSubGroupId;
+      const activePanel = document.querySelector(`[data-ranking-board-panel="${boardId}"]`);
+      activePanel?.querySelectorAll('.ranking-sub-tab').forEach(tab => {
+        tab.classList.toggle('is-active', tab === subButton);
+      });
+      activePanel?.querySelectorAll('[data-ranking-sub-panel]').forEach(panel => {
+        panel.hidden = panel.dataset.rankingSubPanel !== groupId;
+      });
+      return;
+    }
+
+    const button = event.target.closest('[data-ranking-board-id]');
+    if(!button) return;
+    const boardId = button.dataset.rankingBoardId;
+    deps.onRankingBoardSelect?.(boardId);
+    document.querySelectorAll('.ranking-board-tab').forEach(tab => {
+      tab.classList.toggle('is-active', tab === button);
+    });
+    document.querySelectorAll('[data-ranking-board-panel]').forEach(panel => {
+      panel.hidden = panel.dataset.rankingBoardPanel !== boardId;
+    });
+  }
+
   window.DJ48RankingRender = {
     normalizeRankingDisplayName,
     renderRankingCards,
@@ -376,6 +403,7 @@
     renderRankingBoards,
     renderRankingBoardPanel,
     renderRankingGroupPanel,
-    renderPopularRankingBoardPanel
+    renderPopularRankingBoardPanel,
+    handleRankingBoardRootClick
   };
 })();
