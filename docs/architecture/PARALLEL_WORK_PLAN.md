@@ -19,6 +19,7 @@ This document records the completed second clean-architecture round after the fi
 - Quiz: `public/js/features/quiz-play.js`, quiz catalog/data helpers, quiz-play wrappers in `public/index.html`.
 - Ranking: `public/js/features/ranking-data.js`, `public/js/features/ranking-render.js`, ranking plaza/profile ranking flows.
 - Classroom/event: `public/js/features/classroom-*` and `public/js/features/event-*`.
+- App shell/view orchestration: `public/js/features/app-view.js`, exclusive sections of `public/index.html`.
 - Verification/docs: `scripts/smoke`, `docs/operations`, `docs/architecture`.
 
 When using multiple terminals, keep each terminal inside one ownership area unless the task explicitly requires a shared boundary change.

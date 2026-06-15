@@ -1377,6 +1377,7 @@
   <script src="/js/features/admin-data.js"></script>
   <script src="/js/features/account-form.js"></script>
   <script src="/js/features/account-data.js"></script>
+  <script src="/js/features/app-view.js"></script>
   <script src="/js/features/home-data.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/event-data.js"></script>
@@ -7858,13 +7859,7 @@
     ];
 
     function showOnlyAppView(viewId) {
-      const hero = document.getElementById('app-hero');
-      if(hero) hero.hidden = true;
-      APP_VIEW_IDS.forEach(id => {
-        const view = document.getElementById(id);
-        if(view) view.hidden = id !== viewId;
-      });
-      document.getElementById(viewId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return window.DJ48AppView.showOnlyAppView(viewId, APP_VIEW_IDS);
     }
 
     function showSchoolView() {
@@ -8007,17 +8002,19 @@
     }
 
     async function showEventView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       const flags = await loadFeatureFlags();
       if(flags.eventPlazaEnabled === false) {
         window.alert('이벤트 광장은 지금 점검 중입니다.');
         return;
       }
       renderEventLoadingState();
-      updatePlaceInfo(PLACE_DETAILS.event);
-      updatePlayerLocation(PLACE_DETAILS.event);
-      showOnlyAppView('event-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'event-view',
+        place: PLACE_DETAILS.event
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
       renderEventProgressFromFunctions();
     }
 
@@ -8027,12 +8024,14 @@
     }
 
     function showClassroomView(unlocked = false) {
-      leaveQuizPlaySession();
-      closePlaceModal();
-      updatePlaceInfo(PLACE_DETAILS.classroom);
-      updatePlayerLocation(PLACE_DETAILS.classroom);
       setClassroomUnlocked(unlocked);
-      showOnlyAppView('classroom-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'classroom-view',
+        place: PLACE_DETAILS.classroom
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     async function handleClassroomEntrySubmit(event) {
@@ -8075,17 +8074,15 @@
     }
 
     function updatePlaceInfo(place) {
-      document.getElementById('place-info-icon').textContent = place.icon;
-      document.getElementById('place-info-title').textContent = place.title;
-      document.getElementById('place-info-desc').textContent = place.desc;
+      return window.DJ48AppView.updatePlaceInfo(place);
     }
 
     function updatePlayerLocation(place) {
-      document.getElementById('current-location').textContent = place.title;
+      return window.DJ48AppView.updatePlayerLocation(place);
     }
 
     function closePlaceModal() {
-      document.getElementById('place-modal').hidden = true;
+      return window.DJ48AppView.closePlaceModal();
     }
 
     document.querySelectorAll('[data-place]').forEach(button => {
