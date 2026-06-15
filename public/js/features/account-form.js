@@ -58,6 +58,31 @@
     };
   }
 
+  function getMemberPasswordChangeValues() {
+    return {
+      newPassword: document.getElementById('member-password-change-new')?.value || '',
+      passwordConfirm: document.getElementById('member-password-change-confirm')?.value || ''
+    };
+  }
+
+  function setButtonBusy(button, busyText = '') {
+    const state = {
+      textContent: button?.textContent || '',
+      disabled: button?.disabled === true
+    };
+    if(button) {
+      button.disabled = true;
+      if(busyText) button.textContent = busyText;
+    }
+    return state;
+  }
+
+  function restoreButtonState(button, state = {}) {
+    if(!button) return;
+    button.disabled = state.disabled === true;
+    if(state.textContent) button.textContent = state.textContent;
+  }
+
   function setMemberLinkStatus(message, isError = false) {
     const status = document.getElementById('member-link-status');
     if(!status) return;
@@ -99,6 +124,10 @@
     }, '비밀번호 변경 중 문제가 생겼어요.');
   }
 
+  function getMemberPasswordChangeSuccessMessage() {
+    return '새 비밀번호가 저장됐어요. 이제 이 비밀번호로 로그인할 수 있습니다.';
+  }
+
   function getMemberPasswordResetErrorMessage(error) {
     return getMappedErrorMessage(error, {
       'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
@@ -106,6 +135,14 @@
       'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
       'functions/failed-precondition': '비활성화된 계정입니다. 선생님께 문의하세요.'
     }, '비밀번호 초기화 중 문제가 생겼어요.');
+  }
+
+  function getMemberPasswordResetConfirmMessage(temporaryPassword) {
+    return `비밀번호를 임시 비밀번호(${temporaryPassword})로 바꿀까요? 다음 로그인 뒤 새 비밀번호를 다시 만들어야 합니다.`;
+  }
+
+  function getMemberPasswordResetSuccessMessage(temporaryPassword) {
+    return `임시 비밀번호는 ${temporaryPassword}입니다. 이 비밀번호로 로그인한 뒤 새 비밀번호를 저장해 주세요.`;
   }
 
   function getMemberLinkSubmitErrorMessage(error) {
@@ -127,6 +164,32 @@
       'functions/permission-denied': '비밀번호가 맞지 않아요.',
       'functions/resource-exhausted': '시도 횟수가 초과됐어요. 잠시 후 다시 시도하거나 선생님께 문의하세요.'
     }, '회원 연결 중 문제가 생겼어요.');
+  }
+
+  function getMemberLinkSubmitPendingMessage(values = {}) {
+    return values.action === 'setup'
+      ? '신규가입 정보를 확인하고 계정을 만들고 있습니다...'
+      : '회원 정보와 비밀번호를 확인하고 있습니다...';
+  }
+
+  function getMemberLinkSubmitSuccessMessage(profile = {}) {
+    const actionMessage = profile._authLinkAction === 'password-setup'
+      ? '비밀번호가 등록되고 로그인됐어요.'
+      : profile._authLinkAction === 'member-signup'
+        ? '신규가입이 완료되고 로그인됐어요.'
+        : '비밀번호 로그인이 완료됐어요.';
+    return `${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
+  }
+
+  function shouldWaitForRequiredPasswordChange(options = {}) {
+    return !!options.pendingPasswordChange?.memberUserId
+      && options.pendingPasswordChange.memberUserId === options.currentMemberUserId;
+  }
+
+  function getMemberLinkDestination(profile = {}, currentMemberProfile = null) {
+    return profile.role === 'admin' || currentMemberProfile?.role === 'admin'
+      ? 'admin'
+      : 'town';
   }
 
   function getProfileNicknameErrorMessage(error) {
@@ -182,12 +245,22 @@
   window.DJ48AccountForm = {
     renderMemberLinkPanel,
     getMemberLinkFormValues,
+    getMemberPasswordChangeValues,
+    setButtonBusy,
+    restoreButtonState,
     setMemberLinkStatus,
     appendMemberLinkError,
     getMemberUnlinkErrorMessage,
     getMemberPasswordChangeErrorMessage,
+    getMemberPasswordChangeSuccessMessage,
     getMemberPasswordResetErrorMessage,
+    getMemberPasswordResetConfirmMessage,
+    getMemberPasswordResetSuccessMessage,
     getMemberLinkSubmitErrorMessage,
+    getMemberLinkSubmitPendingMessage,
+    getMemberLinkSubmitSuccessMessage,
+    shouldWaitForRequiredPasswordChange,
+    getMemberLinkDestination,
     getProfileNicknameErrorMessage,
     getProfilePasswordErrorMessage,
     setMemberLinkFormMode

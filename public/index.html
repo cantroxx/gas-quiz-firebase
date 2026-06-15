@@ -4646,6 +4646,10 @@
       });
     }
 
+    function getMemberPasswordChangeValues() {
+      return window.DJ48AccountForm.getMemberPasswordChangeValues();
+    }
+
     function setMemberLinkStatus(message, isError = false) {
       return window.DJ48AccountForm.setMemberLinkStatus(message, isError);
     }
@@ -4946,27 +4950,22 @@
 
     async function handleMemberPasswordChangeClick() {
       const button = document.getElementById('member-password-change-button');
-      const newPassword = document.getElementById('member-password-change-new')?.value || '';
-      const passwordConfirm = document.getElementById('member-password-change-confirm')?.value || '';
-      if(button) button.disabled = true;
-      const originalButtonText = button?.textContent || '새 비밀번호 저장';
-      if(button) button.textContent = '저장 중...';
+      const { newPassword, passwordConfirm } = getMemberPasswordChangeValues();
+      const buttonState = window.DJ48AccountForm.setButtonBusy(button, '저장 중...');
 
       try {
         const result = await changeCurrentMemberPassword(newPassword, passwordConfirm);
         renderMemberLinkPanel();
-        setMemberLinkStatus('새 비밀번호가 저장됐어요. 이제 이 비밀번호로 로그인할 수 있습니다.');
-        if(result?.profile?.role === 'admin' || currentMemberProfile?.role === 'admin') showAdminView();
+        setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordChangeSuccessMessage());
+        const destination = window.DJ48AccountForm.getMemberLinkDestination(result?.profile || {}, currentMemberProfile);
+        if(destination === 'admin') showAdminView();
         else showTownView();
       } catch(error) {
         console.warn('Member password change failed.', error);
         appendMemberLinkError(window.DJ48AccountForm.getMemberPasswordChangeErrorMessage(error));
       } finally {
         const nextButton = document.getElementById('member-password-change-button');
-        if(nextButton) {
-          nextButton.disabled = false;
-          nextButton.textContent = originalButtonText;
-        }
+        window.DJ48AccountForm.restoreButtonState(nextButton, buttonState);
       }
     }
 
@@ -4978,15 +4977,11 @@
         setMemberLinkStatus('학교, 학년, 반, 번호를 먼저 입력해 주세요.', true);
         return;
       }
-      const confirmed = window.confirm(`비밀번호를 임시 비밀번호(${temporaryPassword})로 바꿀까요? 다음 로그인 뒤 새 비밀번호를 다시 만들어야 합니다.`);
+      const confirmed = window.confirm(window.DJ48AccountForm.getMemberPasswordResetConfirmMessage(temporaryPassword));
       if(!confirmed) return;
 
       const button = document.getElementById('member-password-reset-button');
-      const originalText = button?.textContent || '비밀번호를 잊었어요';
-      if(button) {
-        button.disabled = true;
-        button.textContent = '초기화 중...';
-      }
+      const buttonState = window.DJ48AccountForm.setButtonBusy(button, '초기화 중...');
       memberLinkInProgress = true;
       setMemberLinkStatus('비밀번호를 임시 비밀번호로 바꾸고 있습니다...');
 
@@ -5000,16 +4995,13 @@
           getFirebaseFunctions,
           initializeAuthUser
         });
-        setMemberLinkStatus(`임시 비밀번호는 ${temporaryPassword}입니다. 이 비밀번호로 로그인한 뒤 새 비밀번호를 저장해 주세요.`);
+        setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordResetSuccessMessage(temporaryPassword));
       } catch(error) {
         console.warn('Member password reset failed.', error);
         setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordResetErrorMessage(error), true);
       } finally {
         memberLinkInProgress = false;
-        if(button) {
-          button.disabled = false;
-          button.textContent = originalText;
-        }
+        window.DJ48AccountForm.restoreButtonState(button, buttonState);
       }
     }
 
@@ -5020,24 +5012,20 @@
       memberLinkInProgress = true;
       memberLinkSubmitAction = event.submitter?.value || memberLinkSubmitAction || 'login';
       const values = getMemberLinkFormValues();
-      setMemberLinkStatus(values.action === 'setup'
-        ? '신규가입 정보를 확인하고 계정을 만들고 있습니다...'
-        : '회원 정보와 비밀번호를 확인하고 있습니다...');
+      setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitPendingMessage(values));
 
       try {
         const profile = await linkImportedMemberToCurrentAuthUser(values);
         renderMemberLinkPanel();
-        const actionMessage = profile._authLinkAction === 'password-setup'
-          ? '비밀번호가 등록되고 로그인됐어요.'
-          : profile._authLinkAction === 'member-signup'
-            ? '신규가입이 완료되고 로그인됐어요.'
-          : '비밀번호 로그인이 완료됐어요.';
-        setMemberLinkStatus(`${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`);
-        if(pendingPasswordChange?.memberUserId === currentMemberUserId) {
+        setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitSuccessMessage(profile));
+        if(window.DJ48AccountForm.shouldWaitForRequiredPasswordChange({
+          pendingPasswordChange,
+          currentMemberUserId
+        })) {
           renderMemberLinkPanel();
           return;
         }
-        if(profile.role === 'admin') showAdminView();
+        if(window.DJ48AccountForm.getMemberLinkDestination(profile) === 'admin') showAdminView();
         else showTownView();
       } catch(error) {
         console.warn('Member auth link failed.', error);
