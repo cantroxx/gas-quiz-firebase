@@ -176,6 +176,80 @@
     return result;
   }
 
+  function buildMemberLinkPayload(values = {}, deps = {}) {
+    const password = String(values.password || '');
+    if(!password) throw new Error('password-required');
+
+    const basePayload = {
+      school: values.school || deps.defaultMemberSchool || '동자',
+      grade: values.grade,
+      classNumber: values.classNumber,
+      studentNumber: values.studentNumber
+    };
+
+    if(values.action === 'setup') {
+      const nickname = String(values.nickname || '').trim();
+      const passwordConfirm = String(values.passwordConfirm || '');
+      if(!nickname) throw new Error('nickname-required');
+      if(password !== passwordConfirm) throw new Error('password-confirm-mismatch');
+
+      return {
+        callableName: 'registerNewMember',
+        payload: {
+          ...basePayload,
+          nickname,
+          password
+        },
+        action: 'member-signup',
+        errorCode: 'member-register-failed'
+      };
+    }
+
+    return {
+      callableName: 'loginMemberWithPassword',
+      payload: {
+        ...basePayload,
+        password
+      },
+      action: 'password-login',
+      errorCode: 'member-login-failed'
+    };
+  }
+
+  async function linkMemberWithPassword(values = {}, deps = {}) {
+    const linkPayload = buildMemberLinkPayload(values, deps);
+    const response = await callAccountCallable(
+      linkPayload.callableName,
+      linkPayload.payload,
+      deps,
+      linkPayload.errorCode
+    );
+    return {
+      ...(response || {}),
+      action: linkPayload.action
+    };
+  }
+
+  async function loadLinkedMemberProfile(options = {}) {
+    const { db, authUid, result } = options;
+    if(!db) throw new Error('firestore-unavailable');
+    if(!authUid) throw new Error('auth-required');
+    if(!result?.success || !result.memberUserId) throw new Error('member-link-function-failed');
+
+    const memberSnapshot = await db.collection('users').doc(result.memberUserId).get();
+    const linkedProfile = memberSnapshot.exists
+      ? normalizeMemberProfileFromFirestore(memberSnapshot)
+      : {
+        ...(result.profile || {}),
+        userId: result.memberUserId,
+        legacyMemberId: result.memberUserId,
+        authUid
+      };
+    linkedProfile.authUid = authUid;
+    linkedProfile._authLinkAction = result.action || 'password-login';
+    return linkedProfile;
+  }
+
   function registerNewMember(payload = {}, deps = {}) {
     return callAccountCallable('registerNewMember', payload, deps, 'member-register-failed');
   }
@@ -210,6 +284,9 @@
     restoreLinkedMemberProfile,
     signInAnonymouslyIfNeeded,
     callAccountCallable,
+    buildMemberLinkPayload,
+    linkMemberWithPassword,
+    loadLinkedMemberProfile,
     registerNewMember,
     loginMemberWithPassword,
     resetMemberPasswordToTemporary,

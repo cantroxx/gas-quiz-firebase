@@ -5260,68 +5260,22 @@
       const authUid = authUser?.uid || getFirebaseAuthUser()?.uid || '';
       if(!authUid) throw new Error('auth-required');
 
-      const password = String(values.password || '');
-      if(!password) throw new Error('password-required');
-
-      const basePayload = {
-        school: values.school || DEFAULT_MEMBER_SCHOOL,
-        grade: values.grade,
-        classNumber: values.classNumber,
-        studentNumber: values.studentNumber
-      };
-
-      let result = null;
-      if(values.action === 'setup') {
-        const nickname = String(values.nickname || '').trim();
-        const passwordConfirm = String(values.passwordConfirm || '');
-        if(!nickname) throw new Error('nickname-required');
-        if(password !== passwordConfirm) throw new Error('password-confirm-mismatch');
-
-        const registerResponse = await window.DJ48AccountData.registerNewMember({
-          ...basePayload,
-          nickname,
-          password
-        }, {
-          getFirebaseFunctions
-        });
-        result = {
-          ...(registerResponse || {}),
-          action: 'member-signup'
-        };
-      } else {
-        const loginResponse = await window.DJ48AccountData.loginMemberWithPassword({
-          ...basePayload,
-          password
-        }, {
-          getFirebaseFunctions
-        });
-        result = {
-          ...(loginResponse || {}),
-          action: 'password-login'
-        };
-      }
-
-      if(!result.success || !result.memberUserId) throw new Error('member-link-function-failed');
-
-      const memberRef = db.collection('users').doc(result.memberUserId);
-      const memberSnapshot = await memberRef.get();
-      let linkedProfile = memberSnapshot.exists
-        ? normalizeMemberProfileFromFirestore(memberSnapshot)
-        : {
-          ...(result.profile || {}),
-          userId: result.memberUserId,
-          legacyMemberId: result.memberUserId,
-          authUid
-        };
-      linkedProfile.authUid = authUid;
-      linkedProfile._authLinkAction = result.action || 'password-login';
+      const result = await window.DJ48AccountData.linkMemberWithPassword(values, {
+        defaultMemberSchool: DEFAULT_MEMBER_SCHOOL,
+        getFirebaseFunctions
+      });
+      const linkedProfile = await window.DJ48AccountData.loadLinkedMemberProfile({
+        db,
+        authUid,
+        result
+      });
 
       currentMemberUserId = result.memberUserId;
       currentMemberProfile = linkedProfile;
       pendingPasswordChange = result.forcePasswordChange === true
         ? {
           memberUserId: result.memberUserId,
-          currentPassword: password
+          currentPassword: String(values.password || '')
         }
         : null;
       maybeSaveLinkedMemberHint(result.memberUserId);
