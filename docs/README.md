@@ -28,6 +28,5 @@ This directory groups project documents by ownership so parallel work can stay s
 ## Root Files Kept Intentionally
 
 - `AGENTS.md`: Codex working rules.
-- `CLAUDE.md`: legacy Claude guidance.
 - `Code.js`, `index.html`, `appsscript.json`: legacy Apps Script reference files.
 - Firebase config files and `public/`, `functions/`: active runtime sources/configuration.

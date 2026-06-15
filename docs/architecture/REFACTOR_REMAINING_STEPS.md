@@ -1003,11 +1003,3 @@ These require browser smoke testing before deployment.
 - Super admin-only UI visibility still behaves as before.
 
 These require browser/admin smoke testing before deployment.
-
-## WIP Files
-
-Intermediate documents and unrelated scripts are kept under `work-in-progress/` until they are either promoted into the project or removed:
-
-- `work-in-progress/PROJECT_STATUS_DJ48_FIREBASE.md`
-- `work-in-progress/REFACTOR_PLAN.md`
-- `work-in-progress/scripts/refine-samgukji-hints.js`
