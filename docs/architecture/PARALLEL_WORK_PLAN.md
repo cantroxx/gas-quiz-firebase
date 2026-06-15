@@ -70,6 +70,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved linked-member hint storage and Firestore restore lookup helpers into `public/js/features/account-data.js`.
    - Moved anonymous sign-in helper into `public/js/features/account-data.js` while keeping auth lifecycle orchestration in `public/index.html`.
    - Moved member link payload validation, register/login callable selection, and linked profile loading helpers into `public/js/features/account-data.js`.
+   - Moved password-change and nickname-update validation/callable helpers into `public/js/features/account-data.js`.
 5. Shop/room write-flow refactor.
    - Split purchase, inventory, room settings, and economy refresh.
 6. Profile/account detail refactor.

@@ -5289,16 +5289,11 @@
     }
 
     async function changeCurrentMemberPassword(newPassword, passwordConfirm) {
-      if(!pendingPasswordChange?.memberUserId || pendingPasswordChange.memberUserId !== currentMemberUserId) {
-        throw new Error('password-change-not-required');
-      }
-      if(!newPassword) throw new Error('password-required');
-      if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
-
-      const result = await window.DJ48AccountData.changeMemberPassword({
-        memberUserId: pendingPasswordChange.memberUserId,
-        currentPassword: pendingPasswordChange.currentPassword,
-        newPassword
+      const result = await window.DJ48AccountData.changePendingMemberPassword({
+        pendingPasswordChange,
+        currentMemberUserId,
+        newPassword,
+        passwordConfirm
       }, {
         getFirebaseFunctions
       });
@@ -5307,40 +5302,26 @@
     }
 
     async function changeCurrentMemberPasswordWithCurrentPassword(currentPassword, newPassword, passwordConfirm) {
-      if(!currentMemberUserId) throw new Error('member-required');
-      if(!currentPassword) throw new Error('current-password-required');
-      if(!newPassword) throw new Error('password-required');
-      if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
-
-      const result = await window.DJ48AccountData.changeMemberPassword({
+      const result = await window.DJ48AccountData.changeMemberPasswordWithCurrentPassword({
         memberUserId: currentMemberUserId,
         currentPassword,
-        newPassword
+        newPassword,
+        passwordConfirm
       }, {
         getFirebaseFunctions
       });
-      currentMemberProfile = {
-        ...(currentMemberProfile || {}),
-        ...(result.profile || {})
-      };
+      currentMemberProfile = window.DJ48AccountData.mergeMemberProfile(currentMemberProfile, result);
       return result;
     }
 
     async function updateCurrentMemberNickname(nickname) {
-      if(!currentMemberUserId) throw new Error('member-required');
-      const normalizedNickname = String(nickname || '').trim();
-      if(!normalizedNickname) throw new Error('nickname-required');
-
-      const result = await window.DJ48AccountData.updateMemberNickname({
+      const result = await window.DJ48AccountData.updateMemberNicknameForMember({
         memberUserId: currentMemberUserId,
-        nickname: normalizedNickname
+        nickname
       }, {
         getFirebaseFunctions
       });
-      currentMemberProfile = {
-        ...(currentMemberProfile || {}),
-        ...(result.profile || {})
-      };
+      currentMemberProfile = window.DJ48AccountData.mergeMemberProfile(currentMemberProfile, result);
       return result;
     }
 

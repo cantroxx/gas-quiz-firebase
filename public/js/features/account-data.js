@@ -250,6 +250,67 @@
     return linkedProfile;
   }
 
+  async function changePendingMemberPassword(options = {}, deps = {}) {
+    const {
+      pendingPasswordChange,
+      currentMemberUserId,
+      newPassword,
+      passwordConfirm
+    } = options;
+
+    if(!pendingPasswordChange?.memberUserId || pendingPasswordChange.memberUserId !== currentMemberUserId) {
+      throw new Error('password-change-not-required');
+    }
+    if(!newPassword) throw new Error('password-required');
+    if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
+
+    return changeMemberPassword({
+      memberUserId: pendingPasswordChange.memberUserId,
+      currentPassword: pendingPasswordChange.currentPassword,
+      newPassword
+    }, deps);
+  }
+
+  async function changeMemberPasswordWithCurrentPassword(options = {}, deps = {}) {
+    const {
+      memberUserId,
+      currentPassword,
+      newPassword,
+      passwordConfirm
+    } = options;
+
+    if(!memberUserId) throw new Error('member-required');
+    if(!currentPassword) throw new Error('current-password-required');
+    if(!newPassword) throw new Error('password-required');
+    if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
+
+    return changeMemberPassword({
+      memberUserId,
+      currentPassword,
+      newPassword
+    }, deps);
+  }
+
+  async function updateMemberNicknameForMember(options = {}, deps = {}) {
+    const memberUserId = options.memberUserId || '';
+    const normalizedNickname = String(options.nickname || '').trim();
+
+    if(!memberUserId) throw new Error('member-required');
+    if(!normalizedNickname) throw new Error('nickname-required');
+
+    return updateMemberNickname({
+      memberUserId,
+      nickname: normalizedNickname
+    }, deps);
+  }
+
+  function mergeMemberProfile(currentProfile, result = {}) {
+    return {
+      ...(currentProfile || {}),
+      ...(result.profile || {})
+    };
+  }
+
   function registerNewMember(payload = {}, deps = {}) {
     return callAccountCallable('registerNewMember', payload, deps, 'member-register-failed');
   }
@@ -287,6 +348,10 @@
     buildMemberLinkPayload,
     linkMemberWithPassword,
     loadLinkedMemberProfile,
+    changePendingMemberPassword,
+    changeMemberPasswordWithCurrentPassword,
+    updateMemberNicknameForMember,
+    mergeMemberProfile,
     registerNewMember,
     loginMemberWithPassword,
     resetMemberPasswordToTemporary,
