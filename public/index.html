@@ -1379,6 +1379,7 @@
   <script src="/js/features/account-data.js"></script>
   <script src="/js/features/home-data.js"></script>
   <script src="/js/features/home-render.js"></script>
+  <script src="/js/features/event-data.js"></script>
   <script src="/js/features/event-render.js"></script>
   <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
@@ -5484,9 +5485,14 @@
     }
 
     function renderEventLoadingState() {
-      renderQuestCards(QUEST_DATA.map(quest => ({ ...quest, status: '불러오는 중', claimable: false })));
-      renderClassMissionCards(CLASS_MISSION_DATA);
-      renderSeasonEvents(SEASON_EVENT_DATA);
+      const data = window.DJ48EventData.getEventLoadingRenderData({
+        quests: QUEST_DATA,
+        classMissions: CLASS_MISSION_DATA,
+        seasonEvents: SEASON_EVENT_DATA
+      });
+      renderQuestCards(data.quests);
+      renderClassMissionCards(data.classMissions);
+      renderSeasonEvents(data.seasonEvents);
     }
 
     function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
@@ -6856,13 +6862,13 @@
     async function loadEventProgress(forceRefresh = false) {
       if(eventProgressCache && !forceRefresh) return eventProgressCache;
       if(eventProgressLoadPromise && !forceRefresh) return eventProgressLoadPromise;
-      if(!currentMemberUserId) throw new Error('member-required');
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      const callable = functions.httpsCallable('getEventProgress');
-      eventProgressLoadPromise = callable({ memberUserId: currentMemberUserId })
-        .then(response => {
-          eventProgressCache = response?.data || null;
+      eventProgressLoadPromise = window.DJ48EventData.loadEventProgress({
+        memberUserId: currentMemberUserId
+      }, {
+        getFirebaseFunctions
+      })
+        .then(progress => {
+          eventProgressCache = progress || null;
           return eventProgressCache;
         })
         .finally(() => {
@@ -6874,9 +6880,14 @@
     async function renderEventProgressFromFunctions(forceRefresh = false) {
       try {
         const progress = await loadEventProgress(forceRefresh);
-        renderQuestCards(progress?.quests || QUEST_DATA);
-        renderClassMissionCards(progress?.classMissions || CLASS_MISSION_DATA);
-        renderSeasonEvents(progress?.seasonEvents || SEASON_EVENT_DATA);
+        const data = window.DJ48EventData.getEventProgressRenderData(progress, {
+          quests: QUEST_DATA,
+          classMissions: CLASS_MISSION_DATA,
+          seasonEvents: SEASON_EVENT_DATA
+        });
+        renderQuestCards(data.quests);
+        renderClassMissionCards(data.classMissions);
+        renderSeasonEvents(data.seasonEvents);
       } catch(error) {
         console.warn('Firestore event progress load failed. Using static event fallback.', error);
         renderQuestCards();
@@ -6887,24 +6898,18 @@
 
     async function claimEventQuestReward(questId) {
       if(!questId) return;
-      if(!currentMemberUserId) {
-        window.alert('로그인 후 이벤트 보상을 받을 수 있어요.');
-        return;
-      }
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        window.alert('이벤트 보상 기능을 불러오지 못했어요.');
-        return;
-      }
       const button = document.querySelector(`[data-quest-claim-id="${questId}"]`);
       if(button) {
         button.disabled = true;
         button.textContent = '수령 중...';
       }
       try {
-        const callable = functions.httpsCallable('claimEventQuestReward');
-        const response = await callable({ memberUserId: currentMemberUserId, questId });
-        const result = response?.data || {};
+        const result = await window.DJ48EventData.claimEventQuestReward({
+          memberUserId: currentMemberUserId,
+          questId
+        }, {
+          getFirebaseFunctions
+        });
         firestoreUserEconomy = null;
         userEconomyLoadPromise = null;
         eventProgressCache = null;
@@ -6917,7 +6922,7 @@
         await renderEventProgressFromFunctions(true);
       } catch(error) {
         console.warn('Event quest reward claim failed.', error);
-        window.alert('이벤트 보상 수령 중 문제가 생겼어요. 퀘스트 완료 상태를 다시 확인해 주세요.');
+        window.alert(window.DJ48EventData.getEventRewardClaimErrorMessage(error));
         await renderEventProgressFromFunctions(true);
       }
     }
