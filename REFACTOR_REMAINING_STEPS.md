@@ -641,6 +641,103 @@ Next:
 - Treat any further quiz play extraction as Step 13.
 - Do not move `saveRankingRecordOnQuizComplete`, `savePracticeProgressAfterCorrectAnswer`, reward callables, or timer/DOM handlers without a separate high-risk plan and fresh smoke-test checkpoint.
 
+### Step 13: High-Risk Quiz Flow Extraction Planning
+
+Step 13A implemented:
+
+- Reviewed the remaining high-risk quiz play functions that still belong to `public/index.html`.
+- No code movement was performed in this step.
+- High-risk groups:
+  - ranking save: `saveRankingRecordOnQuizComplete`
+  - practice save: `savePracticeProgressAfterCorrectAnswer`
+  - callable wrappers: `grantPracticeCorrectReward`, `syncMemberTitlesAfterPracticeCompletion`
+  - ranking timers: `startRankingSessionTimerIfNeeded`, `startRankingQuestionTimerIfNeeded`, `handleRankingSessionTimeout`, `handleRankingTimeout`
+  - answer/result flow: `submitAnswer`, `showQuizResult`, `showQuizComplete`
+- Reason for high risk:
+  - these functions combine Firestore reads/writes, server timestamps, callable execution, UI state, timer cleanup, reward/title side effects, and profile/ranking summaries.
+
+Step 13B implemented:
+
+- Documented extraction boundaries before any save-flow movement.
+
+Ranking save boundary:
+
+- Candidate function later: `saveRankingRecordOnQuizComplete`.
+- Inputs currently read through `getQuizPlayDeps`:
+  - current mode, quiz id, score, member profile
+  - member user id and Firestore db/field value
+  - ranking target, elapsed seconds, max elapsed guard, elapsed formatter
+  - ranking record id builder and summary update builders
+- Outputs:
+  - `null` for non-ranking mode
+  - `{ skipped: true, reason: 'zero-score' }`
+  - `{ skipped: true, reason: 'elapsed-too-long', elapsedSeconds, elapsedText }`
+  - `{ recordId, score, categoryKey, elapsedText }`
+- External writes:
+  - `rankingRecords/{recordId}`
+  - `userRankingSummary/{memberUserId}`
+  - `quizKingSummary/{memberUserId}`
+- Move condition:
+  - only after ranking completion, profile ranking reflection, and elapsed-time skip flow pass smoke testing.
+
+Practice save boundary:
+
+- Candidate function later: `savePracticeProgressAfterCorrectAnswer`.
+- Inputs currently read through `getQuizPlayDeps`:
+  - current mode, quiz id, current question set, Firebase quiz meta
+  - member user id, auth user, Firestore db/field value
+  - practice question id/candidates, practice target, reward feature flag
+  - practice progress id, summary update, badge update, reward/title sync wrappers
+- Outputs:
+  - `null` for non-practice mode
+  - `{ recordId, questionId }` fallback
+  - detailed save result with duplicate/readFallback/completed/reward/badge data
+- External reads/writes:
+  - read `practiceRecords/{recordId}`
+  - read `userPracticeSummary/{memberUserId}`
+  - write `practiceRecords/{recordId}`
+  - merge `userPracticeSummary/{memberUserId}`
+  - merge `userBadges/{memberUserId}/badges/{badgeId}`
+- Side effects:
+  - optional reward callable through `grantPracticeCorrectReward`
+  - optional title sync callable through `syncMemberTitlesAfterPracticeCompletion`
+- Move condition:
+  - only after practice progress, duplicate detection, coin reward, badge update, and title sync pass smoke testing.
+
+Callable wrapper boundary:
+
+- Candidate functions later:
+  - `grantPracticeCorrectReward`
+  - `syncMemberTitlesAfterPracticeCompletion`
+- Inputs:
+  - Firebase Functions instance
+  - member user id
+  - context payloads
+- Side effects:
+  - callable invocation
+  - economy/title cache invalidation
+  - debug logging
+- Move condition:
+  - only after callable error behavior and cache invalidation behavior are preserved in tests or smoke checks.
+
+Timer/DOM flow boundary:
+
+- Candidate functions later:
+  - ranking timer handlers
+  - `submitAnswer`
+  - `showQuizResult`
+  - `showQuizComplete`
+- Current reason to keep in `public/index.html`:
+  - these functions directly coordinate DOM state, answer disabling, timer intervals, session cleanup, progress save attachment, and completion rendering.
+- Move condition:
+  - only after save-flow extraction is stable or after a dedicated UI controller module is introduced.
+
+Step 13 recommendation:
+
+- Do not move high-risk functions in the same phase as this planning work.
+- Next safe action is a full smoke-test checkpoint.
+- If continuing extraction afterward, start with callable wrappers first because their input/output surface is smaller than the save functions.
+
 ## Step 7 Validation Checklist
 
 - Shop list.
