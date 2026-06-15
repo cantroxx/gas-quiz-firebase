@@ -5532,14 +5532,10 @@
     }
 
     async function loadShopItemsFromFirestore() {
-      const db = getFirestoreDb();
-      if(!db) throw new Error('Firestore SDK is not available.');
-
-      const snapshot = await db.collection('shopItems').get();
-      return snapshot.docs
-        .map(normalizeShopItemFromFirestore)
-        .filter(item => item.enabled && !isRoomFurnitureShopItem(item))
-        .sort((a, b) => a.sortOrder - b.sortOrder);
+      return window.DJ48ShopData.loadShopItemsFromFirestore(getFirestoreDb(), {
+        shopCategoryLabels: SHOP_CATEGORY_LABELS,
+        getShopFallbackIcon
+      });
     }
 
     async function getShopItemsForRender() {
@@ -5576,15 +5572,7 @@
     }
 
     async function loadAssetCatalogFromFirestore() {
-      const db = getFirestoreDb();
-      if(!db) throw new Error('Firestore SDK is not available.');
-
-      const snapshot = await db.collection('assetCatalog').get();
-      return snapshot.docs.reduce((map, doc) => {
-        const asset = normalizeAssetCatalogFromFirestore(doc);
-        map[asset.assetId] = asset;
-        return map;
-      }, {});
+      return window.DJ48ShopData.loadAssetCatalogFromFirestore(getFirestoreDb());
     }
 
     async function getAssetCatalogMap() {
@@ -5706,32 +5694,27 @@
 
     async function loadUserEconomyFromFirestore() {
       const db = getFirestoreDb();
-      if(!db) throw new Error('Firestore SDK is not available.');
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
 
-      const snapshot = await db.collection('userEconomy').doc(userId).get();
-      return normalizeUserEconomyFromFirestore(snapshot);
+      return window.DJ48ShopData.loadUserEconomyFromFirestore({
+        db,
+        userId
+      }, {
+        fallbackCoin: USER_REWARD_DATA.coin
+      });
     }
 
     async function ensureUserEconomyInitialized(userId) {
       const ownerId = userId || getCurrentDataOwnerId();
-      if(!ownerId || ownerId === TEST_SHOP_USER_ID) return null;
-
-      const db = getFirestoreDb();
-      if(!db) throw new Error('Firestore SDK is not available.');
-
-      const ref = db.collection('userEconomy').doc(ownerId);
-      const snapshot = await ref.get();
-      if(snapshot.exists) return normalizeUserEconomyFromFirestore(snapshot);
-
-      const initialEconomy = getInitialUserEconomy(ownerId);
-      return {
-        userId: ownerId,
-        djCoin: initialEconomy.djCoin,
-        totalEarned: initialEconomy.totalEarned,
-        totalSpent: initialEconomy.totalSpent
-      };
+      return window.DJ48ShopData.ensureUserEconomyInitialized({
+        db: getFirestoreDb(),
+        ownerId,
+        testShopUserId: TEST_SHOP_USER_ID
+      }, {
+        fallbackCoin: USER_REWARD_DATA.coin,
+        getFirestoreFieldValue
+      });
     }
 
     async function getUserEconomyForRender() {
@@ -5763,13 +5746,15 @@
 
     async function loadInventoryItemIdsFromFirestore() {
       const db = getFirestoreDb();
-      if(!db) throw new Error('Firestore SDK is not available.');
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
-      if(!currentMemberUserId || userId === TEST_SHOP_USER_ID) return new Set();
 
-      const snapshot = await db.collection('userInventory').doc(userId).collection('items').get();
-      return new Set(snapshot.docs.map(doc => doc.id));
+      return window.DJ48ShopData.loadInventoryItemIdsFromFirestore({
+        db,
+        userId,
+        memberUserId: currentMemberUserId,
+        testShopUserId: TEST_SHOP_USER_ID
+      });
     }
 
     async function getInventoryItemIdsForRender() {
@@ -5790,13 +5775,15 @@
 
     async function loadRoomSettingsFromFirestore() {
       const db = getFirestoreDb();
-      if(!db) throw new Error('Firestore SDK is not available.');
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
-      if(!currentMemberUserId || userId === TEST_SHOP_USER_ID) return getDefaultRoomSettings();
 
-      const snapshot = await db.collection('userRoomSettings').doc(userId).get();
-      return normalizeRoomSettingsFromFirestore(snapshot);
+      return window.DJ48ShopData.loadRoomSettingsFromFirestore({
+        db,
+        userId,
+        memberUserId: currentMemberUserId,
+        testShopUserId: TEST_SHOP_USER_ID
+      });
     }
 
     async function getRoomSettingsForRender() {

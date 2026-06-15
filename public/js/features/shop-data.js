@@ -126,6 +126,70 @@
     return false;
   }
 
+  async function loadShopItemsFromFirestore(db, deps = {}) {
+    if(!db) throw new Error('Firestore SDK is not available.');
+
+    const snapshot = await db.collection('shopItems').get();
+    return snapshot.docs
+      .map(doc => normalizeShopItemFromFirestore(doc, deps))
+      .filter(item => item.enabled && !isRoomFurnitureShopItem(item))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  async function loadAssetCatalogFromFirestore(db) {
+    if(!db) throw new Error('Firestore SDK is not available.');
+
+    const snapshot = await db.collection('assetCatalog').get();
+    return snapshot.docs.reduce((map, doc) => {
+      const asset = normalizeAssetCatalogFromFirestore(doc);
+      map[asset.assetId] = asset;
+      return map;
+    }, {});
+  }
+
+  async function loadUserEconomyFromFirestore(options = {}, deps = {}) {
+    const { db, userId } = options;
+    if(!db) throw new Error('Firestore SDK is not available.');
+
+    const snapshot = await db.collection('userEconomy').doc(userId).get();
+    return normalizeUserEconomyFromFirestore(snapshot, deps);
+  }
+
+  async function ensureUserEconomyInitialized(options = {}, deps = {}) {
+    const { db, ownerId, testShopUserId } = options;
+    if(!ownerId || ownerId === testShopUserId) return null;
+    if(!db) throw new Error('Firestore SDK is not available.');
+
+    const snapshot = await db.collection('userEconomy').doc(ownerId).get();
+    if(snapshot.exists) return normalizeUserEconomyFromFirestore(snapshot, deps);
+
+    const initialEconomy = getInitialUserEconomy(ownerId, deps);
+    return {
+      userId: ownerId,
+      djCoin: initialEconomy.djCoin,
+      totalEarned: initialEconomy.totalEarned,
+      totalSpent: initialEconomy.totalSpent
+    };
+  }
+
+  async function loadInventoryItemIdsFromFirestore(options = {}) {
+    const { db, userId, memberUserId, testShopUserId } = options;
+    if(!db) throw new Error('Firestore SDK is not available.');
+    if(!memberUserId || userId === testShopUserId) return new Set();
+
+    const snapshot = await db.collection('userInventory').doc(userId).collection('items').get();
+    return new Set(snapshot.docs.map(doc => doc.id));
+  }
+
+  async function loadRoomSettingsFromFirestore(options = {}, deps = {}) {
+    const { db, userId, memberUserId, testShopUserId } = options;
+    if(!db) throw new Error('Firestore SDK is not available.');
+    if(!memberUserId || userId === testShopUserId) return getDefaultRoomSettings(userId || '');
+
+    const snapshot = await db.collection('userRoomSettings').doc(userId).get();
+    return normalizeRoomSettingsFromFirestore(snapshot, { userId });
+  }
+
   async function callShopCallable(callableName, payload = {}, deps = {}, errorCode = '') {
     const functions = deps.getFirebaseFunctions?.();
     if(!functions) throw new Error('functions-unavailable');
@@ -252,6 +316,12 @@
     normalizeRoomSettingsFromFirestore,
     getRoomItemCategory,
     isRoomItemSelected,
+    loadShopItemsFromFirestore,
+    loadAssetCatalogFromFirestore,
+    loadUserEconomyFromFirestore,
+    ensureUserEconomyInitialized,
+    loadInventoryItemIdsFromFirestore,
+    loadRoomSettingsFromFirestore,
     callShopCallable,
     purchaseShopItem,
     getShopPurchaseErrorMessage,
