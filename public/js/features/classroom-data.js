@@ -256,6 +256,92 @@
     });
   }
 
+  async function callClassroomEconomyAction(functionName, payload = {}, options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getClassroomFunctions(deps, 'classroom-economy-functions-unavailable');
+    const callable = functions.httpsCallable(functionName);
+    const response = await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      ...payload
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomRoutine(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getClassroomFunctions(deps, 'classroom-routine-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomRoutine');
+    await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      routine: options.values || {}
+    });
+  }
+
+  function findClassroomQuest(settings = {}, questId = '') {
+    return (settings.quests || []).find(item => item.id === questId) || null;
+  }
+
+  async function completeClassroomAutoQuest(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getClassroomFunctions(deps, 'classroom-auto-quest-functions-unavailable');
+    const callable = functions.httpsCallable('completeClassroomAutoQuest');
+    const response = await callable({
+      memberUserId: options.memberUserId,
+      classId: options.classId,
+      questId: options.questId
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomManualQuestProgress(options = {}, deps = {}) {
+    const {
+      db,
+      settings = {},
+      quest = {},
+      questId = '',
+      memberUserId = ''
+    } = options;
+    if(!memberUserId) throw new Error('classroom-member-unavailable');
+    if(!db) throw new Error('classroom-quest-progress-db-unavailable');
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    const recordId = buildClassroomQuestProgressId(memberUserId, questId);
+    await db.collection('classrooms')
+      .doc(settings.classId)
+      .collection('questProgress')
+      .doc(recordId)
+      .set({
+        recordId,
+        classId: settings.classId,
+        questId,
+        questType: quest.type || '수락형 · 체크형',
+        memberUserId,
+        userId: memberUserId,
+        checked: true,
+        status: 'student_checked',
+        rewardCoin: Number(quest.rewardCoin) || 0,
+        rewardCurrency: 'berry',
+        rewardStatus: 'pending_teacher_review',
+        source: 'firebase-app',
+        version: 1,
+        createdAt: fieldValue.serverTimestamp(),
+        updatedAt: fieldValue.serverTimestamp()
+      }, { merge: true });
+    return { recordId };
+  }
+
+  async function reviewClassroomQuestProgress(options = {}, deps = {}) {
+    const functions = getClassroomFunctions(deps, 'classroom-review-functions-unavailable');
+    const callable = functions.httpsCallable('reviewClassroomQuestProgress');
+    const response = await callable({
+      classId: options.classId,
+      recordId: options.recordId,
+      nextStatus: options.nextStatus
+    });
+    return response?.data || {};
+  }
+
   window.DJ48ClassroomData = {
     getClassroomRewardCurrencyLabel,
     slugifyClassroomGemId,
@@ -274,6 +360,12 @@
     saveClassroomQuest,
     awardClassroomBadgeCampaign,
     saveClassroomJob,
-    saveClassroomShopItem
+    saveClassroomShopItem,
+    callClassroomEconomyAction,
+    saveClassroomRoutine,
+    findClassroomQuest,
+    completeClassroomAutoQuest,
+    saveClassroomManualQuestProgress,
+    reviewClassroomQuestProgress
   };
 })();
