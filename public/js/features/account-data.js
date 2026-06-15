@@ -331,6 +331,62 @@
     return 'jpg';
   }
 
+  function validateProfileImageUploadFile(file, deps = {}) {
+    if(!file) return { ok: false, skipped: true, message: '' };
+    const allowedTypes = deps.allowedTypes || ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = deps.maxSize || 2 * 1024 * 1024;
+    if(!allowedTypes.includes(file.type)) {
+      return { ok: false, message: 'jpg, png, webp 이미지만 올릴 수 있어요.' };
+    }
+    if(file.size > maxSize) {
+      return { ok: false, message: '이미지는 2MB 이하로 올려 주세요.' };
+    }
+    return { ok: true, message: '' };
+  }
+
+  function buildCandidateProfileImageEditorOptions(option = {}, deps = {}) {
+    const profileImageUrl = normalizeProfileImageInput(option.imageUrl || option.displayUrl || option.imageFileId || '');
+    if(!profileImageUrl) throw new Error('profile-image-url-missing');
+    return {
+      source: 'candidate',
+      candidateId: option.candidateId || '',
+      imageUrl: profileImageUrl,
+      previewUrl: deps.normalizeDisplayImageUrl?.(profileImageUrl) || profileImageUrl,
+      label: option.name || '선택한 이미지'
+    };
+  }
+
+  function buildUploadProfileImageEditorOptions(file, previewUrl) {
+    return {
+      source: 'upload',
+      file,
+      previewUrl,
+      label: file?.name || '업로드 이미지'
+    };
+  }
+
+  function buildProfileImageEditorState(options = {}, currentEdit = {}, deps = {}) {
+    const imageUrl = options.imageUrl || '';
+    return {
+      source: options.source || 'candidate',
+      candidateId: options.candidateId || '',
+      imageUrl,
+      previewUrl: options.previewUrl || deps.normalizeDisplayImageUrl?.(imageUrl) || imageUrl,
+      file: options.file || null,
+      label: options.label || '',
+      ...currentEdit
+    };
+  }
+
+  function applyProfileImageEditorControlValues(editorState = {}, values = {}) {
+    return {
+      ...editorState,
+      profileImageScale: Number(values.profileImageScale) || 1,
+      profileImageOffsetX: Number(values.profileImageOffsetX) || 0,
+      profileImageOffsetY: Number(values.profileImageOffsetY) || 0
+    };
+  }
+
   function buildProfileImageStoragePath(options = {}, deps = {}) {
     const authUid = options.authUid || '';
     const memberUserId = options.memberUserId || '';
@@ -498,6 +554,11 @@
     normalizeRankingMessageInput,
     normalizeProfileImageInput,
     getProfileImageFileExtension,
+    validateProfileImageUploadFile,
+    buildCandidateProfileImageEditorOptions,
+    buildUploadProfileImageEditorOptions,
+    buildProfileImageEditorState,
+    applyProfileImageEditorControlValues,
     buildProfileImageStoragePath,
     buildProfileImageUpdate,
     saveUserProfileUpdate,

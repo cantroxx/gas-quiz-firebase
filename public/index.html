@@ -3066,18 +3066,16 @@
         if(status) status.textContent = '저장할 이미지를 다시 선택해 주세요.';
         return;
       }
-      const profileImageUrl = normalizeProfileImageInput(option.imageUrl || option.displayUrl || option.imageFileId || '');
-      if(!profileImageUrl) {
+      let editorOptions = null;
+      try {
+        editorOptions = window.DJ48AccountData.buildCandidateProfileImageEditorOptions(option, {
+          normalizeDisplayImageUrl
+        });
+      } catch(error) {
         if(status) status.textContent = '선택한 이미지 주소를 확인하지 못했습니다.';
         return;
       }
-      openProfileImageEditor({
-        source: 'candidate',
-        candidateId: option.candidateId || '',
-        imageUrl: profileImageUrl,
-        previewUrl: normalizeDisplayImageUrl(profileImageUrl),
-        label: option.name || '선택한 이미지'
-      });
+      openProfileImageEditor(editorOptions);
     }
 
     function getProfileImageFileExtension(file) {
@@ -3096,24 +3094,14 @@
     async function handleProfileImageUploadFile(file) {
       if(!currentMemberUserId) throw new Error('member-required');
       const status = document.getElementById('profile-image-search-status');
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      if(!file) return;
-      if(!allowedTypes.includes(file.type)) {
-        if(status) status.textContent = 'jpg, png, webp 이미지만 올릴 수 있어요.';
-        return;
-      }
-      if(file.size > 2 * 1024 * 1024) {
-        if(status) status.textContent = '이미지는 2MB 이하로 올려 주세요.';
+      const validation = window.DJ48AccountData.validateProfileImageUploadFile(file);
+      if(!validation.ok) {
+        if(status && validation.message) status.textContent = validation.message;
         return;
       }
       if(status) status.textContent = '이미지 미리보기를 준비하고 있습니다...';
       const previewUrl = await readProfileImageFilePreview(file);
-      openProfileImageEditor({
-        source: 'upload',
-        file,
-        previewUrl,
-        label: file.name || '업로드 이미지'
-      });
+      openProfileImageEditor(window.DJ48AccountData.buildUploadProfileImageEditorOptions(file, previewUrl));
     }
 
     function setProfileImageEditorStatus(message, isError = false) {
@@ -3138,9 +3126,11 @@
       const scale = document.getElementById('profile-image-editor-scale');
       const offsetX = document.getElementById('profile-image-editor-offset-x');
       const offsetY = document.getElementById('profile-image-editor-offset-y');
-      profileImageEditorState.profileImageScale = Number(scale?.value) || 1;
-      profileImageEditorState.profileImageOffsetX = Number(offsetX?.value) || 0;
-      profileImageEditorState.profileImageOffsetY = Number(offsetY?.value) || 0;
+      profileImageEditorState = window.DJ48AccountData.applyProfileImageEditorControlValues(profileImageEditorState, {
+        profileImageScale: scale?.value,
+        profileImageOffsetX: offsetX?.value,
+        profileImageOffsetY: offsetY?.value
+      });
       const image = document.getElementById('profile-image-editor-preview-img');
       if(image) applyProfileImageTransform(image, profileImageEditorState);
     }
@@ -3150,15 +3140,9 @@
       const image = document.getElementById('profile-image-editor-preview-img');
       if(!modal || !image) return;
       const currentEdit = getProfileImageEditModel(currentMemberProfile || {});
-      profileImageEditorState = {
-        source: options.source || 'candidate',
-        candidateId: options.candidateId || '',
-        imageUrl: options.imageUrl || '',
-        previewUrl: options.previewUrl || normalizeDisplayImageUrl(options.imageUrl || ''),
-        file: options.file || null,
-        label: options.label || '',
-        ...currentEdit
-      };
+      profileImageEditorState = window.DJ48AccountData.buildProfileImageEditorState(options, currentEdit, {
+        normalizeDisplayImageUrl
+      });
       setProfileImageEditorControls(profileImageEditorState);
       image.src = profileImageEditorState.previewUrl;
       image.alt = `${profileImageEditorState.label || '프로필 이미지'} 미리보기`;
