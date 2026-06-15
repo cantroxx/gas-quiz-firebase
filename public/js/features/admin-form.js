@@ -1,0 +1,220 @@
+(function () {
+  function toDateTimeLocalInputValue(value) {
+    if(!value) return '';
+    const date = new Date(value);
+    if(Number.isNaN(date.getTime())) return '';
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 16);
+  }
+
+  function getAdminFilterValues() {
+    return {
+      grade: document.getElementById('admin-filter-grade')?.value || '',
+      classNumber: document.getElementById('admin-filter-class')?.value || '',
+      query: document.getElementById('admin-filter-query')?.value || '',
+      memberStatus: document.getElementById('admin-filter-member-status')?.value || '',
+      authStatus: document.getElementById('admin-filter-auth-status')?.value || '',
+      passwordStatus: document.getElementById('admin-filter-password-status')?.value || '',
+      limit: 120
+    };
+  }
+
+  function normalizeAdminWalletCurrency(value) {
+    const text = String(value || '').trim().toLowerCase();
+    if(['coin', 'coins', 'dj', 'djcoin', 'djcoins', 'dj코인', '코인'].includes(text)) return 'djCoin';
+    if(['berry', 'berries', '베리'].includes(text)) return 'berry';
+    return '';
+  }
+
+  function getAdminWalletCurrencyLabel(currency) {
+    return currency === 'berry' ? '베리' : 'DJ코인';
+  }
+
+  function getAdminPermissionFormValues() {
+    return {
+      memberUserId: (document.getElementById('admin-permission-member-id-input')?.value || '').trim(),
+      scopeGrade: String(document.getElementById('admin-permission-grade-input')?.value || '').trim(),
+      scopeClassNumber: String(document.getElementById('admin-permission-class-input')?.value || '').trim()
+    };
+  }
+
+  function hideAdminTemporaryPassword() {
+    const panel = document.getElementById('admin-temp-password-panel');
+    const value = document.getElementById('admin-temp-password-value');
+    if(value) value.textContent = '';
+    if(panel) panel.hidden = true;
+  }
+
+  function showAdminTemporaryPassword(password) {
+    const panel = document.getElementById('admin-temp-password-panel');
+    const value = document.getElementById('admin-temp-password-value');
+    if(!panel || !value || !password) return;
+    value.textContent = password;
+    panel.hidden = false;
+  }
+
+  function setAdminNoticeForm(notice, deps = {}) {
+    const normalizeNoticeBoardData = deps.normalizeNoticeBoardData || (value => value || {});
+    const data = normalizeNoticeBoardData(notice);
+    document.getElementById('admin-notice-title-input').value = data.title;
+    document.getElementById('admin-notice-desc-input').value = data.desc;
+    document.getElementById('admin-notice-announcement-input').value = data.announcement;
+    document.getElementById('admin-notice-quest-input').value = data.quest;
+    document.getElementById('admin-notice-recommended-label-input').value = data.recommendedQuizLabel;
+    document.getElementById('admin-notice-recommended-quiz-input').value = data.recommendedQuizId;
+    document.getElementById('admin-notice-recommended2-label-input').value = data.recommendedQuiz2Label;
+    document.getElementById('admin-notice-recommended2-quiz-input').value = data.recommendedQuiz2Id;
+    document.getElementById('admin-notice-active-input').checked = data.active !== false;
+    document.getElementById('admin-notice-starts-input').value = toDateTimeLocalInputValue(data.startsAtIso);
+    document.getElementById('admin-notice-ends-input').value = toDateTimeLocalInputValue(data.endsAtIso);
+  }
+
+  function getAdminNoticeFormValues(deps = {}) {
+    const normalizeNoticeBoardData = deps.normalizeNoticeBoardData || (value => value || {});
+    const startsValue = document.getElementById('admin-notice-starts-input')?.value || '';
+    const endsValue = document.getElementById('admin-notice-ends-input')?.value || '';
+    return normalizeNoticeBoardData({
+      title: document.getElementById('admin-notice-title-input')?.value || '',
+      desc: document.getElementById('admin-notice-desc-input')?.value || '',
+      announcement: document.getElementById('admin-notice-announcement-input')?.value || '',
+      quest: document.getElementById('admin-notice-quest-input')?.value || '',
+      recommendedQuizLabel: document.getElementById('admin-notice-recommended-label-input')?.value || '',
+      recommendedQuizId: document.getElementById('admin-notice-recommended-quiz-input')?.value || '',
+      recommendedQuiz2Label: document.getElementById('admin-notice-recommended2-label-input')?.value || '',
+      recommendedQuiz2Id: document.getElementById('admin-notice-recommended2-quiz-input')?.value || '',
+      startsAtIso: startsValue ? new Date(startsValue).toISOString() : '',
+      endsAtIso: endsValue ? new Date(endsValue).toISOString() : '',
+      active: document.getElementById('admin-notice-active-input')?.checked === true
+    });
+  }
+
+  function getAdminExternalQuizzesFormValues() {
+    const rows = Array.from(document.querySelectorAll('.admin-external-quiz-row'));
+    const items = rows.map((row, index) => ({
+      id: `external-${index + 1}`,
+      title: row.querySelector('[data-external-quiz-field="title"]')?.value || '',
+      description: row.querySelector('[data-external-quiz-field="description"]')?.value || '',
+      url: row.querySelector('[data-external-quiz-field="url"]')?.value || '',
+      active: row.querySelector('[data-external-quiz-field="active"]')?.checked === true,
+      sortOrder: index + 1
+    })).filter(item => item.title.trim() || item.url.trim() || item.description.trim());
+    return { items };
+  }
+
+  function setAdminLoginSettingsForm(settings) {
+    const data = settings || {};
+    document.getElementById('admin-signup-enabled').checked = data.signupEnabled !== false;
+    document.getElementById('admin-temporary-password-login-enabled').checked = data.temporaryPasswordLoginEnabled !== false;
+    document.getElementById('admin-min-password-length-input').value = data.minPasswordLength || 4;
+    document.getElementById('admin-max-failed-attempts-input').value = data.maxFailedAttempts || 5;
+    document.getElementById('admin-lock-minutes-input').value = data.lockMinutes || 10;
+  }
+
+  function getAdminLoginSettingsFormValues() {
+    const temporaryPasswordLoginEnabled = document.getElementById('admin-temporary-password-login-enabled')?.checked === true;
+    return {
+      signupEnabled: document.getElementById('admin-signup-enabled')?.checked === true,
+      temporaryPasswordLoginEnabled,
+      setupEnabled: temporaryPasswordLoginEnabled,
+      setupExpiresAt: '2099-12-31T14:59:59.000Z',
+      minPasswordLength: Number(document.getElementById('admin-min-password-length-input')?.value || 4),
+      maxFailedAttempts: Number(document.getElementById('admin-max-failed-attempts-input')?.value || 5),
+      lockMinutes: Number(document.getElementById('admin-lock-minutes-input')?.value || 10)
+    };
+  }
+
+  function setAdminFeatureFlagsForm(flags, deps = {}) {
+    const normalizeFeatureFlags = deps.normalizeFeatureFlags || (value => value || {});
+    const renderAdminQuizToggleGrid = deps.renderAdminQuizToggleGrid || (() => {});
+    const data = normalizeFeatureFlags(flags);
+    document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
+    document.getElementById('admin-feature-shop').checked = data.shopEnabled;
+    document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
+    document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
+    renderAdminQuizToggleGrid(data);
+  }
+
+  function getAdminFeatureFlagsFormValues(deps = {}) {
+    const normalizeFeatureFlags = deps.normalizeFeatureFlags || (value => value || {});
+    const normalizeFirebaseQuizId = deps.normalizeFirebaseQuizId || (value => value);
+    const disabledQuizIds = Array.from(document.querySelectorAll('[data-admin-quiz-toggle]'))
+      .filter(input => input.checked !== true)
+      .map(input => normalizeFirebaseQuizId(input.dataset.adminQuizToggle || ''))
+      .filter(Boolean);
+    return normalizeFeatureFlags({
+      practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
+      shopEnabled: document.getElementById('admin-feature-shop')?.checked === true,
+      eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
+      rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,
+      disabledQuizIds
+    });
+  }
+
+  function resetAdminRoomCatalogForm(deps = {}) {
+    document.getElementById('admin-room-item-id-input').value = '';
+    document.getElementById('admin-room-name-input').value = '';
+    document.getElementById('admin-room-cat-input').value = 'furniture';
+    document.getElementById('admin-room-draw-key-input').value = 'bed';
+    document.getElementById('admin-room-width-input').value = '1';
+    document.getElementById('admin-room-depth-input').value = '1';
+    document.getElementById('admin-room-height-input').value = '30';
+    document.getElementById('admin-room-price-input').value = '0';
+    document.getElementById('admin-room-sort-input').value = '100';
+    document.getElementById('admin-room-flat-input').checked = false;
+    document.getElementById('admin-room-free-input').checked = false;
+    document.getElementById('admin-room-enabled-input').checked = true;
+    deps.setAdminRoomCatalogStatus?.('');
+  }
+
+  function setAdminRoomCatalogForm(item = {}) {
+    document.getElementById('admin-room-item-id-input').value = item.itemId || item.assetId || '';
+    document.getElementById('admin-room-name-input').value = item.name || '';
+    document.getElementById('admin-room-cat-input').value = item.cat || 'furniture';
+    document.getElementById('admin-room-draw-key-input').value = item.drawKey || 'bed';
+    document.getElementById('admin-room-width-input').value = String(item.w || 1);
+    document.getElementById('admin-room-depth-input').value = String(item.d || 1);
+    document.getElementById('admin-room-height-input').value = String(item.h || 30);
+    document.getElementById('admin-room-price-input').value = String(item.price || 0);
+    document.getElementById('admin-room-sort-input').value = String(item.sortOrder || 100);
+    document.getElementById('admin-room-flat-input').checked = item.flat === true;
+    document.getElementById('admin-room-free-input').checked = item.free === true;
+    document.getElementById('admin-room-enabled-input').checked = item.enabled !== false;
+  }
+
+  function getAdminRoomCatalogFormValues() {
+    return {
+      itemId: String(document.getElementById('admin-room-item-id-input')?.value || '').trim(),
+      name: String(document.getElementById('admin-room-name-input')?.value || '').trim(),
+      cat: document.getElementById('admin-room-cat-input')?.value || 'furniture',
+      drawKey: document.getElementById('admin-room-draw-key-input')?.value || 'bed',
+      w: Number(document.getElementById('admin-room-width-input')?.value || 1),
+      d: Number(document.getElementById('admin-room-depth-input')?.value || 1),
+      h: Number(document.getElementById('admin-room-height-input')?.value || 30),
+      price: Number(document.getElementById('admin-room-price-input')?.value || 0),
+      sortOrder: Number(document.getElementById('admin-room-sort-input')?.value || 100),
+      flat: document.getElementById('admin-room-flat-input')?.checked === true,
+      free: document.getElementById('admin-room-free-input')?.checked === true,
+      enabled: document.getElementById('admin-room-enabled-input')?.checked === true
+    };
+  }
+
+  window.DJ48AdminForm = {
+    toDateTimeLocalInputValue,
+    getAdminFilterValues,
+    normalizeAdminWalletCurrency,
+    getAdminWalletCurrencyLabel,
+    getAdminPermissionFormValues,
+    hideAdminTemporaryPassword,
+    showAdminTemporaryPassword,
+    setAdminNoticeForm,
+    getAdminNoticeFormValues,
+    getAdminExternalQuizzesFormValues,
+    setAdminLoginSettingsForm,
+    getAdminLoginSettingsFormValues,
+    setAdminFeatureFlagsForm,
+    getAdminFeatureFlagsFormValues,
+    resetAdminRoomCatalogForm,
+    setAdminRoomCatalogForm,
+    getAdminRoomCatalogFormValues
+  };
+})();
