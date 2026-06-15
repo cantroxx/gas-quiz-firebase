@@ -1397,6 +1397,7 @@
   <script src="/js/features/ranking-render.js"></script>
   <script src="/js/features/ranking-data.js"></script>
   <script src="/js/features/school-controller.js"></script>
+  <script src="/js/features/quiz-controller.js"></script>
   <script src="/js/features/quiz-play.js"></script>
   <script>
     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
@@ -7850,6 +7851,19 @@
       if(classroomView) classroomView.hidden = true;
     }
 
+    function getQuizPlayEventDeps() {
+      return {
+        selectChoiceByIndex,
+        submitAnswer,
+        showQuizComplete,
+        nextQuestion,
+        showQuizSelectView,
+        getLastQuizId: () => lastQuizId,
+        handleQuizPlayKeydown,
+        flushPopularUsageSession
+      };
+    }
+
     const APP_VIEW_IDS = [
       'login-view',
       'admin-view',
@@ -8118,38 +8132,6 @@
       return window.DJ48AppView.closePlaceModal();
     }
 
-    function bindQuizPlayEvents() {
-      document.getElementById('quiz-play-root').addEventListener('click', event => {
-        if(event.target.dataset.choiceIndex !== undefined) {
-          selectChoiceByIndex(Number(event.target.dataset.choiceIndex), false);
-        }
-
-        if(event.target.classList.contains('quiz-submit-button') && !event.target.dataset.nextQuestion) {
-          submitAnswer();
-        }
-
-        if(event.target.dataset.nextQuestion) {
-          if(event.target.dataset.completeQuiz) showQuizComplete();
-          else nextQuestion();
-        }
-
-        if(event.target.dataset.backToQuizSelect) {
-          showQuizSelectView(lastQuizId);
-        }
-      });
-
-      document.getElementById('quiz-play-root').addEventListener('keydown', handleQuizPlayKeydown);
-      document.addEventListener('keydown', handleQuizPlayKeydown);
-
-      document.addEventListener('visibilitychange', () => {
-        if(document.visibilityState === 'hidden') flushPopularUsageSession(true);
-      });
-
-      window.addEventListener('beforeunload', () => {
-        flushPopularUsageSession(true);
-      });
-    }
-
     window.DJ48AppEvents.bindCommonAppEvents({
       openPlaceModal,
       refreshCurrentAppData,
@@ -8197,7 +8179,7 @@
       getCurrentSubjectId: () => currentSubjectId,
       getLastQuizId: () => lastQuizId
     });
-    bindQuizPlayEvents();
+    window.DJ48QuizController.bindQuizPlayEvents(getQuizPlayEventDeps());
     window.DJ48ShopController.bindShopRoomEvents({
       purchaseShopItem,
       saveRoomItemSelection

@@ -25,6 +25,9 @@ Make `public/index.html` a thinner app shell so multiple terminals can work on U
 9. Moved school/quiz-select event binding ownership to `public/js/features/school-controller.js`.
 10. Moved event and classroom binding ownership to `public/js/features/event-controller.js` and `public/js/features/classroom-controller.js`.
 11. Expanded browser smoke checks for home/profile toggles, school selection, shop item presence, and classroom tab clicks.
+12. Added `getQuizPlayEventDeps()` in `public/index.html` to make quiz event dependencies explicit.
+13. Moved quiz-play event binding ownership to `public/js/features/quiz-controller.js`.
+14. Expanded browser smoke expectations to include the quiz controller global.
 
 ## Ownership Rules
 
@@ -35,17 +38,18 @@ Make `public/index.html` a thinner app shell so multiple terminals can work on U
 - Shop/room event orchestration: `public/js/features/shop-controller.js`.
 - School/quiz-select event orchestration: `public/js/features/school-controller.js`.
 - Event/classroom event orchestration: `public/js/features/event-controller.js`, `public/js/features/classroom-controller.js`.
-- Quiz play: `public/js/features/quiz-play.js`, quiz state wrappers that still remain in `public/index.html`.
+- Quiz play events: `public/js/features/quiz-controller.js`.
+- Quiz play state/save/timer orchestration: `public/js/features/quiz-play.js`, explicit adapters and wrappers that still remain in `public/index.html`.
 - Verification: `scripts/smoke`.
 
 Only one terminal should edit `public/index.html` at a time until global state and quiz session ownership are reduced further.
 
 ## Remaining App Shell Work
 
-1. Move quiz-play event binding out of `public/index.html` after dependency adapter hardening.
-2. Reduce `public/index.html` cache/state ownership by feature area.
-3. Harden quiz-play dependencies before moving save/reward/timer flows.
-4. Add write-flow smoke coverage only where it can run without changing production data unexpectedly.
+1. Reduce `public/index.html` cache/state ownership by feature area.
+2. Harden quiz-play save/reward/timer dependencies before moving those flows.
+3. Add write-flow smoke coverage only where it can run without changing production data unexpectedly.
+4. Move quiz save/reward wrappers only after the persistence smoke gate is stronger.
 
 ## Quiz-Play Dependency Boundary
 
@@ -61,10 +65,11 @@ Do not move quiz save/reward/timer flows until these dependencies are explicitly
 
 Recommended quiz sequence:
 
-1. Create a quiz dependency adapter object in `public/index.html`.
-2. Move pure session decision helpers into `public/js/features/quiz-play.js`.
-3. Move save/reward wrappers only after smoke covers quiz completion persistence.
-4. Move timer/session cleanup last.
+1. Keep `getQuizPlayDeps()` as the broad state/data adapter for quiz-play helpers.
+2. Keep `getQuizPlayEventDeps()` as the narrow event adapter for `quiz-controller.js`.
+3. Move pure session decision helpers into `public/js/features/quiz-play.js` only when they do not mutate app state directly.
+4. Move save/reward wrappers only after smoke covers quiz completion persistence.
+5. Move timer/session cleanup last.
 
 ## Validation Gate
 
