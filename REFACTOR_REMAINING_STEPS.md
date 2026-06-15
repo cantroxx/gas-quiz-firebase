@@ -2,7 +2,7 @@
 
 ## Current Baseline
 
-- First clean-architecture refactor round is code-complete through Step 13I.
+- First clean-architecture refactor round is closed through Step 13I.
 - Latest committed Step 13I baseline: `58e800f refactor: move quiz next routing`
 - Main app source remains `public/index.html`.
 - Feature modules now own the extracted data/render/helper/quiz-flow implementations:
@@ -17,10 +17,11 @@
   - `window.DJ48RankingRender`
   - `window.DJ48QuizPlay`
 - `public/index.html` intentionally keeps thin wrappers, app state, event wiring, and remaining save/auth/view orchestration.
-- Final status before closing this round:
+- Final status:
   - code movement: complete
   - commit/push/deploy: complete through Step 13I
-  - browser smoke test: pending user confirmation
+  - browser smoke test: confirmed normal by user
+  - round status: closed
 
 ## Completed Steps
 
@@ -931,11 +932,11 @@ Step 13I implemented:
 
 ## Closeout Status
 
-This first clean-architecture refactor round is code-complete.
+This first clean-architecture refactor round is closed.
 
-No further code movement is required for this round unless smoke testing finds a regression.
+No further code movement is required for this round unless a regression is reported.
 
-User smoke-test checklist before declaring final closure:
+User smoke-test checklist confirmed normal:
 
 - Practice flow:
   - start a practice quiz
@@ -956,7 +957,22 @@ User smoke-test checklist before declaring final closure:
 - Optional edge check:
   - let ranking session exceed the time limit and confirm the elapsed-too-long skip message appears
 
-If these pass, mark this refactor round closed and start future work as a new scoped refactor or feature task.
+Future work should start as a new scoped refactor or feature task.
+
+Recommended next goals:
+
+- Goal A: Browser smoke-test automation
+  - Add a repeatable script for practice/ranking/home navigation smoke checks.
+  - Best when the priority is preventing regressions before more refactoring.
+- Goal B: Admin flow second-round refactor
+  - Split admin dashboard, member list, logs, notice board, feature flag, and audit flows by ownership.
+  - Best when the priority is reducing `public/index.html` size further.
+- Goal C: Profile/account flow second-round refactor
+  - Split nickname, password, profile image, title/badge/profile summary orchestration.
+  - Best when the priority is user-facing account stability.
+- Goal D: Shop/room write-flow second-round refactor
+  - Split purchase, inventory, room setting, and economy refresh orchestration.
+  - Best when the priority is purchase/asset maintainability.
 
 ## Step 7 Validation Checklist
 
