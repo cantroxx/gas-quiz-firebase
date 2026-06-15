@@ -1,13 +1,14 @@
 # Parallel Work Plan
 
-This document defines the next clean-architecture target after the first refactor round and folder cleanup.
+This document records the completed second clean-architecture round after the first refactor round and folder cleanup.
 
-## Current State
+## Completion State
 
 - `public/index.html` is still the main app shell and state owner.
 - Extracted modules already exist under `public/js/core`, `public/js/data`, and `public/js/features`.
 - Browser smoke automation exists under `scripts/smoke`.
 - Project documents and scripts are grouped by domain.
+- The second clean-architecture round is closed through classroom/event refactor and final verification.
 
 ## Ownership Rules
 
@@ -17,7 +18,7 @@ This document defines the next clean-architecture target after the first refacto
 - Shop/room: `public/js/features/shop-render.js`, `public/room.js`, `public/room.css`, future `shop-*` and `room-*` write-flow modules.
 - Quiz: `public/js/features/quiz-play.js`, quiz catalog/data helpers, quiz-play wrappers in `public/index.html`.
 - Ranking: `public/js/features/ranking-data.js`, `public/js/features/ranking-render.js`, ranking plaza/profile ranking flows.
-- Classroom/event: future `classroom-*` and `event-*` modules.
+- Classroom/event: `public/js/features/classroom-*` and `public/js/features/event-*`.
 - Verification/docs: `scripts/smoke`, `docs/operations`, `docs/architecture`.
 
 When using multiple terminals, keep each terminal inside one ownership area unless the task explicitly requires a shared boundary change.
@@ -42,7 +43,7 @@ Authenticated smoke remains manual because it needs a test account:
 SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser
 ```
 
-## Recommended Sequence
+## Completed Sequence
 
 1. Stabilize verification.
    - Keep `npm run check:static` as the fast local gate.
@@ -113,7 +114,18 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Consolidated classroom, event progress, and user economy cache reset helpers in `public/index.html`.
    - Removed unused classroom render wrapper functions from `public/index.html`.
 8. Final cleanup.
-   - Update docs, run full smoke, and declare the second clean-architecture round closed.
+   - Updated docs, ran full smoke, and declared the second clean-architecture round closed.
+
+## Recommended Next Goals
+
+1. Start a new goal for the next architecture round instead of extending this document.
+2. Choose one ownership area at a time:
+   - View orchestration cleanup in `public/index.html`.
+   - Quiz-play dependency adapter hardening.
+   - Admin or account workflow integration tests.
+3. Keep the same validation gate:
+   - `npm run check`
+   - authenticated browser smoke with the 4-8-23 test account when user-visible runtime code changes.
 
 ## Parallel Terminal Shape
 
