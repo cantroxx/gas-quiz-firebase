@@ -1382,6 +1382,7 @@
   <script src="/js/features/event-data.js"></script>
   <script src="/js/features/event-render.js"></script>
   <script src="/js/features/classroom-data.js"></script>
+  <script src="/js/features/classroom-form.js"></script>
   <script src="/js/features/classroom-render.js"></script>
   <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
@@ -5779,71 +5780,33 @@
     }
 
     function setClassroomQuestEditorStatus(message, isError = false) {
-      const status = document.getElementById('classroom-quest-editor-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-quest-editor-status', message, isError);
     }
 
     function setClassroomBadgeCampaignStatus(message, isError = false) {
-      const status = document.getElementById('classroom-badge-campaign-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-badge-campaign-status', message, isError);
     }
 
     function setClassroomJobEditorStatus(message, isError = false) {
-      const status = document.getElementById('classroom-job-editor-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-job-editor-status', message, isError);
     }
 
     function setClassroomShopEditorStatus(message, isError = false) {
-      const status = document.getElementById('classroom-shop-editor-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-shop-editor-status', message, isError);
     }
 
     function setClassroomRoutineStatus(message, isError = false) {
-      const status = document.getElementById('classroom-routine-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-routine-status', message, isError);
     }
 
     function getClassroomQuestFormValues() {
-      const title = String(document.getElementById('classroom-quest-title-input')?.value || '').trim();
-      const desc = String(document.getElementById('classroom-quest-desc-input')?.value || '').trim();
-      const rewardCoin = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-coin-input')?.value) || 0));
-      const rewardCurrency = 'berry';
-      const rewardMode = String(document.getElementById('classroom-quest-mode-input')?.value || 'auto').trim();
-      const linkedGemName = String(document.getElementById('classroom-quest-gem-name-input')?.value || '').trim();
-      const linkedGemId = slugifyClassroomGemId(linkedGemName);
-      const gemXp = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-xp-input')?.value) || 0));
-      const gemTargetXp = Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10));
-      const gemRewardBerry = Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0));
-      return { title, desc, rewardCoin, rewardCurrency, rewardMode, linkedGemName, linkedGemId, gemXp, gemTargetXp, gemRewardBerry };
+      return window.DJ48ClassroomForm.getClassroomQuestFormValues({
+        slugifyClassroomGemId
+      });
     }
 
     function resetClassroomQuestForm() {
-      const title = document.getElementById('classroom-quest-title-input');
-      const desc = document.getElementById('classroom-quest-desc-input');
-      const coin = document.getElementById('classroom-quest-coin-input');
-      const mode = document.getElementById('classroom-quest-mode-input');
-      const gemName = document.getElementById('classroom-quest-gem-name-input');
-      const gemXp = document.getElementById('classroom-quest-gem-xp-input');
-      const gemTarget = document.getElementById('classroom-quest-gem-target-input');
-      const gemReward = document.getElementById('classroom-quest-gem-reward-input');
-      if(title) title.value = '';
-      if(desc) desc.value = '';
-      if(coin) coin.value = '5';
-      if(mode) mode.value = 'auto';
-      if(gemName) gemName.value = '';
-      if(gemXp) gemXp.value = '0';
-      if(gemTarget) gemTarget.value = '10';
-      if(gemReward) gemReward.value = '30';
+      return window.DJ48ClassroomForm.resetClassroomQuestForm();
     }
 
     async function saveClassroomQuestFromForm(event) {
@@ -5901,12 +5864,9 @@
     }
 
     function getClassroomBadgeCampaignFormValues() {
-      const title = String(document.getElementById('classroom-badge-title-input')?.value || '').trim();
-      const targetGemName = String(document.getElementById('classroom-badge-gem-input')?.value || '').trim();
-      const awardLimit = Math.max(1, Math.min(10, Math.round(Number(document.getElementById('classroom-badge-limit-input')?.value) || 1)));
-      const icon = String(document.getElementById('classroom-badge-icon-input')?.value || '🏅').trim().slice(0, 12);
-      const color = String(document.getElementById('classroom-badge-color-input')?.value || '#ffcf5a').trim().slice(0, 30);
-      return { title, targetGemName, targetGemId: slugifyClassroomGemId(targetGemName), awardLimit, icon, color };
+      return window.DJ48ClassroomForm.getClassroomBadgeCampaignFormValues({
+        slugifyClassroomGemId
+      });
     }
 
     async function awardClassroomBadgeCampaignFromForm(event) {
@@ -5951,20 +5911,11 @@
     }
 
     function getClassroomJobFormValues() {
-      return {
-        title: String(document.getElementById('classroom-job-title-input')?.value || '').trim(),
-        desc: String(document.getElementById('classroom-job-desc-input')?.value || '').trim(),
-        weeklyPayBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0))
-      };
+      return window.DJ48ClassroomForm.getClassroomJobFormValues();
     }
 
     function resetClassroomJobForm() {
-      const title = document.getElementById('classroom-job-title-input');
-      const desc = document.getElementById('classroom-job-desc-input');
-      const pay = document.getElementById('classroom-job-pay-input');
-      if(title) title.value = '';
-      if(desc) desc.value = '';
-      if(pay) pay.value = '20';
+      return window.DJ48ClassroomForm.resetClassroomJobForm();
     }
 
     async function saveClassroomJobFromForm(event) {
@@ -5999,20 +5950,11 @@
     }
 
     function getClassroomShopItemFormValues() {
-      return {
-        title: String(document.getElementById('classroom-shop-title-input')?.value || '').trim(),
-        desc: String(document.getElementById('classroom-shop-desc-input')?.value || '').trim(),
-        priceBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0))
-      };
+      return window.DJ48ClassroomForm.getClassroomShopItemFormValues();
     }
 
     function resetClassroomShopItemForm() {
-      const title = document.getElementById('classroom-shop-title-input');
-      const desc = document.getElementById('classroom-shop-desc-input');
-      const price = document.getElementById('classroom-shop-price-input');
-      if(title) title.value = '';
-      if(desc) desc.value = '';
-      if(price) price.value = '50';
+      return window.DJ48ClassroomForm.resetClassroomShopItemForm();
     }
 
     async function saveClassroomShopItemFromForm(event) {
@@ -6119,30 +6061,11 @@
     }
 
     function getClassroomRoutineFormValues() {
-      const weekdays = Array.from(document.querySelectorAll('input[name="classroom-routine-weekday"]:checked'))
-        .map(input => Number(input.value))
-        .filter(day => day >= 1 && day <= 5);
-      return {
-        title: String(document.getElementById('classroom-routine-title-input')?.value || '').trim(),
-        targetCount: Math.max(2, Math.min(30, Math.round(Number(document.getElementById('classroom-routine-target-input')?.value) || 5))),
-        startDate: String(document.getElementById('classroom-routine-start-input')?.value || '').trim(),
-        endDate: String(document.getElementById('classroom-routine-end-input')?.value || '').trim(),
-        weekdays
-      };
+      return window.DJ48ClassroomForm.getClassroomRoutineFormValues();
     }
 
     function resetClassroomRoutineForm() {
-      const title = document.getElementById('classroom-routine-title-input');
-      const target = document.getElementById('classroom-routine-target-input');
-      const start = document.getElementById('classroom-routine-start-input');
-      const end = document.getElementById('classroom-routine-end-input');
-      if(title) title.value = '';
-      if(target) target.value = '5';
-      if(start) start.value = '';
-      if(end) end.value = '';
-      document.querySelectorAll('input[name="classroom-routine-weekday"]').forEach(input => {
-        input.checked = true;
-      });
+      return window.DJ48ClassroomForm.resetClassroomRoutineForm();
     }
 
     async function saveClassroomRoutineFromForm(event) {
