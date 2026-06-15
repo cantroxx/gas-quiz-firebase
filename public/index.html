@@ -8128,10 +8128,7 @@
     }
 
     function setClassroomUnlocked(unlocked) {
-      const gate = document.getElementById('classroom-gate-panel');
-      const main = document.getElementById('classroom-main-panel');
-      if(gate) gate.hidden = !!unlocked;
-      if(main) main.hidden = !unlocked;
+      window.DJ48ClassroomForm.setClassroomUnlocked(unlocked);
       if(unlocked) renderClassroomPrototype();
     }
 
@@ -8146,34 +8143,21 @@
 
     async function handleClassroomEntrySubmit(event) {
       event.preventDefault();
-      const input = document.getElementById('classroom-entry-code');
-      const status = document.getElementById('classroom-entry-status');
-      const value = String(input?.value || '').trim();
+      const value = window.DJ48ClassroomForm.getClassroomEntryCode();
       const settings = await loadClassroomSettings(true);
-      if(value !== String(settings.entryCode || '').trim()) {
-        if(status) {
-          status.textContent = '비밀번호가 맞지 않습니다. 1차 프로토타입 비밀번호를 확인해 주세요.';
-          status.classList.add('is-error');
-        }
+      if(!window.DJ48ClassroomForm.isClassroomEntryCodeValid(value, settings)) {
+        window.DJ48ClassroomForm.setClassroomEntryStatus('비밀번호가 맞지 않습니다. 1차 프로토타입 비밀번호를 확인해 주세요.', true);
         return;
       }
-      if(status) {
-        status.textContent = `${settings.name || CLASSROOM_PROTOTYPE.name} 교실에 입장했습니다.`;
-        status.classList.remove('is-error');
-      }
-      if(input) input.value = '';
+      window.DJ48ClassroomForm.setClassroomEntryStatus(
+        window.DJ48ClassroomForm.getClassroomEntrySuccessMessage(settings, CLASSROOM_PROTOTYPE.name)
+      );
+      window.DJ48ClassroomForm.clearClassroomEntryCode();
       setClassroomUnlocked(true);
     }
 
     function setActiveClassroomTab(tabName = 'quests') {
-      document.querySelectorAll('[data-classroom-tab]').forEach(button => {
-        const active = button.dataset.classroomTab === tabName;
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-selected', String(active));
-      });
-      document.querySelectorAll('[data-classroom-panel]').forEach(panel => {
-        panel.classList.toggle('is-active', panel.dataset.classroomPanel === tabName);
-      });
+      return window.DJ48ClassroomForm.setActiveClassroomTab(tabName);
     }
 
     function showSubjectView(subjectId) {

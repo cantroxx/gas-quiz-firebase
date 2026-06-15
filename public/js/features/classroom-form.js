@@ -6,6 +6,45 @@
     status.classList.toggle('is-error', !!isError);
   }
 
+  function setClassroomUnlocked(unlocked) {
+    const gate = document.getElementById('classroom-gate-panel');
+    const main = document.getElementById('classroom-main-panel');
+    if(gate) gate.hidden = !!unlocked;
+    if(main) main.hidden = !unlocked;
+  }
+
+  function getClassroomEntryCode() {
+    return String(document.getElementById('classroom-entry-code')?.value || '').trim();
+  }
+
+  function clearClassroomEntryCode() {
+    const input = document.getElementById('classroom-entry-code');
+    if(input) input.value = '';
+  }
+
+  function isClassroomEntryCodeValid(value, settings = {}) {
+    return String(value || '').trim() === String(settings.entryCode || '').trim();
+  }
+
+  function setClassroomEntryStatus(message, isError = false) {
+    setClassroomStatusElement('classroom-entry-status', message, isError);
+  }
+
+  function getClassroomEntrySuccessMessage(settings = {}, fallbackName = '') {
+    return `${settings.name || fallbackName} 교실에 입장했습니다.`;
+  }
+
+  function setActiveClassroomTab(tabName = 'quests') {
+    document.querySelectorAll('[data-classroom-tab]').forEach(button => {
+      const active = button.dataset.classroomTab === tabName;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    document.querySelectorAll('[data-classroom-panel]').forEach(panel => {
+      panel.classList.toggle('is-active', panel.dataset.classroomPanel === tabName);
+    });
+  }
+
   function getClassroomQuestFormValues(deps = {}) {
     const linkedGemName = String(document.getElementById('classroom-quest-gem-name-input')?.value || '').trim();
     return {
@@ -116,6 +155,13 @@
 
   window.DJ48ClassroomForm = {
     setClassroomStatusElement,
+    setClassroomUnlocked,
+    getClassroomEntryCode,
+    clearClassroomEntryCode,
+    isClassroomEntryCodeValid,
+    setClassroomEntryStatus,
+    getClassroomEntrySuccessMessage,
+    setActiveClassroomTab,
     getClassroomQuestFormValues,
     resetClassroomQuestForm,
     getClassroomBadgeCampaignFormValues,
