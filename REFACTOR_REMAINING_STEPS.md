@@ -788,6 +788,38 @@ Step 13D implemented:
   - elapsed-time skip message still renders
   - profile ranking record reflects the saved result
 
+Step 13E implemented:
+
+- Moved practice progress save execution body into `public/js/features/quiz-play.js`:
+  - `savePracticeProgressAfterCorrectAnswer`
+- Kept the existing `public/index.html` function name as a thin wrapper.
+- Preserved Firestore paths and write order:
+  - read `practiceRecords/{recordId}`
+  - read `userPracticeSummary/{memberUserId}`
+  - set `practiceRecords/{recordId}`
+  - batch merge `userPracticeSummary/{memberUserId}`
+  - batch merge `userBadges/{memberUserId}/badges/{badgeId}`
+- Preserved write-only fallback behavior:
+  - permission-denied practice record read uses `arrayUnion(questionId)` and `increment(1)`
+  - permission-denied summary read continues with merge-only summary update
+- Preserved completion behavior:
+  - complete-type areas keep one star and reset ids
+  - loop-type areas increment star count and reset ids
+  - completion round can trigger title sync
+- Preserved reward behavior:
+  - duplicate correct ids do not grant reward
+  - disabled reward feature skips callable
+  - new correct ids call practice reward wrapper
+- Still not moved:
+  - ranking timers
+  - answer/result/completion DOM flow
+- Required smoke checks:
+  - practice correct answer saves progress
+  - duplicate correct answer does not increase progress/reward
+  - completion updates badge/star state
+  - coin reward is granted once
+  - title sync still runs on completion
+
 ## Step 7 Validation Checklist
 
 - Shop list.
