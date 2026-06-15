@@ -5483,129 +5483,52 @@
     }
 
     function isUsableImageUrl(value) {
-      if(typeof value !== 'string') return false;
-      const imageUrl = value.trim();
-      return imageUrl && imageUrl !== 'TODO' && /^https?:\/\//.test(imageUrl);
+      return window.DJ48ShopData.isUsableImageUrl(value);
     }
 
     function normalizeShopItemFromFirestore(doc) {
-      const data = doc.data();
-      const itemId = data.itemId || doc.id;
-      const price = Number(data.price);
-      const sortOrder = Number(data.sortOrder);
-      const category = data.category || '';
-      const imageUrl = typeof data.imageUrl === 'string' ? data.imageUrl.trim() : '';
-
-      return {
-        itemId,
-        rawCategory: category,
-        category: SHOP_CATEGORY_LABELS[category] || category || '기타',
-        name: data.name || itemId,
-        desc: data.desc || '상점 아이템 설명을 준비 중입니다.',
-        price: Number.isFinite(price) ? price : 0,
-        icon: getShopFallbackIcon(itemId, category),
-        enabled: data.enabled === true,
-        sortOrder: Number.isFinite(sortOrder) ? sortOrder : 999,
-        priceType: data.priceType || 'djCoin',
-        imageUrl: imageUrl && imageUrl !== 'TODO' ? imageUrl : '',
-        assetId: data.assetId || '',
-        rarity: data.rarity || 'common'
-      };
+      return window.DJ48ShopData.normalizeShopItemFromFirestore(doc, {
+        shopCategoryLabels: SHOP_CATEGORY_LABELS,
+        getShopFallbackIcon
+      });
     }
 
     function isRoomFurnitureShopItem(item) {
-      const rawCategory = String(item?.rawCategory || item?.category || '').trim();
-      const assetId = String(item?.assetId || '').trim();
-      const itemId = String(item?.itemId || '').trim();
-      return rawCategory === '방 가구' || assetId.startsWith('room_') || itemId.startsWith('room_');
+      return window.DJ48ShopData.isRoomFurnitureShopItem(item);
     }
 
     function normalizeAssetCatalogFromFirestore(doc) {
-      const data = doc.data();
-      const assetId = data.assetId || doc.id;
-      const imageUrl = typeof data.imageUrl === 'string' ? data.imageUrl.trim() : '';
-
-      return {
-        assetId,
-        type: data.type || '',
-        name: data.name || assetId,
-        storagePath: data.storagePath || '',
-        imageUrl: isUsableImageUrl(imageUrl) ? imageUrl : '',
-        fallbackIcon: data.fallbackIcon || '',
-        enabled: data.enabled === true
-      };
+      return window.DJ48ShopData.normalizeAssetCatalogFromFirestore(doc);
     }
 
     function normalizeUserEconomyFromFirestore(doc) {
-      if(!doc.exists) return null;
-      const data = doc.data();
-      const djCoin = Number(data.djCoin ?? data.coin);
-      const totalEarned = Number(data.totalEarned ?? data.lifetimeEarnedCoin);
-      const totalSpent = Number(data.totalSpent ?? data.lifetimeSpentCoin);
-
-      return {
-        userId: data.userId || doc.id,
-        djCoin: Number.isFinite(djCoin) ? djCoin : USER_REWARD_DATA.coin,
-        totalEarned: Number.isFinite(totalEarned) ? totalEarned : 0,
-        totalSpent: Number.isFinite(totalSpent) ? totalSpent : 0
-      };
+      return window.DJ48ShopData.normalizeUserEconomyFromFirestore(doc, {
+        fallbackCoin: USER_REWARD_DATA.coin
+      });
     }
 
     function getInitialUserEconomy(userId) {
-      const fieldValue = getFirestoreFieldValue();
-      const now = fieldValue.serverTimestamp();
-      return {
-        userId,
-        djCoin: 0,
-        totalEarned: 0,
-        totalSpent: 0,
-        createdAt: now,
-        updatedAt: now,
-        source: 'initial_grant'
-      };
+      return window.DJ48ShopData.getInitialUserEconomy(userId, {
+        getFirestoreFieldValue
+      });
     }
 
     function getDefaultRoomSettings() {
-      const userId = getCurrentDataOwnerId() || '';
-      return {
-        userId,
-        selectedBackgroundItemId: '',
-        selectedAvatarItemId: '',
-        selectedDecorItemIds: [],
-        selectedTitleFrameItemId: ''
-      };
+      return window.DJ48ShopData.getDefaultRoomSettings(getCurrentDataOwnerId() || '');
     }
 
     function normalizeRoomSettingsFromFirestore(doc) {
-      if(!doc.exists) return getDefaultRoomSettings();
-      const data = doc.data();
-      return {
-        userId: data.userId || getCurrentDataOwnerId() || '',
-        selectedBackgroundItemId: data.selectedBackgroundItemId || '',
-        selectedAvatarItemId: data.selectedAvatarItemId || '',
-        selectedDecorItemIds: Array.isArray(data.selectedDecorItemIds) ? data.selectedDecorItemIds : [],
-        selectedTitleFrameItemId: data.selectedTitleFrameItemId || ''
-      };
+      return window.DJ48ShopData.normalizeRoomSettingsFromFirestore(doc, {
+        userId: getCurrentDataOwnerId() || ''
+      });
     }
 
     function getRoomItemCategory(item) {
-      const category = item.rawCategory || item.category;
-      const categoryMap = {
-        '배경': 'background',
-        '아바타': 'avatar',
-        '방 장식': 'roomDecor',
-        '칭호 프레임': 'titleFrame'
-      };
-      return categoryMap[category] || category;
+      return window.DJ48ShopData.getRoomItemCategory(item);
     }
 
     function isRoomItemSelected(item, roomSettings = getDefaultRoomSettings()) {
-      const category = getRoomItemCategory(item);
-      if(category === 'background') return roomSettings.selectedBackgroundItemId === item.itemId;
-      if(category === 'avatar') return roomSettings.selectedAvatarItemId === item.itemId;
-      if(category === 'roomDecor') return roomSettings.selectedDecorItemIds.includes(item.itemId);
-      if(category === 'titleFrame') return roomSettings.selectedTitleFrameItemId === item.itemId;
-      return false;
+      return window.DJ48ShopData.isRoomItemSelected(item, roomSettings);
     }
 
     async function loadShopItemsFromFirestore() {
