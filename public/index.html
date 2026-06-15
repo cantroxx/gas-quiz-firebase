@@ -5728,30 +5728,28 @@
     async function setClassroomSelectedGemBadge(gemId) {
       if(!gemId || !currentMemberUserId) return;
       const settings = await loadClassroomSettings();
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        window.alert('대표 뱃지 설정 기능을 불러오지 못했어요.');
-        return;
-      }
       const button = document.querySelector(`[data-classroom-badge-gem-id="${gemId}"]`);
       if(button) {
         button.disabled = true;
         button.textContent = '설정 중...';
       }
       try {
-        const callable = functions.httpsCallable('setClassroomSelectedBadge');
-        await callable({
+        await window.DJ48ClassroomData.setClassroomSelectedBadge({
           classId: settings.classId,
           memberUserId: currentMemberUserId,
           badgeType: 'gem',
           badgeId: gemId
+        }, {
+          getFirebaseFunctions
         });
         resetClassroomDataCaches({ students: true });
         await renderClassroomPrototype(true);
         window.alert('대표 뱃지를 설정했습니다.');
       } catch(error) {
         console.warn('Classroom selected badge save failed.', error);
-        window.alert('대표 뱃지를 설정하지 못했어요.');
+        window.alert(error.message === 'classroom-badge-select-functions-unavailable'
+          ? '대표 뱃지 설정 기능을 불러오지 못했어요.'
+          : '대표 뱃지를 설정하지 못했어요.');
         await renderClassroomPrototype(true);
       }
     }

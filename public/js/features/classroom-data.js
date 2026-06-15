@@ -342,6 +342,18 @@
     return response?.data || {};
   }
 
+  async function setClassroomSelectedBadge(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getClassroomFunctions(deps, 'classroom-badge-select-functions-unavailable');
+    const callable = functions.httpsCallable('setClassroomSelectedBadge');
+    await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      badgeType: options.badgeType || 'gem',
+      badgeId: options.badgeId
+    });
+  }
+
   window.DJ48ClassroomData = {
     getClassroomRewardCurrencyLabel,
     slugifyClassroomGemId,
@@ -366,6 +378,7 @@
     findClassroomQuest,
     completeClassroomAutoQuest,
     saveClassroomManualQuestProgress,
-    reviewClassroomQuestProgress
+    reviewClassroomQuestProgress,
+    setClassroomSelectedBadge
   };
 })();
