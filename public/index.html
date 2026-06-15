@@ -8114,8 +8114,6 @@
         await runAdminWalletAdjustAction(memberUserId);
         return;
       }
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
       const labels = {
         resetPassword: '비밀번호를 임시 비밀번호로 초기화할까요?',
         unlinkAuth: '현재 브라우저 연결을 해제할까요?',
@@ -8124,23 +8122,10 @@
       };
       if(!window.confirm(`${memberUserId}\n${labels[action] || '처리할까요?'}`)) return;
       setAdminStatus('관리자 작업을 처리하는 중입니다...');
-      let callableName = '';
-      let payload = { memberUserId };
-      if(action === 'resetPassword') callableName = 'adminResetMemberPassword';
-      else if(action === 'unlinkAuth') callableName = 'adminUnlinkMemberAuth';
-      else if(action === 'deactivate') {
-        callableName = 'adminUpdateMemberStatus';
-        payload.status = 'inactive';
-      } else if(action === 'activate') {
-        callableName = 'adminUpdateMemberStatus';
-        payload.status = 'active';
-      } else {
-        throw new Error('unsupported-admin-action');
-      }
-      const callable = functions.httpsCallable(callableName);
-      const response = await callable(payload);
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-action-failed');
+      const result = await window.DJ48AdminData.runAdminMemberAction(action, memberUserId, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       let completionMessage = `${memberUserId} 작업이 완료됐습니다.`;
       hideAdminTemporaryPassword();
       if(action === 'resetPassword') {
@@ -8163,9 +8148,6 @@
     }
 
     async function runAdminWalletAdjustAction(memberUserId) {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const currencyInput = window.prompt(`${memberUserId}\n조정할 재화를 입력하세요.\nDJ코인: coin 또는 dj\n베리: berry 또는 베리`, 'coin');
       if(currencyInput === null) return;
       const currency = normalizeAdminWalletCurrency(currencyInput);
@@ -8186,15 +8168,15 @@
       const deltaText = delta > 0 ? `+${delta}` : `${delta}`;
       if(!window.confirm(`${memberUserId}\n${label} ${deltaText} 조정할까요?`)) return;
       setAdminStatus(`${memberUserId} ${label}을 조정하는 중입니다...`);
-      const callable = functions.httpsCallable('adminAdjustMemberWallet');
-      const response = await callable({
+      const result = await window.DJ48AdminData.adjustAdminMemberWallet({
         memberUserId,
         currency,
         delta,
         reason: String(reasonInput || '').trim()
+      }, {
+        getFirebaseFunctions,
+        initializeAuthUser
       });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-wallet-adjust-failed');
       await Promise.all([
         loadAdminMembers({ updateStatus: false }).catch(() => null),
         loadAdminLogs().catch(() => null)
@@ -8218,19 +8200,16 @@
     }
 
     async function setClassAdminPermission(enabled) {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const values = getAdminPermissionFormValues();
       if(!values.memberUserId) throw new Error('admin-permission-member-required');
       if(enabled && (!values.scopeGrade || !values.scopeClassNumber)) throw new Error('admin-permission-scope-required');
       const label = enabled ? '반 관리자로 지정' : '관리자 권한을 해제';
       if(!window.confirm(`${values.memberUserId}\n${label}할까요?`)) return;
       setAdminPermissionStatus('권한을 변경하는 중입니다...');
-      const callable = functions.httpsCallable('adminSetClassAdmin');
-      const response = await callable({ ...values, enabled });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-permission-update-failed');
+      await window.DJ48AdminData.setClassAdminPermission({ ...values, enabled }, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       setAdminPermissionStatus(enabled
         ? `${values.memberUserId} 반 관리자 지정 완료: ${values.scopeGrade}학년 ${values.scopeClassNumber}반`
         : `${values.memberUserId} 관리자 권한을 해제했습니다.`);

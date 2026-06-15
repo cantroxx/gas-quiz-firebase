@@ -40,6 +40,43 @@
     }, deps);
   }
 
+  function runAdminMemberAction(action, memberUserId, deps = {}) {
+    const payload = { memberUserId };
+    let callableName = '';
+    if(action === 'resetPassword') callableName = 'adminResetMemberPassword';
+    else if(action === 'unlinkAuth') callableName = 'adminUnlinkMemberAuth';
+    else if(action === 'deactivate') {
+      callableName = 'adminUpdateMemberStatus';
+      payload.status = 'inactive';
+    } else if(action === 'activate') {
+      callableName = 'adminUpdateMemberStatus';
+      payload.status = 'active';
+    } else {
+      throw new Error('unsupported-admin-action');
+    }
+    return callAdminCallable({
+      callableName,
+      payload,
+      errorCode: 'admin-action-failed'
+    }, deps);
+  }
+
+  function adjustAdminMemberWallet(payload = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminAdjustMemberWallet',
+      payload,
+      errorCode: 'admin-wallet-adjust-failed'
+    }, deps);
+  }
+
+  function setClassAdminPermission(payload = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminSetClassAdmin',
+      payload,
+      errorCode: 'admin-permission-update-failed'
+    }, deps);
+  }
+
   function loadAdminNoticeBoard(deps = {}) {
     return callAdminCallable({
       callableName: 'adminGetNoticeBoard',
@@ -129,6 +166,9 @@
     loadAdminOperationalAudit,
     loadAdminQuizQualityAudit,
     loadAdminMembers,
+    runAdminMemberAction,
+    adjustAdminMemberWallet,
+    setClassAdminPermission,
     loadAdminNoticeBoard,
     saveAdminNoticeBoard,
     loadAdminExternalQuizzes,
