@@ -9,6 +9,27 @@
 * Firebase 설정은 `firebase.json`, `firestore.rules`, `firestore.indexes.json`, `storage.rules`를 기준으로 한다.
 * 루트의 `index.html`, `Code.js`, `appsscript.json`은 현재 Firebase 운영본 기준 파일이 아니다. 사용자가 명시적으로 요청하지 않는 한 수정하지 않는다.
 
+## 폴더 구조 기준
+
+* `public/`은 Firebase Hosting 운영 프론트엔드 소스다.
+* `functions/`는 Firebase Functions 소스와 Functions 전용 의존성이다.
+* `scripts/`는 실행용 운영 보조 스크립트이며 분야별 하위 폴더를 사용한다.
+  * `scripts/audit/`: 운영 점검, 백업, 미리보기, 분석 스크립트
+  * `scripts/maintenance/`: 정리, 복구, 비밀번호 초기화 등 운영 유지보수 스크립트
+  * `scripts/migration/`: 마이그레이션, import, backfill, normalize 스크립트
+  * `scripts/seed/`: 시드, 권한 부여, 초기 데이터 생성 스크립트
+  * `scripts/smoke/`: 브라우저 smoke test 등 검증 스크립트
+* `docs/`는 장기 문서이며 분야별 하위 폴더를 사용한다.
+  * `docs/architecture/`: 구조, 스키마, 보안 규칙, 리팩터링 상태
+  * `docs/migration/`: 마이그레이션 계획과 분석
+  * `docs/operations/`: 운영 runbook, checklist, smoke test 안내
+  * `docs/product/`: 제품/기능 설계 문서
+  * `docs/seeding/`: seed와 테스트 데이터 문서
+  * `docs/snippets/`: 참고용 코드/규칙/마크업 조각
+* `fixtures/`는 커밋 가능한 샘플/fixture 데이터다.
+* `exports/`와 `private/`는 로컬 운영 데이터 보관용이며 `.gitignore` 보호 대상이다.
+* 새 문서, fixture, 운영 스크립트는 위 구조에 맞는 위치에 추가한다. 루트에는 새 계획서나 일회성 작업 파일을 추가하지 않는다.
+
 ## 기본 원칙
 
 * 프로젝트 전체를 매번 분석하지 않는다.
@@ -31,6 +52,7 @@
 * Firebase Functions/관리자 callable/서버 집계/운영 점검 문제는 우선 `functions/index.js`에서 관련 함수만 확인한다.
 * Firebase Hosting/Functions/Firestore/Storage 설정 문제는 해당 설정 파일만 확인한다.
 * 문서 작업은 관련 `.md` 파일만 확인한다.
+* 문서 위치를 모를 때는 먼저 `docs/README.md`를 확인한다.
 * 레거시 Apps Script 파일인 루트 `Code.js`, 루트 `index.html`, `appsscript.json`은 사용자가 명시적으로 요청한 경우에만 확인한다.
 
 ## 검색 방식
