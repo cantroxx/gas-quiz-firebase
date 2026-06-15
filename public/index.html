@@ -5508,20 +5508,12 @@
       renderEventSections(data);
     }
 
-    function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
-      return window.DJ48ClassroomData.normalizeClassroomQuestConfig(rawQuest, index);
-    }
-
     function getClassroomRewardCurrencyLabel(currency) {
       return window.DJ48ClassroomData.getClassroomRewardCurrencyLabel(currency);
     }
 
     function slugifyClassroomGemId(name) {
       return window.DJ48ClassroomData.slugifyClassroomGemId(name);
-    }
-
-    function normalizeClassroomSettings(data = {}) {
-      return window.DJ48ClassroomData.normalizeClassroomSettings(data, CLASSROOM_PROTOTYPE);
     }
 
     async function loadClassroomSettings(forceRefresh = false) {
@@ -5533,10 +5525,6 @@
         warn: console.warn
       });
       return classroomSettingsCache;
-    }
-
-    function buildClassroomQuestProgressId(memberUserId, questId, dateKey = '') {
-      return window.DJ48ClassroomData.buildClassroomQuestProgressId(memberUserId, questId, dateKey);
     }
 
     function isCurrentClassroomTeacher(settings = CLASSROOM_PROTOTYPE) {
