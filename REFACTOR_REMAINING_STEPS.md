@@ -738,6 +738,30 @@ Step 13 recommendation:
 - Next safe action is a full smoke-test checkpoint.
 - If continuing extraction afterward, start with callable wrappers first because their input/output surface is smaller than the save functions.
 
+Step 13C implemented:
+
+- Moved callable wrapper execution bodies into `public/js/features/quiz-play.js`:
+  - `grantPracticeCorrectReward`
+  - `syncMemberTitlesAfterPracticeCompletion`
+- Kept the existing `public/index.html` function names as thin wrappers.
+- Preserved callable names and payloads:
+  - `grantPracticeReward`
+  - `syncMemberTitles`
+- Preserved side effects:
+  - user economy cache reset after practice reward
+  - title catalog cache reset after awarded title sync
+  - debug log messages and returned values
+- Still not moved:
+  - `saveRankingRecordOnQuizComplete`
+  - `savePracticeProgressAfterCorrectAnswer`
+  - ranking timers
+  - answer/result/completion DOM flow
+- Required smoke checks:
+  - practice correct answer gives coin once
+  - duplicate correct answer does not grant duplicate coin
+  - practice completion can trigger title sync
+  - profile/home title and badge displays remain normal
+
 ## Step 7 Validation Checklist
 
 - Shop list.

@@ -10038,55 +10038,21 @@
     }
 
     async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {
-      if(!rewardCoin || rewardCoin <= 0) return null;
       const deps = getQuizPlayDeps();
-      const functions = deps.getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-
-      deps.debugLog('Practice reward economy update queued:', {
-        rewardCoin,
-        context
+      return window.DJ48QuizPlay.grantPracticeCorrectReward(memberUserId, rewardCoin, context, {
+        getFirebaseFunctions: deps.getFirebaseFunctions,
+        resetUserEconomyCache: deps.resetUserEconomyCache,
+        debugLog: deps.debugLog
       });
-      const grantPracticeReward = functions.httpsCallable('grantPracticeReward');
-      const response = await grantPracticeReward({
-        memberUserId,
-        recordId: context?.recordId || '',
-        questionId: context?.questionId || '',
-        quizId: context?.quizId || ''
-      });
-      const result = response?.data || {};
-      deps.resetUserEconomyCache();
-      deps.debugLog('Firestore practice reward update succeeded:', {
-        economyPath: result.economyPath || '',
-        rewardLogPath: result.rewardLogPath || '',
-        rewardCoin: result.rewardCoin || 0,
-        duplicate: !!result.duplicate,
-        context
-      });
-      return result.economyPath || null;
     }
 
     async function syncMemberTitlesAfterPracticeCompletion(memberUserId, context) {
       const deps = getQuizPlayDeps();
-      const functions = deps.getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
-      const response = await syncMemberTitles({ memberUserId });
-      const result = response?.data || {};
-      if(Number(result.awardedCount) > 0) {
-        deps.debugLog('Firestore title sync awarded titles:', {
-          awardedCount: result.awardedCount,
-          awardedTitles: result.awardedTitles || [],
-          context
-        });
-        deps.resetTitleCatalogCache();
-      } else {
-        deps.debugLog('Firestore title sync completed with no new titles:', {
-          titleCount: result.titleCount || 0,
-          context
-        });
-      }
-      return result;
+      return window.DJ48QuizPlay.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, {
+        getFirebaseFunctions: deps.getFirebaseFunctions,
+        resetTitleCatalogCache: deps.resetTitleCatalogCache,
+        debugLog: deps.debugLog
+      });
     }
 
     async function savePracticeProgressAfterCorrectAnswer(question) {

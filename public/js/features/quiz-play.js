@@ -518,6 +518,58 @@
     };
   }
 
+  async function grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps = {}) {
+    if(!rewardCoin || rewardCoin <= 0) return null;
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error('functions-unavailable');
+    const debugLog = deps.debugLog || (() => {});
+
+    debugLog('Practice reward economy update queued:', {
+      rewardCoin,
+      context
+    });
+    const grantPracticeReward = functions.httpsCallable('grantPracticeReward');
+    const response = await grantPracticeReward({
+      memberUserId,
+      recordId: context?.recordId || '',
+      questionId: context?.questionId || '',
+      quizId: context?.quizId || ''
+    });
+    const result = response?.data || {};
+    deps.resetUserEconomyCache?.();
+    debugLog('Firestore practice reward update succeeded:', {
+      economyPath: result.economyPath || '',
+      rewardLogPath: result.rewardLogPath || '',
+      rewardCoin: result.rewardCoin || 0,
+      duplicate: !!result.duplicate,
+      context
+    });
+    return result.economyPath || null;
+  }
+
+  async function syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps = {}) {
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error('functions-unavailable');
+    const debugLog = deps.debugLog || (() => {});
+    const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
+    const response = await syncMemberTitles({ memberUserId });
+    const result = response?.data || {};
+    if(Number(result.awardedCount) > 0) {
+      debugLog('Firestore title sync awarded titles:', {
+        awardedCount: result.awardedCount,
+        awardedTitles: result.awardedTitles || [],
+        context
+      });
+      deps.resetTitleCatalogCache?.();
+    } else {
+      debugLog('Firestore title sync completed with no new titles:', {
+        titleCount: result.titleCount || 0,
+        context
+      });
+    }
+    return result;
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -830,6 +882,8 @@
     getPracticeBadgeMeta,
     buildPracticeSummaryUpdate,
     buildPracticeBadgeUpdate,
+    grantPracticeCorrectReward,
+    syncMemberTitlesAfterPracticeCompletion,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,
