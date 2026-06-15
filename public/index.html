@@ -8296,6 +8296,28 @@
       });
     }
 
+    function bindShopRoomEvents() {
+      document.getElementById('shop-item-grid').addEventListener('click', event => {
+        const button = event.target.closest('[data-shop-item-id]');
+        if(!button || button.disabled) return;
+        purchaseShopItem(button.dataset.shopItemId);
+      });
+
+      document.getElementById('owned-item-grid').addEventListener('click', event => {
+        const card = event.target.closest('[data-room-item-id]');
+        if(!card) return;
+        saveRoomItemSelection(card.dataset.roomItemId);
+      });
+
+      document.getElementById('owned-item-grid').addEventListener('keydown', event => {
+        if(event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('[data-room-item-id]');
+        if(!card) return;
+        event.preventDefault();
+        saveRoomItemSelection(card.dataset.roomItemId);
+      });
+    }
+
     document.querySelectorAll('[data-place]').forEach(button => {
       button.addEventListener('click', () => openPlaceModal(button.dataset.place));
     });
@@ -8480,28 +8502,9 @@
     bindClassroomEvents();
     bindSchoolQuizSelectEvents();
     bindQuizPlayEvents();
+    bindShopRoomEvents();
 
     document.getElementById('ranking-board-root').addEventListener('click', handleRankingBoardRootClick);
-
-    document.getElementById('shop-item-grid').addEventListener('click', event => {
-      const button = event.target.closest('[data-shop-item-id]');
-      if(!button || button.disabled) return;
-      purchaseShopItem(button.dataset.shopItemId);
-    });
-
-    document.getElementById('owned-item-grid').addEventListener('click', event => {
-      const card = event.target.closest('[data-room-item-id]');
-      if(!card) return;
-      saveRoomItemSelection(card.dataset.roomItemId);
-    });
-
-    document.getElementById('owned-item-grid').addEventListener('keydown', event => {
-      if(event.key !== 'Enter' && event.key !== ' ') return;
-      const card = event.target.closest('[data-room-item-id]');
-      if(!card) return;
-      event.preventDefault();
-      saveRoomItemSelection(card.dataset.roomItemId);
-    });
 
     document.getElementById('admin-member-refresh').addEventListener('click', () => {
       hideAdminTemporaryPassword();
