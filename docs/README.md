@@ -11,6 +11,8 @@ This directory groups project documents by ownership so parallel work can stay s
 - `seeding/`: Firestore seed and test-seed documents.
 - `snippets/`: reference-only code, rules, and markup snippets.
 
+Start with `architecture/PARALLEL_WORK_PLAN.md` when planning multiple terminals or the next clean-architecture phase.
+
 ## Script Folders
 
 - `../scripts/audit/`: operational inspection, backup, preview, and analysis scripts.

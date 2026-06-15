@@ -2,6 +2,8 @@
   "name": "gas-quiz-firebase",
   "private": true,
   "scripts": {
+    "check": "npm run check:static && SMOKE_PUBLIC_ONLY=1 npm run smoke:browser",
+    "check:static": "node scripts/smoke/check-project.js",
     "smoke:browser": "node scripts/smoke/browser-smoke-test.js"
   },
   "devDependencies": {

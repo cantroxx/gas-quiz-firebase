@@ -30,6 +30,14 @@
 * `exports/`와 `private/`는 로컬 운영 데이터 보관용이며 `.gitignore` 보호 대상이다.
 * 새 문서, fixture, 운영 스크립트는 위 구조에 맞는 위치에 추가한다. 루트에는 새 계획서나 일회성 작업 파일을 추가하지 않는다.
 
+## 병렬 작업 기준
+
+* 병렬 작업의 분야별 소유권과 순서는 `docs/architecture/PARALLEL_WORK_PLAN.md`를 기준으로 한다.
+* 여러 터미널을 동시에 사용할 때는 각 터미널이 하나의 분야만 수정한다.
+* `public/index.html`은 아직 공유 app shell이므로 병렬 편집 충돌 위험이 높다. 동시에 수정해야 하면 서로 다른 함수/라인 범위를 명확히 나누고 마지막에 통합 검증을 한다.
+* 사용자에게 확인받기 전 코드 이동을 커밋하려면 최소 `npm run check:static`을 통과시킨다.
+* 운영 화면에 영향을 주는 변경은 배포 전 `npm run check` 또는 동등한 browser smoke 검증을 통과시킨다.
+
 ## 기본 원칙
 
 * 프로젝트 전체를 매번 분석하지 않는다.
@@ -53,6 +61,7 @@
 * Firebase Hosting/Functions/Firestore/Storage 설정 문제는 해당 설정 파일만 확인한다.
 * 문서 작업은 관련 `.md` 파일만 확인한다.
 * 문서 위치를 모를 때는 먼저 `docs/README.md`를 확인한다.
+* 병렬 작업/소유권/다음 리팩터링 순서는 `docs/architecture/PARALLEL_WORK_PLAN.md`를 확인한다.
 * 레거시 Apps Script 파일인 루트 `Code.js`, 루트 `index.html`, `appsscript.json`은 사용자가 명시적으로 요청한 경우에만 확인한다.
 
 ## 검색 방식
