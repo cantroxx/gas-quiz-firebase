@@ -5215,35 +5215,27 @@
 
       if(!authStateListenerAttached) {
         auth.onAuthStateChanged(user => {
-          firebaseAuthUser = user;
-          handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
-          if(user?.uid) {
-            restoreLinkedMemberFromAuthUid()
-              .then(profile => {
-                renderMemberLinkPanel();
-                openRestoredMemberDestination(profile);
-              })
-              .catch(error => console.warn('Linked member restore after auth state change failed.', error));
-          }
+          window.DJ48AccountData.handleAuthStateUser(user, {
+            testShopUserId: TEST_SHOP_USER_ID,
+            setFirebaseAuthUser: nextUser => { firebaseAuthUser = nextUser; },
+            handleResolvedUserChange,
+            restoreLinkedMemberFromAuthUid,
+            renderMemberLinkPanel,
+            openRestoredMemberDestination
+          }).catch(error => console.warn('Linked member restore after auth state change failed.', error));
         });
         authStateListenerAttached = true;
       }
 
-      firebaseAuthInitPromise = signInAnonymouslyIfNeeded()
-        .then(user => {
-          firebaseAuthUser = user;
-          handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
-          return restoreLinkedMemberFromAuthUid().then(profile => {
-            renderMemberLinkPanel();
-            openRestoredMemberDestination(profile);
-            return user;
-          });
-        })
-        .catch(error => {
-          console.warn('Firebase anonymous auth failed. Using test user fallback.', error);
-          handleResolvedUserChange(TEST_SHOP_USER_ID);
-          return null;
-        });
+      firebaseAuthInitPromise = window.DJ48AccountData.initializeAuthUserFlow(auth, {
+        testShopUserId: TEST_SHOP_USER_ID,
+        setFirebaseAuthUser: nextUser => { firebaseAuthUser = nextUser; },
+        handleResolvedUserChange,
+        restoreLinkedMemberFromAuthUid,
+        renderMemberLinkPanel,
+        openRestoredMemberDestination,
+        warn: console.warn
+      });
 
       return firebaseAuthInitPromise;
     }

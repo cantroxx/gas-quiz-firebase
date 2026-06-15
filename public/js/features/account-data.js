@@ -353,6 +353,42 @@
     };
   }
 
+  function getResolvedUserIdFromAuthUser(user, deps = {}) {
+    return user?.uid || deps.testShopUserId || '';
+  }
+
+  async function handleAuthStateUser(user, deps = {}) {
+    deps.setFirebaseAuthUser?.(user || null);
+    deps.handleResolvedUserChange?.(getResolvedUserIdFromAuthUser(user, deps));
+    if(!user?.uid) return null;
+
+    const profile = await deps.restoreLinkedMemberFromAuthUid?.();
+    deps.renderMemberLinkPanel?.();
+    deps.openRestoredMemberDestination?.(profile);
+    return profile;
+  }
+
+  async function initializeAuthUserFlow(auth, deps = {}) {
+    if(!auth) {
+      deps.handleResolvedUserChange?.(deps.testShopUserId || '');
+      return null;
+    }
+
+    try {
+      const user = await signInAnonymouslyIfNeeded(auth);
+      deps.setFirebaseAuthUser?.(user || null);
+      deps.handleResolvedUserChange?.(getResolvedUserIdFromAuthUser(user, deps));
+      const profile = await deps.restoreLinkedMemberFromAuthUid?.();
+      deps.renderMemberLinkPanel?.();
+      deps.openRestoredMemberDestination?.(profile);
+      return user;
+    } catch(error) {
+      deps.warn?.('Firebase anonymous auth failed. Using test user fallback.', error);
+      deps.handleResolvedUserChange?.(deps.testShopUserId || '');
+      return null;
+    }
+  }
+
   function registerNewMember(payload = {}, deps = {}) {
     return callAccountCallable('registerNewMember', payload, deps, 'member-register-failed');
   }
@@ -400,6 +436,9 @@
     buildProfileImageUpdate,
     buildRankingMessageUpdate,
     buildSelectedTitleUpdate,
+    getResolvedUserIdFromAuthUser,
+    handleAuthStateUser,
+    initializeAuthUserFlow,
     registerNewMember,
     loginMemberWithPassword,
     resetMemberPasswordToTemporary,
