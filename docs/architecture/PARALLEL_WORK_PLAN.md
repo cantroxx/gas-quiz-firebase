@@ -97,6 +97,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved profile image Storage upload and save orchestration helpers into `public/js/features/account-data.js`.
 7. Classroom/event refactor.
    - Split relatively independent classroom and event flows.
+   - Added `public/js/features/event-render.js` for event plaza quest, class mission, and season event card rendering.
 8. Final cleanup.
    - Update docs, run full smoke, and declare the second clean-architecture round closed.
 
