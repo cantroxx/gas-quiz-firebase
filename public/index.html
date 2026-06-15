@@ -1381,16 +1381,20 @@
   <script src="/js/features/account-controller.js"></script>
   <script src="/js/features/app-view.js"></script>
   <script src="/js/features/app-events.js"></script>
+  <script src="/js/features/home-state.js"></script>
   <script src="/js/features/home-data.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/home-controller.js"></script>
+  <script src="/js/features/event-state.js"></script>
   <script src="/js/features/event-data.js"></script>
   <script src="/js/features/event-render.js"></script>
   <script src="/js/features/event-controller.js"></script>
+  <script src="/js/features/classroom-state.js"></script>
   <script src="/js/features/classroom-data.js"></script>
   <script src="/js/features/classroom-form.js"></script>
   <script src="/js/features/classroom-render.js"></script>
   <script src="/js/features/classroom-controller.js"></script>
+  <script src="/js/features/shop-state.js"></script>
   <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/shop-controller.js"></script>
@@ -1674,16 +1678,6 @@
     };
     const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 5;
 
-    let firestoreShopItems = null;
-    let shopItemsLoadPromise = null;
-    let firestoreAssetCatalogMap = null;
-    let assetCatalogLoadPromise = null;
-    let firestoreUserEconomy = null;
-    let userEconomyLoadPromise = null;
-    let firestoreInventoryItemIds = null;
-    let inventoryLoadPromise = null;
-    let firestoreRoomSettings = null;
-    let roomSettingsLoadPromise = null;
     let firebaseAuthUser = null;
     let firebaseAuthInitPromise = null;
     let lastResolvedUserId = null;
@@ -1694,21 +1688,6 @@
     let memberLinkSubmitAction = 'login';
     let pendingPasswordChange = null;
     let userDataMigrationPromise = null;
-    let eventProgressCache = null;
-    let eventProgressLoadPromise = null;
-    let classroomSettingsCache = null;
-    let classroomProgressCache = null;
-    let classroomProgressLoadPromise = null;
-    let classroomReviewCache = null;
-    let classroomReviewLoadPromise = null;
-    let classroomWalletCache = null;
-    let classroomWalletLoadPromise = null;
-    let classroomGemProgressCache = null;
-    let classroomGemProgressLoadPromise = null;
-    let classroomStudentCardsCache = null;
-    let classroomStudentCardsLoadPromise = null;
-    let classroomEconomyBoardCache = null;
-    let classroomEconomyBoardLoadPromise = null;
 
     const QUEST_DATA = [
       {
@@ -2078,7 +2057,6 @@
     const firebaseQuizDataCache = {};
     let titleCatalogCache = null;
     let titleCatalogMapCache = null;
-    let profileImageOptionsCache = [];
     let profileImageEditorState = null;
     let noticeBoardCache = null;
     let featureFlagsCache = null;
@@ -2128,7 +2106,7 @@
       rankingPlazaModelCache = null;
       titleCatalogCache = null;
       titleCatalogMapCache = null;
-      profileImageOptionsCache = [];
+      window.DJ48HomeState.resetHomeState();
       noticeBoardCache = null;
       featureFlagsCache = null;
       featureFlagsLoadPromise = null;
@@ -2773,14 +2751,16 @@
         .where('keywords', 'array-contains', query)
         .limit(24)
         .get();
-      profileImageOptionsCache = snapshot.docs.map(doc => ({ candidateId: doc.id, ...doc.data() }));
-      renderProfileImageSearchResults(profileImageOptionsCache);
+      const options = window.DJ48HomeState.setProfileImageOptions(
+        snapshot.docs.map(doc => ({ candidateId: doc.id, ...doc.data() }))
+      );
+      renderProfileImageSearchResults(options);
     }
 
     async function saveSelectedProfileImageFromHome(index) {
       if(!currentMemberUserId) throw new Error('member-required');
       const status = document.getElementById('profile-image-search-status');
-      const option = profileImageOptionsCache[Number(index)];
+      const option = window.DJ48HomeState.getProfileImageOption(index);
       if(!option) {
         if(status) status.textContent = '저장할 이미지를 다시 선택해 주세요.';
         return;
@@ -4751,34 +4731,15 @@
     }
 
     function resetClassroomDataCaches(options = {}) {
-      if(options.settings) classroomSettingsCache = null;
-      if(options.progress) classroomProgressCache = null;
-      if(options.review) classroomReviewCache = null;
-      if(options.wallet) classroomWalletCache = null;
-      if(options.gems) classroomGemProgressCache = null;
-      if(options.students) classroomStudentCardsCache = null;
-      if(options.economy) classroomEconomyBoardCache = null;
+      window.DJ48ClassroomState.resetClassroomDataCaches(options);
     }
 
     function resetClassroomRuntimeData() {
-      resetClassroomDataCaches({
-        progress: true,
-        review: true,
-        wallet: true,
-        gems: true,
-        students: true,
-        economy: true
-      });
-      classroomProgressLoadPromise = null;
-      classroomReviewLoadPromise = null;
-      classroomWalletLoadPromise = null;
-      classroomGemProgressLoadPromise = null;
-      classroomStudentCardsLoadPromise = null;
-      classroomEconomyBoardLoadPromise = null;
+      window.DJ48ClassroomState.resetClassroomRuntimeData();
     }
 
     function resetEventProgressCache() {
-      eventProgressCache = null;
+      window.DJ48EventState.resetEventProgressCache();
     }
 
     function resetUserScopedRuntimeData() {
@@ -5131,11 +5092,14 @@
     }
 
     async function getShopItemsForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(firestoreShopItems, shopItemsLoadPromise, () => (
+      const cached = window.DJ48ShopData.getCachedValue(
+        window.DJ48ShopState.getShopItems(),
+        window.DJ48ShopState.getShopItemsLoadPromise(),
+        () => (
         loadShopItemsFromFirestore()
           .then(items => {
             const result = window.DJ48ShopData.buildShopItemsResult(items, SHOP_ITEMS);
-            if(items.length) firestoreShopItems = result;
+            if(items.length) window.DJ48ShopState.setShopItems(result);
             return result;
           })
           .catch(error => {
@@ -5143,29 +5107,23 @@
             return SHOP_ITEMS;
           })
       ));
-      shopItemsLoadPromise = cached.loadPromise || shopItemsLoadPromise || cached.value;
-      if(firestoreShopItems) return firestoreShopItems;
-      return shopItemsLoadPromise;
+      window.DJ48ShopState.setShopItemsLoadPromise(
+        cached.loadPromise || window.DJ48ShopState.getShopItemsLoadPromise() || cached.value
+      );
+      if(window.DJ48ShopState.getShopItems()) return window.DJ48ShopState.getShopItems();
+      return window.DJ48ShopState.getShopItemsLoadPromise();
     }
 
     function resetShopRuntimeData() {
-      firestoreShopItems = null;
-      shopItemsLoadPromise = null;
-      firestoreAssetCatalogMap = null;
-      assetCatalogLoadPromise = null;
-      resetUserEconomyCache();
-      firestoreInventoryItemIds = null;
-      inventoryLoadPromise = null;
+      window.DJ48ShopState.resetShopRuntimeData();
     }
 
     function resetUserEconomyCache() {
-      firestoreUserEconomy = null;
-      userEconomyLoadPromise = null;
+      window.DJ48ShopState.resetUserEconomyCache();
     }
 
     function resetRoomSettingsCache() {
-      firestoreRoomSettings = null;
-      roomSettingsLoadPromise = null;
+      window.DJ48ShopState.resetRoomSettingsCache();
     }
 
     async function loadAssetCatalogFromFirestore() {
@@ -5173,10 +5131,13 @@
     }
 
     async function getAssetCatalogMap() {
-      const cached = window.DJ48ShopData.getCachedValue(firestoreAssetCatalogMap, assetCatalogLoadPromise, () => (
+      const cached = window.DJ48ShopData.getCachedValue(
+        window.DJ48ShopState.getAssetCatalogMap(),
+        window.DJ48ShopState.getAssetCatalogLoadPromise(),
+        () => (
         loadAssetCatalogFromFirestore()
           .then(assetMap => {
-            firestoreAssetCatalogMap = assetMap;
+            window.DJ48ShopState.setAssetCatalogMap(assetMap);
             return assetMap;
           })
           .catch(error => {
@@ -5184,9 +5145,11 @@
             return {};
           })
       ));
-      assetCatalogLoadPromise = cached.loadPromise || assetCatalogLoadPromise || cached.value;
-      if(firestoreAssetCatalogMap) return firestoreAssetCatalogMap;
-      return assetCatalogLoadPromise;
+      window.DJ48ShopState.setAssetCatalogLoadPromise(
+        cached.loadPromise || window.DJ48ShopState.getAssetCatalogLoadPromise() || cached.value
+      );
+      if(window.DJ48ShopState.getAssetCatalogMap()) return window.DJ48ShopState.getAssetCatalogMap();
+      return window.DJ48ShopState.getAssetCatalogLoadPromise();
     }
 
     async function migrateUserEconomyToMemberId(db, sourceUid, memberUserId) {
@@ -5316,18 +5279,22 @@
     }
 
     async function getUserEconomyForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(firestoreUserEconomy, userEconomyLoadPromise, () => (
+      const cached = window.DJ48ShopData.getCachedValue(
+        window.DJ48ShopState.getUserEconomy(),
+        window.DJ48ShopState.getUserEconomyLoadPromise(),
+        () => (
         loadUserEconomyFromFirestore()
           .then(async economy => {
             const ownerId = getCurrentDataOwnerId();
-            firestoreUserEconomy = await window.DJ48ShopData.buildUserEconomyForRender({
+            const userEconomy = await window.DJ48ShopData.buildUserEconomyForRender({
               economy,
               ownerId,
               ensureUserEconomyInitialized,
               fallbackCoin: USER_REWARD_DATA.coin,
               useStaticRewardFallback: false
             });
-            return firestoreUserEconomy;
+            window.DJ48ShopState.setUserEconomy(userEconomy);
+            return userEconomy;
           })
           .catch(error => {
             console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
@@ -5338,9 +5305,11 @@
             });
           })
       ));
-      userEconomyLoadPromise = cached.loadPromise || userEconomyLoadPromise || cached.value;
-      if(firestoreUserEconomy) return firestoreUserEconomy;
-      return userEconomyLoadPromise;
+      window.DJ48ShopState.setUserEconomyLoadPromise(
+        cached.loadPromise || window.DJ48ShopState.getUserEconomyLoadPromise() || cached.value
+      );
+      if(window.DJ48ShopState.getUserEconomy()) return window.DJ48ShopState.getUserEconomy();
+      return window.DJ48ShopState.getUserEconomyLoadPromise();
     }
 
     async function loadInventoryItemIdsFromFirestore() {
@@ -5357,10 +5326,13 @@
     }
 
     async function getInventoryItemIdsForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(firestoreInventoryItemIds, inventoryLoadPromise, () => (
+      const cached = window.DJ48ShopData.getCachedValue(
+        window.DJ48ShopState.getInventoryItemIds(),
+        window.DJ48ShopState.getInventoryLoadPromise(),
+        () => (
         loadInventoryItemIdsFromFirestore()
           .then(itemIds => {
-            firestoreInventoryItemIds = itemIds;
+            window.DJ48ShopState.setInventoryItemIds(itemIds);
             return itemIds;
           })
           .catch(error => {
@@ -5368,9 +5340,11 @@
             return new Set();
           })
       ));
-      inventoryLoadPromise = cached.loadPromise || inventoryLoadPromise || cached.value;
-      if(firestoreInventoryItemIds) return firestoreInventoryItemIds;
-      return inventoryLoadPromise;
+      window.DJ48ShopState.setInventoryLoadPromise(
+        cached.loadPromise || window.DJ48ShopState.getInventoryLoadPromise() || cached.value
+      );
+      if(window.DJ48ShopState.getInventoryItemIds()) return window.DJ48ShopState.getInventoryItemIds();
+      return window.DJ48ShopState.getInventoryLoadPromise();
     }
 
     async function loadRoomSettingsFromFirestore() {
@@ -5387,10 +5361,13 @@
     }
 
     async function getRoomSettingsForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(firestoreRoomSettings, roomSettingsLoadPromise, () => (
+      const cached = window.DJ48ShopData.getCachedValue(
+        window.DJ48ShopState.getRoomSettings(),
+        window.DJ48ShopState.getRoomSettingsLoadPromise(),
+        () => (
         loadRoomSettingsFromFirestore()
           .then(settings => {
-            firestoreRoomSettings = settings;
+            window.DJ48ShopState.setRoomSettings(settings);
             return settings;
           })
           .catch(error => {
@@ -5398,9 +5375,11 @@
             return getDefaultRoomSettings();
           })
       ));
-      roomSettingsLoadPromise = cached.loadPromise || roomSettingsLoadPromise || cached.value;
-      if(firestoreRoomSettings) return firestoreRoomSettings;
-      return roomSettingsLoadPromise;
+      window.DJ48ShopState.setRoomSettingsLoadPromise(
+        cached.loadPromise || window.DJ48ShopState.getRoomSettingsLoadPromise() || cached.value
+      );
+      if(window.DJ48ShopState.getRoomSettings()) return window.DJ48ShopState.getRoomSettings();
+      return window.DJ48ShopState.getRoomSettingsLoadPromise();
     }
 
     async function getShopRenderData() {
@@ -5527,14 +5506,16 @@
     }
 
     async function loadClassroomSettings(forceRefresh = false) {
-      if(classroomSettingsCache && !forceRefresh) return classroomSettingsCache;
-      classroomSettingsCache = await window.DJ48ClassroomData.loadClassroomSettings({
+      if(window.DJ48ClassroomState.getValue('settings') && !forceRefresh) {
+        return window.DJ48ClassroomState.getValue('settings');
+      }
+      const settings = await window.DJ48ClassroomData.loadClassroomSettings({
         prototype: CLASSROOM_PROTOTYPE
       }, {
         getFirestoreDb,
         warn: console.warn
       });
-      return classroomSettingsCache;
+      return window.DJ48ClassroomState.setValue('settings', settings);
     }
 
     function isCurrentClassroomTeacher(settings = CLASSROOM_PROTOTYPE) {
@@ -5542,115 +5523,115 @@
     }
 
     async function loadClassroomQuestProgress(forceRefresh = false) {
-      if(classroomProgressCache && !forceRefresh) return classroomProgressCache;
-      if(classroomProgressLoadPromise && !forceRefresh) return classroomProgressLoadPromise;
+      if(window.DJ48ClassroomState.getValue('progress') && !forceRefresh) return window.DJ48ClassroomState.getValue('progress');
+      if(window.DJ48ClassroomState.getLoadPromise('progress') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('progress');
       const db = getFirestoreDb();
       const settings = await loadClassroomSettings();
-      classroomProgressLoadPromise = window.DJ48ClassroomData.loadClassroomQuestProgress({
+      const loadPromise = window.DJ48ClassroomData.loadClassroomQuestProgress({
         db,
         settings,
         memberUserId: currentMemberUserId
       }).then(progress => {
-        classroomProgressCache = progress;
-        return classroomProgressCache;
+        return window.DJ48ClassroomState.setValue('progress', progress);
       }).finally(() => {
-        classroomProgressLoadPromise = null;
+        window.DJ48ClassroomState.setLoadPromise('progress', null);
       });
-      return classroomProgressLoadPromise;
+      window.DJ48ClassroomState.setLoadPromise('progress', loadPromise);
+      return loadPromise;
     }
 
     async function loadClassroomWallet(settings, forceRefresh = false) {
-      if(classroomWalletCache && !forceRefresh) return classroomWalletCache;
-      if(classroomWalletLoadPromise && !forceRefresh) return classroomWalletLoadPromise;
+      if(window.DJ48ClassroomState.getValue('wallet') && !forceRefresh) return window.DJ48ClassroomState.getValue('wallet');
+      if(window.DJ48ClassroomState.getLoadPromise('wallet') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('wallet');
       const db = getFirestoreDb();
-      classroomWalletLoadPromise = window.DJ48ClassroomData.loadClassroomWallet({
+      const loadPromise = window.DJ48ClassroomData.loadClassroomWallet({
         db,
         settings,
         memberUserId: currentMemberUserId
       }, {
         warn: console.warn
       }).then(wallet => {
-        classroomWalletCache = wallet;
-        return classroomWalletCache;
+        return window.DJ48ClassroomState.setValue('wallet', wallet);
       }).finally(() => {
-        classroomWalletLoadPromise = null;
+        window.DJ48ClassroomState.setLoadPromise('wallet', null);
       });
-      return classroomWalletLoadPromise;
+      window.DJ48ClassroomState.setLoadPromise('wallet', loadPromise);
+      return loadPromise;
     }
 
     async function loadClassroomGemProgress(settings, forceRefresh = false) {
-      if(classroomGemProgressCache && !forceRefresh) return classroomGemProgressCache;
-      if(classroomGemProgressLoadPromise && !forceRefresh) return classroomGemProgressLoadPromise;
+      if(window.DJ48ClassroomState.getValue('gems') && !forceRefresh) return window.DJ48ClassroomState.getValue('gems');
+      if(window.DJ48ClassroomState.getLoadPromise('gems') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('gems');
       const db = getFirestoreDb();
-      classroomGemProgressLoadPromise = window.DJ48ClassroomData.loadClassroomGemProgress({
+      const loadPromise = window.DJ48ClassroomData.loadClassroomGemProgress({
         db,
         settings,
         memberUserId: currentMemberUserId
       }, {
         warn: console.warn
       }).then(progress => {
-        classroomGemProgressCache = progress;
-        return classroomGemProgressCache;
+        return window.DJ48ClassroomState.setValue('gems', progress);
       }).finally(() => {
-        classroomGemProgressLoadPromise = null;
+        window.DJ48ClassroomState.setLoadPromise('gems', null);
       });
-      return classroomGemProgressLoadPromise;
+      window.DJ48ClassroomState.setLoadPromise('gems', loadPromise);
+      return loadPromise;
     }
 
     async function loadClassroomStudentCards(settings, forceRefresh = false) {
-      if(classroomStudentCardsCache && !forceRefresh) return classroomStudentCardsCache;
-      if(classroomStudentCardsLoadPromise && !forceRefresh) return classroomStudentCardsLoadPromise;
-      classroomStudentCardsLoadPromise = window.DJ48ClassroomData.loadClassroomStudentCards({
+      if(window.DJ48ClassroomState.getValue('students') && !forceRefresh) return window.DJ48ClassroomState.getValue('students');
+      if(window.DJ48ClassroomState.getLoadPromise('students') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('students');
+      const loadPromise = window.DJ48ClassroomData.loadClassroomStudentCards({
         settings,
         memberUserId: currentMemberUserId
       }, {
         getFirebaseFunctions,
         warn: console.warn
       }).then(students => {
-        classroomStudentCardsCache = students;
-        return classroomStudentCardsCache;
+        return window.DJ48ClassroomState.setValue('students', students);
       }).finally(() => {
-        classroomStudentCardsLoadPromise = null;
+        window.DJ48ClassroomState.setLoadPromise('students', null);
       });
-      return classroomStudentCardsLoadPromise;
+      window.DJ48ClassroomState.setLoadPromise('students', loadPromise);
+      return loadPromise;
     }
 
     async function loadClassroomEconomyBoard(settings, forceRefresh = false) {
-      if(classroomEconomyBoardCache && !forceRefresh) return classroomEconomyBoardCache;
-      if(classroomEconomyBoardLoadPromise && !forceRefresh) return classroomEconomyBoardLoadPromise;
-      classroomEconomyBoardLoadPromise = window.DJ48ClassroomData.loadClassroomEconomyBoard({
+      if(window.DJ48ClassroomState.getValue('economy') && !forceRefresh) return window.DJ48ClassroomState.getValue('economy');
+      if(window.DJ48ClassroomState.getLoadPromise('economy') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('economy');
+      const loadPromise = window.DJ48ClassroomData.loadClassroomEconomyBoard({
         settings,
         memberUserId: currentMemberUserId
       }, {
         getFirebaseFunctions,
         warn: console.warn
       }).then(board => {
-        classroomEconomyBoardCache = board;
-        return classroomEconomyBoardCache;
+        return window.DJ48ClassroomState.setValue('economy', board);
       }).finally(() => {
-        classroomEconomyBoardLoadPromise = null;
+        window.DJ48ClassroomState.setLoadPromise('economy', null);
       });
-      return classroomEconomyBoardLoadPromise;
+      window.DJ48ClassroomState.setLoadPromise('economy', loadPromise);
+      return loadPromise;
     }
 
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
       if(!isCurrentClassroomTeacher(settings)) return [];
-      if(classroomReviewCache && !forceRefresh) return classroomReviewCache;
-      if(classroomReviewLoadPromise && !forceRefresh) return classroomReviewLoadPromise;
+      if(window.DJ48ClassroomState.getValue('review') && !forceRefresh) return window.DJ48ClassroomState.getValue('review');
+      if(window.DJ48ClassroomState.getLoadPromise('review') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('review');
       const db = getFirestoreDb();
-      classroomReviewLoadPromise = window.DJ48ClassroomData.loadClassroomReviewItems({
+      const loadPromise = window.DJ48ClassroomData.loadClassroomReviewItems({
         db,
         settings,
         canReview: isCurrentClassroomTeacher(settings)
       }, {
         warn: console.warn
       }).then(items => {
-        classroomReviewCache = items;
-        return classroomReviewCache;
+        return window.DJ48ClassroomState.setValue('review', items);
       }).finally(() => {
-        classroomReviewLoadPromise = null;
+        window.DJ48ClassroomState.setLoadPromise('review', null);
       });
-      return classroomReviewLoadPromise;
+      window.DJ48ClassroomState.setLoadPromise('review', loadPromise);
+      return loadPromise;
     }
 
     function renderClassroomReviewList(settings, reviewItems = [], options = {}) {
@@ -6170,21 +6151,23 @@
     }
 
     async function loadEventProgress(forceRefresh = false) {
-      if(eventProgressCache && !forceRefresh) return eventProgressCache;
-      if(eventProgressLoadPromise && !forceRefresh) return eventProgressLoadPromise;
-      eventProgressLoadPromise = window.DJ48EventData.loadEventProgress({
+      if(window.DJ48EventState.getEventProgress() && !forceRefresh) return window.DJ48EventState.getEventProgress();
+      if(window.DJ48EventState.getEventProgressLoadPromise() && !forceRefresh) {
+        return window.DJ48EventState.getEventProgressLoadPromise();
+      }
+      const loadPromise = window.DJ48EventData.loadEventProgress({
         memberUserId: currentMemberUserId
       }, {
         getFirebaseFunctions
       })
         .then(progress => {
-          eventProgressCache = progress || null;
-          return eventProgressCache;
+          return window.DJ48EventState.setEventProgress(progress);
         })
         .finally(() => {
-          eventProgressLoadPromise = null;
+          window.DJ48EventState.setEventProgressLoadPromise(null);
         });
-      return eventProgressLoadPromise;
+      window.DJ48EventState.setEventProgressLoadPromise(loadPromise);
+      return loadPromise;
     }
 
     async function renderEventProgressFromFunctions(forceRefresh = false) {
@@ -6818,10 +6801,7 @@
         getFirebaseFunctions,
         initializeAuthUser
       });
-      firestoreShopItems = null;
-      shopItemsLoadPromise = null;
-      firestoreAssetCatalogMap = null;
-      assetCatalogLoadPromise = null;
+      window.DJ48ShopState.resetShopRuntimeData();
       await loadAdminRoomCatalog();
       setAdminRoomCatalogStatus(`${values.name} 저장 완료`);
       return result.item;
