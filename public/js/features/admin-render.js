@@ -311,6 +311,38 @@
     });
   }
 
+  function renderAdminMemberDetail(data) {
+    const content = document.getElementById('admin-member-detail-content');
+    const title = document.getElementById('admin-member-detail-title');
+    const desc = document.getElementById('admin-member-detail-desc');
+    if(!content) return;
+    const profile = data.profile || {};
+    title.textContent = `${profile.nickname || '이름 없음'} · ${data.memberUserId}`;
+    desc.textContent = `${profile.school || '동자'} ${profile.grade || '-'}학년 ${profile.classNumber || '-'}반 ${profile.studentNumber || '-'}번`;
+    content.innerHTML = '';
+
+    const metrics = document.createElement('div');
+    metrics.className = 'admin-detail-metrics';
+    metrics.append(
+      createAdminDetailMetric('연결', profile.authLinked ? '연결됨' : '연결 없음'),
+      createAdminDetailMetric('비밀번호', getAdminPasswordStateLabel({ passwordState: data.passwordState })),
+      createAdminDetailMetric('DJ코인', Number(data.economy?.djCoin || 0)),
+      createAdminDetailMetric('베리', Number(data.classroomWallet?.berry || 0)),
+      createAdminDetailMetric('연습 기록', Number(data.practiceSummary?.recordCount || 0)),
+      createAdminDetailMetric('완주 별', Number(data.practiceSummary?.totalStars || 0)),
+      createAdminDetailMetric('칭호', Number(data.titleSummary?.ownedCount || data.counts?.titles || 0)),
+      createAdminDetailMetric('뱃지', Number(data.counts?.badges || 0)),
+      createAdminDetailMetric('대표 칭호', data.titleSummary?.selectedTitleName || data.titleSummary?.selectedTitleId || '없음')
+    );
+
+    content.append(
+      metrics,
+      createAdminDetailList('최근 연습 기록', data.practiceRecords || [], row => `${row.area || '-'} / ${row.detail || row.areaKey || '-'} · ${row.correctCount}/${row.totalCount} · 별 ${row.starCount} · ${formatAdminTimestamp(row.updatedAt)}`),
+      createAdminDetailList('보유 뱃지', data.badges || [], row => `${row.label || row.badgeId} · ${row.correct}/${row.total} · 별 ${row.starCount}${row.completed ? ' · 완료' : ''}`),
+      createAdminDetailList('보유 칭호', data.titles || [], row => `${row.selected ? '대표 · ' : ''}${row.titleName || row.titleId}`)
+    );
+  }
+
   function renderAdminRoomCatalogList(items = [], deps = {}) {
     const root = document.getElementById('admin-room-catalog-list');
     const onEdit = deps.onEdit;
@@ -392,6 +424,7 @@
     renderAdminQuizQualityAudit,
     renderAdminSummary,
     renderAdminMemberList,
+    renderAdminMemberDetail,
     renderAdminDashboard,
     renderAdminRoomCatalogList,
     renderAdminLogs
