@@ -106,6 +106,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved classroom gate unlock, entry-code status, and tab activation DOM helpers into `public/js/features/classroom-form.js`.
    - Moved classroom teacher save callables for quests, badge campaigns, jobs, and shop items into `public/js/features/classroom-data.js`.
    - Moved classroom student economy actions, routine save, quest completion, and quest review callables into `public/js/features/classroom-data.js`.
+   - Consolidated classroom, event progress, and user economy cache reset helpers in `public/index.html`.
 8. Final cleanup.
    - Update docs, run full smoke, and declare the second clean-architecture round closed.
 

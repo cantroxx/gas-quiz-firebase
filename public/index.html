@@ -2125,7 +2125,7 @@
       externalQuizzesCache = null;
       externalQuizzesLoadPromise = null;
       adminDashboardCache = null;
-      eventProgressCache = null;
+      resetEventProgressCache();
       Object.keys(firebaseQuizDataCache).forEach(key => delete firebaseQuizDataCache[key]);
       resetShopRuntimeData();
       resetRoomSettingsCache();
@@ -4740,21 +4740,41 @@
       return getCurrentDataOwnerId() === TEST_SHOP_USER_ID;
     }
 
+    function resetClassroomDataCaches(options = {}) {
+      if(options.settings) classroomSettingsCache = null;
+      if(options.progress) classroomProgressCache = null;
+      if(options.review) classroomReviewCache = null;
+      if(options.wallet) classroomWalletCache = null;
+      if(options.gems) classroomGemProgressCache = null;
+      if(options.students) classroomStudentCardsCache = null;
+      if(options.economy) classroomEconomyBoardCache = null;
+    }
+
+    function resetClassroomRuntimeData() {
+      resetClassroomDataCaches({
+        progress: true,
+        review: true,
+        wallet: true,
+        gems: true,
+        students: true,
+        economy: true
+      });
+      classroomProgressLoadPromise = null;
+      classroomReviewLoadPromise = null;
+      classroomWalletLoadPromise = null;
+      classroomGemProgressLoadPromise = null;
+      classroomStudentCardsLoadPromise = null;
+      classroomEconomyBoardLoadPromise = null;
+    }
+
+    function resetEventProgressCache() {
+      eventProgressCache = null;
+    }
+
     function resetUserScopedRuntimeData() {
       resetShopRuntimeData();
       resetRoomSettingsCache();
-      classroomProgressCache = null;
-      classroomProgressLoadPromise = null;
-      classroomReviewCache = null;
-      classroomReviewLoadPromise = null;
-      classroomWalletCache = null;
-      classroomWalletLoadPromise = null;
-      classroomGemProgressCache = null;
-      classroomGemProgressLoadPromise = null;
-      classroomStudentCardsCache = null;
-      classroomStudentCardsLoadPromise = null;
-      classroomEconomyBoardCache = null;
-      classroomEconomyBoardLoadPromise = null;
+      resetClassroomRuntimeData();
       userDataMigrationPromise = null;
     }
 
@@ -5123,10 +5143,14 @@
       shopItemsLoadPromise = null;
       firestoreAssetCatalogMap = null;
       assetCatalogLoadPromise = null;
-      firestoreUserEconomy = null;
-      userEconomyLoadPromise = null;
+      resetUserEconomyCache();
       firestoreInventoryItemIds = null;
       inventoryLoadPromise = null;
+    }
+
+    function resetUserEconomyCache() {
+      firestoreUserEconomy = null;
+      userEconomyLoadPromise = null;
     }
 
     function resetRoomSettingsCache() {
@@ -5722,7 +5746,7 @@
           badgeType: 'gem',
           badgeId: gemId
         });
-        classroomStudentCardsCache = null;
+        resetClassroomDataCaches({ students: true });
         await renderClassroomPrototype(true);
         window.alert('대표 뱃지를 설정했습니다.');
       } catch(error) {
@@ -5833,11 +5857,13 @@
         }, {
           getFirebaseFunctions
         });
-        classroomSettingsCache = null;
-        classroomProgressCache = null;
-        classroomReviewCache = null;
-        classroomWalletCache = null;
-        classroomGemProgressCache = null;
+        resetClassroomDataCaches({
+          settings: true,
+          progress: true,
+          review: true,
+          wallet: true,
+          gems: true
+        });
         resetClassroomQuestForm();
         setClassroomQuestEditorStatus('퀘스트를 저장했습니다.');
         await renderClassroomPrototype(true);
@@ -5879,7 +5905,7 @@
         }, {
           getFirebaseFunctions
         });
-        classroomStudentCardsCache = null;
+        resetClassroomDataCaches({ students: true });
         await renderClassroomPrototype(true);
         const winnerText = Array.isArray(result.winners) && result.winners.length
           ? `${result.winners.length}명에게 뱃지를 지급했습니다.`
@@ -5921,7 +5947,7 @@
         }, {
           getFirebaseFunctions
         });
-        classroomEconomyBoardCache = null;
+        resetClassroomDataCaches({ economy: true });
         resetClassroomJobForm();
         setClassroomJobEditorStatus('직업을 저장했습니다.');
         await renderClassroomPrototype(true);
@@ -5961,7 +5987,7 @@
         }, {
           getFirebaseFunctions
         });
-        classroomEconomyBoardCache = null;
+        resetClassroomDataCaches({ economy: true });
         resetClassroomShopItemForm();
         setClassroomShopEditorStatus('상품을 저장했습니다.');
         await renderClassroomPrototype(true);
@@ -5991,8 +6017,7 @@
         }, {
           getFirebaseFunctions
         });
-        classroomEconomyBoardCache = null;
-        classroomWalletCache = null;
+        resetClassroomDataCaches({ economy: true, wallet: true });
         await renderClassroomPrototype(true);
         return result;
       } catch(error) {
@@ -6085,7 +6110,7 @@
         }, {
           getFirebaseFunctions
         });
-        classroomEconomyBoardCache = null;
+        resetClassroomDataCaches({ economy: true });
         resetClassroomRoutineForm();
         setClassroomRoutineStatus('성장루틴을 저장했습니다.');
         await renderClassroomPrototype(true);
@@ -6136,11 +6161,8 @@
           }, {
             getFirebaseFunctions
           });
-          classroomProgressCache = null;
-          classroomWalletCache = null;
-          classroomGemProgressCache = null;
-          firestoreUserEconomy = null;
-          userEconomyLoadPromise = null;
+          resetClassroomDataCaches({ progress: true, wallet: true, gems: true });
+          resetUserEconomyCache();
           await renderClassroomPrototype(true);
           if(result.duplicate) {
             window.alert('오늘 이미 완료한 퀘스트예요.');
@@ -6160,7 +6182,7 @@
         }, {
           getFirestoreFieldValue
         });
-        classroomProgressCache = null;
+        resetClassroomDataCaches({ progress: true });
         await renderClassroomPrototype(true);
       } catch(error) {
         console.warn('Classroom quest progress save failed.', error);
@@ -6198,12 +6220,13 @@
         }, {
           getFirebaseFunctions
         });
-        classroomReviewCache = null;
-        classroomProgressCache = null;
-        classroomWalletCache = null;
-        classroomGemProgressCache = null;
-        firestoreUserEconomy = null;
-        userEconomyLoadPromise = null;
+        resetClassroomDataCaches({
+          review: true,
+          progress: true,
+          wallet: true,
+          gems: true
+        });
+        resetUserEconomyCache();
         await renderClassroomPrototype(true);
         if(document.getElementById('admin-section-classroom')?.classList.contains('is-active')) {
           await renderAdminClassroomReview(true);
@@ -6272,9 +6295,8 @@
         }, {
           getFirebaseFunctions
         });
-        firestoreUserEconomy = null;
-        userEconomyLoadPromise = null;
-        eventProgressCache = null;
+        resetUserEconomyCache();
+        resetEventProgressCache();
         debugLog('Event quest reward claimed:', {
           questId,
           rewardCoin: result.rewardCoin || 0,
@@ -7458,10 +7480,7 @@
         syncMemberTitlesAfterPracticeCompletion
       };
       const cacheDeps = {
-        resetUserEconomyCache: () => {
-          firestoreUserEconomy = null;
-          userEconomyLoadPromise = null;
-        },
+        resetUserEconomyCache,
         resetTitleCatalogCache: () => {
           titleCatalogCache = null;
           titleCatalogMapCache = null;
