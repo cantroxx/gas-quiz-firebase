@@ -1,15 +1,26 @@
-# DJ48 Firebase Refactor Remaining Steps
+# DJ48 Firebase Refactor Status
 
 ## Current Baseline
 
-- Completed through step 9D.
-- Latest committed step 9D baseline: `46a7fb3 refactor: split quiz question dom helpers`
+- First clean-architecture refactor round is code-complete through Step 13I.
+- Latest committed Step 13I baseline: `58e800f refactor: move quiz next routing`
 - Main app source remains `public/index.html`.
-- New browser globals added so existing app code can keep its current function and constant names:
+- Feature modules now own the extracted data/render/helper/quiz-flow implementations:
   - `window.DJ48_PLACE_DETAILS`
   - `window.DJ48Format`
   - `window.DJ48Firebase`
   - `window.DJ48QuizCatalog`
+  - `window.DJ48AdminRender`
+  - `window.DJ48HomeRender`
+  - `window.DJ48ShopRender`
+  - `window.DJ48RankingData`
+  - `window.DJ48RankingRender`
+  - `window.DJ48QuizPlay`
+- `public/index.html` intentionally keeps thin wrappers, app state, event wiring, and remaining save/auth/view orchestration.
+- Final status before closing this round:
+  - code movement: complete
+  - commit/push/deploy: complete through Step 13I
+  - browser smoke test: pending user confirmation
 
 ## Completed Steps
 
@@ -95,7 +106,7 @@ Kept in `public/index.html`:
 - Room setting writes
 - User data migration
 
-## Remaining Steps
+## Refactor Timeline
 
 ### Step 8: Ranking Plaza Read/Render
 
@@ -917,6 +928,35 @@ Step 13I implemented:
   - ranking quiz start, answer submit, heart loss, question/session timeout
   - ranking completion save and elapsed-too-long skip
   - back-to-mode-select and home/profile reflection
+
+## Closeout Status
+
+This first clean-architecture refactor round is code-complete.
+
+No further code movement is required for this round unless smoke testing finds a regression.
+
+User smoke-test checklist before declaring final closure:
+
+- Practice flow:
+  - start a practice quiz
+  - submit a correct answer
+  - move to the next question
+  - finish the quiz
+  - confirm progress/reward/badge state still updates
+- Ranking flow:
+  - start a ranking quiz
+  - submit a correct answer
+  - submit or time out a wrong answer and confirm heart loss
+  - finish the ranking run
+  - confirm ranking save status appears
+- Navigation/profile flow:
+  - return to mode selection
+  - return home
+  - confirm profile/ranking/badge/title summaries still render
+- Optional edge check:
+  - let ranking session exceed the time limit and confirm the elapsed-too-long skip message appears
+
+If these pass, mark this refactor round closed and start future work as a new scoped refactor or feature task.
 
 ## Step 7 Validation Checklist
 
