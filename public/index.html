@@ -7934,8 +7934,6 @@
     }
 
     function showHomeView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       if(currentMemberUserId) {
         renderHomeView();
       } else {
@@ -7943,9 +7941,13 @@
           if(!document.getElementById('home-view')?.hidden) renderHomeView();
         });
       }
-      updatePlaceInfo(PLACE_DETAILS.home);
-      updatePlayerLocation(PLACE_DETAILS.home);
-      showOnlyAppView('home-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'home-view',
+        place: PLACE_DETAILS.home
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     function isRoomDecorPortraitBlocked() {
@@ -7971,22 +7973,22 @@
     }
 
     async function showRankingView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       const flags = await loadFeatureFlags();
       if(flags.rankingEnabled === false) {
         window.alert('랭킹 광장은 지금 점검 중입니다.');
         return;
       }
       renderRankingView();
-      updatePlaceInfo(PLACE_DETAILS.ranking);
-      updatePlayerLocation(PLACE_DETAILS.ranking);
-      showOnlyAppView('ranking-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'ranking-view',
+        place: PLACE_DETAILS.ranking
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     async function showShopView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       const flags = await loadFeatureFlags();
       if(flags.shopEnabled === false) {
         window.alert('상점은 지금 점검 중입니다.');
@@ -7994,9 +7996,13 @@
       }
       renderShopWallet();
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
-      updatePlaceInfo(PLACE_DETAILS.shop);
-      updatePlayerLocation(PLACE_DETAILS.shop);
-      showOnlyAppView('shop-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'shop-view',
+        place: PLACE_DETAILS.shop
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
 
       initializeAuthUser().then(renderShopFromFirestore);
     }
