@@ -426,6 +426,71 @@
     }, edit, deps);
   }
 
+  async function uploadProfileImageToStorage(options = {}) {
+    const {
+      storage,
+      authUid,
+      memberUserId,
+      file
+    } = options;
+    if(!storage) throw new Error('storage-unavailable');
+
+    const extension = getProfileImageFileExtension(file);
+    const path = buildProfileImageStoragePath({
+      authUid,
+      memberUserId,
+      extension
+    });
+    const ref = storage.ref(path);
+    await ref.put(file, {
+      contentType: file.type,
+      customMetadata: {
+        memberUserId,
+        source: 'profile-upload'
+      }
+    });
+    const downloadUrl = await ref.getDownloadURL();
+    return { downloadUrl, path };
+  }
+
+  async function saveProfileImageEditorSelection(options = {}, deps = {}) {
+    const {
+      db,
+      memberUserId,
+      editorState,
+      edit,
+      storage,
+      authUid,
+      currentProfile
+    } = options;
+    if(!memberUserId) throw new Error('member-required');
+    if(!editorState) return null;
+    if(!db) throw new Error('firestore-unavailable');
+
+    let uploadResult = null;
+    if(editorState.source === 'upload') {
+      uploadResult = await uploadProfileImageToStorage({
+        storage,
+        authUid,
+        memberUserId,
+        file: editorState.file
+      });
+    }
+    const updateData = buildUploadedProfileImageUpdate(editorState, uploadResult || {}, edit, deps);
+    await saveUserProfileUpdate({
+      db,
+      memberUserId,
+      updateData
+    });
+    return {
+      updateData,
+      nextProfile: {
+        ...(currentProfile || {}),
+        ...updateData
+      }
+    };
+  }
+
   function buildRankingMessageUpdate(message, deps = {}) {
     const fieldValue = deps.getFirestoreFieldValue?.();
     return {
@@ -563,6 +628,8 @@
     buildProfileImageUpdate,
     saveUserProfileUpdate,
     buildUploadedProfileImageUpdate,
+    uploadProfileImageToStorage,
+    saveProfileImageEditorSelection,
     buildRankingMessageUpdate,
     saveRankingMessageForMember,
     buildSelectedTitleUpdate,

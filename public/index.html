@@ -2782,10 +2782,6 @@
       openProfileImageEditor(editorOptions);
     }
 
-    function getProfileImageFileExtension(file) {
-      return window.DJ48AccountData.getProfileImageFileExtension(file);
-    }
-
     function readProfileImageFilePreview(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -2857,29 +2853,6 @@
       profileImageEditorState = null;
     }
 
-    async function uploadProfileImageToStorage(file) {
-      const storage = getFirebaseStorage();
-      if(!storage) throw new Error('storage-unavailable');
-      await initializeAuthUser();
-      const authUid = window.firebase?.auth?.().currentUser?.uid || '';
-      const extension = getProfileImageFileExtension(file);
-      const path = window.DJ48AccountData.buildProfileImageStoragePath({
-        authUid,
-        memberUserId: currentMemberUserId,
-        extension
-      });
-      const ref = storage.ref(path);
-      await ref.put(file, {
-        contentType: file.type,
-        customMetadata: {
-          memberUserId: currentMemberUserId,
-          source: 'profile-upload'
-        }
-      });
-      const downloadUrl = await ref.getDownloadURL();
-      return { downloadUrl, path };
-    }
-
     async function saveProfileImageEditorSelection() {
       if(!currentMemberUserId) throw new Error('member-required');
       if(!profileImageEditorState) return;
@@ -2891,22 +2864,18 @@
       if(saveButton) saveButton.disabled = true;
       setProfileImageEditorStatus('프로필 이미지를 저장하고 있습니다...');
       try {
-        let uploadResult = null;
-        if(profileImageEditorState.source === 'upload') {
-          uploadResult = await uploadProfileImageToStorage(profileImageEditorState.file);
-        }
-        const updateData = window.DJ48AccountData.buildUploadedProfileImageUpdate(profileImageEditorState, uploadResult || {}, edit, {
-          getFirestoreFieldValue
-        });
-        await window.DJ48AccountData.saveUserProfileUpdate({
+        const result = await window.DJ48AccountData.saveProfileImageEditorSelection({
           db,
           memberUserId: currentMemberUserId,
-          updateData
+          editorState: profileImageEditorState,
+          edit,
+          storage: getFirebaseStorage(),
+          authUid: window.firebase?.auth?.().currentUser?.uid || '',
+          currentProfile: currentMemberProfile
+        }, {
+          getFirestoreFieldValue
         });
-        currentMemberProfile = {
-          ...(currentMemberProfile || {}),
-          ...updateData
-        };
+        currentMemberProfile = result?.nextProfile || currentMemberProfile;
         closeProfileImageEditor();
         renderHomeMemberDataFromFirestore();
       } catch(error) {
