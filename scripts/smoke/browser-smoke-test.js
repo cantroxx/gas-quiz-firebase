@@ -89,6 +89,7 @@ async function runPublicShellCheck(page, config) {
       homeRender: !!window.DJ48HomeRender,
       eventData: !!window.DJ48EventData,
       classroomData: !!window.DJ48ClassroomData,
+      shopDomain: hasScript('/js/domain/shop-domain.js') ? !!window.DJ48ShopDomain : true,
       shopData: !!window.DJ48ShopData,
       rankingData: !!window.DJ48RankingData
     };
@@ -121,6 +122,7 @@ async function runPublicShellCheck(page, config) {
     homeRender: true,
     eventData: true,
     classroomData: true,
+    shopDomain: true,
     shopData: true,
     rankingData: true
   });
