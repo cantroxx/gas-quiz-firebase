@@ -762,6 +762,32 @@ Step 13C implemented:
   - practice completion can trigger title sync
   - profile/home title and badge displays remain normal
 
+Step 13D implemented:
+
+- Moved ranking save execution body into `public/js/features/quiz-play.js`:
+  - `saveRankingRecordOnQuizComplete`
+- Kept the existing `public/index.html` function name as a thin wrapper.
+- Preserved Firestore paths and write order:
+  - `rankingRecords/{recordId}`
+  - `userRankingSummary/{memberUserId}`
+  - `quizKingSummary/{memberUserId}`
+  - batch writes still set ranking record, user summary, quiz king summary in the same order
+- Preserved skip/error behavior:
+  - non-ranking mode returns `null`
+  - zero score returns `{ skipped: true, reason: 'zero-score' }`
+  - elapsed-too-long returns skipped payload with elapsed text
+  - missing Firestore/member/target still throws the same error codes
+- Preserved record payload fields and return payload.
+- Still not moved:
+  - `savePracticeProgressAfterCorrectAnswer`
+  - ranking timers
+  - answer/result/completion DOM flow
+- Required smoke checks:
+  - ranking completion saves record
+  - zero-score ranking run does not save
+  - elapsed-time skip message still renders
+  - profile ranking record reflects the saved result
+
 ## Step 7 Validation Checklist
 
 - Shop list.

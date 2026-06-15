@@ -570,6 +570,111 @@
     return result;
   }
 
+  async function saveRankingRecordOnQuizComplete(deps = {}) {
+    if(deps.getCurrentModeId?.() !== 'ranking') return null;
+    const db = deps.getFirestoreDb?.();
+    if(!db) throw new Error('firestore-unavailable');
+
+    const memberUserId = deps.getCurrentDataOwnerId?.();
+    if(!memberUserId || memberUserId === deps.testShopUserId) throw new Error('member-required');
+    const correctCount = deps.getCorrectAnswerCount?.() || 0;
+    const quizId = deps.normalizeFirebaseQuizId?.(deps.getCurrentQuizId?.()) || '';
+    const debugLog = deps.debugLog || (() => {});
+    if(correctCount <= 0) {
+      debugLog('Ranking record skipped because score is 0.', {
+        quizId
+      });
+      return { skipped: true, reason: 'zero-score' };
+    }
+
+    const target = deps.getRankingTargetForQuiz?.(quizId);
+    if(!target) throw new Error('unsupported-ranking-target');
+
+    const profile = deps.getCurrentMemberProfile?.() || {};
+    const elapsedSeconds = deps.getRankingElapsedSeconds?.() || 0;
+    const maxElapsedSeconds = deps.getMaxRankingElapsedSeconds?.() || 0;
+    if(elapsedSeconds > maxElapsedSeconds) {
+      console.warn('Ranking record skipped because elapsed time is too long.', {
+        quizId,
+        elapsedSeconds,
+        maxElapsedSeconds
+      });
+      return {
+        skipped: true,
+        reason: 'elapsed-too-long',
+        elapsedSeconds,
+        elapsedText: deps.formatRankingElapsedText?.(elapsedSeconds) || `${elapsedSeconds}초`
+      };
+    }
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    const recordId = deps.buildRankingRecordId?.(memberUserId, target.categoryKey, target.rankingMode);
+    const recordRef = db.collection('rankingRecords').doc(recordId);
+    const userSummaryRef = db.collection('userRankingSummary').doc(memberUserId);
+    const quizKingSummaryRef = db.collection('quizKingSummary').doc(memberUserId);
+    const record = {
+      recordId,
+      memberUserId,
+      userId: memberUserId,
+      displayName: profile.nickname || profile.name || memberUserId,
+      grade: String(profile.grade || ''),
+      classNo: String(profile.classNo || profile.classNumber || ''),
+      number: String(profile.number || profile.studentNumber || ''),
+      profileImageUrl: profile.profileImageUrl || '',
+      rankingMessage: profile.rankingMessage || '',
+      selectedTitleId: profile.selectedTitleId || '',
+      quizId,
+      category: target.category,
+      categoryKey: target.categoryKey,
+      rawCategory: target.category,
+      subFilter: target.subFilter,
+      score: correctCount,
+      elapsedSeconds,
+      elapsedText: deps.formatRankingElapsedText?.(elapsedSeconds) || `${elapsedSeconds}초`,
+      rankingMode: target.rankingMode,
+      sourceSheet: 'firebase-app',
+      sourceRowNumber: 0,
+      legacy: false,
+      hasUserId: true,
+      recordedAt: fieldValue.serverTimestamp(),
+      createdAt: fieldValue.serverTimestamp(),
+      updatedAt: fieldValue.serverTimestamp(),
+      migrationSource: 'firebase_app_ranking'
+    };
+
+    const [userSummarySnapshot, quizKingSummarySnapshot] = await Promise.all([
+      userSummaryRef.get(),
+      quizKingSummaryRef.get()
+    ]);
+    const userSummaryData = deps.buildUserRankingSummaryUpdate?.(
+      userSummarySnapshot.exists ? userSummarySnapshot.data() : {},
+      record,
+      fieldValue.serverTimestamp()
+    );
+    const quizKingSummaryData = deps.buildQuizKingSummaryUpdate?.(
+      quizKingSummarySnapshot.exists ? quizKingSummarySnapshot.data() : {},
+      record,
+      fieldValue.serverTimestamp()
+    );
+    const batch = db.batch();
+    batch.set(recordRef, record, { merge: true });
+    batch.set(userSummaryRef, userSummaryData, { merge: true });
+    batch.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
+    await batch.commit();
+
+    debugLog('Firestore ranking record save succeeded:', {
+      recordId,
+      score: correctCount,
+      categoryKey: target.categoryKey,
+      elapsedSeconds
+    });
+    return {
+      recordId,
+      score: correctCount,
+      categoryKey: target.categoryKey,
+      elapsedText: record.elapsedText
+    };
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -884,6 +989,7 @@
     buildPracticeBadgeUpdate,
     grantPracticeCorrectReward,
     syncMemberTitlesAfterPracticeCompletion,
+    saveRankingRecordOnQuizComplete,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,
