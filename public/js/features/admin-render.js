@@ -343,6 +343,78 @@
     );
   }
 
+  function renderAdminExternalQuizRows(externalQuizzes, deps = {}) {
+    const root = document.getElementById('admin-external-quiz-list');
+    const normalizeExternalQuizzes = deps.normalizeExternalQuizzes;
+    const defaultExternalQuizzes = deps.defaultExternalQuizzes || {};
+    const maxRows = Number(deps.maxRows || 0);
+    if(!root || typeof normalizeExternalQuizzes !== 'function' || !maxRows) return;
+    const items = normalizeExternalQuizzes(externalQuizzes || defaultExternalQuizzes).items;
+    root.innerHTML = '';
+    for(let index = 0; index < maxRows; index += 1) {
+      const item = items[index] || {};
+      const row = document.createElement('article');
+      row.className = 'admin-external-quiz-row';
+      row.innerHTML = `
+        <label>
+          퀴즈 이름
+          <input data-external-quiz-field="title" data-external-quiz-index="${index}" type="text" maxlength="40" value="">
+        </label>
+        <label>
+          설명
+          <input data-external-quiz-field="description" data-external-quiz-index="${index}" type="text" maxlength="120" value="">
+        </label>
+        <label>
+          링크
+          <input data-external-quiz-field="url" data-external-quiz-index="${index}" type="url" maxlength="500" placeholder="https://..." value="">
+        </label>
+        <label class="admin-checkbox-label">
+          <input data-external-quiz-field="active" data-external-quiz-index="${index}" type="checkbox">
+          활성
+        </label>
+      `;
+      row.querySelector('[data-external-quiz-field="title"]').value = item.title || '';
+      row.querySelector('[data-external-quiz-field="description"]').value = item.description || '';
+      row.querySelector('[data-external-quiz-field="url"]').value = item.url || '';
+      row.querySelector('[data-external-quiz-field="active"]').checked = item.active !== false;
+      root.appendChild(row);
+    }
+  }
+
+  function renderAdminQuizToggleGrid(flags, deps = {}) {
+    const root = document.getElementById('admin-quiz-toggle-grid');
+    const getDisabledQuizIdSet = deps.getDisabledQuizIdSet;
+    const getAdminQuizToggleGroups = deps.getAdminQuizToggleGroups;
+    const quizCatalog = deps.quizCatalog || {};
+    if(!root || typeof getDisabledQuizIdSet !== 'function' || typeof getAdminQuizToggleGroups !== 'function') return;
+    const disabled = getDisabledQuizIdSet(flags);
+    root.innerHTML = '';
+    getAdminQuizToggleGroups().forEach(group => {
+      const section = document.createElement('section');
+      const heading = document.createElement('h4');
+      const list = document.createElement('div');
+      section.className = 'admin-quiz-toggle-group';
+      heading.textContent = group.label;
+      list.className = 'admin-quiz-toggle-list';
+      group.quizIds.forEach(quizId => {
+        const quiz = quizCatalog[quizId];
+        if(!quiz) return;
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        const text = document.createElement('span');
+        label.className = 'admin-quiz-toggle';
+        input.type = 'checkbox';
+        input.checked = !disabled.has(quizId);
+        input.dataset.adminQuizToggle = quizId;
+        text.textContent = String(quiz.title || quizId).replace(' 퀴즈', '');
+        label.append(input, text);
+        list.appendChild(label);
+      });
+      section.append(heading, list);
+      root.appendChild(section);
+    });
+  }
+
   function renderAdminRoomCatalogList(items = [], deps = {}) {
     const root = document.getElementById('admin-room-catalog-list');
     const onEdit = deps.onEdit;
@@ -425,6 +497,8 @@
     renderAdminSummary,
     renderAdminMemberList,
     renderAdminMemberDetail,
+    renderAdminExternalQuizRows,
+    renderAdminQuizToggleGrid,
     renderAdminDashboard,
     renderAdminRoomCatalogList,
     renderAdminLogs

@@ -60,6 +60,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Continued with admin member action, wallet adjust, and class-admin permission callable wrappers.
    - Added admin member detail read wrapper to remove the last direct admin member detail callable from `public/index.html`.
    - Moved admin member detail modal rendering into `public/js/features/admin-render.js`.
+   - Moved admin external quiz row and feature flag quiz-toggle rendering into `public/js/features/admin-render.js`.
 4. Account/login refactor.
    - Split login/signup/password/session restore only after admin is stable.
 5. Shop/room write-flow refactor.
