@@ -89,6 +89,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved profile card DOM rendering into `public/js/features/home-render.js`.
    - Added `public/js/features/home-data.js` for home profile/title/badge model-building helpers.
    - Moved profile image search result rendering into `public/js/features/home-render.js`.
+   - Moved profile image editor modal UI helpers into `public/js/features/home-render.js`.
 7. Classroom/event refactor.
    - Split relatively independent classroom and event flows.
 8. Final cleanup.

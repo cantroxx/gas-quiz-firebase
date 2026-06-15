@@ -440,12 +440,64 @@
     });
   }
 
+  function setProfileImageEditorStatus(statusId, message, isError = false) {
+    const status = document.getElementById(statusId);
+    if(!status) return;
+    status.textContent = message;
+    status.classList.toggle('is-error', isError);
+  }
+
+  function setProfileImageEditorControls(controlIds = {}, edit = {}, deps = {}) {
+    const next = deps.getProfileImageEditModel?.(edit) || edit;
+    const scale = document.getElementById(controlIds.scaleId);
+    const offsetX = document.getElementById(controlIds.offsetXId);
+    const offsetY = document.getElementById(controlIds.offsetYId);
+    if(scale) scale.value = String(next.profileImageScale);
+    if(offsetX) offsetX.value = String(next.profileImageOffsetX);
+    if(offsetY) offsetY.value = String(next.profileImageOffsetY);
+  }
+
+  function getProfileImageEditorControlValues(controlIds = {}) {
+    const scale = document.getElementById(controlIds.scaleId);
+    const offsetX = document.getElementById(controlIds.offsetXId);
+    const offsetY = document.getElementById(controlIds.offsetYId);
+    return {
+      profileImageScale: scale?.value,
+      profileImageOffsetX: offsetX?.value,
+      profileImageOffsetY: offsetY?.value
+    };
+  }
+
+  function renderProfileImageEditorModal(ids = {}, editorState = {}, deps = {}) {
+    const modal = document.getElementById(ids.modalId);
+    const image = document.getElementById(ids.imageId);
+    if(!modal || !image) return false;
+
+    setProfileImageEditorControls(ids, editorState, deps);
+    image.src = editorState.previewUrl;
+    image.alt = `${editorState.label || '프로필 이미지'} 미리보기`;
+    modal.hidden = false;
+    deps.updateProfileImageEditorPreview?.();
+    setProfileImageEditorStatus(ids.statusId, '원 안에 들어올 위치를 맞춘 뒤 저장하세요.');
+    return true;
+  }
+
+  function closeProfileImageEditorModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if(modal) modal.hidden = true;
+  }
+
   window.DJ48HomeRender = {
     renderProfileAvatar,
     renderProfileCard,
     renderCollectionCards,
     renderBadgeProgressGroups,
     renderHomeOwnedItems,
-    renderProfileImageSearchResults
+    renderProfileImageSearchResults,
+    setProfileImageEditorStatus,
+    setProfileImageEditorControls,
+    getProfileImageEditorControlValues,
+    renderProfileImageEditorModal,
+    closeProfileImageEditorModal
   };
 })();

@@ -2809,55 +2809,51 @@
     }
 
     function setProfileImageEditorStatus(message, isError = false) {
-      const status = document.getElementById('profile-image-editor-status');
-      if(!status) return;
-      status.textContent = message;
-      status.classList.toggle('is-error', isError);
+      return window.DJ48HomeRender.setProfileImageEditorStatus('profile-image-editor-status', message, isError);
     }
 
     function setProfileImageEditorControls(edit) {
-      const next = getProfileImageEditModel(edit);
-      const scale = document.getElementById('profile-image-editor-scale');
-      const offsetX = document.getElementById('profile-image-editor-offset-x');
-      const offsetY = document.getElementById('profile-image-editor-offset-y');
-      if(scale) scale.value = String(next.profileImageScale);
-      if(offsetX) offsetX.value = String(next.profileImageOffsetX);
-      if(offsetY) offsetY.value = String(next.profileImageOffsetY);
+      return window.DJ48HomeRender.setProfileImageEditorControls({
+        scaleId: 'profile-image-editor-scale',
+        offsetXId: 'profile-image-editor-offset-x',
+        offsetYId: 'profile-image-editor-offset-y'
+      }, edit, {
+        getProfileImageEditModel
+      });
     }
 
     function updateProfileImageEditorPreview() {
       if(!profileImageEditorState) return;
-      const scale = document.getElementById('profile-image-editor-scale');
-      const offsetX = document.getElementById('profile-image-editor-offset-x');
-      const offsetY = document.getElementById('profile-image-editor-offset-y');
-      profileImageEditorState = window.DJ48AccountData.applyProfileImageEditorControlValues(profileImageEditorState, {
-        profileImageScale: scale?.value,
-        profileImageOffsetX: offsetX?.value,
-        profileImageOffsetY: offsetY?.value
+      const values = window.DJ48HomeRender.getProfileImageEditorControlValues({
+        scaleId: 'profile-image-editor-scale',
+        offsetXId: 'profile-image-editor-offset-x',
+        offsetYId: 'profile-image-editor-offset-y'
       });
+      profileImageEditorState = window.DJ48AccountData.applyProfileImageEditorControlValues(profileImageEditorState, values);
       const image = document.getElementById('profile-image-editor-preview-img');
       if(image) applyProfileImageTransform(image, profileImageEditorState);
     }
 
     function openProfileImageEditor(options) {
-      const modal = document.getElementById('profile-image-editor-modal');
-      const image = document.getElementById('profile-image-editor-preview-img');
-      if(!modal || !image) return;
       const currentEdit = getProfileImageEditModel(currentMemberProfile || {});
       profileImageEditorState = window.DJ48AccountData.buildProfileImageEditorState(options, currentEdit, {
         normalizeDisplayImageUrl
       });
-      setProfileImageEditorControls(profileImageEditorState);
-      image.src = profileImageEditorState.previewUrl;
-      image.alt = `${profileImageEditorState.label || '프로필 이미지'} 미리보기`;
-      modal.hidden = false;
-      updateProfileImageEditorPreview();
-      setProfileImageEditorStatus('원 안에 들어올 위치를 맞춘 뒤 저장하세요.');
+      window.DJ48HomeRender.renderProfileImageEditorModal({
+        modalId: 'profile-image-editor-modal',
+        imageId: 'profile-image-editor-preview-img',
+        statusId: 'profile-image-editor-status',
+        scaleId: 'profile-image-editor-scale',
+        offsetXId: 'profile-image-editor-offset-x',
+        offsetYId: 'profile-image-editor-offset-y'
+      }, profileImageEditorState, {
+        getProfileImageEditModel,
+        updateProfileImageEditorPreview
+      });
     }
 
     function closeProfileImageEditor() {
-      const modal = document.getElementById('profile-image-editor-modal');
-      if(modal) modal.hidden = true;
+      window.DJ48HomeRender.closeProfileImageEditorModal('profile-image-editor-modal');
       profileImageEditorState = null;
     }
 
