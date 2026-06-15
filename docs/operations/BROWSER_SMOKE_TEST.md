@@ -55,3 +55,7 @@ Optional variables:
 - Practice quiz start, answer submit, next question, completion
 - Ranking quiz start, wrong answer heart/result path, completion save status
 - Home/profile detail toggles
+- Ranking plaza entry
+- Shop entry
+- Event plaza entry
+- Classroom entry with unlocked gate

@@ -63,13 +63,27 @@ async function runPublicShellCheck(page, config) {
     format: !!window.DJ48Format,
     firebase: !!window.DJ48Firebase,
     quizCatalog: !!window.DJ48QuizCatalog,
-    quizPlay: !!window.DJ48QuizPlay
+    quizPlay: !!window.DJ48QuizPlay,
+    adminData: !!window.DJ48AdminData,
+    accountData: !!window.DJ48AccountData,
+    homeRender: !!window.DJ48HomeRender,
+    eventData: !!window.DJ48EventData,
+    classroomData: !!window.DJ48ClassroomData,
+    shopData: !!window.DJ48ShopData,
+    rankingData: !!window.DJ48RankingData
   }));
   assert.deepEqual(globals, {
     format: true,
     firebase: true,
     quizCatalog: true,
-    quizPlay: true
+    quizPlay: true,
+    adminData: true,
+    accountData: true,
+    homeRender: true,
+    eventData: true,
+    classroomData: true,
+    shopData: true,
+    rankingData: true
   });
 }
 
@@ -171,6 +185,45 @@ async function runHomeProfileCheck(page) {
   await page.locator('[data-home-detail-toggle="badges"]').click();
 }
 
+async function runFeatureEntryChecks(page) {
+  await page.evaluate(() => window.showTownView?.());
+  await waitForVisible(page, '#town-view');
+  const featureFlags = await page.evaluate(async () => {
+    if(typeof window.loadFeatureFlags !== 'function') return {};
+    return await window.loadFeatureFlags();
+  });
+
+  if(featureFlags.rankingEnabled !== false) {
+    await page.evaluate(async () => {
+      await window.showRankingView?.();
+    });
+    await waitForVisible(page, '#ranking-view');
+    await page.locator('#ranking-board-root').waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  if(featureFlags.shopEnabled !== false) {
+    await page.evaluate(async () => {
+      await window.showShopView?.();
+    });
+    await waitForVisible(page, '#shop-view');
+    await page.locator('#shop-item-grid').waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  if(featureFlags.eventPlazaEnabled !== false) {
+    await page.evaluate(async () => {
+      await window.showEventView?.();
+    });
+    await waitForVisible(page, '#event-view');
+    await page.locator('#quest-card-grid').waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('#season-event-grid').waitFor({ state: 'visible', timeout: 15000 });
+  }
+
+  await page.evaluate(() => window.showClassroomView?.(true));
+  await waitForVisible(page, '#classroom-view');
+  await page.locator('#classroom-main-panel').waitFor({ state: 'visible', timeout: 15000 });
+  await page.locator('#classroom-quest-grid').waitFor({ state: 'visible', timeout: 15000 });
+}
+
 async function main() {
   const config = getConfig();
   const { chromium } = requirePlaywright();
@@ -197,9 +250,10 @@ async function main() {
       await runPracticeFlow(page, config);
       await runRankingFlow(page, config);
       await runHomeProfileCheck(page);
+      await runFeatureEntryChecks(page);
     }
     await expectNoPageErrors(pageErrors);
-    console.log(`Browser smoke test passed: ${config.publicOnly ? 'public shell' : 'authenticated practice/ranking/home'} @ ${config.baseUrl}`);
+    console.log(`Browser smoke test passed: ${config.publicOnly ? 'public shell' : 'authenticated practice/ranking/home/features'} @ ${config.baseUrl}`);
   } finally {
     await browser.close();
   }

@@ -23,6 +23,24 @@ This document records the completed second clean-architecture round after the fi
 
 When using multiple terminals, keep each terminal inside one ownership area unless the task explicitly requires a shared boundary change.
 
+## Parallel Editing Rules
+
+- Only one terminal should edit `public/index.html` at a time.
+- UI-only work should stay in `public/styles.css` and `*-render.js` files unless a new DOM hook is required.
+- Data/callable work should stay in `*-data.js` files or `functions/index.js`.
+- Quiz-play work should stay in `public/js/features/quiz-play.js` and quiz data/catalog files unless the task explicitly changes app navigation.
+- Smoke/test work should stay in `scripts/smoke` and `docs/operations`.
+- If a task needs both UI and data changes, split it into two commits or make one terminal own the whole feature boundary.
+- Before merging parallel work, run `npm run check`; for user-visible runtime changes, also run authenticated browser smoke with the 4-8-23 test account.
+
+## Suggested Terminal Split
+
+- Terminal A, UI: `public/styles.css`, `public/js/features/*-render.js`.
+- Terminal B, quiz: `public/js/features/quiz-play.js`, `public/js/data/quiz-catalog.js`.
+- Terminal C, data/backend: `public/js/features/*-data.js`, `functions/index.js`, Firestore/Storage rules.
+- Terminal D, verification/docs: `scripts/smoke`, `docs/architecture`, `docs/operations`.
+- Terminal E, app shell: `public/index.html`; keep this exclusive because it still owns global state, caches, view routing, and event binding.
+
 ## Required Checks
 
 Before committing code movement:
