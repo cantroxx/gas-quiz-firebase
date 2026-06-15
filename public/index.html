@@ -8072,14 +8072,17 @@
     }
 
     function showSubjectView(subjectId) {
-      leaveQuizPlaySession();
       currentSubjectId = subjectId;
       renderSubjectQuizCards(subjectId);
-      showOnlyAppView('subject-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'subject-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     function showQuizSelectView(quizId) {
-      leaveQuizPlaySession();
       clearRankingQuestionTimer();
       const quiz = QUIZ_CATALOG[quizId] || QUIZ_CATALOG.spelling;
       lastQuizId = quizId;
@@ -8088,7 +8091,12 @@
       loadFeatureFlags().then(() => {
         if(lastQuizId === quizId && !document.getElementById('quiz-select-view').hidden) renderQuizModeCards(quiz.modes);
       });
-      showOnlyAppView('quiz-select-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'quiz-select-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     function updatePlaceInfo(place) {
