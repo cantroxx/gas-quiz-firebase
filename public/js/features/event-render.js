@@ -97,10 +97,17 @@
     });
   }
 
+  function renderEventSections(data = {}) {
+    renderQuestCards(data.quests || []);
+    renderClassMissionCards(data.classMissions || []);
+    renderSeasonEvents(data.seasonEvents || []);
+  }
+
   window.DJ48EventRender = {
     getQuestStatusClass,
     renderQuestCards,
     renderClassMissionCards,
-    renderSeasonEvents
+    renderSeasonEvents,
+    renderEventSections
   };
 })();

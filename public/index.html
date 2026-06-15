@@ -5495,20 +5495,8 @@
       }
     }
 
-    function renderQuestCards(quests = QUEST_DATA) {
-      return window.DJ48EventRender.renderQuestCards(quests);
-    }
-
-    function getQuestStatusClass(status) {
-      return window.DJ48EventRender.getQuestStatusClass(status);
-    }
-
-    function renderClassMissionCards(missions = CLASS_MISSION_DATA) {
-      return window.DJ48EventRender.renderClassMissionCards(missions);
-    }
-
-    function renderSeasonEvents(events = SEASON_EVENT_DATA) {
-      return window.DJ48EventRender.renderSeasonEvents(events);
+    function renderEventSections(data = {}) {
+      return window.DJ48EventRender.renderEventSections(data);
     }
 
     function renderEventLoadingState() {
@@ -5517,9 +5505,7 @@
         classMissions: CLASS_MISSION_DATA,
         seasonEvents: SEASON_EVENT_DATA
       });
-      renderQuestCards(data.quests);
-      renderClassMissionCards(data.classMissions);
-      renderSeasonEvents(data.seasonEvents);
+      renderEventSections(data);
     }
 
     function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
@@ -6268,14 +6254,14 @@
           classMissions: CLASS_MISSION_DATA,
           seasonEvents: SEASON_EVENT_DATA
         });
-        renderQuestCards(data.quests);
-        renderClassMissionCards(data.classMissions);
-        renderSeasonEvents(data.seasonEvents);
+        renderEventSections(data);
       } catch(error) {
         console.warn('Firestore event progress load failed. Using static event fallback.', error);
-        renderQuestCards();
-        renderClassMissionCards();
-        renderSeasonEvents();
+        renderEventSections({
+          quests: QUEST_DATA,
+          classMissions: CLASS_MISSION_DATA,
+          seasonEvents: SEASON_EVENT_DATA
+        });
       }
     }
 

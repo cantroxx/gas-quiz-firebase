@@ -99,6 +99,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Split relatively independent classroom and event flows.
    - Added `public/js/features/event-render.js` for event plaza quest, class mission, and season event card rendering.
    - Added `public/js/features/event-data.js` for event loading/progress render data, progress callable, reward claim callable, and reward claim error messages.
+   - Moved event section render orchestration into `public/js/features/event-render.js`.
    - Added `public/js/features/classroom-data.js` for classroom quest/settings normalization and classroom settings Firestore read helper.
    - Moved classroom progress, wallet, gem progress, student cards, economy board, and teacher review read helpers into `public/js/features/classroom-data.js`.
    - Added `public/js/features/classroom-render.js` for classroom role, review, quest, gem, student, job, shop, and routine card rendering.
