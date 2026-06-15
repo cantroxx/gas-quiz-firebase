@@ -96,7 +96,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved profile image editor modal UI helpers into `public/js/features/home-render.js`.
    - Moved profile image Storage upload and save orchestration helpers into `public/js/features/account-data.js`.
 7. Classroom/event refactor.
-   - Split relatively independent classroom and event flows.
+   - Completed relatively independent classroom and event flow split.
    - Added `public/js/features/event-render.js` for event plaza quest, class mission, and season event card rendering.
    - Added `public/js/features/event-data.js` for event loading/progress render data, progress callable, reward claim callable, and reward claim error messages.
    - Moved event section render orchestration into `public/js/features/event-render.js`.
@@ -111,6 +111,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved classroom student economy actions, routine save, quest completion, and quest review callables into `public/js/features/classroom-data.js`.
    - Moved classroom selected badge callable into `public/js/features/classroom-data.js`.
    - Consolidated classroom, event progress, and user economy cache reset helpers in `public/index.html`.
+   - Removed unused classroom render wrapper functions from `public/index.html`.
 8. Final cleanup.
    - Update docs, run full smoke, and declare the second clean-architecture round closed.
 

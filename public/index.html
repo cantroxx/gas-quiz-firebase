@@ -5650,13 +5650,6 @@
       });
     }
 
-    function renderClassroomReviewPanel(settings, reviewItems = []) {
-      return window.DJ48ClassroomRender.renderClassroomReviewPanel(settings, reviewItems, {
-        isCurrentClassroomTeacher,
-        getClassroomRewardCurrencyLabel
-      });
-    }
-
     async function renderAdminClassroomReview(forceRefresh = false) {
       const settings = await loadClassroomSettings(forceRefresh);
       const reviewItems = await loadClassroomReviewItems(settings, forceRefresh);
