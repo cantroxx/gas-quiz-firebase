@@ -79,6 +79,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved shop purchase and room item save error-message mapping into `public/js/features/shop-data.js`.
    - Moved shop item, asset catalog, user economy, and room settings normalization helpers into `public/js/features/shop-data.js`.
    - Moved shop item, asset catalog, economy, inventory, and room settings Firestore read helpers into `public/js/features/shop-data.js`; `public/index.html` still owns caches and render refresh.
+   - Moved shop cache fallback/result helper logic into `public/js/features/shop-data.js`; `public/index.html` still owns the actual cache variables.
 6. Profile/account detail refactor.
    - Split nickname, profile image, ranking message, title/badge orchestration.
    - Moved profile ranking-message, profile-image, and selected-title update payload helpers into `public/js/features/account-data.js`.

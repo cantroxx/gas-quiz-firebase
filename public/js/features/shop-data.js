@@ -190,6 +190,47 @@
     return normalizeRoomSettingsFromFirestore(snapshot, { userId });
   }
 
+  function getCachedValue(cacheValue, loadPromise, loadFactory) {
+    if(cacheValue) {
+      return {
+        value: cacheValue,
+        loadPromise
+      };
+    }
+    return {
+      value: loadPromise || loadFactory(),
+      loadPromise: loadPromise || null
+    };
+  }
+
+  function buildShopItemsResult(items = [], fallbackItems = []) {
+    return items.length ? items : fallbackItems;
+  }
+
+  function buildEconomyFallback(options = {}) {
+    return {
+      userId: options.userId || '',
+      djCoin: options.useStaticRewardFallback ? options.fallbackCoin || 0 : 0,
+      totalEarned: 0,
+      totalSpent: 0
+    };
+  }
+
+  async function buildUserEconomyForRender(options = {}) {
+    const {
+      economy,
+      ownerId,
+      ensureUserEconomyInitialized,
+      fallbackCoin,
+      useStaticRewardFallback
+    } = options;
+    return economy || await ensureUserEconomyInitialized?.(ownerId) || buildEconomyFallback({
+      userId: ownerId,
+      fallbackCoin,
+      useStaticRewardFallback
+    });
+  }
+
   async function callShopCallable(callableName, payload = {}, deps = {}, errorCode = '') {
     const functions = deps.getFirebaseFunctions?.();
     if(!functions) throw new Error('functions-unavailable');
@@ -322,6 +363,10 @@
     ensureUserEconomyInitialized,
     loadInventoryItemIdsFromFirestore,
     loadRoomSettingsFromFirestore,
+    getCachedValue,
+    buildShopItemsResult,
+    buildEconomyFallback,
+    buildUserEconomyForRender,
     callShopCallable,
     purchaseShopItem,
     getShopPurchaseErrorMessage,

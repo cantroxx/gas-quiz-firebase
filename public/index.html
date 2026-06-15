@@ -5539,19 +5539,20 @@
     }
 
     async function getShopItemsForRender() {
-      if(firestoreShopItems) return firestoreShopItems;
-      if(!shopItemsLoadPromise) {
-        shopItemsLoadPromise = loadShopItemsFromFirestore()
+      const cached = window.DJ48ShopData.getCachedValue(firestoreShopItems, shopItemsLoadPromise, () => (
+        loadShopItemsFromFirestore()
           .then(items => {
-            if(!items.length) return SHOP_ITEMS;
-            firestoreShopItems = items;
-            return items;
+            const result = window.DJ48ShopData.buildShopItemsResult(items, SHOP_ITEMS);
+            if(items.length) firestoreShopItems = result;
+            return result;
           })
           .catch(error => {
             console.warn('Firestore shopItems read failed. Using static fallback SHOP_ITEMS.', error);
             return SHOP_ITEMS;
-          });
-      }
+          })
+      ));
+      shopItemsLoadPromise = cached.loadPromise || shopItemsLoadPromise || cached.value;
+      if(firestoreShopItems) return firestoreShopItems;
       return shopItemsLoadPromise;
     }
 
@@ -5576,9 +5577,8 @@
     }
 
     async function getAssetCatalogMap() {
-      if(firestoreAssetCatalogMap) return firestoreAssetCatalogMap;
-      if(!assetCatalogLoadPromise) {
-        assetCatalogLoadPromise = loadAssetCatalogFromFirestore()
+      const cached = window.DJ48ShopData.getCachedValue(firestoreAssetCatalogMap, assetCatalogLoadPromise, () => (
+        loadAssetCatalogFromFirestore()
           .then(assetMap => {
             firestoreAssetCatalogMap = assetMap;
             return assetMap;
@@ -5586,8 +5586,10 @@
           .catch(error => {
             console.warn('Firestore assetCatalog read failed. Using shop item fallback icons.', error);
             return {};
-          });
-      }
+          })
+      ));
+      assetCatalogLoadPromise = cached.loadPromise || assetCatalogLoadPromise || cached.value;
+      if(firestoreAssetCatalogMap) return firestoreAssetCatalogMap;
       return assetCatalogLoadPromise;
     }
 
@@ -5718,29 +5720,30 @@
     }
 
     async function getUserEconomyForRender() {
-      if(firestoreUserEconomy) return firestoreUserEconomy;
-      if(!userEconomyLoadPromise) {
-        userEconomyLoadPromise = loadUserEconomyFromFirestore()
+      const cached = window.DJ48ShopData.getCachedValue(firestoreUserEconomy, userEconomyLoadPromise, () => (
+        loadUserEconomyFromFirestore()
           .then(async economy => {
             const ownerId = getCurrentDataOwnerId();
-            firestoreUserEconomy = economy || await ensureUserEconomyInitialized(ownerId) || {
-              userId: ownerId || '',
-              djCoin: 0,
-              totalEarned: 0,
-              totalSpent: 0
-            };
+            firestoreUserEconomy = await window.DJ48ShopData.buildUserEconomyForRender({
+              economy,
+              ownerId,
+              ensureUserEconomyInitialized,
+              fallbackCoin: USER_REWARD_DATA.coin,
+              useStaticRewardFallback: false
+            });
             return firestoreUserEconomy;
           })
           .catch(error => {
             console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
-            return {
+            return window.DJ48ShopData.buildEconomyFallback({
               userId: getCurrentDataOwnerId() || '',
-              djCoin: isUsingTestUserFallback() ? USER_REWARD_DATA.coin : 0,
-              totalEarned: 0,
-              totalSpent: 0
-            };
-          });
-      }
+              fallbackCoin: USER_REWARD_DATA.coin,
+              useStaticRewardFallback: isUsingTestUserFallback()
+            });
+          })
+      ));
+      userEconomyLoadPromise = cached.loadPromise || userEconomyLoadPromise || cached.value;
+      if(firestoreUserEconomy) return firestoreUserEconomy;
       return userEconomyLoadPromise;
     }
 
@@ -5758,9 +5761,8 @@
     }
 
     async function getInventoryItemIdsForRender() {
-      if(firestoreInventoryItemIds) return firestoreInventoryItemIds;
-      if(!inventoryLoadPromise) {
-        inventoryLoadPromise = loadInventoryItemIdsFromFirestore()
+      const cached = window.DJ48ShopData.getCachedValue(firestoreInventoryItemIds, inventoryLoadPromise, () => (
+        loadInventoryItemIdsFromFirestore()
           .then(itemIds => {
             firestoreInventoryItemIds = itemIds;
             return itemIds;
@@ -5768,8 +5770,10 @@
           .catch(error => {
             console.warn('Firestore userInventory read failed. Treating inventory as empty.', error);
             return new Set();
-          });
-      }
+          })
+      ));
+      inventoryLoadPromise = cached.loadPromise || inventoryLoadPromise || cached.value;
+      if(firestoreInventoryItemIds) return firestoreInventoryItemIds;
       return inventoryLoadPromise;
     }
 
@@ -5787,9 +5791,8 @@
     }
 
     async function getRoomSettingsForRender() {
-      if(firestoreRoomSettings) return firestoreRoomSettings;
-      if(!roomSettingsLoadPromise) {
-        roomSettingsLoadPromise = loadRoomSettingsFromFirestore()
+      const cached = window.DJ48ShopData.getCachedValue(firestoreRoomSettings, roomSettingsLoadPromise, () => (
+        loadRoomSettingsFromFirestore()
           .then(settings => {
             firestoreRoomSettings = settings;
             return settings;
@@ -5797,8 +5800,10 @@
           .catch(error => {
             console.warn('Firestore userRoomSettings read failed. Using empty room settings.', error);
             return getDefaultRoomSettings();
-          });
-      }
+          })
+      ));
+      roomSettingsLoadPromise = cached.loadPromise || roomSettingsLoadPromise || cached.value;
+      if(firestoreRoomSettings) return firestoreRoomSettings;
       return roomSettingsLoadPromise;
     }
 
