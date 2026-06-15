@@ -1,30 +1,18 @@
 (function () {
   function getClassroomQuestTitle(settings, questId) {
-    const quest = (settings.quests || []).find(item => item.id === questId);
-    return quest?.title || questId || '교실 퀘스트';
+    return window.DJ48ClassroomDomain.getClassroomQuestTitle(settings, questId);
   }
 
   function getClassroomProgressStatusLabel(progress) {
-    if(!progress) return '';
-    if(progress.rewardStatus === 'paid') return '지급 완료';
-    if(progress.rewardStatus === 'approved') return '담임 승인됨';
-    if(progress.rewardStatus === 'rejected') return '담임 반려됨';
-    return '완료 후보 저장됨';
+    return window.DJ48ClassroomDomain.getClassroomProgressStatusLabel(progress);
   }
 
   function getClassroomProgressButtonLabel(progress) {
-    if(!progress) return '';
-    if(progress.rewardStatus === 'paid') return '오늘 지급 완료';
-    if(progress.rewardStatus === 'approved') return '승인 완료';
-    if(progress.rewardStatus === 'rejected') return '반려됨';
-    return '저장 완료';
+    return window.DJ48ClassroomDomain.getClassroomProgressButtonLabel(progress);
   }
 
   function getClassroomProgressStatusClass(progress) {
-    if(progress?.rewardStatus === 'paid') return 'quest-status-claimed';
-    if(progress?.rewardStatus === 'approved') return 'quest-status-claimed';
-    if(progress?.rewardStatus === 'rejected') return 'quest-status-waiting';
-    return 'quest-status-ready';
+    return window.DJ48ClassroomDomain.getClassroomProgressStatusClass(progress);
   }
 
   function renderClassroomReviewList(settings, reviewItems = [], options = {}, deps = {}) {

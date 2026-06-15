@@ -167,29 +167,19 @@
   }
 
   function getMemberLinkSubmitPendingMessage(values = {}) {
-    return values.action === 'setup'
-      ? '신규가입 정보를 확인하고 계정을 만들고 있습니다...'
-      : '회원 정보와 비밀번호를 확인하고 있습니다...';
+    return window.DJ48AccountDomain.getMemberLinkSubmitPendingMessage(values);
   }
 
   function getMemberLinkSubmitSuccessMessage(profile = {}) {
-    const actionMessage = profile._authLinkAction === 'password-setup'
-      ? '비밀번호가 등록되고 로그인됐어요.'
-      : profile._authLinkAction === 'member-signup'
-        ? '신규가입이 완료되고 로그인됐어요.'
-        : '비밀번호 로그인이 완료됐어요.';
-    return `${profile.nickname || profile.userId} ${actionMessage} ${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
+    return window.DJ48AccountDomain.getMemberLinkSubmitSuccessMessage(profile);
   }
 
   function shouldWaitForRequiredPasswordChange(options = {}) {
-    return !!options.pendingPasswordChange?.memberUserId
-      && options.pendingPasswordChange.memberUserId === options.currentMemberUserId;
+    return window.DJ48AccountDomain.shouldWaitForRequiredPasswordChange(options);
   }
 
   function getMemberLinkDestination(profile = {}, currentMemberProfile = null) {
-    return profile.role === 'admin' || currentMemberProfile?.role === 'admin'
-      ? 'admin'
-      : 'town';
+    return window.DJ48AccountDomain.getMemberLinkDestination(profile, currentMemberProfile);
   }
 
   function getProfileNicknameErrorMessage(error) {

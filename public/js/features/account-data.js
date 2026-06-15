@@ -1,40 +1,14 @@
 (function () {
   function normalizeLegacyMemberSchool(school, deps = {}) {
-    const defaultMemberSchool = deps.defaultMemberSchool || '동자';
-    const value = String(school || '').trim();
-    if(!value) return defaultMemberSchool;
-    const normalized = value
-      .replace(/^서울/, '')
-      .replace(/초등학교$/, '')
-      .replace(/초$/, '')
-      .trim();
-    return normalized || defaultMemberSchool;
+    return window.DJ48AccountDomain.normalizeLegacyMemberSchool(school, deps);
   }
 
   function buildLegacyMemberUserId(school, grade, classNumber, studentNumber, deps = {}) {
-    const defaultMemberSchool = deps.defaultMemberSchool || '동자';
-    const normalizedSchool = normalizeLegacyMemberSchool(school, { defaultMemberSchool });
-    const gradeNumber = Number(grade);
-    const classNoNumber = Number(classNumber);
-    const studentNoNumber = Number(studentNumber);
-
-    if(!gradeNumber || !classNoNumber || !studentNoNumber) {
-      throw new Error('invalid-member-identity');
-    }
-
-    const baseUserId = `G${gradeNumber}-C${classNoNumber}-N${String(studentNoNumber).padStart(2, '0')}`;
-    if(normalizedSchool === defaultMemberSchool) return baseUserId;
-
-    const schoolKey = normalizedSchool.replace(/[^0-9A-Za-z가-힣_-]/g, '');
-    return schoolKey ? `S${schoolKey}-${baseUserId}` : baseUserId;
+    return window.DJ48AccountDomain.buildLegacyMemberUserId(school, grade, classNumber, studentNumber, deps);
   }
 
   function getTemporaryPasswordText(values = {}) {
-    const grade = Number(values.grade);
-    const classNumber = Number(values.classNumber);
-    const studentNumber = Number(values.studentNumber);
-    if(!grade || !classNumber || !studentNumber) return '';
-    return `${grade}${classNumber}${String(studentNumber).padStart(2, '0')}`;
+    return window.DJ48AccountDomain.getTemporaryPasswordText(values);
   }
 
   function normalizeMemberProfileFromFirestore(doc) {
@@ -312,16 +286,15 @@
   }
 
   function getRestoredMemberDestination(profile) {
-    if(!profile) return '';
-    return profile.role === 'admin' ? 'admin' : 'town';
+    return window.DJ48AccountDomain.getRestoredMemberDestination(profile);
   }
 
   function normalizeRankingMessageInput(value) {
-    return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+    return window.DJ48AccountDomain.normalizeRankingMessageInput(value);
   }
 
   function normalizeProfileImageInput(value) {
-    return String(value || '').trim().slice(0, 500);
+    return window.DJ48AccountDomain.normalizeProfileImageInput(value);
   }
 
   function getProfileImageFileExtension(file) {
@@ -552,30 +525,11 @@
   }
 
   function getResolvedUserChangeState(options = {}) {
-    const lastResolvedUserId = String(options.lastResolvedUserId || '');
-    const nextUserId = String(options.nextUserId || '');
-    const testShopUserId = String(options.testShopUserId || '');
-    const changed = !!lastResolvedUserId && lastResolvedUserId !== nextUserId;
-
-    return {
-      nextLastResolvedUserId: nextUserId,
-      shouldClearMemberProfile: changed,
-      shouldClearLinkedMemberHint: changed && lastResolvedUserId !== testShopUserId,
-      shouldResetUserScopedRuntimeData: changed
-    };
+    return window.DJ48AccountDomain.getResolvedUserChangeState(options);
   }
 
   function getUnlinkCurrentMemberState(options = {}) {
-    if(!options.auth || !options.authUid) throw new Error('auth-required');
-    if(!options.memberUserId) throw new Error('member-not-linked');
-
-    return {
-      currentMemberUserId: '',
-      currentMemberProfile: null,
-      shouldClearLinkedMemberHint: true,
-      shouldResetUserScopedRuntimeData: true,
-      shouldResetFirebaseAuthState: true
-    };
+    return window.DJ48AccountDomain.getUnlinkCurrentMemberState(options);
   }
 
   async function handleAuthStateUser(user, deps = {}) {

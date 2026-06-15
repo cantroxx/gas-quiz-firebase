@@ -1,9 +1,6 @@
 (function () {
   function getQuestStatusClass(status) {
-    if(status === '완료 가능') return 'quest-status-ready';
-    if(status === '수령 완료') return 'quest-status-claimed';
-    if(status === '준비 중') return 'quest-status-waiting';
-    return 'quest-status-active';
+    return window.DJ48EventDomain.getQuestStatusClass(status);
   }
 
   function renderQuestCards(quests = []) {

@@ -4,7 +4,7 @@
   "scripts": {
     "check": "npm run check:static && npm run test:domain && SMOKE_PUBLIC_ONLY=1 npm run smoke:browser",
     "check:static": "node scripts/smoke/check-project.js",
-    "test:domain": "node tests/domain/shop-domain.test.js && node tests/domain/ranking-domain.test.js && node tests/domain/quiz-domain.test.js",
+    "test:domain": "node tests/domain/shop-domain.test.js && node tests/domain/ranking-domain.test.js && node tests/domain/quiz-domain.test.js && node tests/domain/account-domain.test.js && node tests/domain/classroom-domain.test.js && node tests/domain/event-domain.test.js",
     "smoke:browser": "node scripts/smoke/browser-smoke-test.js"
   },
   "devDependencies": {
