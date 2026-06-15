@@ -7894,9 +7894,12 @@
     }
 
     function showAdminView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
-      showOnlyAppView('admin-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'admin-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
       setActiveAdminSection('dashboard');
       loadAdminDashboard().then(dashboard => {
         if(dashboard?.adminLevel === 'superAdmin') {
