@@ -9804,17 +9804,12 @@
 
     function nextQuestion() {
       const deps = getQuizPlayDeps();
-      clearRankingQuestionTimer();
-      const nextQuestionIndex = deps.advanceCurrentQuestionIndex();
-      const action = window.DJ48QuizPlay.getNextQuestionAction({
-        nextQuestionIndex,
-        questionCount: deps.getCurrentQuestionSet().length
+      return window.DJ48QuizPlay.nextQuestion({
+        ...deps,
+        clearRankingQuestionTimer,
+        showQuizComplete,
+        renderQuestion
       });
-      if(action === 'complete') {
-        showQuizComplete();
-        return;
-      }
-      renderQuestion();
     }
 
     function getPracticeTargetForQuiz(quizId, meta) {

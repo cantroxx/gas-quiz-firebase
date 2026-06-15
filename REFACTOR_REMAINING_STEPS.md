@@ -899,6 +899,25 @@ Step 13H implemented:
   - ranking elapsed-too-long completion skips save
   - back-to-mode-select button still works
 
+Step 13I implemented:
+
+- Moved next-question routing body into `public/js/features/quiz-play.js`:
+  - `nextQuestion`
+- Kept the existing `public/index.html` function name as a thin wrapper.
+- Preserved routing behavior:
+  - clears ranking question timer before advancing
+  - advances the current question index through the existing state dependency
+  - renders the next question when questions remain
+  - shows completion when the next index reaches the question count
+- This closes the planned Step 13 high-risk quiz flow extraction.
+- First clean-architecture refactor round can be considered complete after final smoke testing.
+- Final smoke checks:
+  - practice quiz start, answer submit, next question, completion
+  - practice progress save, duplicate handling, coin reward, badge/title sync
+  - ranking quiz start, answer submit, heart loss, question/session timeout
+  - ranking completion save and elapsed-too-long skip
+  - back-to-mode-select and home/profile reflection
+
 ## Step 7 Validation Checklist
 
 - Shop list.

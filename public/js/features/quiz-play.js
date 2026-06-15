@@ -1037,6 +1037,21 @@
     return { viewModel, rankingSaveAction };
   }
 
+  function nextQuestion(deps = {}) {
+    deps.clearRankingQuestionTimer?.();
+    const nextQuestionIndex = deps.advanceCurrentQuestionIndex?.();
+    const action = getNextQuestionAction({
+      nextQuestionIndex,
+      questionCount: deps.getCurrentQuestionSet?.().length
+    });
+    if(action === 'complete') {
+      deps.showQuizComplete?.();
+    } else {
+      deps.renderQuestion?.();
+    }
+    return action;
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -1360,6 +1375,7 @@
     submitAnswer,
     showQuizResult,
     showQuizComplete,
+    nextQuestion,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,
