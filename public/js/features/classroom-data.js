@@ -68,11 +68,152 @@
     }
   }
 
+  function buildClassroomQuestProgressId(memberUserId, questId, dateKey = '') {
+    return dateKey ? `${memberUserId}__${questId}__${dateKey}` : `${memberUserId}__${questId}`;
+  }
+
+  function isCurrentClassroomTeacher(profile = {}, settings = {}) {
+    if(profile.role !== 'admin') return false;
+    const adminLevel = String(profile.adminLevel || '').toLowerCase();
+    if(['superadmin', 'fulladmin'].includes(adminLevel)) return true;
+    if(adminLevel !== 'classadmin') return false;
+    return String(profile.adminScopeGrade || profile.grade || '') === String(settings.grade || '')
+      && String(profile.adminScopeClassNumber || profile.classNumber || '') === String(settings.classNumber || '');
+  }
+
+  async function loadClassroomQuestProgress(options = {}) {
+    const { db, settings = {}, memberUserId = '' } = options;
+    if(!memberUserId || !db) return {};
+    const saveEnabledQuests = (settings.quests || []).filter(quest => quest.saveEnabled && quest.rewardMode !== 'auto');
+    const entries = await Promise.all(saveEnabledQuests.map(async quest => {
+      const recordId = buildClassroomQuestProgressId(memberUserId, quest.id);
+      const snapshot = await db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('questProgress')
+        .doc(recordId)
+        .get()
+        .catch(() => null);
+      return [quest.id, snapshot?.exists ? snapshot.data() : null];
+    }));
+    return Object.fromEntries(entries.filter(([, data]) => !!data));
+  }
+
+  async function loadClassroomWallet(options = {}, deps = {}) {
+    const { db, settings = {}, memberUserId = '' } = options;
+    if(!memberUserId || !db) return { berry: 0 };
+    try {
+      const snapshot = await db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('studentWallets')
+        .doc(memberUserId)
+        .get();
+      return snapshot.exists ? snapshot.data() : { berry: 0 };
+    } catch(error) {
+      deps.warn?.('Classroom wallet load failed.', error);
+      return { berry: 0 };
+    }
+  }
+
+  async function loadClassroomGemProgress(options = {}, deps = {}) {
+    const { db, settings = {}, memberUserId = '' } = options;
+    if(!memberUserId || !db) return [];
+    try {
+      const snapshot = await db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('studentGemProgress')
+        .where('memberUserId', '==', memberUserId)
+        .get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch(error) {
+      deps.warn?.('Classroom gem progress load failed.', error);
+      return [];
+    }
+  }
+
+  async function loadClassroomStudentCards(options = {}, deps = {}) {
+    const { settings = {}, memberUserId = '' } = options;
+    if(!memberUserId) return [];
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) return [];
+    try {
+      const callable = functions.httpsCallable('getClassroomStudentCards');
+      const response = await callable({
+        classId: settings.classId,
+        memberUserId
+      });
+      return Array.isArray(response?.data?.students) ? response.data.students : [];
+    } catch(error) {
+      deps.warn?.('Classroom student cards load failed.', error);
+      return [];
+    }
+  }
+
+  function getEmptyClassroomEconomyBoard() {
+    return {
+      jobs: [],
+      shopItems: [],
+      applications: [],
+      assignments: [],
+      routines: []
+    };
+  }
+
+  async function loadClassroomEconomyBoard(options = {}, deps = {}) {
+    const { settings = {}, memberUserId = '' } = options;
+    if(!memberUserId) return getEmptyClassroomEconomyBoard();
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) return getEmptyClassroomEconomyBoard();
+    try {
+      const callable = functions.httpsCallable('getClassroomEconomyBoard');
+      const response = await callable({
+        classId: settings.classId,
+        memberUserId
+      });
+      const data = response?.data || {};
+      return {
+        jobs: Array.isArray(data.jobs) ? data.jobs : [],
+        shopItems: Array.isArray(data.shopItems) ? data.shopItems : [],
+        applications: Array.isArray(data.applications) ? data.applications : [],
+        assignments: Array.isArray(data.assignments) ? data.assignments : [],
+        routines: Array.isArray(data.routines) ? data.routines : [],
+        myAssignment: data.myAssignment || null
+      };
+    } catch(error) {
+      deps.warn?.('Classroom economy board load failed.', error);
+      return getEmptyClassroomEconomyBoard();
+    }
+  }
+
+  async function loadClassroomReviewItems(options = {}, deps = {}) {
+    const { db, settings = {}, canReview = false } = options;
+    if(!canReview || !db) return [];
+    try {
+      const snapshot = await db.collection('classrooms')
+        .doc(settings.classId)
+        .collection('questProgress')
+        .where('rewardStatus', '==', 'pending_teacher_review')
+        .get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch(error) {
+      deps.warn?.('Classroom review items load failed.', error);
+      return [];
+    }
+  }
+
   window.DJ48ClassroomData = {
     getClassroomRewardCurrencyLabel,
     slugifyClassroomGemId,
     normalizeClassroomQuestConfig,
     normalizeClassroomSettings,
-    loadClassroomSettings
+    loadClassroomSettings,
+    buildClassroomQuestProgressId,
+    isCurrentClassroomTeacher,
+    loadClassroomQuestProgress,
+    loadClassroomWallet,
+    loadClassroomGemProgress,
+    loadClassroomStudentCards,
+    loadClassroomEconomyBoard,
+    loadClassroomReviewItems,
+    getEmptyClassroomEconomyBoard
   };
 })();
