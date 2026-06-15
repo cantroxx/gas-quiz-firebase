@@ -405,11 +405,47 @@
     });
   }
 
+  function renderProfileImageSearchResults(rootId, statusId, options, deps = {}) {
+    const root = document.getElementById(rootId);
+    const status = document.getElementById(statusId);
+    if(!root) return;
+
+    const normalizeDisplayImageUrl = deps.normalizeDisplayImageUrl || (value => String(value || '').trim());
+    const items = options || [];
+    root.innerHTML = '';
+
+    if(!items.length) {
+      if(status) status.textContent = '검색 결과가 없습니다.';
+      return;
+    }
+
+    if(status) status.textContent = `${items.length}개 후보를 찾았습니다. 이미지를 선택하면 위치를 조정할 수 있습니다.`;
+    items.forEach((item, index) => {
+      const button = document.createElement('button');
+      const image = document.createElement('img');
+      const label = document.createElement('span');
+      const source = document.createElement('small');
+
+      button.className = 'profile-image-option';
+      button.type = 'button';
+      button.dataset.profileImageIndex = String(index);
+      image.src = normalizeDisplayImageUrl(item.displayUrl || item.imageUrl || item.imageFileId);
+      image.alt = `${item.name || '프로필 이미지'} 후보`;
+      image.loading = 'lazy';
+      image.referrerPolicy = 'no-referrer';
+      label.textContent = item.name || '이름 없음';
+      source.textContent = item.sourceQuizId || item.category || '';
+      button.append(image, label, source);
+      root.appendChild(button);
+    });
+  }
+
   window.DJ48HomeRender = {
     renderProfileAvatar,
     renderProfileCard,
     renderCollectionCards,
     renderBadgeProgressGroups,
-    renderHomeOwnedItems
+    renderHomeOwnedItems,
+    renderProfileImageSearchResults
   };
 })();
