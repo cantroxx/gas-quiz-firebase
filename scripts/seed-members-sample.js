@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const SAMPLE_PATH = path.join(__dirname, '..', 'MEMBER_MIGRATION_SAMPLE.json');
+const SAMPLE_PATH = path.join(__dirname, '..', 'fixtures', 'migration', 'MEMBER_MIGRATION_SAMPLE.json');
 const USERS_COLLECTION = 'users';
 
 function initializeAdminApp() {
@@ -16,7 +16,7 @@ function readSampleMembers() {
   const raw = fs.readFileSync(SAMPLE_PATH, 'utf8');
   const members = JSON.parse(raw);
   if (!Array.isArray(members)) {
-    throw new Error('MEMBER_MIGRATION_SAMPLE.json must contain an array.');
+    throw new Error('fixtures/migration/MEMBER_MIGRATION_SAMPLE.json must contain an array.');
   }
   return members;
 }

@@ -195,7 +195,7 @@ Auth `uid`는 `authUid` 필드로 별도 저장한다. 이렇게 하면 운영�
 ### JSON seed 방식
 
 - CSV를 검수한 뒤 JSON으로 변환
-- `MEMBER_MIGRATION_SAMPLE.json`과 같은 구조로 seed
+- `fixtures/migration/MEMBER_MIGRATION_SAMPLE.json`과 같은 구조로 seed
 - Admin SDK 스크립트에서 `users/{userId}`에 `set(..., { merge: true })`
 
 장점:

@@ -222,7 +222,7 @@ userId, 학년, 반, 번호, 닉네임, 세대, 획득여부, 획득일시, 맞�
 7. 샘플 사용자 2~3명의 `practiceRecords`, `userBadges`, `userPracticeSummary` preview 확인
 8. 문제가 없으면 `--commit`으로 Firestore import
 9. Firestore에서 샘플 사용자 검증
-10. `PROTOTYPE_STATUS.md` 갱신
+10. `docs/product/PROTOTYPE_STATUS.md` 갱신
 
 ## 검증 방법
 

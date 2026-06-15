@@ -18,8 +18,8 @@
 
 - `~/Projects/gas-quiz-firebase/scripts/import-members-from-json.js`
 - `~/Projects/gas-quiz-firebase/MEMBER_MIGRATION_PLAN.md`
-- `~/Projects/gas-quiz-firebase/MEMBER_MIGRATION_SAMPLE.json`
-- `~/Projects/gas-quiz-firebase/PROTOTYPE_STATUS.md`
+- `~/Projects/gas-quiz-firebase/fixtures/migration/MEMBER_MIGRATION_SAMPLE.json`
+- `~/Projects/gas-quiz-firebase/docs/product/PROTOTYPE_STATUS.md`
 
 ## 3. 현재 운영본 사용자 데이터 목록
 

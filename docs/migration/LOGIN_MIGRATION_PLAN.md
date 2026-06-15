@@ -18,7 +18,7 @@ rg -n "test_user" .
 
 - 전체 사용 위치: 41개
 - 실제 코드 사용: `public/index.html` 1개
-- 문서 사용: `PROTOTYPE_STATUS.md`, `SHOP_PURCHASE_TEST_SEED.md`, `SHOP_PURCHASE_IMPLEMENTATION_PLAN.md`
+- 문서 사용: `docs/product/PROTOTYPE_STATUS.md`, `docs/seeding/SHOP_PURCHASE_TEST_SEED.md`, `docs/product/SHOP_PURCHASE_IMPLEMENTATION_PLAN.md`
 
 코드 사용 위치:
 

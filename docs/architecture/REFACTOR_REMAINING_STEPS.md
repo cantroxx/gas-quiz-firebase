@@ -964,7 +964,7 @@ Recommended next goals:
 - Goal A: Browser smoke-test automation
   - Add a repeatable script for practice/ranking/home navigation smoke checks.
   - Best when the priority is preventing regressions before more refactoring.
-  - Started with `scripts/browser-smoke-test.js`, `npm run smoke:browser`, and `BROWSER_SMOKE_TEST.md`.
+  - Started with `scripts/browser-smoke-test.js`, `npm run smoke:browser`, and `docs/operations/BROWSER_SMOKE_TEST.md`.
   - Requires `npm install` and a smoke-test student account supplied through environment variables.
 - Goal B: Admin flow second-round refactor
   - Split admin dashboard, member list, logs, notice board, feature flag, and audit flows by ownership.

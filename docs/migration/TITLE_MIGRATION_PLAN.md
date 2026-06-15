@@ -237,4 +237,4 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-user-t
 4. 로컬 `title-export.json` 저장
 5. dry-run
 6. 실제 import
-7. `PROTOTYPE_STATUS.md` 갱신
+7. `docs/product/PROTOTYPE_STATUS.md` 갱신

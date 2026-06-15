@@ -572,7 +572,7 @@
   - `scripts/inspect-operational-metrics.js`
   - 회원/기록/랭킹/보상/구매/미연결 학생 지표 출력 확인
 - 운영 절차 문서 추가
-  - `OPERATIONAL_RUNBOOK.md`
+  - `docs/operations/OPERATIONAL_RUNBOOK.md`
 
 ## 10. 운영본 주의사항
 
