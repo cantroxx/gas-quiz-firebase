@@ -38,6 +38,73 @@
     };
   }
 
+  function setAdminStatusElement(elementId, message, isError = false) {
+    const status = document.getElementById(elementId);
+    if(!status) return;
+    status.textContent = message || '';
+    status.classList.toggle('is-error', !!isError);
+  }
+
+  function getMappedErrorMessage(error, messages = {}, fallback = '') {
+    return messages[error?.message] || fallback;
+  }
+
+  function getAdminMemberActionErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'functions/permission-denied': '관리자 권한이 없거나 허용되지 않은 작업입니다.',
+      'functions/not-found': '대상 회원을 찾지 못했습니다.',
+      'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
+    }, '관리자 작업 중 문제가 생겼습니다.');
+  }
+
+  function getAdminExternalQuizzesSaveErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'functions/permission-denied': '전체 관리자만 외부 퀴즈를 바꿀 수 있습니다.',
+      'functions/invalid-argument': '외부 퀴즈 이름과 https 링크를 확인해 주세요.'
+    }, '외부 퀴즈 저장 중 문제가 생겼습니다.');
+  }
+
+  function getAdminLoginSettingsSaveErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'invalid-setup-expires-at': '설정 마감 날짜를 입력해 주세요.',
+      'functions/invalid-argument': '설정 값을 확인해 주세요.'
+    }, '로그인 설정 저장 중 문제가 생겼습니다.');
+  }
+
+  function getAdminFeatureFlagsSaveErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'functions/permission-denied': '전체 관리자만 기능 설정을 바꿀 수 있습니다.',
+      'functions/invalid-argument': '기능 설정 값을 확인해 주세요.'
+    }, '기능 설정 저장 중 문제가 생겼습니다.');
+  }
+
+  function getAdminRoomCatalogSaveErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'admin-room-catalog-required': 'itemId와 이름을 입력해 주세요.',
+      'functions/permission-denied': '전체 관리자만 방 가구 상품을 바꿀 수 있습니다.',
+      'functions/invalid-argument': '방 가구 상품 값을 확인해 주세요.'
+    }, '방 가구 상품 저장 중 문제가 생겼습니다.');
+  }
+
+  function getAdminPermissionGrantErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'admin-permission-member-required': '대상 userId를 입력해 주세요.',
+      'admin-permission-scope-required': '담당 학년과 반을 입력해 주세요.',
+      'functions/permission-denied': '전체 관리자만 권한을 변경할 수 있습니다.',
+      'functions/not-found': '대상 회원을 찾지 못했습니다.',
+      'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
+    }, '반 관리자 지정 중 문제가 생겼습니다.');
+  }
+
+  function getAdminPermissionRevokeErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'admin-permission-member-required': '대상 userId를 입력해 주세요.',
+      'functions/permission-denied': '전체 관리자만 권한을 변경할 수 있습니다.',
+      'functions/not-found': '대상 회원을 찾지 못했습니다.',
+      'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
+    }, '관리자 해제 중 문제가 생겼습니다.');
+  }
+
   function hideAdminTemporaryPassword() {
     const panel = document.getElementById('admin-temp-password-panel');
     const value = document.getElementById('admin-temp-password-value');
@@ -204,6 +271,14 @@
     normalizeAdminWalletCurrency,
     getAdminWalletCurrencyLabel,
     getAdminPermissionFormValues,
+    setAdminStatusElement,
+    getAdminMemberActionErrorMessage,
+    getAdminExternalQuizzesSaveErrorMessage,
+    getAdminLoginSettingsSaveErrorMessage,
+    getAdminFeatureFlagsSaveErrorMessage,
+    getAdminRoomCatalogSaveErrorMessage,
+    getAdminPermissionGrantErrorMessage,
+    getAdminPermissionRevokeErrorMessage,
     hideAdminTemporaryPassword,
     showAdminTemporaryPassword,
     setAdminNoticeForm,

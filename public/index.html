@@ -7001,10 +7001,7 @@
     }
 
     function setAdminStatus(message, isError = false) {
-      const status = document.getElementById('admin-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-status', message, isError);
     }
 
     function setActiveAdminSection(sectionName) {
@@ -7038,10 +7035,7 @@
     }
 
     function setAdminDashboardStatus(message, isError = false) {
-      const status = document.getElementById('admin-dashboard-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-dashboard-status', message, isError);
     }
 
     function setSuperAdminUiEnabled(isSuperAdmin) {
@@ -7075,10 +7069,7 @@
     }
 
     function setAdminAuditStatus(message, isError = false) {
-      const status = document.getElementById('admin-audit-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-audit-status', message, isError);
     }
 
     function renderAdminOperationalAudit(audit) {
@@ -7099,10 +7090,7 @@
     }
 
     function setAdminQuizQualityStatus(message, isError = false) {
-      const status = document.getElementById('admin-quiz-quality-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-quiz-quality-status', message, isError);
     }
 
     function renderAdminQuizQualityAudit(audit) {
@@ -7308,10 +7296,7 @@
     }
 
     function setAdminPermissionStatus(message, isError = false) {
-      const status = document.getElementById('admin-permission-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-permission-status', message, isError);
     }
 
     function getAdminPermissionFormValues() {
@@ -7348,10 +7333,7 @@
     }
 
     function setAdminNoticeStatus(message, isError = false) {
-      const status = document.getElementById('admin-notice-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-notice-status', message, isError);
     }
 
     function setAdminNoticeForm(notice) {
@@ -7391,10 +7373,7 @@
     }
 
     function setAdminExternalQuizzesStatus(message, isError = false) {
-      const status = document.getElementById('admin-external-quizzes-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-external-quizzes-status', message, isError);
     }
 
     function renderAdminExternalQuizRows(externalQuizzes = DEFAULT_EXTERNAL_QUIZZES) {
@@ -7435,10 +7414,7 @@
     }
 
     function setAdminLoginSettingsStatus(message, isError = false) {
-      const status = document.getElementById('admin-login-settings-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-login-settings-status', message, isError);
     }
 
     function toDateTimeLocalInputValue(value) {
@@ -7477,10 +7453,7 @@
     }
 
     function setAdminFeatureFlagsStatus(message, isError = false) {
-      const status = document.getElementById('admin-feature-flags-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-feature-flags-status', message, isError);
     }
 
     function setAdminFeatureFlagsForm(flags) {
@@ -7567,10 +7540,7 @@
     }
 
     function setAdminRoomCatalogStatus(message, isError = false) {
-      const status = document.getElementById('admin-room-catalog-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-room-catalog-status', message, isError);
     }
 
     function resetAdminRoomCatalogForm() {
@@ -7622,10 +7592,7 @@
     }
 
     function setAdminLogsStatus(message, isError = false) {
-      const status = document.getElementById('admin-logs-status');
-      if(!status) return;
-      status.textContent = message || '';
-      status.classList.toggle('is-error', !!isError);
+      return window.DJ48AdminForm.setAdminStatusElement('admin-logs-status', message, isError);
     }
 
     function formatAdminLogTime(value) {
@@ -9350,12 +9317,7 @@
       runAdminMemberAction(button.dataset.adminAction, card.dataset.memberUserId)
         .catch(error => {
           console.warn('Admin member action failed.', error);
-          const messages = {
-            'functions/permission-denied': '관리자 권한이 없거나 허용되지 않은 작업입니다.',
-            'functions/not-found': '대상 회원을 찾지 못했습니다.',
-            'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
-          };
-          setAdminStatus(messages[error.message] || '관리자 작업 중 문제가 생겼습니다.', true);
+          setAdminStatus(window.DJ48AdminForm.getAdminMemberActionErrorMessage(error), true);
         })
         .finally(() => {
           button.disabled = false;
@@ -9415,11 +9377,7 @@
     document.getElementById('admin-external-quizzes-save').addEventListener('click', () => {
       saveAdminExternalQuizzes().catch(error => {
         console.warn('Admin external quizzes save failed.', error);
-        const messages = {
-          'functions/permission-denied': '전체 관리자만 외부 퀴즈를 바꿀 수 있습니다.',
-          'functions/invalid-argument': '외부 퀴즈 이름과 https 링크를 확인해 주세요.'
-        };
-        setAdminExternalQuizzesStatus(messages[error.message] || '외부 퀴즈 저장 중 문제가 생겼습니다.', true);
+        setAdminExternalQuizzesStatus(window.DJ48AdminForm.getAdminExternalQuizzesSaveErrorMessage(error), true);
       });
     });
 
@@ -9433,11 +9391,7 @@
     document.getElementById('admin-login-settings-save').addEventListener('click', () => {
       saveAdminLoginSettings().catch(error => {
         console.warn('Admin login settings save failed.', error);
-        const messages = {
-          'invalid-setup-expires-at': '설정 마감 날짜를 입력해 주세요.',
-          'functions/invalid-argument': '설정 값을 확인해 주세요.'
-        };
-        setAdminLoginSettingsStatus(messages[error.message] || '로그인 설정 저장 중 문제가 생겼습니다.', true);
+        setAdminLoginSettingsStatus(window.DJ48AdminForm.getAdminLoginSettingsSaveErrorMessage(error), true);
       });
     });
 
@@ -9451,11 +9405,7 @@
     document.getElementById('admin-feature-flags-save').addEventListener('click', () => {
       saveAdminFeatureFlags().catch(error => {
         console.warn('Admin feature flags save failed.', error);
-        const messages = {
-          'functions/permission-denied': '전체 관리자만 기능 설정을 바꿀 수 있습니다.',
-          'functions/invalid-argument': '기능 설정 값을 확인해 주세요.'
-        };
-        setAdminFeatureFlagsStatus(messages[error.message] || '기능 설정 저장 중 문제가 생겼습니다.', true);
+        setAdminFeatureFlagsStatus(window.DJ48AdminForm.getAdminFeatureFlagsSaveErrorMessage(error), true);
       });
     });
 
@@ -9471,39 +9421,21 @@
     document.getElementById('admin-room-catalog-save')?.addEventListener('click', () => {
       saveAdminRoomCatalogItem().catch(error => {
         console.warn('Admin room catalog save failed.', error);
-        const messages = {
-          'admin-room-catalog-required': 'itemId와 이름을 입력해 주세요.',
-          'functions/permission-denied': '전체 관리자만 방 가구 상품을 바꿀 수 있습니다.',
-          'functions/invalid-argument': '방 가구 상품 값을 확인해 주세요.'
-        };
-        setAdminRoomCatalogStatus(messages[error.message] || '방 가구 상품 저장 중 문제가 생겼습니다.', true);
+        setAdminRoomCatalogStatus(window.DJ48AdminForm.getAdminRoomCatalogSaveErrorMessage(error), true);
       });
     });
 
     document.getElementById('admin-permission-grant').addEventListener('click', () => {
       setClassAdminPermission(true).catch(error => {
         console.warn('Admin class permission grant failed.', error);
-        const messages = {
-          'admin-permission-member-required': '대상 userId를 입력해 주세요.',
-          'admin-permission-scope-required': '담당 학년과 반을 입력해 주세요.',
-          'functions/permission-denied': '전체 관리자만 권한을 변경할 수 있습니다.',
-          'functions/not-found': '대상 회원을 찾지 못했습니다.',
-          'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
-        };
-        setAdminPermissionStatus(messages[error.message] || '반 관리자 지정 중 문제가 생겼습니다.', true);
+        setAdminPermissionStatus(window.DJ48AdminForm.getAdminPermissionGrantErrorMessage(error), true);
       });
     });
 
     document.getElementById('admin-permission-revoke').addEventListener('click', () => {
       setClassAdminPermission(false).catch(error => {
         console.warn('Admin class permission revoke failed.', error);
-        const messages = {
-          'admin-permission-member-required': '대상 userId를 입력해 주세요.',
-          'functions/permission-denied': '전체 관리자만 권한을 변경할 수 있습니다.',
-          'functions/not-found': '대상 회원을 찾지 못했습니다.',
-          'functions/failed-precondition': '대상 회원 상태를 확인해 주세요.'
-        };
-        setAdminPermissionStatus(messages[error.message] || '관리자 해제 중 문제가 생겼습니다.', true);
+        setAdminPermissionStatus(window.DJ48AdminForm.getAdminPermissionRevokeErrorMessage(error), true);
       });
     });
 
