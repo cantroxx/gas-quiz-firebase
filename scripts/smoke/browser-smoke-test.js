@@ -59,19 +59,25 @@ async function runPublicShellCheck(page, config) {
   await page.locator('#member-link-class').waitFor({ state: 'visible' });
   await page.locator('#member-link-number').waitFor({ state: 'visible' });
   await page.locator('#member-link-password').waitFor({ state: 'visible' });
-  const globals = await page.evaluate(() => ({
-    format: !!window.DJ48Format,
-    firebase: !!window.DJ48Firebase,
-    quizCatalog: !!window.DJ48QuizCatalog,
-    quizPlay: !!window.DJ48QuizPlay,
-    adminData: !!window.DJ48AdminData,
-    accountData: !!window.DJ48AccountData,
-    homeRender: !!window.DJ48HomeRender,
-    eventData: !!window.DJ48EventData,
-    classroomData: !!window.DJ48ClassroomData,
-    shopData: !!window.DJ48ShopData,
-    rankingData: !!window.DJ48RankingData
-  }));
+  const globals = await page.evaluate(() => {
+    const hasScript = src => !!document.querySelector(`script[src="${src}"]`);
+    return {
+      format: !!window.DJ48Format,
+      firebase: !!window.DJ48Firebase,
+      quizCatalog: !!window.DJ48QuizCatalog,
+      quizPlay: !!window.DJ48QuizPlay,
+      adminData: !!window.DJ48AdminData,
+      accountData: !!window.DJ48AccountData,
+      accountController: hasScript('/js/features/account-controller.js') ? !!window.DJ48AccountController : true,
+      appEvents: hasScript('/js/features/app-events.js') ? !!window.DJ48AppEvents : true,
+      adminController: hasScript('/js/features/admin-controller.js') ? !!window.DJ48AdminController : true,
+      homeRender: !!window.DJ48HomeRender,
+      eventData: !!window.DJ48EventData,
+      classroomData: !!window.DJ48ClassroomData,
+      shopData: !!window.DJ48ShopData,
+      rankingData: !!window.DJ48RankingData
+    };
+  });
   assert.deepEqual(globals, {
     format: true,
     firebase: true,
@@ -79,12 +85,46 @@ async function runPublicShellCheck(page, config) {
     quizPlay: true,
     adminData: true,
     accountData: true,
+    accountController: true,
+    appEvents: true,
+    adminController: true,
     homeRender: true,
     eventData: true,
     classroomData: true,
     shopData: true,
     rankingData: true
   });
+}
+
+async function runAccountEntryCheck(page) {
+  await page.click('[data-member-form-mode="signup"]');
+  const signupState = await page.evaluate(() => ({
+    formClass: document.getElementById('member-link-form')?.className || '',
+    action: document.getElementById('member-link-submit-button')?.value || ''
+  }));
+  assert.match(signupState.formClass, /is-signup-mode/);
+  assert.equal(signupState.action, 'setup');
+
+  await page.click('[data-member-form-mode="login"]');
+  const loginState = await page.evaluate(() => ({
+    formClass: document.getElementById('member-link-form')?.className || '',
+    action: document.getElementById('member-link-submit-button')?.value || ''
+  }));
+  assert.match(loginState.formClass, /is-login-mode/);
+  assert.equal(loginState.action, 'login');
+}
+
+async function runAdminShellCheck(page) {
+  const adminShell = await page.evaluate(() => ({
+    viewExists: !!document.getElementById('admin-view'),
+    tabCount: document.querySelectorAll('[data-admin-section-target]').length,
+    dashboardExists: !!document.getElementById('admin-section-dashboard'),
+    membersExists: !!document.getElementById('admin-section-members')
+  }));
+  assert.equal(adminShell.viewExists, true);
+  assert.ok(adminShell.tabCount >= 6, 'Expected admin section tabs to be present.');
+  assert.equal(adminShell.dashboardExists, true);
+  assert.equal(adminShell.membersExists, true);
 }
 
 async function login(page, config) {
@@ -245,6 +285,8 @@ async function main() {
 
   try {
     await runPublicShellCheck(page, config);
+    await runAccountEntryCheck(page);
+    await runAdminShellCheck(page);
     if(!config.publicOnly) {
       await login(page, config);
       await runPracticeFlow(page, config);
