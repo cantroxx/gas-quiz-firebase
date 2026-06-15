@@ -893,6 +893,57 @@
     return saveResult || { recordId, questionId };
   }
 
+  function startRankingSessionTimerIfNeeded(deps = {}) {
+    deps.clearRankingSessionTimer?.();
+    if(deps.getCurrentModeId?.() !== 'ranking') return null;
+    const timer = setInterval(() => {
+      if(deps.getCurrentModeId?.() !== 'ranking') {
+        deps.clearRankingSessionTimer?.();
+        return;
+      }
+      if((deps.getRankingElapsedSeconds?.() || 0) >= (deps.getMaxRankingElapsedSeconds?.() || 0)) {
+        deps.handleRankingSessionTimeout?.();
+      }
+    }, 1000);
+    deps.setCurrentRankingSessionTimer?.(timer);
+    return timer;
+  }
+
+  function handleRankingSessionTimeout(deps = {}) {
+    if(deps.getCurrentModeId?.() !== 'ranking') return;
+    deps.clearRankingQuestionTimer?.();
+    deps.clearRankingSessionTimer?.();
+    deps.setCurrentQuestionResolved?.(true);
+    disableQuizAnswerControls(deps.getQuizPlayRoot?.());
+    deps.showQuizComplete?.({ skipped: true, reason: 'elapsed-too-long', forced: true });
+  }
+
+  function startRankingQuestionTimerIfNeeded(deps = {}) {
+    deps.clearRankingQuestionTimer?.();
+    if(deps.getCurrentModeId?.() !== 'ranking') return null;
+    deps.setCurrentRankingTimeLeft?.(deps.getRankingTimeLimitSecondsForQuiz?.(deps.getCurrentQuizId?.()));
+    const updateProgress = () => {
+      const progress = deps.getQuizProgressElement?.();
+      if(progress) progress.textContent = getRankingTimedProgressText(deps.getQuizProgressText?.(), deps.getCurrentRankingTimeLeft?.());
+    };
+    updateProgress();
+    const timer = setInterval(() => {
+      deps.decreaseCurrentRankingTimeLeft?.(0.1);
+      updateProgress();
+      if((deps.getCurrentRankingTimeLeft?.() || 0) <= 0) deps.handleRankingTimeout?.();
+    }, 100);
+    deps.setCurrentRankingQuestionTimer?.(timer);
+    return timer;
+  }
+
+  function handleRankingTimeout(deps = {}) {
+    if(deps.getCurrentModeId?.() !== 'ranking' || deps.getCurrentQuestionResolved?.()) return;
+    deps.setCurrentQuestionResolved?.(true);
+    deps.clearRankingQuestionTimer?.();
+    disableQuizAnswerControls(deps.getQuizPlayRoot?.());
+    deps.showQuizResult?.(false, '시간 초과로 하트가 1개 줄었어요.');
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -1209,6 +1260,10 @@
     syncMemberTitlesAfterPracticeCompletion,
     saveRankingRecordOnQuizComplete,
     savePracticeProgressAfterCorrectAnswer,
+    startRankingSessionTimerIfNeeded,
+    handleRankingSessionTimeout,
+    startRankingQuestionTimerIfNeeded,
+    handleRankingTimeout,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,

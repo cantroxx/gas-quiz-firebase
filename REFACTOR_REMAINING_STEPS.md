@@ -820,6 +820,34 @@ Step 13E implemented:
   - coin reward is granted once
   - title sync still runs on completion
 
+Step 13F implemented:
+
+- Moved ranking timer execution bodies into `public/js/features/quiz-play.js`:
+  - `startRankingSessionTimerIfNeeded`
+  - `handleRankingSessionTimeout`
+  - `startRankingQuestionTimerIfNeeded`
+  - `handleRankingTimeout`
+- Kept the existing `public/index.html` function names as thin wrappers.
+- Preserved timer ownership:
+  - `currentRankingSessionTimer` and `currentRankingQuestionTimer` still live in `public/index.html`
+  - wrapper callbacks still assign timer ids back into the original state variables
+- Preserved timer intervals:
+  - ranking session timer remains 1000ms
+  - ranking question timer remains 100ms with 0.1 second decrement
+- Preserved DOM side effects:
+  - answer controls are disabled through `DJ48QuizPlay.disableQuizAnswerControls`
+  - progress text still renders through `.quiz-progress`
+  - session timeout still calls `showQuizComplete({ skipped: true, reason: 'elapsed-too-long', forced: true })`
+  - question timeout still calls `showQuizResult(false, '시간 초과로 하트가 1개 줄었어요.')`
+- Still not moved:
+  - answer submit flow
+  - result/completion card rendering flow
+- Required smoke checks:
+  - ranking question timer counts down
+  - ranking question timeout reduces heart and shows timeout feedback
+  - ranking session timeout skips ranking save with elapsed-too-long message
+  - leaving quiz clears both timers
+
 ## Step 7 Validation Checklist
 
 - Shop list.

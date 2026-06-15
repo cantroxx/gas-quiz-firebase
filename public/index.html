@@ -9662,27 +9662,25 @@
 
     function startRankingSessionTimerIfNeeded() {
       const deps = getQuizPlayDeps();
-      clearRankingSessionTimer();
-      if(deps.getCurrentModeId() !== 'ranking') return;
-      currentRankingSessionTimer = setInterval(() => {
-        if(deps.getCurrentModeId() !== 'ranking') {
-          clearRankingSessionTimer();
-          return;
-        }
-        if(deps.getRankingElapsedSeconds() >= deps.getMaxRankingElapsedSeconds()) {
-          handleRankingSessionTimeout();
-        }
-      }, 1000);
+      return window.DJ48QuizPlay.startRankingSessionTimerIfNeeded({
+        ...deps,
+        clearRankingSessionTimer,
+        setCurrentRankingSessionTimer: timer => {
+          currentRankingSessionTimer = timer;
+        },
+        handleRankingSessionTimeout
+      });
     }
 
     function handleRankingSessionTimeout() {
       const deps = getQuizPlayDeps();
-      if(deps.getCurrentModeId() !== 'ranking') return;
-      clearRankingQuestionTimer();
-      clearRankingSessionTimer();
-      deps.setCurrentQuestionResolved(true);
-      window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
-      showQuizComplete({ skipped: true, reason: 'elapsed-too-long', forced: true });
+      return window.DJ48QuizPlay.handleRankingSessionTimeout({
+        ...deps,
+        clearRankingQuestionTimer,
+        clearRankingSessionTimer,
+        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        showQuizComplete
+      });
     }
 
     function getRankingTimeLimitSecondsForQuiz(quizId) {
@@ -9693,28 +9691,26 @@
 
     function startRankingQuestionTimerIfNeeded() {
       const deps = getQuizPlayDeps();
-      clearRankingQuestionTimer();
-      if(deps.getCurrentModeId() !== 'ranking') return;
-      deps.setCurrentRankingTimeLeft(deps.getRankingTimeLimitSecondsForQuiz(deps.getCurrentQuizId()));
-      const updateProgress = () => {
-        const progress = document.querySelector('.quiz-progress');
-        if(progress) progress.textContent = window.DJ48QuizPlay.getRankingTimedProgressText(getQuizProgressText(), deps.getCurrentRankingTimeLeft());
-      };
-      updateProgress();
-      currentRankingQuestionTimer = setInterval(() => {
-        deps.decreaseCurrentRankingTimeLeft(0.1);
-        updateProgress();
-        if(deps.getCurrentRankingTimeLeft() <= 0) handleRankingTimeout();
-      }, 100);
+      return window.DJ48QuizPlay.startRankingQuestionTimerIfNeeded({
+        ...deps,
+        clearRankingQuestionTimer,
+        setCurrentRankingQuestionTimer: timer => {
+          currentRankingQuestionTimer = timer;
+        },
+        getQuizProgressElement: () => document.querySelector('.quiz-progress'),
+        getQuizProgressText,
+        handleRankingTimeout
+      });
     }
 
     function handleRankingTimeout() {
       const deps = getQuizPlayDeps();
-      if(deps.getCurrentModeId() !== 'ranking' || deps.getCurrentQuestionResolved()) return;
-      deps.setCurrentQuestionResolved(true);
-      clearRankingQuestionTimer();
-      window.DJ48QuizPlay.disableQuizAnswerControls(document.getElementById('quiz-play-root'));
-      showQuizResult(false, '시간 초과로 하트가 1개 줄었어요.');
+      return window.DJ48QuizPlay.handleRankingTimeout({
+        ...deps,
+        clearRankingQuestionTimer,
+        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        showQuizResult
+      });
     }
 
     function normalizeQuizAnswer(value) {
