@@ -1376,6 +1376,7 @@
   <script src="/js/features/admin-form.js"></script>
   <script src="/js/features/admin-data.js"></script>
   <script src="/js/features/account-form.js"></script>
+  <script src="/js/features/account-data.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/ranking-render.js"></script>
@@ -5331,8 +5332,6 @@
     async function linkImportedMemberToCurrentAuthUser(values) {
       const db = getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
 
       const authUser = await initializeAuthUser();
       const authUid = authUser?.uid || getFirebaseAuthUser()?.uid || '';
@@ -5355,24 +5354,26 @@
         if(!nickname) throw new Error('nickname-required');
         if(password !== passwordConfirm) throw new Error('password-confirm-mismatch');
 
-        const registerNewMember = functions.httpsCallable('registerNewMember');
-        const registerResponse = await registerNewMember({
+        const registerResponse = await window.DJ48AccountData.registerNewMember({
           ...basePayload,
           nickname,
           password
+        }, {
+          getFirebaseFunctions
         });
         result = {
-          ...(registerResponse?.data || {}),
+          ...(registerResponse || {}),
           action: 'member-signup'
         };
       } else {
-        const loginMemberWithPassword = functions.httpsCallable('loginMemberWithPassword');
-        const loginResponse = await loginMemberWithPassword({
+        const loginResponse = await window.DJ48AccountData.loginMemberWithPassword({
           ...basePayload,
           password
+        }, {
+          getFirebaseFunctions
         });
         result = {
-          ...(loginResponse?.data || {}),
+          ...(loginResponse || {}),
           action: 'password-login'
         };
       }
@@ -5414,39 +5415,33 @@
       if(!pendingPasswordChange?.memberUserId || pendingPasswordChange.memberUserId !== currentMemberUserId) {
         throw new Error('password-change-not-required');
       }
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
       if(!newPassword) throw new Error('password-required');
       if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
 
-      const changeMemberPassword = functions.httpsCallable('changeMemberPassword');
-      const response = await changeMemberPassword({
+      const result = await window.DJ48AccountData.changeMemberPassword({
         memberUserId: pendingPasswordChange.memberUserId,
         currentPassword: pendingPasswordChange.currentPassword,
         newPassword
+      }, {
+        getFirebaseFunctions
       });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('member-password-change-failed');
       pendingPasswordChange = null;
       return result;
     }
 
     async function changeCurrentMemberPasswordWithCurrentPassword(currentPassword, newPassword, passwordConfirm) {
       if(!currentMemberUserId) throw new Error('member-required');
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
       if(!currentPassword) throw new Error('current-password-required');
       if(!newPassword) throw new Error('password-required');
       if(newPassword !== passwordConfirm) throw new Error('password-confirm-mismatch');
 
-      const changeMemberPassword = functions.httpsCallable('changeMemberPassword');
-      const response = await changeMemberPassword({
+      const result = await window.DJ48AccountData.changeMemberPassword({
         memberUserId: currentMemberUserId,
         currentPassword,
         newPassword
+      }, {
+        getFirebaseFunctions
       });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('member-password-change-failed');
       currentMemberProfile = {
         ...(currentMemberProfile || {}),
         ...(result.profile || {})
@@ -5456,18 +5451,15 @@
 
     async function updateCurrentMemberNickname(nickname) {
       if(!currentMemberUserId) throw new Error('member-required');
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
       const normalizedNickname = String(nickname || '').trim();
       if(!normalizedNickname) throw new Error('nickname-required');
 
-      const updateMemberNickname = functions.httpsCallable('updateMemberNickname');
-      const response = await updateMemberNickname({
+      const result = await window.DJ48AccountData.updateMemberNickname({
         memberUserId: currentMemberUserId,
         nickname: normalizedNickname
+      }, {
+        getFirebaseFunctions
       });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('member-nickname-update-failed');
       currentMemberProfile = {
         ...(currentMemberProfile || {}),
         ...(result.profile || {})
@@ -5578,18 +5570,15 @@
       setMemberLinkStatus('비밀번호를 임시 비밀번호로 바꾸고 있습니다...');
 
       try {
-        const functions = getFirebaseFunctions();
-        if(!functions) throw new Error('functions-unavailable');
-        await initializeAuthUser();
-        const resetMemberPasswordToTemporary = functions.httpsCallable('resetMemberPasswordToTemporary');
-        const response = await resetMemberPasswordToTemporary({
+        const result = await window.DJ48AccountData.resetMemberPasswordToTemporary({
           school: values.school || DEFAULT_MEMBER_SCHOOL,
           grade: values.grade,
           classNumber: values.classNumber,
           studentNumber: values.studentNumber
+        }, {
+          getFirebaseFunctions,
+          initializeAuthUser
         });
-        const result = response?.data || {};
-        if(!result.success) throw new Error('member-password-reset-failed');
         setMemberLinkStatus(`임시 비밀번호는 ${temporaryPassword}입니다. 이 비밀번호로 로그인한 뒤 새 비밀번호를 저장해 주세요.`);
       } catch(error) {
         const messages = {

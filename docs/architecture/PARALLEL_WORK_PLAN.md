@@ -65,6 +65,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 4. Account/login refactor.
    - Split login/signup/password/session restore only after admin is stable.
    - Started with low-risk account form/status helpers in `public/js/features/account-form.js`.
+   - Moved account callable wrappers into `public/js/features/account-data.js`.
 5. Shop/room write-flow refactor.
    - Split purchase, inventory, room settings, and economy refresh.
 6. Profile/account detail refactor.
