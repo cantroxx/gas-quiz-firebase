@@ -1381,6 +1381,7 @@
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/event-data.js"></script>
   <script src="/js/features/event-render.js"></script>
+  <script src="/js/features/classroom-data.js"></script>
   <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/ranking-render.js"></script>
@@ -5496,72 +5497,29 @@
     }
 
     function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
-      const id = String(rawQuest.id || rawQuest.questId || `quest-${index + 1}`).trim();
-      const rewardCoin = Math.max(0, Math.round(Number(rawQuest.rewardCoin) || 0));
-      const rewardCurrency = 'berry';
-      const rewardMode = ['auto', 'teacherReview', 'quizAchieved'].includes(rawQuest.rewardMode) ? rawQuest.rewardMode : 'auto';
-      const rewardLabel = getClassroomRewardCurrencyLabel(rewardCurrency);
-      const linkedGemName = String(rawQuest.linkedGemName || '').trim();
-      const linkedGemId = String(rawQuest.linkedGemId || slugifyClassroomGemId(linkedGemName)).trim();
-      const gemXp = Math.max(0, Math.round(Number(rawQuest.gemXp) || 0));
-      return {
-        id,
-        questId: id,
-        type: String(rawQuest.type || rawQuest.questType || '수락형 · 체크형').trim(),
-        title: String(rawQuest.title || '교실 퀘스트').trim(),
-        desc: String(rawQuest.desc || '').trim(),
-        rewardMode,
-        rewardCoin,
-        rewardCurrency,
-        status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
-        studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim().replace(/코인/g, '베리'),
-        linkedGemId,
-        linkedGemName,
-        gemXp,
-        gemTargetXp: Math.max(1, Math.round(Number(rawQuest.gemTargetXp) || 10)),
-        gemRewardBerry: Math.max(0, Math.round(Number(rawQuest.gemRewardBerry) || 0)),
-        saveEnabled: rawQuest.saveEnabled !== false,
-        active: rawQuest.active !== false
-      };
+      return window.DJ48ClassroomData.normalizeClassroomQuestConfig(rawQuest, index);
     }
 
     function getClassroomRewardCurrencyLabel(currency) {
-      return currency === 'djCoin' ? 'DJ코인' : '베리';
+      return window.DJ48ClassroomData.getClassroomRewardCurrencyLabel(currency);
     }
 
     function slugifyClassroomGemId(name) {
-      return String(name || '')
-        .trim()
-        .toLowerCase()
-        .replace(/[^0-9a-z가-힣_-]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60);
+      return window.DJ48ClassroomData.slugifyClassroomGemId(name);
     }
 
     function normalizeClassroomSettings(data = {}) {
-      const quests = Array.isArray(data.quests) && data.quests.length ? data.quests : CLASSROOM_PROTOTYPE.quests;
-      return {
-        ...CLASSROOM_PROTOTYPE,
-        ...data,
-        quests: quests.map(normalizeClassroomQuestConfig),
-        routines: CLASSROOM_PROTOTYPE.routines
-      };
+      return window.DJ48ClassroomData.normalizeClassroomSettings(data, CLASSROOM_PROTOTYPE);
     }
 
     async function loadClassroomSettings(forceRefresh = false) {
       if(classroomSettingsCache && !forceRefresh) return classroomSettingsCache;
-      const db = getFirestoreDb();
-      if(!db) {
-        classroomSettingsCache = normalizeClassroomSettings();
-        return classroomSettingsCache;
-      }
-      try {
-        const snapshot = await db.collection('classrooms').doc(CLASSROOM_PROTOTYPE.classId).get();
-        classroomSettingsCache = normalizeClassroomSettings(snapshot.exists ? snapshot.data() : {});
-      } catch(error) {
-        console.warn('Classroom settings load failed. Using prototype fallback.', error);
-        classroomSettingsCache = normalizeClassroomSettings();
-      }
+      classroomSettingsCache = await window.DJ48ClassroomData.loadClassroomSettings({
+        prototype: CLASSROOM_PROTOTYPE
+      }, {
+        getFirestoreDb,
+        warn: console.warn
+      });
       return classroomSettingsCache;
     }
 
