@@ -21,14 +21,14 @@
 |---|---|
 | `public/room.js` | `public/room.js` (신규) |
 | `public/room.css` | `public/room.css` (신규) |
-| `snippets/room-view.partial.html` | `public/index.html`에 붙여넣기 |
-| `tools/seed-room-catalog.js` | `tools/` (신규, 1회 실행) |
-| `snippets/firestore-rules-room.txt` | 참고용 — **rules 수정 불필요** |
+| `docs/snippets/room-view.partial.html` | `public/index.html`에 붙여넣기 |
+| `scripts/seed/seed-room-catalog.js` | `scripts/seed/` (신규, 1회 실행) |
+| `docs/snippets/firestore-rules-room.txt` | 참고용 — **rules 수정 불필요** |
 
 ## index.html 수정 4곳
 
 ### (1) room-view 마크업 추가
-`home-view` 섹션 닫는 태그 뒤에 `room-view.partial.html` 내용 붙여넣기.
+`home-view` 섹션 닫는 태그 뒤에 `docs/snippets/room-view.partial.html` 내용 붙여넣기.
 `<head>`에 `<link rel="stylesheet" href="/room.css">`,
 `</body>` 직전(기존 스크립트 뒤)에 `<script src="/room.js"></script>` 추가.
 
@@ -98,7 +98,7 @@ RoomDecor.init({
 ## 시딩 실행
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=경로/서비스계정.json node tools/seed-room-catalog.js
+GOOGLE_APPLICATION_CREDENTIALS=경로/서비스계정.json node scripts/seed/seed-room-catalog.js
 ```
 - `assetCatalog` 12건(type: 'roomFurniture'), `shopItems` 4건(피아노/TV/어항/트로피)
 - shopItems의 `category: '방 가구'`는 기존 카테고리('배경','아바타','방 장식')와 구분됨.
@@ -116,7 +116,7 @@ headers에 JS no-cache 추가 (html/css와 동일 정책):
 
 기존 `canAccessUserScopedData(userId)` 규칙이 그대로 적용됨.
 shape 검증을 추가하면 기존 selected* 쓰기가 깨지므로 넣지 말 것.
-상세는 `snippets/firestore-rules-room.txt` 참고.
+상세는 `docs/snippets/firestore-rules-room.txt` 참고.
 
 ## 검증 체크리스트
 
@@ -130,7 +130,7 @@ shape 검증을 추가하면 기존 selected* 쓰기가 깨지므로 넣지 말 
 ## Claude Code 작업 프롬프트
 
 ```
-public/room.js, public/room.css, tools/seed-room-catalog.js를 추가했어.
+public/room.js, public/room.css, scripts/seed/seed-room-catalog.js를 추가했어.
 INTEGRATION.md의 "index.html 수정 4곳"을 그대로 적용해줘:
 1. room-view 마크업/링크/스크립트 추가
 2. showRoomView 함수 추가

@@ -1,7 +1,7 @@
 /* ============================================================
  * 가구 카탈로그 + 상점 시딩 스크립트 (seed-room-catalog.js)
  * 실행 위치: 저장소 루트 (functions/ 아님)
- *   node tools/seed-room-catalog.js
+ *   node scripts/seed/seed-room-catalog.js
  * 사전 준비:
  *   npm i firebase-admin (또는 functions의 node_modules 재사용)
  *   GOOGLE_APPLICATION_CREDENTIALS 환경변수에 서비스 계정 키 경로 설정
