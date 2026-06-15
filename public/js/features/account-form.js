@@ -68,6 +68,91 @@
     status.appendChild(text);
   }
 
+  function appendMemberLinkError(message) {
+    const status = document.getElementById('member-link-status');
+    const errorText = document.createElement('p');
+    errorText.textContent = message;
+    errorText.style.color = '#b3261e';
+    status?.appendChild(errorText);
+  }
+
+  function getMappedErrorMessage(error, messages = {}, fallback = '') {
+    return messages[error?.message] || fallback;
+  }
+
+  function getMemberUnlinkErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'auth-required': 'Firebase Auth 로그인 후 해제할 수 있어요.',
+      'member-not-linked': '현재 연결된 회원이 없습니다.'
+    }, '회원 연결 해제 중 문제가 생겼어요.');
+  }
+
+  function getMemberPasswordChangeErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'functions-unavailable': '비밀번호 변경 서버 연결을 사용할 수 없어요.',
+      'password-change-not-required': '현재 비밀번호 변경이 필요한 상태가 아닙니다.',
+      'password-required': '새 비밀번호를 입력해 주세요.',
+      'password-confirm-mismatch': '새 비밀번호 확인이 일치하지 않아요.',
+      'functions/invalid-argument': '비밀번호는 4자리 이상이어야 하고 너무 쉬운 값은 사용할 수 없어요.',
+      'functions/permission-denied': '현재 비밀번호 확인에 실패했어요. 다시 로그인해 주세요.',
+      'functions/failed-precondition': '비밀번호가 아직 등록되지 않았어요.'
+    }, '비밀번호 변경 중 문제가 생겼어요.');
+  }
+
+  function getMemberPasswordResetErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
+      'functions/invalid-argument': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
+      'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
+      'functions/failed-precondition': '비활성화된 계정입니다. 선생님께 문의하세요.'
+    }, '비밀번호 초기화 중 문제가 생겼어요.');
+  }
+
+  function getMemberLinkSubmitErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
+      'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
+      'auth-required': 'Firebase Auth 로그인 후 연결할 수 있어요.',
+      'nickname-required': '신규가입에는 닉네임을 입력해 주세요.',
+      'password-required': '비밀번호를 입력해 주세요.',
+      'password-confirm-mismatch': '비밀번호 확인이 일치하지 않아요.',
+      'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
+      'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
+      'member-not-student': '학생 계정만 사용할 수 있는 기능입니다.',
+      'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
+      'functions/invalid-argument': '학교, 학년, 반, 번호, 닉네임 또는 비밀번호를 다시 확인해 주세요.',
+      'functions/not-found': '등록되지 않은 학년/반/번호입니다. 신규가입을 진행해 주세요.',
+      'functions/already-exists': '이미 등록된 회원입니다. 로그인으로 입장해 주세요.',
+      'functions/failed-precondition': '비밀번호 설정 기간이 지났거나 아직 비밀번호가 등록되지 않았어요.',
+      'functions/permission-denied': '비밀번호가 맞지 않아요.',
+      'functions/resource-exhausted': '시도 횟수가 초과됐어요. 잠시 후 다시 시도하거나 선생님께 문의하세요.'
+    }, '회원 연결 중 문제가 생겼어요.');
+  }
+
+  function getProfileNicknameErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'member-required': '로그인 후 닉네임을 바꿀 수 있어요.',
+      'functions-unavailable': '닉네임 변경 서버 연결을 사용할 수 없어요.',
+      'nickname-required': '닉네임을 입력해 주세요.',
+      'functions/invalid-argument': '닉네임은 2~20글자이며 불건전한 말은 사용할 수 없어요.',
+      'functions/permission-denied': '현재 로그인 정보로는 닉네임을 바꿀 수 없어요.',
+      'functions/not-found': '회원 정보를 찾지 못했습니다.'
+    }, '닉네임 변경 중 문제가 생겼어요.');
+  }
+
+  function getProfilePasswordErrorMessage(error) {
+    return getMappedErrorMessage(error, {
+      'member-required': '로그인 후 비밀번호를 바꿀 수 있어요.',
+      'functions-unavailable': '비밀번호 변경 서버 연결을 사용할 수 없어요.',
+      'current-password-required': '현재 비밀번호를 입력해 주세요.',
+      'password-required': '새 비밀번호를 입력해 주세요.',
+      'password-confirm-mismatch': '새 비밀번호 확인이 일치하지 않아요.',
+      'functions/invalid-argument': '새 비밀번호는 4자리 이상이어야 하며 현재 비밀번호와 달라야 합니다.',
+      'functions/permission-denied': '현재 비밀번호가 맞지 않아요.',
+      'functions/failed-precondition': '비밀번호가 아직 등록되지 않았어요.'
+    }, '비밀번호 변경 중 문제가 생겼어요.');
+  }
+
   function setMemberLinkFormMode(mode) {
     const nextMode = mode === 'signup' ? 'signup' : 'login';
     const form = document.getElementById('member-link-form');
@@ -98,6 +183,13 @@
     renderMemberLinkPanel,
     getMemberLinkFormValues,
     setMemberLinkStatus,
+    appendMemberLinkError,
+    getMemberUnlinkErrorMessage,
+    getMemberPasswordChangeErrorMessage,
+    getMemberPasswordResetErrorMessage,
+    getMemberLinkSubmitErrorMessage,
+    getProfileNicknameErrorMessage,
+    getProfilePasswordErrorMessage,
     setMemberLinkFormMode
   };
 })();

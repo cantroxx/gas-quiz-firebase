@@ -2937,15 +2937,7 @@
         await renderHomeMemberDataFromFirestore();
       } catch(error) {
         console.warn('Member nickname update failed.', error);
-        const messages = {
-          'member-required': '로그인 후 닉네임을 바꿀 수 있어요.',
-          'functions-unavailable': '닉네임 변경 서버 연결을 사용할 수 없어요.',
-          'nickname-required': '닉네임을 입력해 주세요.',
-          'functions/invalid-argument': '닉네임은 2~20글자이며 불건전한 말은 사용할 수 없어요.',
-          'functions/permission-denied': '현재 로그인 정보로는 닉네임을 바꿀 수 없어요.',
-          'functions/not-found': '회원 정보를 찾지 못했습니다.'
-        };
-        if(status) status.textContent = messages[error.message] || '닉네임 변경 중 문제가 생겼어요.';
+        if(status) status.textContent = window.DJ48AccountForm.getProfileNicknameErrorMessage(error);
       } finally {
         if(button) button.disabled = false;
       }
@@ -2971,17 +2963,7 @@
         if(status) status.textContent = '비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용하세요.';
       } catch(error) {
         console.warn('Profile password change failed.', error);
-        const messages = {
-          'member-required': '로그인 후 비밀번호를 바꿀 수 있어요.',
-          'functions-unavailable': '비밀번호 변경 서버 연결을 사용할 수 없어요.',
-          'current-password-required': '현재 비밀번호를 입력해 주세요.',
-          'password-required': '새 비밀번호를 입력해 주세요.',
-          'password-confirm-mismatch': '새 비밀번호 확인이 일치하지 않아요.',
-          'functions/invalid-argument': '새 비밀번호는 4자리 이상이어야 하며 현재 비밀번호와 달라야 합니다.',
-          'functions/permission-denied': '현재 비밀번호가 맞지 않아요.',
-          'functions/failed-precondition': '비밀번호가 아직 등록되지 않았어요.'
-        };
-        if(status) status.textContent = messages[error.message] || '비밀번호 변경 중 문제가 생겼어요.';
+        if(status) status.textContent = window.DJ48AccountForm.getProfilePasswordErrorMessage(error);
       } finally {
         if(button) button.disabled = false;
       }
@@ -4668,6 +4650,10 @@
       return window.DJ48AccountForm.setMemberLinkStatus(message, isError);
     }
 
+    function appendMemberLinkError(message) {
+      return window.DJ48AccountForm.appendMemberLinkError(message);
+    }
+
     function setMemberLinkFormMode(mode) {
       memberLinkSubmitAction = window.DJ48AccountForm.setMemberLinkFormMode(mode);
       return memberLinkSubmitAction;
@@ -4952,12 +4938,8 @@
         setMemberLinkStatus('현재 브라우저 연결을 초기화했어요. 다른 학생 정보로 다시 연결할 수 있습니다.');
         showLoginView();
       } catch(error) {
-        const messages = {
-          'auth-required': 'Firebase Auth 로그인 후 해제할 수 있어요.',
-          'member-not-linked': '현재 연결된 회원이 없습니다.'
-        };
         console.warn('Member auth unlink failed.', error);
-        setMemberLinkStatus(messages[error.message] || '회원 연결 해제 중 문제가 생겼어요.', true);
+        setMemberLinkStatus(window.DJ48AccountForm.getMemberUnlinkErrorMessage(error), true);
         renderMemberLinkPanel();
       }
     }
@@ -4977,21 +4959,8 @@
         if(result?.profile?.role === 'admin' || currentMemberProfile?.role === 'admin') showAdminView();
         else showTownView();
       } catch(error) {
-        const messages = {
-          'functions-unavailable': '비밀번호 변경 서버 연결을 사용할 수 없어요.',
-          'password-change-not-required': '현재 비밀번호 변경이 필요한 상태가 아닙니다.',
-          'password-required': '새 비밀번호를 입력해 주세요.',
-          'password-confirm-mismatch': '새 비밀번호 확인이 일치하지 않아요.',
-          'functions/invalid-argument': '비밀번호는 4자리 이상이어야 하고 너무 쉬운 값은 사용할 수 없어요.',
-          'functions/permission-denied': '현재 비밀번호 확인에 실패했어요. 다시 로그인해 주세요.',
-          'functions/failed-precondition': '비밀번호가 아직 등록되지 않았어요.'
-        };
         console.warn('Member password change failed.', error);
-        const status = document.getElementById('member-link-status');
-        const errorText = document.createElement('p');
-        errorText.textContent = messages[error.message] || '비밀번호 변경 중 문제가 생겼어요.';
-        errorText.style.color = '#b3261e';
-        status?.appendChild(errorText);
+        appendMemberLinkError(window.DJ48AccountForm.getMemberPasswordChangeErrorMessage(error));
       } finally {
         const nextButton = document.getElementById('member-password-change-button');
         if(nextButton) {
@@ -5033,14 +5002,8 @@
         });
         setMemberLinkStatus(`임시 비밀번호는 ${temporaryPassword}입니다. 이 비밀번호로 로그인한 뒤 새 비밀번호를 저장해 주세요.`);
       } catch(error) {
-        const messages = {
-          'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
-          'functions/invalid-argument': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
-          'functions/not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
-          'functions/failed-precondition': '비활성화된 계정입니다. 선생님께 문의하세요.'
-        };
         console.warn('Member password reset failed.', error);
-        setMemberLinkStatus(messages[error.message] || '비밀번호 초기화 중 문제가 생겼어요.', true);
+        setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordResetErrorMessage(error), true);
       } finally {
         memberLinkInProgress = false;
         if(button) {
@@ -5077,26 +5040,8 @@
         if(profile.role === 'admin') showAdminView();
         else showTownView();
       } catch(error) {
-        const messages = {
-          'firestore-unavailable': 'Firestore 연결을 사용할 수 없어요.',
-          'functions-unavailable': '회원 검증 서버 연결을 사용할 수 없어요.',
-          'auth-required': 'Firebase Auth 로그인 후 연결할 수 있어요.',
-          'nickname-required': '신규가입에는 닉네임을 입력해 주세요.',
-          'password-required': '비밀번호를 입력해 주세요.',
-          'password-confirm-mismatch': '비밀번호 확인이 일치하지 않아요.',
-          'invalid-member-identity': '학교, 학년, 반, 번호를 다시 확인해 주세요.',
-          'member-not-found': '해당 학교/학년/반/번호의 회원을 찾지 못했어요.',
-          'member-not-student': '학생 계정만 사용할 수 있는 기능입니다.',
-          'member-inactive': '비활성화된 계정입니다. 선생님께 문의하세요.',
-          'functions/invalid-argument': '학교, 학년, 반, 번호, 닉네임 또는 비밀번호를 다시 확인해 주세요.',
-          'functions/not-found': '등록되지 않은 학년/반/번호입니다. 신규가입을 진행해 주세요.',
-          'functions/already-exists': '이미 등록된 회원입니다. 로그인으로 입장해 주세요.',
-          'functions/failed-precondition': '비밀번호 설정 기간이 지났거나 아직 비밀번호가 등록되지 않았어요.',
-          'functions/permission-denied': '비밀번호가 맞지 않아요.',
-          'functions/resource-exhausted': '시도 횟수가 초과됐어요. 잠시 후 다시 시도하거나 선생님께 문의하세요.'
-        };
         console.warn('Member auth link failed.', error);
-        setMemberLinkStatus(messages[error.message] || '회원 연결 중 문제가 생겼어요.', true);
+        setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitErrorMessage(error), true);
       } finally {
         memberLinkInProgress = false;
       }
