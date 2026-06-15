@@ -7290,7 +7290,7 @@
         console.warn('Quiz session shuffle failed. Using cached question order.', error);
         return null;
       }));
-      showOnlyAppView('quiz-play-view');
+      window.DJ48AppView.showOnlyAppView('quiz-play-view', APP_VIEW_IDS);
       renderQuizPlayHeader();
       renderQuestion();
     }
@@ -7857,10 +7857,6 @@
       'town-view',
       'classroom-view'
     ];
-
-    function showOnlyAppView(viewId) {
-      return window.DJ48AppView.showOnlyAppView(viewId, APP_VIEW_IDS);
-    }
 
     function showSchoolView() {
       renderSchoolQuizCards();
