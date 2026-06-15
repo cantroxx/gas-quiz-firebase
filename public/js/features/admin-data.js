@@ -47,10 +47,26 @@
     }, deps);
   }
 
+  function saveAdminNoticeBoard(notice = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminUpdateNoticeBoard',
+      payload: { notice },
+      errorCode: 'admin-notice-save-failed'
+    }, deps);
+  }
+
   function loadAdminExternalQuizzes(deps = {}) {
     return callAdminCallable({
       callableName: 'adminGetExternalQuizzes',
       errorCode: 'admin-external-quizzes-load-failed'
+    }, deps);
+  }
+
+  function saveAdminExternalQuizzes(externalQuizzes = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminUpdateExternalQuizzes',
+      payload: { externalQuizzes },
+      errorCode: 'admin-external-quizzes-save-failed'
     }, deps);
   }
 
@@ -61,6 +77,14 @@
     }, deps);
   }
 
+  function saveAdminLoginSettings(settings = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminUpdatePasswordSetupSettings',
+      payload: { settings },
+      errorCode: 'admin-login-settings-save-failed'
+    }, deps);
+  }
+
   function loadAdminFeatureFlags(deps = {}) {
     return callAdminCallable({
       callableName: 'adminGetFeatureFlags',
@@ -68,10 +92,26 @@
     }, deps);
   }
 
+  function saveAdminFeatureFlags(flags = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminUpdateFeatureFlags',
+      payload: { flags },
+      errorCode: 'admin-feature-flags-save-failed'
+    }, deps);
+  }
+
   function loadAdminRoomCatalog(deps = {}) {
     return callAdminCallable({
       callableName: 'adminListRoomCatalog',
       errorCode: 'admin-room-catalog-load-failed'
+    }, deps);
+  }
+
+  function saveAdminRoomCatalogItem(item = {}, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminSaveRoomCatalogItem',
+      payload: item,
+      errorCode: 'admin-room-catalog-save-failed'
     }, deps);
   }
 
@@ -90,10 +130,15 @@
     loadAdminQuizQualityAudit,
     loadAdminMembers,
     loadAdminNoticeBoard,
+    saveAdminNoticeBoard,
     loadAdminExternalQuizzes,
+    saveAdminExternalQuizzes,
     loadAdminLoginSettings,
+    saveAdminLoginSettings,
     loadAdminFeatureFlags,
+    saveAdminFeatureFlags,
     loadAdminRoomCatalog,
+    saveAdminRoomCatalogItem,
     loadAdminLogs
   };
 })();

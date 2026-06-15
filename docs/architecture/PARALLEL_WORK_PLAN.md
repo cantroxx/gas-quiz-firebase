@@ -56,6 +56,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 3. Admin refactor, phase 2B.
    - Split admin save/callable flows one group at a time.
    - Run admin browser smoke after each deployed slice.
+   - Started with low-risk admin setting/catalog save callable wrappers in `public/js/features/admin-data.js`.
 4. Account/login refactor.
    - Split login/signup/password/session restore only after admin is stable.
 5. Shop/room write-flow refactor.

@@ -8309,15 +8309,12 @@
     }
 
     async function saveAdminNoticeBoard() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const notice = getAdminNoticeFormValues();
       setAdminNoticeStatus('알림판을 저장하는 중입니다...');
-      const callable = functions.httpsCallable('adminUpdateNoticeBoard');
-      const response = await callable({ notice });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-notice-save-failed');
+      const result = await window.DJ48AdminData.saveAdminNoticeBoard(notice, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       noticeBoardCache = normalizeNoticeBoardData(result.notice);
       setAdminNoticeStatus('알림판을 저장했습니다.');
       return result.notice;
@@ -8391,15 +8388,12 @@
     }
 
     async function saveAdminExternalQuizzes() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const externalQuizzes = getAdminExternalQuizzesFormValues();
       setAdminExternalQuizzesStatus('외부 퀴즈를 저장하는 중입니다...');
-      const callable = functions.httpsCallable('adminUpdateExternalQuizzes');
-      const response = await callable({ externalQuizzes });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-external-quizzes-save-failed');
+      const result = await window.DJ48AdminData.saveAdminExternalQuizzes(externalQuizzes, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       externalQuizzesCache = normalizeExternalQuizzes(result.externalQuizzes);
       renderAdminExternalQuizRows(externalQuizzesCache);
       setAdminExternalQuizzesStatus('외부 퀴즈를 저장했습니다.');
@@ -8455,15 +8449,12 @@
     }
 
     async function saveAdminLoginSettings() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const settings = getAdminLoginSettingsFormValues();
       setAdminLoginSettingsStatus('로그인 설정을 저장하는 중입니다...');
-      const callable = functions.httpsCallable('adminUpdatePasswordSetupSettings');
-      const response = await callable({ settings });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-login-settings-save-failed');
+      const result = await window.DJ48AdminData.saveAdminLoginSettings(settings, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       setAdminLoginSettingsForm(result.settings);
       setAdminLoginSettingsStatus('로그인 설정을 저장했습니다.');
       return result.settings;
@@ -8578,15 +8569,12 @@
     }
 
     async function saveAdminFeatureFlags() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const flags = getAdminFeatureFlagsFormValues();
       setAdminFeatureFlagsStatus('기능 설정을 저장하는 중입니다...');
-      const callable = functions.httpsCallable('adminUpdateFeatureFlags');
-      const response = await callable({ flags });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-feature-flags-save-failed');
+      const result = await window.DJ48AdminData.saveAdminFeatureFlags(flags, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       featureFlagsCache = normalizeFeatureFlags(result.flags);
       setAdminFeatureFlagsForm(featureFlagsCache);
       setAdminFeatureFlagsStatus('기능 설정을 저장했습니다.');
@@ -8666,16 +8654,13 @@
     }
 
     async function saveAdminRoomCatalogItem() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       const values = getAdminRoomCatalogFormValues();
       if(!values.itemId || !values.name) throw new Error('admin-room-catalog-required');
       setAdminRoomCatalogStatus('방 가구 상품을 저장하는 중입니다...');
-      const callable = functions.httpsCallable('adminSaveRoomCatalogItem');
-      const response = await callable(values);
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-room-catalog-save-failed');
+      const result = await window.DJ48AdminData.saveAdminRoomCatalogItem(values, {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       firestoreShopItems = null;
       shopItemsLoadPromise = null;
       firestoreAssetCatalogMap = null;
