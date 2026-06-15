@@ -848,6 +848,34 @@ Step 13F implemented:
   - ranking session timeout skips ranking save with elapsed-too-long message
   - leaving quiz clears both timers
 
+Step 13G implemented:
+
+- Moved answer submit and result card flow bodies into `public/js/features/quiz-play.js`:
+  - `submitAnswer`
+  - `showQuizResult`
+- Kept the existing `public/index.html` function names as thin wrappers.
+- Preserved answer submit behavior:
+  - ignores already resolved questions
+  - validates text/image/choice answers through existing quiz helper
+  - disables input after text/image submit
+  - clears ranking question timer after submit
+  - increments correct answer count only on correct answers
+  - records popular quiz education correct unlock only on correct answers
+  - attaches practice progress save status after correct practice answer
+- Preserved result behavior:
+  - ranking wrong answer still decrements hearts through `getRankingWrongAnswerState`
+  - result card still appends to `quiz-play-root`
+  - last-question detection is unchanged
+- Still not moved:
+  - completion card/ranking save status flow
+  - next-question routing
+- Required smoke checks:
+  - choice answer submit works
+  - text/image answer submit works
+  - correct answer increments score
+  - wrong ranking answer decrements heart
+  - practice save status still appears
+
 ## Step 7 Validation Checklist
 
 - Shop list.

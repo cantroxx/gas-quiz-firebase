@@ -944,6 +944,65 @@
     deps.showQuizResult?.(false, '시간 초과로 하트가 1개 줄었어요.');
   }
 
+  function submitAnswer(deps = {}) {
+    if(deps.getCurrentQuestionResolved?.()) return null;
+    const question = deps.getCurrentQuestionSet?.()[deps.getCurrentQuestionIndex?.()];
+    const input = deps.getQuizAnswerInput?.();
+    const submitResult = getQuizAnswerSubmitResult(question, {
+      submittedAnswer: input?.value,
+      selectedChoiceIndex: deps.getSelectedChoiceIndex?.(),
+      normalizeQuizAnswer: deps.normalizeQuizAnswer
+    });
+    if(!submitResult.canSubmit) return null;
+    const isCorrect = submitResult.isCorrect;
+    if(question.type === 'imageInput' || question.type === 'textInput') {
+      if(input) input.disabled = true;
+    }
+    deps.setCurrentQuestionResolved?.(true);
+    deps.clearRankingQuestionTimer?.();
+    if(isCorrect) deps.incrementCorrectAnswerCount?.();
+    if(isCorrect) deps.recordEducationCorrectForPopularUnlock?.(deps.getCurrentQuizId?.());
+    let progressSavePromise = null;
+    if(shouldSavePracticeProgress({ isCorrect, modeId: deps.getCurrentModeId?.() })) {
+      deps.debugLog?.('Practice progress correct questionId:', {
+        questionId: deps.getPracticeQuestionId?.(question),
+        quizId: deps.normalizeFirebaseQuizId?.(deps.getCurrentQuizId?.())
+      });
+      progressSavePromise = deps.savePracticeProgressAfterCorrectAnswer?.(question);
+    }
+    disableQuizAnswerControls(deps.getQuizPlayRoot?.());
+    deps.showQuizResult?.(isCorrect);
+    attachPracticeProgressSaveStatus(progressSavePromise, {
+      renderPracticeSaveStatus: deps.renderPracticeSaveStatus,
+      isFirestoreQuotaExceededError: deps.isFirestoreQuotaExceededError,
+      warn: console.warn
+    });
+    return { isCorrect, progressSavePromise };
+  }
+
+  function showQuizResult(isCorrect, overrideMessage, deps = {}) {
+    const root = deps.getQuizPlayRoot?.();
+    const questionSet = deps.getCurrentQuestionSet?.() || [];
+    const question = questionSet[deps.getCurrentQuestionIndex?.()];
+    const rankingWrongAnswerState = getRankingWrongAnswerState({
+      modeId: deps.getCurrentModeId?.(),
+      isCorrect,
+      currentRankingLives: deps.getCurrentRankingLives?.()
+    });
+    deps.setCurrentRankingLives?.(rankingWrongAnswerState.nextRankingLives);
+    const viewModel = getQuizResultViewModel({
+      isCorrect,
+      question,
+      modeId: deps.getCurrentModeId?.(),
+      rankingEndedByWrongAnswer: rankingWrongAnswerState.rankingEndedByWrongAnswer,
+      overrideMessage,
+      isLastQuestion: (deps.getCurrentQuestionIndex?.() || 0) + 1 >= questionSet.length
+    });
+
+    root?.appendChild(createQuizResultCard(viewModel));
+    return viewModel;
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -1264,6 +1323,8 @@
     handleRankingSessionTimeout,
     startRankingQuestionTimerIfNeeded,
     handleRankingTimeout,
+    submitAnswer,
+    showQuizResult,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,
