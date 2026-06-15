@@ -51,5 +51,5 @@ https://dj48-quiztown-firebase.web.app
 
 - 학생이 최초 비밀번호 설정에 성공하면 `users/{memberUserId}.authUid`가 연결된다.
 - 이후 로그인은 비밀번호 검증 후 같은 회원 문서에 다시 연결된다.
-- 비밀번호 초기화가 필요한 경우 `scripts/reset-member-password.js`를 사용한다.
+- 비밀번호 초기화가 필요한 경우 `scripts/maintenance/reset-member-password.js`를 사용한다.
 - 최초 비밀번호 설정 기간은 2026-06-17 23:59:59 KST까지 열려 있다.

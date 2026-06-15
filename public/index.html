@@ -8129,7 +8129,7 @@
           createAdminInfoChip('모드', row.rankingMode || 'normal'),
           createAdminInfoChip('기록ID', row.recordId || '-')
         );
-        command.textContent = `node scripts/cleanup-long-ranking-records.js --dry-run --record-id ${row.recordId || ''}`;
+        command.textContent = `node scripts/maintenance/cleanup-long-ranking-records.js --dry-run --record-id ${row.recordId || ''}`;
         card.append(heading, meta, command);
         return card;
       });

@@ -225,7 +225,7 @@ purchase_{userId}_{itemId}_{timestamp}
 
 ## 8. Seed 스크립트 범위
 
-`scripts/seed-purchase-test-user.js`는 다음만 수행한다.
+`scripts/seed/seed-purchase-test-user.js`는 다음만 수행한다.
 
 - `userEconomy/test_user` 생성/갱신
 - `djCoin: 1000`
@@ -255,7 +255,7 @@ purchase_{userId}_{itemId}_{timestamp}
 
 ## 10. 다음 구현 단계
 
-1. `scripts/seed-purchase-test-user.js` 실행으로 `userEconomy/test_user` 생성
+1. `scripts/seed/seed-purchase-test-user.js` 실행으로 `userEconomy/test_user` 생성
 2. Firestore Console에서 `userEconomy/test_user` 필드 확인
 3. `public/index.html`에서 테스트 사용자 상수 또는 임시 사용자 확인 함수 추가
 4. `userEconomy` 읽기로 상점 지갑 표시 전환

@@ -265,8 +265,8 @@ Auth `uid`는 `authUid` 필드로 별도 저장한다. 이렇게 하면 운영�
 로컬 import 스크립트:
 
 ```bash
-node scripts/import-members-from-json.js --dry-run
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-members-from-json.js --commit
+node scripts/migration/import-members-from-json.js --dry-run
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/migration/import-members-from-json.js --commit
 ```
 
 기본 입력 파일:

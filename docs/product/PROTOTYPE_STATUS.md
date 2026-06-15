@@ -233,7 +233,7 @@
 - 현재 브라우저 테스트를 위해 `authUid` 연결 해제 버튼 제공
   - 연결된 본인 문서만 `authUid: ''`로 업데이트 가능
   - 해제 후 localStorage 힌트 제거, Firebase Auth 익명 세션 재생성
-- 비밀번호 초기화는 운영자 스크립트 `scripts/reset-member-password.js`로 특정 회원만 임시 비밀번호 `학년+반+번호`로 재설정하고, 로그인 후 강제 변경한다.
+- 비밀번호 초기화는 운영자 스크립트 `scripts/maintenance/reset-member-password.js`로 특정 회원만 임시 비밀번호 `학년+반+번호`로 재설정하고, 로그인 후 강제 변경한다.
 - 운영본 `gas-quiz`는 계속 유지하며, Firebase 실험본은 새 사이트 전환 준비용으로 분리 유지
 
 ### `userTitles`
@@ -529,7 +529,7 @@
    - 최초 설정: 학교/학년/반/번호 + 기존 닉네임 확인 후 비밀번호 등록
    - 일반 로그인: 학교/학년/반/번호 + 비밀번호 확인
    - 초기 설정 기간: 2026-06-17 23:59:59 KST까지 `authSettings/memberPasswordSetup`에서 제어
-   - 초기화: `scripts/reset-member-password.js`로 특정 회원 비밀번호를 `학년+반+번호` 임시값으로 reset 후 강제 변경
+   - 초기화: `scripts/maintenance/reset-member-password.js`로 특정 회원 비밀번호를 `학년+반+번호` 임시값으로 reset 후 강제 변경
    - `startMemberPasswordSetup`, `setMemberPassword`, `loginMemberWithPassword`, `changeMemberPassword` Functions deploy 완료
    - 회원 연결 UI는 비밀번호 입력 + callable 연결 방식으로 배포했고, 4학년 8반 22번 브라우저 로그인 확인 완료
    - 클라이언트 직접 `users.authUid` update rules는 제거 완료
@@ -565,11 +565,11 @@
   - 자동 force fix는 `firebase-admin@14`로 올리며 현재 `firebase-functions@7.2.5` peer 범위와 충돌
   - `firebase-functions`가 `firebase-admin@14`를 지원할 때 재검토 필요
 - 운영 백업 dry-run 스크립트 추가 및 실행 확인
-  - `scripts/export-operational-backup.js`
+  - `scripts/audit/export-operational-backup.js`
   - root collection 및 subcollection collectionGroup 백업 집계 확인
   - 실제 백업 파일은 `--commit` 실행 시 `private/backups/`에만 저장
 - 운영 지표 점검 스크립트 추가 및 실행 확인
-  - `scripts/inspect-operational-metrics.js`
+  - `scripts/audit/inspect-operational-metrics.js`
   - 회원/기록/랭킹/보상/구매/미연결 학생 지표 출력 확인
 - 운영 절차 문서 추가
   - `docs/operations/OPERATIONAL_RUNBOOK.md`

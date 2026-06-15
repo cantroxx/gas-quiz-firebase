@@ -166,7 +166,7 @@ userTitleSummary/{memberUserId}
 
 1. 운영본 `타이틀현황` export helper 작성 또는 Apps Script에서 JSON 생성
 2. 로컬 `exports/title-export.json` 저장
-3. `scripts/import-user-titles-from-json.js --dry-run` 실행
+3. `scripts/migration/import-user-titles-from-json.js --dry-run` 실행
 4. row count, 사용자 수, title count, 누락 titleId, 중복 titleId 확인
 5. 문제가 없으면 `--commit`으로 Firestore import
 6. Firebase Console에서 샘플 사용자 확인
@@ -208,13 +208,13 @@ exports/title-export.json
 dry-run:
 
 ```bash
-node scripts/import-user-titles-from-json.js --dry-run --input exports/title-export.json --sample 5
+node scripts/migration/import-user-titles-from-json.js --dry-run --input exports/title-export.json --sample 5
 ```
 
 실제 import:
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-user-titles-from-json.js --commit --input exports/title-export.json
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/migration/import-user-titles-from-json.js --commit --input exports/title-export.json
 ```
 
 이번 단계에서는 실제 export/import를 실행하지 않는다.

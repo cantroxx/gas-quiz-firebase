@@ -16,7 +16,7 @@
 
 확인한 Firebase 실험본 파일:
 
-- `~/Projects/gas-quiz-firebase/scripts/import-members-from-json.js`
+- `~/Projects/gas-quiz-firebase/scripts/migration/import-members-from-json.js`
 - `~/Projects/gas-quiz-firebase/MEMBER_MIGRATION_PLAN.md`
 - `~/Projects/gas-quiz-firebase/fixtures/migration/MEMBER_MIGRATION_SAMPLE.json`
 - `~/Projects/gas-quiz-firebase/docs/product/PROTOTYPE_STATUS.md`

@@ -29,9 +29,9 @@ Supported fields:
 Use the Admin SDK script from the project root:
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --dry-run
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --commit --enable --expires-at 2026-06-17T23:59:59+09:00
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --commit --disable
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed/seed-member-password-setup-settings.js --dry-run
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed/seed-member-password-setup-settings.js --commit --enable --expires-at 2026-06-17T23:59:59+09:00
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed/seed-member-password-setup-settings.js --commit --disable
 ```
 
 ## Password reset
@@ -39,8 +39,8 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-p
 Admin reset is intentionally script-only for the MVP. The reset writes a temporary password and sets `forcePasswordChange: true`.
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/reset-member-password.js --dry-run --grade 4 --class 8 --number 22
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/reset-member-password.js --commit --grade 4 --class 8 --number 22
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/maintenance/reset-member-password.js --dry-run --grade 4 --class 8 --number 22
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/maintenance/reset-member-password.js --commit --grade 4 --class 8 --number 22
 ```
 
 Default temporary password format is `grade + class + number`, for example `4822`.

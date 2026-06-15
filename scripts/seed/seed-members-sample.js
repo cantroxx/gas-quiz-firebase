@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const SAMPLE_PATH = path.join(__dirname, '..', 'fixtures', 'migration', 'MEMBER_MIGRATION_SAMPLE.json');
+const SAMPLE_PATH = path.join(__dirname, '..', '..', 'fixtures', 'migration', 'MEMBER_MIGRATION_SAMPLE.json');
 const USERS_COLLECTION = 'users';
 
 function initializeAdminApp() {

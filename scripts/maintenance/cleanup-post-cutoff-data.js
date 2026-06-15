@@ -26,25 +26,25 @@ const REVIEW_TARGETS = [
     label: 'practiceRecords',
     path: 'practiceRecords',
     fields: ['updatedAt', 'lastAchievedAt', 'lastCompletedAt', 'createdAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-practice-badges-from-json.js --commit --input exports/practice-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/migration/import-practice-badges-from-json.js --commit --input exports/practice-export.json'
   },
   {
     label: 'userPracticeSummary',
     path: 'userPracticeSummary',
     fields: ['updatedAt', 'migratedAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-practice-badges-from-json.js --commit --input exports/practice-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/migration/import-practice-badges-from-json.js --commit --input exports/practice-export.json'
   },
   {
     label: 'userRankingSummary',
     path: 'userRankingSummary',
     fields: ['updatedAt', 'migratedAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-rankings-from-json.js --commit --input exports/ranking-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/migration/import-rankings-from-json.js --commit --input exports/ranking-export.json'
   },
   {
     label: 'quizKingSummary',
     path: 'quizKingSummary',
     fields: ['updatedAt', 'migratedAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-rankings-from-json.js --commit --input exports/ranking-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/migration/import-rankings-from-json.js --commit --input exports/ranking-export.json'
   },
   {
     label: 'userEconomy',

@@ -38,13 +38,13 @@ Recommended cadence:
 Dry-run backup summary:
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/export-operational-backup.js --dry-run --sample 3
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/audit/export-operational-backup.js --dry-run --sample 3
 ```
 
 Write a local JSON backup:
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/export-operational-backup.js --commit --sample 0
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/audit/export-operational-backup.js --commit --sample 0
 ```
 
 Output path:
@@ -98,7 +98,7 @@ Recommended cadence:
 Run:
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/inspect-operational-metrics.js --sample 5
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/audit/inspect-operational-metrics.js --sample 5
 ```
 
 This prints:

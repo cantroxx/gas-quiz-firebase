@@ -16,7 +16,7 @@ Firebase 배포본을 실제 학생 사용으로 열기 직전에 확인할 항�
   - `authSettings/memberPasswordSetup.setupEnabled: true`
   - `setupExpiresAt: 2026-06-17 23:59:59 KST`
 - 학생 비밀번호 초기화 운영 스크립트 준비 완료
-  - `scripts/reset-member-password.js`
+  - `scripts/maintenance/reset-member-password.js`
 - Firestore 이관 데이터 기반 화면/플레이 연결 완료
 
 ## 배포 URL
@@ -93,31 +93,31 @@ Safari에서만 발생하는 일회성 Firestore transport 경고는 기능이 �
 초기 비밀번호 설정 상태 확인:
 
 ```sh
-node scripts/seed-member-password-setup-settings.js --dry-run
+node scripts/seed/seed-member-password-setup-settings.js --dry-run
 ```
 
 초기 비밀번호 설정 기간 유지 또는 연장:
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --commit --enable --expires-at 2026-06-17T23:59:59+09:00
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed/seed-member-password-setup-settings.js --commit --enable --expires-at 2026-06-17T23:59:59+09:00
 ```
 
 초기 비밀번호 설정 종료:
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed-member-password-setup-settings.js --commit --disable
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/seed/seed-member-password-setup-settings.js --commit --disable
 ```
 
 특정 학생 비밀번호 초기화 dry-run:
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/reset-member-password.js --dry-run --grade 4 --class 8 --number 22
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/maintenance/reset-member-password.js --dry-run --grade 4 --class 8 --number 22
 ```
 
 특정 학생 비밀번호 초기화 실행:
 
 ```sh
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/reset-member-password.js --commit --grade 4 --class 8 --number 22
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/maintenance/reset-member-password.js --commit --grade 4 --class 8 --number 22
 ```
 
 ## 오픈 이후로 넘기는 항목

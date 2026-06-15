@@ -2,7 +2,7 @@
   "name": "gas-quiz-firebase",
   "private": true,
   "scripts": {
-    "smoke:browser": "node scripts/browser-smoke-test.js"
+    "smoke:browser": "node scripts/smoke/browser-smoke-test.js"
   },
   "devDependencies": {
     "firebase-admin": "^14.0.0",
