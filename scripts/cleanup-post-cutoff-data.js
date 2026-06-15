@@ -26,25 +26,25 @@ const REVIEW_TARGETS = [
     label: 'practiceRecords',
     path: 'practiceRecords',
     fields: ['updatedAt', 'lastAchievedAt', 'lastCompletedAt', 'createdAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-practice-badges-from-json.js --commit --input practice-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-practice-badges-from-json.js --commit --input exports/practice-export.json'
   },
   {
     label: 'userPracticeSummary',
     path: 'userPracticeSummary',
     fields: ['updatedAt', 'migratedAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-practice-badges-from-json.js --commit --input practice-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-practice-badges-from-json.js --commit --input exports/practice-export.json'
   },
   {
     label: 'userRankingSummary',
     path: 'userRankingSummary',
     fields: ['updatedAt', 'migratedAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-rankings-from-json.js --commit --input ranking-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-rankings-from-json.js --commit --input exports/ranking-export.json'
   },
   {
     label: 'quizKingSummary',
     path: 'quizKingSummary',
     fields: ['updatedAt', 'migratedAt'],
-    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-rankings-from-json.js --commit --input ranking-export.json'
+    restoreCommand: 'GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-rankings-from-json.js --commit --input exports/ranking-export.json'
   },
   {
     label: 'userEconomy',
@@ -332,7 +332,7 @@ async function main() {
   if (args.resetEconomy) {
     console.log('- userEconomy is reset by deleting all userEconomy documents; the app starts missing wallets at 0 DJ coin.');
   } else {
-    console.log('- userEconomy balances need explicit baseline restore or manual adjustment; member-export.json does not include economy fields.');
+    console.log('- userEconomy balances need explicit baseline restore or manual adjustment; exports/member-export.json does not include economy fields.');
   }
   console.log('- userRoomSettings post-cutoff candidates are deleted with the cleanup batch.');
   console.log('');

@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const DEFAULT_INPUT = './practice-export.json';
+const DEFAULT_INPUT = './exports/practice-export.json';
 const PRACTICE_RECORDS_COLLECTION = 'practiceRecords';
 const USER_PRACTICE_SUMMARY_COLLECTION = 'userPracticeSummary';
 const USER_BADGES_COLLECTION = 'userBadges';

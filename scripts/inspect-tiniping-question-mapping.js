@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const DEFAULT_EXPORT_INPUT = './quiz-popular-export.json';
+const DEFAULT_EXPORT_INPUT = './exports/quiz-popular-export.json';
 
 function parseArgs(argv) {
   const args = {

@@ -165,7 +165,7 @@ userTitleSummary/{memberUserId}
 ## 8. Firebase 이관 순서
 
 1. 운영본 `타이틀현황` export helper 작성 또는 Apps Script에서 JSON 생성
-2. 로컬 `title-export.json` 저장
+2. 로컬 `exports/title-export.json` 저장
 3. `scripts/import-user-titles-from-json.js --dry-run` 실행
 4. row count, 사용자 수, title count, 누락 titleId, 중복 titleId 확인
 5. 문제가 없으면 `--commit`으로 Firestore import
@@ -178,7 +178,7 @@ userTitleSummary/{memberUserId}
 예상 export 파일:
 
 ```text
-title-export.json
+exports/title-export.json
 ```
 
 지원 입력 형태:
@@ -208,13 +208,13 @@ title-export.json
 dry-run:
 
 ```bash
-node scripts/import-user-titles-from-json.js --dry-run --input title-export.json --sample 5
+node scripts/import-user-titles-from-json.js --dry-run --input exports/title-export.json --sample 5
 ```
 
 실제 import:
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-user-titles-from-json.js --commit --input title-export.json
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-user-titles-from-json.js --commit --input exports/title-export.json
 ```
 
 이번 단계에서는 실제 export/import를 실행하지 않는다.
@@ -223,7 +223,7 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-user-t
 
 - 운영본 `gas-quiz` 코드 수정
 - 운영본 Apps Script export helper 추가
-- `title-export.json` 생성 또는 커밋
+- `exports/title-export.json` 생성 또는 커밋
 - Firestore 실제 import 실행
 - public UI에서 `userTitles` 읽기 연결
 - 보안 규칙 최종화
@@ -234,7 +234,7 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-user-t
 1. 운영본에 읽기 전용 `타이틀현황` export helper 추가
 2. preview로 row count와 샘플 확인
 3. Drive 또는 Logger 분할 방식으로 JSON export
-4. 로컬 `title-export.json` 저장
+4. 로컬 `exports/title-export.json` 저장
 5. dry-run
 6. 실제 import
 7. `docs/product/PROTOTYPE_STATUS.md` 갱신

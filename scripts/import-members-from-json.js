@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const DEFAULT_INPUT_PATH = path.join(process.cwd(), 'member-export.json');
+const DEFAULT_INPUT_PATH = path.join(process.cwd(), 'exports', 'member-export.json');
 const USERS_COLLECTION = 'users';
 const PASSWORD_FIELD_NAMES = new Set([
   'password',

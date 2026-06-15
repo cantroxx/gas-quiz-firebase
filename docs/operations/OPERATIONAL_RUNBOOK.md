@@ -183,10 +183,10 @@ After deploy:
 ## Do Not Commit
 
 - `service-account.json`
-- `member-export.json`
-- `title-export.json`
-- `practice-export.json`
-- `ranking-export.json`
-- `quiz-*-export.json`
+- `exports/member-export.json`
+- `exports/title-export.json`
+- `exports/practice-export.json`
+- `exports/ranking-export.json`
+- `exports/quiz-*-export.json`
 - `private/backups/*`
 - any downloaded student data export

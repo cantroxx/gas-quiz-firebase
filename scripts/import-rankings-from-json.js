@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const DEFAULT_INPUT = './ranking-export.json';
+const DEFAULT_INPUT = './exports/ranking-export.json';
 const RANKING_RECORDS_COLLECTION = 'rankingRecords';
 const USER_RANKING_SUMMARY_COLLECTION = 'userRankingSummary';
 const QUIZ_KING_SUMMARY_COLLECTION = 'quizKingSummary';

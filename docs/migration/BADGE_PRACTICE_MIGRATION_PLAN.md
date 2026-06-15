@@ -215,8 +215,8 @@ userId, 학년, 반, 번호, 닉네임, 세대, 획득여부, 획득일시, 맞�
 
 1. 운영본에 읽기 전용 export helper 추가
 2. `연습기록`과 `포켓몬연습기록`을 JSON으로 export
-3. 로컬 `practice-export.json` 저장
-4. `practice-export.json`이 `.gitignore` 보호 대상인지 확인
+3. 로컬 `exports/practice-export.json` 저장
+4. `exports/practice-export.json`이 `.gitignore` 보호 대상인지 확인
 5. import 도구 dry-run 실행
 6. row 수, 사용자 수, duplicate merge 수, legacy unknown 수 확인
 7. 샘플 사용자 2~3명의 `practiceRecords`, `userBadges`, `userPracticeSummary` preview 확인

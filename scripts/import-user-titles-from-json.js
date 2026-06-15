@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const DEFAULT_INPUT = './title-export.json';
+const DEFAULT_INPUT = './exports/title-export.json';
 const USER_TITLES_COLLECTION = 'userTitles';
 const USER_TITLE_SUMMARY_COLLECTION = 'userTitleSummary';
 

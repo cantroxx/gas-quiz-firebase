@@ -253,8 +253,8 @@ Auth `uid`는 `authUid` 필드로 별도 저장한다. 이렇게 하면 운영�
 
 보호 대상:
 
-- `member-export.json`
-- `member-export.csv`
+- `exports/member-export.json`
+- `exports/member-export.csv`
 - `exports/`
 - `private/`
 - `service-account.json`
@@ -272,7 +272,7 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json node scripts/import-member
 기본 입력 파일:
 
 ```text
-./member-export.json
+./exports/member-export.json
 ```
 
 안전 규칙:

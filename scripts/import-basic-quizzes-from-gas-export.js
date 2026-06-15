@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
 
-const DEFAULT_INPUT = './quiz-basic-export.json';
+const DEFAULT_INPUT = './exports/quiz-basic-export.json';
 const QUIZZES_COLLECTION = 'quizzes';
 const QUIZ_QUESTIONS_ROOT = 'quizQuestions';
 const MIGRATION_SOURCE = 'gas_basic_quiz_export';
