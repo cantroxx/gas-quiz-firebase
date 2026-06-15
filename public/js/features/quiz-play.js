@@ -1003,6 +1003,40 @@
     return viewModel;
   }
 
+  function showQuizComplete(options = {}, deps = {}) {
+    const root = deps.getQuizPlayRoot?.();
+    if(root) root.innerHTML = '';
+    const questionSet = deps.getCurrentQuestionSet?.() || [];
+    const viewModel = getQuizCompleteViewModel({
+      modeId: deps.getCurrentModeId?.(),
+      currentQuestionIndex: deps.getCurrentQuestionIndex?.(),
+      questionCount: questionSet.length,
+      correctAnswerCount: deps.getCorrectAnswerCount?.(),
+      correctRewardCoin: deps.getCorrectRewardCoin?.(),
+      reason: options.reason,
+      invalidRankingTimeMessage: deps.getInvalidRankingTimeMessage?.()
+    });
+
+    root?.appendChild(createQuizCompleteCard(viewModel));
+
+    const rankingSaveAction = getRankingCompleteSaveAction({
+      modeId: deps.getCurrentModeId?.(),
+      reason: options.reason
+    });
+    if(rankingSaveAction === 'skip-elapsed-too-long') {
+      deps.renderRankingSaveStatus?.(getElapsedTooLongRankingSkipResult({
+        elapsedSeconds: deps.getRankingElapsedSeconds?.(),
+        formatRankingElapsedText: deps.formatRankingElapsedText
+      }));
+    } else if(rankingSaveAction === 'save-record') {
+      attachRankingSaveStatus(deps.saveRankingRecordOnQuizComplete?.(), {
+        renderRankingSaveStatus: deps.renderRankingSaveStatus,
+        warn: console.warn
+      });
+    }
+    return { viewModel, rankingSaveAction };
+  }
+
   function createQuizPlaySessionState(options = {}) {
     const modeId = options.modeId || 'practice';
     const rankingModeId = modeId === 'ranking' ? (options.rankingModeId || 'normal') : 'normal';
@@ -1325,6 +1359,7 @@
     handleRankingTimeout,
     submitAnswer,
     showQuizResult,
+    showQuizComplete,
     createQuizPlaySessionState,
     getQuizPlayHeaderTitle,
     getQuizProgressText,

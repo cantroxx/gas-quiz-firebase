@@ -876,6 +876,29 @@ Step 13G implemented:
   - wrong ranking answer decrements heart
   - practice save status still appears
 
+Step 13H implemented:
+
+- Moved completion card and ranking save status flow body into `public/js/features/quiz-play.js`:
+  - `showQuizComplete`
+- Kept the existing `public/index.html` function name as a thin wrapper.
+- Preserved completion cleanup ownership in `public/index.html`:
+  - ranking question timer clear
+  - ranking session timer clear
+  - popular usage session finish
+- Preserved completion behavior:
+  - complete card still renders into `quiz-play-root`
+  - practice completion summary still shows reward information
+  - ranking completion still shows ranking save status
+  - elapsed-too-long completion still skips save and renders the skip message
+  - normal ranking completion still attaches `saveRankingRecordOnQuizComplete`
+- Still not moved:
+  - next-question routing
+- Required smoke checks:
+  - practice completion card renders
+  - ranking completion saves record and updates save status
+  - ranking elapsed-too-long completion skips save
+  - back-to-mode-select button still works
+
 ## Step 7 Validation Checklist
 
 - Shop list.

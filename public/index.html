@@ -9931,37 +9931,13 @@
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
       finishPopularUsageSession();
-      const root = document.getElementById('quiz-play-root');
-      root.innerHTML = '';
       const deps = getQuizPlayDeps();
-      const questionSet = deps.getCurrentQuestionSet();
-      const viewModel = window.DJ48QuizPlay.getQuizCompleteViewModel({
-        modeId: deps.getCurrentModeId(),
-        currentQuestionIndex: deps.getCurrentQuestionIndex(),
-        questionCount: questionSet.length,
-        correctAnswerCount: deps.getCorrectAnswerCount(),
-        correctRewardCoin: deps.getCorrectRewardCoin(),
-        reason: options.reason,
-        invalidRankingTimeMessage: deps.getInvalidRankingTimeMessage()
+      return window.DJ48QuizPlay.showQuizComplete(options, {
+        ...deps,
+        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        saveRankingRecordOnQuizComplete,
+        renderRankingSaveStatus
       });
-
-      root.appendChild(window.DJ48QuizPlay.createQuizCompleteCard(viewModel));
-
-      const rankingSaveAction = window.DJ48QuizPlay.getRankingCompleteSaveAction({
-        modeId: deps.getCurrentModeId(),
-        reason: options.reason
-      });
-      if(rankingSaveAction === 'skip-elapsed-too-long') {
-        renderRankingSaveStatus(window.DJ48QuizPlay.getElapsedTooLongRankingSkipResult({
-          elapsedSeconds: deps.getRankingElapsedSeconds(),
-          formatRankingElapsedText: deps.formatRankingElapsedText
-        }));
-      } else if(rankingSaveAction === 'save-record') {
-        window.DJ48QuizPlay.attachRankingSaveStatus(saveRankingRecordOnQuizComplete(), {
-          renderRankingSaveStatus,
-          warn: console.warn
-        });
-      }
     }
 
     function renderRankingSaveStatus(result) {
