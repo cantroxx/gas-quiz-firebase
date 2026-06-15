@@ -419,6 +419,19 @@
     });
   }
 
+  function renderClassroomSections(data = {}, deps = {}) {
+    const settings = data.settings || {};
+    const economyBoard = data.economyBoard || {};
+    renderClassroomRoleState(settings, data.wallet || {}, deps);
+    renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
+    renderClassroomQuestCards(settings, data.progressMap || {}, deps);
+    renderClassroomStudentCards(data.studentCards || [], deps);
+    renderClassroomGemCards(data.gemProgress || []);
+    renderClassroomJobCards(settings, economyBoard, deps);
+    renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
+    renderClassroomRoutineCards(economyBoard);
+  }
+
   window.DJ48ClassroomRender = {
     getClassroomQuestTitle,
     getClassroomProgressStatusLabel,
@@ -433,6 +446,7 @@
     renderClassroomJobCards,
     renderClassroomShopCards,
     getClassroomRoutineScheduleLabel,
-    renderClassroomRoutineCards
+    renderClassroomRoutineCards,
+    renderClassroomSections
   };
 })();

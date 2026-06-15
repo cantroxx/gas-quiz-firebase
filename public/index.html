@@ -5655,22 +5655,6 @@
       return classroomReviewLoadPromise;
     }
 
-    function getClassroomQuestTitle(settings, questId) {
-      return window.DJ48ClassroomRender.getClassroomQuestTitle(settings, questId);
-    }
-
-    function getClassroomProgressStatusLabel(progress) {
-      return window.DJ48ClassroomRender.getClassroomProgressStatusLabel(progress);
-    }
-
-    function getClassroomProgressButtonLabel(progress) {
-      return window.DJ48ClassroomRender.getClassroomProgressButtonLabel(progress);
-    }
-
-    function getClassroomProgressStatusClass(progress) {
-      return window.DJ48ClassroomRender.getClassroomProgressStatusClass(progress);
-    }
-
     function renderClassroomReviewList(settings, reviewItems = [], options = {}) {
       return window.DJ48ClassroomRender.renderClassroomReviewList(settings, reviewItems, options, {
         isCurrentClassroomTeacher,
@@ -5694,21 +5678,13 @@
       });
     }
 
-    function renderClassroomRoleState(settings, wallet = {}) {
-      return window.DJ48ClassroomRender.renderClassroomRoleState(settings, wallet, {
+    function getClassroomRenderDeps() {
+      return {
         isCurrentClassroomTeacher,
-        currentMemberUserId
-      });
-    }
-
-    function renderClassroomQuestCards(settings = CLASSROOM_PROTOTYPE, progressMap = {}) {
-      return window.DJ48ClassroomRender.renderClassroomQuestCards(settings, progressMap, {
-        getClassroomRewardCurrencyLabel
-      });
-    }
-
-    function renderClassroomGemCards(gemProgress = []) {
-      return window.DJ48ClassroomRender.renderClassroomGemCards(gemProgress);
+        currentMemberUserId,
+        getClassroomRewardCurrencyLabel,
+        normalizeDisplayImageUrl
+      };
     }
 
     async function setClassroomSelectedGemBadge(gemId) {
@@ -5740,33 +5716,6 @@
       }
     }
 
-    function renderClassroomStudentCards(students = []) {
-      return window.DJ48ClassroomRender.renderClassroomStudentCards(students, {
-        normalizeDisplayImageUrl
-      });
-    }
-
-    function renderClassroomJobCards(settings, economyBoard = {}) {
-      return window.DJ48ClassroomRender.renderClassroomJobCards(settings, economyBoard, {
-        isCurrentClassroomTeacher,
-        currentMemberUserId
-      });
-    }
-
-    function renderClassroomShopCards(settings, economyBoard = {}, wallet = {}) {
-      return window.DJ48ClassroomRender.renderClassroomShopCards(settings, economyBoard, wallet, {
-        isCurrentClassroomTeacher
-      });
-    }
-
-    function getClassroomRoutineScheduleLabel(routine = {}) {
-      return window.DJ48ClassroomRender.getClassroomRoutineScheduleLabel(routine);
-    }
-
-    function renderClassroomRoutineCards(economyBoard = {}) {
-      return window.DJ48ClassroomRender.renderClassroomRoutineCards(economyBoard);
-    }
-
     async function renderClassroomPrototype(forceRefresh = false) {
       const settings = await loadClassroomSettings(forceRefresh);
       const [progressMap, reviewItems, wallet, gemProgress, studentCards, economyBoard] = await Promise.all([
@@ -5777,14 +5726,15 @@
         loadClassroomStudentCards(settings, forceRefresh),
         loadClassroomEconomyBoard(settings, forceRefresh)
       ]);
-      renderClassroomRoleState(settings, wallet);
-      renderClassroomReviewPanel(settings, reviewItems);
-      renderClassroomQuestCards(settings, progressMap);
-      renderClassroomStudentCards(studentCards);
-      renderClassroomGemCards(gemProgress);
-      renderClassroomJobCards(settings, economyBoard);
-      renderClassroomShopCards(settings, economyBoard, wallet);
-      renderClassroomRoutineCards(economyBoard);
+      window.DJ48ClassroomRender.renderClassroomSections({
+        settings,
+        progressMap,
+        reviewItems,
+        wallet,
+        gemProgress,
+        studentCards,
+        economyBoard
+      }, getClassroomRenderDeps());
     }
 
     function setClassroomQuestEditorStatus(message, isError = false) {
