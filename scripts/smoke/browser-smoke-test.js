@@ -71,6 +71,11 @@ async function runPublicShellCheck(page, config) {
       accountController: hasScript('/js/features/account-controller.js') ? !!window.DJ48AccountController : true,
       appEvents: hasScript('/js/features/app-events.js') ? !!window.DJ48AppEvents : true,
       adminController: hasScript('/js/features/admin-controller.js') ? !!window.DJ48AdminController : true,
+      homeController: hasScript('/js/features/home-controller.js') ? !!window.DJ48HomeController : true,
+      eventController: hasScript('/js/features/event-controller.js') ? !!window.DJ48EventController : true,
+      classroomController: hasScript('/js/features/classroom-controller.js') ? !!window.DJ48ClassroomController : true,
+      shopController: hasScript('/js/features/shop-controller.js') ? !!window.DJ48ShopController : true,
+      schoolController: hasScript('/js/features/school-controller.js') ? !!window.DJ48SchoolController : true,
       homeRender: !!window.DJ48HomeRender,
       eventData: !!window.DJ48EventData,
       classroomData: !!window.DJ48ClassroomData,
@@ -88,6 +93,11 @@ async function runPublicShellCheck(page, config) {
     accountController: true,
     appEvents: true,
     adminController: true,
+    homeController: true,
+    eventController: true,
+    classroomController: true,
+    shopController: true,
+    schoolController: true,
     homeRender: true,
     eventData: true,
     classroomData: true,
@@ -223,6 +233,28 @@ async function runHomeProfileCheck(page) {
   await page.locator('[data-home-detail-toggle="ranking"]').click();
   await page.locator('[data-home-detail-toggle="titles"]').click();
   await page.locator('[data-home-detail-toggle="badges"]').click();
+  if(await page.locator('[data-profile-detail-toggle]').count()) {
+    await page.locator('[data-profile-detail-toggle]').first().click();
+    const expanded = await page.locator('[data-profile-detail-toggle]').first().getAttribute('aria-expanded');
+    assert.equal(expanded, 'true');
+  }
+}
+
+async function runSchoolSelectCheck(page) {
+  await page.evaluate(() => window.showSchoolView?.());
+  await waitForVisible(page, '#school-view');
+  const subjectCard = page.locator('#school-quiz-grid [data-subject-id]:not([data-subject-id="popular"])').first();
+  await subjectCard.waitFor({ state: 'visible', timeout: 15000 });
+  await subjectCard.click();
+  await waitForVisible(page, '#subject-view');
+  const quizCard = page.locator('#subject-quiz-grid [data-quiz-id]').first();
+  await quizCard.waitFor({ state: 'visible', timeout: 15000 });
+  await quizCard.click();
+  await waitForVisible(page, '#quiz-select-view');
+  await page.click('[data-back-to-subject]');
+  await waitForVisible(page, '#subject-view');
+  await page.click('[data-back-to-school]');
+  await waitForVisible(page, '#school-view');
 }
 
 async function runFeatureEntryChecks(page) {
@@ -247,6 +279,7 @@ async function runFeatureEntryChecks(page) {
     });
     await waitForVisible(page, '#shop-view');
     await page.locator('#shop-item-grid').waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('#shop-item-grid [data-shop-item-id]').first().waitFor({ state: 'visible', timeout: 15000 });
   }
 
   if(featureFlags.eventPlazaEnabled !== false) {
@@ -262,6 +295,11 @@ async function runFeatureEntryChecks(page) {
   await waitForVisible(page, '#classroom-view');
   await page.locator('#classroom-main-panel').waitFor({ state: 'visible', timeout: 15000 });
   await page.locator('#classroom-quest-grid').waitFor({ state: 'visible', timeout: 15000 });
+  if(await page.locator('[data-classroom-tab="jobs"]').count()) {
+    await page.click('[data-classroom-tab="jobs"]');
+    const isActive = await page.locator('[data-classroom-tab="jobs"]').evaluate(element => element.classList.contains('is-active'));
+    assert.equal(isActive, true);
+  }
 }
 
 async function main() {
@@ -292,6 +330,7 @@ async function main() {
       await runPracticeFlow(page, config);
       await runRankingFlow(page, config);
       await runHomeProfileCheck(page);
+      await runSchoolSelectCheck(page);
       await runFeatureEntryChecks(page);
     }
     await expectNoPageErrors(pageErrors);
