@@ -8264,6 +8264,38 @@
       });
     }
 
+    function bindQuizPlayEvents() {
+      document.getElementById('quiz-play-root').addEventListener('click', event => {
+        if(event.target.dataset.choiceIndex !== undefined) {
+          selectChoiceByIndex(Number(event.target.dataset.choiceIndex), false);
+        }
+
+        if(event.target.classList.contains('quiz-submit-button') && !event.target.dataset.nextQuestion) {
+          submitAnswer();
+        }
+
+        if(event.target.dataset.nextQuestion) {
+          if(event.target.dataset.completeQuiz) showQuizComplete();
+          else nextQuestion();
+        }
+
+        if(event.target.dataset.backToQuizSelect) {
+          showQuizSelectView(lastQuizId);
+        }
+      });
+
+      document.getElementById('quiz-play-root').addEventListener('keydown', handleQuizPlayKeydown);
+      document.addEventListener('keydown', handleQuizPlayKeydown);
+
+      document.addEventListener('visibilitychange', () => {
+        if(document.visibilityState === 'hidden') flushPopularUsageSession(true);
+      });
+
+      window.addEventListener('beforeunload', () => {
+        flushPopularUsageSession(true);
+      });
+    }
+
     document.querySelectorAll('[data-place]').forEach(button => {
       button.addEventListener('click', () => openPlaceModal(button.dataset.place));
     });
@@ -8447,38 +8479,9 @@
     bindEventPlazaEvents();
     bindClassroomEvents();
     bindSchoolQuizSelectEvents();
+    bindQuizPlayEvents();
 
     document.getElementById('ranking-board-root').addEventListener('click', handleRankingBoardRootClick);
-
-    document.getElementById('quiz-play-root').addEventListener('click', event => {
-      if(event.target.dataset.choiceIndex !== undefined) {
-        selectChoiceByIndex(Number(event.target.dataset.choiceIndex), false);
-      }
-
-      if(event.target.classList.contains('quiz-submit-button') && !event.target.dataset.nextQuestion) {
-        submitAnswer();
-      }
-
-      if(event.target.dataset.nextQuestion) {
-        if(event.target.dataset.completeQuiz) showQuizComplete();
-        else nextQuestion();
-      }
-
-      if(event.target.dataset.backToQuizSelect) {
-        showQuizSelectView(lastQuizId);
-      }
-    });
-
-    document.getElementById('quiz-play-root').addEventListener('keydown', handleQuizPlayKeydown);
-    document.addEventListener('keydown', handleQuizPlayKeydown);
-
-    document.addEventListener('visibilitychange', () => {
-      if(document.visibilityState === 'hidden') flushPopularUsageSession(true);
-    });
-
-    window.addEventListener('beforeunload', () => {
-      flushPopularUsageSession(true);
-    });
 
     document.getElementById('shop-item-grid').addEventListener('click', event => {
       const button = event.target.closest('[data-shop-item-id]');
