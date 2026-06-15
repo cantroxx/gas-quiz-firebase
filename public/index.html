@@ -7863,25 +7863,34 @@
     }
 
     function showSchoolView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       renderSchoolQuizCards();
       const externalSection = document.getElementById('external-quiz-section');
       if(externalSection) externalSection.hidden = true;
-      showOnlyAppView('school-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'school-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     function showTownView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       startServerFreshnessPolling();
-      showOnlyAppView('town-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'town-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     function showLoginView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
-      showOnlyAppView('login-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'login-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
     }
 
     function showAdminView() {
@@ -7955,14 +7964,17 @@
     }
 
     function showRoomView() {
-      leaveQuizPlaySession();
-      closePlaceModal();
       if(isRoomDecorPortraitBlocked()) {
         window.alert('방 꾸미기는 화면을 가로로 돌린 뒤 이용할 수 있어요.');
         showHomeView();
         return;
       }
-      showOnlyAppView('room-view');
+      window.DJ48AppView.enterPlaceView({
+        viewId: 'room-view'
+      }, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
       try {
         if(window.RoomDecor && typeof window.RoomDecor.open === 'function') {
           window.RoomDecor.open().catch(error => console.warn('RoomDecor open failed.', error));
