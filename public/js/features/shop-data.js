@@ -231,6 +231,10 @@
     });
   }
 
+  function getOwnedShopItems(items = [], inventoryItemIds = new Set()) {
+    return items.filter(item => inventoryItemIds.has(item.itemId));
+  }
+
   async function callShopCallable(callableName, payload = {}, deps = {}, errorCode = '') {
     const functions = deps.getFirebaseFunctions?.();
     if(!functions) throw new Error('functions-unavailable');
@@ -367,6 +371,7 @@
     buildShopItemsResult,
     buildEconomyFallback,
     buildUserEconomyForRender,
+    getOwnedShopItems,
     callShopCallable,
     purchaseShopItem,
     getShopPurchaseErrorMessage,

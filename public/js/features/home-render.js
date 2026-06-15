@@ -137,9 +137,72 @@
       });
   }
 
+  function renderHomeOwnedItems(rootId, items, assetCatalogMap = {}, roomSettings = {}, deps = {}) {
+    const root = document.getElementById(rootId);
+    if(!root) return;
+
+    root.innerHTML = '';
+
+    if(!items.length) {
+      const emptyCard = document.createElement('article');
+      const icon = document.createElement('span');
+      const title = document.createElement('h4');
+      const desc = document.createElement('p');
+
+      emptyCard.className = 'collection-card';
+      icon.className = 'collection-icon';
+      icon.textContent = '🛒';
+      title.textContent = '아직 보유한 꾸미기 아이템이 없어요';
+      desc.textContent = '상점에서 구매한 아이템이 생기면 이곳에서 선택할 수 있습니다.';
+      emptyCard.append(icon, title, desc);
+      root.appendChild(emptyCard);
+      return;
+    }
+
+    items.forEach(item => {
+      const visual = deps.resolveShopItemVisual(item, assetCatalogMap);
+      const isSelected = deps.isRoomItemSelected(item, roomSettings);
+      const card = document.createElement('article');
+      const icon = document.createElement('span');
+      const title = document.createElement('h4');
+      const desc = document.createElement('p');
+      const state = document.createElement('p');
+
+      card.className = 'collection-card';
+      card.dataset.roomItemId = item.itemId;
+      card.role = 'button';
+      card.tabIndex = 0;
+      card.setAttribute('aria-pressed', String(isSelected));
+      icon.className = 'collection-icon';
+      if(visual.imageUrl) {
+        const image = document.createElement('img');
+        image.src = visual.imageUrl;
+        image.alt = visual.alt;
+        image.loading = 'lazy';
+        image.style.width = '100%';
+        image.style.height = '100%';
+        image.style.objectFit = 'contain';
+        image.addEventListener('error', () => {
+          icon.textContent = visual.fallbackIcon;
+        }, { once: true });
+        icon.appendChild(image);
+      } else {
+        icon.textContent = visual.fallbackIcon;
+      }
+      title.textContent = item.name;
+      desc.textContent = item.desc;
+      state.textContent = isSelected ? '적용중 · 다시 누르면 해제' : '선택 가능';
+      state.className = 'collection-card-state';
+      if(isSelected) card.classList.add('is-selected');
+      card.append(icon, title, desc, state);
+      root.appendChild(card);
+    });
+  }
+
   window.DJ48HomeRender = {
     renderProfileAvatar,
     renderCollectionCards,
-    renderBadgeProgressGroups
+    renderBadgeProgressGroups,
+    renderHomeOwnedItems
   };
 })();
