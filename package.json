@@ -1,0 +1,11 @@
+{
+  "name": "gas-quiz-firebase",
+  "private": true,
+  "scripts": {
+    "smoke:browser": "node scripts/browser-smoke-test.js"
+  },
+  "devDependencies": {
+    "firebase-admin": "^14.0.0",
+    "playwright-core": "^1.49.1"
+  }
+}
