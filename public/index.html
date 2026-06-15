@@ -5089,29 +5089,27 @@
     }
 
     function maybeSaveLinkedMemberHint(memberUserId) {
-      if(!memberUserId) return;
-      try {
-        window.localStorage?.setItem(LINKED_MEMBER_HINT_KEY, memberUserId);
-      } catch(error) {
-        console.warn('Linked member hint could not be saved.', error);
-      }
+      return window.DJ48AccountData.maybeSaveLinkedMemberHint(memberUserId, {
+        storage: window.localStorage,
+        linkedMemberHintKey: LINKED_MEMBER_HINT_KEY,
+        warn: console.warn
+      });
     }
 
     function getLinkedMemberHint() {
-      try {
-        return window.localStorage?.getItem(LINKED_MEMBER_HINT_KEY) || '';
-      } catch(error) {
-        console.warn('Linked member hint could not be read.', error);
-        return '';
-      }
+      return window.DJ48AccountData.getLinkedMemberHint({
+        storage: window.localStorage,
+        linkedMemberHintKey: LINKED_MEMBER_HINT_KEY,
+        warn: console.warn
+      });
     }
 
     function clearLinkedMemberHint() {
-      try {
-        window.localStorage?.removeItem(LINKED_MEMBER_HINT_KEY);
-      } catch(error) {
-        console.warn('Linked member hint could not be cleared.', error);
-      }
+      return window.DJ48AccountData.clearLinkedMemberHint({
+        storage: window.localStorage,
+        linkedMemberHintKey: LINKED_MEMBER_HINT_KEY,
+        warn: console.warn
+      });
     }
 
     function applyRestoredMemberProfile(profile) {
@@ -5183,51 +5181,24 @@
     }
 
     async function signInAnonymouslyIfNeeded() {
-      const auth = getFirebaseAuth();
-      if(!auth) return null;
-      if(auth.currentUser) return auth.currentUser;
-
-      const credential = await auth.signInAnonymously();
-      return credential.user || auth.currentUser;
+      return window.DJ48AccountData.signInAnonymouslyIfNeeded(getFirebaseAuth());
     }
 
     async function restoreLinkedMemberFromAuthUid() {
       const db = getFirestoreDb();
       const authUid = getFirebaseAuthUser()?.uid || '';
-      if(!db || !authUid || authUid === TEST_SHOP_USER_ID) return null;
-      if(currentMemberUserId && currentMemberProfile?.authUid === authUid) return currentMemberProfile;
-
-      const hintedMemberUserId = getLinkedMemberHint();
-      if(hintedMemberUserId) {
-        try {
-          const hintedSnapshot = await db.collection('users').doc(hintedMemberUserId).get();
-          if(hintedSnapshot.exists) {
-            const hintedProfile = normalizeMemberProfileFromFirestore(hintedSnapshot);
-            if(isRestorableMemberProfile(hintedProfile, authUid)) {
-              return applyRestoredMemberProfile(hintedProfile);
-            }
-          }
-          clearLinkedMemberHint();
-        } catch(error) {
-          console.warn('Linked member hint verification failed.', error);
-          clearLinkedMemberHint();
-        }
-      }
-
-      try {
-        const snapshot = await db.collection('users')
-          .where('authUid', '==', authUid)
-          .limit(1)
-          .get();
-        if(snapshot.empty) return null;
-
-        const profile = normalizeMemberProfileFromFirestore(snapshot.docs[0]);
-        if(!isRestorableMemberProfile(profile, authUid)) return null;
-        return applyRestoredMemberProfile(profile);
-      } catch(error) {
-        console.warn('Linked member restore by auth uid failed.', error);
-        return null;
-      }
+      return window.DJ48AccountData.restoreLinkedMemberProfile({
+        db,
+        authUid,
+        currentMemberUserId,
+        currentMemberProfile,
+        hintedMemberUserId: getLinkedMemberHint(),
+        testShopUserId: TEST_SHOP_USER_ID
+      }, {
+        applyRestoredMemberProfile,
+        clearLinkedMemberHint,
+        warn: console.warn
+      });
     }
 
     function initializeAuthUser() {

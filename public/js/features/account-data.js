@@ -73,6 +73,98 @@
       && profile.active === true;
   }
 
+  function maybeSaveLinkedMemberHint(memberUserId, deps = {}) {
+    if(!memberUserId) return;
+    try {
+      deps.storage?.setItem(deps.linkedMemberHintKey, memberUserId);
+    } catch(error) {
+      deps.warn?.('Linked member hint could not be saved.', error);
+    }
+  }
+
+  function getLinkedMemberHint(deps = {}) {
+    try {
+      return deps.storage?.getItem(deps.linkedMemberHintKey) || '';
+    } catch(error) {
+      deps.warn?.('Linked member hint could not be read.', error);
+      return '';
+    }
+  }
+
+  function clearLinkedMemberHint(deps = {}) {
+    try {
+      deps.storage?.removeItem(deps.linkedMemberHintKey);
+    } catch(error) {
+      deps.warn?.('Linked member hint could not be cleared.', error);
+    }
+  }
+
+  async function loadRestorableMemberProfileByHint(options = {}) {
+    const { db, hintedMemberUserId, authUid } = options;
+    if(!db || !hintedMemberUserId || !authUid) return null;
+
+    const hintedSnapshot = await db.collection('users').doc(hintedMemberUserId).get();
+    if(!hintedSnapshot.exists) return null;
+
+    const hintedProfile = normalizeMemberProfileFromFirestore(hintedSnapshot);
+    return isRestorableMemberProfile(hintedProfile, authUid) ? hintedProfile : null;
+  }
+
+  async function loadRestorableMemberProfileByAuthUid(options = {}) {
+    const { db, authUid } = options;
+    if(!db || !authUid) return null;
+
+    const snapshot = await db.collection('users')
+      .where('authUid', '==', authUid)
+      .limit(1)
+      .get();
+    if(snapshot.empty) return null;
+
+    const profile = normalizeMemberProfileFromFirestore(snapshot.docs[0]);
+    return isRestorableMemberProfile(profile, authUid) ? profile : null;
+  }
+
+  async function restoreLinkedMemberProfile(options = {}, deps = {}) {
+    const {
+      db,
+      authUid,
+      currentMemberUserId,
+      currentMemberProfile,
+      hintedMemberUserId,
+      testShopUserId
+    } = options;
+
+    if(!db || !authUid || authUid === testShopUserId) return null;
+    if(currentMemberUserId && currentMemberProfile?.authUid === authUid) return currentMemberProfile;
+
+    if(hintedMemberUserId) {
+      try {
+        const hintedProfile = await loadRestorableMemberProfileByHint({ db, hintedMemberUserId, authUid });
+        if(hintedProfile) return deps.applyRestoredMemberProfile?.(hintedProfile) || hintedProfile;
+        deps.clearLinkedMemberHint?.();
+      } catch(error) {
+        deps.warn?.('Linked member hint verification failed.', error);
+        deps.clearLinkedMemberHint?.();
+      }
+    }
+
+    try {
+      const profile = await loadRestorableMemberProfileByAuthUid({ db, authUid });
+      return profile ? (deps.applyRestoredMemberProfile?.(profile) || profile) : null;
+    } catch(error) {
+      deps.warn?.('Linked member restore by auth uid failed.', error);
+      return null;
+    }
+  }
+
+  async function signInAnonymouslyIfNeeded(auth) {
+    if(!auth) return null;
+    if(auth.currentUser) return auth.currentUser;
+
+    const credential = await auth.signInAnonymously();
+    return credential.user || auth.currentUser;
+  }
+
   async function callAccountCallable(callableName, payload = {}, deps = {}, errorCode = '') {
     const functions = deps.getFirebaseFunctions?.();
     if(!functions) throw new Error('functions-unavailable');
@@ -110,6 +202,13 @@
     getTemporaryPasswordText,
     normalizeMemberProfileFromFirestore,
     isRestorableMemberProfile,
+    maybeSaveLinkedMemberHint,
+    getLinkedMemberHint,
+    clearLinkedMemberHint,
+    loadRestorableMemberProfileByHint,
+    loadRestorableMemberProfileByAuthUid,
+    restoreLinkedMemberProfile,
+    signInAnonymouslyIfNeeded,
     callAccountCallable,
     registerNewMember,
     loginMemberWithPassword,
