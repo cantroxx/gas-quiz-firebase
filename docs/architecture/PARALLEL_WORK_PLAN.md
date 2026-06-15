@@ -73,6 +73,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved password-change and nickname-update validation/callable helpers into `public/js/features/account-data.js`.
    - Moved restored-member destination selection into `public/js/features/account-data.js`; `public/index.html` still owns auth listener orchestration.
    - Moved auth state callback handling and anonymous-auth initialization flow helpers into `public/js/features/account-data.js`; `public/index.html` still owns app state variables and UI callbacks.
+   - Moved account lifecycle state-decision helpers for restored profiles, resolved user changes, and browser unlink into `public/js/features/account-data.js`; `public/index.html` still applies app state mutations.
 5. Shop/room write-flow refactor.
    - Split purchase, inventory, room settings, and economy refresh.
    - Added `public/js/features/shop-data.js` for shop purchase callable and room item selection Firestore write helpers.

@@ -542,6 +542,42 @@
     return user?.uid || deps.testShopUserId || '';
   }
 
+  function getRestoredMemberState(profile) {
+    return {
+      currentMemberUserId: profile?.userId || '',
+      currentMemberProfile: profile || null,
+      linkedMemberHintUserId: profile?.userId || '',
+      shouldResetUserScopedRuntimeData: true
+    };
+  }
+
+  function getResolvedUserChangeState(options = {}) {
+    const lastResolvedUserId = String(options.lastResolvedUserId || '');
+    const nextUserId = String(options.nextUserId || '');
+    const testShopUserId = String(options.testShopUserId || '');
+    const changed = !!lastResolvedUserId && lastResolvedUserId !== nextUserId;
+
+    return {
+      nextLastResolvedUserId: nextUserId,
+      shouldClearMemberProfile: changed,
+      shouldClearLinkedMemberHint: changed && lastResolvedUserId !== testShopUserId,
+      shouldResetUserScopedRuntimeData: changed
+    };
+  }
+
+  function getUnlinkCurrentMemberState(options = {}) {
+    if(!options.auth || !options.authUid) throw new Error('auth-required');
+    if(!options.memberUserId) throw new Error('member-not-linked');
+
+    return {
+      currentMemberUserId: '',
+      currentMemberProfile: null,
+      shouldClearLinkedMemberHint: true,
+      shouldResetUserScopedRuntimeData: true,
+      shouldResetFirebaseAuthState: true
+    };
+  }
+
   async function handleAuthStateUser(user, deps = {}) {
     deps.setFirebaseAuthUser?.(user || null);
     deps.handleResolvedUserChange?.(getResolvedUserIdFromAuthUser(user, deps));
@@ -635,6 +671,9 @@
     buildSelectedTitleUpdate,
     saveSelectedTitleForMember,
     getResolvedUserIdFromAuthUser,
+    getRestoredMemberState,
+    getResolvedUserChangeState,
+    getUnlinkCurrentMemberState,
     handleAuthStateUser,
     initializeAuthUserFlow,
     registerNewMember,

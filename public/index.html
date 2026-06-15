@@ -4706,10 +4706,11 @@
     }
 
     function applyRestoredMemberProfile(profile) {
-      currentMemberUserId = profile.userId;
-      currentMemberProfile = profile;
-      maybeSaveLinkedMemberHint(profile.userId);
-      resetUserScopedRuntimeData();
+      const state = window.DJ48AccountData.getRestoredMemberState(profile);
+      currentMemberUserId = state.currentMemberUserId;
+      currentMemberProfile = state.currentMemberProfile;
+      if(state.linkedMemberHintUserId) maybeSaveLinkedMemberHint(state.linkedMemberHintUserId);
+      if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
       return profile;
     }
 
@@ -4763,14 +4764,18 @@
     }
 
     function handleResolvedUserChange(nextUserId) {
-      if(lastResolvedUserId && lastResolvedUserId !== nextUserId) {
-        const hadResolvedAuthUser = lastResolvedUserId !== TEST_SHOP_USER_ID;
+      const state = window.DJ48AccountData.getResolvedUserChangeState({
+        lastResolvedUserId,
+        nextUserId,
+        testShopUserId: TEST_SHOP_USER_ID
+      });
+      if(state.shouldClearMemberProfile) {
         currentMemberUserId = '';
         currentMemberProfile = null;
-        if(hadResolvedAuthUser) clearLinkedMemberHint();
-        resetUserScopedRuntimeData();
+        if(state.shouldClearLinkedMemberHint) clearLinkedMemberHint();
+        if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
       }
-      lastResolvedUserId = nextUserId;
+      lastResolvedUserId = state.nextLastResolvedUserId;
     }
 
     async function signInAnonymouslyIfNeeded() {
@@ -4915,15 +4920,19 @@
       const authUid = getFirebaseAuthUser()?.uid || '';
       const memberUserId = currentMemberUserId;
 
-      if(!auth || !authUid) throw new Error('auth-required');
-      if(!memberUserId) throw new Error('member-not-linked');
-
-      currentMemberUserId = '';
-      currentMemberProfile = null;
-      clearLinkedMemberHint();
-      resetUserScopedRuntimeData();
-      firebaseAuthUser = null;
-      firebaseAuthInitPromise = null;
+      const state = window.DJ48AccountData.getUnlinkCurrentMemberState({
+        auth,
+        authUid,
+        memberUserId
+      });
+      currentMemberUserId = state.currentMemberUserId;
+      currentMemberProfile = state.currentMemberProfile;
+      if(state.shouldClearLinkedMemberHint) clearLinkedMemberHint();
+      if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
+      if(state.shouldResetFirebaseAuthState) {
+        firebaseAuthUser = null;
+        firebaseAuthInitPromise = null;
+      }
       await auth.signOut();
       await initializeAuthUser();
     }
