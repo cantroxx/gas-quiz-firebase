@@ -50,6 +50,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 2. Admin refactor, phase 2A.
    - Split admin data/load helpers first.
    - Keep callable/save execution wrappers stable.
+   - Started with `public/js/features/admin-data.js` for read-only admin callable load helpers.
 3. Admin refactor, phase 2B.
    - Split admin save/callable flows one group at a time.
    - Run admin browser smoke after each deployed slice.

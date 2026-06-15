@@ -1373,6 +1373,7 @@
   <script src="/js/core/format.js"></script>
   <script src="/js/core/firebase.js"></script>
   <script src="/js/features/admin-render.js"></script>
+  <script src="/js/features/admin-data.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/ranking-render.js"></script>
@@ -7904,14 +7905,11 @@
     }
 
     async function loadAdminDashboard() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminDashboardStatus('대시보드를 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminGetDashboard');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-dashboard-load-failed');
+      const result = await window.DJ48AdminData.loadAdminDashboard({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       adminDashboardCache = result.dashboard || {};
       setSuperAdminUiEnabled(adminDashboardCache.adminLevel === 'superAdmin');
       renderAdminDashboard(adminDashboardCache);
@@ -7962,14 +7960,11 @@
     }
 
     async function loadAdminOperationalAudit() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminAuditStatus('운영 데이터를 점검하는 중입니다...');
-      const callable = functions.httpsCallable('adminGetOperationalAudit');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-audit-load-failed');
+      const result = await window.DJ48AdminData.loadAdminOperationalAudit({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       renderAdminOperationalAudit(result.audit);
       setAdminAuditStatus(`읽기 전용 점검 완료 · ${formatAdminTimestamp(result.audit?.checkedAt)}`);
       return result.audit;
@@ -8011,14 +8006,11 @@
     }
 
     async function loadAdminQuizQualityAudit() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminQuizQualityStatus('문제 데이터를 점검하는 중입니다...');
-      const callable = functions.httpsCallable('adminGetQuizQualityAudit');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-quiz-quality-load-failed');
+      const result = await window.DJ48AdminData.loadAdminQuizQualityAudit({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       renderAdminQuizQualityAudit(result.audit);
       setAdminQuizQualityStatus(`읽기 전용 점검 완료 · ${formatAdminTimestamp(result.audit?.checkedAt)}`);
       return result.audit;
@@ -8283,14 +8275,11 @@
 
     async function loadAdminMembers(options = {}) {
       const shouldUpdateStatus = options.updateStatus !== false;
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       if(shouldUpdateStatus) setAdminStatus('회원 목록을 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminListMembers');
-      const response = await callable(getAdminFilterValues());
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-list-failed');
+      const result = await window.DJ48AdminData.loadAdminMembers(getAdminFilterValues(), {
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       renderAdminSummary(result.summary);
       renderAdminMemberList(result.members);
       if(shouldUpdateStatus) setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다. 비밀번호 현황은 현재 표시된 목록 기준입니다.`);
@@ -8485,14 +8474,11 @@
     }
 
     async function loadAdminNoticeBoard() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminNoticeStatus('알림판을 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminGetNoticeBoard');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-notice-load-failed');
+      const result = await window.DJ48AdminData.loadAdminNoticeBoard({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       setAdminNoticeForm(result.notice);
       noticeBoardCache = normalizeNoticeBoardData(result.notice);
       setAdminNoticeStatus('알림판 내용을 불러왔습니다.');
@@ -8570,14 +8556,11 @@
     }
 
     async function loadAdminExternalQuizzes() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminExternalQuizzesStatus('외부 퀴즈를 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminGetExternalQuizzes');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-external-quizzes-load-failed');
+      const result = await window.DJ48AdminData.loadAdminExternalQuizzes({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       externalQuizzesCache = normalizeExternalQuizzes(result.externalQuizzes);
       renderAdminExternalQuizRows(externalQuizzesCache);
       setAdminExternalQuizzesStatus('외부 퀴즈를 불러왔습니다.');
@@ -8638,14 +8621,11 @@
     }
 
     async function loadAdminLoginSettings() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminLoginSettingsStatus('로그인 설정을 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminGetPasswordSetupSettings');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-login-settings-load-failed');
+      const result = await window.DJ48AdminData.loadAdminLoginSettings({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       setAdminLoginSettingsForm(result.settings);
       setAdminLoginSettingsStatus('로그인 설정을 불러왔습니다.');
       return result.settings;
@@ -8763,14 +8743,11 @@
     }
 
     async function loadAdminFeatureFlags() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminFeatureFlagsStatus('기능 설정을 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminGetFeatureFlags');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-feature-flags-load-failed');
+      const result = await window.DJ48AdminData.loadAdminFeatureFlags({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       featureFlagsCache = normalizeFeatureFlags(result.flags);
       setAdminFeatureFlagsForm(featureFlagsCache);
       setAdminFeatureFlagsStatus('기능 설정을 불러왔습니다.');
@@ -8886,14 +8863,11 @@
     }
 
     async function loadAdminRoomCatalog() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminRoomCatalogStatus('방 가구 목록을 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminListRoomCatalog');
-      const response = await callable({});
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-room-catalog-load-failed');
+      const result = await window.DJ48AdminData.loadAdminRoomCatalog({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
       renderAdminRoomCatalogList(result.items || []);
       setAdminRoomCatalogStatus(`방 가구 ${result.items?.length || 0}개를 표시했습니다.`);
       return result.items || [];
@@ -8952,18 +8926,15 @@
     }
 
     async function loadAdminLogs() {
-      const functions = getFirebaseFunctions();
-      if(!functions) throw new Error('functions-unavailable');
-      await initializeAuthUser();
       setAdminLogsStatus('작업 이력을 불러오는 중입니다...');
-      const callable = functions.httpsCallable('adminListLogs');
-      const response = await callable({
+      const result = await window.DJ48AdminData.loadAdminLogs({
         action: document.getElementById('admin-logs-action-filter')?.value || '',
         targetUserId: document.getElementById('admin-logs-target-filter')?.value || '',
         limit: 40
+      }, {
+        getFirebaseFunctions,
+        initializeAuthUser
       });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('admin-logs-load-failed');
       renderAdminLogs(result.logs);
       setAdminLogsStatus(`최근 작업 ${result.logs?.length || 0}건을 표시했습니다.`);
       return result.logs;
