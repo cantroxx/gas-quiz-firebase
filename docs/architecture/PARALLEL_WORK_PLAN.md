@@ -104,6 +104,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Added `public/js/features/classroom-render.js` for classroom role, review, quest, gem, student, job, shop, and routine card rendering.
    - Added `public/js/features/classroom-form.js` for classroom status updates, form value readers, and form reset helpers.
    - Moved classroom gate unlock, entry-code status, and tab activation DOM helpers into `public/js/features/classroom-form.js`.
+   - Moved classroom teacher save callables for quests, badge campaigns, jobs, and shop items into `public/js/features/classroom-data.js`.
 8. Final cleanup.
    - Update docs, run full smoke, and declare the second clean-architecture round closed.
 

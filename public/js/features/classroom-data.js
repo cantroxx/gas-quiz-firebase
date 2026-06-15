@@ -200,6 +200,62 @@
     }
   }
 
+  function getClassroomFunctions(deps = {}, unavailableMessage = 'functions-unavailable') {
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error(unavailableMessage);
+    return functions;
+  }
+
+  async function saveClassroomQuest(options = {}, deps = {}) {
+    const functions = getClassroomFunctions(deps, 'classroom-quest-functions-unavailable');
+    const values = options.values || {};
+    const callable = functions.httpsCallable('saveClassroomQuest');
+    await callable({
+      classId: options.classId,
+      quest: {
+        title: values.title,
+        desc: values.desc,
+        rewardCoin: values.rewardCoin,
+        rewardCurrency: values.rewardCurrency,
+        rewardMode: values.rewardMode,
+        linkedGemId: values.linkedGemId,
+        linkedGemName: values.linkedGemName,
+        gemXp: values.gemXp,
+        gemTargetXp: values.gemTargetXp,
+        gemRewardBerry: values.gemRewardBerry,
+        type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
+      }
+    });
+  }
+
+  async function awardClassroomBadgeCampaign(options = {}, deps = {}) {
+    const functions = getClassroomFunctions(deps, 'classroom-badge-functions-unavailable');
+    const callable = functions.httpsCallable('awardClassroomBadgeCampaign');
+    const response = await callable({
+      classId: options.classId,
+      campaign: options.values || {}
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomJob(options = {}, deps = {}) {
+    const functions = getClassroomFunctions(deps, 'classroom-job-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomJob');
+    await callable({
+      classId: options.classId,
+      job: options.values || {}
+    });
+  }
+
+  async function saveClassroomShopItem(options = {}, deps = {}) {
+    const functions = getClassroomFunctions(deps, 'classroom-shop-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomShopItem');
+    await callable({
+      classId: options.classId,
+      item: options.values || {}
+    });
+  }
+
   window.DJ48ClassroomData = {
     getClassroomRewardCurrencyLabel,
     slugifyClassroomGemId,
@@ -214,6 +270,10 @@
     loadClassroomStudentCards,
     loadClassroomEconomyBoard,
     loadClassroomReviewItems,
-    getEmptyClassroomEconomyBoard
+    getEmptyClassroomEconomyBoard,
+    saveClassroomQuest,
+    awardClassroomBadgeCampaign,
+    saveClassroomJob,
+    saveClassroomShopItem
   };
 })();

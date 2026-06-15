@@ -5825,29 +5825,13 @@
         setClassroomQuestEditorStatus('지급 베리는 1 이상이어야 합니다.', true);
         return;
       }
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        setClassroomQuestEditorStatus('퀘스트 저장 기능을 불러오지 못했습니다.', true);
-        return;
-      }
       setClassroomQuestEditorStatus('퀘스트를 저장하는 중입니다.');
       try {
-        const callable = functions.httpsCallable('saveClassroomQuest');
-        await callable({
+        await window.DJ48ClassroomData.saveClassroomQuest({
           classId: settings.classId,
-          quest: {
-            title: values.title,
-            desc: values.desc,
-            rewardCoin: values.rewardCoin,
-            rewardCurrency: values.rewardCurrency,
-            rewardMode: values.rewardMode,
-            linkedGemId: values.linkedGemId,
-            linkedGemName: values.linkedGemName,
-            gemXp: values.gemXp,
-            gemTargetXp: values.gemTargetXp,
-            gemRewardBerry: values.gemRewardBerry,
-            type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
-          }
+          values
+        }, {
+          getFirebaseFunctions
         });
         classroomSettingsCache = null;
         classroomProgressCache = null;
@@ -5859,7 +5843,9 @@
         await renderClassroomPrototype(true);
       } catch(error) {
         console.warn('Classroom quest save failed.', error);
-        setClassroomQuestEditorStatus('퀘스트 저장 중 문제가 생겼습니다.', true);
+        setClassroomQuestEditorStatus(error.message === 'classroom-quest-functions-unavailable'
+          ? '퀘스트 저장 기능을 불러오지 못했습니다.'
+          : '퀘스트 저장 중 문제가 생겼습니다.', true);
       }
     }
 
@@ -5885,19 +5871,14 @@
         setClassroomBadgeCampaignStatus('기준 젬을 입력해 주세요.', true);
         return;
       }
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        setClassroomBadgeCampaignStatus('뱃지 지급 기능을 불러오지 못했습니다.', true);
-        return;
-      }
       setClassroomBadgeCampaignStatus('젬 기록을 스캔하는 중입니다.');
       try {
-        const callable = functions.httpsCallable('awardClassroomBadgeCampaign');
-        const response = await callable({
+        const result = await window.DJ48ClassroomData.awardClassroomBadgeCampaign({
           classId: settings.classId,
-          campaign: values
+          values
+        }, {
+          getFirebaseFunctions
         });
-        const result = response?.data || {};
         classroomStudentCardsCache = null;
         await renderClassroomPrototype(true);
         const winnerText = Array.isArray(result.winners) && result.winners.length
@@ -5906,7 +5887,9 @@
         setClassroomBadgeCampaignStatus(winnerText, !result.winners?.length);
       } catch(error) {
         console.warn('Classroom badge campaign award failed.', error);
-        setClassroomBadgeCampaignStatus('뱃지 지급 중 문제가 생겼습니다.', true);
+        setClassroomBadgeCampaignStatus(error.message === 'classroom-badge-functions-unavailable'
+          ? '뱃지 지급 기능을 불러오지 못했습니다.'
+          : '뱃지 지급 중 문제가 생겼습니다.', true);
       }
     }
 
@@ -5930,22 +5913,23 @@
         setClassroomJobEditorStatus('직업 이름을 입력해 주세요.', true);
         return;
       }
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        setClassroomJobEditorStatus('직업 저장 기능을 불러오지 못했습니다.', true);
-        return;
-      }
       setClassroomJobEditorStatus('직업을 저장하는 중입니다.');
       try {
-        const callable = functions.httpsCallable('saveClassroomJob');
-        await callable({ classId: settings.classId, job: values });
+        await window.DJ48ClassroomData.saveClassroomJob({
+          classId: settings.classId,
+          values
+        }, {
+          getFirebaseFunctions
+        });
         classroomEconomyBoardCache = null;
         resetClassroomJobForm();
         setClassroomJobEditorStatus('직업을 저장했습니다.');
         await renderClassroomPrototype(true);
       } catch(error) {
         console.warn('Classroom job save failed.', error);
-        setClassroomJobEditorStatus('직업 저장 중 문제가 생겼습니다.', true);
+        setClassroomJobEditorStatus(error.message === 'classroom-job-functions-unavailable'
+          ? '직업 저장 기능을 불러오지 못했습니다.'
+          : '직업 저장 중 문제가 생겼습니다.', true);
       }
     }
 
@@ -5969,22 +5953,23 @@
         setClassroomShopEditorStatus('상품 이름을 입력해 주세요.', true);
         return;
       }
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        setClassroomShopEditorStatus('상품 저장 기능을 불러오지 못했습니다.', true);
-        return;
-      }
       setClassroomShopEditorStatus('상품을 저장하는 중입니다.');
       try {
-        const callable = functions.httpsCallable('saveClassroomShopItem');
-        await callable({ classId: settings.classId, item: values });
+        await window.DJ48ClassroomData.saveClassroomShopItem({
+          classId: settings.classId,
+          values
+        }, {
+          getFirebaseFunctions
+        });
         classroomEconomyBoardCache = null;
         resetClassroomShopItemForm();
         setClassroomShopEditorStatus('상품을 저장했습니다.');
         await renderClassroomPrototype(true);
       } catch(error) {
         console.warn('Classroom shop item save failed.', error);
-        setClassroomShopEditorStatus('상품 저장 중 문제가 생겼습니다.', true);
+        setClassroomShopEditorStatus(error.message === 'classroom-shop-functions-unavailable'
+          ? '상품 저장 기능을 불러오지 못했습니다.'
+          : '상품 저장 중 문제가 생겼습니다.', true);
       }
     }
 
