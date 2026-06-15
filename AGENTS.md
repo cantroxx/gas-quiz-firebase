@@ -32,6 +32,8 @@
 
 ## 병렬 작업 기준
 
+* 클린 아키텍처 형성의 목표는 다중 터미널에서 동시에 분야별 작업(UI, 퀴즈, 랭킹, 상점, 계정, 관리자 등)을 진행해도 충돌이 적은 구조를 만드는 것이다.
+* 이를 위해 domain, application/usecase, infrastructure/repository, presentation, bootstrap 경계를 점진적으로 분리한다.
 * 병렬 작업의 분야별 소유권과 순서는 `docs/architecture/PARALLEL_WORK_PLAN.md`를 기준으로 한다.
 * 여러 터미널을 동시에 사용할 때는 각 터미널이 하나의 분야만 수정한다.
 * `public/index.html`은 아직 공유 app shell이므로 병렬 편집 충돌 위험이 높다. 동시에 수정해야 하면 서로 다른 함수/라인 범위를 명확히 나누고 마지막에 통합 검증을 한다.

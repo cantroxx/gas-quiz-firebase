@@ -1401,6 +1401,7 @@
   <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/shop-controller.js"></script>
+  <script src="/js/domain/ranking-domain.js"></script>
   <script src="/js/features/ranking-render.js"></script>
   <script src="/js/features/ranking-data.js"></script>
   <script src="/js/features/ranking-state.js"></script>
@@ -3090,10 +3091,7 @@
     }
 
     function getRankingRecordTimeValue(record) {
-      const value = record?.recordedAt || record?.createdAt || record?.migratedAt;
-      if(value?.toMillis) return value.toMillis();
-      const parsed = Date.parse(String(value || ''));
-      return Number.isNaN(parsed) ? 0 : parsed;
+      return window.DJ48RankingDomain.getRankingRecordTimeValue(record);
     }
 
     function getLatestRankingRecord(records) {
@@ -3297,36 +3295,27 @@
     }
 
     function getRankingRecordUserKey(record) {
-      return String(record?.memberUserId || record?.userId || record?.displayName || record?.nickname || '').trim();
+      return window.DJ48RankingDomain.getRankingRecordUserKey(record);
     }
 
     function getRankingRecordMode(record) {
-      return String(record?.rankingMode || 'normal').trim() || 'normal';
+      return window.DJ48RankingDomain.getRankingRecordMode(record);
     }
 
     function getRankingModeFilterValues(modeId) {
-      const mode = String(modeId || '').trim();
-      if(!mode || mode === 'all') return null;
-      if(mode === 'normal') return ['normal', 'legacy'];
-      return [mode];
+      return window.DJ48RankingDomain.getRankingModeFilterValues(modeId);
     }
 
     function getSubjectRankingModeFilterValues(modeId) {
-      const mode = String(modeId || '').trim();
-      if(!mode || mode === 'all') return null;
-      if(mode === 'normal') return ['normal', 'legacy'];
-      return [mode];
+      return window.DJ48RankingDomain.getRankingModeFilterValues(modeId);
     }
 
     function isRankingModeAllowed(record, allowedModes) {
-      if(!allowedModes) return true;
-      return allowedModes.has(getRankingRecordMode(record));
+      return window.DJ48RankingDomain.isRankingModeAllowed(record, allowedModes);
     }
 
     function getRankingRecordGroupMode(record, allowedModes) {
-      const mode = getRankingRecordMode(record);
-      if(allowedModes?.has('normal') && mode === 'legacy') return 'normal';
-      return mode;
+      return window.DJ48RankingDomain.getRankingRecordGroupMode(record, allowedModes);
     }
 
     function isPokemonRankingCategoryKey(categoryKey) {
@@ -3338,119 +3327,43 @@
     }
 
     function isBetterCategoryRankingRecord(candidate, current) {
-      if(!current) return true;
-      const scoreDiff = (Number(candidate.score) || 0) - (Number(current.score) || 0);
-      if(scoreDiff) return scoreDiff > 0;
-      const candidateTime = Number(candidate.elapsedSeconds) || 999999999;
-      const currentTime = Number(current.elapsedSeconds) || 999999999;
-      if(candidateTime !== currentTime) return candidateTime < currentTime;
-      return getRankingRecordTimeValue(candidate) > getRankingRecordTimeValue(current);
+      return window.DJ48RankingDomain.isBetterCategoryRankingRecord(candidate, current);
     }
 
     function sortRankingRows(rows) {
-      return rows.slice().sort((a, b) => {
-        const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
-        if(scoreDiff) return scoreDiff;
-        return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
-      });
+      return window.DJ48RankingDomain.sortRankingRows(rows);
     }
 
     function getBestRankingRecordsByUser(records) {
-      const bestByUser = new Map();
-      records.forEach(record => {
-        const userKey = getRankingRecordUserKey(record);
-        if(!userKey) return;
-        const current = bestByUser.get(userKey);
-        if(isBetterCategoryRankingRecord(record, current)) bestByUser.set(userKey, record);
-      });
-      return Array.from(bestByUser.values());
+      return window.DJ48RankingDomain.getBestRankingRecordsByUser(records);
     }
 
     function normalizeRankingCategoryKey(categoryKey, category = '') {
-      const key = String(categoryKey || '').trim();
-      const label = String(category || '').trim();
-      if(key === '티니핑' || key === '인물티니핑' || label.includes('티니핑')) return '티니핑';
-      return key;
+      return window.DJ48RankingDomain.normalizeRankingCategoryKey(categoryKey, category);
     }
 
     function getRankingCategoryKey(record) {
-      return normalizeRankingCategoryKey(record?.categoryKey || record?.category, record?.category || record?.rawCategory || '');
+      return window.DJ48RankingDomain.getRankingCategoryKey(record);
     }
 
     function getBestRankingRecordsByUserAndCategory(records, categoryKeys, rankingModes = null) {
-      const allowedModes = Array.isArray(rankingModes) && rankingModes.length
-        ? new Set(rankingModes.map(mode => String(mode || '').trim()).filter(Boolean))
-        : null;
-      const allowedCategoryKeys = new Set((categoryKeys || []).map(normalizeRankingCategoryKey).filter(Boolean));
-      const bestByUserAndCategory = new Map();
-      records
-        .filter(record => allowedCategoryKeys.has(getRankingCategoryKey(record)))
-        .filter(record => isRankingModeAllowed(record, allowedModes))
-        .forEach(record => {
-          const userKey = getRankingRecordUserKey(record);
-          const categoryKey = getRankingCategoryKey(record);
-          if(!userKey) return;
-          const key = `${categoryKey}::${userKey}`;
-          const current = bestByUserAndCategory.get(key);
-          if(isBetterCategoryRankingRecord(record, current)) bestByUserAndCategory.set(key, record);
-        });
-      return Array.from(bestByUserAndCategory.values());
+      return window.DJ48RankingDomain.getBestRankingRecordsByUserAndCategory(records, categoryKeys, rankingModes);
     }
 
     function getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit = 10, rankingModes = null) {
-      return sortRankingRows(getBestRankingRecordsByUserAndCategory(records, categoryKeys, rankingModes)).slice(0, limit);
+      return window.DJ48RankingDomain.getTopRankingRecordsByCategoryKeys(records, categoryKeys, limit, rankingModes);
     }
 
     function getLatestRankingRecords(records, limit = 10) {
-      return records.slice().sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a)).slice(0, limit);
+      return window.DJ48RankingDomain.getLatestRankingRecords(records, limit);
     }
 
     function getTopQuizKingSummaries(summaries, limit = 10) {
-      return summaries
-        .slice()
-        .sort((a, b) => {
-          const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
-          if(scoreDiff) return scoreDiff;
-          return (Number(b.categoryCount) || 0) - (Number(a.categoryCount) || 0);
-        })
-        .slice(0, limit);
+      return window.DJ48RankingDomain.getTopQuizKingSummaries(summaries, limit);
     }
 
     function buildQuizKingSummariesFromRankingRecords(records) {
-      const bestByUser = {};
-      records.forEach(record => {
-        const userKey = getRankingRecordUserKey(record);
-        const categoryKey = getRankingCategoryKey(record);
-        if(!userKey || !categoryKey) return;
-        if(!bestByUser[userKey]) {
-          bestByUser[userKey] = {
-            memberUserId: record.memberUserId || record.userId || userKey,
-            userId: record.userId || record.memberUserId || userKey,
-            displayName: record.displayName || record.nickname || userKey,
-            displayNickname: record.displayNickname || record.displayName || record.nickname || '',
-            selectedTitleName: record.selectedTitleName || '',
-            profileImageUrl: record.profileImageUrl || '',
-            rankingMessage: record.rankingMessage || '',
-            categories: {}
-          };
-        }
-        const current = bestByUser[userKey].categories[categoryKey];
-        if(!current || isBetterRankingEntry(record, current)) {
-          bestByUser[userKey].categories[categoryKey] = {
-            ...record,
-            categoryKey,
-            category: categoryKey === '티니핑' ? '티니핑' : record.category
-          };
-        }
-      });
-      return Object.values(bestByUser).map(item => {
-        const categories = Object.values(item.categories);
-        return {
-          ...item,
-          categoryCount: categories.length,
-          totalScore: categories.reduce((sum, record) => sum + (Number(record.score) || 0), 0)
-        };
-      });
+      return window.DJ48RankingDomain.buildQuizKingSummariesFromRankingRecords(records);
     }
 
     const RANKING_PLAZA_ROW_LIMIT = 10;

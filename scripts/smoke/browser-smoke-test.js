@@ -91,6 +91,7 @@ async function runPublicShellCheck(page, config) {
       classroomData: !!window.DJ48ClassroomData,
       shopDomain: hasScript('/js/domain/shop-domain.js') ? !!window.DJ48ShopDomain : true,
       shopData: !!window.DJ48ShopData,
+      rankingDomain: hasScript('/js/domain/ranking-domain.js') ? !!window.DJ48RankingDomain : true,
       rankingData: !!window.DJ48RankingData
     };
   });
@@ -124,6 +125,7 @@ async function runPublicShellCheck(page, config) {
     classroomData: true,
     shopDomain: true,
     shopData: true,
+    rankingDomain: true,
     rankingData: true
   });
 }
