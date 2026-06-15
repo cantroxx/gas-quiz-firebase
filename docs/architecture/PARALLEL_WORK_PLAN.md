@@ -86,6 +86,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved profile image, ranking message, and selected-title Firestore save helpers into `public/js/features/account-data.js`.
    - Moved profile image upload validation and editor state-building helpers into `public/js/features/account-data.js`.
    - Moved home owned-item card rendering into `public/js/features/home-render.js`.
+   - Moved profile card DOM rendering into `public/js/features/home-render.js`.
 7. Classroom/event refactor.
    - Split relatively independent classroom and event flows.
 8. Final cleanup.

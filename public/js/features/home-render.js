@@ -21,6 +21,212 @@
     root.textContent = profile.avatar || '🙂';
   }
 
+  function renderProfileCard(rootId, profile, deps = {}) {
+    const root = document.getElementById(rootId);
+    if(!root) return;
+
+    const card = document.createElement('article');
+    const avatar = document.createElement('div');
+    const body = document.createElement('div');
+    const nameRow = document.createElement('div');
+    const name = document.createElement('h3');
+    const decorateButton = document.createElement('button');
+    const school = document.createElement('p');
+    const meta = document.createElement('div');
+    const title = document.createElement('p');
+    const titleLabel = document.createElement('span');
+    const titleValue = document.createElement('strong');
+    const badge = document.createElement('p');
+    const badgeLabel = document.createElement('span');
+    const badgeValue = document.createElement('strong');
+    const coin = document.createElement('p');
+    const coinLabel = document.createElement('span');
+    const coinValue = document.createElement('strong');
+    const nicknamePanel = document.createElement('div');
+    const nicknameLabel = document.createElement('label');
+    const nicknameRow = document.createElement('div');
+    const nicknameInput = document.createElement('input');
+    const nicknameButton = document.createElement('button');
+    const nicknameHelp = document.createElement('p');
+    const passwordPanel = document.createElement('div');
+    const passwordLabel = document.createElement('p');
+    const passwordRow = document.createElement('div');
+    const currentPasswordInput = document.createElement('input');
+    const newPasswordInput = document.createElement('input');
+    const confirmPasswordInput = document.createElement('input');
+    const passwordButton = document.createElement('button');
+    const passwordHelp = document.createElement('p');
+    const imagePanel = document.createElement('div');
+    const imageLabel = document.createElement('label');
+    const imageRow = document.createElement('div');
+    const imageInput = document.createElement('input');
+    const imageButton = document.createElement('button');
+    const uploadInput = document.createElement('input');
+    const uploadButton = document.createElement('button');
+    const imageHelp = document.createElement('p');
+    const messagePanel = document.createElement('div');
+    const messageLabel = document.createElement('label');
+    const messageRow = document.createElement('div');
+    const messageInput = document.createElement('input');
+    const messageButton = document.createElement('button');
+    const messageHelp = document.createElement('p');
+    const toggleGrid = document.createElement('div');
+    const detailRoot = document.createElement('div');
+
+    root.innerHTML = '';
+    card.className = 'profile-card';
+    avatar.className = 'profile-avatar';
+    renderProfileAvatar(avatar, profile, deps);
+    body.className = 'profile-body';
+    nameRow.className = 'profile-name-row';
+    name.textContent = profile.nickname;
+    decorateButton.className = 'profile-decorate-button';
+    decorateButton.type = 'button';
+    decorateButton.dataset.profileDecorateHome = 'true';
+    decorateButton.textContent = '집꾸미기';
+    school.className = 'profile-school';
+    school.textContent = profile.school;
+    meta.className = 'profile-meta';
+    titleLabel.textContent = '칭호';
+    titleValue.textContent = profile.titleName;
+    badgeLabel.textContent = '대표 뱃지';
+    badgeValue.textContent = profile.badgeName;
+    coinLabel.textContent = '보유 DJ코인';
+    coinValue.textContent = profile.coinText;
+
+    title.append(titleLabel, titleValue);
+    badge.append(badgeLabel, badgeValue);
+    coin.append(coinLabel, coinValue);
+    meta.append(title, badge, coin);
+
+    nicknamePanel.className = 'profile-ranking-message-panel profile-account-panel profile-detail-panel';
+    nicknamePanel.dataset.profileDetailPanel = 'nickname';
+    nicknameLabel.className = 'profile-ranking-message-label';
+    nicknameLabel.htmlFor = 'profile-nickname-input';
+    nicknameLabel.textContent = '닉네임';
+    nicknameRow.className = 'profile-ranking-message-row';
+    nicknameInput.id = 'profile-nickname-input';
+    nicknameInput.type = 'text';
+    nicknameInput.maxLength = 20;
+    nicknameInput.value = profile.nickname || '';
+    nicknameInput.placeholder = '2~20글자';
+    nicknameButton.id = 'profile-nickname-save-button';
+    nicknameButton.className = 'profile-inline-button';
+    nicknameButton.type = 'button';
+    nicknameButton.textContent = '변경';
+    nicknameHelp.id = 'profile-nickname-status';
+    nicknameHelp.className = 'profile-ranking-message-help';
+    nicknameHelp.textContent = '닉네임은 랭킹과 내 집에 표시됩니다. 불건전한 말은 사용할 수 없습니다.';
+    nicknameRow.append(nicknameInput, nicknameButton);
+    nicknamePanel.append(nicknameLabel, nicknameRow, nicknameHelp);
+
+    passwordPanel.className = 'profile-ranking-message-panel profile-account-panel profile-detail-panel';
+    passwordPanel.dataset.profileDetailPanel = 'password';
+    passwordLabel.className = 'profile-ranking-message-label';
+    passwordLabel.textContent = '비밀번호 변경';
+    passwordRow.className = 'profile-password-change-row';
+    currentPasswordInput.id = 'profile-current-password-input';
+    currentPasswordInput.type = 'password';
+    currentPasswordInput.autocomplete = 'current-password';
+    currentPasswordInput.placeholder = '현재 비밀번호';
+    currentPasswordInput.setAttribute('aria-label', '현재 비밀번호');
+    newPasswordInput.id = 'profile-new-password-input';
+    newPasswordInput.type = 'password';
+    newPasswordInput.minLength = 4;
+    newPasswordInput.autocomplete = 'new-password';
+    newPasswordInput.placeholder = '새 비밀번호';
+    newPasswordInput.setAttribute('aria-label', '새 비밀번호');
+    confirmPasswordInput.id = 'profile-confirm-password-input';
+    confirmPasswordInput.type = 'password';
+    confirmPasswordInput.minLength = 4;
+    confirmPasswordInput.autocomplete = 'new-password';
+    confirmPasswordInput.placeholder = '새 비밀번호 확인';
+    confirmPasswordInput.setAttribute('aria-label', '새 비밀번호 확인');
+    passwordButton.id = 'profile-password-save-button';
+    passwordButton.className = 'profile-inline-button';
+    passwordButton.type = 'button';
+    passwordButton.textContent = '변경';
+    passwordHelp.id = 'profile-password-status';
+    passwordHelp.className = 'profile-ranking-message-help';
+    passwordHelp.textContent = '현재 비밀번호를 입력한 뒤 4자리 이상의 새 비밀번호로 바꿉니다.';
+    passwordRow.append(currentPasswordInput, newPasswordInput, confirmPasswordInput, passwordButton);
+    passwordPanel.append(passwordLabel, passwordRow, passwordHelp);
+
+    imagePanel.className = 'profile-ranking-message-panel profile-image-url-panel profile-detail-panel';
+    imagePanel.dataset.profileDetailPanel = 'image';
+    imageLabel.className = 'profile-ranking-message-label profile-image-url-label';
+    imageLabel.htmlFor = 'profile-image-search-input';
+    imageLabel.textContent = '프로필 이미지';
+    imageRow.className = 'profile-ranking-message-row profile-image-url-row';
+    imageInput.id = 'profile-image-search-input';
+    imageInput.type = 'text';
+    imageInput.value = '';
+    imageInput.placeholder = '카리나, 피카츄처럼 검색';
+    imageButton.id = 'profile-image-search-button';
+    imageButton.className = 'profile-inline-button';
+    imageButton.type = 'button';
+    imageButton.textContent = '검색';
+    uploadInput.id = 'profile-image-upload-input';
+    uploadInput.type = 'file';
+    uploadInput.accept = 'image/png,image/jpeg,image/webp';
+    uploadInput.hidden = true;
+    uploadButton.id = 'profile-image-upload-button';
+    uploadButton.className = 'profile-inline-button profile-upload-button';
+    uploadButton.type = 'button';
+    uploadButton.textContent = '직접 업로드';
+    imageHelp.id = 'profile-image-search-status';
+    imageHelp.className = 'profile-ranking-message-help';
+    imageHelp.textContent = '퀴즈 이미지 후보를 고르거나 직접 업로드한 뒤, 원 안에 보일 위치를 조정합니다.';
+    const imageResults = document.createElement('div');
+    imageResults.id = 'profile-image-search-results';
+    imageResults.className = 'profile-image-search-results';
+    imageRow.append(imageInput, imageButton, uploadButton, uploadInput);
+    imagePanel.append(imageLabel, imageRow, imageHelp, imageResults);
+
+    messagePanel.className = 'profile-ranking-message-panel profile-detail-panel';
+    messagePanel.dataset.profileDetailPanel = 'message';
+    messageLabel.className = 'profile-ranking-message-label';
+    messageLabel.htmlFor = 'profile-ranking-message-input';
+    messageLabel.textContent = '나의 한마디';
+    messageRow.className = 'profile-ranking-message-row';
+    messageInput.id = 'profile-ranking-message-input';
+    messageInput.type = 'text';
+    messageInput.maxLength = 24;
+    messageInput.value = profile.rankingMessage || '';
+    messageInput.placeholder = '오늘도 도전!';
+    messageButton.id = 'profile-ranking-message-save-button';
+    messageButton.className = 'profile-inline-button';
+    messageButton.type = 'button';
+    messageButton.textContent = '저장';
+    messageHelp.id = 'profile-ranking-message-status';
+    messageHelp.className = 'profile-ranking-message-help';
+    messageHelp.textContent = '랭킹 단상에 최대 24자까지 표시됩니다.';
+    messageRow.append(messageInput, messageButton);
+    messagePanel.append(messageLabel, messageRow, messageHelp);
+
+    toggleGrid.className = 'profile-detail-toggle-grid';
+    [
+      ['nickname', '닉네임'],
+      ['password', '비밀번호 변경'],
+      ['image', '프로필 이미지'],
+      ['message', '나의 한마디']
+    ].forEach(([key, label]) => {
+      const button = document.createElement('button');
+      button.className = 'profile-detail-toggle';
+      button.type = 'button';
+      button.dataset.profileDetailToggle = key;
+      button.setAttribute('aria-expanded', 'false');
+      button.textContent = label;
+      toggleGrid.appendChild(button);
+    });
+    detailRoot.className = 'profile-detail-root';
+    detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
+    nameRow.append(name, decorateButton);
+    body.append(nameRow, school, meta, toggleGrid, detailRoot);
+    card.append(avatar, body);
+    root.appendChild(card);
+  }
+
   function renderCollectionCards(rootId, items, className) {
     const root = document.getElementById(rootId);
     root.innerHTML = '';
@@ -201,6 +407,7 @@
 
   window.DJ48HomeRender = {
     renderProfileAvatar,
+    renderProfileCard,
     renderCollectionCards,
     renderBadgeProgressGroups,
     renderHomeOwnedItems
