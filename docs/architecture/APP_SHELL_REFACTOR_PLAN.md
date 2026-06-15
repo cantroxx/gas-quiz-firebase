@@ -33,12 +33,20 @@ Make `public/index.html` a thinner app shell so multiple terminals can work on U
 17. Moved event runtime state ownership to `public/js/features/event-state.js`.
 18. Moved classroom runtime state ownership to `public/js/features/classroom-state.js`.
 19. Expanded browser smoke expectations to include the new feature state globals.
+20. Moved ranking plaza filter/model state ownership to `public/js/features/ranking-state.js`.
+21. Moved admin dashboard runtime state ownership to `public/js/features/admin-state.js`.
+22. Moved account submit/password-change runtime state ownership to `public/js/features/account-state.js`.
+23. Moved quiz session, progress, and timer handle state ownership to `public/js/features/quiz-session-state.js`.
+24. Added `public/js/features/quiz-flow.js` as the quiz save/reward/timer orchestration boundary.
+25. Expanded browser smoke expectations to include ranking/admin/account/quiz-session state and quiz-flow globals.
 
 ## Ownership Rules
 
 - App shell/common navigation: `public/js/features/app-view.js`, `public/js/features/app-events.js`, thin calls in `public/index.html`.
 - Admin event orchestration: `public/js/features/admin-controller.js`.
+- Admin runtime state: `public/js/features/admin-state.js`.
 - Account/login event orchestration: `public/js/features/account-controller.js`.
+- Account/login runtime state: `public/js/features/account-state.js`.
 - Home/profile event orchestration: `public/js/features/home-controller.js`.
 - Home/profile runtime state: `public/js/features/home-state.js`.
 - Shop/room event orchestration: `public/js/features/shop-controller.js`.
@@ -47,18 +55,20 @@ Make `public/index.html` a thinner app shell so multiple terminals can work on U
 - Event/classroom event orchestration: `public/js/features/event-controller.js`, `public/js/features/classroom-controller.js`.
 - Event runtime state: `public/js/features/event-state.js`.
 - Classroom runtime state: `public/js/features/classroom-state.js`.
+- Ranking plaza runtime state: `public/js/features/ranking-state.js`.
 - Quiz play events: `public/js/features/quiz-controller.js`.
+- Quiz session runtime state: `public/js/features/quiz-session-state.js`.
+- Quiz save/reward/timer orchestration: `public/js/features/quiz-flow.js`.
 - Quiz play state/save/timer orchestration: `public/js/features/quiz-play.js`, explicit adapters and wrappers that still remain in `public/index.html`.
 - Verification: `scripts/smoke`.
 
-Only one terminal should edit `public/index.html` at a time until admin/account/ranking state and quiz session ownership are reduced further.
+Only one terminal should edit `public/index.html` at a time until quiz save/reward wrappers and global app orchestration are reduced further.
 
 ## Remaining App Shell Work
 
-1. Reduce remaining `public/index.html` cache/state ownership for admin, account, ranking, and quiz session flows.
-2. Harden quiz-play save/reward/timer dependencies before moving those flows.
-3. Add write-flow smoke coverage only where it can run without changing production data unexpectedly.
-4. Move quiz save/reward wrappers only after the persistence smoke gate is stronger.
+1. Harden quiz completion persistence smoke before moving more write flow internals.
+2. Move remaining quiz result/completion DOM adapters only after the persistence smoke gate is stronger.
+3. Reduce remaining global app orchestration wrappers in `public/index.html`.
 
 ## Quiz-Play Dependency Boundary
 

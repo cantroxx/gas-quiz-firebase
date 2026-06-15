@@ -1375,9 +1375,11 @@
   <script src="/js/features/admin-render.js"></script>
   <script src="/js/features/admin-form.js"></script>
   <script src="/js/features/admin-data.js"></script>
+  <script src="/js/features/admin-state.js"></script>
   <script src="/js/features/admin-controller.js"></script>
   <script src="/js/features/account-form.js"></script>
   <script src="/js/features/account-data.js"></script>
+  <script src="/js/features/account-state.js"></script>
   <script src="/js/features/account-controller.js"></script>
   <script src="/js/features/app-view.js"></script>
   <script src="/js/features/app-events.js"></script>
@@ -1400,9 +1402,12 @@
   <script src="/js/features/shop-controller.js"></script>
   <script src="/js/features/ranking-render.js"></script>
   <script src="/js/features/ranking-data.js"></script>
+  <script src="/js/features/ranking-state.js"></script>
   <script src="/js/features/school-controller.js"></script>
+  <script src="/js/features/quiz-session-state.js"></script>
   <script src="/js/features/quiz-controller.js"></script>
   <script src="/js/features/quiz-play.js"></script>
+  <script src="/js/features/quiz-flow.js"></script>
   <script>
     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
 
@@ -1684,9 +1689,6 @@
     let authStateListenerAttached = false;
     let currentMemberUserId = '';
     let currentMemberProfile = null;
-    let memberLinkInProgress = false;
-    let memberLinkSubmitAction = 'login';
-    let pendingPasswordChange = null;
     let userDataMigrationPromise = null;
 
     const QUEST_DATA = [
@@ -2031,27 +2033,7 @@
       ]
     };
 
-    let currentQuestionIndex = 0;
-    let selectedChoiceIndex = null;
-    let correctAnswerCount = 0;
-    let lastQuizId = 'spelling';
-    let currentSubjectId = 'korean';
-    let currentQuizId = 'spelling';
-    let currentModeId = 'practice';
-    let currentRankingModeId = 'normal';
     let activePokemonHubDifficulty = '';
-    let currentSessionQuestions = null;
-    let rankingPlazaModelCache = null;
-    let activeRankingBoardId = 'quizKing';
-    let activePopularRankingArea = 'all';
-    let activePopularRankingDifficulty = 'all';
-    let activePopularRankingMode = 'all';
-    let currentQuizStartedAtMs = 0;
-    let currentRankingLives = 0;
-    let currentRankingQuestionTimer = null;
-    let currentRankingSessionTimer = null;
-    let currentRankingTimeLeft = 0;
-    let currentQuestionResolved = false;
     let currentPopularUsageSession = null;
     let currentPopularUsageFlushTimer = null;
     const firebaseQuizDataCache = {};
@@ -2063,7 +2045,6 @@
     let featureFlagsLoadPromise = null;
     let externalQuizzesCache = null;
     let externalQuizzesLoadPromise = null;
-    let adminDashboardCache = null;
     let serverFreshnessPollTimer = null;
 
     function debugLog(...args) {
@@ -2103,7 +2084,7 @@
     }
 
     function clearRuntimeDataCaches() {
-      rankingPlazaModelCache = null;
+      window.DJ48RankingState.resetPlazaModel();
       titleCatalogCache = null;
       titleCatalogMapCache = null;
       window.DJ48HomeState.resetHomeState();
@@ -2112,7 +2093,7 @@
       featureFlagsLoadPromise = null;
       externalQuizzesCache = null;
       externalQuizzesLoadPromise = null;
-      adminDashboardCache = null;
+      window.DJ48AdminState.resetAdminState();
       resetEventProgressCache();
       Object.keys(firebaseQuizDataCache).forEach(key => delete firebaseQuizDataCache[key]);
       resetShopRuntimeData();
@@ -2190,10 +2171,10 @@
         } else if(!document.getElementById('school-view')?.hidden) {
           renderSchoolQuizCards();
         } else if(!document.getElementById('subject-view')?.hidden) {
-          renderSubjectQuizCards(currentSubjectId);
+          renderSubjectQuizCards(window.DJ48QuizSessionState.getCurrentSubjectId());
         } else if(!document.getElementById('quiz-select-view')?.hidden) {
-          renderQuizSelectView(lastQuizId);
-          const quiz = QUIZ_CATALOG[lastQuizId] || QUIZ_CATALOG.spelling;
+          renderQuizSelectView(window.DJ48QuizSessionState.getLastQuizId());
+          const quiz = QUIZ_CATALOG[window.DJ48QuizSessionState.getLastQuizId()] || QUIZ_CATALOG.spelling;
           renderQuizModeCards(quiz.modes);
         }
 
@@ -2709,7 +2690,7 @@
       return window.DJ48AccountForm.renderMemberLinkPanel({
         currentMemberProfile,
         currentMemberUserId,
-        pendingPasswordChange
+        pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange()
       });
     }
 
@@ -3597,7 +3578,7 @@
         normalizeDisplayImageUrl,
         normalizeRankingDisplayName,
         applyProfileImageTransform,
-        getActiveRankingBoardId: () => activeRankingBoardId,
+        getActiveRankingBoardId: () => window.DJ48RankingState.getActiveBoardId(),
         getRankingRowsForGroup,
         getRankingModeFilterOptions,
         getSupportedRankingModeIdsForKeys,
@@ -3609,33 +3590,28 @@
         getActivePopularMode,
         getPopularFilteredRows,
         onRankingBoardSelect: boardId => {
-          activeRankingBoardId = boardId;
+          window.DJ48RankingState.setActiveBoardId(boardId);
         },
         onPopularAreaSelect: areaId => {
-          activeRankingBoardId = 'popular';
-          activePopularRankingArea = areaId;
-          activePopularRankingDifficulty = 'all';
-          activePopularRankingMode = 'all';
-          renderRankingBoards(rankingPlazaModelCache);
+          window.DJ48RankingState.selectPopularArea(areaId);
+          renderRankingBoards(window.DJ48RankingState.getPlazaModel());
         },
         onPopularDifficultySelect: difficultyId => {
-          activeRankingBoardId = 'popular';
-          activePopularRankingDifficulty = difficultyId;
-          renderRankingBoards(rankingPlazaModelCache);
+          window.DJ48RankingState.selectPopularDifficulty(difficultyId);
+          renderRankingBoards(window.DJ48RankingState.getPlazaModel());
         },
         onPopularModeSelect: modeId => {
-          activeRankingBoardId = 'popular';
-          activePopularRankingMode = modeId;
-          renderRankingBoards(rankingPlazaModelCache);
+          window.DJ48RankingState.selectPopularMode(modeId);
+          renderRankingBoards(window.DJ48RankingState.getPlazaModel());
         }
       };
     }
 
     function renderRankingBoards(model) {
-      rankingPlazaModelCache = model || rankingPlazaModelCache;
+      const nextModel = window.DJ48RankingState.setPlazaModel(model);
       return window.DJ48RankingRender.renderRankingBoards(
         document.getElementById('ranking-board-root'),
-        model,
+        nextModel,
         getRankingRenderDeps()
       );
     }
@@ -3787,14 +3763,17 @@
     }
 
     function getActivePopularArea() {
+      const activePopularRankingArea = window.DJ48RankingState.getActivePopularArea();
       return getPopularRankingAreas().some(item => item.id === activePopularRankingArea) ? activePopularRankingArea : 'all';
     }
 
     function getActivePopularDifficulty() {
+      const activePopularRankingDifficulty = window.DJ48RankingState.getActivePopularDifficulty();
       return getPopularPokemonDifficulties().some(item => item.id === activePopularRankingDifficulty) ? activePopularRankingDifficulty : 'all';
     }
 
     function getActivePopularMode(records, areaId) {
+      const activePopularRankingMode = window.DJ48RankingState.getActivePopularMode();
       return getPopularModeOptions(records, areaId).some(item => item.id === activePopularRankingMode) ? activePopularRankingMode : 'all';
     }
 
@@ -4637,7 +4616,7 @@
     function getMemberLinkFormValues() {
       return window.DJ48AccountForm.getMemberLinkFormValues({
         defaultMemberSchool: DEFAULT_MEMBER_SCHOOL,
-        memberLinkSubmitAction
+        memberLinkSubmitAction: window.DJ48AccountState.getMemberLinkSubmitAction()
       });
     }
 
@@ -4654,8 +4633,8 @@
     }
 
     function setMemberLinkFormMode(mode) {
-      memberLinkSubmitAction = window.DJ48AccountForm.setMemberLinkFormMode(mode);
-      return memberLinkSubmitAction;
+      const action = window.DJ48AccountForm.setMemberLinkFormMode(mode);
+      return window.DJ48AccountState.setMemberLinkSubmitAction(action);
     }
 
     function getTemporaryPasswordText(values) {
@@ -4848,12 +4827,12 @@
 
       currentMemberUserId = result.memberUserId;
       currentMemberProfile = linkedProfile;
-      pendingPasswordChange = result.forcePasswordChange === true
+      window.DJ48AccountState.setPendingPasswordChange(result.forcePasswordChange === true
         ? {
           memberUserId: result.memberUserId,
           currentPassword: String(values.password || '')
         }
-        : null;
+        : null);
       maybeSaveLinkedMemberHint(result.memberUserId);
       resetUserScopedRuntimeData();
       try {
@@ -4866,14 +4845,14 @@
 
     async function changeCurrentMemberPassword(newPassword, passwordConfirm) {
       const result = await window.DJ48AccountData.changePendingMemberPassword({
-        pendingPasswordChange,
+        pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange(),
         currentMemberUserId,
         newPassword,
         passwordConfirm
       }, {
         getFirebaseFunctions
       });
-      pendingPasswordChange = null;
+      window.DJ48AccountState.clearPendingPasswordChange();
       return result;
     }
 
@@ -4966,7 +4945,7 @@
     }
 
     async function handleMemberPasswordResetClick() {
-      if(memberLinkInProgress) return;
+      if(window.DJ48AccountState.isMemberLinkInProgress()) return;
       const values = getMemberLinkFormValues();
       const temporaryPassword = getTemporaryPasswordText(values);
       if(!temporaryPassword) {
@@ -4978,7 +4957,7 @@
 
       const button = document.getElementById('member-password-reset-button');
       const buttonState = window.DJ48AccountForm.setButtonBusy(button, '초기화 중...');
-      memberLinkInProgress = true;
+      window.DJ48AccountState.setMemberLinkInProgress(true);
       setMemberLinkStatus('비밀번호를 임시 비밀번호로 바꾸고 있습니다...');
 
       try {
@@ -4996,17 +4975,17 @@
         console.warn('Member password reset failed.', error);
         setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordResetErrorMessage(error), true);
       } finally {
-        memberLinkInProgress = false;
+        window.DJ48AccountState.setMemberLinkInProgress(false);
         window.DJ48AccountForm.restoreButtonState(button, buttonState);
       }
     }
 
     async function handleMemberLinkSubmit(event) {
       event.preventDefault();
-      if(memberLinkInProgress) return;
+      if(window.DJ48AccountState.isMemberLinkInProgress()) return;
 
-      memberLinkInProgress = true;
-      memberLinkSubmitAction = event.submitter?.value || memberLinkSubmitAction || 'login';
+      window.DJ48AccountState.setMemberLinkInProgress(true);
+      window.DJ48AccountState.setMemberLinkSubmitAction(event.submitter?.value || window.DJ48AccountState.getMemberLinkSubmitAction() || 'login');
       const values = getMemberLinkFormValues();
       setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitPendingMessage(values));
 
@@ -5015,7 +4994,7 @@
         renderMemberLinkPanel();
         setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitSuccessMessage(profile));
         if(window.DJ48AccountForm.shouldWaitForRequiredPasswordChange({
-          pendingPasswordChange,
+          pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange(),
           currentMemberUserId
         })) {
           renderMemberLinkPanel();
@@ -5027,7 +5006,7 @@
         console.warn('Member auth link failed.', error);
         setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitErrorMessage(error), true);
       } finally {
-        memberLinkInProgress = false;
+        window.DJ48AccountState.setMemberLinkInProgress(false);
       }
     }
 
@@ -6280,11 +6259,11 @@
         getFirebaseFunctions,
         initializeAuthUser
       });
-      adminDashboardCache = result.dashboard || {};
-      setSuperAdminUiEnabled(adminDashboardCache.adminLevel === 'superAdmin');
-      renderAdminDashboard(adminDashboardCache);
+      const dashboard = window.DJ48AdminState.setDashboard(result.dashboard);
+      setSuperAdminUiEnabled(dashboard.adminLevel === 'superAdmin');
+      renderAdminDashboard(dashboard);
       setAdminDashboardStatus('운영 상태를 불러왔습니다.');
-      return adminDashboardCache;
+      return dashboard;
     }
 
     function setAdminAuditStatus(message, isError = false) {
@@ -7029,6 +7008,7 @@
     function renderQuizModeCards(modeIds) {
       const grid = document.getElementById('quiz-mode-grid');
       grid.innerHTML = '';
+      const lastQuizId = window.DJ48QuizSessionState.getLastQuizId();
       if(normalizeFirebaseQuizId(lastQuizId) === 'pokemon') {
         renderPokemonHubCards(grid);
         return;
@@ -7297,64 +7277,32 @@
       };
       const sessionStateDeps = {
         getCurrentQuestionSet,
-        getCurrentSessionQuestions: () => currentSessionQuestions,
-        setCurrentSessionQuestions: questions => {
-          currentSessionQuestions = questions;
-        },
-        applyQuizPlaySessionState: state => {
-          currentQuizId = state.currentQuizId;
-          currentModeId = state.currentModeId;
-          currentRankingModeId = state.currentRankingModeId;
-          currentQuestionIndex = state.currentQuestionIndex;
-          selectedChoiceIndex = state.selectedChoiceIndex;
-          correctAnswerCount = state.correctAnswerCount;
-          currentQuizStartedAtMs = state.currentQuizStartedAtMs;
-          currentRankingLives = state.currentRankingLives;
-          currentQuestionResolved = state.currentQuestionResolved;
-          currentSessionQuestions = state.currentSessionQuestions;
-        },
-        getCurrentModeId: () => currentModeId,
-        getCurrentQuizId: () => currentQuizId,
-        getCurrentQuestionIndex: () => currentQuestionIndex,
-        advanceCurrentQuestionIndex: () => {
-          currentQuestionIndex += 1;
-          return currentQuestionIndex;
-        },
-        getCorrectAnswerCount: () => correctAnswerCount,
-        incrementCorrectAnswerCount: () => {
-          correctAnswerCount += 1;
-          return correctAnswerCount;
-        },
+        getCurrentSessionQuestions: () => window.DJ48QuizSessionState.getCurrentSessionQuestions(),
+        setCurrentSessionQuestions: questions => window.DJ48QuizSessionState.setCurrentSessionQuestions(questions),
+        applyQuizPlaySessionState: state => window.DJ48QuizSessionState.applyQuizPlaySessionState(state),
+        getCurrentModeId: () => window.DJ48QuizSessionState.getCurrentModeId(),
+        getCurrentQuizId: () => window.DJ48QuizSessionState.getCurrentQuizId(),
+        getCurrentQuestionIndex: () => window.DJ48QuizSessionState.getCurrentQuestionIndex(),
+        advanceCurrentQuestionIndex: () => window.DJ48QuizSessionState.advanceCurrentQuestionIndex(),
+        getCorrectAnswerCount: () => window.DJ48QuizSessionState.getCorrectAnswerCount(),
+        incrementCorrectAnswerCount: () => window.DJ48QuizSessionState.incrementCorrectAnswerCount(),
         getCurrentMemberProfile: () => currentMemberProfile || {},
-        getCurrentQuizStartedAtMs: () => currentQuizStartedAtMs,
-        getCurrentRankingModeId: () => currentRankingModeId,
-        getCurrentRankingLives: () => currentRankingLives,
-        setCurrentRankingLives: value => {
-          currentRankingLives = value;
-        },
-        getCurrentQuestionResolved: () => currentQuestionResolved,
-        setCurrentQuestionResolved: value => {
-          currentQuestionResolved = !!value;
-        },
-        getSelectedChoiceIndex: () => selectedChoiceIndex,
-        resetSelectedChoiceIndex: () => {
-          selectedChoiceIndex = null;
-        },
-        setSelectedChoiceIndex: value => {
-          selectedChoiceIndex = value;
-        },
-        getCurrentRankingTimeLeft: () => currentRankingTimeLeft,
-        setCurrentRankingTimeLeft: value => {
-          currentRankingTimeLeft = value;
-        },
-        decreaseCurrentRankingTimeLeft: value => {
-          currentRankingTimeLeft -= value;
-          return currentRankingTimeLeft;
-        }
+        getCurrentQuizStartedAtMs: () => window.DJ48QuizSessionState.getCurrentQuizStartedAtMs(),
+        getCurrentRankingModeId: () => window.DJ48QuizSessionState.getCurrentRankingModeId(),
+        getCurrentRankingLives: () => window.DJ48QuizSessionState.getCurrentRankingLives(),
+        setCurrentRankingLives: value => window.DJ48QuizSessionState.setCurrentRankingLives(value),
+        getCurrentQuestionResolved: () => window.DJ48QuizSessionState.getCurrentQuestionResolved(),
+        setCurrentQuestionResolved: value => window.DJ48QuizSessionState.setCurrentQuestionResolved(value),
+        getSelectedChoiceIndex: () => window.DJ48QuizSessionState.getSelectedChoiceIndex(),
+        resetSelectedChoiceIndex: () => window.DJ48QuizSessionState.resetSelectedChoiceIndex(),
+        setSelectedChoiceIndex: value => window.DJ48QuizSessionState.setSelectedChoiceIndex(value),
+        getCurrentRankingTimeLeft: () => window.DJ48QuizSessionState.getCurrentRankingTimeLeft(),
+        setCurrentRankingTimeLeft: value => window.DJ48QuizSessionState.setCurrentRankingTimeLeft(value),
+        decreaseCurrentRankingTimeLeft: value => window.DJ48QuizSessionState.decreaseCurrentRankingTimeLeft(value)
       };
       const catalogDeps = {
-        getCurrentQuizMetaForHeader: () => QUIZ_CATALOG[currentQuizId] || QUIZ_CATALOG.spelling,
-        getCurrentModeMetaForHeader: () => MODE_CATALOG[currentModeId] || MODE_CATALOG.practice,
+        getCurrentQuizMetaForHeader: () => QUIZ_CATALOG[window.DJ48QuizSessionState.getCurrentQuizId()] || QUIZ_CATALOG.spelling,
+        getCurrentModeMetaForHeader: () => MODE_CATALOG[window.DJ48QuizSessionState.getCurrentModeId()] || MODE_CATALOG.practice,
         getQuestionBank: () => QUESTION_BANK,
         getFirebaseQuizDataCache: () => firebaseQuizDataCache,
         getCorrectRewardCoin: () => USER_REWARD_DATA.completeReward.correctCoin,
@@ -7526,35 +7474,29 @@
     }
 
     function clearRankingQuestionTimer() {
-      if(currentRankingQuestionTimer) clearInterval(currentRankingQuestionTimer);
-      currentRankingQuestionTimer = null;
+      return window.DJ48QuizFlow.clearRankingQuestionTimer(window.DJ48QuizSessionState);
     }
 
     function clearRankingSessionTimer() {
-      if(currentRankingSessionTimer) clearInterval(currentRankingSessionTimer);
-      currentRankingSessionTimer = null;
+      return window.DJ48QuizFlow.clearRankingSessionTimer(window.DJ48QuizSessionState);
     }
 
     function getRankingElapsedSeconds() {
-      return window.DJ48QuizPlay.getRankingElapsedSeconds(getQuizPlayDeps().getCurrentQuizStartedAtMs());
+      return window.DJ48QuizFlow.getRankingElapsedSeconds(getQuizPlayDeps());
     }
 
     function startRankingSessionTimerIfNeeded() {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.startRankingSessionTimerIfNeeded({
-        ...deps,
+      return window.DJ48QuizFlow.startRankingSessionTimerIfNeeded(deps, {
         clearRankingSessionTimer,
-        setCurrentRankingSessionTimer: timer => {
-          currentRankingSessionTimer = timer;
-        },
+        setCurrentRankingSessionTimer: timer => window.DJ48QuizSessionState.setCurrentRankingSessionTimer(timer),
         handleRankingSessionTimeout
       });
     }
 
     function handleRankingSessionTimeout() {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.handleRankingSessionTimeout({
-        ...deps,
+      return window.DJ48QuizFlow.handleRankingSessionTimeout(deps, {
         clearRankingQuestionTimer,
         clearRankingSessionTimer,
         getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
@@ -7563,19 +7505,16 @@
     }
 
     function getRankingTimeLimitSecondsForQuiz(quizId) {
-      return window.DJ48QuizPlay.getRankingTimeLimitSecondsForQuiz(quizId, getQuizPlayDeps().getCurrentRankingModeId(), {
+      return window.DJ48QuizFlow.getRankingTimeLimitSecondsForQuiz(quizId, getQuizPlayDeps(), {
         normalizeFirebaseQuizId
       });
     }
 
     function startRankingQuestionTimerIfNeeded() {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.startRankingQuestionTimerIfNeeded({
-        ...deps,
+      return window.DJ48QuizFlow.startRankingQuestionTimerIfNeeded(deps, {
         clearRankingQuestionTimer,
-        setCurrentRankingQuestionTimer: timer => {
-          currentRankingQuestionTimer = timer;
-        },
+        setCurrentRankingQuestionTimer: timer => window.DJ48QuizSessionState.setCurrentRankingQuestionTimer(timer),
         getQuizProgressElement: () => document.querySelector('.quiz-progress'),
         getQuizProgressText,
         handleRankingTimeout
@@ -7584,8 +7523,7 @@
 
     function handleRankingTimeout() {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.handleRankingTimeout({
-        ...deps,
+      return window.DJ48QuizFlow.handleRankingTimeout(deps, {
         clearRankingQuestionTimer,
         getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
         showQuizResult
@@ -7743,10 +7681,7 @@
 
     async function saveRankingRecordOnQuizComplete() {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.saveRankingRecordOnQuizComplete({
-        ...deps,
-        testShopUserId: TEST_SHOP_USER_ID
-      });
+      return window.DJ48QuizFlow.saveRankingRecordOnQuizComplete(deps, TEST_SHOP_USER_ID);
     }
 
     function getPracticeQuestionId(question) {
@@ -7777,28 +7712,17 @@
 
     async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.grantPracticeCorrectReward(memberUserId, rewardCoin, context, {
-        getFirebaseFunctions: deps.getFirebaseFunctions,
-        resetUserEconomyCache: deps.resetUserEconomyCache,
-        debugLog: deps.debugLog
-      });
+      return window.DJ48QuizFlow.grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps);
     }
 
     async function syncMemberTitlesAfterPracticeCompletion(memberUserId, context) {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, {
-        getFirebaseFunctions: deps.getFirebaseFunctions,
-        resetTitleCatalogCache: deps.resetTitleCatalogCache,
-        debugLog: deps.debugLog
-      });
+      return window.DJ48QuizFlow.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps);
     }
 
     async function savePracticeProgressAfterCorrectAnswer(question) {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.savePracticeProgressAfterCorrectAnswer(question, {
-        ...deps,
-        testShopUserId: TEST_SHOP_USER_ID
-      });
+      return window.DJ48QuizFlow.savePracticeProgressAfterCorrectAnswer(question, deps, TEST_SHOP_USER_ID);
     }
 
     function showQuizComplete(options = {}) {
@@ -7838,7 +7762,7 @@
         showQuizComplete,
         nextQuestion,
         showQuizSelectView,
-        getLastQuizId: () => lastQuizId,
+        getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId(),
         handleQuizPlayKeydown,
         flushPopularUsageSession
       };
@@ -8073,7 +7997,7 @@
     }
 
     function showSubjectView(subjectId) {
-      currentSubjectId = subjectId;
+      window.DJ48QuizSessionState.setCurrentSubjectId(subjectId);
       renderSubjectQuizCards(subjectId);
       window.DJ48AppView.enterPlaceView({
         viewId: 'subject-view'
@@ -8086,11 +8010,11 @@
     function showQuizSelectView(quizId) {
       clearRankingQuestionTimer();
       const quiz = QUIZ_CATALOG[quizId] || QUIZ_CATALOG.spelling;
-      lastQuizId = quizId;
-      currentSubjectId = quiz.subjectId || currentSubjectId;
+      window.DJ48QuizSessionState.setLastQuizId(quizId);
+      window.DJ48QuizSessionState.setCurrentSubjectId(quiz.subjectId || window.DJ48QuizSessionState.getCurrentSubjectId());
       renderQuizSelectView(quizId);
       loadFeatureFlags().then(() => {
-        if(lastQuizId === quizId && !document.getElementById('quiz-select-view').hidden) renderQuizModeCards(quiz.modes);
+        if(window.DJ48QuizSessionState.getLastQuizId() === quizId && !document.getElementById('quiz-select-view').hidden) renderQuizModeCards(quiz.modes);
       });
       window.DJ48AppView.enterPlaceView({
         viewId: 'quiz-select-view'
@@ -8156,8 +8080,8 @@
       showSchoolView,
       showQuizSelectView,
       showQuizPlayView,
-      getCurrentSubjectId: () => currentSubjectId,
-      getLastQuizId: () => lastQuizId
+      getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
+      getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
     });
     window.DJ48QuizController.bindQuizPlayEvents(getQuizPlayEventDeps());
     window.DJ48ShopController.bindShopRoomEvents({
