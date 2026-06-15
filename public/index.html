@@ -8077,13 +8077,10 @@
       document.getElementById('admin-member-detail-status').textContent = '회원 정보를 불러오는 중입니다.';
       modal.hidden = false;
       try {
-        const functions = getFirebaseFunctions();
-        if(!functions) throw new Error('functions-unavailable');
-        await initializeAuthUser();
-        const callable = functions.httpsCallable('adminGetMemberDetail');
-        const response = await callable({ memberUserId });
-        const result = response?.data || {};
-        if(!result.success) throw new Error('admin-member-detail-load-failed');
+        const result = await window.DJ48AdminData.loadAdminMemberDetail(memberUserId, {
+          getFirebaseFunctions,
+          initializeAuthUser
+        });
         renderAdminMemberDetail(result);
         document.getElementById('admin-member-detail-status').textContent = '읽기 전용 상세 데이터입니다.';
       } catch(error) {

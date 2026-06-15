@@ -58,6 +58,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Run admin browser smoke after each deployed slice.
    - Started with low-risk admin setting/catalog save callable wrappers in `public/js/features/admin-data.js`.
    - Continued with admin member action, wallet adjust, and class-admin permission callable wrappers.
+   - Added admin member detail read wrapper to remove the last direct admin member detail callable from `public/index.html`.
 4. Account/login refactor.
    - Split login/signup/password/session restore only after admin is stable.
 5. Shop/room write-flow refactor.

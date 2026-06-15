@@ -40,6 +40,14 @@
     }, deps);
   }
 
+  function loadAdminMemberDetail(memberUserId, deps = {}) {
+    return callAdminCallable({
+      callableName: 'adminGetMemberDetail',
+      payload: { memberUserId },
+      errorCode: 'admin-member-detail-load-failed'
+    }, deps);
+  }
+
   function runAdminMemberAction(action, memberUserId, deps = {}) {
     const payload = { memberUserId };
     let callableName = '';
@@ -166,6 +174,7 @@
     loadAdminOperationalAudit,
     loadAdminQuizQualityAudit,
     loadAdminMembers,
+    loadAdminMemberDetail,
     runAdminMemberAction,
     adjustAdminMemberWallet,
     setClassAdminPermission,
