@@ -311,6 +311,48 @@
     };
   }
 
+  function getRestoredMemberDestination(profile) {
+    if(!profile) return '';
+    return profile.role === 'admin' ? 'admin' : 'town';
+  }
+
+  function normalizeRankingMessageInput(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+  }
+
+  function normalizeProfileImageInput(value) {
+    return String(value || '').trim().slice(0, 500);
+  }
+
+  function buildProfileImageUpdate(editorState = {}, edit = {}, deps = {}) {
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    return {
+      profileImageUrl: editorState.profileImageUrl || editorState.imageUrl || '',
+      profileImageSource: editorState.profileImageSource || editorState.source || '',
+      profileImageStoragePath: editorState.profileImageStoragePath || '',
+      profileImageScale: edit.profileImageScale,
+      profileImageOffsetX: edit.profileImageOffsetX,
+      profileImageOffsetY: edit.profileImageOffsetY,
+      updatedAt: fieldValue.serverTimestamp()
+    };
+  }
+
+  function buildRankingMessageUpdate(message, deps = {}) {
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    return {
+      rankingMessage: normalizeRankingMessageInput(message),
+      updatedAt: fieldValue.serverTimestamp()
+    };
+  }
+
+  function buildSelectedTitleUpdate(titleId, deps = {}) {
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    return {
+      selectedTitleId: String(titleId || '').trim(),
+      updatedAt: fieldValue.serverTimestamp()
+    };
+  }
+
   function registerNewMember(payload = {}, deps = {}) {
     return callAccountCallable('registerNewMember', payload, deps, 'member-register-failed');
   }
@@ -352,6 +394,12 @@
     changeMemberPasswordWithCurrentPassword,
     updateMemberNicknameForMember,
     mergeMemberProfile,
+    getRestoredMemberDestination,
+    normalizeRankingMessageInput,
+    normalizeProfileImageInput,
+    buildProfileImageUpdate,
+    buildRankingMessageUpdate,
+    buildSelectedTitleUpdate,
     registerNewMember,
     loginMemberWithPassword,
     resetMemberPasswordToTemporary,

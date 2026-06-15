@@ -71,10 +71,13 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Moved anonymous sign-in helper into `public/js/features/account-data.js` while keeping auth lifecycle orchestration in `public/index.html`.
    - Moved member link payload validation, register/login callable selection, and linked profile loading helpers into `public/js/features/account-data.js`.
    - Moved password-change and nickname-update validation/callable helpers into `public/js/features/account-data.js`.
+   - Moved restored-member destination selection into `public/js/features/account-data.js`; `public/index.html` still owns auth listener orchestration.
 5. Shop/room write-flow refactor.
    - Split purchase, inventory, room settings, and economy refresh.
+   - Added `public/js/features/shop-data.js` for shop purchase callable and room item selection Firestore write helpers.
 6. Profile/account detail refactor.
    - Split nickname, profile image, ranking message, title/badge orchestration.
+   - Moved profile ranking-message, profile-image, and selected-title update payload helpers into `public/js/features/account-data.js`.
 7. Classroom/event refactor.
    - Split relatively independent classroom and event flows.
 8. Final cleanup.

@@ -1378,6 +1378,7 @@
   <script src="/js/features/account-form.js"></script>
   <script src="/js/features/account-data.js"></script>
   <script src="/js/features/home-render.js"></script>
+  <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/ranking-render.js"></script>
   <script src="/js/features/ranking-data.js"></script>
@@ -3000,11 +3001,11 @@
     }
 
     function normalizeRankingMessageInput(value) {
-      return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+      return window.DJ48AccountData.normalizeRankingMessageInput(value);
     }
 
     function normalizeProfileImageInput(value) {
-      return String(value || '').trim().slice(0, 500);
+      return window.DJ48AccountData.normalizeProfileImageInput(value);
     }
 
     function renderProfileImageSearchResults(options) {
@@ -3202,7 +3203,6 @@
       if(!db) throw new Error('firestore-unavailable');
       await initializeAuthUser();
       const saveButton = document.getElementById('profile-image-editor-save');
-      const fieldValue = getFirestoreFieldValue();
       const edit = getProfileImageEditModel(profileImageEditorState);
       if(saveButton) saveButton.disabled = true;
       setProfileImageEditorStatus('프로필 이미지를 저장하고 있습니다...');
@@ -3214,15 +3214,13 @@
           profileImageUrl = uploaded.downloadUrl;
           profileImageStoragePath = uploaded.path;
         }
-        const updateData = {
+        const updateData = window.DJ48AccountData.buildProfileImageUpdate({
           profileImageUrl,
           profileImageSource: profileImageEditorState.source,
-          profileImageStoragePath,
-          profileImageScale: edit.profileImageScale,
-          profileImageOffsetX: edit.profileImageOffsetX,
-          profileImageOffsetY: edit.profileImageOffsetY,
-          updatedAt: fieldValue.serverTimestamp()
-        };
+          profileImageStoragePath
+        }, edit, {
+          getFirestoreFieldValue
+        });
         await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
         currentMemberProfile = {
           ...(currentMemberProfile || {}),
@@ -3250,20 +3248,19 @@
       const status = document.getElementById('profile-ranking-message-status');
       const button = document.getElementById('profile-ranking-message-save-button');
       const message = normalizeRankingMessageInput(input?.value || '');
-      const fieldValue = getFirestoreFieldValue();
       if(button) button.disabled = true;
       if(status) status.textContent = '한마디를 저장하고 있습니다...';
       try {
-        await db.collection('users').doc(currentMemberUserId).set({
-          rankingMessage: message,
-          updatedAt: fieldValue.serverTimestamp()
-        }, { merge: true });
+        const updateData = window.DJ48AccountData.buildRankingMessageUpdate(message, {
+          getFirestoreFieldValue
+        });
+        await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
         currentMemberProfile = {
           ...(currentMemberProfile || {}),
-          rankingMessage: message
+          rankingMessage: updateData.rankingMessage
         };
-        if(input) input.value = message;
-        if(status) status.textContent = message ? '한마디를 저장했습니다.' : '한마디를 비웠습니다.';
+        if(input) input.value = updateData.rankingMessage;
+        if(status) status.textContent = updateData.rankingMessage ? '한마디를 저장했습니다.' : '한마디를 비웠습니다.';
       } catch(error) {
         console.warn('Firestore profile ranking message update failed.', error);
         if(status) status.textContent = '한마디 저장 중 문제가 생겼어요.';
@@ -3347,14 +3344,13 @@
         const titleSnapshot = await db.collection('userTitles').doc(currentMemberUserId).collection('titles').doc(selectedTitleId).get();
         if(!titleSnapshot.exists) throw new Error('title-not-owned');
       }
-      const fieldValue = getFirestoreFieldValue();
-      await db.collection('users').doc(currentMemberUserId).set({
-        selectedTitleId,
-        updatedAt: fieldValue.serverTimestamp()
-      }, { merge: true });
+      const updateData = window.DJ48AccountData.buildSelectedTitleUpdate(selectedTitleId, {
+        getFirestoreFieldValue
+      });
+      await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
       currentMemberProfile = {
         ...(currentMemberProfile || {}),
-        selectedTitleId
+        selectedTitleId: updateData.selectedTitleId
       };
       renderHomeMemberDataFromFirestore();
     }
@@ -5201,6 +5197,12 @@
       });
     }
 
+    function openRestoredMemberDestination(profile) {
+      const destination = window.DJ48AccountData.getRestoredMemberDestination(profile);
+      if(destination === 'admin') showAdminView();
+      else if(destination === 'town') showTownView();
+    }
+
     function initializeAuthUser() {
       if(firebaseAuthInitPromise) return firebaseAuthInitPromise;
 
@@ -5219,10 +5221,7 @@
             restoreLinkedMemberFromAuthUid()
               .then(profile => {
                 renderMemberLinkPanel();
-                if(profile) {
-                  if(profile.role === 'admin') showAdminView();
-                  else showTownView();
-                }
+                openRestoredMemberDestination(profile);
               })
               .catch(error => console.warn('Linked member restore after auth state change failed.', error));
           }
@@ -5236,10 +5235,7 @@
           handleResolvedUserChange(user?.uid || TEST_SHOP_USER_ID);
           return restoreLinkedMemberFromAuthUid().then(profile => {
             renderMemberLinkPanel();
-            if(profile) {
-              if(profile.role === 'admin') showAdminView();
-              else showTownView();
-            }
+            openRestoredMemberDestination(profile);
             return user;
           });
         })
@@ -5979,13 +5975,12 @@
       try {
         await prepareMemberOwnedData();
         const userId = requireCurrentDataOwnerId();
-        const callPurchaseShopItem = functions.httpsCallable('purchaseShopItem');
-        const response = await callPurchaseShopItem({
+        await window.DJ48ShopData.purchaseShopItem({
           memberUserId: userId,
           itemId
+        }, {
+          getFirebaseFunctions
         });
-        const result = response?.data || {};
-        if(!result.success) throw new Error('purchase-function-failed');
 
         resetShopRuntimeData();
         await renderShopFromFirestore();
@@ -6028,47 +6023,17 @@
       try {
         await prepareMemberOwnedData();
         const userId = requireCurrentDataOwnerId();
-        const itemRef = db.collection('shopItems').doc(itemId);
-        const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
-        const settingsRef = db.collection('userRoomSettings').doc(userId);
-        const [itemSnapshot, inventorySnapshot, settingsSnapshot] = await Promise.all([
-          itemRef.get(),
-          inventoryRef.get(),
-          settingsRef.get()
-        ]);
-
-        if(!itemSnapshot.exists) throw new Error('item-not-found');
-        if(!inventorySnapshot.exists) throw new Error('not-owned');
-
-        const item = normalizeShopItemFromFirestore(itemSnapshot);
-        const category = getRoomItemCategory(item);
-        const currentSettings = normalizeRoomSettingsFromFirestore(settingsSnapshot);
-        const isSelected = isRoomItemSelected(item, currentSettings);
-        const fieldValue = getFirestoreFieldValue();
-        const updateData = {
+        await window.DJ48ShopData.saveRoomItemSelection({
+          db,
           userId,
-          updatedAt: fieldValue.serverTimestamp()
-        };
-
-        if(category === 'background') {
-          updateData.selectedBackgroundItemId = isSelected ? '' : itemId;
-        } else if(category === 'avatar') {
-          updateData.selectedAvatarItemId = isSelected ? '' : itemId;
-        } else if(category === 'roomDecor') {
-          const decorSet = new Set(currentSettings.selectedDecorItemIds);
-          if(decorSet.has(itemId)) {
-            decorSet.delete(itemId);
-          } else {
-            decorSet.add(itemId);
-          }
-          updateData.selectedDecorItemIds = Array.from(decorSet);
-        } else if(category === 'titleFrame') {
-          updateData.selectedTitleFrameItemId = isSelected ? '' : itemId;
-        } else {
-          throw new Error('unsupported-category');
-        }
-
-        await settingsRef.set(updateData, { merge: true });
+          itemId
+        }, {
+          normalizeShopItemFromFirestore,
+          normalizeRoomSettingsFromFirestore,
+          getRoomItemCategory,
+          isRoomItemSelected,
+          getFirestoreFieldValue
+        });
         resetRoomSettingsCache();
         await renderHomeOwnedItemsFromFirestore();
       } catch(error) {
