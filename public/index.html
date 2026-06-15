@@ -8468,38 +8468,59 @@
       });
     }
 
-    document.querySelectorAll('[data-place]').forEach(button => {
-      button.addEventListener('click', () => openPlaceModal(button.dataset.place));
-    });
-
-    document.getElementById('global-refresh-button')?.addEventListener('click', () => {
-      refreshCurrentAppData().catch(error => {
-        console.warn('Global refresh failed.', error);
-        setGlobalRefreshNeedsAttention(true, '최신 정보를 다시 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    function bindCommonAppEvents() {
+      document.querySelectorAll('[data-place]').forEach(button => {
+        button.addEventListener('click', () => openPlaceModal(button.dataset.place));
       });
-    });
 
-    document.querySelectorAll('[data-close-modal]').forEach(button => {
-      button.addEventListener('click', closePlaceModal);
-    });
+      document.getElementById('global-refresh-button')?.addEventListener('click', () => {
+        refreshCurrentAppData().catch(error => {
+          console.warn('Global refresh failed.', error);
+          setGlobalRefreshNeedsAttention(true, '최신 정보를 다시 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        });
+      });
 
-    document.getElementById('modal-actions').addEventListener('click', event => {
-      if(event.target.dataset.panelAction === 'openSchool') showSchoolView();
-      if(event.target.dataset.panelAction === 'openHome') showHomeView();
-      if(event.target.dataset.panelAction === 'openRanking') showRankingView();
-      if(event.target.dataset.panelAction === 'openShop') showShopView();
-      if(event.target.dataset.panelAction === 'openEvent') showEventView();
-      if(event.target.dataset.panelAction === 'openClassroom') showClassroomView(false);
-      if(event.target.dataset.panelAction === 'openRecommendedQuiz' && event.target.dataset.quizId) {
-        closePlaceModal();
-        showQuizSelectView(event.target.dataset.quizId);
-      }
-    });
+      document.querySelectorAll('[data-close-modal]').forEach(button => {
+        button.addEventListener('click', closePlaceModal);
+      });
 
-    document.querySelectorAll('[data-back-to-town]').forEach(button => {
-      button.addEventListener('click', showTownView);
-    });
+      document.getElementById('modal-actions').addEventListener('click', event => {
+        if(event.target.dataset.panelAction === 'openSchool') showSchoolView();
+        if(event.target.dataset.panelAction === 'openHome') showHomeView();
+        if(event.target.dataset.panelAction === 'openRanking') showRankingView();
+        if(event.target.dataset.panelAction === 'openShop') showShopView();
+        if(event.target.dataset.panelAction === 'openEvent') showEventView();
+        if(event.target.dataset.panelAction === 'openClassroom') showClassroomView(false);
+        if(event.target.dataset.panelAction === 'openRecommendedQuiz' && event.target.dataset.quizId) {
+          closePlaceModal();
+          showQuizSelectView(event.target.dataset.quizId);
+        }
+      });
 
+      document.querySelectorAll('[data-back-to-town]').forEach(button => {
+        button.addEventListener('click', showTownView);
+      });
+
+      document.getElementById('ranking-board-root').addEventListener('click', handleRankingBoardRootClick);
+
+      document.addEventListener('keydown', event => {
+        if(event.key === 'Escape') closePlaceModal();
+      });
+
+      window.addEventListener('resize', () => {
+        const roomView = document.getElementById('room-view');
+        if(!roomView || roomView.hidden || !isRoomDecorPortraitBlocked()) return;
+        try {
+          if(window.RoomDecor && typeof window.RoomDecor.close === 'function') window.RoomDecor.close();
+        } catch(error) {
+          console.warn('RoomDecor close failed after portrait resize.', error);
+        }
+        window.alert('방 꾸미기는 화면을 가로로 돌린 뒤 이용할 수 있어요.');
+        showHomeView();
+      });
+    }
+
+    bindCommonAppEvents();
     bindEventPlazaEvents();
     bindClassroomEvents();
     bindSchoolQuizSelectEvents();
@@ -8507,38 +8528,37 @@
     bindShopRoomEvents();
     bindProfileHomeEvents();
 
-    document.getElementById('ranking-board-root').addEventListener('click', handleRankingBoardRootClick);
-
-    document.getElementById('admin-member-refresh').addEventListener('click', () => {
-      hideAdminTemporaryPassword();
-      loadAdminMembers().catch(error => {
-        console.warn('Admin member refresh failed.', error);
-        setAdminStatus('회원 목록을 다시 불러오지 못했습니다.', true);
+    function bindAdminEvents() {
+      document.getElementById('admin-member-refresh').addEventListener('click', () => {
+        hideAdminTemporaryPassword();
+        loadAdminMembers().catch(error => {
+          console.warn('Admin member refresh failed.', error);
+          setAdminStatus('회원 목록을 다시 불러오지 못했습니다.', true);
+        });
       });
-    });
 
-    document.getElementById('admin-dashboard-refresh').addEventListener('click', () => {
+      document.getElementById('admin-dashboard-refresh').addEventListener('click', () => {
       loadAdminDashboard().catch(error => {
         console.warn('Admin dashboard refresh failed.', error);
         setAdminDashboardStatus('대시보드를 다시 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-audit-refresh').addEventListener('click', () => {
+      document.getElementById('admin-audit-refresh').addEventListener('click', () => {
       loadAdminOperationalAudit().catch(error => {
         console.warn('Admin operational audit refresh failed.', error);
         setAdminAuditStatus('운영 점검을 다시 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-quiz-quality-refresh').addEventListener('click', () => {
+      document.getElementById('admin-quiz-quality-refresh').addEventListener('click', () => {
       loadAdminQuizQualityAudit().catch(error => {
         console.warn('Admin quiz quality audit refresh failed.', error);
         setAdminQuizQualityStatus('문제 점검을 다시 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-temp-password-copy').addEventListener('click', () => {
+      document.getElementById('admin-temp-password-copy').addEventListener('click', () => {
       const password = document.getElementById('admin-temp-password-value')?.textContent || '';
       if(!password) return;
       if(!navigator.clipboard?.writeText) {
@@ -8551,9 +8571,9 @@
           console.warn('Admin temporary password copy failed.', error);
           setAdminStatus('복사하지 못했습니다. 임시 비밀번호를 직접 선택해 주세요.', true);
         });
-    });
+      });
 
-    document.getElementById('admin-member-list').addEventListener('click', event => {
+      document.getElementById('admin-member-list').addEventListener('click', event => {
       const button = event.target.closest('[data-admin-action]');
       const card = event.target.closest('[data-member-user-id]');
       if(!button || !card || button.disabled) return;
@@ -8570,174 +8590,165 @@
         .finally(() => {
           button.disabled = false;
         });
-    });
+      });
 
-    document.querySelectorAll('[data-close-admin-member-detail]').forEach(button => {
+      document.querySelectorAll('[data-close-admin-member-detail]').forEach(button => {
       button.addEventListener('click', closeAdminMemberDetailModal);
-    });
+      });
 
-    document.querySelector('[data-admin-logout]').addEventListener('click', () => {
+      document.querySelector('[data-admin-logout]').addEventListener('click', () => {
       logoutAdminMember().catch(error => {
         console.warn('Admin logout failed.', error);
         setAdminStatus('로그아웃 중 문제가 생겼습니다.', true);
       });
-    });
+      });
 
-    document.querySelector('[data-admin-open-town]')?.addEventListener('click', showTownView);
+      document.querySelector('[data-admin-open-town]')?.addEventListener('click', showTownView);
 
-    document.querySelector('[data-admin-open-classroom]')?.addEventListener('click', () => showClassroomView(false));
+      document.querySelector('[data-admin-open-classroom]')?.addEventListener('click', () => showClassroomView(false));
 
-    document.getElementById('admin-classroom-refresh')?.addEventListener('click', () => {
+      document.getElementById('admin-classroom-refresh')?.addEventListener('click', () => {
       renderAdminClassroomReview(true).catch(error => {
         console.warn('Admin classroom refresh failed.', error);
         const status = document.getElementById('admin-classroom-status');
         if(status) status.textContent = '우리 교실 확인 대기 목록을 다시 불러오지 못했습니다.';
       });
-    });
+      });
 
-    document.querySelectorAll('[data-admin-section-target]').forEach(control => {
+      document.querySelectorAll('[data-admin-section-target]').forEach(control => {
       control.addEventListener('click', () => {
         setActiveAdminSection(control.dataset.adminSectionTarget);
       });
-    });
+      });
 
-    document.getElementById('admin-notice-load').addEventListener('click', () => {
+      document.getElementById('admin-notice-load').addEventListener('click', () => {
       loadAdminNoticeBoard().catch(error => {
         console.warn('Admin notice load failed.', error);
         setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-notice-save').addEventListener('click', () => {
+      document.getElementById('admin-notice-save').addEventListener('click', () => {
       saveAdminNoticeBoard().catch(error => {
         console.warn('Admin notice save failed.', error);
         setAdminNoticeStatus('알림판 저장 중 문제가 생겼습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-external-quizzes-load').addEventListener('click', () => {
+      document.getElementById('admin-external-quizzes-load').addEventListener('click', () => {
       loadAdminExternalQuizzes().catch(error => {
         console.warn('Admin external quizzes load failed.', error);
         setAdminExternalQuizzesStatus('외부 퀴즈를 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-external-quizzes-save').addEventListener('click', () => {
+      document.getElementById('admin-external-quizzes-save').addEventListener('click', () => {
       saveAdminExternalQuizzes().catch(error => {
         console.warn('Admin external quizzes save failed.', error);
         setAdminExternalQuizzesStatus(window.DJ48AdminForm.getAdminExternalQuizzesSaveErrorMessage(error), true);
       });
-    });
+      });
 
-    document.getElementById('admin-login-settings-load').addEventListener('click', () => {
+      document.getElementById('admin-login-settings-load').addEventListener('click', () => {
       loadAdminLoginSettings().catch(error => {
         console.warn('Admin login settings load failed.', error);
         setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-login-settings-save').addEventListener('click', () => {
+      document.getElementById('admin-login-settings-save').addEventListener('click', () => {
       saveAdminLoginSettings().catch(error => {
         console.warn('Admin login settings save failed.', error);
         setAdminLoginSettingsStatus(window.DJ48AdminForm.getAdminLoginSettingsSaveErrorMessage(error), true);
       });
-    });
+      });
 
-    document.getElementById('admin-feature-flags-load').addEventListener('click', () => {
+      document.getElementById('admin-feature-flags-load').addEventListener('click', () => {
       loadAdminFeatureFlags().catch(error => {
         console.warn('Admin feature flags load failed.', error);
         setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-feature-flags-save').addEventListener('click', () => {
+      document.getElementById('admin-feature-flags-save').addEventListener('click', () => {
       saveAdminFeatureFlags().catch(error => {
         console.warn('Admin feature flags save failed.', error);
         setAdminFeatureFlagsStatus(window.DJ48AdminForm.getAdminFeatureFlagsSaveErrorMessage(error), true);
       });
-    });
+      });
 
-    document.getElementById('admin-room-catalog-new')?.addEventListener('click', resetAdminRoomCatalogForm);
+      document.getElementById('admin-room-catalog-new')?.addEventListener('click', resetAdminRoomCatalogForm);
 
-    document.getElementById('admin-room-catalog-load')?.addEventListener('click', () => {
+      document.getElementById('admin-room-catalog-load')?.addEventListener('click', () => {
       loadAdminRoomCatalog().catch(error => {
         console.warn('Admin room catalog load failed.', error);
         setAdminRoomCatalogStatus('방 가구 목록을 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-room-catalog-save')?.addEventListener('click', () => {
+      document.getElementById('admin-room-catalog-save')?.addEventListener('click', () => {
       saveAdminRoomCatalogItem().catch(error => {
         console.warn('Admin room catalog save failed.', error);
         setAdminRoomCatalogStatus(window.DJ48AdminForm.getAdminRoomCatalogSaveErrorMessage(error), true);
       });
-    });
+      });
 
-    document.getElementById('admin-permission-grant').addEventListener('click', () => {
+      document.getElementById('admin-permission-grant').addEventListener('click', () => {
       setClassAdminPermission(true).catch(error => {
         console.warn('Admin class permission grant failed.', error);
         setAdminPermissionStatus(window.DJ48AdminForm.getAdminPermissionGrantErrorMessage(error), true);
       });
-    });
+      });
 
-    document.getElementById('admin-permission-revoke').addEventListener('click', () => {
+      document.getElementById('admin-permission-revoke').addEventListener('click', () => {
       setClassAdminPermission(false).catch(error => {
         console.warn('Admin class permission revoke failed.', error);
         setAdminPermissionStatus(window.DJ48AdminForm.getAdminPermissionRevokeErrorMessage(error), true);
       });
-    });
+      });
 
-    document.getElementById('admin-logs-refresh').addEventListener('click', () => {
+      document.getElementById('admin-logs-refresh').addEventListener('click', () => {
       loadAdminLogs().catch(error => {
         console.warn('Admin logs refresh failed.', error);
         setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-logs-action-filter').addEventListener('change', () => {
+      document.getElementById('admin-logs-action-filter').addEventListener('change', () => {
       loadAdminLogs().catch(error => {
         console.warn('Admin logs action filter failed.', error);
         setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
       });
-    });
+      });
 
-    document.getElementById('admin-logs-target-filter').addEventListener('keydown', event => {
+      document.getElementById('admin-logs-target-filter').addEventListener('keydown', event => {
       if(event.key !== 'Enter') return;
       loadAdminLogs().catch(error => {
         console.warn('Admin logs target filter failed.', error);
         setAdminLogsStatus('작업 이력을 다시 불러오지 못했습니다.', true);
       });
-    });
+      });
+    }
 
-    document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
-    document.querySelectorAll('[data-member-form-mode]').forEach(button => {
+    bindAdminEvents();
+
+    function bindAccountEvents() {
+      document.getElementById('member-link-form').addEventListener('submit', handleMemberLinkSubmit);
+      document.querySelectorAll('[data-member-form-mode]').forEach(button => {
       button.addEventListener('click', () => setMemberLinkFormMode(button.dataset.memberFormMode));
-    });
-    setMemberLinkFormMode('login');
-    document.getElementById('member-password-reset-button').addEventListener('click', handleMemberPasswordResetClick);
-    document.querySelectorAll('[data-member-unlink]').forEach(button => {
+      });
+      setMemberLinkFormMode('login');
+      document.getElementById('member-password-reset-button').addEventListener('click', handleMemberPasswordResetClick);
+      document.querySelectorAll('[data-member-unlink]').forEach(button => {
       button.addEventListener('click', handleMemberUnlinkClick);
-    });
-    document.getElementById('member-link-status').addEventListener('click', event => {
+      });
+      document.getElementById('member-link-status').addEventListener('click', event => {
       if(event.target.closest('#member-unlink-button')) handleMemberUnlinkClick();
       if(event.target.closest('#member-password-change-button')) handleMemberPasswordChangeClick();
-    });
+      });
+    }
 
-    document.addEventListener('keydown', event => {
-      if(event.key === 'Escape') closePlaceModal();
-    });
-
-    window.addEventListener('resize', () => {
-      const roomView = document.getElementById('room-view');
-      if(!roomView || roomView.hidden || !isRoomDecorPortraitBlocked()) return;
-      try {
-        if(window.RoomDecor && typeof window.RoomDecor.close === 'function') window.RoomDecor.close();
-      } catch(error) {
-        console.warn('RoomDecor close failed after portrait resize.', error);
-      }
-      window.alert('방 꾸미기는 화면을 가로로 돌린 뒤 이용할 수 있어요.');
-      showHomeView();
-    });
+    bindAccountEvents();
 
     let roomDecorInitialized = false;
     function initializeRoomDecorIfAvailable() {
