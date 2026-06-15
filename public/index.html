@@ -1389,6 +1389,7 @@
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/home-controller.js"></script>
   <script src="/js/domain/event-domain.js"></script>
+  <script src="/js/application/event-usecases.js"></script>
   <script src="/js/features/event-state.js"></script>
   <script src="/js/features/event-data.js"></script>
   <script src="/js/features/event-render.js"></script>
@@ -6048,42 +6049,37 @@
     }
 
     async function loadEventProgress(forceRefresh = false) {
-      if(window.DJ48EventState.getEventProgress() && !forceRefresh) return window.DJ48EventState.getEventProgress();
-      if(window.DJ48EventState.getEventProgressLoadPromise() && !forceRefresh) {
-        return window.DJ48EventState.getEventProgressLoadPromise();
-      }
-      const loadPromise = window.DJ48EventData.loadEventProgress({
+      return window.DJ48EventUsecases.loadEventProgressWithCache({
+        forceRefresh,
         memberUserId: currentMemberUserId
       }, {
-        getFirebaseFunctions
-      })
-        .then(progress => {
-          return window.DJ48EventState.setEventProgress(progress);
-        })
-        .finally(() => {
-          window.DJ48EventState.setEventProgressLoadPromise(null);
-        });
-      window.DJ48EventState.setEventProgressLoadPromise(loadPromise);
-      return loadPromise;
+        getEventProgress: window.DJ48EventState.getEventProgress,
+        getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
+        setEventProgress: window.DJ48EventState.setEventProgress,
+        setEventProgressLoadPromise: window.DJ48EventState.setEventProgressLoadPromise,
+        loadEventProgress: options => window.DJ48EventData.loadEventProgress(options, { getFirebaseFunctions })
+      });
     }
 
     async function renderEventProgressFromFunctions(forceRefresh = false) {
-      try {
-        const progress = await loadEventProgress(forceRefresh);
-        const data = window.DJ48EventData.getEventProgressRenderData(progress, {
+      const result = await window.DJ48EventUsecases.getEventProgressViewData({
+        forceRefresh,
+        memberUserId: currentMemberUserId,
+        fallback: {
           quests: QUEST_DATA,
           classMissions: CLASS_MISSION_DATA,
           seasonEvents: SEASON_EVENT_DATA
-        });
-        renderEventSections(data);
-      } catch(error) {
-        console.warn('Firestore event progress load failed. Using static event fallback.', error);
-        renderEventSections({
-          quests: QUEST_DATA,
-          classMissions: CLASS_MISSION_DATA,
-          seasonEvents: SEASON_EVENT_DATA
-        });
-      }
+        }
+      }, {
+        getEventProgress: window.DJ48EventState.getEventProgress,
+        getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
+        setEventProgress: window.DJ48EventState.setEventProgress,
+        setEventProgressLoadPromise: window.DJ48EventState.setEventProgressLoadPromise,
+        loadEventProgress: options => window.DJ48EventData.loadEventProgress(options, { getFirebaseFunctions }),
+        getEventProgressRenderData: window.DJ48EventData.getEventProgressRenderData,
+        warn: console.warn
+      });
+      renderEventSections(result.data);
     }
 
     async function claimEventQuestReward(questId) {
@@ -6093,27 +6089,19 @@
         button.disabled = true;
         button.textContent = '수령 중...';
       }
-      try {
-        const result = await window.DJ48EventData.claimEventQuestReward({
-          memberUserId: currentMemberUserId,
-          questId
-        }, {
-          getFirebaseFunctions
-        });
-        resetUserEconomyCache();
-        resetEventProgressCache();
-        debugLog('Event quest reward claimed:', {
-          questId,
-          rewardCoin: result.rewardCoin || 0,
-          duplicate: !!result.duplicate,
-          rewardLogPath: result.rewardLogPath || ''
-        });
-        await renderEventProgressFromFunctions(true);
-      } catch(error) {
-        console.warn('Event quest reward claim failed.', error);
-        window.alert(window.DJ48EventData.getEventRewardClaimErrorMessage(error));
-        await renderEventProgressFromFunctions(true);
-      }
+      await window.DJ48EventUsecases.claimEventQuestRewardFlow({
+        memberUserId: currentMemberUserId,
+        questId
+      }, {
+        claimEventQuestReward: options => window.DJ48EventData.claimEventQuestReward(options, { getFirebaseFunctions }),
+        resetUserEconomyCache,
+        resetEventProgressCache,
+        debugLog,
+        warn: console.warn,
+        alert: window.alert,
+        getEventRewardClaimErrorMessage: window.DJ48EventData.getEventRewardClaimErrorMessage,
+        renderEventProgress: renderEventProgressFromFunctions
+      });
     }
 
     function setAdminStatus(message, isError = false) {
