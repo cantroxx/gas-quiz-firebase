@@ -8110,6 +8110,106 @@
       return window.DJ48AppView.closePlaceModal();
     }
 
+    function bindEventPlazaEvents() {
+      document.getElementById('quest-card-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-quest-claim-id]');
+        if(!button || button.disabled) return;
+        claimEventQuestReward(button.dataset.questClaimId || '');
+      });
+    }
+
+    function bindClassroomEvents() {
+      document.getElementById('classroom-entry-form')?.addEventListener('submit', handleClassroomEntrySubmit);
+
+      document.getElementById('classroom-quest-form')?.addEventListener('submit', event => {
+        saveClassroomQuestFromForm(event);
+      });
+
+      document.getElementById('classroom-badge-campaign-form')?.addEventListener('submit', event => {
+        awardClassroomBadgeCampaignFromForm(event);
+      });
+
+      document.getElementById('classroom-job-form')?.addEventListener('submit', event => {
+        saveClassroomJobFromForm(event);
+      });
+
+      document.getElementById('classroom-shop-item-form')?.addEventListener('submit', event => {
+        saveClassroomShopItemFromForm(event);
+      });
+
+      document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
+        saveClassroomRoutineFromForm(event);
+      });
+
+      document.querySelectorAll('[data-classroom-tab]').forEach(button => {
+        button.addEventListener('click', () => setActiveClassroomTab(button.dataset.classroomTab || 'quests'));
+      });
+
+      document.getElementById('classroom-quest-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-classroom-quest-action]');
+        if(!button || button.disabled) return;
+        completeClassroomCheckQuest(button.dataset.classroomQuestAction || '');
+      });
+
+      document.getElementById('classroom-gem-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-classroom-badge-gem-id]');
+        if(!button || button.disabled) return;
+        setClassroomSelectedGemBadge(button.dataset.classroomBadgeGemId || '');
+      });
+
+      document.getElementById('classroom-job-grid')?.addEventListener('click', event => {
+        const applyButton = event.target.closest('[data-classroom-job-apply-id]');
+        if(applyButton && !applyButton.disabled) {
+          applyClassroomJob(applyButton.dataset.classroomJobApplyId || '', applyButton);
+          return;
+        }
+        const assignButton = event.target.closest('[data-classroom-job-assign-id]');
+        if(assignButton && !assignButton.disabled) {
+          assignClassroomJob(assignButton.dataset.classroomJobAssignId || '', assignButton);
+          return;
+        }
+        const releaseButton = event.target.closest('[data-classroom-job-release-id]');
+        if(releaseButton && !releaseButton.disabled) {
+          releaseClassroomJob(releaseButton.dataset.classroomJobReleaseId || '', releaseButton);
+          return;
+        }
+        const salaryButton = event.target.closest('[data-classroom-job-salary-id]');
+        if(salaryButton && !salaryButton.disabled) {
+          claimClassroomJobSalary(salaryButton.dataset.classroomJobSalaryId || '', salaryButton);
+        }
+      });
+
+      document.getElementById('classroom-shop-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-classroom-shop-buy-id]');
+        if(!button || button.disabled) return;
+        purchaseClassroomShopItem(button.dataset.classroomShopBuyId || '', button);
+      });
+
+      document.getElementById('classroom-routine-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-classroom-routine-check-id]');
+        if(!button || button.disabled) return;
+        checkClassroomRoutine(button.dataset.classroomRoutineCheckId || '', button);
+      });
+
+      document.getElementById('classroom-review-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-classroom-review-action]');
+        if(!button || button.disabled) return;
+        reviewClassroomQuestProgress(
+          button.dataset.classroomReviewId || '',
+          button.dataset.classroomReviewAction || ''
+        );
+      });
+
+      document.getElementById('admin-classroom-review-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-classroom-review-action]');
+        if(!button || button.disabled) return;
+        reviewClassroomQuestProgress(
+          button.dataset.classroomReviewId || '',
+          button.dataset.classroomReviewAction || ''
+        );
+      });
+    }
+
     document.querySelectorAll('[data-place]').forEach(button => {
       button.addEventListener('click', () => openPlaceModal(button.dataset.place));
     });
@@ -8290,101 +8390,8 @@
       button.addEventListener('click', showTownView);
     });
 
-    document.getElementById('quest-card-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-quest-claim-id]');
-      if(!button || button.disabled) return;
-      claimEventQuestReward(button.dataset.questClaimId || '');
-    });
-
-    document.getElementById('classroom-entry-form')?.addEventListener('submit', handleClassroomEntrySubmit);
-
-    document.getElementById('classroom-quest-form')?.addEventListener('submit', event => {
-      saveClassroomQuestFromForm(event);
-    });
-
-    document.getElementById('classroom-badge-campaign-form')?.addEventListener('submit', event => {
-      awardClassroomBadgeCampaignFromForm(event);
-    });
-
-    document.getElementById('classroom-job-form')?.addEventListener('submit', event => {
-      saveClassroomJobFromForm(event);
-    });
-
-    document.getElementById('classroom-shop-item-form')?.addEventListener('submit', event => {
-      saveClassroomShopItemFromForm(event);
-    });
-
-    document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
-      saveClassroomRoutineFromForm(event);
-    });
-
-    document.querySelectorAll('[data-classroom-tab]').forEach(button => {
-      button.addEventListener('click', () => setActiveClassroomTab(button.dataset.classroomTab || 'quests'));
-    });
-
-    document.getElementById('classroom-quest-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-quest-action]');
-      if(!button || button.disabled) return;
-      completeClassroomCheckQuest(button.dataset.classroomQuestAction || '');
-    });
-
-    document.getElementById('classroom-gem-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-badge-gem-id]');
-      if(!button || button.disabled) return;
-      setClassroomSelectedGemBadge(button.dataset.classroomBadgeGemId || '');
-    });
-
-    document.getElementById('classroom-job-grid')?.addEventListener('click', event => {
-      const applyButton = event.target.closest('[data-classroom-job-apply-id]');
-      if(applyButton && !applyButton.disabled) {
-        applyClassroomJob(applyButton.dataset.classroomJobApplyId || '', applyButton);
-        return;
-      }
-      const assignButton = event.target.closest('[data-classroom-job-assign-id]');
-      if(assignButton && !assignButton.disabled) {
-        assignClassroomJob(assignButton.dataset.classroomJobAssignId || '', assignButton);
-        return;
-      }
-      const releaseButton = event.target.closest('[data-classroom-job-release-id]');
-      if(releaseButton && !releaseButton.disabled) {
-        releaseClassroomJob(releaseButton.dataset.classroomJobReleaseId || '', releaseButton);
-        return;
-      }
-      const salaryButton = event.target.closest('[data-classroom-job-salary-id]');
-      if(salaryButton && !salaryButton.disabled) {
-        claimClassroomJobSalary(salaryButton.dataset.classroomJobSalaryId || '', salaryButton);
-      }
-    });
-
-    document.getElementById('classroom-shop-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-shop-buy-id]');
-      if(!button || button.disabled) return;
-      purchaseClassroomShopItem(button.dataset.classroomShopBuyId || '', button);
-    });
-
-    document.getElementById('classroom-routine-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-routine-check-id]');
-      if(!button || button.disabled) return;
-      checkClassroomRoutine(button.dataset.classroomRoutineCheckId || '', button);
-    });
-
-    document.getElementById('classroom-review-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-review-action]');
-      if(!button || button.disabled) return;
-      reviewClassroomQuestProgress(
-        button.dataset.classroomReviewId || '',
-        button.dataset.classroomReviewAction || ''
-      );
-    });
-
-    document.getElementById('admin-classroom-review-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-review-action]');
-      if(!button || button.disabled) return;
-      reviewClassroomQuestProgress(
-        button.dataset.classroomReviewId || '',
-        button.dataset.classroomReviewAction || ''
-      );
-    });
+    bindEventPlazaEvents();
+    bindClassroomEvents();
 
     document.getElementById('school-quiz-grid').addEventListener('click', async event => {
       const externalCard = event.target.closest('[data-external-quiz-hub]');
