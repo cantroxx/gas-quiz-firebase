@@ -324,6 +324,23 @@
     return String(value || '').trim().slice(0, 500);
   }
 
+  function getProfileImageFileExtension(file) {
+    const type = String(file?.type || '').toLowerCase();
+    if(type.includes('png')) return 'png';
+    if(type.includes('webp')) return 'webp';
+    return 'jpg';
+  }
+
+  function buildProfileImageStoragePath(options = {}, deps = {}) {
+    const authUid = options.authUid || '';
+    const memberUserId = options.memberUserId || '';
+    const extension = options.extension || 'jpg';
+    const now = deps.now || Date.now;
+    if(!authUid) throw new Error('login-required');
+    if(!memberUserId) throw new Error('member-required');
+    return `profileImages/${authUid}/${memberUserId}_${now()}.${extension}`;
+  }
+
   function buildProfileImageUpdate(editorState = {}, edit = {}, deps = {}) {
     const fieldValue = deps.getFirestoreFieldValue?.();
     return {
@@ -337,6 +354,22 @@
     };
   }
 
+  async function saveUserProfileUpdate(options = {}) {
+    const { db, memberUserId, updateData } = options;
+    if(!memberUserId) throw new Error('member-required');
+    if(!db) throw new Error('firestore-unavailable');
+    await db.collection('users').doc(memberUserId).set(updateData, { merge: true });
+    return updateData;
+  }
+
+  function buildUploadedProfileImageUpdate(editorState = {}, uploadResult = {}, edit = {}, deps = {}) {
+    return buildProfileImageUpdate({
+      profileImageUrl: uploadResult.downloadUrl || editorState.profileImageUrl || editorState.imageUrl || '',
+      profileImageSource: editorState.profileImageSource || editorState.source || '',
+      profileImageStoragePath: uploadResult.path || editorState.profileImageStoragePath || ''
+    }, edit, deps);
+  }
+
   function buildRankingMessageUpdate(message, deps = {}) {
     const fieldValue = deps.getFirestoreFieldValue?.();
     return {
@@ -345,12 +378,43 @@
     };
   }
 
+  async function saveRankingMessageForMember(options = {}, deps = {}) {
+    const updateData = buildRankingMessageUpdate(options.message, deps);
+    return saveUserProfileUpdate({
+      db: options.db,
+      memberUserId: options.memberUserId,
+      updateData
+    });
+  }
+
   function buildSelectedTitleUpdate(titleId, deps = {}) {
     const fieldValue = deps.getFirestoreFieldValue?.();
     return {
       selectedTitleId: String(titleId || '').trim(),
       updatedAt: fieldValue.serverTimestamp()
     };
+  }
+
+  async function saveSelectedTitleForMember(options = {}, deps = {}) {
+    const selectedTitleId = String(options.titleId || '').trim();
+    if(!options.memberUserId) throw new Error('member-required');
+    if(!options.db) throw new Error('firestore-unavailable');
+    if(selectedTitleId) {
+      const titleSnapshot = await options.db
+        .collection('userTitles')
+        .doc(options.memberUserId)
+        .collection('titles')
+        .doc(selectedTitleId)
+        .get();
+      if(!titleSnapshot.exists) throw new Error('title-not-owned');
+    }
+
+    const updateData = buildSelectedTitleUpdate(selectedTitleId, deps);
+    return saveUserProfileUpdate({
+      db: options.db,
+      memberUserId: options.memberUserId,
+      updateData
+    });
   }
 
   function getResolvedUserIdFromAuthUser(user, deps = {}) {
@@ -433,9 +497,15 @@
     getRestoredMemberDestination,
     normalizeRankingMessageInput,
     normalizeProfileImageInput,
+    getProfileImageFileExtension,
+    buildProfileImageStoragePath,
     buildProfileImageUpdate,
+    saveUserProfileUpdate,
+    buildUploadedProfileImageUpdate,
     buildRankingMessageUpdate,
+    saveRankingMessageForMember,
     buildSelectedTitleUpdate,
+    saveSelectedTitleForMember,
     getResolvedUserIdFromAuthUser,
     handleAuthStateUser,
     initializeAuthUserFlow,

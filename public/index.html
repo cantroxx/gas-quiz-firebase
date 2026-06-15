@@ -3081,10 +3081,7 @@
     }
 
     function getProfileImageFileExtension(file) {
-      const type = String(file?.type || '').toLowerCase();
-      if(type.includes('png')) return 'png';
-      if(type.includes('webp')) return 'webp';
-      return 'jpg';
+      return window.DJ48AccountData.getProfileImageFileExtension(file);
     }
 
     function readProfileImageFilePreview(file) {
@@ -3181,9 +3178,12 @@
       if(!storage) throw new Error('storage-unavailable');
       await initializeAuthUser();
       const authUid = window.firebase?.auth?.().currentUser?.uid || '';
-      if(!authUid) throw new Error('login-required');
       const extension = getProfileImageFileExtension(file);
-      const path = `profileImages/${authUid}/${currentMemberUserId}_${Date.now()}.${extension}`;
+      const path = window.DJ48AccountData.buildProfileImageStoragePath({
+        authUid,
+        memberUserId: currentMemberUserId,
+        extension
+      });
       const ref = storage.ref(path);
       await ref.put(file, {
         contentType: file.type,
@@ -3207,21 +3207,18 @@
       if(saveButton) saveButton.disabled = true;
       setProfileImageEditorStatus('프로필 이미지를 저장하고 있습니다...');
       try {
-        let profileImageUrl = profileImageEditorState.imageUrl;
-        let profileImageStoragePath = '';
+        let uploadResult = null;
         if(profileImageEditorState.source === 'upload') {
-          const uploaded = await uploadProfileImageToStorage(profileImageEditorState.file);
-          profileImageUrl = uploaded.downloadUrl;
-          profileImageStoragePath = uploaded.path;
+          uploadResult = await uploadProfileImageToStorage(profileImageEditorState.file);
         }
-        const updateData = window.DJ48AccountData.buildProfileImageUpdate({
-          profileImageUrl,
-          profileImageSource: profileImageEditorState.source,
-          profileImageStoragePath
-        }, edit, {
+        const updateData = window.DJ48AccountData.buildUploadedProfileImageUpdate(profileImageEditorState, uploadResult || {}, edit, {
           getFirestoreFieldValue
         });
-        await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
+        await window.DJ48AccountData.saveUserProfileUpdate({
+          db,
+          memberUserId: currentMemberUserId,
+          updateData
+        });
         currentMemberProfile = {
           ...(currentMemberProfile || {}),
           ...updateData
@@ -3251,10 +3248,13 @@
       if(button) button.disabled = true;
       if(status) status.textContent = '한마디를 저장하고 있습니다...';
       try {
-        const updateData = window.DJ48AccountData.buildRankingMessageUpdate(message, {
+        const updateData = await window.DJ48AccountData.saveRankingMessageForMember({
+          db,
+          memberUserId: currentMemberUserId,
+          message
+        }, {
           getFirestoreFieldValue
         });
-        await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
         currentMemberProfile = {
           ...(currentMemberProfile || {}),
           rankingMessage: updateData.rankingMessage
@@ -3339,15 +3339,13 @@
       const db = getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
       await initializeAuthUser();
-      const selectedTitleId = String(titleId || '').trim();
-      if(selectedTitleId) {
-        const titleSnapshot = await db.collection('userTitles').doc(currentMemberUserId).collection('titles').doc(selectedTitleId).get();
-        if(!titleSnapshot.exists) throw new Error('title-not-owned');
-      }
-      const updateData = window.DJ48AccountData.buildSelectedTitleUpdate(selectedTitleId, {
+      const updateData = await window.DJ48AccountData.saveSelectedTitleForMember({
+        db,
+        memberUserId: currentMemberUserId,
+        titleId
+      }, {
         getFirestoreFieldValue
       });
-      await db.collection('users').doc(currentMemberUserId).set(updateData, { merge: true });
       currentMemberProfile = {
         ...(currentMemberProfile || {}),
         selectedTitleId: updateData.selectedTitleId
@@ -5958,12 +5956,6 @@
     }
 
     async function purchaseShopItem(itemId) {
-      const functions = getFirebaseFunctions();
-      if(!functions) {
-        showShopPurchaseMessage('구매 서버를 불러올 수 없어요.');
-        return;
-      }
-
       try {
         await prepareMemberOwnedData();
         const userId = requireCurrentDataOwnerId();
@@ -5978,24 +5970,8 @@
         await renderShopFromFirestore();
         showShopPurchaseMessage('구매가 완료됐어요.');
       } catch(error) {
-        const messages = {
-          'login-required': '로그인 후 구매할 수 있어요.',
-          'member-not-linked': '회원 연결 후 구매할 수 있어요.',
-          'functions/not-found': '아이템 정보를 찾을 수 없어요.',
-          'functions/already-exists': '이미 보유한 아이템이에요.',
-          'functions/failed-precondition': '구매 조건을 만족하지 못했어요. 코인과 아이템 상태를 확인해 주세요.',
-          'functions/permission-denied': '현재 로그인 정보로는 구매할 수 없어요.',
-          'functions/invalid-argument': '구매 요청 정보가 올바르지 않아요.',
-          'item-not-found': '아이템 정보를 찾을 수 없어요.',
-          'economy-not-found': '테스트 사용자 지갑 정보를 찾을 수 없어요.',
-          'already-owned': '이미 보유한 아이템이에요.',
-          'item-disabled': '지금은 구매할 수 없는 아이템이에요.',
-          'unsupported-price-type': '지원하지 않는 가격 유형이에요.',
-          'invalid-price': '아이템 가격 정보가 올바르지 않아요.',
-          'coin-short': 'DJ코인이 부족해요.'
-        };
         console.warn('Shop purchase failed.', error);
-        showShopPurchaseMessage(messages[error.message] || '구매 처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.');
+        showShopPurchaseMessage(window.DJ48ShopData.getShopPurchaseErrorMessage(error));
       }
     }
 
@@ -6029,14 +6005,8 @@
         resetRoomSettingsCache();
         await renderHomeOwnedItemsFromFirestore();
       } catch(error) {
-        const messages = {
-          'login-required': '로그인 후 내 집 설정을 저장할 수 있어요.',
-          'item-not-found': '아이템 정보를 찾을 수 없어요.',
-          'not-owned': '보유한 아이템만 내 집에 적용할 수 있어요.',
-          'unsupported-category': '아직 내 집에 적용할 수 없는 아이템 종류예요.'
-        };
         console.warn('Room item save failed.', error);
-        showShopPurchaseMessage(messages[error.message] || '내 집 설정 저장 중 문제가 생겼어요.');
+        showShopPurchaseMessage(window.DJ48ShopData.getRoomItemSaveErrorMessage(error));
       }
     }
 
