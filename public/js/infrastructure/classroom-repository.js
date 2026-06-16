@@ -156,6 +156,68 @@
     });
   }
 
+  async function saveClassroomQuest(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-quest-functions-unavailable');
+    const values = options.values || {};
+    const callable = functions.httpsCallable('saveClassroomQuest');
+    await callable({
+      classId: options.classId,
+      quest: {
+        title: values.title,
+        desc: values.desc,
+        rewardCoin: values.rewardCoin,
+        rewardCurrency: values.rewardCurrency,
+        rewardMode: values.rewardMode,
+        linkedGemId: values.linkedGemId,
+        linkedGemName: values.linkedGemName,
+        gemXp: values.gemXp,
+        gemTargetXp: values.gemTargetXp,
+        gemRewardBerry: values.gemRewardBerry,
+        type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
+      }
+    });
+  }
+
+  async function awardClassroomBadgeCampaign(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-badge-functions-unavailable');
+    const callable = functions.httpsCallable('awardClassroomBadgeCampaign');
+    const response = await callable({
+      classId: options.classId,
+      campaign: options.values || {}
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomJob(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-job-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomJob');
+    await callable({
+      classId: options.classId,
+      job: options.values || {}
+    });
+  }
+
+  async function saveClassroomShopItem(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-shop-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomShopItem');
+    await callable({
+      classId: options.classId,
+      item: options.values || {}
+    });
+  }
+
+  async function callClassroomEconomyAction(functionName, payload = {}, options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-economy-functions-unavailable');
+    const callable = functions.httpsCallable(functionName);
+    const response = await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      ...payload
+    });
+    return response?.data || {};
+  }
+
   async function saveClassroomRoutine(options = {}, deps = {}) {
     if(!options.memberUserId) throw new Error('classroom-member-unavailable');
     const functions = getRequiredClassroomFunctions(deps, 'classroom-routine-functions-unavailable');
@@ -177,6 +239,42 @@
       questId: options.questId
     });
     return response?.data || {};
+  }
+
+  async function saveClassroomManualQuestProgress(options = {}, deps = {}) {
+    const {
+      settings = {},
+      quest = {},
+      questId = '',
+      memberUserId = ''
+    } = options;
+    if(!memberUserId) throw new Error('classroom-member-unavailable');
+    const db = getClassroomDb(deps);
+    if(!db) throw new Error('classroom-quest-progress-db-unavailable');
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    const recordId = buildClassroomQuestProgressId(memberUserId, questId);
+    await db.collection('classrooms')
+      .doc(settings.classId)
+      .collection('questProgress')
+      .doc(recordId)
+      .set({
+        recordId,
+        classId: settings.classId,
+        questId,
+        questType: quest.type || '수락형 · 체크형',
+        memberUserId,
+        userId: memberUserId,
+        checked: true,
+        status: 'student_checked',
+        rewardCoin: Number(quest.rewardCoin) || 0,
+        rewardCurrency: 'berry',
+        rewardStatus: 'pending_teacher_review',
+        source: 'firebase-app',
+        version: 1,
+        createdAt: fieldValue.serverTimestamp(),
+        updatedAt: fieldValue.serverTimestamp()
+      }, { merge: true });
+    return { recordId };
   }
 
   async function reviewClassroomQuestProgress(options = {}, deps = {}) {
@@ -210,19 +308,19 @@
       loadClassroomEconomyBoard: options => loadClassroomEconomyBoard(options, callableDeps),
       loadClassroomReviewItems: options => loadClassroomReviewItems(options, firestoreDeps),
       setClassroomSelectedBadge: options => setClassroomSelectedBadge(options, callableDeps),
-      saveClassroomQuest: options => root.DJ48ClassroomData.saveClassroomQuest(options, callableDeps),
-      awardClassroomBadgeCampaign: options => root.DJ48ClassroomData.awardClassroomBadgeCampaign(options, callableDeps),
-      saveClassroomJob: options => root.DJ48ClassroomData.saveClassroomJob(options, callableDeps),
-      saveClassroomShopItem: options => root.DJ48ClassroomData.saveClassroomShopItem(options, callableDeps),
-      callClassroomEconomyAction: (functionName, payload, options) => (
-        root.DJ48ClassroomData.callClassroomEconomyAction(functionName, payload, options, callableDeps)
+      saveClassroomQuest: options => saveClassroomQuest(options, callableDeps),
+      awardClassroomBadgeCampaign: options => awardClassroomBadgeCampaign(options, callableDeps),
+      saveClassroomJob: options => saveClassroomJob(options, callableDeps),
+      saveClassroomShopItem: options => saveClassroomShopItem(options, callableDeps),
+      callClassroomEconomyAction: (functionName, payload, options) => callClassroomEconomyAction(
+        functionName,
+        payload,
+        options,
+        callableDeps
       ),
       saveClassroomRoutine: options => saveClassroomRoutine(options, callableDeps),
       completeClassroomAutoQuest: options => completeClassroomAutoQuest(options, callableDeps),
-      saveClassroomManualQuestProgress: options => root.DJ48ClassroomData.saveClassroomManualQuestProgress({
-        ...options,
-        db: deps.getFirestoreDb?.()
-      }, firestoreDeps),
+      saveClassroomManualQuestProgress: options => saveClassroomManualQuestProgress(options, firestoreDeps),
       reviewClassroomQuestProgress: options => reviewClassroomQuestProgress(options, callableDeps)
     };
   }
