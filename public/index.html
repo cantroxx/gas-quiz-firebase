@@ -6295,17 +6295,13 @@
     }
 
     function submitAnswer() {
-      const deps = getQuizPlayDeps();
-      const saveCallbacks = window.DJ48QuizFlow.getQuizSaveCallbacks({
-        testShopUserId: TEST_SHOP_USER_ID
-      }, getQuizPlayDeps);
-      return window.DJ48QuizPlay.submitAnswer({
-        ...deps,
-        ...getQuizPlayDomDeps(),
+      return window.DJ48QuizFlow.submitQuizAnswer(getQuizPlayDeps(), {
+        getQuizPlayDeps,
+        getQuizPlayDomDeps,
+        testShopUserId: TEST_SHOP_USER_ID,
         clearRankingQuestionTimer,
         normalizeQuizAnswer,
         recordEducationCorrectForPopularUnlock,
-        savePracticeProgressAfterCorrectAnswer: saveCallbacks.savePracticeProgressAfterCorrectAnswer,
         showQuizResult,
         renderPracticeSaveStatus,
         isFirestoreQuotaExceededError

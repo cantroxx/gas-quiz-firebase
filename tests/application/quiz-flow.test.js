@@ -2,7 +2,15 @@ const assert = require('node:assert/strict');
 
 globalThis.DJ48QuizPlay = {
   getRankingElapsedSeconds: startedAtMs => Math.floor((10000 - startedAtMs) / 1000),
-  getQuizProgressText: model => `${model.modeId}:${model.questionIndex + 1}/${model.questionCount}:${model.rankingLives}`
+  getQuizProgressText: model => `${model.modeId}:${model.questionIndex + 1}/${model.questionCount}:${model.rankingLives}`,
+  savePracticeProgressAfterCorrectAnswer: (question, deps) => ({
+    questionId: question.id,
+    testShopUserId: deps.testShopUserId
+  }),
+  saveRankingRecordOnQuizComplete: deps => ({
+    testShopUserId: deps.testShopUserId
+  }),
+  submitAnswer: payload => payload
 };
 
 const flow = require('../../public/js/features/quiz-flow.js');
@@ -48,6 +56,29 @@ function testRankingTimerStateCallbacks() {
   ]);
 }
 
+function testSubmitQuizAnswer() {
+  const result = flow.submitQuizAnswer({ mode: 'practice' }, {
+    getQuizPlayDeps: () => ({ owner: 'member-1' }),
+    getQuizPlayDomDeps: () => ({ getQuizAnswerInput: () => 'input' }),
+    testShopUserId: 'test-user',
+    clearRankingQuestionTimer: () => {},
+    normalizeQuizAnswer: value => value,
+    recordEducationCorrectForPopularUnlock: () => {},
+    showQuizResult: () => {},
+    renderPracticeSaveStatus: () => {},
+    isFirestoreQuotaExceededError: () => false
+  });
+
+  assert.equal(result.mode, 'practice');
+  assert.equal(result.getQuizAnswerInput(), 'input');
+  assert.equal(typeof result.savePracticeProgressAfterCorrectAnswer, 'function');
+  assert.deepEqual(result.savePracticeProgressAfterCorrectAnswer({ id: 'q1' }), {
+    questionId: 'q1',
+    testShopUserId: 'test-user'
+  });
+}
+
 testGetQuizProgressText();
 testRankingTimerStateCallbacks();
+testSubmitQuizAnswer();
 console.log('Application tests passed: quiz-flow');

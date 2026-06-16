@@ -120,6 +120,23 @@
     };
   }
 
+  function submitQuizAnswer(deps = {}, callbacks = {}) {
+    const saveCallbacks = getQuizSaveCallbacks({
+      testShopUserId: callbacks.testShopUserId
+    }, callbacks.getQuizPlayDeps);
+    return root.DJ48QuizPlay.submitAnswer({
+      ...deps,
+      ...callbacks.getQuizPlayDomDeps?.(),
+      clearRankingQuestionTimer: callbacks.clearRankingQuestionTimer,
+      normalizeQuizAnswer: callbacks.normalizeQuizAnswer,
+      recordEducationCorrectForPopularUnlock: callbacks.recordEducationCorrectForPopularUnlock,
+      savePracticeProgressAfterCorrectAnswer: saveCallbacks.savePracticeProgressAfterCorrectAnswer,
+      showQuizResult: callbacks.showQuizResult,
+      renderPracticeSaveStatus: callbacks.renderPracticeSaveStatus,
+      isFirestoreQuotaExceededError: callbacks.isFirestoreQuotaExceededError
+    });
+  }
+
   function leaveQuizPlaySession(callbacks = {}) {
     callbacks.clearRankingQuestionTimer?.();
     callbacks.clearRankingSessionTimer?.();
@@ -143,6 +160,7 @@
     syncMemberTitlesAfterPracticeCompletion,
     savePracticeProgressAfterCorrectAnswer,
     getQuizSaveCallbacks,
+    submitQuizAnswer,
     leaveQuizPlaySession
   };
 
