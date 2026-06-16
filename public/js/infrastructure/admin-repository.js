@@ -1,29 +1,122 @@
 (function (root) {
+  async function callAdminCallable(options = {}, deps = {}) {
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error('functions-unavailable');
+    await deps.initializeAuthUser?.();
+    const callableName = options.callableName || '';
+    const callable = functions.httpsCallable(callableName);
+    const response = await callable(options.payload || {});
+    const result = response?.data || {};
+    if(!result.success) throw new Error(options.errorCode || `${callableName || 'admin-call'}-failed`);
+    return result;
+  }
+
+  function runAdminMemberAction(action, memberUserId, deps = {}) {
+    const payload = { memberUserId };
+    let callableName = '';
+    if(action === 'resetPassword') callableName = 'adminResetMemberPassword';
+    else if(action === 'unlinkAuth') callableName = 'adminUnlinkMemberAuth';
+    else if(action === 'deactivate') {
+      callableName = 'adminUpdateMemberStatus';
+      payload.status = 'inactive';
+    } else if(action === 'activate') {
+      callableName = 'adminUpdateMemberStatus';
+      payload.status = 'active';
+    } else {
+      throw new Error('unsupported-admin-action');
+    }
+    return callAdminCallable({
+      callableName,
+      payload,
+      errorCode: 'admin-action-failed'
+    }, deps);
+  }
+
   function createAdminRepository(deps = {}) {
-    const callableDeps = {
-      getFirebaseFunctions: deps.getFirebaseFunctions,
-      initializeAuthUser: deps.initializeAuthUser
-    };
     return {
-      loadAdminDashboard: () => root.DJ48AdminData.loadAdminDashboard(callableDeps),
-      loadAdminOperationalAudit: () => root.DJ48AdminData.loadAdminOperationalAudit(callableDeps),
-      loadAdminQuizQualityAudit: () => root.DJ48AdminData.loadAdminQuizQualityAudit(callableDeps),
-      loadAdminMembers: payload => root.DJ48AdminData.loadAdminMembers(payload, callableDeps),
-      loadAdminMemberDetail: memberUserId => root.DJ48AdminData.loadAdminMemberDetail(memberUserId, callableDeps),
-      runAdminMemberAction: (action, memberUserId) => root.DJ48AdminData.runAdminMemberAction(action, memberUserId, callableDeps),
-      adjustAdminMemberWallet: payload => root.DJ48AdminData.adjustAdminMemberWallet(payload, callableDeps),
-      setClassAdminPermission: payload => root.DJ48AdminData.setClassAdminPermission(payload, callableDeps),
-      loadAdminNoticeBoard: () => root.DJ48AdminData.loadAdminNoticeBoard(callableDeps),
-      saveAdminNoticeBoard: notice => root.DJ48AdminData.saveAdminNoticeBoard(notice, callableDeps),
-      loadAdminExternalQuizzes: () => root.DJ48AdminData.loadAdminExternalQuizzes(callableDeps),
-      saveAdminExternalQuizzes: externalQuizzes => root.DJ48AdminData.saveAdminExternalQuizzes(externalQuizzes, callableDeps),
-      loadAdminLoginSettings: () => root.DJ48AdminData.loadAdminLoginSettings(callableDeps),
-      saveAdminLoginSettings: settings => root.DJ48AdminData.saveAdminLoginSettings(settings, callableDeps),
-      loadAdminFeatureFlags: () => root.DJ48AdminData.loadAdminFeatureFlags(callableDeps),
-      saveAdminFeatureFlags: flags => root.DJ48AdminData.saveAdminFeatureFlags(flags, callableDeps),
-      loadAdminRoomCatalog: () => root.DJ48AdminData.loadAdminRoomCatalog(callableDeps),
-      saveAdminRoomCatalogItem: item => root.DJ48AdminData.saveAdminRoomCatalogItem(item, callableDeps),
-      loadAdminLogs: payload => root.DJ48AdminData.loadAdminLogs(payload, callableDeps)
+      loadAdminDashboard: () => callAdminCallable({
+        callableName: 'adminGetDashboard',
+        errorCode: 'admin-dashboard-load-failed'
+      }, deps),
+      loadAdminOperationalAudit: () => callAdminCallable({
+        callableName: 'adminGetOperationalAudit',
+        errorCode: 'admin-audit-load-failed'
+      }, deps),
+      loadAdminQuizQualityAudit: () => callAdminCallable({
+        callableName: 'adminGetQuizQualityAudit',
+        errorCode: 'admin-quiz-quality-load-failed'
+      }, deps),
+      loadAdminMembers: (payload = {}) => callAdminCallable({
+        callableName: 'adminListMembers',
+        payload,
+        errorCode: 'admin-list-failed'
+      }, deps),
+      loadAdminMemberDetail: memberUserId => callAdminCallable({
+        callableName: 'adminGetMemberDetail',
+        payload: { memberUserId },
+        errorCode: 'admin-member-detail-load-failed'
+      }, deps),
+      runAdminMemberAction: (action, memberUserId) => runAdminMemberAction(action, memberUserId, deps),
+      adjustAdminMemberWallet: (payload = {}) => callAdminCallable({
+        callableName: 'adminAdjustMemberWallet',
+        payload,
+        errorCode: 'admin-wallet-adjust-failed'
+      }, deps),
+      setClassAdminPermission: (payload = {}) => callAdminCallable({
+        callableName: 'adminSetClassAdmin',
+        payload,
+        errorCode: 'admin-permission-update-failed'
+      }, deps),
+      loadAdminNoticeBoard: () => callAdminCallable({
+        callableName: 'adminGetNoticeBoard',
+        errorCode: 'admin-notice-load-failed'
+      }, deps),
+      saveAdminNoticeBoard: (notice = {}) => callAdminCallable({
+        callableName: 'adminUpdateNoticeBoard',
+        payload: { notice },
+        errorCode: 'admin-notice-save-failed'
+      }, deps),
+      loadAdminExternalQuizzes: () => callAdminCallable({
+        callableName: 'adminGetExternalQuizzes',
+        errorCode: 'admin-external-quizzes-load-failed'
+      }, deps),
+      saveAdminExternalQuizzes: (externalQuizzes = {}) => callAdminCallable({
+        callableName: 'adminUpdateExternalQuizzes',
+        payload: { externalQuizzes },
+        errorCode: 'admin-external-quizzes-save-failed'
+      }, deps),
+      loadAdminLoginSettings: () => callAdminCallable({
+        callableName: 'adminGetPasswordSetupSettings',
+        errorCode: 'admin-login-settings-load-failed'
+      }, deps),
+      saveAdminLoginSettings: (settings = {}) => callAdminCallable({
+        callableName: 'adminUpdatePasswordSetupSettings',
+        payload: { settings },
+        errorCode: 'admin-login-settings-save-failed'
+      }, deps),
+      loadAdminFeatureFlags: () => callAdminCallable({
+        callableName: 'adminGetFeatureFlags',
+        errorCode: 'admin-feature-flags-load-failed'
+      }, deps),
+      saveAdminFeatureFlags: (flags = {}) => callAdminCallable({
+        callableName: 'adminUpdateFeatureFlags',
+        payload: { flags },
+        errorCode: 'admin-feature-flags-save-failed'
+      }, deps),
+      loadAdminRoomCatalog: () => callAdminCallable({
+        callableName: 'adminListRoomCatalog',
+        errorCode: 'admin-room-catalog-load-failed'
+      }, deps),
+      saveAdminRoomCatalogItem: (item = {}) => callAdminCallable({
+        callableName: 'adminSaveRoomCatalogItem',
+        payload: item,
+        errorCode: 'admin-room-catalog-save-failed'
+      }, deps),
+      loadAdminLogs: (payload = {}) => callAdminCallable({
+        callableName: 'adminListLogs',
+        payload,
+        errorCode: 'admin-logs-load-failed'
+      }, deps)
     };
   }
 
