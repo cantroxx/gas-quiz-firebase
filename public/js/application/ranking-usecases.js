@@ -77,11 +77,27 @@
     return records;
   }
 
+  async function renderCurrentMemberProfileRankingFlow(options = {}, deps = {}) {
+    return renderProfileRankingRecordsFlow({
+      memberUserId: deps.getCurrentMemberUserId?.() || '',
+      recordLimit: options.recordLimit,
+      bestContextLimit: options.bestContextLimit
+    }, {
+      getRankingRepository: deps.getRankingRepository,
+      isRankingRowEnabledByFlags: deps.isRankingRowEnabledByFlags,
+      getProfileBestRankingRecords: deps.getProfileBestRankingRecords,
+      compareProfileBestRankingRecords: deps.compareProfileBestRankingRecords,
+      renderProfileRankingRecords: deps.renderProfileRankingRecords,
+      setProfileRankingLoading: deps.setProfileRankingLoading
+    });
+  }
+
   const api = {
     loadRankingPlazaData,
     renderRankingView,
     loadProfileRankingRecordsData,
-    renderProfileRankingRecordsFlow
+    renderProfileRankingRecordsFlow,
+    renderCurrentMemberProfileRankingFlow
   };
 
   root.DJ48RankingUsecases = api;

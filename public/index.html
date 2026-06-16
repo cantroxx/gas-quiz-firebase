@@ -3088,11 +3088,11 @@
     }
 
     async function renderProfileRankingRecordsFromFirestore() {
-      return window.DJ48RankingUsecases.renderProfileRankingRecordsFlow({
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
+      return window.DJ48RankingUsecases.renderCurrentMemberProfileRankingFlow({
         recordLimit: PROFILE_RANKING_RECORD_LIMIT,
         bestContextLimit: 5
       }, {
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         getRankingRepository: createRankingRepository,
         isRankingRowEnabledByFlags,
         getProfileBestRankingRecords,

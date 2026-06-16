@@ -104,11 +104,37 @@ async function testRenderProfileRankingRecordsFlow() {
   assert.equal(rendered.rankContext.bestCount, 1);
 }
 
+async function testRenderCurrentMemberProfileRankingFlow() {
+  let rendered = null;
+  const records = await rankingUsecases.renderCurrentMemberProfileRankingFlow({
+    recordLimit: 10,
+    bestContextLimit: 2
+  }, {
+    getCurrentMemberUserId: () => 'member-a',
+    getRankingRepository: () => ({
+      loadMemberRankingRecords: async (memberUserId, limit) => [
+        { recordId: 'r1', memberUserId, categoryKey: 'korean', score: limit },
+        { recordId: 'r2', memberUserId, categoryKey: 'math', score: 0 }
+      ],
+      loadProfileRankingRankContext: async bestRows => ({ bestIds: bestRows.map(row => row.recordId) })
+    }),
+    isRankingRowEnabledByFlags: () => true,
+    getProfileBestRankingRecords: rows => rows,
+    compareProfileBestRankingRecords: (a, b) => b.score - a.score,
+    renderProfileRankingRecords: (rows, rankContext) => { rendered = { rows, rankContext }; }
+  });
+
+  assert.equal(records.length, 2);
+  assert.equal(rendered.rows[0].memberUserId, 'member-a');
+  assert.deepEqual(rendered.rankContext.bestIds, ['r1']);
+}
+
 async function run() {
   await testLoadRankingPlazaData();
   await testRenderRankingViewSuccess();
   await testRenderRankingViewFallback();
   await testRenderProfileRankingRecordsFlow();
+  await testRenderCurrentMemberProfileRankingFlow();
   console.log('Application tests passed: ranking-usecases');
 }
 
