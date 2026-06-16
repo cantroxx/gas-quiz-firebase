@@ -3507,62 +3507,31 @@
     }
 
     function getPopularOverallRows(records, keys) {
-      const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
-      const bestByUserAndBucket = new Map();
-      records
-        .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
-        .forEach(record => {
-          const userKey = getRankingRecordUserKey(record);
-          if(!userKey) return;
-          const area = getPopularAreaForRecord(record);
-          const bucket = area.id === 'pokemon' || area.id === 'tiniping'
-            ? area.id
-            : `${getRankingCategoryKey(record)}::${getRankingRecordMode(record)}`;
-          const key = `${bucket}::${userKey}`;
-          const current = bestByUserAndBucket.get(key);
-          if(isBetterCategoryRankingRecord(record, current)) bestByUserAndBucket.set(key, record);
-        });
-      return Array.from(bestByUserAndBucket.values())
-        .sort((a, b) => {
-          const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
-          if(scoreDiff) return scoreDiff;
-          return (Number(a.elapsedSeconds) || 999999999) - (Number(b.elapsedSeconds) || 999999999);
-        })
-        .slice(0, RANKING_PLAZA_ROW_LIMIT);
-    }
-
-    function getPopularPokemonRows(records, keys, modeValues) {
-      const allowedModes = Array.isArray(modeValues) && modeValues.length ? new Set(modeValues) : null;
-      const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
-      const filtered = records
-        .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
-        .filter(record => isRankingModeAllowed(record, allowedModes));
-      return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, RANKING_PLAZA_ROW_LIMIT);
+      return window.DJ48RankingDomain.getPopularOverallRows(records, keys, {
+        rowLimit: RANKING_PLAZA_ROW_LIMIT,
+        getPopularAreaForRecord
+      });
     }
 
     function getPopularUniqueUserRows(records, keys, modeValues) {
-      const allowedModes = Array.isArray(modeValues) && modeValues.length ? new Set(modeValues) : null;
-      const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
-      const filtered = records
-        .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
-        .filter(record => isRankingModeAllowed(record, allowedModes));
-      return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, RANKING_PLAZA_ROW_LIMIT);
+      return window.DJ48RankingDomain.getPopularUniqueUserRows(records, keys, modeValues, {
+        rowLimit: RANKING_PLAZA_ROW_LIMIT
+      });
     }
 
     function getPopularFilteredRows(records) {
       const areaId = getActivePopularArea();
-      const area = getPopularRankingAreas().find(item => item.id === areaId) || getPopularRankingAreas()[0];
-      let keys = area.keys;
-      if(areaId === 'all') return getPopularOverallRows(records, keys);
-      if(areaId === 'pokemon') {
-        const difficulty = getPopularPokemonDifficulties().find(item => item.id === getActivePopularDifficulty());
-        keys = difficulty ? difficulty.keys : POKEMON_RANKING_CATEGORY_KEYS;
-      }
-      const activeMode = getActivePopularMode(records, areaId);
-      const modeValues = getRankingModeFilterValues(activeMode);
-      if(areaId === 'pokemon') return getPopularPokemonRows(records, keys, modeValues);
-      if(areaId === 'tiniping') return getPopularUniqueUserRows(records, keys, modeValues);
-      return getTopRankingRecordsByCategoryKeys(records, keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
+      return window.DJ48RankingDomain.getPopularFilteredRows(records, {
+        areaId,
+        areas: getPopularRankingAreas(),
+        difficultyId: getActivePopularDifficulty(),
+        difficulties: getPopularPokemonDifficulties(),
+        modeId: getActivePopularMode(records, areaId),
+        pokemonRankingCategoryKeys: POKEMON_RANKING_CATEGORY_KEYS
+      }, {
+        rowLimit: RANKING_PLAZA_ROW_LIMIT,
+        getPopularAreaForRecord
+      });
     }
 
     function handleRankingBoardRootClick(event) {

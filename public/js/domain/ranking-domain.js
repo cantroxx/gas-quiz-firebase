@@ -160,6 +160,49 @@
     });
   }
 
+  function getPopularOverallRows(records, keys, deps = {}) {
+    const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
+    const bestByUserAndBucket = new Map();
+    records
+      .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
+      .forEach(record => {
+        const userKey = getRankingRecordUserKey(record);
+        if(!userKey) return;
+        const area = deps.getPopularAreaForRecord?.(record) || {};
+        const bucket = area.id === 'pokemon' || area.id === 'tiniping'
+          ? area.id
+          : `${getRankingCategoryKey(record)}::${getRankingRecordMode(record)}`;
+        const key = `${bucket}::${userKey}`;
+        const current = bestByUserAndBucket.get(key);
+        if(isBetterCategoryRankingRecord(record, current)) bestByUserAndBucket.set(key, record);
+      });
+    return sortRankingRows(Array.from(bestByUserAndBucket.values())).slice(0, Number(deps.rowLimit) || 10);
+  }
+
+  function getPopularUniqueUserRows(records, keys, modeValues, deps = {}) {
+    const allowedModes = Array.isArray(modeValues) && modeValues.length ? new Set(modeValues) : null;
+    const allowedKeys = new Set((keys || []).map(normalizeRankingCategoryKey).filter(Boolean));
+    const filtered = records
+      .filter(record => allowedKeys.has(getRankingCategoryKey(record)))
+      .filter(record => isRankingModeAllowed(record, allowedModes));
+    return sortRankingRows(getBestRankingRecordsByUser(filtered)).slice(0, Number(deps.rowLimit) || 10);
+  }
+
+  function getPopularFilteredRows(records, options = {}, deps = {}) {
+    const areaId = options.areaId || 'all';
+    const areas = options.areas || [];
+    const area = areas.find(item => item.id === areaId) || areas[0] || { keys: [] };
+    let keys = area.keys || [];
+    if(areaId === 'all') return getPopularOverallRows(records, keys, deps);
+    if(areaId === 'pokemon') {
+      const difficulty = (options.difficulties || []).find(item => item.id === options.difficultyId);
+      keys = difficulty ? difficulty.keys : (options.pokemonRankingCategoryKeys || []);
+    }
+    const modeValues = getRankingModeFilterValues(options.modeId || 'all');
+    if(areaId === 'pokemon' || areaId === 'tiniping') return getPopularUniqueUserRows(records, keys, modeValues, deps);
+    return getTopRankingRecordsByCategoryKeys(records, keys, Number(deps.rowLimit) || 10, modeValues);
+  }
+
   return {
     getRankingRecordTimeValue,
     getRankingRecordUserKey,
@@ -177,6 +220,9 @@
     getTopRankingRecordsByCategoryKeys,
     getLatestRankingRecords,
     getTopQuizKingSummaries,
-    buildQuizKingSummariesFromRankingRecords
+    buildQuizKingSummariesFromRankingRecords,
+    getPopularOverallRows,
+    getPopularUniqueUserRows,
+    getPopularFilteredRows
   };
 });
