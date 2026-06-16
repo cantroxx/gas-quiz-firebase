@@ -47,6 +47,41 @@ function testBindAppControllers() {
   assert.equal(calls.at(-1)[1].id, 'account');
 }
 
+function testBindControllerSections() {
+  const calls = [];
+  bootstrap.bindControllerSections([
+    {
+      controller: makeController('bindProfileHomeEvents', calls, 'home'),
+      bind: 'bindProfileHomeEvents',
+      events: { id: 'home' }
+    },
+    {
+      controller: makeController('bindQuizPlayEvents', calls, 'quiz'),
+      bind: 'bindQuizPlayEvents',
+      events: { id: 'quiz' }
+    }
+  ]);
+
+  assert.deepEqual(calls.map(call => call[0]), ['home', 'quiz']);
+  assert.equal(calls[0][1].id, 'home');
+  assert.equal(calls[1][1].id, 'quiz');
+}
+
+function testDefaultControllerSections() {
+  const sections = bootstrap.getDefaultControllerSections({
+    homeController: {},
+    homeEvents: { id: 'home' },
+    accountController: {},
+    accountEvents: { id: 'account' }
+  });
+
+  assert.equal(sections.length, 9);
+  assert.equal(sections[6].bind, 'bindProfileHomeEvents');
+  assert.equal(sections[6].events.id, 'home');
+  assert.equal(sections[8].bind, 'bindAccountEvents');
+  assert.equal(sections[8].events.id, 'account');
+}
+
 function testCreateRoomDecorInitializerOnlyRunsOnce() {
   let initCount = 0;
   const initialize = bootstrap.createRoomDecorInitializer({
@@ -95,6 +130,8 @@ async function testStartApp() {
 
 async function run() {
   testBindAppControllers();
+  testBindControllerSections();
+  testDefaultControllerSections();
   testCreateRoomDecorInitializerOnlyRunsOnce();
   await testStartApp();
   console.log('Application tests passed: app-bootstrap');

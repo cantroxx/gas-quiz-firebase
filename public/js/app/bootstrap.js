@@ -1,14 +1,28 @@
 (function (root) {
+  function getDefaultControllerSections(deps = {}) {
+    return [
+      { controller: deps.appEventsController, bind: 'bindCommonAppEvents', events: deps.commonAppEvents },
+      { controller: deps.eventController, bind: 'bindEventPlazaEvents', events: deps.eventEvents },
+      { controller: deps.classroomController, bind: 'bindClassroomEvents', events: deps.classroomEvents },
+      { controller: deps.schoolController, bind: 'bindSchoolQuizSelectEvents', events: deps.schoolEvents },
+      { controller: deps.quizController, bind: 'bindQuizPlayEvents', events: deps.quizEvents },
+      { controller: deps.shopController, bind: 'bindShopRoomEvents', events: deps.shopEvents },
+      { controller: deps.homeController, bind: 'bindProfileHomeEvents', events: deps.homeEvents },
+      { controller: deps.adminController, bind: 'bindAdminEvents', events: deps.adminEvents },
+      { controller: deps.accountController, bind: 'bindAccountEvents', events: deps.accountEvents }
+    ];
+  }
+
+  function bindControllerSections(sections = []) {
+    sections.forEach(section => {
+      const bind = section?.bind;
+      if(!bind || typeof section?.controller?.[bind] !== 'function') return;
+      section.controller[bind](section.events);
+    });
+  }
+
   function bindAppControllers(deps = {}) {
-    deps.appEventsController?.bindCommonAppEvents(deps.commonAppEvents);
-    deps.eventController?.bindEventPlazaEvents(deps.eventEvents);
-    deps.classroomController?.bindClassroomEvents(deps.classroomEvents);
-    deps.schoolController?.bindSchoolQuizSelectEvents(deps.schoolEvents);
-    deps.quizController?.bindQuizPlayEvents(deps.quizEvents);
-    deps.shopController?.bindShopRoomEvents(deps.shopEvents);
-    deps.homeController?.bindProfileHomeEvents(deps.homeEvents);
-    deps.adminController?.bindAdminEvents(deps.adminEvents);
-    deps.accountController?.bindAccountEvents(deps.accountEvents);
+    bindControllerSections(deps.controllerSections || getDefaultControllerSections(deps));
   }
 
   function createRoomDecorInitializer(options = {}, deps = {}) {
@@ -50,6 +64,8 @@
   }
 
   const api = {
+    getDefaultControllerSections,
+    bindControllerSections,
     bindAppControllers,
     createRoomDecorInitializer,
     startApp
