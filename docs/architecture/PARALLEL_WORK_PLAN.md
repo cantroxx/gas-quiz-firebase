@@ -67,6 +67,18 @@ When using multiple terminals, keep each terminal inside one ownership area unle
 - `public/index.html` remains the temporary integration shell that reads these module APIs. New feature work should reduce direct `window.DJ48...` calls in `index.html` by grouping deps or moving orchestration into application/controller modules.
 - Script order changes are app-shell work and require the integration owner plus `npm run check:static` at minimum.
 
+## Script Load Order Rules
+
+`public/index.html` still loads browser modules with ordered `<script>` tags, so load order is part of the app-shell contract.
+
+- Firebase compat SDK and `/__/firebase/init.js` must load before `public/js/core/firebase.js` and before any runtime code that asks for Firebase services.
+- Static data and core helpers should load before feature modules that read them.
+- Domain modules should load before feature/application modules that delegate pure rules to the domain.
+- State, data, repository, render, controller, and usecase files may be ordered by feature, but a file must appear before any later file or inline wrapper that reads its `window.DJ48...` API.
+- Repositories should load before the inline `public/index.html` app shell creates repository adapters.
+- `public/js/app/bootstrap.js` should load before the inline app shell calls `window.DJ48AppBootstrap.startApp`.
+- When adding a new module, add the `<script>` tag next to the owning feature group rather than at the end of the list, and run `npm run check:static`.
+
 ## Required Checks
 
 Before committing code movement:
@@ -191,6 +203,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 25. Moved event and admin callable implementations into their repository adapters.
 26. Split event bootstrap event-object assembly and centralized app view entry dependencies in `public/index.html`.
 27. Documented current `window.DJ48...` exposure rules for parallel work.
+28. Documented current ordered `<script>` loading rules for app-shell work.
 
 ## Recommended Next Goals
 
