@@ -6825,6 +6825,13 @@
       };
     }
 
+    function getShopControllerEvents() {
+      return {
+        purchaseShopItem,
+        saveRoomItemSelection
+      };
+    }
+
     function getAppBootstrapControllerSections() {
       return window.DJ48AppBootstrap.getDefaultControllerSections({
         appEventsController: window.DJ48AppEvents,
@@ -6879,10 +6886,7 @@
         quizController: window.DJ48QuizController,
         quizEvents: getQuizPlayEventDeps(),
         shopController: window.DJ48ShopController,
-        shopEvents: {
-          purchaseShopItem,
-          saveRoomItemSelection
-        },
+        shopEvents: getShopControllerEvents(),
         homeController: window.DJ48HomeController,
         homeEvents: {
           showRoomView,
