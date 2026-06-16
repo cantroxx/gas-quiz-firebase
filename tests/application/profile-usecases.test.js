@@ -84,6 +84,69 @@ async function testSearchProfileImageCandidatesFlowShortQuery() {
   assert.equal(status.textContent, '검색어를 2글자 이상 입력해 주세요.');
 }
 
+async function testSelectProfileImageCandidateFlow() {
+  const status = createStatus();
+  const calls = [];
+  const result = await usecases.selectProfileImageCandidateFlow({ index: 2 }, {
+    getCurrentMemberUserId: () => 'member-a',
+    getStatus: () => status,
+    getProfileImageOption: index => ({ index, imageUrl: 'url' }),
+    buildCandidateProfileImageEditorOptions: option => ({ source: 'candidate', imageUrl: option.imageUrl }),
+    openProfileImageEditor: options => calls.push(['open', options])
+  });
+
+  assert.deepEqual(result, { source: 'candidate', imageUrl: 'url' });
+  assert.deepEqual(calls, [['open', { source: 'candidate', imageUrl: 'url' }]]);
+}
+
+async function testSelectProfileImageCandidateFlowMissingOption() {
+  const status = createStatus();
+  const result = await usecases.selectProfileImageCandidateFlow({ index: 2 }, {
+    getCurrentMemberUserId: () => 'member-a',
+    getStatus: () => status,
+    getProfileImageOption: () => null
+  });
+
+  assert.equal(result, null);
+  assert.equal(status.textContent, '저장할 이미지를 다시 선택해 주세요.');
+}
+
+async function testPreviewProfileImageUploadFlow() {
+  const status = createStatus();
+  const file = { name: 'avatar.png' };
+  const calls = [];
+  const result = await usecases.previewProfileImageUploadFlow({ file }, {
+    getCurrentMemberUserId: () => 'member-a',
+    getStatus: () => status,
+    validateProfileImageUploadFile: nextFile => ({ ok: nextFile === file }),
+    readProfileImageFilePreview: async nextFile => {
+      calls.push(['read', nextFile.name]);
+      return 'data-url';
+    },
+    buildUploadProfileImageEditorOptions: (nextFile, previewUrl) => ({ source: 'upload', fileName: nextFile.name, previewUrl }),
+    openProfileImageEditor: options => calls.push(['open', options])
+  });
+
+  assert.deepEqual(result, { source: 'upload', fileName: 'avatar.png', previewUrl: 'data-url' });
+  assert.equal(status.textContent, '이미지 미리보기를 준비하고 있습니다...');
+  assert.deepEqual(calls, [
+    ['read', 'avatar.png'],
+    ['open', { source: 'upload', fileName: 'avatar.png', previewUrl: 'data-url' }]
+  ]);
+}
+
+async function testPreviewProfileImageUploadFlowInvalidFile() {
+  const status = createStatus();
+  const result = await usecases.previewProfileImageUploadFlow({ file: null }, {
+    getCurrentMemberUserId: () => 'member-a',
+    getStatus: () => status,
+    validateProfileImageUploadFile: () => ({ ok: false, message: '이미지 파일을 선택해 주세요.' })
+  });
+
+  assert.equal(result, null);
+  assert.equal(status.textContent, '이미지 파일을 선택해 주세요.');
+}
+
 async function testSaveProfileNicknameFlowError() {
   const status = createStatus();
   const button = createButton();
@@ -176,6 +239,10 @@ async function testSaveProfileImageEditorSelectionFlowUploadErrorMessage() {
 async function run() {
   await testSearchProfileImageCandidatesFlow();
   await testSearchProfileImageCandidatesFlowShortQuery();
+  await testSelectProfileImageCandidateFlow();
+  await testSelectProfileImageCandidateFlowMissingOption();
+  await testPreviewProfileImageUploadFlow();
+  await testPreviewProfileImageUploadFlowInvalidFile();
   await testSaveProfileRankingMessageFlow();
   await testSaveProfileNicknameFlowError();
   await testSaveProfilePasswordFlowClearsInputs();

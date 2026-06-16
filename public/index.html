@@ -2717,23 +2717,15 @@
     }
 
     async function saveSelectedProfileImageFromHome(index) {
-      if(!window.DJ48AccountState.getCurrentMemberUserId()) throw new Error('member-required');
-      const status = document.getElementById('profile-image-search-status');
-      const option = window.DJ48HomeState.getProfileImageOption(index);
-      if(!option) {
-        if(status) status.textContent = '저장할 이미지를 다시 선택해 주세요.';
-        return;
-      }
-      let editorOptions = null;
-      try {
-        editorOptions = window.DJ48AccountData.buildCandidateProfileImageEditorOptions(option, {
+      return window.DJ48ProfileUsecases.selectProfileImageCandidateFlow({ index }, {
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getStatus: () => document.getElementById('profile-image-search-status'),
+        getProfileImageOption: window.DJ48HomeState.getProfileImageOption,
+        buildCandidateProfileImageEditorOptions: option => window.DJ48AccountData.buildCandidateProfileImageEditorOptions(option, {
           normalizeDisplayImageUrl
-        });
-      } catch(error) {
-        if(status) status.textContent = '선택한 이미지 주소를 확인하지 못했습니다.';
-        return;
-      }
-      openProfileImageEditor(editorOptions);
+        }),
+        openProfileImageEditor
+      });
     }
 
     function readProfileImageFilePreview(file) {
@@ -2746,16 +2738,14 @@
     }
 
     async function handleProfileImageUploadFile(file) {
-      if(!window.DJ48AccountState.getCurrentMemberUserId()) throw new Error('member-required');
-      const status = document.getElementById('profile-image-search-status');
-      const validation = window.DJ48AccountData.validateProfileImageUploadFile(file);
-      if(!validation.ok) {
-        if(status && validation.message) status.textContent = validation.message;
-        return;
-      }
-      if(status) status.textContent = '이미지 미리보기를 준비하고 있습니다...';
-      const previewUrl = await readProfileImageFilePreview(file);
-      openProfileImageEditor(window.DJ48AccountData.buildUploadProfileImageEditorOptions(file, previewUrl));
+      return window.DJ48ProfileUsecases.previewProfileImageUploadFlow({ file }, {
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getStatus: () => document.getElementById('profile-image-search-status'),
+        validateProfileImageUploadFile: window.DJ48AccountData.validateProfileImageUploadFile,
+        readProfileImageFilePreview,
+        buildUploadProfileImageEditorOptions: window.DJ48AccountData.buildUploadProfileImageEditorOptions,
+        openProfileImageEditor
+      });
     }
 
     function setProfileImageEditorStatus(message, isError = false) {

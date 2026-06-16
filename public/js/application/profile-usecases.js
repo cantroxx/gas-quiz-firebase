@@ -38,6 +38,40 @@
     return renderOptions;
   }
 
+  async function selectProfileImageCandidateFlow(options = {}, deps = {}) {
+    if(!deps.getCurrentMemberUserId?.()) throw new Error('member-required');
+    const status = deps.getStatus?.();
+    const imageOption = deps.getProfileImageOption?.(options.index);
+    if(!imageOption) {
+      setText(status, options.missingMessage || '저장할 이미지를 다시 선택해 주세요.');
+      return null;
+    }
+    let editorOptions = null;
+    try {
+      editorOptions = deps.buildCandidateProfileImageEditorOptions?.(imageOption) || null;
+    } catch(error) {
+      setText(status, options.invalidMessage || '선택한 이미지 주소를 확인하지 못했습니다.');
+      return null;
+    }
+    deps.openProfileImageEditor?.(editorOptions);
+    return editorOptions;
+  }
+
+  async function previewProfileImageUploadFlow(options = {}, deps = {}) {
+    if(!deps.getCurrentMemberUserId?.()) throw new Error('member-required');
+    const status = deps.getStatus?.();
+    const validation = deps.validateProfileImageUploadFile?.(options.file);
+    if(!validation?.ok) {
+      if(validation?.message) setText(status, validation.message);
+      return null;
+    }
+    setText(status, options.loadingMessage || '이미지 미리보기를 준비하고 있습니다...');
+    const previewUrl = await deps.readProfileImageFilePreview?.(options.file);
+    const editorOptions = deps.buildUploadProfileImageEditorOptions?.(options.file, previewUrl);
+    deps.openProfileImageEditor?.(editorOptions);
+    return editorOptions;
+  }
+
   async function saveProfileImageEditorSelectionFlow(options = {}, deps = {}) {
     const { memberUserId, db } = await requireProfileWriteContext(deps);
     const editorState = deps.getProfileImageEditorState?.();
@@ -177,6 +211,8 @@
 
   const api = {
     searchProfileImageCandidatesFlow,
+    selectProfileImageCandidateFlow,
+    previewProfileImageUploadFlow,
     saveProfileImageEditorSelectionFlow,
     saveProfileRankingMessageFlow,
     saveProfileNicknameFlow,
