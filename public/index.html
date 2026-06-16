@@ -6620,25 +6620,29 @@
     }
 
     function getAppBootstrapControllerSections() {
-      return window.DJ48AppBootstrap.getDefaultControllerSections({
-        appEventsController: window.DJ48AppEvents,
-        commonAppEvents: getCommonAppEvents(),
-        eventController: window.DJ48EventController,
-        eventEvents: getEventControllerEvents(),
-        classroomController: window.DJ48ClassroomController,
-        classroomEvents: getClassroomControllerEvents(),
-        schoolController: window.DJ48SchoolController,
-        schoolEvents: getSchoolControllerEvents(),
-        quizController: window.DJ48QuizController,
-        quizEvents: getQuizPlayEventDeps(),
-        shopController: window.DJ48ShopController,
-        shopEvents: getShopControllerEvents(),
-        homeController: window.DJ48HomeController,
-        homeEvents: getHomeControllerEvents(),
-        adminController: window.DJ48AdminController,
-        adminEvents: getAdminControllerEvents(),
-        accountController: window.DJ48AccountController,
-        accountEvents: getAccountControllerEvents()
+      return window.DJ48AppBootstrap.getControllerSectionsFromRegistry({
+        controllers: {
+          appEvents: window.DJ48AppEvents,
+          event: window.DJ48EventController,
+          classroom: window.DJ48ClassroomController,
+          school: window.DJ48SchoolController,
+          quiz: window.DJ48QuizController,
+          shop: window.DJ48ShopController,
+          home: window.DJ48HomeController,
+          admin: window.DJ48AdminController,
+          account: window.DJ48AccountController
+        },
+        events: {
+          appEvents: getCommonAppEvents(),
+          event: getEventControllerEvents(),
+          classroom: getClassroomControllerEvents(),
+          school: getSchoolControllerEvents(),
+          quiz: getQuizPlayEventDeps(),
+          shop: getShopControllerEvents(),
+          home: getHomeControllerEvents(),
+          admin: getAdminControllerEvents(),
+          account: getAccountControllerEvents()
+        }
       });
     }
 

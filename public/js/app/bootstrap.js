@@ -13,6 +13,25 @@
     ];
   }
 
+  function getControllerSectionsFromRegistry(registry = {}) {
+    const order = [
+      ['appEvents', 'bindCommonAppEvents'],
+      ['event', 'bindEventPlazaEvents'],
+      ['classroom', 'bindClassroomEvents'],
+      ['school', 'bindSchoolQuizSelectEvents'],
+      ['quiz', 'bindQuizPlayEvents'],
+      ['shop', 'bindShopRoomEvents'],
+      ['home', 'bindProfileHomeEvents'],
+      ['admin', 'bindAdminEvents'],
+      ['account', 'bindAccountEvents']
+    ];
+    return order.map(([key, bind]) => ({
+      controller: registry.controllers?.[key],
+      bind,
+      events: registry.events?.[key]
+    }));
+  }
+
   function bindControllerSections(sections = []) {
     sections.forEach(section => {
       const bind = section?.bind;
@@ -65,6 +84,7 @@
 
   const api = {
     getDefaultControllerSections,
+    getControllerSectionsFromRegistry,
     bindControllerSections,
     bindAppControllers,
     createRoomDecorInitializer,

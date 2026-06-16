@@ -82,6 +82,29 @@ function testDefaultControllerSections() {
   assert.equal(sections[8].events.id, 'account');
 }
 
+function testControllerSectionsFromRegistry() {
+  const sections = bootstrap.getControllerSectionsFromRegistry({
+    controllers: {
+      appEvents: { id: 'app-controller' },
+      quiz: { id: 'quiz-controller' },
+      account: { id: 'account-controller' }
+    },
+    events: {
+      appEvents: { id: 'common-events' },
+      quiz: { id: 'quiz-events' },
+      account: { id: 'account-events' }
+    }
+  });
+
+  assert.equal(sections.length, 9);
+  assert.equal(sections[0].bind, 'bindCommonAppEvents');
+  assert.equal(sections[0].controller.id, 'app-controller');
+  assert.equal(sections[0].events.id, 'common-events');
+  assert.equal(sections[4].bind, 'bindQuizPlayEvents');
+  assert.equal(sections[4].controller.id, 'quiz-controller');
+  assert.equal(sections[8].events.id, 'account-events');
+}
+
 function testCreateRoomDecorInitializerOnlyRunsOnce() {
   let initCount = 0;
   const initialize = bootstrap.createRoomDecorInitializer({
@@ -132,6 +155,7 @@ async function run() {
   testBindAppControllers();
   testBindControllerSections();
   testDefaultControllerSections();
+  testControllerSectionsFromRegistry();
   testCreateRoomDecorInitializerOnlyRunsOnce();
   await testStartApp();
   console.log('Application tests passed: app-bootstrap');
