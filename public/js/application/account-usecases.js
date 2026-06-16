@@ -98,11 +98,51 @@
     }
   }
 
+  function initializeAuthUserLifecycle(options = {}, deps = {}) {
+    const activeInitPromise = deps.getFirebaseAuthInitPromise?.();
+    if(activeInitPromise) return activeInitPromise;
+
+    const auth = deps.getFirebaseAuth?.();
+    if(!auth) {
+      deps.handleResolvedUserChange?.(options.testShopUserId);
+      const initPromise = Promise.resolve(null);
+      deps.setFirebaseAuthInitPromise?.(initPromise);
+      return initPromise;
+    }
+
+    if(!deps.isAuthStateListenerAttached?.()) {
+      auth.onAuthStateChanged(user => {
+        deps.handleAuthStateUser(user, {
+          testShopUserId: options.testShopUserId,
+          setFirebaseAuthUser: deps.setFirebaseAuthUser,
+          handleResolvedUserChange: deps.handleResolvedUserChange,
+          restoreLinkedMemberFromAuthUid: deps.restoreLinkedMemberFromAuthUid,
+          renderMemberLinkPanel: deps.renderMemberLinkPanel,
+          openRestoredMemberDestination: deps.openRestoredMemberDestination
+        }).catch(error => deps.warn?.('Linked member restore after auth state change failed.', error));
+      });
+      deps.setAuthStateListenerAttached?.(true);
+    }
+
+    const initPromise = deps.initializeAuthUserFlow(auth, {
+      testShopUserId: options.testShopUserId,
+      setFirebaseAuthUser: deps.setFirebaseAuthUser,
+      handleResolvedUserChange: deps.handleResolvedUserChange,
+      restoreLinkedMemberFromAuthUid: deps.restoreLinkedMemberFromAuthUid,
+      renderMemberLinkPanel: deps.renderMemberLinkPanel,
+      openRestoredMemberDestination: deps.openRestoredMemberDestination,
+      warn: deps.warn
+    });
+    deps.setFirebaseAuthInitPromise?.(initPromise);
+    return initPromise;
+  }
+
   const api = {
     submitMemberLinkFlow,
     resetMemberPasswordFlow,
     changePendingMemberPasswordFlow,
-    unlinkCurrentMemberFlow
+    unlinkCurrentMemberFlow,
+    initializeAuthUserLifecycle
   };
 
   root.DJ48AccountUsecases = api;

@@ -4328,33 +4328,16 @@
     }
 
     function initializeAuthUser() {
-      const activeInitPromise = window.DJ48AccountState.getFirebaseAuthInitPromise();
-      if(activeInitPromise) return activeInitPromise;
-
-      const auth = getFirebaseAuth();
-      if(!auth) {
-        handleResolvedUserChange(TEST_SHOP_USER_ID);
-        const initPromise = Promise.resolve(null);
-        window.DJ48AccountState.setFirebaseAuthInitPromise(initPromise);
-        return initPromise;
-      }
-
-      if(!window.DJ48AccountState.isAuthStateListenerAttached()) {
-        auth.onAuthStateChanged(user => {
-          window.DJ48AccountData.handleAuthStateUser(user, {
-            testShopUserId: TEST_SHOP_USER_ID,
-            setFirebaseAuthUser: window.DJ48AccountState.setFirebaseAuthUser,
-            handleResolvedUserChange,
-            restoreLinkedMemberFromAuthUid,
-            renderMemberLinkPanel,
-            openRestoredMemberDestination
-          }).catch(error => console.warn('Linked member restore after auth state change failed.', error));
-        });
-        window.DJ48AccountState.setAuthStateListenerAttached(true);
-      }
-
-      const initPromise = window.DJ48AccountData.initializeAuthUserFlow(auth, {
-        testShopUserId: TEST_SHOP_USER_ID,
+      return window.DJ48AccountUsecases.initializeAuthUserLifecycle({
+        testShopUserId: TEST_SHOP_USER_ID
+      }, {
+        getFirebaseAuth,
+        getFirebaseAuthInitPromise: window.DJ48AccountState.getFirebaseAuthInitPromise,
+        setFirebaseAuthInitPromise: window.DJ48AccountState.setFirebaseAuthInitPromise,
+        isAuthStateListenerAttached: window.DJ48AccountState.isAuthStateListenerAttached,
+        setAuthStateListenerAttached: window.DJ48AccountState.setAuthStateListenerAttached,
+        handleAuthStateUser: window.DJ48AccountData.handleAuthStateUser,
+        initializeAuthUserFlow: window.DJ48AccountData.initializeAuthUserFlow,
         setFirebaseAuthUser: window.DJ48AccountState.setFirebaseAuthUser,
         handleResolvedUserChange,
         restoreLinkedMemberFromAuthUid,
@@ -4362,9 +4345,6 @@
         openRestoredMemberDestination,
         warn: console.warn
       });
-
-      window.DJ48AccountState.setFirebaseAuthInitPromise(initPromise);
-      return initPromise;
     }
 
     function getAccountRepository() {

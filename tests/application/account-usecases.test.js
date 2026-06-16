@@ -107,12 +107,70 @@ async function testUnlinkCurrentMemberFlow() {
   assert.deepEqual(calls.map(call => call[0]), ['status', 'renderLoggedOut', 'status', 'login']);
 }
 
+async function testInitializeAuthUserLifecycleWithoutAuthUsesFallback() {
+  const calls = [];
+  const promise = accountUsecases.initializeAuthUserLifecycle({
+    testShopUserId: 'test-user'
+  }, {
+    getFirebaseAuthInitPromise: () => null,
+    getFirebaseAuth: () => null,
+    handleResolvedUserChange: userId => calls.push(['resolved', userId]),
+    setFirebaseAuthInitPromise: value => calls.push(['promise', !!value])
+  });
+
+  assert.equal(await promise, null);
+  assert.deepEqual(calls, [
+    ['resolved', 'test-user'],
+    ['promise', true]
+  ]);
+}
+
+async function testInitializeAuthUserLifecycleAttachesListenerAndStoresPromise() {
+  const calls = [];
+  const auth = {
+    onAuthStateChanged(callback) {
+      calls.push(['listener']);
+      callback({ uid: 'u1' });
+    }
+  };
+  const promise = accountUsecases.initializeAuthUserLifecycle({
+    testShopUserId: 'test-user'
+  }, {
+    getFirebaseAuthInitPromise: () => null,
+    getFirebaseAuth: () => auth,
+    isAuthStateListenerAttached: () => false,
+    setAuthStateListenerAttached: value => calls.push(['listener-attached', value]),
+    handleAuthStateUser: async user => calls.push(['auth-user', user.uid]),
+    initializeAuthUserFlow: async () => {
+      calls.push(['init-flow']);
+      return { uid: 'u1' };
+    },
+    setFirebaseAuthUser: () => {},
+    handleResolvedUserChange: () => {},
+    restoreLinkedMemberFromAuthUid: () => {},
+    renderMemberLinkPanel: () => {},
+    openRestoredMemberDestination: () => {},
+    setFirebaseAuthInitPromise: value => calls.push(['promise', !!value])
+  });
+
+  assert.deepEqual(await promise, { uid: 'u1' });
+  assert.deepEqual(calls.map(call => call[0]), [
+    'listener',
+    'auth-user',
+    'listener-attached',
+    'init-flow',
+    'promise'
+  ]);
+}
+
 async function run() {
   await testSubmitMemberLinkFlowSuccess();
   await testSubmitMemberLinkFlowWaitsForPasswordChange();
   await testResetMemberPasswordFlow();
   await testChangePendingMemberPasswordFlow();
   await testUnlinkCurrentMemberFlow();
+  await testInitializeAuthUserLifecycleWithoutAuthUsesFallback();
+  await testInitializeAuthUserLifecycleAttachesListenerAndStoresPromise();
   console.log('Application tests passed: account-usecases');
 }
 
