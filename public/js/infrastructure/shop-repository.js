@@ -13,6 +13,73 @@
     return callShopCallable('purchaseShopItem', payload, deps, 'purchase-function-failed');
   }
 
+  function requireFirestoreDb(db) {
+    if(!db) throw new Error('firestore-unavailable');
+    return db;
+  }
+
+  function getDocs(snapshot) {
+    return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+  }
+
+  async function loadShopItemsFromDb(db, deps = {}) {
+    const snapshot = await requireFirestoreDb(db).collection('shopItems').get();
+    return getDocs(snapshot)
+      .map(doc => deps.normalizeShopItemFromFirestore(doc))
+      .filter(item => item.enabled && !deps.isRoomFurnitureShopItem(item))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  async function loadAssetCatalogFromDb(db, deps = {}) {
+    const snapshot = await requireFirestoreDb(db).collection('assetCatalog').get();
+    return getDocs(snapshot).reduce((map, doc) => {
+      const asset = deps.normalizeAssetCatalogFromFirestore(doc);
+      map[asset.assetId] = asset;
+      return map;
+    }, {});
+  }
+
+  async function loadUserEconomyFromDb(options = {}, deps = {}) {
+    const { db, userId } = options;
+    const snapshot = await requireFirestoreDb(db).collection('userEconomy').doc(userId).get();
+    return deps.normalizeUserEconomyFromFirestore(snapshot, {
+      fallbackCoin: deps.fallbackCoin
+    });
+  }
+
+  async function ensureUserEconomyInitializedForDb(options = {}, deps = {}) {
+    const { db, ownerId, testShopUserId } = options;
+    if(!ownerId || ownerId === testShopUserId) return null;
+    const snapshot = await requireFirestoreDb(db).collection('userEconomy').doc(ownerId).get();
+    if(snapshot.exists) {
+      return deps.normalizeUserEconomyFromFirestore(snapshot, {
+        fallbackCoin: deps.fallbackCoin
+      });
+    }
+
+    const initialEconomy = deps.getInitialUserEconomy(ownerId);
+    return {
+      userId: ownerId,
+      djCoin: initialEconomy.djCoin,
+      totalEarned: initialEconomy.totalEarned,
+      totalSpent: initialEconomy.totalSpent
+    };
+  }
+
+  async function loadInventoryItemIdsFromDb(options = {}) {
+    const { db, userId, memberUserId, testShopUserId } = options;
+    if(!memberUserId || userId === testShopUserId) return new Set();
+    const snapshot = await requireFirestoreDb(db).collection('userInventory').doc(userId).collection('items').get();
+    return new Set(getDocs(snapshot).map(doc => doc.id));
+  }
+
+  async function loadRoomSettingsFromDb(options = {}, deps = {}) {
+    const { db, userId, memberUserId, testShopUserId } = options;
+    if(!memberUserId || userId === testShopUserId) return deps.getDefaultRoomSettings(userId || '');
+    const snapshot = await requireFirestoreDb(db).collection('userRoomSettings').doc(userId).get();
+    return deps.normalizeRoomSettingsFromFirestore(snapshot, { userId });
+  }
+
   function buildRoomItemSelectionUpdate(options = {}, deps = {}) {
     const {
       itemId,
@@ -114,34 +181,43 @@
   function createShopRepository(deps = {}) {
     return {
       loadShopItems() {
-        return root.DJ48ShopData.loadShopItemsFromFirestore(deps.getFirestoreDb?.(), {
-          shopCategoryLabels: deps.shopCategoryLabels,
-          getShopFallbackIcon: deps.getShopFallbackIcon
+        return loadShopItemsFromDb(deps.getFirestoreDb?.(), {
+          normalizeShopItemFromFirestore: doc => root.DJ48ShopData.normalizeShopItemFromFirestore(doc, {
+            shopCategoryLabels: deps.shopCategoryLabels,
+            getShopFallbackIcon: deps.getShopFallbackIcon
+          }),
+          isRoomFurnitureShopItem: root.DJ48ShopData.isRoomFurnitureShopItem
         });
       },
       loadAssetCatalog() {
-        return root.DJ48ShopData.loadAssetCatalogFromFirestore(deps.getFirestoreDb?.());
+        return loadAssetCatalogFromDb(deps.getFirestoreDb?.(), {
+          normalizeAssetCatalogFromFirestore: root.DJ48ShopData.normalizeAssetCatalogFromFirestore
+        });
       },
       loadUserEconomy(options = {}) {
-        return root.DJ48ShopData.loadUserEconomyFromFirestore({
+        return loadUserEconomyFromDb({
           db: deps.getFirestoreDb?.(),
           userId: options.userId
         }, {
+          normalizeUserEconomyFromFirestore: root.DJ48ShopData.normalizeUserEconomyFromFirestore,
           fallbackCoin: deps.fallbackCoin
         });
       },
       ensureUserEconomyInitialized(options = {}) {
-        return root.DJ48ShopData.ensureUserEconomyInitialized({
+        return ensureUserEconomyInitializedForDb({
           db: deps.getFirestoreDb?.(),
           ownerId: options.ownerId,
           testShopUserId: deps.testShopUserId
         }, {
-          getFirestoreFieldValue: deps.getFirestoreFieldValue,
+          normalizeUserEconomyFromFirestore: root.DJ48ShopData.normalizeUserEconomyFromFirestore,
+          getInitialUserEconomy: userId => root.DJ48ShopData.getInitialUserEconomy(userId, {
+            getFirestoreFieldValue: deps.getFirestoreFieldValue
+          }),
           fallbackCoin: deps.fallbackCoin
         });
       },
       loadInventoryItemIds(options = {}) {
-        return root.DJ48ShopData.loadInventoryItemIdsFromFirestore({
+        return loadInventoryItemIdsFromDb({
           db: deps.getFirestoreDb?.(),
           userId: options.userId,
           memberUserId: options.memberUserId,
@@ -149,11 +225,14 @@
         });
       },
       loadRoomSettings(options = {}) {
-        return root.DJ48ShopData.loadRoomSettingsFromFirestore({
+        return loadRoomSettingsFromDb({
           db: deps.getFirestoreDb?.(),
           userId: options.userId,
           memberUserId: options.memberUserId,
           testShopUserId: deps.testShopUserId
+        }, {
+          getDefaultRoomSettings: root.DJ48ShopData.getDefaultRoomSettings,
+          normalizeRoomSettingsFromFirestore: root.DJ48ShopData.normalizeRoomSettingsFromFirestore
         });
       },
       purchaseShopItem(payload = {}) {
@@ -192,7 +271,13 @@
   }
 
   const api = {
-    createShopRepository
+    createShopRepository,
+    loadAssetCatalogFromDb,
+    loadInventoryItemIdsFromDb,
+    loadRoomSettingsFromDb,
+    loadShopItemsFromDb,
+    loadUserEconomyFromDb,
+    ensureUserEconomyInitializedForDb
   };
 
   root.DJ48ShopRepository = api;

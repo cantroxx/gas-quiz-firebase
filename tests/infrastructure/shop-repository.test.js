@@ -12,7 +12,17 @@ const functions = {
 function makeDocSnapshot(exists, data) {
   return {
     exists,
+    id: data?.itemId || data?.assetId || data?.userId || '',
     data: () => data
+  };
+}
+
+function makeCollectionSnapshot(docs) {
+  return {
+    docs: docs.map(doc => ({
+      id: doc.id,
+      data: () => doc.data
+    }))
   };
 }
 
@@ -28,6 +38,52 @@ function makeDb() {
 
 function makeCollection(path) {
   return {
+    async get() {
+      calls.push(['getCollection', path.join('/')]);
+      const collectionName = path.at(-1);
+      if(collectionName === 'shopItems') {
+        return makeCollectionSnapshot([
+          {
+            id: 'shop-a',
+            data: {
+              itemId: 'shop-a',
+              category: 'avatar',
+              name: 'Shop A',
+              enabled: true,
+              sortOrder: 2
+            }
+          },
+          {
+            id: 'room-a',
+            data: {
+              itemId: 'room-a',
+              category: '방 가구',
+              name: 'Room A',
+              enabled: true,
+              sortOrder: 1
+            }
+          }
+        ]);
+      }
+      if(collectionName === 'assetCatalog') {
+        return makeCollectionSnapshot([
+          {
+            id: 'asset-a',
+            data: {
+              assetId: 'asset-a',
+              imageUrl: 'https://example.test/a.png',
+              enabled: true
+            }
+          }
+        ]);
+      }
+      if(collectionName === 'items') {
+        return makeCollectionSnapshot([
+          { id: 'shop-a', data: {} }
+        ]);
+      }
+      return makeCollectionSnapshot([]);
+    },
     doc(id) {
       calls.push(['doc', path.join('/'), id]);
       return makeDocument(path.concat(id));
@@ -53,6 +109,14 @@ function makeDocument(path) {
         });
       }
       if(collectionName === 'items') return makeDocSnapshot(true, {});
+      if(collectionName === 'userEconomy') {
+        return makeDocSnapshot(true, {
+          userId: path.at(-1),
+          djCoin: 77,
+          totalEarned: 100,
+          totalSpent: 23
+        });
+      }
       if(collectionName === 'userRoomSettings') {
         if(path.at(-1) === 'auth-uid') {
           return makeDocSnapshot(true, {
@@ -75,35 +139,26 @@ function makeDocument(path) {
 }
 
 globalThis.DJ48ShopData = {
-  loadShopItemsFromFirestore: (db, deps) => {
-    calls.push(['items', db, deps.shopCategoryLabels]);
-    return ['item'];
-  },
-  loadAssetCatalogFromFirestore: db => {
-    calls.push(['assets', db]);
-    return { asset: true };
-  },
-  loadUserEconomyFromFirestore: (options, deps) => {
-    calls.push(['economy', options.userId, deps.fallbackCoin]);
-    return { djCoin: deps.fallbackCoin };
-  },
-  ensureUserEconomyInitialized: (options, deps) => {
-    calls.push(['ensure-economy', options.ownerId, options.testShopUserId, deps.fallbackCoin]);
-    return { userId: options.ownerId };
-  },
-  loadInventoryItemIdsFromFirestore: options => {
-    calls.push(['inventory', options.userId, options.memberUserId, options.testShopUserId]);
-    return new Set(['a']);
-  },
-  loadRoomSettingsFromFirestore: options => {
-    calls.push(['room', options.userId, options.memberUserId, options.testShopUserId]);
-    return { userId: options.userId };
-  },
   saveRoomItemSelection: (options, deps) => {
     calls.push(['legacy-save-room', options.userId, options.itemId, !!deps.getFirestoreFieldValue]);
     return { selectedAvatarItemId: options.itemId };
   },
-  normalizeShopItemFromFirestore: doc => ({ itemId: doc.data().itemId, rawCategory: doc.data().category }),
+  normalizeShopItemFromFirestore: doc => {
+    const data = doc.data();
+    return {
+      itemId: data.itemId,
+      rawCategory: data.category,
+      category: data.category,
+      name: data.name,
+      enabled: data.enabled === true,
+      sortOrder: Number(data.sortOrder) || 999
+    };
+  },
+  isRoomFurnitureShopItem: item => item.rawCategory === '방 가구',
+  normalizeAssetCatalogFromFirestore: doc => ({ assetId: doc.data().assetId, enabled: doc.data().enabled }),
+  normalizeUserEconomyFromFirestore: doc => doc.exists ? ({ userId: doc.data().userId, djCoin: doc.data().djCoin }) : null,
+  getInitialUserEconomy: userId => ({ userId, djCoin: 0, totalEarned: 0, totalSpent: 0 }),
+  getDefaultRoomSettings: userId => ({ userId, selectedDecorItemIds: [] }),
   normalizeRoomSettingsFromFirestore: doc => ({
     userId: doc.data().userId,
     selectedAvatarItemId: doc.data().selectedAvatarItemId || '',
@@ -126,12 +181,23 @@ async function testShopRepositoryDelegatesToShopData() {
     testShopUserId: 'test-user'
   });
 
-  assert.deepEqual(await repository.loadShopItems(), ['item']);
-  assert.deepEqual(await repository.loadAssetCatalog(), { asset: true });
-  assert.deepEqual(await repository.loadUserEconomy({ userId: 'member-1' }), { djCoin: 48 });
-  assert.deepEqual(await repository.ensureUserEconomyInitialized({ ownerId: 'member-1' }), { userId: 'member-1' });
-  assert.deepEqual(await repository.loadInventoryItemIds({ userId: 'member-1', memberUserId: 'member-1' }), new Set(['a']));
-  assert.deepEqual(await repository.loadRoomSettings({ userId: 'member-1', memberUserId: 'member-1' }), { userId: 'member-1' });
+  assert.deepEqual(await repository.loadShopItems(), [{
+    itemId: 'shop-a',
+    rawCategory: 'avatar',
+    category: 'avatar',
+    name: 'Shop A',
+    enabled: true,
+    sortOrder: 2
+  }]);
+  assert.deepEqual(await repository.loadAssetCatalog(), { 'asset-a': { assetId: 'asset-a', enabled: true } });
+  assert.deepEqual(await repository.loadUserEconomy({ userId: 'member-1' }), { userId: 'member-1', djCoin: 77 });
+  assert.deepEqual(await repository.ensureUserEconomyInitialized({ ownerId: 'member-1' }), { userId: 'member-1', djCoin: 77 });
+  assert.deepEqual(await repository.loadInventoryItemIds({ userId: 'member-1', memberUserId: 'member-1' }), new Set(['shop-a']));
+  assert.deepEqual(await repository.loadRoomSettings({ userId: 'member-1', memberUserId: 'member-1' }), {
+    userId: 'member-1',
+    selectedAvatarItemId: '',
+    selectedDecorItemIds: []
+  });
   assert.deepEqual(await repository.purchaseShopItem({ itemId: 'shop-a' }), { success: true, itemId: 'shop-a' });
   assert.deepEqual(await repository.saveRoomItemSelection({ userId: 'member-1', itemId: 'room-a' }), {
     userId: 'member-1',
@@ -142,23 +208,10 @@ async function testShopRepositoryDelegatesToShopData() {
     sourceUid: 'auth-uid',
     memberUserId: 'member-2'
   }), true);
-  assert.deepEqual(calls.filter(call => [
-    'items',
-    'assets',
-    'economy',
-    'ensure-economy',
-    'inventory',
-    'room',
-    'purchaseShopItem'
-  ].includes(call[0])).map(call => call[0]), [
-    'items',
-    'assets',
-    'economy',
-    'ensure-economy',
-    'inventory',
-    'room',
-    'purchaseShopItem'
-  ]);
+  assert(calls.some(call => call[0] === 'getCollection' && call[1] === 'shopItems'));
+  assert(calls.some(call => call[0] === 'getCollection' && call[1] === 'assetCatalog'));
+  assert(calls.some(call => call[0] === 'getCollection' && call[1] === 'userInventory/member-1/items'));
+  assert(calls.some(call => call[0] === 'purchaseShopItem'));
   assert(calls.some(call => call[0] === 'get' && call[1] === 'shopItems/room-a'));
   assert(calls.some(call => call[0] === 'get' && call[1] === 'userInventory/member-1/items/room-a'));
   assert(calls.some(call => call[0] === 'set' && call[1] === 'userRoomSettings/member-1' && call[2].selectedAvatarItemId === 'room-a'));
