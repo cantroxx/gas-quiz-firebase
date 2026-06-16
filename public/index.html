@@ -6015,13 +6015,9 @@
       return window.DJ48QuizRender.renderQuizModeCards(modeIds, getQuizRenderDeps());
     }
 
-    async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
+    function getQuizStartFlowDeps() {
       const deps = getQuizPlayDeps();
-      return window.DJ48QuizUsecases.startQuizPlayFlow({
-        quizId,
-        modeId,
-        rankingModeId
-      }, {
+      return {
         finishPopularUsageSession,
         loadFeatureFlags,
         isQuizEnabledByFlags,
@@ -6051,7 +6047,15 @@
         renderQuizPlayHeader,
         renderQuestion,
         warn: console.warn
-      });
+      };
+    }
+
+    async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
+      return window.DJ48QuizUsecases.startQuizPlayFlow({
+        quizId,
+        modeId,
+        rankingModeId
+      }, getQuizStartFlowDeps());
     }
 
     function getQuizRepositoryDeps() {
