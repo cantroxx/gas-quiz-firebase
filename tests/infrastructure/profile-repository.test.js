@@ -4,6 +4,18 @@ const calls = [];
 const serverTimestamp = { type: 'timestamp' };
 const db = {
   collection: name => ({
+    where: (field, operator, value) => ({
+      limit: count => ({
+        get: () => {
+          calls.push(['query', name, field, operator, value, count]);
+          return Promise.resolve({
+            docs: [
+              { id: 'candidate-1', data: () => ({ imageUrl: 'url-1' }) }
+            ]
+          });
+        }
+      })
+    }),
     doc: id => ({
       collection: subName => ({
         doc: subId => ({
@@ -37,6 +49,9 @@ async function testProfileRepositoryDelegatesToAccountData() {
     getFirestoreFieldValue: () => ({ serverTimestamp: () => serverTimestamp })
   });
 
+  assert.deepEqual(await repository.searchProfileImageCandidates({ db, query: 'pika', limit: 12 }), [
+    { candidateId: 'candidate-1', imageUrl: 'url-1' }
+  ]);
   assert.deepEqual(await repository.saveProfileImageEditorSelection({ memberUserId: 'member-1' }), { nextProfile: { profileImageUrl: 'url' } });
   assert.deepEqual(await repository.saveRankingMessageForMember({ db, memberUserId: 'member-1', message: ' hi   there ' }), {
     rankingMessage: 'hi there',
@@ -51,6 +66,7 @@ async function testProfileRepositoryDelegatesToAccountData() {
     /title-not-owned/
   );
   assert.deepEqual(calls, [
+    ['query', 'profileImageCandidates', 'keywords', 'array-contains', 'pika', 12],
     ['image', 'member-1', true],
     ['set', 'users', 'member-1', { rankingMessage: 'hi there', updatedAt: serverTimestamp }, { merge: true }],
     ['get', 'userTitles', 'member-1', 'titles', 'title-1'],

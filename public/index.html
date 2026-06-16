@@ -2704,25 +2704,16 @@
     }
 
     async function searchProfileImageCandidatesFromHome() {
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-      await initializeAuthUser();
-      const input = document.getElementById('profile-image-search-input');
-      const status = document.getElementById('profile-image-search-status');
-      const query = normalizeProfileImageInput(input?.value || '').toLowerCase().replace(/\s+/g, '');
-      if(query.length < 2) {
-        if(status) status.textContent = '검색어를 2글자 이상 입력해 주세요.';
-        return;
-      }
-      if(status) status.textContent = '이미지를 검색하는 중...';
-      const snapshot = await db.collection('profileImageCandidates')
-        .where('keywords', 'array-contains', query)
-        .limit(24)
-        .get();
-      const options = window.DJ48HomeState.setProfileImageOptions(
-        snapshot.docs.map(doc => ({ candidateId: doc.id, ...doc.data() }))
-      );
-      renderProfileImageSearchResults(options);
+      return window.DJ48ProfileUsecases.searchProfileImageCandidatesFlow({}, {
+        getFirestoreDb,
+        initializeAuthUser,
+        getInput: () => document.getElementById('profile-image-search-input'),
+        getStatus: () => document.getElementById('profile-image-search-status'),
+        normalizeProfileImageInput,
+        searchProfileImageCandidates: options => getProfileRepository().searchProfileImageCandidates(options),
+        setProfileImageOptions: window.DJ48HomeState.setProfileImageOptions,
+        renderProfileImageSearchResults
+      });
     }
 
     async function saveSelectedProfileImageFromHome(index) {

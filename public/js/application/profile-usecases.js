@@ -16,6 +16,28 @@
     return { memberUserId, db };
   }
 
+  async function searchProfileImageCandidatesFlow(options = {}, deps = {}) {
+    const db = deps.getFirestoreDb?.();
+    if(!db) throw new Error('firestore-unavailable');
+    await deps.initializeAuthUser?.();
+    const input = deps.getInput?.();
+    const status = deps.getStatus?.();
+    const query = String(deps.normalizeProfileImageInput?.(input?.value || '') || '').toLowerCase().replace(/\s+/g, '');
+    if(query.length < 2) {
+      setText(status, options.shortQueryMessage || '검색어를 2글자 이상 입력해 주세요.');
+      return [];
+    }
+    setText(status, options.loadingMessage || '이미지를 검색하는 중...');
+    const candidates = await deps.searchProfileImageCandidates({
+      db,
+      query,
+      limit: options.limit || 24
+    });
+    const renderOptions = deps.setProfileImageOptions?.(candidates) || candidates;
+    deps.renderProfileImageSearchResults?.(renderOptions);
+    return renderOptions;
+  }
+
   async function saveProfileImageEditorSelectionFlow(options = {}, deps = {}) {
     const { memberUserId, db } = await requireProfileWriteContext(deps);
     const editorState = deps.getProfileImageEditorState?.();
@@ -154,6 +176,7 @@
   }
 
   const api = {
+    searchProfileImageCandidatesFlow,
     saveProfileImageEditorSelectionFlow,
     saveProfileRankingMessageFlow,
     saveProfileNicknameFlow,

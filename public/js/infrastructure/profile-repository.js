@@ -15,6 +15,16 @@
     return updateData;
   }
 
+  async function searchProfileImageCandidates(options = {}) {
+    const { db, query = '', limit = 24 } = options;
+    if(!db) throw new Error('firestore-unavailable');
+    const snapshot = await db.collection('profileImageCandidates')
+      .where('keywords', 'array-contains', query)
+      .limit(limit)
+      .get();
+    return snapshot.docs.map(doc => ({ candidateId: doc.id, ...doc.data() }));
+  }
+
   function saveRankingMessageForMember(options = {}, deps = {}) {
     return saveUserProfileUpdate({
       db: options.db,
@@ -56,6 +66,7 @@
       getFirestoreFieldValue: deps.getFirestoreFieldValue
     };
     return {
+      searchProfileImageCandidates,
       saveProfileImageEditorSelection: options => root.DJ48AccountData.saveProfileImageEditorSelection(options, firestoreDeps),
       saveRankingMessageForMember: options => saveRankingMessageForMember(options, firestoreDeps),
       saveSelectedTitleForMember: options => saveSelectedTitleForMember(options, firestoreDeps)

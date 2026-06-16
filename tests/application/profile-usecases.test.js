@@ -44,6 +44,46 @@ async function testSaveProfileRankingMessageFlow() {
   assert.deepEqual(calls, ['auth', ['save', 'member-a', 'hello']]);
 }
 
+async function testSearchProfileImageCandidatesFlow() {
+  const input = createInput('  Pi Ka ');
+  const status = createStatus();
+  const calls = [];
+  const result = await usecases.searchProfileImageCandidatesFlow({}, {
+    getFirestoreDb: () => ({ db: true }),
+    initializeAuthUser: async () => calls.push('auth'),
+    getInput: () => input,
+    getStatus: () => status,
+    normalizeProfileImageInput: value => String(value || '').trim(),
+    searchProfileImageCandidates: async options => {
+      calls.push(['search', options.query, options.limit]);
+      return [{ candidateId: 'candidate-1' }];
+    },
+    setProfileImageOptions: candidates => {
+      calls.push(['set', candidates.length]);
+      return candidates.map(candidate => ({ ...candidate, selected: false }));
+    },
+    renderProfileImageSearchResults: options => calls.push(['render', options.length])
+  });
+
+  assert.deepEqual(result, [{ candidateId: 'candidate-1', selected: false }]);
+  assert.equal(status.textContent, '이미지를 검색하는 중...');
+  assert.deepEqual(calls, ['auth', ['search', 'pika', 24], ['set', 1], ['render', 1]]);
+}
+
+async function testSearchProfileImageCandidatesFlowShortQuery() {
+  const status = createStatus();
+  const result = await usecases.searchProfileImageCandidatesFlow({}, {
+    getFirestoreDb: () => ({ db: true }),
+    initializeAuthUser: async () => {},
+    getInput: () => createInput('a'),
+    getStatus: () => status,
+    normalizeProfileImageInput: value => value
+  });
+
+  assert.deepEqual(result, []);
+  assert.equal(status.textContent, '검색어를 2글자 이상 입력해 주세요.');
+}
+
 async function testSaveProfileNicknameFlowError() {
   const status = createStatus();
   const button = createButton();
@@ -134,6 +174,8 @@ async function testSaveProfileImageEditorSelectionFlowUploadErrorMessage() {
 }
 
 async function run() {
+  await testSearchProfileImageCandidatesFlow();
+  await testSearchProfileImageCandidatesFlowShortQuery();
   await testSaveProfileRankingMessageFlow();
   await testSaveProfileNicknameFlowError();
   await testSaveProfilePasswordFlowClearsInputs();
