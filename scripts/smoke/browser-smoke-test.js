@@ -17,7 +17,8 @@ function getConfig() {
     number: process.env.SMOKE_NUMBER || '',
     password: process.env.SMOKE_PASSWORD || '',
     quizId: process.env.SMOKE_QUIZ_ID || 'spelling',
-    rankingMode: process.env.SMOKE_RANKING_MODE || 'normal'
+    rankingMode: process.env.SMOKE_RANKING_MODE || 'normal',
+    profileWrite: process.env.SMOKE_PROFILE_WRITE === '1'
   };
 }
 
@@ -358,6 +359,40 @@ async function runHomeProfileCheck(page) {
   }
 }
 
+async function runProfileWriteFlow(page) {
+  await page.evaluate(() => window.showHomeView?.());
+  await waitForVisible(page, '#home-view');
+  await page.locator('#profile-card-root').waitFor({ state: 'visible' });
+  const messageToggle = page.locator('[data-profile-detail-toggle="message"]');
+  await messageToggle.waitFor({ state: 'visible', timeout: 15000 });
+  await messageToggle.click();
+  const input = page.locator('#profile-ranking-message-input');
+  const button = page.locator('#profile-ranking-message-save-button');
+  const status = page.locator('#profile-ranking-message-status');
+  await input.waitFor({ state: 'visible', timeout: 15000 });
+  const originalMessage = await input.inputValue();
+  const smokeMessage = `smoke-${Date.now().toString(36).slice(-6)}`;
+
+  async function saveMessage(message, expectedPattern) {
+    await input.fill(message);
+    await button.click();
+    await page.waitForFunction(pattern => {
+      const text = document.getElementById('profile-ranking-message-status')?.textContent?.trim() || '';
+      return new RegExp(pattern).test(text);
+    }, expectedPattern, { timeout: 20000 });
+    const statusText = (await status.innerText()).trim();
+    assert.match(statusText, new RegExp(expectedPattern));
+  }
+
+  try {
+    await saveMessage(smokeMessage, '한마디를 저장했습니다');
+    assert.equal(await input.inputValue(), smokeMessage);
+  } finally {
+    await saveMessage(originalMessage, originalMessage ? '한마디를 저장했습니다' : '한마디를 비웠습니다');
+    assert.equal(await input.inputValue(), originalMessage);
+  }
+}
+
 async function runSchoolSelectCheck(page) {
   await page.evaluate(() => window.showSchoolView?.());
   await waitForVisible(page, '#school-view');
@@ -448,6 +483,7 @@ async function main() {
       await runPracticeFlow(page, config);
       await runRankingFlow(page, config);
       await runHomeProfileCheck(page);
+      if(config.profileWrite) await runProfileWriteFlow(page);
       await runSchoolSelectCheck(page);
       await runFeatureEntryChecks(page);
     }
