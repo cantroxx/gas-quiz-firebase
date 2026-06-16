@@ -1413,6 +1413,7 @@
   <script src="/js/features/ranking-render.js"></script>
   <script src="/js/features/ranking-data.js"></script>
   <script src="/js/features/ranking-state.js"></script>
+  <script src="/js/infrastructure/ranking-repository.js"></script>
   <script src="/js/application/ranking-usecases.js"></script>
   <script src="/js/features/school-controller.js"></script>
   <script src="/js/features/quiz-session-state.js"></script>
@@ -3263,11 +3264,10 @@
         recordLimit: PROFILE_RANKING_RECORD_LIMIT,
         bestContextLimit: 5
       }, {
-        getFirestoreDb,
+        getRankingRepository: createRankingRepository,
         isRankingRowEnabledByFlags,
         getProfileBestRankingRecords,
         compareProfileBestRankingRecords: (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999),
-        loadProfileRankingRankContext,
         renderProfileRankingRecords,
         setProfileRankingLoading: () => {
           const root = document.getElementById('profile-ranking-root');
@@ -3468,6 +3468,18 @@
 
     async function loadLimitedRankingRecordsForPlaza(db) {
       return window.DJ48RankingData.loadLimitedRankingRecordsForPlaza(db, getRankingDataDeps());
+    }
+
+    function createRankingRepository() {
+      const db = getFirestoreDb();
+      if(!db) return null;
+      return window.DJ48RankingRepository.createRankingRepository({
+        db
+      }, {
+        loadLimitedRankingRecordsForPlaza,
+        loadMemberProfilesForRankingRows,
+        loadProfileRankingRankContext
+      });
     }
 
     function getRankingRenderDeps() {
@@ -3794,11 +3806,9 @@
         mathCategoryKeys: ['수학곱셈과-나눗셈'],
         popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]
       }, {
-        getFirestoreDb,
+        getRankingRepository: createRankingRepository,
         initializeAuthUser,
-        loadLimitedRankingRecordsForPlaza,
         isRankingRowEnabledByFlags,
-        loadMemberProfilesForRankingRows,
         mergeRankingRowWithMemberProfile,
         buildQuizKingSummariesFromRankingRecords,
         getTopQuizKingSummaries,

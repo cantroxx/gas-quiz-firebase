@@ -1,32 +1,8 @@
 const assert = require('assert');
 const rankingUsecases = require('../../public/js/application/ranking-usecases.js');
 
-function makeDoc(id, data) {
-  return { id, data: () => data };
-}
-
-function makeDb(collections) {
-  return {
-    collection(name) {
-      const docs = collections[name] || [];
-      const query = {
-        orderBy() { return query; },
-        where() { return query; },
-        limit() { return query; },
-        async get() { return { docs }; }
-      };
-      return query;
-    }
-  };
-}
-
 async function testLoadRankingPlazaData() {
   let initialized = false;
-  const db = makeDb({
-    quizKingSummary: [
-      makeDoc('u1', { totalScore: 300, categoryCount: 3, nickname: 'Before' })
-    ]
-  });
   const model = await rankingUsecases.loadRankingPlazaData({
     rowLimit: 10,
     koreanCategoryKeys: ['korean'],
@@ -34,16 +10,20 @@ async function testLoadRankingPlazaData() {
     mathCategoryKeys: ['math'],
     popularCategoryKeys: ['popular']
   }, {
-    getFirestoreDb: () => db,
-    initializeAuthUser: async () => { initialized = true; },
-    loadLimitedRankingRecordsForPlaza: async () => [
-      { recordId: 'r1', memberUserId: 'u1', categoryKey: 'korean', score: 90 },
-      { recordId: 'r2', memberUserId: 'u2', categoryKey: 'social', score: 80, disabled: true }
-    ],
-    isRankingRowEnabledByFlags: row => !row.disabled,
-    loadMemberProfilesForRankingRows: async () => ({
-      u1: { nickname: 'Student One' }
+    getRankingRepository: () => ({
+      loadQuizKingSummaries: async () => [
+        { memberUserId: 'u1', totalScore: 300, categoryCount: 3, nickname: 'Before' }
+      ],
+      loadLimitedRankingRecordsForPlaza: async () => [
+        { recordId: 'r1', memberUserId: 'u1', categoryKey: 'korean', score: 90 },
+        { recordId: 'r2', memberUserId: 'u2', categoryKey: 'social', score: 80, disabled: true }
+      ],
+      loadMemberProfilesForRankingRows: async () => ({
+        u1: { nickname: 'Student One' }
+      })
     }),
+    initializeAuthUser: async () => { initialized = true; },
+    isRankingRowEnabledByFlags: row => !row.disabled,
     mergeRankingRowWithMemberProfile: (row, profiles) => ({
       ...row,
       nickname: profiles[row.memberUserId]?.nickname || row.nickname
@@ -97,12 +77,6 @@ async function testRenderRankingViewFallback() {
 }
 
 async function testRenderProfileRankingRecordsFlow() {
-  const db = makeDb({
-    rankingRecords: [
-      makeDoc('r1', { memberUserId: 'u1', categoryKey: 'korean', score: 100 }),
-      makeDoc('r2', { memberUserId: 'u1', categoryKey: 'math', score: 0 })
-    ]
-  });
   let loadingCalled = false;
   let rendered = null;
   const records = await rankingUsecases.renderProfileRankingRecordsFlow({
@@ -110,11 +84,16 @@ async function testRenderProfileRankingRecordsFlow() {
     recordLimit: 500,
     bestContextLimit: 5
   }, {
-    getFirestoreDb: () => db,
+    getRankingRepository: () => ({
+      loadMemberRankingRecords: async () => [
+        { recordId: 'r1', memberUserId: 'u1', categoryKey: 'korean', score: 100 },
+        { recordId: 'r2', memberUserId: 'u1', categoryKey: 'math', score: 0 }
+      ],
+      loadProfileRankingRankContext: async bestRows => ({ bestCount: bestRows.length })
+    }),
     isRankingRowEnabledByFlags: () => true,
     getProfileBestRankingRecords: rows => rows,
     compareProfileBestRankingRecords: (a, b) => b.score - a.score,
-    loadProfileRankingRankContext: async (_db, bestRows) => ({ bestCount: bestRows.length }),
     renderProfileRankingRecords: (rows, rankContext) => { rendered = { rows, rankContext }; },
     setProfileRankingLoading: () => { loadingCalled = true; }
   });

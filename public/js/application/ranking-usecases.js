@@ -1,26 +1,17 @@
 (function (root) {
-  function getDocs(snapshot) {
-    return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-  }
-
   async function loadRankingPlazaData(options = {}, deps = {}) {
-    const db = deps.getFirestoreDb?.();
-    if(!db) throw new Error('firestore-unavailable');
+    const repository = deps.getRankingRepository?.();
+    if(!repository) throw new Error('ranking-repository-unavailable');
     await deps.initializeAuthUser?.();
 
     const rowLimit = Number(options.rowLimit) || 10;
-    const [quizKingSnapshot, rankingRecords] = await Promise.all([
-      db.collection('quizKingSummary').orderBy('totalScore', 'desc').limit(rowLimit).get(),
-      deps.loadLimitedRankingRecordsForPlaza(db)
+    const [rawQuizKingSummaries, rankingRecords] = await Promise.all([
+      repository.loadQuizKingSummaries(rowLimit),
+      repository.loadLimitedRankingRecordsForPlaza()
     ]);
 
-    const rawQuizKingSummaries = getDocs(quizKingSnapshot).map(doc => ({
-      memberUserId: doc.id,
-      ...(doc.data?.() || {})
-    }));
     const filteredRankingRecords = (rankingRecords || []).filter(row => deps.isRankingRowEnabledByFlags?.(row) !== false);
-    const profileMap = await deps.loadMemberProfilesForRankingRows(
-      db,
+    const profileMap = await repository.loadMemberProfilesForRankingRows(
       rawQuizKingSummaries.concat(filteredRankingRecords)
     );
     const mergeRankingRowWithMemberProfile = deps.mergeRankingRowWithMemberProfile || (row => row);
@@ -65,23 +56,17 @@
   }
 
   async function loadProfileRankingRecordsData(options = {}, deps = {}) {
-    const db = deps.getFirestoreDb?.();
+    const repository = deps.getRankingRepository?.();
     const memberUserId = String(options.memberUserId || '').trim();
-    if(!db || !memberUserId) return { records: [], rankContext: {} };
+    if(!repository || !memberUserId) return { records: [], rankContext: {} };
 
-    const snapshot = await db.collection('rankingRecords')
-      .where('memberUserId', '==', memberUserId)
-      .limit(Number(options.recordLimit) || 500)
-      .get();
-    const normalizeRecord = deps.normalizeRecord || (doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }));
-    const records = getDocs(snapshot)
-      .map(normalizeRecord)
+    const records = (await repository.loadMemberRankingRecords(memberUserId, Number(options.recordLimit) || 500))
       .filter(record => deps.isRankingRowEnabledByFlags?.(record) !== false);
     const positiveRows = records.filter(record => Number(record.score) > 0);
     const bestRows = deps.getProfileBestRankingRecords(positiveRows)
       .sort(deps.compareProfileBestRankingRecords)
       .slice(0, Number(options.bestContextLimit) || 5);
-    const rankContext = await deps.loadProfileRankingRankContext(db, bestRows);
+    const rankContext = await repository.loadProfileRankingRankContext(bestRows);
     return { records, rankContext };
   }
 
