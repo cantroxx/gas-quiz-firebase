@@ -6768,128 +6768,152 @@
       };
     }
 
+    function getCommonAppEvents() {
+      return {
+        openPlaceModal,
+        refreshCurrentAppData,
+        setGlobalRefreshNeedsAttention,
+        closePlaceModal,
+        showSchoolView,
+        showHomeView,
+        showRankingView,
+        showShopView,
+        showEventView,
+        showClassroomView,
+        showQuizSelectView,
+        showTownView,
+        handleRankingBoardRootClick,
+        isRoomDecorPortraitBlocked
+      };
+    }
+
+    function getClassroomControllerEvents() {
+      return {
+        handleClassroomEntrySubmit,
+        saveClassroomQuestFromForm,
+        awardClassroomBadgeCampaignFromForm,
+        saveClassroomJobFromForm,
+        saveClassroomShopItemFromForm,
+        saveClassroomRoutineFromForm,
+        setActiveClassroomTab,
+        completeClassroomCheckQuest,
+        setClassroomSelectedGemBadge,
+        applyClassroomJob,
+        assignClassroomJob,
+        releaseClassroomJob,
+        claimClassroomJobSalary,
+        purchaseClassroomShopItem,
+        checkClassroomRoutine,
+        reviewClassroomQuestProgress
+      };
+    }
+
+    function getSchoolControllerEvents() {
+      return {
+        showExternalQuizLinks,
+        ensurePopularSubjectAccess,
+        showSubjectView,
+        showSchoolView,
+        showQuizSelectView,
+        showQuizPlayView,
+        getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
+        getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
+      };
+    }
+
+    function getHomeControllerEvents() {
+      return {
+        showRoomView,
+        saveProfileNicknameFromHome,
+        saveProfilePasswordFromHome,
+        searchProfileImageCandidatesFromHome,
+        saveSelectedProfileImageFromHome,
+        saveProfileRankingMessageFromHome,
+        handleProfileImageUploadFile,
+        closeProfileImageEditor,
+        updateProfileImageEditorPreview,
+        resetProfileImageEditorFromHome,
+        saveProfileImageEditorSelection,
+        setProfileImageEditorStatus,
+        openTitleCatalogModal,
+        renderProfileRankingRecordsFromFirestore,
+        saveProfileSelectedTitleFromHome,
+        renderHomeMemberDataFromFirestore
+      };
+    }
+
+    function getAdminControllerEvents() {
+      return {
+        hideAdminTemporaryPassword,
+        loadAdminMembers,
+        setAdminStatus,
+        loadAdminDashboard,
+        setAdminDashboardStatus,
+        loadAdminOperationalAudit,
+        setAdminAuditStatus,
+        loadAdminQuizQualityAudit,
+        setAdminQuizQualityStatus,
+        openAdminMemberDetail,
+        runAdminMemberAction,
+        closeAdminMemberDetailModal,
+        logoutAdminMember,
+        showTownView,
+        showClassroomView,
+        renderAdminClassroomReview,
+        setActiveAdminSection,
+        loadAdminNoticeBoard,
+        setAdminNoticeStatus,
+        saveAdminNoticeBoard,
+        loadAdminExternalQuizzes,
+        setAdminExternalQuizzesStatus,
+        saveAdminExternalQuizzes,
+        loadAdminLoginSettings,
+        setAdminLoginSettingsStatus,
+        saveAdminLoginSettings,
+        loadAdminFeatureFlags,
+        setAdminFeatureFlagsStatus,
+        saveAdminFeatureFlags,
+        resetAdminRoomCatalogForm,
+        loadAdminRoomCatalog,
+        setAdminRoomCatalogStatus,
+        saveAdminRoomCatalogItem,
+        setClassAdminPermission,
+        setAdminPermissionStatus,
+        loadAdminLogs,
+        setAdminLogsStatus
+      };
+    }
+
+    function getAccountControllerEvents() {
+      return {
+        handleMemberLinkSubmit,
+        setMemberLinkFormMode,
+        handleMemberPasswordResetClick,
+        handleMemberUnlinkClick,
+        handleMemberPasswordChangeClick
+      };
+    }
+
     function getAppBootstrapControllerSections() {
       return window.DJ48AppBootstrap.getDefaultControllerSections({
         appEventsController: window.DJ48AppEvents,
-        commonAppEvents: {
-          openPlaceModal,
-          refreshCurrentAppData,
-          setGlobalRefreshNeedsAttention,
-          closePlaceModal,
-          showSchoolView,
-          showHomeView,
-          showRankingView,
-          showShopView,
-          showEventView,
-          showClassroomView,
-          showQuizSelectView,
-          showTownView,
-          handleRankingBoardRootClick,
-          isRoomDecorPortraitBlocked
-        },
+        commonAppEvents: getCommonAppEvents(),
         eventController: window.DJ48EventController,
         eventEvents: getEventControllerEvents(),
         classroomController: window.DJ48ClassroomController,
-        classroomEvents: {
-          handleClassroomEntrySubmit,
-          saveClassroomQuestFromForm,
-          awardClassroomBadgeCampaignFromForm,
-          saveClassroomJobFromForm,
-          saveClassroomShopItemFromForm,
-          saveClassroomRoutineFromForm,
-          setActiveClassroomTab,
-          completeClassroomCheckQuest,
-          setClassroomSelectedGemBadge,
-          applyClassroomJob,
-          assignClassroomJob,
-          releaseClassroomJob,
-          claimClassroomJobSalary,
-          purchaseClassroomShopItem,
-          checkClassroomRoutine,
-          reviewClassroomQuestProgress
-        },
+        classroomEvents: getClassroomControllerEvents(),
         schoolController: window.DJ48SchoolController,
-        schoolEvents: {
-          showExternalQuizLinks,
-          ensurePopularSubjectAccess,
-          showSubjectView,
-          showSchoolView,
-          showQuizSelectView,
-          showQuizPlayView,
-          getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
-          getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
-        },
+        schoolEvents: getSchoolControllerEvents(),
         quizController: window.DJ48QuizController,
         quizEvents: getQuizPlayEventDeps(),
         shopController: window.DJ48ShopController,
         shopEvents: getShopControllerEvents(),
         homeController: window.DJ48HomeController,
-        homeEvents: {
-          showRoomView,
-          saveProfileNicknameFromHome,
-          saveProfilePasswordFromHome,
-          searchProfileImageCandidatesFromHome,
-          saveSelectedProfileImageFromHome,
-          saveProfileRankingMessageFromHome,
-          handleProfileImageUploadFile,
-          closeProfileImageEditor,
-          updateProfileImageEditorPreview,
-          resetProfileImageEditorFromHome,
-          saveProfileImageEditorSelection,
-          setProfileImageEditorStatus,
-          openTitleCatalogModal,
-          renderProfileRankingRecordsFromFirestore,
-          saveProfileSelectedTitleFromHome,
-          renderHomeMemberDataFromFirestore
-        },
+        homeEvents: getHomeControllerEvents(),
         adminController: window.DJ48AdminController,
-        adminEvents: {
-          hideAdminTemporaryPassword,
-          loadAdminMembers,
-          setAdminStatus,
-          loadAdminDashboard,
-          setAdminDashboardStatus,
-          loadAdminOperationalAudit,
-          setAdminAuditStatus,
-          loadAdminQuizQualityAudit,
-          setAdminQuizQualityStatus,
-          openAdminMemberDetail,
-          runAdminMemberAction,
-          closeAdminMemberDetailModal,
-          logoutAdminMember,
-          showTownView,
-          showClassroomView,
-          renderAdminClassroomReview,
-          setActiveAdminSection,
-          loadAdminNoticeBoard,
-          setAdminNoticeStatus,
-          saveAdminNoticeBoard,
-          loadAdminExternalQuizzes,
-          setAdminExternalQuizzesStatus,
-          saveAdminExternalQuizzes,
-          loadAdminLoginSettings,
-          setAdminLoginSettingsStatus,
-          saveAdminLoginSettings,
-          loadAdminFeatureFlags,
-          setAdminFeatureFlagsStatus,
-          saveAdminFeatureFlags,
-          resetAdminRoomCatalogForm,
-          loadAdminRoomCatalog,
-          setAdminRoomCatalogStatus,
-          saveAdminRoomCatalogItem,
-          setClassAdminPermission,
-          setAdminPermissionStatus,
-          loadAdminLogs,
-          setAdminLogsStatus
-        },
+        adminEvents: getAdminControllerEvents(),
         accountController: window.DJ48AccountController,
-        accountEvents: {
-          handleMemberLinkSubmit,
-          setMemberLinkFormMode,
-          handleMemberPasswordResetClick,
-          handleMemberUnlinkClick,
-          handleMemberPasswordChangeClick
-        }
+        accountEvents: getAccountControllerEvents()
       });
     }
 
