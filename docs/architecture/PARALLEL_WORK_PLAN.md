@@ -269,11 +269,23 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
     - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
     - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
     - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
+76. Moved current-member profile ranking render flow into `public/js/application/ranking-usecases.js`.
+    - `public/index.html` now delegates current member id injection and profile ranking flow setup to a ranking usecase wrapper.
+77. Moved quiz play choice selection and keyboard handling into `public/js/features/quiz-flow.js`.
+    - `public/index.html` keeps DOM accessors but no longer owns the selection/advance key-action branching.
+78. Routed classroom economy actions through `public/js/application/classroom-usecases.js`.
+    - Apply job, assign job, release job, salary claim, classroom shop purchase, and routine check now share one action runner.
+79. Moved event reward claim current-member/button wrapper into `public/js/application/event-usecases.js`.
+    - `public/index.html` keeps repository and DOM dependencies but no longer owns claim button busy-state orchestration.
+80. Re-audited Firebase access boundaries after rounds 25~36:
+    - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
+    - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
+    - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
 
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: app-view/bootstrap wrappers, ranking render dependency groups, quiz play dependency groups, and event/classroom action callbacks.
+   - First candidates: app-view/bootstrap wrappers, ranking popular filter dependencies, quiz timer/session dependency groups, and classroom quest/review wrappers.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
    - Current feature data/play modules are free of direct Firebase/Storage access.
@@ -300,9 +312,9 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 ## Next Execution Order
 
 1. Move remaining app-view/show-view orchestration out of `public/index.html` only where dependencies are already stable.
-2. Move ranking render dependency assembly into ranking usecase/controller helpers.
-3. Split quiz play dependency groups further, starting with DOM/event callback groups that can be tested without Firebase.
-4. Move event/classroom action callback routing behind controller helpers, following the profile/home action pattern.
+2. Move ranking popular filter dependency assembly into ranking usecase/controller helpers.
+3. Split quiz timer/session dependency groups further, starting with timer callbacks and session-state factories that can be tested without Firebase.
+4. Move classroom quest completion/review wrappers behind usecase/controller helpers, following the classroom economy action pattern.
 5. Continue splitting bootstrap dependency groups from `public/index.html` into `public/js/app/bootstrap.js` or feature-specific factories.
 6. Recheck `public/index.html` for direct Firebase access and broad app-shell state coupling after each group.
 7. Add or extend targeted tests for each moved usecase/controller path before broad smoke.
