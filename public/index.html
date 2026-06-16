@@ -1385,6 +1385,7 @@
   <script src="/js/features/account-controller.js"></script>
   <script src="/js/features/app-view.js"></script>
   <script src="/js/features/app-events.js"></script>
+  <script src="/js/app/bootstrap.js"></script>
   <script src="/js/features/home-state.js"></script>
   <script src="/js/features/home-data.js"></script>
   <script src="/js/application/home-usecases.js"></script>
@@ -7723,154 +7724,150 @@
       return window.DJ48AppView.closePlaceModal();
     }
 
-    window.DJ48AppEvents.bindCommonAppEvents({
-      openPlaceModal,
-      refreshCurrentAppData,
-      setGlobalRefreshNeedsAttention,
-      closePlaceModal,
-      showSchoolView,
-      showHomeView,
-      showRankingView,
-      showShopView,
-      showEventView,
-      showClassroomView,
-      showQuizSelectView,
-      showTownView,
-      handleRankingBoardRootClick,
-      isRoomDecorPortraitBlocked
-    });
-    window.DJ48EventController.bindEventPlazaEvents({
-      claimEventQuestReward
-    });
-    window.DJ48ClassroomController.bindClassroomEvents({
-      handleClassroomEntrySubmit,
-      saveClassroomQuestFromForm,
-      awardClassroomBadgeCampaignFromForm,
-      saveClassroomJobFromForm,
-      saveClassroomShopItemFromForm,
-      saveClassroomRoutineFromForm,
-      setActiveClassroomTab,
-      completeClassroomCheckQuest,
-      setClassroomSelectedGemBadge,
-      applyClassroomJob,
-      assignClassroomJob,
-      releaseClassroomJob,
-      claimClassroomJobSalary,
-      purchaseClassroomShopItem,
-      checkClassroomRoutine,
-      reviewClassroomQuestProgress
-    });
-    window.DJ48SchoolController.bindSchoolQuizSelectEvents({
-      showExternalQuizLinks,
-      ensurePopularSubjectAccess,
-      showSubjectView,
-      showSchoolView,
-      showQuizSelectView,
-      showQuizPlayView,
-      getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
-      getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
-    });
-    window.DJ48QuizController.bindQuizPlayEvents(getQuizPlayEventDeps());
-    window.DJ48ShopController.bindShopRoomEvents({
-      purchaseShopItem,
-      saveRoomItemSelection
-    });
-    window.DJ48HomeController.bindProfileHomeEvents({
-      showRoomView,
-      saveProfileNicknameFromHome,
-      saveProfilePasswordFromHome,
-      searchProfileImageCandidatesFromHome,
-      saveSelectedProfileImageFromHome,
-      saveProfileRankingMessageFromHome,
-      handleProfileImageUploadFile,
-      closeProfileImageEditor,
-      updateProfileImageEditorPreview,
-      resetProfileImageEditorFromHome: () => {
-        if(!profileImageEditorState) return;
-        profileImageEditorState = {
-          ...profileImageEditorState,
-          profileImageScale: 1,
-          profileImageOffsetX: 0,
-          profileImageOffsetY: 0
-        };
-        setProfileImageEditorControls(profileImageEditorState);
-        updateProfileImageEditorPreview();
+    window.DJ48AppBootstrap.startApp({
+      getRoomDecorUserId: () => getCurrentDataOwnerId(),
+      onRoomDecorBack: () => showHomeView()
+    }, {
+      appEventsController: window.DJ48AppEvents,
+      eventController: window.DJ48EventController,
+      classroomController: window.DJ48ClassroomController,
+      schoolController: window.DJ48SchoolController,
+      quizController: window.DJ48QuizController,
+      shopController: window.DJ48ShopController,
+      homeController: window.DJ48HomeController,
+      adminController: window.DJ48AdminController,
+      accountController: window.DJ48AccountController,
+      commonAppEvents: {
+        openPlaceModal,
+        refreshCurrentAppData,
+        setGlobalRefreshNeedsAttention,
+        closePlaceModal,
+        showSchoolView,
+        showHomeView,
+        showRankingView,
+        showShopView,
+        showEventView,
+        showClassroomView,
+        showQuizSelectView,
+        showTownView,
+        handleRankingBoardRootClick,
+        isRoomDecorPortraitBlocked
       },
-      saveProfileImageEditorSelection,
-      setProfileImageEditorStatus,
-      openTitleCatalogModal,
-      renderProfileRankingRecordsFromFirestore,
-      saveProfileSelectedTitleFromHome,
-      renderHomeMemberDataFromFirestore
-    });
-
-    window.DJ48AdminController.bindAdminEvents({
-      hideAdminTemporaryPassword,
-      loadAdminMembers,
-      setAdminStatus,
-      loadAdminDashboard,
-      setAdminDashboardStatus,
-      loadAdminOperationalAudit,
-      setAdminAuditStatus,
-      loadAdminQuizQualityAudit,
-      setAdminQuizQualityStatus,
-      openAdminMemberDetail,
-      runAdminMemberAction,
-      closeAdminMemberDetailModal,
-      logoutAdminMember,
-      showTownView,
-      showClassroomView,
-      renderAdminClassroomReview,
-      setActiveAdminSection,
-      loadAdminNoticeBoard,
-      setAdminNoticeStatus,
-      saveAdminNoticeBoard,
-      loadAdminExternalQuizzes,
-      setAdminExternalQuizzesStatus,
-      saveAdminExternalQuizzes,
-      loadAdminLoginSettings,
-      setAdminLoginSettingsStatus,
-      saveAdminLoginSettings,
-      loadAdminFeatureFlags,
-      setAdminFeatureFlagsStatus,
-      saveAdminFeatureFlags,
-      resetAdminRoomCatalogForm,
-      loadAdminRoomCatalog,
-      setAdminRoomCatalogStatus,
-      saveAdminRoomCatalogItem,
-      setClassAdminPermission,
-      setAdminPermissionStatus,
-      loadAdminLogs,
-      setAdminLogsStatus
-    });
-
-    window.DJ48AccountController.bindAccountEvents({
-      handleMemberLinkSubmit,
-      setMemberLinkFormMode,
-      handleMemberPasswordResetClick,
-      handleMemberUnlinkClick,
-      handleMemberPasswordChangeClick
-    });
-
-    let roomDecorInitialized = false;
-    function initializeRoomDecorIfAvailable() {
-      if(roomDecorInitialized) return;
-      if(!window.RoomDecor || typeof window.RoomDecor.init !== 'function') return;
-      try {
-        window.RoomDecor.init({
-          getUserId: () => getCurrentDataOwnerId(),
-          onBack: () => showHomeView()
-        });
-        roomDecorInitialized = true;
-      } catch(error) {
-        console.warn('RoomDecor init failed.', error);
-      }
-    }
-
-    initializeAuthUser().finally(() => {
-      initializeRoomDecorIfAvailable();
-      window.addEventListener('load', initializeRoomDecorIfAvailable, { once: true });
-      setTimeout(initializeRoomDecorIfAvailable, 0);
+      eventEvents: {
+        claimEventQuestReward
+      },
+      classroomEvents: {
+        handleClassroomEntrySubmit,
+        saveClassroomQuestFromForm,
+        awardClassroomBadgeCampaignFromForm,
+        saveClassroomJobFromForm,
+        saveClassroomShopItemFromForm,
+        saveClassroomRoutineFromForm,
+        setActiveClassroomTab,
+        completeClassroomCheckQuest,
+        setClassroomSelectedGemBadge,
+        applyClassroomJob,
+        assignClassroomJob,
+        releaseClassroomJob,
+        claimClassroomJobSalary,
+        purchaseClassroomShopItem,
+        checkClassroomRoutine,
+        reviewClassroomQuestProgress
+      },
+      schoolEvents: {
+        showExternalQuizLinks,
+        ensurePopularSubjectAccess,
+        showSubjectView,
+        showSchoolView,
+        showQuizSelectView,
+        showQuizPlayView,
+        getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
+        getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
+      },
+      quizEvents: getQuizPlayEventDeps(),
+      shopEvents: {
+        purchaseShopItem,
+        saveRoomItemSelection
+      },
+      homeEvents: {
+        showRoomView,
+        saveProfileNicknameFromHome,
+        saveProfilePasswordFromHome,
+        searchProfileImageCandidatesFromHome,
+        saveSelectedProfileImageFromHome,
+        saveProfileRankingMessageFromHome,
+        handleProfileImageUploadFile,
+        closeProfileImageEditor,
+        updateProfileImageEditorPreview,
+        resetProfileImageEditorFromHome: () => {
+          if(!profileImageEditorState) return;
+          profileImageEditorState = {
+            ...profileImageEditorState,
+            profileImageScale: 1,
+            profileImageOffsetX: 0,
+            profileImageOffsetY: 0
+          };
+          setProfileImageEditorControls(profileImageEditorState);
+          updateProfileImageEditorPreview();
+        },
+        saveProfileImageEditorSelection,
+        setProfileImageEditorStatus,
+        openTitleCatalogModal,
+        renderProfileRankingRecordsFromFirestore,
+        saveProfileSelectedTitleFromHome,
+        renderHomeMemberDataFromFirestore
+      },
+      adminEvents: {
+        hideAdminTemporaryPassword,
+        loadAdminMembers,
+        setAdminStatus,
+        loadAdminDashboard,
+        setAdminDashboardStatus,
+        loadAdminOperationalAudit,
+        setAdminAuditStatus,
+        loadAdminQuizQualityAudit,
+        setAdminQuizQualityStatus,
+        openAdminMemberDetail,
+        runAdminMemberAction,
+        closeAdminMemberDetailModal,
+        logoutAdminMember,
+        showTownView,
+        showClassroomView,
+        renderAdminClassroomReview,
+        setActiveAdminSection,
+        loadAdminNoticeBoard,
+        setAdminNoticeStatus,
+        saveAdminNoticeBoard,
+        loadAdminExternalQuizzes,
+        setAdminExternalQuizzesStatus,
+        saveAdminExternalQuizzes,
+        loadAdminLoginSettings,
+        setAdminLoginSettingsStatus,
+        saveAdminLoginSettings,
+        loadAdminFeatureFlags,
+        setAdminFeatureFlagsStatus,
+        saveAdminFeatureFlags,
+        resetAdminRoomCatalogForm,
+        loadAdminRoomCatalog,
+        setAdminRoomCatalogStatus,
+        saveAdminRoomCatalogItem,
+        setClassAdminPermission,
+        setAdminPermissionStatus,
+        loadAdminLogs,
+        setAdminLogsStatus
+      },
+      accountEvents: {
+        handleMemberLinkSubmit,
+        setMemberLinkFormMode,
+        handleMemberPasswordResetClick,
+        handleMemberUnlinkClick,
+        handleMemberPasswordChangeClick
+      },
+      initializeAuthUser,
+      getRoomDecor: () => window.RoomDecor,
+      addWindowLoadListener: handler => window.addEventListener('load', handler, { once: true }),
+      defer: handler => setTimeout(handler, 0),
+      warn: console.warn
     });
   </script>
   <script src="/room.js"></script>
