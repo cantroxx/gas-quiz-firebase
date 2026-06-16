@@ -1402,6 +1402,7 @@
   <script src="/js/features/classroom-render.js"></script>
   <script src="/js/features/classroom-controller.js"></script>
   <script src="/js/domain/shop-domain.js"></script>
+  <script src="/js/application/shop-usecases.js"></script>
   <script src="/js/features/shop-state.js"></script>
   <script src="/js/features/shop-data.js"></script>
   <script src="/js/features/shop-render.js"></script>
@@ -4991,26 +4992,19 @@
     }
 
     async function getShopItemsForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(
-        window.DJ48ShopState.getShopItems(),
-        window.DJ48ShopState.getShopItemsLoadPromise(),
-        () => (
-        loadShopItemsFromFirestore()
-          .then(items => {
-            const result = window.DJ48ShopData.buildShopItemsResult(items, SHOP_ITEMS);
-            if(items.length) window.DJ48ShopState.setShopItems(result);
-            return result;
-          })
-          .catch(error => {
-            console.warn('Firestore shopItems read failed. Using static fallback SHOP_ITEMS.', error);
-            return SHOP_ITEMS;
-          })
-      ));
-      window.DJ48ShopState.setShopItemsLoadPromise(
-        cached.loadPromise || window.DJ48ShopState.getShopItemsLoadPromise() || cached.value
-      );
-      if(window.DJ48ShopState.getShopItems()) return window.DJ48ShopState.getShopItems();
-      return window.DJ48ShopState.getShopItemsLoadPromise();
+      return window.DJ48ShopUsecases.loadShopCachedValue({
+        shouldCache: items => Array.isArray(items) && items.length > 0,
+        warnMessage: 'Firestore shopItems read failed. Using static fallback SHOP_ITEMS.',
+        fallbackFactory: () => SHOP_ITEMS
+      }, {
+        getValue: window.DJ48ShopState.getShopItems,
+        setValue: window.DJ48ShopState.setShopItems,
+        getLoadPromise: window.DJ48ShopState.getShopItemsLoadPromise,
+        setLoadPromise: window.DJ48ShopState.setShopItemsLoadPromise,
+        loadValue: () => loadShopItemsFromFirestore()
+          .then(items => window.DJ48ShopData.buildShopItemsResult(items, SHOP_ITEMS)),
+        warn: console.warn
+      });
     }
 
     function resetShopRuntimeData() {
@@ -5030,25 +5024,17 @@
     }
 
     async function getAssetCatalogMap() {
-      const cached = window.DJ48ShopData.getCachedValue(
-        window.DJ48ShopState.getAssetCatalogMap(),
-        window.DJ48ShopState.getAssetCatalogLoadPromise(),
-        () => (
-        loadAssetCatalogFromFirestore()
-          .then(assetMap => {
-            window.DJ48ShopState.setAssetCatalogMap(assetMap);
-            return assetMap;
-          })
-          .catch(error => {
-            console.warn('Firestore assetCatalog read failed. Using shop item fallback icons.', error);
-            return {};
-          })
-      ));
-      window.DJ48ShopState.setAssetCatalogLoadPromise(
-        cached.loadPromise || window.DJ48ShopState.getAssetCatalogLoadPromise() || cached.value
-      );
-      if(window.DJ48ShopState.getAssetCatalogMap()) return window.DJ48ShopState.getAssetCatalogMap();
-      return window.DJ48ShopState.getAssetCatalogLoadPromise();
+      return window.DJ48ShopUsecases.loadShopCachedValue({
+        warnMessage: 'Firestore assetCatalog read failed. Using shop item fallback icons.',
+        fallbackFactory: () => ({})
+      }, {
+        getValue: window.DJ48ShopState.getAssetCatalogMap,
+        setValue: window.DJ48ShopState.setAssetCatalogMap,
+        getLoadPromise: window.DJ48ShopState.getAssetCatalogLoadPromise,
+        setLoadPromise: window.DJ48ShopState.setAssetCatalogLoadPromise,
+        loadValue: loadAssetCatalogFromFirestore,
+        warn: console.warn
+      });
     }
 
     async function migrateUserEconomyToMemberId(db, sourceUid, memberUserId) {
@@ -5178,37 +5164,28 @@
     }
 
     async function getUserEconomyForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(
-        window.DJ48ShopState.getUserEconomy(),
-        window.DJ48ShopState.getUserEconomyLoadPromise(),
-        () => (
-        loadUserEconomyFromFirestore()
-          .then(async economy => {
-            const ownerId = getCurrentDataOwnerId();
-            const userEconomy = await window.DJ48ShopData.buildUserEconomyForRender({
-              economy,
-              ownerId,
-              ensureUserEconomyInitialized,
-              fallbackCoin: USER_REWARD_DATA.coin,
-              useStaticRewardFallback: false
-            });
-            window.DJ48ShopState.setUserEconomy(userEconomy);
-            return userEconomy;
-          })
-          .catch(error => {
-            console.warn('Firestore userEconomy read failed. Using static reward fallback.', error);
-            return window.DJ48ShopData.buildEconomyFallback({
-              userId: getCurrentDataOwnerId() || '',
-              fallbackCoin: USER_REWARD_DATA.coin,
-              useStaticRewardFallback: isUsingTestUserFallback()
-            });
-          })
-      ));
-      window.DJ48ShopState.setUserEconomyLoadPromise(
-        cached.loadPromise || window.DJ48ShopState.getUserEconomyLoadPromise() || cached.value
-      );
-      if(window.DJ48ShopState.getUserEconomy()) return window.DJ48ShopState.getUserEconomy();
-      return window.DJ48ShopState.getUserEconomyLoadPromise();
+      return window.DJ48ShopUsecases.loadShopCachedValue({
+        warnMessage: 'Firestore userEconomy read failed. Using static reward fallback.',
+        fallbackFactory: () => window.DJ48ShopData.buildEconomyFallback({
+          userId: getCurrentDataOwnerId() || '',
+          fallbackCoin: USER_REWARD_DATA.coin,
+          useStaticRewardFallback: isUsingTestUserFallback()
+        })
+      }, {
+        getValue: window.DJ48ShopState.getUserEconomy,
+        setValue: window.DJ48ShopState.setUserEconomy,
+        getLoadPromise: window.DJ48ShopState.getUserEconomyLoadPromise,
+        setLoadPromise: window.DJ48ShopState.setUserEconomyLoadPromise,
+        loadValue: () => loadUserEconomyFromFirestore()
+          .then(economy => window.DJ48ShopData.buildUserEconomyForRender({
+            economy,
+            ownerId: getCurrentDataOwnerId(),
+            ensureUserEconomyInitialized,
+            fallbackCoin: USER_REWARD_DATA.coin,
+            useStaticRewardFallback: false
+          })),
+        warn: console.warn
+      });
     }
 
     async function loadInventoryItemIdsFromFirestore() {
@@ -5225,25 +5202,17 @@
     }
 
     async function getInventoryItemIdsForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(
-        window.DJ48ShopState.getInventoryItemIds(),
-        window.DJ48ShopState.getInventoryLoadPromise(),
-        () => (
-        loadInventoryItemIdsFromFirestore()
-          .then(itemIds => {
-            window.DJ48ShopState.setInventoryItemIds(itemIds);
-            return itemIds;
-          })
-          .catch(error => {
-            console.warn('Firestore userInventory read failed. Treating inventory as empty.', error);
-            return new Set();
-          })
-      ));
-      window.DJ48ShopState.setInventoryLoadPromise(
-        cached.loadPromise || window.DJ48ShopState.getInventoryLoadPromise() || cached.value
-      );
-      if(window.DJ48ShopState.getInventoryItemIds()) return window.DJ48ShopState.getInventoryItemIds();
-      return window.DJ48ShopState.getInventoryLoadPromise();
+      return window.DJ48ShopUsecases.loadShopCachedValue({
+        warnMessage: 'Firestore userInventory read failed. Treating inventory as empty.',
+        fallbackFactory: () => new Set()
+      }, {
+        getValue: window.DJ48ShopState.getInventoryItemIds,
+        setValue: window.DJ48ShopState.setInventoryItemIds,
+        getLoadPromise: window.DJ48ShopState.getInventoryLoadPromise,
+        setLoadPromise: window.DJ48ShopState.setInventoryLoadPromise,
+        loadValue: loadInventoryItemIdsFromFirestore,
+        warn: console.warn
+      });
     }
 
     async function loadRoomSettingsFromFirestore() {
@@ -5260,36 +5229,26 @@
     }
 
     async function getRoomSettingsForRender() {
-      const cached = window.DJ48ShopData.getCachedValue(
-        window.DJ48ShopState.getRoomSettings(),
-        window.DJ48ShopState.getRoomSettingsLoadPromise(),
-        () => (
-        loadRoomSettingsFromFirestore()
-          .then(settings => {
-            window.DJ48ShopState.setRoomSettings(settings);
-            return settings;
-          })
-          .catch(error => {
-            console.warn('Firestore userRoomSettings read failed. Using empty room settings.', error);
-            return getDefaultRoomSettings();
-          })
-      ));
-      window.DJ48ShopState.setRoomSettingsLoadPromise(
-        cached.loadPromise || window.DJ48ShopState.getRoomSettingsLoadPromise() || cached.value
-      );
-      if(window.DJ48ShopState.getRoomSettings()) return window.DJ48ShopState.getRoomSettings();
-      return window.DJ48ShopState.getRoomSettingsLoadPromise();
+      return window.DJ48ShopUsecases.loadShopCachedValue({
+        warnMessage: 'Firestore userRoomSettings read failed. Using empty room settings.',
+        fallbackFactory: getDefaultRoomSettings
+      }, {
+        getValue: window.DJ48ShopState.getRoomSettings,
+        setValue: window.DJ48ShopState.setRoomSettings,
+        getLoadPromise: window.DJ48ShopState.getRoomSettingsLoadPromise,
+        setLoadPromise: window.DJ48ShopState.setRoomSettingsLoadPromise,
+        loadValue: loadRoomSettingsFromFirestore,
+        warn: console.warn
+      });
     }
 
     async function getShopRenderData() {
-      const [items, assetCatalogMap, economy, inventoryItemIds] = await Promise.all([
-        getShopItemsForRender(),
-        getAssetCatalogMap(),
-        getUserEconomyForRender(),
-        getInventoryItemIdsForRender()
-      ]);
-
-      return { items, assetCatalogMap, economy, inventoryItemIds };
+      return window.DJ48ShopUsecases.getShopRenderData({
+        getShopItemsForRender,
+        getAssetCatalogMap,
+        getUserEconomyForRender,
+        getInventoryItemIdsForRender
+      });
     }
 
     function resolveShopItemVisual(item, assetCatalogMap = {}) {
@@ -5329,23 +5288,16 @@
     }
 
     async function purchaseShopItem(itemId) {
-      try {
-        await prepareMemberOwnedData();
-        const userId = requireCurrentDataOwnerId();
-        await window.DJ48ShopData.purchaseShopItem({
-          memberUserId: userId,
-          itemId
-        }, {
-          getFirebaseFunctions
-        });
-
-        resetShopRuntimeData();
-        await renderShopFromFirestore();
-        showShopPurchaseMessage('구매가 완료됐어요.');
-      } catch(error) {
-        console.warn('Shop purchase failed.', error);
-        showShopPurchaseMessage(window.DJ48ShopData.getShopPurchaseErrorMessage(error));
-      }
+      await window.DJ48ShopUsecases.purchaseShopItemFlow({ itemId }, {
+        prepareMemberOwnedData,
+        requireCurrentDataOwnerId,
+        purchaseShopItem: payload => window.DJ48ShopData.purchaseShopItem(payload, { getFirebaseFunctions }),
+        resetShopRuntimeData,
+        renderShop: renderShopFromFirestore,
+        showMessage: showShopPurchaseMessage,
+        getShopPurchaseErrorMessage: window.DJ48ShopData.getShopPurchaseErrorMessage,
+        warn: console.warn
+      });
     }
 
     async function renderShopFromFirestore() {
@@ -5355,32 +5307,23 @@
     }
 
     async function saveRoomItemSelection(itemId) {
-      const db = getFirestoreDb();
-      if(!db) {
-        showShopPurchaseMessage('내 집 설정을 저장할 수 없어요.');
-        return;
-      }
-
-      try {
-        await prepareMemberOwnedData();
-        const userId = requireCurrentDataOwnerId();
-        await window.DJ48ShopData.saveRoomItemSelection({
-          db,
-          userId,
-          itemId
-        }, {
+      await window.DJ48ShopUsecases.saveRoomItemSelectionFlow({ itemId }, {
+        getFirestoreDb,
+        prepareMemberOwnedData,
+        requireCurrentDataOwnerId,
+        saveRoomItemSelection: options => window.DJ48ShopData.saveRoomItemSelection(options, {
           normalizeShopItemFromFirestore,
           normalizeRoomSettingsFromFirestore,
           getRoomItemCategory,
           isRoomItemSelected,
           getFirestoreFieldValue
-        });
-        resetRoomSettingsCache();
-        await renderHomeOwnedItemsFromFirestore();
-      } catch(error) {
-        console.warn('Room item save failed.', error);
-        showShopPurchaseMessage(window.DJ48ShopData.getRoomItemSaveErrorMessage(error));
-      }
+        }),
+        resetRoomSettingsCache,
+        renderHomeOwnedItems: renderHomeOwnedItemsFromFirestore,
+        showMessage: showShopPurchaseMessage,
+        getRoomItemSaveErrorMessage: window.DJ48ShopData.getRoomItemSaveErrorMessage,
+        warn: console.warn
+      });
     }
 
     function renderEventSections(data = {}) {
