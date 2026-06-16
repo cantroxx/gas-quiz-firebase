@@ -208,11 +208,15 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: current member/profile state, profile write orchestration, quiz timer/save wrappers, ranking render wrappers.
+   - First candidates: classroom orchestration wrappers, admin boot-time load orchestration, profile image editor/upload wrappers, and quiz-play view entry wrappers.
    - Keep one integration owner for `public/index.html`.
-2. Add targeted browser smoke coverage for admin/account/profile write flows before moving more high-risk write logic.
-3. Continue moving Firebase-heavy logic out of `*-data.js` into the repository adapters when touching each feature.
-4. Move bootstrap dependency event object assembly out of inline `index.html` once remaining callbacks no longer depend on local-only variables.
+2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
+   - Highest remaining candidate: `public/js/infrastructure/classroom-repository.js`, because it still delegates many Firestore/callable paths to `classroom-data.js`.
+   - Smaller candidates: profile repository writes currently delegate to account data helpers; shop repository still delegates to shop data helpers.
+3. Stabilize optional write smoke flows before using them as gates.
+   - Required default smoke remains the authenticated practice/ranking/home/features flow.
+   - Optional profile/admin write smoke should be treated as targeted diagnostics until their setup and restore behavior are stable across production UI state.
+4. Continue bootstrap object assembly reduction by feature section once callbacks no longer depend on local-only variables.
 5. Keep the same validation gate:
    - `npm run check`
    - authenticated browser smoke with the 4-8-23 test account when user-visible runtime code changes.
@@ -220,18 +224,19 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 ## Parallel Terminal Shape
 
 - Terminal A, UI/presentation: `public/styles.css`, `public/js/features/*-render.js`, `public/js/features/*-controller.js`.
-- Terminal B, quiz/ranking: `public/js/domain/quiz-domain.js`, `public/js/application/quiz-usecases.js`, `public/js/infrastructure/quiz-repository.js`, ranking domain/usecase/repository files.
-- Terminal C, data/repository/backend: `public/js/infrastructure/*-repository.js`, `public/js/features/*-data.js`, `functions/index.js`, Firestore/Storage rules.
+- Terminal B, quiz/ranking: `public/js/domain/quiz-domain.js`, `public/js/application/quiz-usecases.js`, `public/js/features/quiz-*`, `public/js/infrastructure/quiz-repository.js`, ranking domain/usecase/repository files.
+- Terminal C, data/repository/backend: `public/js/infrastructure/*-repository.js`, `public/js/features/*-data.js`, `functions/index.js`, Firestore/Storage rules. Prefer one repository file per terminal.
 - Terminal D, verification/docs: `scripts/smoke`, `tests`, `docs/architecture`, `docs/operations`.
-- Terminal E, app shell integration: `public/index.html`, `public/js/app/bootstrap.js`; keep this exclusive.
+- Terminal E, app shell integration: `public/index.html`, `public/js/app/bootstrap.js`; keep this exclusive and reserve it for dependency grouping, view routing, and bootstrap object assembly.
 
 Do not run concurrent edits against `public/index.html` unless each terminal owns clearly separate line ranges and a final integration pass is planned.
 
 ## Next Execution Order
 
-1. Add targeted authenticated smoke coverage for one high-risk account/profile/admin write flow.
-2. Move `currentMemberUserId/currentMemberProfile` state application behind account/home state helpers.
-3. Move one remaining quiz timer/save orchestration group out of `public/index.html`.
-4. Move one ranking render/profile wrapper group out of `public/index.html`.
-5. Re-run `npm run check` and authenticated browser smoke.
-6. Commit/push/deploy only when explicitly requested and smoke passes.
+1. Move one classroom repository path from `classroom-data.js` delegation into `classroom-repository.js`, starting with a read-only callable or Firestore read path.
+2. Move one app-shell bootstrap event group out of inline `getAppBootstrapControllerSections()`, starting with shop or account events.
+3. Move one remaining `public/index.html` profile image/editor orchestration wrapper into `home-controller` or `profile-usecases`.
+4. Move one quiz-play view entry wrapper or render dependency group out of `public/index.html`.
+5. Stabilize optional profile write smoke separately before making it a required gate.
+6. Re-run `npm run check` and authenticated browser smoke.
+7. Commit/push/deploy only when explicitly requested and smoke passes.
