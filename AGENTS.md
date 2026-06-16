@@ -42,23 +42,29 @@
 
 ## 임시 재개 메모
 
-* 2026-06-16 기준 마지막 완료 묶음은 엄격한 클린 아키텍처 라운드 12~15 순차 진행이다.
-* 완료된 마지막 리팩터링 커밋은 `c979a8a refactor: remove legacy ranking and shop data adapters`이며, 작업 트리는 최종 재개 메모 갱신 후 깨끗한 상태로 종료한다.
+* 2026-06-16 기준 마지막 완료 묶음은 엄격한 클린 아키텍처 라운드 16~20 순차 진행이다.
+* 완료된 마지막 리팩터링 커밋은 `a8deb00 refactor: move shop render loaders into usecases`이며, 작업 트리는 최종 재개 메모 갱신 후 깨끗한 상태로 종료한다.
 * 완료 범위:
-  * ranking plaza records, member profile enrichment, selected-title fallback, profile-image Storage URL resolution을 ranking-repository로 이동
-  * shop item, asset catalog, user economy, inventory, room-settings read paths를 shop-repository로 이동
-  * ranking-data/shop-data의 중복 Firebase-heavy adapter 제거
+  * quiz ranking/practice/badge completion writes와 reward/title callables를 quiz-repository로 이동
+  * classroom-data, event-data, admin-data의 중복 Firebase-heavy adapter 제거
+  * account restore/link profile Firestore reads를 account-repository로 이동
+  * account-data의 미사용 profile write/upload 중복 구현 제거
+  * shop render cache/read orchestration wrappers를 shop-usecases로 이동
   * `public/index.html`의 직접 `httpsCallable` 및 `.collection(` 접근 0건 재확인
-  * `ranking-data.js`와 `shop-data.js`의 직접 Firebase/Storage 접근 제거 확인
-  * 병렬 작업 계획 문서를 라운드 12~15 완료 상태와 다음 실행 순서 기준으로 갱신
+  * `public/js/features/*-data.js`와 `public/js/features/quiz-play.js`의 직접 Firebase/Storage 접근 제거 확인
+  * 병렬 작업 계획 문서를 라운드 16~20 완료 상태와 다음 실행 순서 기준으로 갱신
 * 마지막 검증:
-  * `node tests/infrastructure/ranking-repository.test.js` 통과
-  * `node tests/infrastructure/shop-repository.test.js` 통과
+  * `node tests/infrastructure/quiz-repository.test.js` 통과
+  * `node tests/infrastructure/classroom-repository.test.js` 통과
+  * `node tests/infrastructure/event-repository.test.js` 통과
+  * `node tests/infrastructure/admin-repository.test.js` 통과
+  * `node tests/infrastructure/account-repository.test.js` 통과
+  * `node tests/application/shop-usecases.test.js` 통과
   * `npm run check:static` 통과
   * `npm run check` 통과
   * `SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser` 운영 사이트 인증 smoke 통과
 * 다음 작업 기준 문서는 `docs/architecture/PARALLEL_WORK_PLAN.md`이다.
-* 다음 추천 방향은 quiz result/practice/badge write 구현을 quiz-repository로 이동, duplicated classroom/event/admin legacy Firebase helpers 축소 또는 제거, selected account restore/profile helper paths를 account/profile repositories로 이동하는 것이다.
+* 다음 추천 방향은 remaining account lifecycle/app-view wrappers, profile/home callback groups, classroom/event render orchestration, bootstrap dependency groups를 `public/index.html` 밖으로 이동하는 것이다.
 * 선택형 profile write smoke는 ranking-message 저장/복원 기준으로 안정화했지만 생산 프로필 데이터를 쓰므로 전용 smoke 계정에서만 실행한다. admin write smoke는 emulator/test-project/dry-run 또는 exact-restore 조건이 없으면 금지한다.
 * 이 메모는 재개용 임시 기록이다. 다음 목표가 확정되면 유지/삭제/갱신 여부를 보고한다.
 
