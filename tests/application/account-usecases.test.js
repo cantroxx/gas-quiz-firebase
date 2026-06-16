@@ -107,6 +107,96 @@ async function testUnlinkCurrentMemberFlow() {
   assert.deepEqual(calls.map(call => call[0]), ['status', 'renderLoggedOut', 'status', 'login']);
 }
 
+function testAccountSessionStateFlows() {
+  const calls = [];
+  const profile = { userId: 'member-1' };
+  const restored = accountUsecases.applyRestoredMemberProfileFlow(profile, {
+    getRestoredMemberState: nextProfile => ({
+      currentMemberUserId: nextProfile.userId,
+      currentMemberProfile: nextProfile,
+      linkedMemberHintUserId: nextProfile.userId,
+      shouldResetUserScopedRuntimeData: true
+    }),
+    setCurrentMemberSession: state => calls.push(['session', state.currentMemberUserId]),
+    maybeSaveLinkedMemberHint: userId => calls.push(['hint', userId]),
+    resetUserScopedRuntimeData: () => calls.push(['reset'])
+  });
+
+  assert.equal(restored, profile);
+  assert.deepEqual(calls, [
+    ['session', 'member-1'],
+    ['hint', 'member-1'],
+    ['reset']
+  ]);
+
+  const resolved = accountUsecases.handleResolvedUserChangeFlow('test-user', {
+    getLastResolvedUserId: () => 'member-1',
+    setLastResolvedUserId: userId => calls.push(['last', userId]),
+    testShopUserId: 'test-user',
+    getResolvedUserChangeState: () => ({
+      shouldClearMemberProfile: true,
+      shouldClearLinkedMemberHint: true,
+      shouldResetUserScopedRuntimeData: true,
+      nextLastResolvedUserId: 'test-user'
+    }),
+    clearCurrentMemberSession: () => calls.push(['clear-session']),
+    clearLinkedMemberHint: () => calls.push(['clear-hint']),
+    resetUserScopedRuntimeData: () => calls.push(['reset-2'])
+  });
+
+  assert.equal(resolved.nextLastResolvedUserId, 'test-user');
+  assert.deepEqual(calls.slice(3), [
+    ['clear-session'],
+    ['clear-hint'],
+    ['reset-2'],
+    ['last', 'test-user']
+  ]);
+}
+
+async function testRestoreAndLinkFlows() {
+  const calls = [];
+  const restored = await accountUsecases.restoreLinkedMemberFromAuthUidFlow({
+    testShopUserId: 'test-user'
+  }, {
+    getFirestoreDb: () => 'db',
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getCurrentMemberUserId: () => '',
+    getCurrentMemberProfile: () => null,
+    getLinkedMemberHint: () => 'member-1',
+    restoreLinkedMemberProfile: async (options, deps) => {
+      calls.push(['restore', options.authUid, options.hintedMemberUserId, !!deps.applyRestoredMemberProfile]);
+      return { userId: 'member-1' };
+    },
+    applyRestoredMemberProfile: () => {},
+    clearLinkedMemberHint: () => {},
+    warn: () => {}
+  });
+  assert.equal(restored.userId, 'member-1');
+
+  const linked = await accountUsecases.linkImportedMemberToCurrentAuthUserFlow({
+    password: '1111'
+  }, {
+    getFirestoreDb: () => 'db',
+    initializeAuthUser: async () => ({ uid: 'auth-1' }),
+    getFirebaseAuthUser: () => null,
+    defaultMemberSchool: '동자',
+    getAccountCallableDeps: () => ({ callAccountCallable: async () => ({}) }),
+    linkMemberWithPassword: async () => ({ success: true, memberUserId: 'member-1', forcePasswordChange: true }),
+    loadLinkedMemberProfile: async () => ({ userId: 'member-1' }),
+    setCurrentMemberSession: state => calls.push(['session', state.currentMemberUserId]),
+    setPendingPasswordChange: state => calls.push(['pending', state.memberUserId]),
+    maybeSaveLinkedMemberHint: userId => calls.push(['hint', userId]),
+    resetUserScopedRuntimeData: () => calls.push(['reset']),
+    migrateUserDataToMemberIdIfNeeded: async () => calls.push(['migrate']),
+    warn: () => {}
+  });
+
+  assert.equal(linked.userId, 'member-1');
+  assert(calls.some(call => call[0] === 'restore'));
+  assert(calls.some(call => call[0] === 'pending' && call[1] === 'member-1'));
+  assert(calls.some(call => call[0] === 'migrate'));
+}
+
 async function testInitializeAuthUserLifecycleWithoutAuthUsesFallback() {
   const calls = [];
   const promise = accountUsecases.initializeAuthUserLifecycle({
@@ -169,6 +259,8 @@ async function run() {
   await testResetMemberPasswordFlow();
   await testChangePendingMemberPasswordFlow();
   await testUnlinkCurrentMemberFlow();
+  testAccountSessionStateFlows();
+  await testRestoreAndLinkFlows();
   await testInitializeAuthUserLifecycleWithoutAuthUsesFallback();
   await testInitializeAuthUserLifecycleAttachesListenerAndStoresPromise();
   console.log('Application tests passed: account-usecases');

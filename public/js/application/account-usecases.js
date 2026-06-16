@@ -98,6 +98,87 @@
     }
   }
 
+  function applyRestoredMemberProfileFlow(profile, deps = {}) {
+    const state = deps.getRestoredMemberState(profile);
+    deps.setCurrentMemberSession({
+      currentMemberUserId: state.currentMemberUserId,
+      currentMemberProfile: state.currentMemberProfile
+    });
+    if(state.linkedMemberHintUserId) deps.maybeSaveLinkedMemberHint?.(state.linkedMemberHintUserId);
+    if(state.shouldResetUserScopedRuntimeData) deps.resetUserScopedRuntimeData?.();
+    return profile;
+  }
+
+  function handleResolvedUserChangeFlow(nextUserId, deps = {}) {
+    const state = deps.getResolvedUserChangeState({
+      lastResolvedUserId: deps.getLastResolvedUserId?.(),
+      nextUserId,
+      testShopUserId: deps.testShopUserId
+    });
+    if(state.shouldClearMemberProfile) {
+      deps.clearCurrentMemberSession?.();
+      if(state.shouldClearLinkedMemberHint) deps.clearLinkedMemberHint?.();
+      if(state.shouldResetUserScopedRuntimeData) deps.resetUserScopedRuntimeData?.();
+    }
+    deps.setLastResolvedUserId?.(state.nextLastResolvedUserId);
+    return state;
+  }
+
+  async function restoreLinkedMemberFromAuthUidFlow(options = {}, deps = {}) {
+    const db = deps.getFirestoreDb?.();
+    const authUid = deps.getFirebaseAuthUser?.()?.uid || '';
+    return deps.restoreLinkedMemberProfile({
+      db,
+      authUid,
+      currentMemberUserId: deps.getCurrentMemberUserId?.(),
+      currentMemberProfile: deps.getCurrentMemberProfile?.(),
+      hintedMemberUserId: deps.getLinkedMemberHint?.(),
+      testShopUserId: options.testShopUserId
+    }, {
+      applyRestoredMemberProfile: deps.applyRestoredMemberProfile,
+      clearLinkedMemberHint: deps.clearLinkedMemberHint,
+      warn: deps.warn
+    });
+  }
+
+  async function linkImportedMemberToCurrentAuthUserFlow(values = {}, deps = {}) {
+    const db = deps.getFirestoreDb?.();
+    if(!db) throw new Error('firestore-unavailable');
+
+    const authUser = await deps.initializeAuthUser();
+    const authUid = authUser?.uid || deps.getFirebaseAuthUser?.()?.uid || '';
+    if(!authUid) throw new Error('auth-required');
+
+    const result = await deps.linkMemberWithPassword(values, {
+      defaultMemberSchool: deps.defaultMemberSchool,
+      ...deps.getAccountCallableDeps()
+    });
+    const linkedProfile = await deps.loadLinkedMemberProfile({
+      db,
+      authUid,
+      result
+    });
+
+    deps.setCurrentMemberSession({
+      currentMemberUserId: result.memberUserId,
+      currentMemberProfile: linkedProfile
+    });
+    deps.setPendingPasswordChange(result.forcePasswordChange === true
+      ? {
+        memberUserId: result.memberUserId,
+        currentPassword: String(values.password || '')
+      }
+      : null);
+    deps.maybeSaveLinkedMemberHint?.(result.memberUserId);
+    deps.resetUserScopedRuntimeData?.();
+    try {
+      await deps.migrateUserDataToMemberIdIfNeeded?.();
+    } catch(error) {
+      deps.warn?.('Member owned data migration after auth link failed. Auth link remains active.', error);
+    }
+    return linkedProfile;
+  }
+
   function initializeAuthUserLifecycle(options = {}, deps = {}) {
     const activeInitPromise = deps.getFirebaseAuthInitPromise?.();
     if(activeInitPromise) return activeInitPromise;
@@ -142,7 +223,11 @@
     resetMemberPasswordFlow,
     changePendingMemberPasswordFlow,
     unlinkCurrentMemberFlow,
-    initializeAuthUserLifecycle
+    applyRestoredMemberProfileFlow,
+    handleResolvedUserChangeFlow,
+    initializeAuthUserLifecycle,
+    linkImportedMemberToCurrentAuthUserFlow,
+    restoreLinkedMemberFromAuthUidFlow
   };
 
   root.DJ48AccountUsecases = api;

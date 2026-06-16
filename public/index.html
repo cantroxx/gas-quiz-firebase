@@ -4082,14 +4082,12 @@
     }
 
     function applyRestoredMemberProfile(profile) {
-      const state = window.DJ48AccountData.getRestoredMemberState(profile);
-      window.DJ48AccountState.setCurrentMemberSession({
-        currentMemberUserId: state.currentMemberUserId,
-        currentMemberProfile: state.currentMemberProfile
+      return window.DJ48AccountUsecases.applyRestoredMemberProfileFlow(profile, {
+        getRestoredMemberState: window.DJ48AccountData.getRestoredMemberState,
+        setCurrentMemberSession: window.DJ48AccountState.setCurrentMemberSession,
+        maybeSaveLinkedMemberHint,
+        resetUserScopedRuntimeData
       });
-      if(state.linkedMemberHintUserId) maybeSaveLinkedMemberHint(state.linkedMemberHintUserId);
-      if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
-      return profile;
     }
 
     function isRestorableMemberProfile(profile, authUid) {
@@ -4143,17 +4141,17 @@
     }
 
     function handleResolvedUserChange(nextUserId) {
-      const state = window.DJ48AccountData.getResolvedUserChangeState({
-        lastResolvedUserId,
-        nextUserId,
-        testShopUserId: TEST_SHOP_USER_ID
+      return window.DJ48AccountUsecases.handleResolvedUserChangeFlow(nextUserId, {
+        getLastResolvedUserId: () => lastResolvedUserId,
+        setLastResolvedUserId: value => {
+          lastResolvedUserId = value;
+        },
+        testShopUserId: TEST_SHOP_USER_ID,
+        getResolvedUserChangeState: window.DJ48AccountData.getResolvedUserChangeState,
+        clearCurrentMemberSession: window.DJ48AccountState.clearCurrentMemberSession,
+        clearLinkedMemberHint,
+        resetUserScopedRuntimeData
       });
-      if(state.shouldClearMemberProfile) {
-        window.DJ48AccountState.clearCurrentMemberSession();
-        if(state.shouldClearLinkedMemberHint) clearLinkedMemberHint();
-        if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
-      }
-      lastResolvedUserId = state.nextLastResolvedUserId;
     }
 
     async function signInAnonymouslyIfNeeded() {
@@ -4161,16 +4159,15 @@
     }
 
     async function restoreLinkedMemberFromAuthUid() {
-      const db = getFirestoreDb();
-      const authUid = getFirebaseAuthUser()?.uid || '';
-      return getAccountRepository().restoreLinkedMemberProfile({
-        db,
-        authUid,
-        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
-        currentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile(),
-        hintedMemberUserId: getLinkedMemberHint(),
+      return window.DJ48AccountUsecases.restoreLinkedMemberFromAuthUidFlow({
         testShopUserId: TEST_SHOP_USER_ID
       }, {
+        getFirestoreDb,
+        getFirebaseAuthUser,
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
+        getLinkedMemberHint,
+        restoreLinkedMemberProfile: (options, deps) => getAccountRepository().restoreLinkedMemberProfile(options, deps),
         applyRestoredMemberProfile,
         clearLinkedMemberHint,
         warn: console.warn
@@ -4215,41 +4212,21 @@
     }
 
     async function linkImportedMemberToCurrentAuthUser(values) {
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-
-      const authUser = await initializeAuthUser();
-      const authUid = authUser?.uid || getFirebaseAuthUser()?.uid || '';
-      if(!authUid) throw new Error('auth-required');
-
-      const result = await window.DJ48AccountData.linkMemberWithPassword(values, {
+      return window.DJ48AccountUsecases.linkImportedMemberToCurrentAuthUserFlow(values, {
+        getFirestoreDb,
+        initializeAuthUser,
+        getFirebaseAuthUser,
         defaultMemberSchool: DEFAULT_MEMBER_SCHOOL,
-        ...getAccountCallableDeps()
+        getAccountCallableDeps,
+        linkMemberWithPassword: window.DJ48AccountData.linkMemberWithPassword,
+        loadLinkedMemberProfile: options => getAccountRepository().loadLinkedMemberProfile(options),
+        setCurrentMemberSession: window.DJ48AccountState.setCurrentMemberSession,
+        setPendingPasswordChange: window.DJ48AccountState.setPendingPasswordChange,
+        maybeSaveLinkedMemberHint,
+        resetUserScopedRuntimeData,
+        migrateUserDataToMemberIdIfNeeded,
+        warn: console.warn
       });
-      const linkedProfile = await getAccountRepository().loadLinkedMemberProfile({
-        db,
-        authUid,
-        result
-      });
-
-      window.DJ48AccountState.setCurrentMemberSession({
-        currentMemberUserId: result.memberUserId,
-        currentMemberProfile: linkedProfile
-      });
-      window.DJ48AccountState.setPendingPasswordChange(result.forcePasswordChange === true
-        ? {
-          memberUserId: result.memberUserId,
-          currentPassword: String(values.password || '')
-        }
-        : null);
-      maybeSaveLinkedMemberHint(result.memberUserId);
-      resetUserScopedRuntimeData();
-      try {
-        await migrateUserDataToMemberIdIfNeeded();
-      } catch(error) {
-        console.warn('Member owned data migration after auth link failed. Auth link remains active.', error);
-      }
-      return linkedProfile;
     }
 
     async function changeCurrentMemberPassword(newPassword, passwordConfirm) {
