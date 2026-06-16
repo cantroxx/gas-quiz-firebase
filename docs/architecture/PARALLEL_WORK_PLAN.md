@@ -244,15 +244,22 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 62. Re-audited app shell and feature data files:
     - `public/index.html` remains at zero direct matches for `httpsCallable` and `.collection(`.
     - Remaining Firebase-heavy feature-data candidates are mainly `ranking-data.js`, `shop-data.js`, `event-data.js`, `classroom-data.js`, `admin-data.js`, and selected account restore/profile helpers.
+63. Moved ranking plaza record reads, member profile enrichment reads, selected-title fallback reads, and profile-image Storage URL resolution into `public/js/infrastructure/ranking-repository.js`.
+64. Moved shop item, asset catalog, user economy, inventory, and room-settings read paths into `public/js/infrastructure/shop-repository.js`.
+65. Removed legacy ranking/shop Firebase-heavy adapters from `public/js/features/ranking-data.js` and `public/js/features/shop-data.js`.
+66. Re-audited Firebase access boundaries after rounds 12~15:
+    - `public/index.html` remains at zero direct matches for `httpsCallable` and `.collection(`.
+    - `ranking-data.js` and `shop-data.js` no longer contain direct Firebase/Storage access.
+    - Remaining feature-data Firebase-heavy candidates are `event-data.js`, `classroom-data.js`, `admin-data.js`, and selected `account-data.js` restore/profile helper paths. `quiz-play.js` still owns quiz result/practice/badge write implementations and should be treated as a separate quiz-flow repository cleanup target.
 
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: remaining account lifecycle/app-view wrappers, ranking plaza profile enrichment orchestration, and shop cache/read orchestration.
+   - First candidates: remaining account lifecycle/app-view wrappers, shop cache/render orchestration, and profile/home callback groups.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
-   - Highest remaining candidates are ranking profile enrichment reads/storage URL resolution and shop read-only cache sources.
-   - Legacy candidates that may be removable or reducible: classroom-data Firebase implementations already duplicated in classroom-repository, event-data/admin-data callable wrappers already covered by repositories, and account-data profile image write helpers now duplicated in profile-repository.
+   - Ranking/shop read adapters are now repository-owned.
+   - Highest remaining candidates are `event-data.js` and `admin-data.js` callable wrappers, duplicated `classroom-data.js` Firebase implementations already covered by `classroom-repository.js`, selected `account-data.js` restore/profile helper paths, and quiz result/practice/badge writes in `quiz-play.js`.
 3. Keep optional write smoke flows targeted instead of required gates.
    - Required default smoke remains the authenticated practice/ranking/home/features flow.
    - Optional profile write smoke is stabilized for ranking-message save/restore but still writes production profile data, so run it only with a dedicated smoke account.
@@ -274,11 +281,15 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 
 ## Next Execution Order
 
-1. Move ranking profile enrichment reads and profile image storage URL resolution from `ranking-data.js` into `ranking-repository.js`.
-2. Move remaining shop read-only Firestore helpers from `shop-data.js` into `shop-repository.js` while leaving pure normalization helpers in `shop-data.js`.
-3. Remove or shrink duplicated classroom/event/admin/account Firebase-heavy legacy helpers only after confirming no public references remain.
-4. Move remaining account lifecycle/app-view wrappers out of `public/index.html` when callback dependencies are stable.
-5. Recheck `public/index.html` for direct Firebase access and broad app-shell state coupling.
-6. Add or extend targeted tests for each moved repository/usecase path before broad smoke.
-7. Re-run `npm run check` and authenticated browser smoke.
-8. Commit/push/deploy only when explicitly requested and smoke passes.
+1. Move quiz result/practice/badge write implementations from `public/js/features/quiz-play.js` into `public/js/infrastructure/quiz-repository.js`.
+2. Add focused infrastructure tests for quiz ranking/practice/badge writes before changing app-shell flow.
+3. Remove or shrink duplicated classroom Firebase-heavy helpers from `public/js/features/classroom-data.js` after confirming all public callers use `classroom-repository.js`.
+4. Remove or shrink duplicated event callable helpers from `public/js/features/event-data.js` after confirming all public callers use `event-repository.js`.
+5. Remove or shrink duplicated admin callable helpers from `public/js/features/admin-data.js` after confirming all public callers use `admin-repository.js`.
+6. Move selected account restore/profile Firestore and Storage helper paths from `public/js/features/account-data.js` into account/profile repositories.
+7. Move remaining account lifecycle/app-view wrappers out of `public/index.html` when callback dependencies are stable.
+8. Move shop cache/read orchestration from `public/index.html` into `shop-usecases.js` or a shop controller once repository reads stay stable.
+9. Recheck `public/index.html` for direct Firebase access and broad app-shell state coupling after each group.
+10. Add or extend targeted tests for each moved repository/usecase path before broad smoke.
+11. Re-run `npm run check` and authenticated browser smoke.
+12. Commit/push/deploy only when explicitly requested and smoke passes.
