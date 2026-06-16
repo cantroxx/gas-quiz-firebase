@@ -356,9 +356,20 @@ async function runHomeProfileCheck(page) {
   await page.locator('[data-home-detail-toggle="titles"]').click();
   await page.locator('[data-home-detail-toggle="badges"]').click();
   if(await page.locator('[data-profile-detail-toggle]').count()) {
-    await page.locator('[data-profile-detail-toggle]').first().click();
-    const expanded = await page.locator('[data-profile-detail-toggle]').first().getAttribute('aria-expanded');
+    const toggle = page.locator('[data-profile-detail-toggle]').first();
+    await ensureProfileDetailPanelOpen(page, toggle);
+    const expanded = await toggle.getAttribute('aria-expanded');
     assert.equal(expanded, 'true');
+  }
+}
+
+async function ensureProfileDetailPanelOpen(page, toggle) {
+  await toggle.waitFor({ state: 'visible', timeout: 15000 });
+  const detailKey = await toggle.getAttribute('data-profile-detail-toggle');
+  const expanded = await toggle.getAttribute('aria-expanded');
+  if(expanded !== 'true') await toggle.click();
+  if(detailKey) {
+    await page.locator(`[data-profile-detail-panel="${detailKey}"]`).waitFor({ state: 'visible', timeout: 15000 });
   }
 }
 
@@ -367,35 +378,56 @@ async function runProfileWriteFlow(page) {
   await waitForVisible(page, '#home-view');
   await page.locator('#profile-card-root').waitFor({ state: 'visible' });
   const messageToggle = page.locator('[data-profile-detail-toggle="message"]');
-  await messageToggle.waitFor({ state: 'visible', timeout: 15000 });
-  await messageToggle.click();
+  await ensureProfileDetailPanelOpen(page, messageToggle);
   const input = page.locator('#profile-ranking-message-input');
-  const button = page.locator('#profile-ranking-message-save-button');
   const status = page.locator('#profile-ranking-message-status');
   await input.waitFor({ state: 'visible', timeout: 15000 });
   const originalMessage = await input.inputValue();
   const smokeMessage = `smoke-${Date.now().toString(36).slice(-6)}`;
 
-  async function saveMessage(message, expectedPattern) {
-    if(!await input.isVisible()) {
-      await messageToggle.click();
-      await input.waitFor({ state: 'visible', timeout: 15000 });
+  async function saveMessage(message, expectedPattern, options = {}) {
+    const nextInput = page.locator('#profile-ranking-message-input');
+    await ensureProfileDetailPanelOpen(page, messageToggle);
+    await nextInput.waitFor({ state: 'visible', timeout: 15000 });
+    await nextInput.fill(message);
+    const clicked = await page.evaluate(() => {
+      const button = document.getElementById('profile-ranking-message-save-button');
+      if(!button) return false;
+      button.click();
+      return true;
+    });
+    assert.equal(clicked, true);
+    try {
+      await page.waitForFunction(({ pattern, expectedValue, allowPanelReset }) => {
+        const text = document.getElementById('profile-ranking-message-status')?.textContent?.trim() || '';
+        const value = document.getElementById('profile-ranking-message-input')?.value || '';
+        if(new RegExp(pattern).test(text)) return true;
+        return allowPanelReset
+          && value === expectedValue
+          && /최대 24자/.test(text)
+          && !/문제가|불러오지|실패|오류/.test(text);
+      }, {
+        pattern: expectedPattern,
+        expectedValue: message,
+        allowPanelReset: !!options.allowPanelReset
+      }, { timeout: 20000 });
+    } catch(error) {
+      const statusText = await status.innerText().catch(() => '');
+      throw new Error(`Profile write status did not match /${expectedPattern}/. Current status: ${statusText}`);
     }
-    await input.fill(message);
-    await button.click();
-    await page.waitForFunction(pattern => {
-      const text = document.getElementById('profile-ranking-message-status')?.textContent?.trim() || '';
-      return new RegExp(pattern).test(text);
-    }, expectedPattern, { timeout: 20000 });
     const statusText = (await status.innerText()).trim();
-    assert.match(statusText, new RegExp(expectedPattern));
+    if(!options.allowPanelReset || !/최대 24자/.test(statusText)) {
+      assert.match(statusText, new RegExp(expectedPattern));
+    }
   }
 
   try {
     await saveMessage(smokeMessage, '한마디를 저장했습니다');
     assert.equal(await input.inputValue(), smokeMessage);
   } finally {
-    await saveMessage(originalMessage, originalMessage ? '한마디를 저장했습니다' : '한마디를 비웠습니다');
+    await saveMessage(originalMessage, originalMessage ? '한마디를 저장했습니다' : '한마디를 비웠습니다', {
+      allowPanelReset: true
+    });
     assert.equal(await input.inputValue(), originalMessage);
   }
 }

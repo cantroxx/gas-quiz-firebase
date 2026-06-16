@@ -50,11 +50,13 @@ Optional variables:
 - `SMOKE_ADMIN_READ=1`: additionally checks read-only admin dashboard/member-list loading when the account opens the admin view
 - `SMOKE_HEADLESS=0`: show Chrome while running
 
-The authenticated flow writes practice/ranking progress for the supplied account. Use a dedicated smoke account. `SMOKE_PROFILE_WRITE=1` also writes the profile ranking message, then restores the original value.
+The authenticated flow writes practice/ranking progress for the supplied account. Use a dedicated smoke account. `SMOKE_PROFILE_WRITE=1` also writes the profile ranking message, verifies the save path, and restores the original value. The profile write check tolerates the profile card re-rendering back to its default helper text after a successful restore.
 
 ## Admin Write Smoke Policy
 
 Do not add always-on admin write smoke against production settings. Admin writes can change notice board content, feature flags, login settings, room catalog items, member permissions, or wallet balances.
+
+`SMOKE_ADMIN_READ=1` remains read-only and can run against production with a dedicated admin smoke account. It must not be expanded into writes without the safeguards below.
 
 Admin write smoke is allowed only when one of these safeguards exists:
 
