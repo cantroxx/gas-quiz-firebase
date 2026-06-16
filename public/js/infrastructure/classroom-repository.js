@@ -1,4 +1,30 @@
 (function (root) {
+  function getEmptyClassroomStudentCards() {
+    return [];
+  }
+
+  function getClassroomFunctions(deps = {}) {
+    return deps.getFirebaseFunctions?.() || null;
+  }
+
+  async function loadClassroomStudentCards(options = {}, deps = {}) {
+    const { settings = {}, memberUserId = '' } = options;
+    if(!memberUserId) return getEmptyClassroomStudentCards();
+    const functions = getClassroomFunctions(deps);
+    if(!functions) return getEmptyClassroomStudentCards();
+    try {
+      const callable = functions.httpsCallable('getClassroomStudentCards');
+      const response = await callable({
+        classId: settings.classId,
+        memberUserId
+      });
+      return Array.isArray(response?.data?.students) ? response.data.students : getEmptyClassroomStudentCards();
+    } catch(error) {
+      deps.warn?.('Classroom student cards load failed.', error);
+      return getEmptyClassroomStudentCards();
+    }
+  }
+
   function createClassroomRepository(deps = {}) {
     const firestoreDeps = {
       getFirestoreDb: deps.getFirestoreDb,
@@ -24,7 +50,7 @@
         ...options,
         db: deps.getFirestoreDb?.()
       }, firestoreDeps),
-      loadClassroomStudentCards: options => root.DJ48ClassroomData.loadClassroomStudentCards(options, callableDeps),
+      loadClassroomStudentCards: options => loadClassroomStudentCards(options, callableDeps),
       loadClassroomEconomyBoard: options => root.DJ48ClassroomData.loadClassroomEconomyBoard(options, callableDeps),
       loadClassroomReviewItems: options => root.DJ48ClassroomData.loadClassroomReviewItems({
         ...options,

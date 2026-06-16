@@ -1,6 +1,12 @@
 const assert = require('node:assert/strict');
 
 const calls = [];
+const functions = {
+  httpsCallable: name => async payload => {
+    calls.push([name, payload]);
+    return { data: { students: [{ memberUserId: payload.memberUserId, classId: payload.classId }] } };
+  }
+};
 globalThis.DJ48ClassroomData = {
   loadClassroomSettings: (options, deps) => {
     calls.push(['settings', options.prototype.classId, !!deps.getFirestoreDb, !!deps.warn]);
@@ -16,10 +22,6 @@ globalThis.DJ48ClassroomData = {
   },
   loadClassroomGemProgress: options => {
     calls.push(['gems', options.db.id, options.memberUserId]);
-    return [];
-  },
-  loadClassroomStudentCards: (options, deps) => {
-    calls.push(['students', options.memberUserId, !!deps.getFirebaseFunctions]);
     return [];
   },
   loadClassroomEconomyBoard: (options, deps) => {
@@ -78,15 +80,17 @@ async function testClassroomRepositoryDelegatesToClassroomData() {
   const repository = createClassroomRepository({
     getFirestoreDb: () => ({ id: 'db' }),
     getFirestoreFieldValue: () => ({}),
-    getFirebaseFunctions: () => ({}),
+    getFirebaseFunctions: () => functions,
     warn: () => {}
   });
 
+  const settings = { classId: 'c1' };
   assert.deepEqual(await repository.loadClassroomSettings({ prototype: { classId: 'c1' } }), { classId: 'c1' });
   assert.deepEqual(await repository.loadClassroomQuestProgress({ memberUserId: 'member-1' }), { quest: true });
   assert.deepEqual(await repository.loadClassroomWallet({ memberUserId: 'member-1' }), { berry: 10 });
   assert.deepEqual(await repository.loadClassroomGemProgress({ memberUserId: 'member-1' }), []);
-  assert.deepEqual(await repository.loadClassroomStudentCards({ memberUserId: 'member-1' }), []);
+  assert.deepEqual(await repository.loadClassroomStudentCards({ settings, memberUserId: 'member-1' }), [{ memberUserId: 'member-1', classId: 'c1' }]);
+  assert.deepEqual(await repository.loadClassroomStudentCards({ settings }), []);
   assert.deepEqual(await repository.loadClassroomEconomyBoard({ memberUserId: 'member-1' }), { jobs: [] });
   assert.deepEqual(await repository.loadClassroomReviewItems({ canReview: true }), []);
   assert.deepEqual(await repository.setClassroomSelectedBadge({ badgeId: 'gem-1' }), { ok: true });
@@ -105,7 +109,7 @@ async function testClassroomRepositoryDelegatesToClassroomData() {
     'progress',
     'wallet',
     'gems',
-    'students',
+    'getClassroomStudentCards',
     'economy',
     'review',
     'badge',
