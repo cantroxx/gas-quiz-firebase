@@ -89,6 +89,13 @@
     return currentMemberProfile;
   }
 
+  function getCurrentMemberSession() {
+    return {
+      currentMemberUserId,
+      currentMemberProfile
+    };
+  }
+
   function setCurrentMemberSession(value = {}) {
     currentMemberUserId = value.currentMemberUserId || '';
     currentMemberProfile = value.currentMemberProfile || null;
@@ -100,6 +107,15 @@
 
   function clearCurrentMemberSession() {
     return setCurrentMemberSession();
+  }
+
+  function mergeCurrentMemberProfile(value = {}) {
+    const patch = value?.profile || value || {};
+    currentMemberProfile = {
+      ...(currentMemberProfile || {}),
+      ...patch
+    };
+    return currentMemberProfile;
   }
 
   window.DJ48AccountState = {
@@ -121,7 +137,9 @@
     setCurrentMemberUserId,
     getCurrentMemberProfile,
     setCurrentMemberProfile,
+    getCurrentMemberSession,
     setCurrentMemberSession,
-    clearCurrentMemberSession
+    clearCurrentMemberSession,
+    mergeCurrentMemberProfile
   };
 })();

@@ -2675,8 +2675,7 @@
 
     function renderMemberLinkPanel() {
       return window.DJ48AccountForm.renderMemberLinkPanel({
-        currentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile(),
-        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
+        ...window.DJ48AccountState.getCurrentMemberSession(),
         pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange()
       });
     }
@@ -4435,9 +4434,7 @@
         newPassword,
         passwordConfirm
       }, getAccountCallableDeps());
-      window.DJ48AccountState.setCurrentMemberProfile(
-        window.DJ48AccountData.mergeMemberProfile(window.DJ48AccountState.getCurrentMemberProfile(), result)
-      );
+      window.DJ48AccountState.mergeCurrentMemberProfile(result);
       return result;
     }
 
@@ -4446,9 +4443,7 @@
         memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         nickname
       }, getAccountCallableDeps());
-      window.DJ48AccountState.setCurrentMemberProfile(
-        window.DJ48AccountData.mergeMemberProfile(window.DJ48AccountState.getCurrentMemberProfile(), result)
-      );
+      window.DJ48AccountState.mergeCurrentMemberProfile(result);
       return result;
     }
 
