@@ -16,6 +16,379 @@
     return functions;
   }
 
+  async function grantPracticeCorrectRewardForRepository(memberUserId, rewardCoin, context, deps = {}) {
+    if(!rewardCoin || rewardCoin <= 0) return null;
+    const functions = getRequiredFirebaseFunctions(deps);
+    const debugLog = deps.debugLog || (() => {});
+
+    debugLog('Practice reward economy update queued:', {
+      rewardCoin,
+      context
+    });
+    const grantPracticeReward = functions.httpsCallable('grantPracticeReward');
+    const response = await grantPracticeReward({
+      memberUserId,
+      recordId: context?.recordId || '',
+      questionId: context?.questionId || '',
+      quizId: context?.quizId || ''
+    });
+    const result = response?.data || {};
+    deps.resetUserEconomyCache?.();
+    debugLog('Firestore practice reward update succeeded:', {
+      economyPath: result.economyPath || '',
+      rewardLogPath: result.rewardLogPath || '',
+      rewardCoin: result.rewardCoin || 0,
+      duplicate: !!result.duplicate,
+      context
+    });
+    return result.economyPath || null;
+  }
+
+  async function syncMemberTitlesAfterPracticeCompletionForRepository(memberUserId, context, deps = {}) {
+    const functions = getRequiredFirebaseFunctions(deps);
+    const debugLog = deps.debugLog || (() => {});
+    const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
+    const response = await syncMemberTitles({ memberUserId });
+    const result = response?.data || {};
+    if(Number(result.awardedCount) > 0) {
+      debugLog('Firestore title sync awarded titles:', {
+        awardedCount: result.awardedCount,
+        awardedTitles: result.awardedTitles || [],
+        context
+      });
+      deps.resetTitleCatalogCache?.();
+    } else {
+      debugLog('Firestore title sync completed with no new titles:', {
+        titleCount: result.titleCount || 0,
+        context
+      });
+    }
+    return result;
+  }
+
+  async function saveRankingRecordOnQuizCompleteForRepository(deps = {}) {
+    if(deps.getCurrentModeId?.() !== 'ranking') return null;
+    const db = deps.getFirestoreDb?.();
+    if(!db) throw new Error('firestore-unavailable');
+
+    const memberUserId = deps.getCurrentDataOwnerId?.();
+    if(!memberUserId || memberUserId === deps.testShopUserId) throw new Error('member-required');
+    const correctCount = deps.getCorrectAnswerCount?.() || 0;
+    const quizId = deps.normalizeFirebaseQuizId?.(deps.getCurrentQuizId?.()) || '';
+    const debugLog = deps.debugLog || (() => {});
+    if(correctCount <= 0) {
+      debugLog('Ranking record skipped because score is 0.', {
+        quizId
+      });
+      return { skipped: true, reason: 'zero-score' };
+    }
+
+    const target = deps.getRankingTargetForQuiz?.(quizId);
+    if(!target) throw new Error('unsupported-ranking-target');
+
+    const profile = deps.getCurrentMemberProfile?.() || {};
+    const elapsedSeconds = deps.getRankingElapsedSeconds?.() || 0;
+    const maxElapsedSeconds = deps.getMaxRankingElapsedSeconds?.() || 0;
+    if(elapsedSeconds > maxElapsedSeconds) {
+      console.warn('Ranking record skipped because elapsed time is too long.', {
+        quizId,
+        elapsedSeconds,
+        maxElapsedSeconds
+      });
+      return {
+        skipped: true,
+        reason: 'elapsed-too-long',
+        elapsedSeconds,
+        elapsedText: deps.formatRankingElapsedText?.(elapsedSeconds) || `${elapsedSeconds}초`
+      };
+    }
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    const recordId = deps.buildRankingRecordId?.(memberUserId, target.categoryKey, target.rankingMode);
+    const recordRef = db.collection('rankingRecords').doc(recordId);
+    const userSummaryRef = db.collection('userRankingSummary').doc(memberUserId);
+    const quizKingSummaryRef = db.collection('quizKingSummary').doc(memberUserId);
+    const record = {
+      recordId,
+      memberUserId,
+      userId: memberUserId,
+      displayName: profile.nickname || profile.name || memberUserId,
+      grade: String(profile.grade || ''),
+      classNo: String(profile.classNo || profile.classNumber || ''),
+      number: String(profile.number || profile.studentNumber || ''),
+      profileImageUrl: profile.profileImageUrl || '',
+      rankingMessage: profile.rankingMessage || '',
+      selectedTitleId: profile.selectedTitleId || '',
+      quizId,
+      category: target.category,
+      categoryKey: target.categoryKey,
+      rawCategory: target.category,
+      subFilter: target.subFilter,
+      score: correctCount,
+      elapsedSeconds,
+      elapsedText: deps.formatRankingElapsedText?.(elapsedSeconds) || `${elapsedSeconds}초`,
+      rankingMode: target.rankingMode,
+      sourceSheet: 'firebase-app',
+      sourceRowNumber: 0,
+      legacy: false,
+      hasUserId: true,
+      recordedAt: fieldValue.serverTimestamp(),
+      createdAt: fieldValue.serverTimestamp(),
+      updatedAt: fieldValue.serverTimestamp(),
+      migrationSource: 'firebase_app_ranking'
+    };
+
+    const [userSummarySnapshot, quizKingSummarySnapshot] = await Promise.all([
+      userSummaryRef.get(),
+      quizKingSummaryRef.get()
+    ]);
+    const userSummaryData = deps.buildUserRankingSummaryUpdate?.(
+      userSummarySnapshot.exists ? userSummarySnapshot.data() : {},
+      record,
+      fieldValue.serverTimestamp()
+    );
+    const quizKingSummaryData = deps.buildQuizKingSummaryUpdate?.(
+      quizKingSummarySnapshot.exists ? quizKingSummarySnapshot.data() : {},
+      record,
+      fieldValue.serverTimestamp()
+    );
+    const batch = db.batch();
+    batch.set(recordRef, record, { merge: true });
+    batch.set(userSummaryRef, userSummaryData, { merge: true });
+    batch.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
+    await batch.commit();
+
+    debugLog('Firestore ranking record save succeeded:', {
+      recordId,
+      score: correctCount,
+      categoryKey: target.categoryKey,
+      elapsedSeconds
+    });
+    return {
+      recordId,
+      score: correctCount,
+      categoryKey: target.categoryKey,
+      elapsedText: record.elapsedText
+    };
+  }
+
+  async function savePracticeProgressAfterCorrectAnswerForRepository(question, deps = {}) {
+    if(deps.getCurrentModeId?.() !== 'practice') return null;
+    const db = deps.getFirestoreDb?.();
+    if(!db) throw new Error('firestore-unavailable');
+
+    const memberUserId = deps.getCurrentDataOwnerId?.();
+    if(!memberUserId || memberUserId === deps.testShopUserId) throw new Error('member-required');
+
+    const questionId = deps.getPracticeQuestionId?.(question);
+    if(!questionId) throw new Error('missing-question-id');
+    const questionIdCandidates = deps.getPracticeQuestionIdCandidates?.(question) || [];
+
+    const quizId = deps.normalizeFirebaseQuizId?.(deps.getCurrentQuizId?.()) || '';
+    const meta = await deps.loadFirebaseQuizMeta?.(quizId);
+    const target = deps.getPracticeTargetForQuiz?.(quizId, meta);
+    if(!target) throw new Error('unsupported-practice-target');
+
+    const totalCount = Number(meta?.questionCount) || deps.getCurrentQuestionSet?.().length;
+    if(!totalCount || totalCount <= 0) throw new Error('invalid-total-count');
+
+    const recordId = deps.buildPracticeProgressRecordId?.(memberUserId, target.areaKey);
+    const recordRef = db.collection('practiceRecords').doc(recordId);
+    const summaryRef = db.collection('userPracticeSummary').doc(memberUserId);
+    const authUid = deps.getFirebaseAuthUser?.()?.uid || '';
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    let saveResult = null;
+    let readFallback = false;
+    let snapshot = null;
+    let summarySnapshot = null;
+    const debugLog = deps.debugLog || (() => {});
+
+    const [recordReadResult, summaryReadResult] = await Promise.allSettled([
+      recordRef.get(),
+      summaryRef.get()
+    ]);
+    if(recordReadResult.status === 'fulfilled') {
+      snapshot = recordReadResult.value;
+    } else {
+      const error = recordReadResult.reason;
+      if(!deps.isFirestorePermissionDeniedError?.(error)) throw error;
+      readFallback = true;
+      console.warn('Practice progress record read blocked; using write-only fallback for legacy or missing progress document.', {
+        recordPath: recordRef.path,
+        code: error?.code || '',
+        message: error?.message || ''
+      });
+    }
+    if(summaryReadResult.status === 'fulfilled') {
+      summarySnapshot = summaryReadResult.value;
+    } else {
+      const error = summaryReadResult.reason;
+      if(!deps.isFirestorePermissionDeniedError?.(error)) throw error;
+      console.warn('Practice summary read blocked; continuing with merge-only summary update.', {
+        summaryPath: summaryRef.path,
+        code: error?.code || '',
+        message: error?.message || ''
+      });
+    }
+    const existing = snapshot?.exists ? snapshot.data() || {} : {};
+    const existingSummary = summarySnapshot?.exists ? summarySnapshot.data() || {} : {};
+    const existingIds = Array.isArray(existing.correctIds) ? existing.correctIds.map(id => String(id || '').trim()).filter(Boolean) : [];
+    const isDuplicateCorrectId = questionIdCandidates.some(id => existingIds.includes(id));
+    const mergedIds = isDuplicateCorrectId ? existingIds : Array.from(new Set([...existingIds, questionId]));
+    const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
+    const existingStarCount = Number(existing.starCount) || 0;
+    const flags = await deps.loadFeatureFlags?.();
+    const rewardDisabled = flags.practiceRewardEnabled === false;
+    const rewardCoin = (isDuplicateCorrectId || rewardDisabled) ? 0 : deps.getPracticeCorrectCoin?.();
+    const completed = mergedIds.length >= totalCount;
+    const isCompleteType = target.completionType === 'complete';
+    let nextIds = mergedIds;
+    let nextCorrectCount = mergedIds.length;
+    let nextStarCount = existingStarCount;
+    let completedRound = false;
+    const nextData = {
+      recordId,
+      memberUserId,
+      userId: memberUserId,
+      authUid,
+      quizId,
+      area: target.area,
+      detail: target.detail,
+      areaKey: target.areaKey,
+      completionType: target.completionType,
+      inferredCompletionType: false,
+      totalCount,
+      mode: 'practice',
+      source: 'firebase-app',
+      version: 2,
+      updatedAt: fieldValue.serverTimestamp(),
+      lastAchievedAt: fieldValue.serverTimestamp()
+    };
+
+    if(!snapshot?.exists) {
+      nextData.createdAt = fieldValue.serverTimestamp();
+    }
+
+    if(completed) {
+      completedRound = true;
+      if(isCompleteType) {
+        nextStarCount = 1;
+        nextIds = [];
+        nextCorrectCount = totalCount;
+      } else {
+        nextStarCount += 1;
+        nextIds = [];
+        nextCorrectCount = 0;
+      }
+      nextData.completed = true;
+      nextData.firstCompletedAt = existing.firstCompletedAt || fieldValue.serverTimestamp();
+      nextData.lastCompletedAt = fieldValue.serverTimestamp();
+    } else {
+      nextData.completed = !!existing.completed;
+      if(existing.firstCompletedAt) nextData.firstCompletedAt = existing.firstCompletedAt;
+      if(existing.lastCompletedAt) nextData.lastCompletedAt = existing.lastCompletedAt;
+    }
+
+    nextData.correctIds = readFallback ? fieldValue.arrayUnion(questionId) : nextIds;
+    nextData.correctCount = readFallback ? fieldValue.increment(1) : nextCorrectCount;
+    nextData.starCount = nextStarCount;
+    const summaryData = deps.buildPracticeSummaryUpdate?.(existingSummary, {
+      memberUserId,
+      recordExists: !!snapshot?.exists,
+      area: target.area,
+      detail: target.detail,
+      areaKey: target.areaKey,
+      totalCount,
+      previousStarCount: existingStarCount,
+      nextStarCount,
+      nextCorrectCount,
+      updatedAt: fieldValue.serverTimestamp()
+    });
+    const badgeData = deps.buildPracticeBadgeUpdate?.({
+      memberUserId,
+      area: target.area,
+      detail: target.detail,
+      areaKey: target.areaKey,
+      totalCount,
+      nextStarCount,
+      nextCorrectCount,
+      updatedAt: fieldValue.serverTimestamp()
+    });
+    const badgeRef = db.collection('userBadges').doc(memberUserId).collection('badges').doc(badgeData.badgeId);
+    saveResult = {
+      recordId,
+      questionId,
+      duplicate: isDuplicateCorrectId,
+      readFallback,
+      completed,
+      completedRound,
+      completionType: target.completionType,
+      rewardCoin,
+      rewardDisabled,
+      previousCorrectCount,
+      nextCorrectCount,
+      previousStarCount: existingStarCount,
+      nextStarCount,
+      badgePath: badgeRef.path
+    };
+    if(isDuplicateCorrectId) {
+      debugLog('Practice progress duplicate correctId; correctCount unchanged as expected:', saveResult);
+      debugLog('Practice reward skipped for duplicate correctId:', {
+        recordId,
+        questionId,
+        rewardCoin
+      });
+    } else {
+      debugLog('Practice progress new correctId added:', saveResult);
+    }
+    debugLog('Practice progress write paths:', {
+      recordPath: recordRef.path,
+      summaryPath: summaryRef.path,
+      badgePath: badgeRef.path,
+      readFallback
+    });
+    await recordRef.set(nextData, { merge: true });
+
+    const batch = db.batch();
+    batch.set(summaryRef, summaryData, { merge: true });
+    batch.set(badgeRef, badgeData, { merge: true });
+    await batch.commit();
+
+    if(readFallback) {
+      debugLog('Practice progress primary record update succeeded with write-only fallback; summary and badge were merged after the write.', saveResult);
+    }
+
+    debugLog('Firestore practice progress update succeeded:', saveResult || { recordId, questionId });
+    if(saveResult && saveResult.completedRound) {
+      debugLog('Practice completion round applied:', {
+        recordId: saveResult.recordId,
+        completionType: saveResult.completionType,
+        previousStarCount: saveResult.previousStarCount,
+        nextStarCount: saveResult.nextStarCount,
+        badgePath: saveResult.badgePath
+      });
+      deps.syncMemberTitlesAfterPracticeCompletion?.(memberUserId, {
+        recordId: saveResult.recordId,
+        quizId,
+        completionType: saveResult.completionType
+      }).catch(error => {
+        console.warn('Firestore title sync after practice completion failed.', error);
+      });
+    }
+    if(saveResult && saveResult.rewardCoin > 0) {
+      await deps.grantPracticeCorrectReward?.(memberUserId, saveResult.rewardCoin, {
+        recordId: saveResult.recordId,
+        questionId: saveResult.questionId,
+        quizId
+      });
+    } else if(saveResult && saveResult.rewardDisabled && !saveResult.duplicate) {
+      debugLog('Practice reward skipped because reward feature is disabled:', {
+        recordId: saveResult.recordId,
+        questionId: saveResult.questionId
+      });
+    }
+    return saveResult || { recordId, questionId };
+  }
+
   function makeMathChoiceQuestion(question, answer, deps = {}) {
     const shuffleList = deps.shuffleList || defaultShuffleList;
     const distractors = [
@@ -289,6 +662,32 @@
         return new Set((Array.isArray(data.correctIds) ? data.correctIds : [])
           .map(value => String(value || '').trim())
           .filter(Boolean));
+      },
+      saveRankingRecordOnQuizComplete(nextDeps = {}) {
+        return saveRankingRecordOnQuizCompleteForRepository({
+          ...deps,
+          ...nextDeps
+        });
+      },
+      savePracticeProgressAfterCorrectAnswer(question, nextDeps = {}) {
+        return savePracticeProgressAfterCorrectAnswerForRepository(question, {
+          ...deps,
+          ...nextDeps,
+          grantPracticeCorrectReward: (memberUserId, rewardCoin, context) => this.grantPracticeCorrectReward(memberUserId, rewardCoin, context, nextDeps),
+          syncMemberTitlesAfterPracticeCompletion: (memberUserId, context) => this.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, nextDeps)
+        });
+      },
+      grantPracticeCorrectReward(memberUserId, rewardCoin, context, nextDeps = {}) {
+        return grantPracticeCorrectRewardForRepository(memberUserId, rewardCoin, context, {
+          ...deps,
+          ...nextDeps
+        });
+      },
+      syncMemberTitlesAfterPracticeCompletion(memberUserId, context, nextDeps = {}) {
+        return syncMemberTitlesAfterPracticeCompletionForRepository(memberUserId, context, {
+          ...deps,
+          ...nextDeps
+        });
       }
     };
   }
@@ -309,7 +708,11 @@
       resetTitleCatalogCache: () => repository.resetTitleCatalogCache(),
       getPopularQuizUsageStatus: options => repository.getPopularQuizUsageStatus(options),
       updatePopularQuizUsage: options => repository.updatePopularQuizUsage(options),
-      loadPracticeRecordCorrectIds: recordId => repository.loadPracticeRecordCorrectIds(recordId)
+      loadPracticeRecordCorrectIds: recordId => repository.loadPracticeRecordCorrectIds(recordId),
+      saveRankingRecordOnQuizComplete: deps => repository.saveRankingRecordOnQuizComplete(deps),
+      savePracticeProgressAfterCorrectAnswer: (question, deps) => repository.savePracticeProgressAfterCorrectAnswer(question, deps),
+      grantPracticeCorrectReward: (memberUserId, rewardCoin, context, deps) => repository.grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps),
+      syncMemberTitlesAfterPracticeCompletion: (memberUserId, context, deps) => repository.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps)
     };
   }
 
@@ -319,7 +722,11 @@
     buildWordRelationQuestion,
     createQuizRepository,
     generateFirebaseRandomBasicQuestions,
-    getQuizPlayRepositoryDeps
+    getQuizPlayRepositoryDeps,
+    grantPracticeCorrectRewardForRepository,
+    savePracticeProgressAfterCorrectAnswerForRepository,
+    saveRankingRecordOnQuizCompleteForRepository,
+    syncMemberTitlesAfterPracticeCompletionForRepository
   };
 
   root.DJ48QuizRepository = api;

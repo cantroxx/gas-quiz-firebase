@@ -166,10 +166,138 @@ async function testQuizRepositoryReadsFirestoreQuestions() {
   assert.deepEqual(await repository.loadPracticeRecordCorrectIds('member__area'), new Set(['q1', 'q2']));
 }
 
+function makeWriteDb(calls) {
+  const docs = {
+    'userRankingSummary/member-1': { exists: true, data: () => ({ totalScore: 1 }) },
+    'quizKingSummary/member-1': { exists: false, data: () => ({}) },
+    'practiceRecords/member-1__area-a': { exists: true, data: () => ({ correctIds: ['old-q'], correctCount: 1, starCount: 0 }) },
+    'userPracticeSummary/member-1': { exists: true, data: () => ({ totalStars: 0 }) }
+  };
+  const makeDoc = path => ({
+    path,
+    collection(name) {
+      return {
+        doc(id) {
+          return makeDoc(`${path}/${name}/${id}`);
+        }
+      };
+    },
+    async get() {
+      calls.push(['get', path]);
+      return docs[path] || { exists: false, data: () => ({}) };
+    },
+    async set(data, options) {
+      calls.push(['set', path, data, options]);
+    }
+  });
+  return {
+    collection(name) {
+      return {
+        doc(id) {
+          return makeDoc(`${name}/${id}`);
+        }
+      };
+    },
+    batch() {
+      const writes = [];
+      return {
+        set(ref, data, options) {
+          writes.push([ref.path, data, options]);
+          calls.push(['batchSet', ref.path, data, options]);
+        },
+        async commit() {
+          calls.push(['batchCommit', writes.map(write => write[0])]);
+        }
+      };
+    }
+  };
+}
+
+async function testQuizRepositoryWritesRankingAndPracticeProgress() {
+  const calls = [];
+  const repository = createQuizRepository({
+    getFirestoreDb: () => makeWriteDb(calls),
+    getFirestoreFieldValue: () => ({
+      serverTimestamp: () => ({ type: 'timestamp' }),
+      arrayUnion: value => ({ op: 'arrayUnion', value }),
+      increment: value => ({ op: 'increment', value })
+    }),
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getFirebaseFunctions: () => ({
+      httpsCallable: name => async payload => {
+        calls.push(['callable', name, payload]);
+        return {
+          data: name === 'syncMemberTitles'
+            ? { awardedCount: 1, awardedTitles: ['title-a'] }
+            : { economyPath: 'userEconomy/member-1', rewardCoin: 3 }
+        };
+      }
+    }),
+    loadFeatureFlags: async () => ({ practiceRewardEnabled: true }),
+    loadFirebaseQuizMeta: async () => ({ questionCount: 2 })
+  });
+  const commonDeps = {
+    testShopUserId: 'test-user',
+    normalizeFirebaseQuizId: value => value,
+    getCurrentDataOwnerId: () => 'member-1',
+    getCurrentMemberProfile: () => ({ nickname: 'Student', grade: '4', classNumber: '8', studentNumber: '23' }),
+    debugLog: () => {}
+  };
+
+  const rankingResult = await repository.saveRankingRecordOnQuizComplete({
+    ...commonDeps,
+    getCurrentModeId: () => 'ranking',
+    getCurrentQuizId: () => 'quiz-a',
+    getCorrectAnswerCount: () => 5,
+    getRankingTargetForQuiz: () => ({ category: '국어', categoryKey: 'korean', rankingMode: 'normal', subFilter: '' }),
+    getRankingElapsedSeconds: () => 12,
+    getMaxRankingElapsedSeconds: () => 300,
+    buildRankingRecordId: (memberUserId, categoryKey, rankingMode) => `${memberUserId}__${categoryKey}__${rankingMode}`,
+    buildUserRankingSummaryUpdate: (existing, record, updatedAt) => ({ ...existing, lastScore: record.score, updatedAt }),
+    buildQuizKingSummaryUpdate: (existing, record, updatedAt) => ({ ...existing, totalScore: record.score, updatedAt }),
+    formatRankingElapsedText: seconds => `${seconds}초`
+  });
+
+  assert.deepEqual(rankingResult, {
+    recordId: 'member-1__korean__normal',
+    score: 5,
+    categoryKey: 'korean',
+    elapsedText: '12초'
+  });
+  assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'rankingRecords/member-1__korean__normal'));
+  assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userRankingSummary/member-1'));
+  assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'quizKingSummary/member-1'));
+
+  const practiceResult = await repository.savePracticeProgressAfterCorrectAnswer({
+    practiceQuestionId: 'new-q'
+  }, {
+    ...commonDeps,
+    getCurrentModeId: () => 'practice',
+    getCurrentQuizId: () => 'quiz-practice',
+    getCurrentQuestionSet: () => [{}, {}],
+    getPracticeQuestionId: question => question.practiceQuestionId,
+    getPracticeQuestionIdCandidates: question => [question.practiceQuestionId],
+    getPracticeTargetForQuiz: () => ({ area: 'Area', detail: 'Detail', areaKey: 'area-a', completionType: 'star' }),
+    getPracticeCorrectCoin: () => 3,
+    buildPracticeProgressRecordId: (memberUserId, areaKey) => `${memberUserId}__${areaKey}`,
+    buildPracticeSummaryUpdate: (existing, options) => ({ ...existing, nextStarCount: options.nextStarCount }),
+    buildPracticeBadgeUpdate: options => ({ badgeId: 'badge-a', nextCorrectCount: options.nextCorrectCount })
+  });
+
+  assert.equal(practiceResult.recordId, 'member-1__area-a');
+  assert.equal(practiceResult.rewardCoin, 3);
+  assert(calls.some(call => call[0] === 'set' && call[1] === 'practiceRecords/member-1__area-a'));
+  assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userPracticeSummary/member-1'));
+  assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userBadges/member-1/badges/badge-a'));
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeReward'));
+}
+
 async function run() {
   await testQuizRepositoryPorts();
   await testQuizPlayRepositoryDeps();
   await testQuizRepositoryReadsFirestoreQuestions();
+  await testQuizRepositoryWritesRankingAndPracticeProgress();
   console.log('Infrastructure tests passed: quiz-repository');
 }
 

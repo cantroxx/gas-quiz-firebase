@@ -77,6 +77,12 @@
   }
 
   function saveRankingRecordOnQuizComplete(deps, testShopUserId) {
+    if(typeof deps.saveRankingRecordOnQuizComplete === 'function') {
+      return deps.saveRankingRecordOnQuizComplete({
+        ...deps,
+        testShopUserId
+      });
+    }
     return root.DJ48QuizPlay.saveRankingRecordOnQuizComplete({
       ...deps,
       testShopUserId
@@ -84,6 +90,9 @@
   }
 
   function grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps) {
+    if(typeof deps.grantPracticeCorrectReward === 'function') {
+      return deps.grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps);
+    }
     return root.DJ48QuizPlay.grantPracticeCorrectReward(memberUserId, rewardCoin, context, {
       getFirebaseFunctions: deps.getFirebaseFunctions,
       resetUserEconomyCache: deps.resetUserEconomyCache,
@@ -92,6 +101,9 @@
   }
 
   function syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps) {
+    if(typeof deps.syncMemberTitlesAfterPracticeCompletion === 'function') {
+      return deps.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps);
+    }
     return root.DJ48QuizPlay.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, {
       getFirebaseFunctions: deps.getFirebaseFunctions,
       resetTitleCatalogCache: deps.resetTitleCatalogCache,
@@ -100,6 +112,12 @@
   }
 
   function savePracticeProgressAfterCorrectAnswer(question, deps, testShopUserId) {
+    if(typeof deps.savePracticeProgressAfterCorrectAnswer === 'function') {
+      return deps.savePracticeProgressAfterCorrectAnswer(question, {
+        ...deps,
+        testShopUserId
+      });
+    }
     return root.DJ48QuizPlay.savePracticeProgressAfterCorrectAnswer(question, {
       ...deps,
       testShopUserId
