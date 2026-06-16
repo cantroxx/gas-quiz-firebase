@@ -35,24 +35,79 @@ const db = {
 globalThis.DJ48AccountDomain = {
   normalizeRankingMessageInput: value => String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24)
 };
-globalThis.DJ48AccountData = {
-  saveProfileImageEditorSelection: (options, deps) => {
-    calls.push(['image', options.memberUserId, !!deps.getFirestoreFieldValue]);
-    return { nextProfile: { profileImageUrl: 'url' } };
-  }
-};
 
 const { createProfileRepository } = require('../../public/js/infrastructure/profile-repository.js');
 
-async function testProfileRepositoryDelegatesToAccountData() {
+async function testProfileRepositoryWritesProfileData() {
   const repository = createProfileRepository({
     getFirestoreFieldValue: () => ({ serverTimestamp: () => serverTimestamp })
   });
+  const storage = {
+    ref: path => {
+      calls.push(['storage-ref', path]);
+      return {
+        put: (file, metadata) => {
+          calls.push(['storage-put', file.name, metadata]);
+          return Promise.resolve();
+        },
+        getDownloadURL: () => Promise.resolve('https://cdn.example/profile.png')
+      };
+    }
+  };
 
   assert.deepEqual(await repository.searchProfileImageCandidates({ db, query: 'pika', limit: 12 }), [
     { candidateId: 'candidate-1', imageUrl: 'url-1' }
   ]);
-  assert.deepEqual(await repository.saveProfileImageEditorSelection({ memberUserId: 'member-1' }), { nextProfile: { profileImageUrl: 'url' } });
+  assert.deepEqual(await repository.saveProfileImageEditorSelection({
+    db,
+    memberUserId: 'member-1',
+    editorState: {
+      source: 'candidate',
+      imageUrl: 'https://cdn.example/candidate.png'
+    },
+    edit: {
+      profileImageScale: 1.2,
+      profileImageOffsetX: 3,
+      profileImageOffsetY: -1
+    },
+    currentProfile: { nickname: '학생' }
+  }), {
+    updateData: {
+      profileImageUrl: 'https://cdn.example/candidate.png',
+      profileImageSource: 'candidate',
+      profileImageStoragePath: '',
+      profileImageScale: 1.2,
+      profileImageOffsetX: 3,
+      profileImageOffsetY: -1,
+      updatedAt: serverTimestamp
+    },
+    nextProfile: {
+      nickname: '학생',
+      profileImageUrl: 'https://cdn.example/candidate.png',
+      profileImageSource: 'candidate',
+      profileImageStoragePath: '',
+      profileImageScale: 1.2,
+      profileImageOffsetX: 3,
+      profileImageOffsetY: -1,
+      updatedAt: serverTimestamp
+    }
+  });
+  assert.deepEqual(await repository.saveProfileImageEditorSelection({
+    db,
+    memberUserId: 'member-1',
+    editorState: {
+      source: 'upload',
+      file: { name: 'profile.png', type: 'image/png' }
+    },
+    edit: {
+      profileImageScale: 1,
+      profileImageOffsetX: 0,
+      profileImageOffsetY: 0
+    },
+    storage,
+    authUid: 'auth-1',
+    currentProfile: {}
+  }).then(result => result.updateData.profileImageUrl), 'https://cdn.example/profile.png');
   assert.deepEqual(await repository.saveRankingMessageForMember({ db, memberUserId: 'member-1', message: ' hi   there ' }), {
     rankingMessage: 'hi there',
     updatedAt: serverTimestamp
@@ -65,9 +120,36 @@ async function testProfileRepositoryDelegatesToAccountData() {
     () => repository.saveSelectedTitleForMember({ db, memberUserId: 'member-1', titleId: 'missing-title' }),
     /title-not-owned/
   );
+  const uploadPath = calls.find(call => call[0] === 'storage-ref')?.[1] || '';
+  assert.match(uploadPath, /^profileImages\/auth-1\/member-1_\d+\.png$/);
   assert.deepEqual(calls, [
     ['query', 'profileImageCandidates', 'keywords', 'array-contains', 'pika', 12],
-    ['image', 'member-1', true],
+    ['set', 'users', 'member-1', {
+      profileImageUrl: 'https://cdn.example/candidate.png',
+      profileImageSource: 'candidate',
+      profileImageStoragePath: '',
+      profileImageScale: 1.2,
+      profileImageOffsetX: 3,
+      profileImageOffsetY: -1,
+      updatedAt: serverTimestamp
+    }, { merge: true }],
+    ['storage-ref', uploadPath],
+    ['storage-put', 'profile.png', {
+      contentType: 'image/png',
+      customMetadata: {
+        memberUserId: 'member-1',
+        source: 'profile-upload'
+      }
+    }],
+    ['set', 'users', 'member-1', {
+      profileImageUrl: 'https://cdn.example/profile.png',
+      profileImageSource: 'upload',
+      profileImageStoragePath: uploadPath,
+      profileImageScale: 1,
+      profileImageOffsetX: 0,
+      profileImageOffsetY: 0,
+      updatedAt: serverTimestamp
+    }, { merge: true }],
     ['set', 'users', 'member-1', { rankingMessage: 'hi there', updatedAt: serverTimestamp }, { merge: true }],
     ['get', 'userTitles', 'member-1', 'titles', 'title-1'],
     ['set', 'users', 'member-1', { selectedTitleId: 'title-1', updatedAt: serverTimestamp }, { merge: true }],
@@ -75,7 +157,7 @@ async function testProfileRepositoryDelegatesToAccountData() {
   ]);
 }
 
-testProfileRepositoryDelegatesToAccountData()
+testProfileRepositoryWritesProfileData()
   .then(() => console.log('Infrastructure tests passed: profile-repository'))
   .catch(error => {
     console.error(error);

@@ -25,6 +25,109 @@
     return snapshot.docs.map(doc => ({ candidateId: doc.id, ...doc.data() }));
   }
 
+  function getProfileImageFileExtension(file) {
+    const type = String(file?.type || '').toLowerCase();
+    if(type.includes('png')) return 'png';
+    if(type.includes('webp')) return 'webp';
+    return 'jpg';
+  }
+
+  function buildProfileImageStoragePath(options = {}, deps = {}) {
+    const authUid = options.authUid || '';
+    const memberUserId = options.memberUserId || '';
+    const extension = options.extension || 'jpg';
+    const now = deps.now || Date.now;
+    if(!authUid) throw new Error('login-required');
+    if(!memberUserId) throw new Error('member-required');
+    return `profileImages/${authUid}/${memberUserId}_${now()}.${extension}`;
+  }
+
+  function buildProfileImageUpdate(editorState = {}, edit = {}, deps = {}) {
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    return {
+      profileImageUrl: editorState.profileImageUrl || editorState.imageUrl || '',
+      profileImageSource: editorState.profileImageSource || editorState.source || '',
+      profileImageStoragePath: editorState.profileImageStoragePath || '',
+      profileImageScale: edit.profileImageScale,
+      profileImageOffsetX: edit.profileImageOffsetX,
+      profileImageOffsetY: edit.profileImageOffsetY,
+      updatedAt: fieldValue.serverTimestamp()
+    };
+  }
+
+  function buildUploadedProfileImageUpdate(editorState = {}, uploadResult = {}, edit = {}, deps = {}) {
+    return buildProfileImageUpdate({
+      profileImageUrl: uploadResult.downloadUrl || editorState.profileImageUrl || editorState.imageUrl || '',
+      profileImageSource: editorState.profileImageSource || editorState.source || '',
+      profileImageStoragePath: uploadResult.path || editorState.profileImageStoragePath || ''
+    }, edit, deps);
+  }
+
+  async function uploadProfileImageToStorage(options = {}, deps = {}) {
+    const {
+      storage,
+      authUid,
+      memberUserId,
+      file
+    } = options;
+    if(!storage) throw new Error('storage-unavailable');
+
+    const extension = getProfileImageFileExtension(file);
+    const path = buildProfileImageStoragePath({
+      authUid,
+      memberUserId,
+      extension
+    }, deps);
+    const ref = storage.ref(path);
+    await ref.put(file, {
+      contentType: file.type,
+      customMetadata: {
+        memberUserId,
+        source: 'profile-upload'
+      }
+    });
+    const downloadUrl = await ref.getDownloadURL();
+    return { downloadUrl, path };
+  }
+
+  async function saveProfileImageEditorSelection(options = {}, deps = {}) {
+    const {
+      db,
+      memberUserId,
+      editorState,
+      edit,
+      storage,
+      authUid,
+      currentProfile
+    } = options;
+    if(!memberUserId) throw new Error('member-required');
+    if(!editorState) return null;
+    if(!db) throw new Error('firestore-unavailable');
+
+    let uploadResult = null;
+    if(editorState.source === 'upload') {
+      uploadResult = await uploadProfileImageToStorage({
+        storage,
+        authUid,
+        memberUserId,
+        file: editorState.file
+      }, deps);
+    }
+    const updateData = buildUploadedProfileImageUpdate(editorState, uploadResult || {}, edit, deps);
+    await saveUserProfileUpdate({
+      db,
+      memberUserId,
+      updateData
+    });
+    return {
+      updateData,
+      nextProfile: {
+        ...(currentProfile || {}),
+        ...updateData
+      }
+    };
+  }
+
   function saveRankingMessageForMember(options = {}, deps = {}) {
     return saveUserProfileUpdate({
       db: options.db,
@@ -67,7 +170,7 @@
     };
     return {
       searchProfileImageCandidates,
-      saveProfileImageEditorSelection: options => root.DJ48AccountData.saveProfileImageEditorSelection(options, firestoreDeps),
+      saveProfileImageEditorSelection: options => saveProfileImageEditorSelection(options, firestoreDeps),
       saveRankingMessageForMember: options => saveRankingMessageForMember(options, firestoreDeps),
       saveSelectedTitleForMember: options => saveSelectedTitleForMember(options, firestoreDeps)
     };
