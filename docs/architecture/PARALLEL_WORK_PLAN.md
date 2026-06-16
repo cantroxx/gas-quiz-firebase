@@ -1,25 +1,26 @@
 # Parallel Work Plan
 
-This document records the completed second clean-architecture round after the first refactor round and folder cleanup.
+This document records the current parallel-work rules for the stricter clean-architecture migration.
 
 ## Completion State
 
-- `public/index.html` is still the main app shell and state owner.
-- Extracted modules already exist under `public/js/core`, `public/js/data`, and `public/js/features`.
+- `public/index.html` is still the main app shell and state owner, but controller dependency binding is grouped by feature section through `getAppBootstrapControllerSections()`.
+- Extracted modules already exist under `public/js/core`, `public/js/data`, `public/js/domain`, `public/js/application`, `public/js/infrastructure`, `public/js/features`, and `public/js/app`.
 - Browser smoke automation exists under `scripts/smoke`.
 - Project documents and scripts are grouped by domain.
-- The second clean-architecture round is closed through classroom/event refactor and final verification.
+- Current architecture round has added application usecases for admin, account, classroom, event, home, profile, quiz, ranking, and shop.
+- Infrastructure repositories currently exist for account, quiz, and ranking.
 
 ## Ownership Rules
 
-- Admin: `public/js/features/admin-*`, admin sections in `public/index.html`, admin callable docs.
-- Account/login: future `public/js/features/account-*`, member auth/session/linking functions in `public/index.html`.
-- Profile/home: `public/js/features/home-render.js`, future `profile-*`, profile save/upload/title/badge flows.
-- Shop/room: `public/js/features/shop-render.js`, `public/room.js`, `public/room.css`, future `shop-*` and `room-*` write-flow modules.
-- Quiz: `public/js/features/quiz-play.js`, quiz catalog/data helpers, quiz-play wrappers in `public/index.html`.
-- Ranking: `public/js/features/ranking-data.js`, `public/js/features/ranking-render.js`, ranking plaza/profile ranking flows.
-- Classroom/event: `public/js/features/classroom-*` and `public/js/features/event-*`.
-- App shell/view orchestration: `public/js/features/app-view.js`, exclusive sections of `public/index.html`.
+- Admin: `public/js/features/admin-*`, `public/js/application/admin-usecases.js`, admin sections in `public/index.html`, admin callable docs.
+- Account/login: `public/js/domain/account-domain.js`, `public/js/features/account-*`, `public/js/application/account-usecases.js`, `public/js/infrastructure/account-repository.js`, member auth/session/linking wrappers in `public/index.html`.
+- Profile/home: `public/js/features/home-*`, `public/js/application/home-usecases.js`, `public/js/application/profile-usecases.js`, profile save/upload/title/badge wrappers in `public/index.html`.
+- Shop/room: `public/js/domain/shop-domain.js`, `public/js/features/shop-*`, `public/js/application/shop-usecases.js`, `public/room.js`, `public/room.css`, room/shop write wrappers in `public/index.html`.
+- Quiz: `public/js/domain/quiz-domain.js`, `public/js/features/quiz-*`, `public/js/application/quiz-usecases.js`, `public/js/infrastructure/quiz-repository.js`, `public/js/data/quiz-catalog.js`, remaining quiz-play wrappers in `public/index.html`.
+- Ranking: `public/js/domain/ranking-domain.js`, `public/js/features/ranking-*`, `public/js/application/ranking-usecases.js`, `public/js/infrastructure/ranking-repository.js`, ranking plaza/profile ranking wrappers in `public/index.html`.
+- Classroom/event: `public/js/domain/classroom-domain.js`, `public/js/domain/event-domain.js`, `public/js/features/classroom-*`, `public/js/features/event-*`, `public/js/application/classroom-usecases.js`, `public/js/application/event-usecases.js`.
+- App shell/view/bootstrap: `public/js/features/app-view.js`, `public/js/features/app-events.js`, `public/js/app/bootstrap.js`, exclusive sections of `public/index.html`.
 - Verification/docs: `scripts/smoke`, `docs/operations`, `docs/architecture`.
 
 When using multiple terminals, keep each terminal inside one ownership area unless the task explicitly requires a shared boundary change.
@@ -27,9 +28,10 @@ When using multiple terminals, keep each terminal inside one ownership area unle
 ## Parallel Editing Rules
 
 - Only one terminal should edit `public/index.html` at a time.
-- UI-only work should stay in `public/styles.css` and `*-render.js` files unless a new DOM hook is required.
-- Data/callable work should stay in `*-data.js` files or `functions/index.js`.
-- Quiz-play work should stay in `public/js/features/quiz-play.js` and quiz data/catalog files unless the task explicitly changes app navigation.
+- UI-only work should stay in `public/styles.css`, `*-render.js`, and `*-controller.js` files unless a new DOM hook is required.
+- Usecase work should stay in `public/js/application/*-usecases.js`.
+- Firebase/callable adapter work should stay in `public/js/infrastructure/*-repository.js`, `public/js/features/*-data.js`, or `functions/index.js`.
+- Quiz-play work should stay in `public/js/features/quiz-*`, `public/js/application/quiz-usecases.js`, `public/js/infrastructure/quiz-repository.js`, and quiz data/catalog files unless the task explicitly changes app navigation.
 - Smoke/test work should stay in `scripts/smoke` and `docs/operations`.
 - If a task needs both UI and data changes, split it into two commits or make one terminal own the whole feature boundary.
 - Before merging parallel work, run `npm run check`; for user-visible runtime changes, also run authenticated browser smoke with the 4-8-23 test account.
@@ -37,10 +39,24 @@ When using multiple terminals, keep each terminal inside one ownership area unle
 ## Suggested Terminal Split
 
 - Terminal A, UI: `public/styles.css`, `public/js/features/*-render.js`.
-- Terminal B, quiz: `public/js/features/quiz-play.js`, `public/js/data/quiz-catalog.js`.
-- Terminal C, data/backend: `public/js/features/*-data.js`, `functions/index.js`, Firestore/Storage rules.
+- Terminal B, quiz: `public/js/domain/quiz-domain.js`, `public/js/application/quiz-usecases.js`, `public/js/features/quiz-*`, `public/js/infrastructure/quiz-repository.js`, `public/js/data/quiz-catalog.js`.
+- Terminal C, data/backend: `public/js/infrastructure/*-repository.js`, `public/js/features/*-data.js`, `functions/index.js`, Firestore/Storage rules.
 - Terminal D, verification/docs: `scripts/smoke`, `docs/architecture`, `docs/operations`.
 - Terminal E, app shell: `public/index.html`; keep this exclusive because it still owns global state, caches, view routing, and event binding.
+
+## Current Parallel-Safe Areas
+
+- Domain tests and pure rules: safe for parallel work when the edited domain file is owned by one terminal.
+- Application usecases: safe for parallel work by feature area.
+- Infrastructure repositories: safe for parallel work by repository file.
+- Presentation render/controller files: safe for UI-focused work by feature area.
+
+## Shared Boundaries Requiring Integration Owner
+
+- `public/index.html`: one integration owner only.
+- `public/js/app/bootstrap.js`: one integration owner only.
+- `package.json`: one integration owner when changing test scripts.
+- `scripts/smoke/browser-smoke-test.js`: one verification owner when adding required globals or new user flows.
 
 ## Required Checks
 
@@ -63,6 +79,8 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 ```
 
 ## Completed Sequence
+
+### Earlier Rounds
 
 1. Stabilize verification.
    - Keep `npm run check:static` as the fast local gate.
@@ -135,14 +153,28 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 8. Final cleanup.
    - Updated docs, ran full smoke, and declared the second clean-architecture round closed.
 
+### Strict Clean-Architecture Round
+
+1. Added quiz application usecases and tests.
+2. Added quiz repository adapter and tests.
+3. Added admin application usecases and tests.
+4. Added profile write usecases and tests.
+5. Added account repository adapter and tests.
+6. Grouped bootstrap controller dependencies by feature section.
+7. Updated ownership rules and verification guidance.
+
 ## Recommended Next Goals
 
-1. Start a new goal for the next architecture round instead of extending this document.
-2. Choose one ownership area at a time:
-   - View orchestration cleanup in `public/index.html`.
-   - Quiz-play dependency adapter hardening.
-   - Admin or account workflow integration tests.
-3. Keep the same validation gate:
+1. Continue reducing `public/index.html` by moving feature-specific state application into feature/application modules.
+2. Add repositories for remaining Firebase-heavy areas:
+   - admin
+   - shop/room
+   - classroom
+   - event
+   - profile/home reads
+3. Move bootstrap dependency assembly out of inline `index.html` once remaining callbacks no longer depend on local-only variables.
+4. Add targeted browser smoke coverage for admin/account/profile write flows before moving more high-risk write logic.
+5. Keep the same validation gate:
    - `npm run check`
    - authenticated browser smoke with the 4-8-23 test account when user-visible runtime code changes.
 

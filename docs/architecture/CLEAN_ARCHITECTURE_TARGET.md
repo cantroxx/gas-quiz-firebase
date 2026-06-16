@@ -20,14 +20,17 @@ Make `public/index.html` a thin app shell and keep feature work parallelizable a
 - `public/js/application`: usecases that coordinate domain, repositories, and presentation callbacks.
 - `public/js/infrastructure`: Firebase and browser API adapters.
 - `public/js/features`: current presentation/data/controller modules during migration.
-- `public/js/bootstrap`: app startup and dependency assembly once `index.html` is thin enough.
+- `public/js/app`: app startup and dependency assembly during the current migration.
 - `tests/domain`: Node tests for pure domain modules.
+- `tests/application`: Node tests for usecase orchestration.
+- `tests/infrastructure`: Node tests for Firebase/browser adapter boundaries.
 
 ## Ownership Rules
 
 - Quiz: `quiz-*`, quiz domain/usecases/repositories.
 - Ranking: `ranking-*`, ranking domain/usecases/repositories.
 - Account: `account-*`, account domain/usecases/repositories.
+- Profile/home: `home-*`, `profile-*`, profile/home usecases and presentation.
 - Admin: `admin-*`, admin usecases/repositories/presentation.
 - Shop and room: `shop-*`, `room-*`, shop domain/usecases/repositories.
 - Event and classroom: `event-*`, `classroom-*`.
@@ -48,7 +51,7 @@ Only one terminal should edit `public/index.html` at a time. Feature work should
 1. Add domain tests and move low-risk pure rules first.
 2. Move feature usecases after the domain rule is test-covered.
 3. Move Firebase-heavy functions from `*-data.js` into repositories.
-4. Move app startup and binding assembly from `public/index.html` into bootstrap.
+4. Move app startup and binding assembly from `public/index.html` into `public/js/app` bootstrap modules.
 5. Reduce `window.DJ48...` usage to explicit bootstrap boundaries where practical.
 
 ## Validation Gate
