@@ -8,7 +8,22 @@ async function testQuizRepositoryPorts() {
   const calls = [];
   const db = { id: 'db' };
   const fieldValue = { id: 'fieldValue' };
-  const functions = { id: 'functions' };
+  const functions = {
+    id: 'functions',
+    httpsCallable: name => async payload => {
+      calls.push(['callable', name, payload]);
+      return {
+        data: {
+          success: true,
+          status: {
+            memberUserId: payload.memberUserId,
+            funSeconds: payload.seconds || 0,
+            source: name
+          }
+        }
+      };
+    }
+  };
   const authUser = { uid: 'auth-1' };
   const cache = {};
   const repository = createQuizRepository({
@@ -47,6 +62,24 @@ async function testQuizRepositoryPorts() {
   repository.resetUserEconomyCache();
   repository.resetTitleCatalogCache();
   assert.deepEqual(calls, ['economy', 'titles']);
+  assert.deepEqual(await repository.getPopularQuizUsageStatus({ memberUserId: 'member-1' }), {
+    memberUserId: 'member-1',
+    funSeconds: 0,
+    source: 'getPopularQuizUsageStatus'
+  });
+  assert.deepEqual(await repository.updatePopularQuizUsage({ memberUserId: 'member-1', funSeconds: 12 }), {
+    memberUserId: 'member-1',
+    funSeconds: 12,
+    source: 'recordPopularQuizUsageSeconds'
+  });
+  assert.deepEqual(await repository.updatePopularQuizUsage({ memberUserId: 'member-1', eduCorrectCount: 1 }), {
+    memberUserId: 'member-1',
+    funSeconds: 0,
+    source: 'recordEducationCorrectForPopularUnlock'
+  });
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'getPopularQuizUsageStatus'));
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'recordPopularQuizUsageSeconds' && call[2].seconds === 12));
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'recordEducationCorrectForPopularUnlock'));
 }
 
 async function testQuizPlayRepositoryDeps() {
@@ -72,6 +105,8 @@ async function testQuizPlayRepositoryDeps() {
   assert.equal(await deps.loadFirebaseQuizMeta('quiz-a'), 'quiz-a');
   assert.deepEqual(await deps.loadFirebaseQuizQuestions('quiz-a'), ['quiz-a']);
   assert.equal(deps.isFirestorePermissionDeniedError(new Error('x')), true);
+  assert.equal(typeof deps.getPopularQuizUsageStatus, 'function');
+  assert.equal(typeof deps.updatePopularQuizUsage, 'function');
 }
 
 async function testQuizRepositoryReadsFirestoreQuestions() {

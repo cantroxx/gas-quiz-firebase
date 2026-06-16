@@ -10,6 +10,12 @@
     return deps.normalizeFirebaseQuizId || (value => String(value || '').trim());
   }
 
+  function getRequiredFirebaseFunctions(deps = {}) {
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error('functions-unavailable');
+    return functions;
+  }
+
   function makeMathChoiceQuestion(question, answer, deps = {}) {
     const shuffleList = deps.shuffleList || defaultShuffleList;
     const distractors = [
@@ -249,6 +255,30 @@
       },
       resetTitleCatalogCache() {
         return deps.resetTitleCatalogCache?.();
+      },
+      async getPopularQuizUsageStatus(options = {}) {
+        const functions = getRequiredFirebaseFunctions(deps);
+        const callable = functions.httpsCallable('getPopularQuizUsageStatus');
+        const response = await callable({
+          memberUserId: options.memberUserId
+        });
+        const result = response?.data || {};
+        if(!result.success) throw new Error('popular-usage-status-failed');
+        return result.status || {};
+      },
+      async updatePopularQuizUsage(options = {}) {
+        const functions = getRequiredFirebaseFunctions(deps);
+        const funSeconds = Math.max(0, Math.round(Number(options.funSeconds) || 0));
+        const eduCorrectCount = Math.max(0, Math.round(Number(options.eduCorrectCount) || 0));
+        const callableName = eduCorrectCount > 0 ? 'recordEducationCorrectForPopularUnlock' : 'recordPopularQuizUsageSeconds';
+        const callable = functions.httpsCallable(callableName);
+        const response = await callable({
+          memberUserId: options.memberUserId,
+          seconds: funSeconds
+        });
+        const result = response?.data || {};
+        if(!result.success) throw new Error('popular-usage-update-failed');
+        return result.status || {};
       }
     };
   }
@@ -266,7 +296,9 @@
       buildFirebaseQuizData: quizId => repository.buildFirebaseQuizData(quizId),
       isFirestorePermissionDeniedError: error => repository.isFirestorePermissionDeniedError(error),
       resetUserEconomyCache: () => repository.resetUserEconomyCache(),
-      resetTitleCatalogCache: () => repository.resetTitleCatalogCache()
+      resetTitleCatalogCache: () => repository.resetTitleCatalogCache(),
+      getPopularQuizUsageStatus: options => repository.getPopularQuizUsageStatus(options),
+      updatePopularQuizUsage: options => repository.updatePopularQuizUsage(options)
     };
   }
 

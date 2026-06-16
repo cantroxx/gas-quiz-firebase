@@ -3859,17 +3859,12 @@
 
     async function getDailyUsageForToday(memberUserId = getCurrentDataOwnerId()) {
       const dateKey = getKstDateKey();
-      const functions = getFirebaseFunctions();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) {
         return normalizeDailyUsageData({}, memberUserId, dateKey);
       }
-      if(!functions) throw new Error('functions-unavailable');
       await initializeAuthUser();
-      const callable = functions.httpsCallable('getPopularQuizUsageStatus');
-      const response = await callable({ memberUserId });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('popular-usage-status-failed');
-      return normalizeDailyUsageData(result.status || {}, memberUserId, dateKey);
+      const status = await getQuizPlayDeps().getPopularQuizUsageStatus({ memberUserId });
+      return normalizeDailyUsageData(status, memberUserId, dateKey);
     }
 
     function getDailyUsageAccessStatus(usage) {
@@ -3959,19 +3954,16 @@
     }
 
     async function updateDailyUsageForToday(delta = {}) {
-      const functions = getFirebaseFunctions();
       const memberUserId = getCurrentDataOwnerId();
-      if(!functions || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return null;
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return null;
       const dateKey = getKstDateKey();
       await initializeAuthUser();
-      const funSeconds = Math.max(0, Math.round(Number(delta.funSeconds) || 0));
-      const eduCorrectCount = Math.max(0, Math.round(Number(delta.eduCorrectCount) || 0));
-      const callableName = eduCorrectCount > 0 ? 'recordEducationCorrectForPopularUnlock' : 'recordPopularQuizUsageSeconds';
-      const callable = functions.httpsCallable(callableName);
-      const response = await callable({ memberUserId, seconds: funSeconds });
-      const result = response?.data || {};
-      if(!result.success) throw new Error('popular-usage-update-failed');
-      return normalizeDailyUsageData(result.status || {}, memberUserId, dateKey);
+      const status = await getQuizPlayDeps().updatePopularQuizUsage({
+        memberUserId,
+        funSeconds: delta.funSeconds,
+        eduCorrectCount: delta.eduCorrectCount
+      });
+      return normalizeDailyUsageData(status, memberUserId, dateKey);
     }
 
     async function recordEducationCorrectForPopularUnlock(quizId) {
