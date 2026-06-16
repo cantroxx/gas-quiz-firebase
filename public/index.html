@@ -3266,22 +3266,18 @@
       return window.DJ48RankingData.mergeRankingRowWithMemberProfile(row, profileMap, getRankingDataDeps());
     }
 
-    async function loadMemberProfilesForRankingRows(db, rows) {
-      return window.DJ48RankingData.loadMemberProfilesForRankingRows(db, rows, getRankingDataDeps());
-    }
-
-    async function loadLimitedRankingRecordsForPlaza(db) {
-      return window.DJ48RankingData.loadLimitedRankingRecordsForPlaza(db, getRankingDataDeps());
-    }
-
     function createRankingRepository() {
       const db = getFirestoreDb();
       if(!db) return null;
       return window.DJ48RankingRepository.createRankingRepository({
         db
       }, {
-        loadLimitedRankingRecordsForPlaza,
-        loadMemberProfilesForRankingRows,
+        rankingPlazaCategoryKeys: RANKING_PLAZA_CATEGORY_KEYS,
+        rankingProfileLookupLimit: RANKING_PROFILE_LOOKUP_LIMIT,
+        getEnabledRankingCategoryKeys,
+        normalizeRankingRecordFromFirestore,
+        getRankingMemberUserId,
+        getFirebaseStorage,
         getProfileRankingCategoryKey,
         getRankingPlazaCategoryRecordLimit,
         getTopRankingRecordsByCategoryKeys,
