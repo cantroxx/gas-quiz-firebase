@@ -97,6 +97,20 @@
     });
   }
 
+  function getQuizSaveCallbacks(options = {}, depsFactory) {
+    return {
+      savePracticeProgressAfterCorrectAnswer: question => savePracticeProgressAfterCorrectAnswer(
+        question,
+        depsFactory(),
+        options.testShopUserId
+      ),
+      saveRankingRecordOnQuizComplete: () => saveRankingRecordOnQuizComplete(
+        depsFactory(),
+        options.testShopUserId
+      )
+    };
+  }
+
   function leaveQuizPlaySession(callbacks = {}) {
     callbacks.clearRankingQuestionTimer?.();
     callbacks.clearRankingSessionTimer?.();
@@ -118,6 +132,7 @@
     grantPracticeCorrectReward,
     syncMemberTitlesAfterPracticeCompletion,
     savePracticeProgressAfterCorrectAnswer,
+    getQuizSaveCallbacks,
     leaveQuizPlaySession
   };
 })();

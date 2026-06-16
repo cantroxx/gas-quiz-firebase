@@ -6438,6 +6438,9 @@
 
     function submitAnswer() {
       const deps = getQuizPlayDeps();
+      const saveCallbacks = window.DJ48QuizFlow.getQuizSaveCallbacks({
+        testShopUserId: TEST_SHOP_USER_ID
+      }, getQuizPlayDeps);
       return window.DJ48QuizPlay.submitAnswer({
         ...deps,
         getQuizAnswerInput: () => document.querySelector('.quiz-answer-input'),
@@ -6445,7 +6448,7 @@
         clearRankingQuestionTimer,
         normalizeQuizAnswer,
         recordEducationCorrectForPopularUnlock,
-        savePracticeProgressAfterCorrectAnswer: question => window.DJ48QuizFlow.savePracticeProgressAfterCorrectAnswer(question, getQuizPlayDeps(), TEST_SHOP_USER_ID),
+        savePracticeProgressAfterCorrectAnswer: saveCallbacks.savePracticeProgressAfterCorrectAnswer,
         showQuizResult,
         renderPracticeSaveStatus,
         isFirestoreQuotaExceededError
@@ -6602,10 +6605,13 @@
       clearRankingSessionTimer();
       finishPopularUsageSession();
       const deps = getQuizPlayDeps();
+      const saveCallbacks = window.DJ48QuizFlow.getQuizSaveCallbacks({
+        testShopUserId: TEST_SHOP_USER_ID
+      }, getQuizPlayDeps);
       return window.DJ48QuizPlay.showQuizComplete(options, {
         ...deps,
         getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
-        saveRankingRecordOnQuizComplete: () => window.DJ48QuizFlow.saveRankingRecordOnQuizComplete(getQuizPlayDeps(), TEST_SHOP_USER_ID),
+        saveRankingRecordOnQuizComplete: saveCallbacks.saveRankingRecordOnQuizComplete,
         renderRankingSaveStatus
       });
     }
