@@ -390,6 +390,15 @@
     });
   }
 
+  function renderRankingBoardsWithState(model, deps = {}) {
+    const nextModel = deps.setPlazaModel?.(model) || model;
+    return renderRankingBoards(
+      deps.getRankingBoardRoot?.(),
+      nextModel,
+      deps.getRankingRenderDeps?.() || {}
+    );
+  }
+
   window.DJ48RankingRender = {
     normalizeRankingDisplayName,
     renderRankingCards,
@@ -401,6 +410,7 @@
     createRankingPodiumCard,
     createPopularFilterButton,
     renderRankingBoards,
+    renderRankingBoardsWithState,
     renderRankingBoardPanel,
     renderRankingGroupPanel,
     renderPopularRankingBoardPanel,

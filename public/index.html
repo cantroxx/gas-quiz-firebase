@@ -3452,12 +3452,11 @@
     }
 
     function renderRankingBoards(model) {
-      const nextModel = window.DJ48RankingState.setPlazaModel(model);
-      return window.DJ48RankingRender.renderRankingBoards(
-        document.getElementById('ranking-board-root'),
-        nextModel,
-        getRankingRenderDeps()
-      );
+      return window.DJ48RankingRender.renderRankingBoardsWithState(model, {
+        setPlazaModel: window.DJ48RankingState.setPlazaModel,
+        getRankingBoardRoot: () => document.getElementById('ranking-board-root'),
+        getRankingRenderDeps
+      });
     }
 
     function renderRankingBoardPanel(panel, board) {
