@@ -17,6 +17,12 @@
     return deps.getFirebaseFunctions?.() || null;
   }
 
+  function getRequiredClassroomFunctions(deps = {}, unavailableMessage = 'functions-unavailable') {
+    const functions = getClassroomFunctions(deps);
+    if(!functions) throw new Error(unavailableMessage);
+    return functions;
+  }
+
   function getClassroomDb(deps = {}) {
     return deps.getFirestoreDb?.() || null;
   }
@@ -138,6 +144,52 @@
     return Object.fromEntries(entries.filter(([, data]) => !!data));
   }
 
+  async function setClassroomSelectedBadge(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-badge-select-functions-unavailable');
+    const callable = functions.httpsCallable('setClassroomSelectedBadge');
+    await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      badgeType: options.badgeType || 'gem',
+      badgeId: options.badgeId
+    });
+  }
+
+  async function saveClassroomRoutine(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-routine-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomRoutine');
+    await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      routine: options.values || {}
+    });
+  }
+
+  async function completeClassroomAutoQuest(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-auto-quest-functions-unavailable');
+    const callable = functions.httpsCallable('completeClassroomAutoQuest');
+    const response = await callable({
+      memberUserId: options.memberUserId,
+      classId: options.classId,
+      questId: options.questId
+    });
+    return response?.data || {};
+  }
+
+  async function reviewClassroomQuestProgress(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-review-functions-unavailable');
+    const callable = functions.httpsCallable('reviewClassroomQuestProgress');
+    const response = await callable({
+      classId: options.classId,
+      recordId: options.recordId,
+      nextStatus: options.nextStatus
+    });
+    return response?.data || {};
+  }
+
   function createClassroomRepository(deps = {}) {
     const firestoreDeps = {
       getFirestoreDb: deps.getFirestoreDb,
@@ -157,7 +209,7 @@
       loadClassroomStudentCards: options => loadClassroomStudentCards(options, callableDeps),
       loadClassroomEconomyBoard: options => loadClassroomEconomyBoard(options, callableDeps),
       loadClassroomReviewItems: options => loadClassroomReviewItems(options, firestoreDeps),
-      setClassroomSelectedBadge: options => root.DJ48ClassroomData.setClassroomSelectedBadge(options, callableDeps),
+      setClassroomSelectedBadge: options => setClassroomSelectedBadge(options, callableDeps),
       saveClassroomQuest: options => root.DJ48ClassroomData.saveClassroomQuest(options, callableDeps),
       awardClassroomBadgeCampaign: options => root.DJ48ClassroomData.awardClassroomBadgeCampaign(options, callableDeps),
       saveClassroomJob: options => root.DJ48ClassroomData.saveClassroomJob(options, callableDeps),
@@ -165,13 +217,13 @@
       callClassroomEconomyAction: (functionName, payload, options) => (
         root.DJ48ClassroomData.callClassroomEconomyAction(functionName, payload, options, callableDeps)
       ),
-      saveClassroomRoutine: options => root.DJ48ClassroomData.saveClassroomRoutine(options, callableDeps),
-      completeClassroomAutoQuest: options => root.DJ48ClassroomData.completeClassroomAutoQuest(options, callableDeps),
+      saveClassroomRoutine: options => saveClassroomRoutine(options, callableDeps),
+      completeClassroomAutoQuest: options => completeClassroomAutoQuest(options, callableDeps),
       saveClassroomManualQuestProgress: options => root.DJ48ClassroomData.saveClassroomManualQuestProgress({
         ...options,
         db: deps.getFirestoreDb?.()
       }, firestoreDeps),
-      reviewClassroomQuestProgress: options => root.DJ48ClassroomData.reviewClassroomQuestProgress(options, callableDeps)
+      reviewClassroomQuestProgress: options => reviewClassroomQuestProgress(options, callableDeps)
     };
   }
 

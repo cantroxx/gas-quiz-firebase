@@ -103,7 +103,7 @@ globalThis.DJ48ClassroomData = {
     return { classId: options.prototype.classId };
   },
   setClassroomSelectedBadge: (options, deps) => {
-    dataCalls.push(['badge', options.badgeId, !!deps.getFirebaseFunctions]);
+    dataCalls.push(['legacy-badge', options.badgeId, !!deps.getFirebaseFunctions]);
     return { ok: true };
   },
   saveClassroomQuest: (options, deps) => {
@@ -127,11 +127,11 @@ globalThis.DJ48ClassroomData = {
     return { success: true };
   },
   saveClassroomRoutine: (options, deps) => {
-    dataCalls.push(['routine-save', options.memberUserId, !!deps.getFirebaseFunctions]);
+    dataCalls.push(['legacy-routine-save', options.memberUserId, !!deps.getFirebaseFunctions]);
     return { ok: true };
   },
   completeClassroomAutoQuest: (options, deps) => {
-    dataCalls.push(['auto-quest', options.questId, !!deps.getFirebaseFunctions]);
+    dataCalls.push(['legacy-auto-quest', options.questId, !!deps.getFirebaseFunctions]);
     return { success: true };
   },
   saveClassroomManualQuestProgress: (options, deps) => {
@@ -139,7 +139,7 @@ globalThis.DJ48ClassroomData = {
     return { recordId: 'record-1' };
   },
   reviewClassroomQuestProgress: (options, deps) => {
-    dataCalls.push(['review-progress', options.recordId, options.nextStatus, !!deps.getFirebaseFunctions]);
+    dataCalls.push(['legacy-review-progress', options.recordId, options.nextStatus, !!deps.getFirebaseFunctions]);
     return { success: true };
   }
 };
@@ -194,47 +194,70 @@ async function testClassroomRepositoryFallbacksAndDelegates() {
   const repository = createClassroomRepository({
     getFirestoreDb: () => ({ id: 'db' }),
     getFirestoreFieldValue: () => fieldValue,
-    getFirebaseFunctions: () => null,
+    getFirebaseFunctions: () => functions,
     warn: () => {}
   });
 
-  assert.deepEqual(await repository.loadClassroomStudentCards({ memberUserId: 'member-1' }), []);
-  assert.deepEqual(await repository.loadClassroomEconomyBoard({ memberUserId: 'member-1' }), {
-    jobs: [],
-    shopItems: [],
-    applications: [],
-    assignments: [],
-    routines: []
-  });
   assert.deepEqual(await repository.loadClassroomSettings({ prototype: { classId: 'c1' } }), { classId: 'c1' });
-  assert.deepEqual(await repository.setClassroomSelectedBadge({ badgeId: 'gem-1' }), { ok: true });
+  assert.equal(await repository.setClassroomSelectedBadge({ classId: 'c1', memberUserId: 'member-1', badgeId: 'gem-1' }), undefined);
   assert.deepEqual(await repository.saveClassroomQuest({ classId: 'c1' }), { ok: true });
   assert.deepEqual(await repository.awardClassroomBadgeCampaign({ classId: 'c1' }), { winners: [] });
   assert.deepEqual(await repository.saveClassroomJob({ classId: 'c1' }), { ok: true });
   assert.deepEqual(await repository.saveClassroomShopItem({ classId: 'c1' }), { ok: true });
   assert.deepEqual(await repository.callClassroomEconomyAction('purchaseClassroomShopItem', { itemId: 'item-1' }, { memberUserId: 'member-1' }), { success: true });
-  assert.deepEqual(await repository.saveClassroomRoutine({ memberUserId: 'member-1' }), { ok: true });
-  assert.deepEqual(await repository.completeClassroomAutoQuest({ questId: 'quest-1' }), { success: true });
+  assert.equal(await repository.saveClassroomRoutine({ classId: 'c1', memberUserId: 'member-1', values: { title: 'Read' } }), undefined);
+  assert.deepEqual(await repository.completeClassroomAutoQuest({ classId: 'c1', memberUserId: 'member-1', questId: 'quest-1' }), { success: true });
   assert.deepEqual(await repository.saveClassroomManualQuestProgress({ questId: 'quest-1' }), { recordId: 'record-1' });
-  assert.deepEqual(await repository.reviewClassroomQuestProgress({ recordId: 'record-1', nextStatus: 'approved' }), { success: true });
+  assert.deepEqual(await repository.reviewClassroomQuestProgress({ classId: 'c1', recordId: 'record-1', nextStatus: 'approved' }), { success: true });
 
   assert.deepEqual(dataCalls.map(call => call[0]), [
     'settings',
-    'badge',
     'quest-save',
     'campaign',
     'job-save',
     'shop-save',
     'action',
-    'routine-save',
-    'auto-quest',
-    'manual-quest',
-    'review-progress'
+    'manual-quest'
   ]);
+  assert(calls.some(call => call[0] === 'setClassroomSelectedBadge' && call[1].badgeId === 'gem-1'));
+  assert(calls.some(call => call[0] === 'saveClassroomRoutine' && call[1].routine.title === 'Read'));
+  assert(calls.some(call => call[0] === 'completeClassroomAutoQuest' && call[1].questId === 'quest-1'));
+  assert(calls.some(call => call[0] === 'reviewClassroomQuestProgress' && call[1].nextStatus === 'approved'));
+}
+
+async function testClassroomRepositoryCallableErrors() {
+  const repository = createClassroomRepository({
+    getFirestoreDb: () => ({ id: 'db' }),
+    getFirestoreFieldValue: () => fieldValue,
+    getFirebaseFunctions: () => null,
+    warn: () => {}
+  });
+
+  await assert.rejects(
+    () => repository.setClassroomSelectedBadge({ classId: 'c1', badgeId: 'gem-1' }),
+    /classroom-member-unavailable/
+  );
+  await assert.rejects(
+    () => repository.setClassroomSelectedBadge({ classId: 'c1', memberUserId: 'member-1', badgeId: 'gem-1' }),
+    /classroom-badge-select-functions-unavailable/
+  );
+  await assert.rejects(
+    () => repository.saveClassroomRoutine({ classId: 'c1', memberUserId: 'member-1' }),
+    /classroom-routine-functions-unavailable/
+  );
+  await assert.rejects(
+    () => repository.completeClassroomAutoQuest({ classId: 'c1', memberUserId: 'member-1', questId: 'quest-1' }),
+    /classroom-auto-quest-functions-unavailable/
+  );
+  await assert.rejects(
+    () => repository.reviewClassroomQuestProgress({ classId: 'c1', recordId: 'record-1', nextStatus: 'approved' }),
+    /classroom-review-functions-unavailable/
+  );
 }
 
 testClassroomRepositoryReadPaths()
   .then(testClassroomRepositoryFallbacksAndDelegates)
+  .then(testClassroomRepositoryCallableErrors)
   .then(() => console.log('Infrastructure tests passed: classroom-repository'))
   .catch(error => {
     console.error(error);
