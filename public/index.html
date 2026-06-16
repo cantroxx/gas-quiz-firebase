@@ -2782,18 +2782,18 @@
     }
 
     function updateProfileImageEditorPreview() {
-      const editorState = window.DJ48HomeState.getProfileImageEditorState();
-      if(!editorState) return;
-      const values = window.DJ48HomeRender.getProfileImageEditorControlValues({
-        scaleId: 'profile-image-editor-scale',
-        offsetXId: 'profile-image-editor-offset-x',
-        offsetYId: 'profile-image-editor-offset-y'
+      return window.DJ48HomeController.updateProfileImageEditorPreview({
+        getProfileImageEditorState: () => window.DJ48HomeState.getProfileImageEditorState(),
+        getProfileImageEditorControlValues: () => window.DJ48HomeRender.getProfileImageEditorControlValues({
+          scaleId: 'profile-image-editor-scale',
+          offsetXId: 'profile-image-editor-offset-x',
+          offsetYId: 'profile-image-editor-offset-y'
+        }),
+        setProfileImageEditorState: window.DJ48HomeState.setProfileImageEditorState,
+        applyProfileImageEditorControlValues: window.DJ48AccountData.applyProfileImageEditorControlValues,
+        getProfileImageEditorPreviewImage: () => document.getElementById('profile-image-editor-preview-img'),
+        applyProfileImageTransform
       });
-      const nextState = window.DJ48HomeState.setProfileImageEditorState(
-        window.DJ48AccountData.applyProfileImageEditorControlValues(editorState, values)
-      );
-      const image = document.getElementById('profile-image-editor-preview-img');
-      if(image) applyProfileImageTransform(image, nextState);
     }
 
     function openProfileImageEditor(options) {

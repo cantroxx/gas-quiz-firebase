@@ -1,4 +1,4 @@
-(function () {
+(function (root) {
   function resetProfileImageEditor(deps = {}) {
     const editorState = deps.getProfileImageEditorState?.();
     if(!editorState) return null;
@@ -11,6 +11,18 @@
     deps.setProfileImageEditorControls?.(nextState);
     deps.updateProfileImageEditorPreview?.();
     return nextState;
+  }
+
+  function updateProfileImageEditorPreview(deps = {}) {
+    const editorState = deps.getProfileImageEditorState?.();
+    if(!editorState) return null;
+    const values = deps.getProfileImageEditorControlValues?.() || {};
+    const nextState = deps.setProfileImageEditorState?.(
+      deps.applyProfileImageEditorControlValues?.(editorState, values) || editorState
+    );
+    const image = deps.getProfileImageEditorPreviewImage?.();
+    if(image && nextState) deps.applyProfileImageTransform?.(image, nextState);
+    return nextState || null;
   }
 
   function bindProfileHomeEvents(deps = {}) {
@@ -155,8 +167,12 @@
     });
   }
 
-  window.DJ48HomeController = {
+  const api = {
     resetProfileImageEditor,
+    updateProfileImageEditorPreview,
     bindProfileHomeEvents
   };
-})();
+
+  root.DJ48HomeController = api;
+  if(typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof window !== 'undefined' ? window : globalThis);
