@@ -12,6 +12,9 @@ globalThis.DJ48QuizPlay = {
   }),
   submitAnswer: payload => payload
 };
+globalThis.DJ48QuizRender = {
+  renderQuestion: (deps, callbacks) => ({ deps, callbacks })
+};
 
 const flow = require('../../public/js/features/quiz-flow.js');
 
@@ -78,7 +81,23 @@ function testSubmitQuizAnswer() {
   });
 }
 
+function testRenderQuizQuestion() {
+  const deps = { quizId: 'spelling' };
+  const callbacks = {
+    getQuestionHintText: () => 'hint',
+    getQuizProgressText: () => '1/10',
+    startRankingQuestionTimerIfNeeded: () => {}
+  };
+  const result = flow.renderQuizQuestion(deps, callbacks);
+
+  assert.equal(result.deps, deps);
+  assert.equal(result.callbacks.getQuestionHintText(), 'hint');
+  assert.equal(result.callbacks.getQuizProgressText(), '1/10');
+  assert.equal(typeof result.callbacks.startRankingQuestionTimerIfNeeded, 'function');
+}
+
 testGetQuizProgressText();
 testRankingTimerStateCallbacks();
 testSubmitQuizAnswer();
+testRenderQuizQuestion();
 console.log('Application tests passed: quiz-flow');

@@ -137,6 +137,14 @@
     });
   }
 
+  function renderQuizQuestion(deps = {}, callbacks = {}) {
+    return root.DJ48QuizRender.renderQuestion(deps, {
+      getQuestionHintText: callbacks.getQuestionHintText,
+      getQuizProgressText: callbacks.getQuizProgressText,
+      startRankingQuestionTimerIfNeeded: callbacks.startRankingQuestionTimerIfNeeded
+    });
+  }
+
   function leaveQuizPlaySession(callbacks = {}) {
     callbacks.clearRankingQuestionTimer?.();
     callbacks.clearRankingSessionTimer?.();
@@ -161,6 +169,7 @@
     savePracticeProgressAfterCorrectAnswer,
     getQuizSaveCallbacks,
     submitQuizAnswer,
+    renderQuizQuestion,
     leaveQuizPlaySession
   };
 
