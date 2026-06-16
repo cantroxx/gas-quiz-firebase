@@ -4163,7 +4163,7 @@
     async function restoreLinkedMemberFromAuthUid() {
       const db = getFirestoreDb();
       const authUid = getFirebaseAuthUser()?.uid || '';
-      return window.DJ48AccountData.restoreLinkedMemberProfile({
+      return getAccountRepository().restoreLinkedMemberProfile({
         db,
         authUid,
         currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
@@ -4226,7 +4226,7 @@
         defaultMemberSchool: DEFAULT_MEMBER_SCHOOL,
         ...getAccountCallableDeps()
       });
-      const linkedProfile = await window.DJ48AccountData.loadLinkedMemberProfile({
+      const linkedProfile = await getAccountRepository().loadLinkedMemberProfile({
         db,
         authUid,
         result

@@ -73,64 +73,6 @@
     }
   }
 
-  async function loadRestorableMemberProfileByHint(options = {}) {
-    const { db, hintedMemberUserId, authUid } = options;
-    if(!db || !hintedMemberUserId || !authUid) return null;
-
-    const hintedSnapshot = await db.collection('users').doc(hintedMemberUserId).get();
-    if(!hintedSnapshot.exists) return null;
-
-    const hintedProfile = normalizeMemberProfileFromFirestore(hintedSnapshot);
-    return isRestorableMemberProfile(hintedProfile, authUid) ? hintedProfile : null;
-  }
-
-  async function loadRestorableMemberProfileByAuthUid(options = {}) {
-    const { db, authUid } = options;
-    if(!db || !authUid) return null;
-
-    const snapshot = await db.collection('users')
-      .where('authUid', '==', authUid)
-      .limit(1)
-      .get();
-    if(snapshot.empty) return null;
-
-    const profile = normalizeMemberProfileFromFirestore(snapshot.docs[0]);
-    return isRestorableMemberProfile(profile, authUid) ? profile : null;
-  }
-
-  async function restoreLinkedMemberProfile(options = {}, deps = {}) {
-    const {
-      db,
-      authUid,
-      currentMemberUserId,
-      currentMemberProfile,
-      hintedMemberUserId,
-      testShopUserId
-    } = options;
-
-    if(!db || !authUid || authUid === testShopUserId) return null;
-    if(currentMemberUserId && currentMemberProfile?.authUid === authUid) return currentMemberProfile;
-
-    if(hintedMemberUserId) {
-      try {
-        const hintedProfile = await loadRestorableMemberProfileByHint({ db, hintedMemberUserId, authUid });
-        if(hintedProfile) return deps.applyRestoredMemberProfile?.(hintedProfile) || hintedProfile;
-        deps.clearLinkedMemberHint?.();
-      } catch(error) {
-        deps.warn?.('Linked member hint verification failed.', error);
-        deps.clearLinkedMemberHint?.();
-      }
-    }
-
-    try {
-      const profile = await loadRestorableMemberProfileByAuthUid({ db, authUid });
-      return profile ? (deps.applyRestoredMemberProfile?.(profile) || profile) : null;
-    } catch(error) {
-      deps.warn?.('Linked member restore by auth uid failed.', error);
-      return null;
-    }
-  }
-
   async function signInAnonymouslyIfNeeded(auth) {
     if(!auth) return null;
     if(auth.currentUser) return auth.currentUser;
@@ -201,26 +143,6 @@
       ...(response || {}),
       action: linkPayload.action
     };
-  }
-
-  async function loadLinkedMemberProfile(options = {}) {
-    const { db, authUid, result } = options;
-    if(!db) throw new Error('firestore-unavailable');
-    if(!authUid) throw new Error('auth-required');
-    if(!result?.success || !result.memberUserId) throw new Error('member-link-function-failed');
-
-    const memberSnapshot = await db.collection('users').doc(result.memberUserId).get();
-    const linkedProfile = memberSnapshot.exists
-      ? normalizeMemberProfileFromFirestore(memberSnapshot)
-      : {
-        ...(result.profile || {}),
-        userId: result.memberUserId,
-        legacyMemberId: result.memberUserId,
-        authUid
-      };
-    linkedProfile.authUid = authUid;
-    linkedProfile._authLinkAction = result.action || 'password-login';
-    return linkedProfile;
   }
 
   async function changePendingMemberPassword(options = {}, deps = {}) {
@@ -382,85 +304,12 @@
     };
   }
 
-  async function saveUserProfileUpdate(options = {}) {
-    const { db, memberUserId, updateData } = options;
-    if(!memberUserId) throw new Error('member-required');
-    if(!db) throw new Error('firestore-unavailable');
-    await db.collection('users').doc(memberUserId).set(updateData, { merge: true });
-    return updateData;
-  }
-
   function buildUploadedProfileImageUpdate(editorState = {}, uploadResult = {}, edit = {}, deps = {}) {
     return buildProfileImageUpdate({
       profileImageUrl: uploadResult.downloadUrl || editorState.profileImageUrl || editorState.imageUrl || '',
       profileImageSource: editorState.profileImageSource || editorState.source || '',
       profileImageStoragePath: uploadResult.path || editorState.profileImageStoragePath || ''
     }, edit, deps);
-  }
-
-  async function uploadProfileImageToStorage(options = {}) {
-    const {
-      storage,
-      authUid,
-      memberUserId,
-      file
-    } = options;
-    if(!storage) throw new Error('storage-unavailable');
-
-    const extension = getProfileImageFileExtension(file);
-    const path = buildProfileImageStoragePath({
-      authUid,
-      memberUserId,
-      extension
-    });
-    const ref = storage.ref(path);
-    await ref.put(file, {
-      contentType: file.type,
-      customMetadata: {
-        memberUserId,
-        source: 'profile-upload'
-      }
-    });
-    const downloadUrl = await ref.getDownloadURL();
-    return { downloadUrl, path };
-  }
-
-  async function saveProfileImageEditorSelection(options = {}, deps = {}) {
-    const {
-      db,
-      memberUserId,
-      editorState,
-      edit,
-      storage,
-      authUid,
-      currentProfile
-    } = options;
-    if(!memberUserId) throw new Error('member-required');
-    if(!editorState) return null;
-    if(!db) throw new Error('firestore-unavailable');
-
-    let uploadResult = null;
-    if(editorState.source === 'upload') {
-      uploadResult = await uploadProfileImageToStorage({
-        storage,
-        authUid,
-        memberUserId,
-        file: editorState.file
-      });
-    }
-    const updateData = buildUploadedProfileImageUpdate(editorState, uploadResult || {}, edit, deps);
-    await saveUserProfileUpdate({
-      db,
-      memberUserId,
-      updateData
-    });
-    return {
-      updateData,
-      nextProfile: {
-        ...(currentProfile || {}),
-        ...updateData
-      }
-    };
   }
 
   function buildRankingMessageUpdate(message, deps = {}) {
@@ -471,43 +320,12 @@
     };
   }
 
-  async function saveRankingMessageForMember(options = {}, deps = {}) {
-    const updateData = buildRankingMessageUpdate(options.message, deps);
-    return saveUserProfileUpdate({
-      db: options.db,
-      memberUserId: options.memberUserId,
-      updateData
-    });
-  }
-
   function buildSelectedTitleUpdate(titleId, deps = {}) {
     const fieldValue = deps.getFirestoreFieldValue?.();
     return {
       selectedTitleId: String(titleId || '').trim(),
       updatedAt: fieldValue.serverTimestamp()
     };
-  }
-
-  async function saveSelectedTitleForMember(options = {}, deps = {}) {
-    const selectedTitleId = String(options.titleId || '').trim();
-    if(!options.memberUserId) throw new Error('member-required');
-    if(!options.db) throw new Error('firestore-unavailable');
-    if(selectedTitleId) {
-      const titleSnapshot = await options.db
-        .collection('userTitles')
-        .doc(options.memberUserId)
-        .collection('titles')
-        .doc(selectedTitleId)
-        .get();
-      if(!titleSnapshot.exists) throw new Error('title-not-owned');
-    }
-
-    const updateData = buildSelectedTitleUpdate(selectedTitleId, deps);
-    return saveUserProfileUpdate({
-      db: options.db,
-      memberUserId: options.memberUserId,
-      updateData
-    });
   }
 
   function getResolvedUserIdFromAuthUser(user, deps = {}) {
@@ -592,14 +410,10 @@
     maybeSaveLinkedMemberHint,
     getLinkedMemberHint,
     clearLinkedMemberHint,
-    loadRestorableMemberProfileByHint,
-    loadRestorableMemberProfileByAuthUid,
-    restoreLinkedMemberProfile,
     signInAnonymouslyIfNeeded,
     callAccountCallable,
     buildMemberLinkPayload,
     linkMemberWithPassword,
-    loadLinkedMemberProfile,
     changePendingMemberPassword,
     changeMemberPasswordWithCurrentPassword,
     updateMemberNicknameForMember,
@@ -615,14 +429,9 @@
     applyProfileImageEditorControlValues,
     buildProfileImageStoragePath,
     buildProfileImageUpdate,
-    saveUserProfileUpdate,
     buildUploadedProfileImageUpdate,
-    uploadProfileImageToStorage,
-    saveProfileImageEditorSelection,
     buildRankingMessageUpdate,
-    saveRankingMessageForMember,
     buildSelectedTitleUpdate,
-    saveSelectedTitleForMember,
     getResolvedUserIdFromAuthUser,
     getRestoredMemberState,
     getResolvedUserChangeState,
