@@ -145,6 +145,37 @@
     });
   }
 
+  function showQuizResult(isCorrect, overrideMessage, deps = {}, callbacks = {}) {
+    return root.DJ48QuizPlay.showQuizResult(isCorrect, overrideMessage, {
+      ...deps,
+      getQuizPlayRoot: callbacks.getQuizPlayRoot
+    });
+  }
+
+  function nextQuizQuestion(deps = {}, callbacks = {}) {
+    return root.DJ48QuizPlay.nextQuestion({
+      ...deps,
+      clearRankingQuestionTimer: callbacks.clearRankingQuestionTimer,
+      showQuizComplete: callbacks.showQuizComplete,
+      renderQuestion: callbacks.renderQuestion
+    });
+  }
+
+  function showQuizComplete(options = {}, deps = {}, callbacks = {}) {
+    callbacks.clearRankingQuestionTimer?.();
+    callbacks.clearRankingSessionTimer?.();
+    callbacks.finishPopularUsageSession?.();
+    const saveCallbacks = getQuizSaveCallbacks({
+      testShopUserId: callbacks.testShopUserId
+    }, callbacks.getQuizPlayDeps);
+    return root.DJ48QuizPlay.showQuizComplete(options, {
+      ...deps,
+      getQuizPlayRoot: callbacks.getQuizPlayRoot,
+      saveRankingRecordOnQuizComplete: saveCallbacks.saveRankingRecordOnQuizComplete,
+      renderRankingSaveStatus: callbacks.renderRankingSaveStatus
+    });
+  }
+
   function leaveQuizPlaySession(callbacks = {}) {
     callbacks.clearRankingQuestionTimer?.();
     callbacks.clearRankingSessionTimer?.();
@@ -170,6 +201,9 @@
     getQuizSaveCallbacks,
     submitQuizAnswer,
     renderQuizQuestion,
+    showQuizResult,
+    nextQuizQuestion,
+    showQuizComplete,
     leaveQuizPlaySession
   };
 

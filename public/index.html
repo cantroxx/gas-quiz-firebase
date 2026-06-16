@@ -6262,9 +6262,7 @@
     }
 
     function showQuizResult(isCorrect, overrideMessage) {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.showQuizResult(isCorrect, overrideMessage, {
-        ...deps,
+      return window.DJ48QuizFlow.showQuizResult(isCorrect, overrideMessage, getQuizPlayDeps(), {
         getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot
       });
     }
@@ -6274,9 +6272,7 @@
     }
 
     function nextQuestion() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.nextQuestion({
-        ...deps,
+      return window.DJ48QuizFlow.nextQuizQuestion(getQuizPlayDeps(), {
         clearRankingQuestionTimer,
         showQuizComplete,
         renderQuestion
@@ -6360,17 +6356,13 @@
     }
 
     function showQuizComplete(options = {}) {
-      clearRankingQuestionTimer();
-      clearRankingSessionTimer();
-      finishPopularUsageSession();
-      const deps = getQuizPlayDeps();
-      const saveCallbacks = window.DJ48QuizFlow.getQuizSaveCallbacks({
-        testShopUserId: TEST_SHOP_USER_ID
-      }, getQuizPlayDeps);
-      return window.DJ48QuizPlay.showQuizComplete(options, {
-        ...deps,
+      return window.DJ48QuizFlow.showQuizComplete(options, getQuizPlayDeps(), {
+        getQuizPlayDeps,
+        testShopUserId: TEST_SHOP_USER_ID,
+        clearRankingQuestionTimer,
+        clearRankingSessionTimer,
+        finishPopularUsageSession,
         getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot,
-        saveRankingRecordOnQuizComplete: saveCallbacks.saveRankingRecordOnQuizComplete,
         renderRankingSaveStatus
       });
     }

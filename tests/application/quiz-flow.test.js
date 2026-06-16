@@ -10,7 +10,10 @@ globalThis.DJ48QuizPlay = {
   saveRankingRecordOnQuizComplete: deps => ({
     testShopUserId: deps.testShopUserId
   }),
-  submitAnswer: payload => payload
+  submitAnswer: payload => payload,
+  showQuizResult: (isCorrect, overrideMessage, payload) => ({ isCorrect, overrideMessage, payload }),
+  nextQuestion: payload => payload,
+  showQuizComplete: (options, payload) => ({ options, payload })
 };
 globalThis.DJ48QuizRender = {
   renderQuestion: (deps, callbacks) => ({ deps, callbacks })
@@ -96,8 +99,47 @@ function testRenderQuizQuestion() {
   assert.equal(typeof result.callbacks.startRankingQuestionTimerIfNeeded, 'function');
 }
 
+function testQuizResultNextAndCompleteWrappers() {
+  const root = {};
+  const result = flow.showQuizResult(true, 'ok', { quizId: 'spelling' }, {
+    getQuizPlayRoot: () => root
+  });
+  assert.equal(result.isCorrect, true);
+  assert.equal(result.overrideMessage, 'ok');
+  assert.equal(result.payload.quizId, 'spelling');
+  assert.equal(result.payload.getQuizPlayRoot(), root);
+
+  const next = flow.nextQuizQuestion({ index: 1 }, {
+    clearRankingQuestionTimer: () => 'clear',
+    showQuizComplete: () => 'complete',
+    renderQuestion: () => 'render'
+  });
+  assert.equal(next.index, 1);
+  assert.equal(next.clearRankingQuestionTimer(), 'clear');
+  assert.equal(next.showQuizComplete(), 'complete');
+  assert.equal(next.renderQuestion(), 'render');
+
+  const calls = [];
+  const complete = flow.showQuizComplete({ forced: true }, { mode: 'ranking' }, {
+    getQuizPlayDeps: () => ({ owner: 'member-1' }),
+    testShopUserId: 'test-user',
+    clearRankingQuestionTimer: () => calls.push('clear-question'),
+    clearRankingSessionTimer: () => calls.push('clear-session'),
+    finishPopularUsageSession: () => calls.push('finish-popular'),
+    getQuizPlayRoot: () => root,
+    renderRankingSaveStatus: () => 'rank-status'
+  });
+  assert.deepEqual(calls, ['clear-question', 'clear-session', 'finish-popular']);
+  assert.deepEqual(complete.options, { forced: true });
+  assert.equal(complete.payload.mode, 'ranking');
+  assert.equal(complete.payload.getQuizPlayRoot(), root);
+  assert.deepEqual(complete.payload.saveRankingRecordOnQuizComplete(), { testShopUserId: 'test-user' });
+  assert.equal(complete.payload.renderRankingSaveStatus(), 'rank-status');
+}
+
 testGetQuizProgressText();
 testRankingTimerStateCallbacks();
 testSubmitQuizAnswer();
 testRenderQuizQuestion();
+testQuizResultNextAndCompleteWrappers();
 console.log('Application tests passed: quiz-flow');
