@@ -6848,6 +6848,12 @@
       return window.DJ48AppView.closePlaceModal();
     }
 
+    function getEventControllerEvents() {
+      return {
+        claimEventQuestReward
+      };
+    }
+
     function getAppBootstrapControllerSections() {
       return window.DJ48AppBootstrap.getDefaultControllerSections({
         appEventsController: window.DJ48AppEvents,
@@ -6868,9 +6874,7 @@
           isRoomDecorPortraitBlocked
         },
         eventController: window.DJ48EventController,
-        eventEvents: {
-          claimEventQuestReward
-        },
+        eventEvents: getEventControllerEvents(),
         classroomController: window.DJ48ClassroomController,
         classroomEvents: {
           handleClassroomEntrySubmit,
