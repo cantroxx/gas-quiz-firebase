@@ -281,11 +281,25 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
     - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
     - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
     - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
+81. Grouped quiz ranking timer callbacks behind `public/js/features/quiz-flow.js`.
+    - Session timer and question timer start/timeout wrappers now use one timer controller helper.
+82. Moved classroom quest completion and review button wrappers into `public/js/application/classroom-usecases.js`.
+    - `public/index.html` keeps DOM/repository dependencies but no longer owns quest/review busy-state branching.
+83. Moved popular ranking row filtering into `public/js/domain/ranking-domain.js`.
+    - `public/index.html` now passes active filter state and constants to domain helpers.
+84. Simplified bootstrap controller section assembly with `public/js/app/bootstrap.js` registry helper.
+    - `public/index.html` provides controller/event registries instead of manually expanding each section tuple.
+85. Added app-view place navigation helper and test coverage.
+    - `public/js/features/app-view.js` now supports Node tests and `enterKnownPlaceView()` for place-key navigation.
+86. Re-audited Firebase access boundaries after rounds 37~56:
+    - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
+    - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
+    - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
 
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: app-view/bootstrap wrappers, ranking popular filter dependencies, quiz timer/session dependency groups, and classroom quest/review wrappers.
+   - First candidates: any remaining app shell wrappers that still contain branching logic, especially auth destination and feature view preload wrappers.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
    - Current feature data/play modules are free of direct Firebase/Storage access.
@@ -311,12 +325,9 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 
 ## Next Execution Order
 
-1. Move remaining app-view/show-view orchestration out of `public/index.html` only where dependencies are already stable.
-2. Move ranking popular filter dependency assembly into ranking usecase/controller helpers.
-3. Split quiz timer/session dependency groups further, starting with timer callbacks and session-state factories that can be tested without Firebase.
-4. Move classroom quest completion/review wrappers behind usecase/controller helpers, following the classroom economy action pattern.
-5. Continue splitting bootstrap dependency groups from `public/index.html` into `public/js/app/bootstrap.js` or feature-specific factories.
-6. Recheck `public/index.html` for direct Firebase access and broad app-shell state coupling after each group.
-7. Add or extend targeted tests for each moved usecase/controller path before broad smoke.
-8. Re-run `npm run check` and authenticated browser smoke.
-9. Commit/push/deploy only when explicitly requested and smoke passes.
+1. Run a final `public/index.html` wrapper audit and classify the remaining functions as app-shell-only, feature-owned, or TODO.
+2. Move only clearly feature-owned branching that still has low-risk dependencies; avoid forcing global auth/view state out prematurely.
+3. Confirm all feature data/play modules remain Firebase-free and all Firebase access remains in `public/js/infrastructure/*-repository.js`.
+4. Update ownership docs to match the actual final file boundaries.
+5. Re-run `npm run check` and authenticated browser smoke.
+6. Commit/push/deploy only when explicitly requested and smoke passes.
