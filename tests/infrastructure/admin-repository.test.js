@@ -22,7 +22,7 @@ async function testAdminRepositoryCallsAdminFunctions() {
         doc: id => ({
           get: async () => ({
             exists: true,
-            data: () => ({ name, id, title: 'Notice' })
+            data: () => ({ name, id, title: 'Notice', updatedAt: { millis: `${name}-${id}` } })
           })
         })
       })
@@ -37,8 +37,24 @@ async function testAdminRepositoryCallsAdminFunctions() {
   assert.deepEqual(await repository.loadPublicNoticeBoard(), {
     name: 'noticeBoard',
     id: 'current',
-    title: 'Notice'
+    title: 'Notice',
+    updatedAt: { millis: 'noticeBoard-current' }
   });
+  assert.deepEqual(await repository.loadPublicFeatureFlags(), {
+    name: 'appSettings',
+    id: 'featureFlags',
+    title: 'Notice',
+    updatedAt: { millis: 'appSettings-featureFlags' }
+  });
+  assert.deepEqual(await repository.loadPublicExternalQuizzes(), {
+    name: 'appSettings',
+    id: 'externalQuizzes',
+    title: 'Notice',
+    updatedAt: { millis: 'appSettings-externalQuizzes' }
+  });
+  assert.equal(await repository.loadServerFreshnessSignature({
+    getTimestampMillis: value => value.millis
+  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|noticeBoard:noticeBoard-current');
   await assertAdminCall(await repository.loadAdminDashboard(), 'adminGetDashboard', {});
   await assertAdminCall(await repository.loadAdminOperationalAudit(), 'adminGetOperationalAudit', {});
   await assertAdminCall(await repository.loadAdminQuizQualityAudit(), 'adminGetQuizQualityAudit', {});

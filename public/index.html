@@ -2109,24 +2109,10 @@
     }
 
     async function loadServerFreshnessSignature() {
-      const db = getFirestoreDb();
-      if(!db) return '';
       await initializeAuthUser();
-      const watchedDocs = [
-        ['featureFlags', db.collection('appSettings').doc('featureFlags')],
-        ['externalQuizzes', db.collection('appSettings').doc('externalQuizzes')],
-        ['noticeBoard', db.collection('noticeBoard').doc('current')]
-      ];
-      const snapshots = await Promise.all(watchedDocs.map(([key, ref]) =>
-        ref.get()
-          .then(snapshot => ({ key, snapshot }))
-          .catch(error => ({ key, error }))
-      ));
-      return snapshots.map(item => {
-        if(item.error || !item.snapshot?.exists) return `${item.key}:missing`;
-        const data = item.snapshot.data() || {};
-        return `${item.key}:${getFirestoreTimestampMillis(data.updatedAt) || 0}`;
-      }).join('|');
+      return getAdminRepository().loadServerFreshnessSignature({
+        getTimestampMillis: getFirestoreTimestampMillis
+      });
     }
 
     async function checkServerFreshness() {
@@ -3712,10 +3698,10 @@
       if(!db) {
         return window.DJ48AdminState.setFeatureFlagsCache({ ...DEFAULT_FEATURE_FLAGS });
       }
-      const loadPromise = db.collection('appSettings').doc('featureFlags').get()
-        .then(snapshot => {
+      const loadPromise = getAdminRepository().loadPublicFeatureFlags()
+        .then(data => {
           return window.DJ48AdminState.setFeatureFlagsCache(
-            normalizeFeatureFlags(snapshot.exists ? snapshot.data() || {} : DEFAULT_FEATURE_FLAGS)
+            normalizeFeatureFlags(data || DEFAULT_FEATURE_FLAGS)
           );
         })
         .catch(error => {
@@ -3768,10 +3754,10 @@
       if(!db) {
         return window.DJ48AdminState.setExternalQuizzesCache({ ...DEFAULT_EXTERNAL_QUIZZES });
       }
-      const loadPromise = db.collection('appSettings').doc('externalQuizzes').get()
-        .then(snapshot => {
+      const loadPromise = getAdminRepository().loadPublicExternalQuizzes()
+        .then(data => {
           return window.DJ48AdminState.setExternalQuizzesCache(
-            normalizeExternalQuizzes(snapshot.exists ? snapshot.data() || {} : DEFAULT_EXTERNAL_QUIZZES)
+            normalizeExternalQuizzes(data || DEFAULT_EXTERNAL_QUIZZES)
           );
         })
         .catch(error => {

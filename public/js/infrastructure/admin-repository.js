@@ -40,6 +40,37 @@
         const snapshot = await db.collection('noticeBoard').doc('current').get();
         return snapshot.exists ? snapshot.data() || {} : {};
       },
+      async loadPublicFeatureFlags() {
+        const db = deps.getFirestoreDb?.();
+        if(!db) throw new Error('firestore-unavailable');
+        const snapshot = await db.collection('appSettings').doc('featureFlags').get();
+        return snapshot.exists ? snapshot.data() || {} : {};
+      },
+      async loadPublicExternalQuizzes() {
+        const db = deps.getFirestoreDb?.();
+        if(!db) throw new Error('firestore-unavailable');
+        const snapshot = await db.collection('appSettings').doc('externalQuizzes').get();
+        return snapshot.exists ? snapshot.data() || {} : {};
+      },
+      async loadServerFreshnessSignature(options = {}) {
+        const db = deps.getFirestoreDb?.();
+        if(!db) return '';
+        const watchedDocs = [
+          ['featureFlags', db.collection('appSettings').doc('featureFlags')],
+          ['externalQuizzes', db.collection('appSettings').doc('externalQuizzes')],
+          ['noticeBoard', db.collection('noticeBoard').doc('current')]
+        ];
+        const snapshots = await Promise.all(watchedDocs.map(([key, ref]) =>
+          ref.get()
+            .then(snapshot => ({ key, snapshot }))
+            .catch(error => ({ key, error }))
+        ));
+        return snapshots.map(item => {
+          if(item.error || !item.snapshot?.exists) return `${item.key}:missing`;
+          const data = item.snapshot.data() || {};
+          return `${item.key}:${options.getTimestampMillis?.(data.updatedAt) || 0}`;
+        }).join('|');
+      },
       loadAdminDashboard: () => callAdminCallable({
         callableName: 'adminGetDashboard',
         errorCode: 'admin-dashboard-load-failed'
