@@ -22,6 +22,16 @@
         const db = getFirestoreDb();
         if(!db || !memberUserId) return null;
         return db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null);
+      },
+      async loadTitleCatalog(options = {}) {
+        const db = getFirestoreDb();
+        if(!db) throw new Error('firestore-unavailable');
+        const snapshot = await db.collection('titleCatalog').orderBy('order').get();
+        const normalizeTitleCatalogDoc = options.normalizeTitleCatalogDoc || (doc => ({
+          titleId: doc.id,
+          ...(doc.data?.() || {})
+        }));
+        return snapshot.docs.map(normalizeTitleCatalogDoc);
       }
     };
   }

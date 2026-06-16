@@ -11,6 +11,15 @@ async function testHomeRepositoryReadsMemberCollections() {
     getUserEconomyForRender: async () => ({ djCoin: 9 }),
     getFirestoreDb: () => ({
       collection: name => ({
+        orderBy: field => ({
+          get: async () => {
+            calls.push(['order', name, field]);
+            return createCollectionSnapshot([{
+              id: 'title-1',
+              data: () => ({ titleName: 'Title 1' })
+            }]);
+          }
+        }),
         doc: id => {
           calls.push(['doc', name, id]);
           return {
@@ -31,12 +40,16 @@ async function testHomeRepositoryReadsMemberCollections() {
   assert.deepEqual((await repository.getUserTitleSummary('member-1')).data(), { id: 'member-1' });
   assert.deepEqual(await repository.getUserTitles('member-1'), createCollectionSnapshot([{ id: 'titles' }]));
   assert.deepEqual(await repository.getUserBadges('member-1'), createCollectionSnapshot([{ id: 'badges' }]));
+  assert.deepEqual(await repository.loadTitleCatalog({
+    normalizeTitleCatalogDoc: doc => ({ titleId: doc.id, titleName: doc.data().titleName })
+  }), [{ titleId: 'title-1', titleName: 'Title 1' }]);
   assert.deepEqual(calls, [
     ['doc', 'userTitleSummary', 'member-1'],
     ['doc', 'userTitles', 'member-1'],
     ['sub', 'userTitles', 'member-1', 'titles'],
     ['doc', 'userBadges', 'member-1'],
-    ['sub', 'userBadges', 'member-1', 'badges']
+    ['sub', 'userBadges', 'member-1', 'badges'],
+    ['order', 'titleCatalog', 'order']
   ]);
 }
 

@@ -2509,11 +2509,12 @@
 
     async function loadTitleCatalogFromFirestore(forceRefresh = false) {
       if(titleCatalogCache && !forceRefresh) return titleCatalogCache;
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
       await initializeAuthUser();
-      const snapshot = await db.collection('titleCatalog').orderBy('order').get();
-      titleCatalogCache = snapshot.docs.map(normalizeTitleCatalogDoc);
+      titleCatalogCache = await window.DJ48HomeRepository.createHomeRepository({
+        getFirestoreDb
+      }).loadTitleCatalog({
+        normalizeTitleCatalogDoc
+      });
       titleCatalogMapCache = {};
       titleCatalogCache.forEach(title => {
         if(title.titleId) titleCatalogMapCache[title.titleId] = title;
