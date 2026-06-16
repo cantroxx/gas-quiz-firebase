@@ -43,7 +43,7 @@
 ## 임시 재개 메모
 
 * 2026-06-16 기준 마지막 완료 묶음은 엄격한 클린 아키텍처 라운드 57~70 판단 진행이다.
-* 완료된 마지막 리팩터링/감사 커밋은 `c3d31c3 docs: audit remaining index app shell wrappers`이며, 작업 트리는 최종 재개 메모 갱신 후 깨끗한 상태로 종료한다.
+* 완료된 마지막 리팩터링/감사 정리 커밋은 `6ea4dd2 docs: finalize architecture migration guidance`이며, 작업 트리는 최종 재개 메모 갱신 후 깨끗한 상태로 종료한다.
 * 완료 범위:
   * `public/index.html` 남은 wrapper를 `docs/architecture/INDEX_WRAPPER_AUDIT.md`에 최종 분류
   * app-view 단순 delegation wrapper 제거
