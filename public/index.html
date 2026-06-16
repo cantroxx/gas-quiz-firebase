@@ -1390,6 +1390,7 @@
   <script src="/js/features/home-state.js"></script>
   <script src="/js/features/home-data.js"></script>
   <script src="/js/application/home-usecases.js"></script>
+  <script src="/js/application/profile-usecases.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/home-controller.js"></script>
   <script src="/js/domain/event-domain.js"></script>
@@ -2823,138 +2824,79 @@
     }
 
     async function saveProfileImageEditorSelection() {
-      if(!currentMemberUserId) throw new Error('member-required');
-      if(!profileImageEditorState) return;
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-      await initializeAuthUser();
-      const saveButton = document.getElementById('profile-image-editor-save');
-      const edit = getProfileImageEditModel(profileImageEditorState);
-      if(saveButton) saveButton.disabled = true;
-      setProfileImageEditorStatus('프로필 이미지를 저장하고 있습니다...');
-      try {
-        const result = await window.DJ48AccountData.saveProfileImageEditorSelection({
-          db,
-          memberUserId: currentMemberUserId,
-          editorState: profileImageEditorState,
-          edit,
-          storage: getFirebaseStorage(),
-          authUid: window.firebase?.auth?.().currentUser?.uid || '',
-          currentProfile: currentMemberProfile
-        }, {
-          getFirestoreFieldValue
-        });
-        currentMemberProfile = result?.nextProfile || currentMemberProfile;
-        closeProfileImageEditor();
-        renderHomeMemberDataFromFirestore();
-      } catch(error) {
-        console.warn('Firestore profile image update failed.', error);
-        const message = profileImageEditorState.source === 'upload'
-          ? '직접 업로드는 Firebase Storage를 먼저 켠 뒤 사용할 수 있어요. 지금은 검색 이미지 선택을 사용해 주세요.'
-          : '이미지 저장 중 문제가 생겼어요.';
-        setProfileImageEditorStatus(message, true);
-      } finally {
-        if(saveButton) saveButton.disabled = false;
-      }
+      return window.DJ48ProfileUsecases.saveProfileImageEditorSelectionFlow({}, {
+        getCurrentMemberUserId: () => currentMemberUserId,
+        getFirestoreDb,
+        initializeAuthUser,
+        getProfileImageEditorState: () => profileImageEditorState,
+        getSaveButton: () => document.getElementById('profile-image-editor-save'),
+        getProfileImageEditModel,
+        setProfileImageEditorStatus,
+        saveProfileImageEditorSelection: window.DJ48AccountData.saveProfileImageEditorSelection,
+        getFirebaseStorage,
+        getAuthUid: () => window.firebase?.auth?.().currentUser?.uid || '',
+        getCurrentMemberProfile: () => currentMemberProfile,
+        setCurrentMemberProfile: profile => { currentMemberProfile = profile; },
+        getFirestoreFieldValue,
+        closeProfileImageEditor,
+        renderHomeMemberDataFromFirestore,
+        warn: console.warn
+      });
     }
 
     async function saveProfileRankingMessageFromHome() {
-      if(!currentMemberUserId) throw new Error('member-required');
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-      await initializeAuthUser();
-      const input = document.getElementById('profile-ranking-message-input');
-      const status = document.getElementById('profile-ranking-message-status');
-      const button = document.getElementById('profile-ranking-message-save-button');
-      const message = normalizeRankingMessageInput(input?.value || '');
-      if(button) button.disabled = true;
-      if(status) status.textContent = '한마디를 저장하고 있습니다...';
-      try {
-        const updateData = await window.DJ48AccountData.saveRankingMessageForMember({
-          db,
-          memberUserId: currentMemberUserId,
-          message
-        }, {
-          getFirestoreFieldValue
-        });
-        currentMemberProfile = {
-          ...(currentMemberProfile || {}),
-          rankingMessage: updateData.rankingMessage
-        };
-        if(input) input.value = updateData.rankingMessage;
-        if(status) status.textContent = updateData.rankingMessage ? '한마디를 저장했습니다.' : '한마디를 비웠습니다.';
-      } catch(error) {
-        console.warn('Firestore profile ranking message update failed.', error);
-        if(status) status.textContent = '한마디 저장 중 문제가 생겼어요.';
-      } finally {
-        if(button) button.disabled = false;
-      }
+      return window.DJ48ProfileUsecases.saveProfileRankingMessageFlow({}, {
+        getCurrentMemberUserId: () => currentMemberUserId,
+        getFirestoreDb,
+        initializeAuthUser,
+        getInput: () => document.getElementById('profile-ranking-message-input'),
+        getStatus: () => document.getElementById('profile-ranking-message-status'),
+        getButton: () => document.getElementById('profile-ranking-message-save-button'),
+        normalizeRankingMessageInput,
+        saveRankingMessageForMember: window.DJ48AccountData.saveRankingMessageForMember,
+        getFirestoreFieldValue,
+        getCurrentMemberProfile: () => currentMemberProfile,
+        setCurrentMemberProfile: profile => { currentMemberProfile = profile; },
+        warn: console.warn
+      });
     }
 
     async function saveProfileNicknameFromHome() {
-      const input = document.getElementById('profile-nickname-input');
-      const status = document.getElementById('profile-nickname-status');
-      const button = document.getElementById('profile-nickname-save-button');
-      const nickname = input?.value || '';
-      if(button) button.disabled = true;
-      if(status) status.textContent = '닉네임을 변경하고 있습니다...';
-      try {
-        const result = await updateCurrentMemberNickname(nickname);
-        const nextNickname = result?.profile?.nickname || nickname.trim();
-        if(input) input.value = nextNickname;
-        if(status) status.textContent = '닉네임을 변경했습니다.';
-        await renderHomeMemberDataFromFirestore();
-      } catch(error) {
-        console.warn('Member nickname update failed.', error);
-        if(status) status.textContent = window.DJ48AccountForm.getProfileNicknameErrorMessage(error);
-      } finally {
-        if(button) button.disabled = false;
-      }
+      return window.DJ48ProfileUsecases.saveProfileNicknameFlow({}, {
+        getInput: () => document.getElementById('profile-nickname-input'),
+        getStatus: () => document.getElementById('profile-nickname-status'),
+        getButton: () => document.getElementById('profile-nickname-save-button'),
+        updateCurrentMemberNickname,
+        renderHomeMemberDataFromFirestore,
+        getProfileNicknameErrorMessage: window.DJ48AccountForm.getProfileNicknameErrorMessage,
+        warn: console.warn
+      });
     }
 
     async function saveProfilePasswordFromHome() {
-      const currentInput = document.getElementById('profile-current-password-input');
-      const newInput = document.getElementById('profile-new-password-input');
-      const confirmInput = document.getElementById('profile-confirm-password-input');
-      const status = document.getElementById('profile-password-status');
-      const button = document.getElementById('profile-password-save-button');
-      if(button) button.disabled = true;
-      if(status) status.textContent = '비밀번호를 변경하고 있습니다...';
-      try {
-        await changeCurrentMemberPasswordWithCurrentPassword(
-          currentInput?.value || '',
-          newInput?.value || '',
-          confirmInput?.value || ''
-        );
-        if(currentInput) currentInput.value = '';
-        if(newInput) newInput.value = '';
-        if(confirmInput) confirmInput.value = '';
-        if(status) status.textContent = '비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용하세요.';
-      } catch(error) {
-        console.warn('Profile password change failed.', error);
-        if(status) status.textContent = window.DJ48AccountForm.getProfilePasswordErrorMessage(error);
-      } finally {
-        if(button) button.disabled = false;
-      }
+      return window.DJ48ProfileUsecases.saveProfilePasswordFlow({}, {
+        getCurrentInput: () => document.getElementById('profile-current-password-input'),
+        getNewInput: () => document.getElementById('profile-new-password-input'),
+        getConfirmInput: () => document.getElementById('profile-confirm-password-input'),
+        getStatus: () => document.getElementById('profile-password-status'),
+        getButton: () => document.getElementById('profile-password-save-button'),
+        changeCurrentMemberPasswordWithCurrentPassword,
+        getProfilePasswordErrorMessage: window.DJ48AccountForm.getProfilePasswordErrorMessage,
+        warn: console.warn
+      });
     }
 
     async function saveProfileSelectedTitleFromHome(titleId) {
-      if(!currentMemberUserId) throw new Error('member-required');
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-      await initializeAuthUser();
-      const updateData = await window.DJ48AccountData.saveSelectedTitleForMember({
-        db,
-        memberUserId: currentMemberUserId,
-        titleId
-      }, {
-        getFirestoreFieldValue
+      return window.DJ48ProfileUsecases.saveProfileSelectedTitleFlow({ titleId }, {
+        getCurrentMemberUserId: () => currentMemberUserId,
+        getFirestoreDb,
+        initializeAuthUser,
+        saveSelectedTitleForMember: window.DJ48AccountData.saveSelectedTitleForMember,
+        getFirestoreFieldValue,
+        getCurrentMemberProfile: () => currentMemberProfile,
+        setCurrentMemberProfile: profile => { currentMemberProfile = profile; },
+        renderHomeMemberDataFromFirestore
       });
-      currentMemberProfile = {
-        ...(currentMemberProfile || {}),
-        selectedTitleId: updateData.selectedTitleId
-      };
-      renderHomeMemberDataFromFirestore();
     }
 
     function renderHomeOwnedItemsFallback() {
