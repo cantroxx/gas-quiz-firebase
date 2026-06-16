@@ -126,70 +126,6 @@
     return false;
   }
 
-  async function loadShopItemsFromFirestore(db, deps = {}) {
-    if(!db) throw new Error('Firestore SDK is not available.');
-
-    const snapshot = await db.collection('shopItems').get();
-    return snapshot.docs
-      .map(doc => normalizeShopItemFromFirestore(doc, deps))
-      .filter(item => item.enabled && !isRoomFurnitureShopItem(item))
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-  }
-
-  async function loadAssetCatalogFromFirestore(db) {
-    if(!db) throw new Error('Firestore SDK is not available.');
-
-    const snapshot = await db.collection('assetCatalog').get();
-    return snapshot.docs.reduce((map, doc) => {
-      const asset = normalizeAssetCatalogFromFirestore(doc);
-      map[asset.assetId] = asset;
-      return map;
-    }, {});
-  }
-
-  async function loadUserEconomyFromFirestore(options = {}, deps = {}) {
-    const { db, userId } = options;
-    if(!db) throw new Error('Firestore SDK is not available.');
-
-    const snapshot = await db.collection('userEconomy').doc(userId).get();
-    return normalizeUserEconomyFromFirestore(snapshot, deps);
-  }
-
-  async function ensureUserEconomyInitialized(options = {}, deps = {}) {
-    const { db, ownerId, testShopUserId } = options;
-    if(!ownerId || ownerId === testShopUserId) return null;
-    if(!db) throw new Error('Firestore SDK is not available.');
-
-    const snapshot = await db.collection('userEconomy').doc(ownerId).get();
-    if(snapshot.exists) return normalizeUserEconomyFromFirestore(snapshot, deps);
-
-    const initialEconomy = getInitialUserEconomy(ownerId, deps);
-    return {
-      userId: ownerId,
-      djCoin: initialEconomy.djCoin,
-      totalEarned: initialEconomy.totalEarned,
-      totalSpent: initialEconomy.totalSpent
-    };
-  }
-
-  async function loadInventoryItemIdsFromFirestore(options = {}) {
-    const { db, userId, memberUserId, testShopUserId } = options;
-    if(!db) throw new Error('Firestore SDK is not available.');
-    if(!memberUserId || userId === testShopUserId) return new Set();
-
-    const snapshot = await db.collection('userInventory').doc(userId).collection('items').get();
-    return new Set(snapshot.docs.map(doc => doc.id));
-  }
-
-  async function loadRoomSettingsFromFirestore(options = {}, deps = {}) {
-    const { db, userId, memberUserId, testShopUserId } = options;
-    if(!db) throw new Error('Firestore SDK is not available.');
-    if(!memberUserId || userId === testShopUserId) return getDefaultRoomSettings(userId || '');
-
-    const snapshot = await db.collection('userRoomSettings').doc(userId).get();
-    return normalizeRoomSettingsFromFirestore(snapshot, { userId });
-  }
-
   function getCachedValue(cacheValue, loadPromise, loadFactory) {
     if(cacheValue) {
       return {
@@ -233,20 +169,6 @@
 
   function getOwnedShopItems(items = [], inventoryItemIds = new Set()) {
     return items.filter(item => inventoryItemIds.has(item.itemId));
-  }
-
-  async function callShopCallable(callableName, payload = {}, deps = {}, errorCode = '') {
-    const functions = deps.getFirebaseFunctions?.();
-    if(!functions) throw new Error('functions-unavailable');
-    const callable = functions.httpsCallable(callableName);
-    const response = await callable(payload);
-    const result = response?.data || {};
-    if(!result.success) throw new Error(errorCode || `${callableName || 'shop-call'}-failed`);
-    return result;
-  }
-
-  function purchaseShopItem(payload = {}, deps = {}) {
-    return callShopCallable('purchaseShopItem', payload, deps, 'purchase-function-failed');
   }
 
   function getShopPurchaseErrorMessage(error) {
@@ -306,39 +228,6 @@
     return updateData;
   }
 
-  async function saveRoomItemSelection(options = {}, deps = {}) {
-    const {
-      db,
-      userId,
-      itemId
-    } = options;
-    if(!db) throw new Error('firestore-unavailable');
-
-    const itemRef = db.collection('shopItems').doc(itemId);
-    const inventoryRef = db.collection('userInventory').doc(userId).collection('items').doc(itemId);
-    const settingsRef = db.collection('userRoomSettings').doc(userId);
-    const [itemSnapshot, inventorySnapshot, settingsSnapshot] = await Promise.all([
-      itemRef.get(),
-      inventoryRef.get(),
-      settingsRef.get()
-    ]);
-
-    if(!itemSnapshot.exists) throw new Error('item-not-found');
-    if(!inventorySnapshot.exists) throw new Error('not-owned');
-
-    const item = deps.normalizeShopItemFromFirestore(itemSnapshot);
-    const currentSettings = deps.normalizeRoomSettingsFromFirestore(settingsSnapshot);
-    const updateData = buildRoomItemSelectionUpdate({
-      itemId,
-      userId,
-      item,
-      currentSettings
-    }, deps);
-
-    await settingsRef.set(updateData, { merge: true });
-    return updateData;
-  }
-
   function getRoomItemSaveErrorMessage(error) {
     const messages = {
       'login-required': '로그인 후 내 집 설정을 저장할 수 있어요.',
@@ -361,22 +250,13 @@
     normalizeRoomSettingsFromFirestore,
     getRoomItemCategory,
     isRoomItemSelected,
-    loadShopItemsFromFirestore,
-    loadAssetCatalogFromFirestore,
-    loadUserEconomyFromFirestore,
-    ensureUserEconomyInitialized,
-    loadInventoryItemIdsFromFirestore,
-    loadRoomSettingsFromFirestore,
     getCachedValue,
     buildShopItemsResult,
     buildEconomyFallback,
     buildUserEconomyForRender,
     getOwnedShopItems,
-    callShopCallable,
-    purchaseShopItem,
     getShopPurchaseErrorMessage,
     buildRoomItemSelectionUpdate,
-    saveRoomItemSelection,
     getRoomItemSaveErrorMessage
   };
 })();

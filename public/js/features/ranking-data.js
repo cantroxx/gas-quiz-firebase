@@ -60,110 +60,6 @@
     };
   }
 
-  async function loadMemberProfilesForRankingRows(db, rows, deps = {}) {
-    const lookupLimit = Number(deps.rankingProfileLookupLimit) || 180;
-    const getFirebaseStorage = deps.getFirebaseStorage || (() => null);
-    const userIds = Array.from(new Set(rows.map(getRankingMemberUserId).filter(Boolean))).slice(0, lookupLimit);
-    if(!userIds.length) return {};
-    const snapshots = await Promise.all(userIds.map(userId => Promise.all([
-      db.collection('users').doc(userId).get().catch(() => null),
-      db.collection('userTitleSummary').doc(userId).get().catch(() => null)
-    ])));
-    const profileMap = {};
-    snapshots.forEach(([userSnapshot, titleSummarySnapshot], index) => {
-      if(!userSnapshot?.exists) return;
-      const data = userSnapshot.data() || {};
-      const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() || {} : {};
-      profileMap[userIds[index]] = {
-        userId: userIds[index],
-        nickname: data.nickname || data.name || '',
-        school: data.school || '',
-        grade: data.grade || '',
-        classNumber: data.classNumber || '',
-        studentNumber: data.studentNumber || '',
-        profileImageUrl: data.profileImageUrl || '',
-        profileImageId: data.profileImageId || '',
-        profileImageSource: data.profileImageSource || '',
-        profileImageStoragePath: data.profileImageStoragePath || '',
-        profileImageScale: data.profileImageScale,
-        profileImageOffsetX: data.profileImageOffsetX,
-        profileImageOffsetY: data.profileImageOffsetY,
-        rankingMessage: data.rankingMessage || '',
-        selectedTitleId: data.selectedTitleId || '',
-        selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || ''
-      };
-    });
-    const missingTitleNameUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);
-    if(missingTitleNameUsers.length) {
-      const titleSnapshots = await Promise.all(missingTitleNameUsers.map(profile =>
-        db.collection('userTitles').doc(profile.userId).collection('titles').doc(profile.selectedTitleId).get().catch(() => null)
-      ));
-      titleSnapshots.forEach((titleSnapshot, index) => {
-        if(!titleSnapshot?.exists) return;
-        const titleData = titleSnapshot.data() || {};
-        missingTitleNameUsers[index].selectedTitleName = titleData.titleName || titleData.name || '';
-      });
-    }
-    const stillMissingTitleUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);
-    if(stillMissingTitleUsers.length) {
-      const catalogSnapshots = await Promise.all(stillMissingTitleUsers.map(profile =>
-        db.collection('titleCatalog').doc(profile.selectedTitleId).get().catch(() => null)
-      ));
-      catalogSnapshots.forEach((titleSnapshot, index) => {
-        if(!titleSnapshot?.exists) return;
-        const titleData = titleSnapshot.data() || {};
-        stillMissingTitleUsers[index].selectedTitleName = titleData.titleName || titleData.title || titleData.name || '';
-      });
-    }
-    const storage = getFirebaseStorage();
-    const storageImageUsers = storage
-      ? Object.values(profileMap).filter(profile => !profile.profileImageUrl && profile.profileImageStoragePath)
-      : [];
-    if(storageImageUsers.length) {
-      const imageUrls = await Promise.all(storageImageUsers.map(profile =>
-        storage.ref(profile.profileImageStoragePath).getDownloadURL().catch(() => '')
-      ));
-      imageUrls.forEach((url, index) => {
-        if(url) storageImageUsers[index].profileImageUrl = url;
-      });
-    }
-    return profileMap;
-  }
-
-  async function loadLimitedRankingRecordsForPlaza(db, deps = {}) {
-    const rankingPlazaCategoryKeys = deps.rankingPlazaCategoryKeys || [];
-    const enabledCategoryKeys = getEnabledRankingCategoryKeys(rankingPlazaCategoryKeys, deps);
-    if(!enabledCategoryKeys.length) return [];
-    const loadCategoryRecords = async categoryKey => {
-      const limit = getRankingPlazaCategoryRecordLimit(categoryKey, deps);
-      const baseQuery = db.collection('rankingRecords')
-        .where('categoryKey', '==', categoryKey)
-        .limit(limit);
-      try {
-        return await db.collection('rankingRecords')
-          .where('categoryKey', '==', categoryKey)
-          .orderBy('score', 'desc')
-          .orderBy('elapsedSeconds', 'asc')
-          .limit(limit)
-          .get();
-      } catch(error) {
-        console.warn('Firestore ranking ordered query failed. Falling back to limited category query.', { categoryKey, error });
-        return baseQuery.get();
-      }
-    };
-    const snapshots = await Promise.all(enabledCategoryKeys.map(loadCategoryRecords));
-    const byRecordId = new Map();
-    snapshots.forEach(snapshot => {
-      snapshot.docs.map(normalizeRankingRecordFromFirestore).filter(record => {
-        const mode = String(record.rankingMode || '').trim();
-        return !mode || mode === 'normal' || mode === 'speed' || mode === 'onechance' || mode === 'legacy' || mode === 'nohint';
-      }).forEach(record => {
-        byRecordId.set(record.recordId, record);
-      });
-    });
-    return Array.from(byRecordId.values());
-  }
-
   function buildRankingGroups(records, definitions, deps = {}) {
     const getTopRankingRecordsByCategoryKeys = deps.getTopRankingRecordsByCategoryKeys || (() => []);
     const rowLimit = Number(deps.rankingPlazaRowLimit) || 10;
@@ -283,8 +179,6 @@
     getRankingPlazaCategoryRecordLimit,
     getRankingMemberUserId,
     mergeRankingRowWithMemberProfile,
-    loadMemberProfilesForRankingRows,
-    loadLimitedRankingRecordsForPlaza,
     buildRankingGroups,
     buildSubjectRankingGroups,
     getRankingBoardModels
