@@ -146,14 +146,7 @@
     if(deps.accountRepository && typeof deps.accountRepository.callAccountCallable === 'function') {
       return deps.accountRepository.callAccountCallable(callableName, payload, errorCode);
     }
-    const functions = deps.getFirebaseFunctions?.();
-    if(!functions) throw new Error('functions-unavailable');
-    await deps.initializeAuthUser?.();
-    const callable = functions.httpsCallable(callableName);
-    const response = await callable(payload);
-    const result = response?.data || {};
-    if(!result.success) throw new Error(errorCode || `${callableName || 'account-call'}-failed`);
-    return result;
+    throw new Error('account-repository-unavailable');
   }
 
   function buildMemberLinkPayload(values = {}, deps = {}) {
