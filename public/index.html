@@ -6061,26 +6061,22 @@
       return window.DJ48QuizFlow.getRankingElapsedSeconds(getQuizPlayDeps());
     }
 
-    function getRankingTimerStateCallbacks() {
-      return window.DJ48QuizFlow.getRankingTimerStateCallbacks(window.DJ48QuizSessionState);
+    function getRankingTimerController() {
+      return window.DJ48QuizFlow.createRankingTimerController(window.DJ48QuizSessionState, {
+        getQuizPlayDeps,
+        getQuizPlayDomDeps,
+        getQuizProgressText,
+        showQuizComplete,
+        showQuizResult
+      });
     }
 
     function startRankingSessionTimerIfNeeded() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.startRankingSessionTimerIfNeeded(deps, {
-        ...getRankingTimerStateCallbacks(),
-        handleRankingSessionTimeout
-      });
+      return getRankingTimerController().startRankingSessionTimerIfNeeded();
     }
 
     function handleRankingSessionTimeout() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.handleRankingSessionTimeout(deps, {
-        clearRankingQuestionTimer,
-        clearRankingSessionTimer,
-        getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot,
-        showQuizComplete
-      });
+      return getRankingTimerController().handleRankingSessionTimeout();
     }
 
     function getRankingTimeLimitSecondsForQuiz(quizId) {
@@ -6090,22 +6086,11 @@
     }
 
     function startRankingQuestionTimerIfNeeded() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.startRankingQuestionTimerIfNeeded(deps, {
-        ...getRankingTimerStateCallbacks(),
-        getQuizProgressElement: getQuizPlayDomDeps().getQuizProgressElement,
-        getQuizProgressText,
-        handleRankingTimeout
-      });
+      return getRankingTimerController().startRankingQuestionTimerIfNeeded();
     }
 
     function handleRankingTimeout() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.handleRankingTimeout(deps, {
-        clearRankingQuestionTimer,
-        getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot,
-        showQuizResult
-      });
+      return getRankingTimerController().handleRankingTimeout();
     }
 
     function normalizeQuizAnswer(value) {

@@ -76,6 +76,38 @@
     });
   }
 
+  function createRankingTimerController(state, callbacks = {}) {
+    const getDeps = callbacks.getQuizPlayDeps || (() => ({}));
+    const getDomDeps = callbacks.getQuizPlayDomDeps || (() => ({}));
+    const getTimerCallbacks = () => getRankingTimerStateCallbacks(state);
+    const api = {
+      clearRankingQuestionTimer: () => clearRankingQuestionTimer(state),
+      clearRankingSessionTimer: () => clearRankingSessionTimer(state),
+      startRankingSessionTimerIfNeeded: () => startRankingSessionTimerIfNeeded(getDeps(), {
+        ...getTimerCallbacks(),
+        handleRankingSessionTimeout: api.handleRankingSessionTimeout
+      }),
+      handleRankingSessionTimeout: () => handleRankingSessionTimeout(getDeps(), {
+        clearRankingQuestionTimer: api.clearRankingQuestionTimer,
+        clearRankingSessionTimer: api.clearRankingSessionTimer,
+        getQuizPlayRoot: getDomDeps().getQuizPlayRoot,
+        showQuizComplete: callbacks.showQuizComplete
+      }),
+      startRankingQuestionTimerIfNeeded: () => startRankingQuestionTimerIfNeeded(getDeps(), {
+        ...getTimerCallbacks(),
+        getQuizProgressElement: getDomDeps().getQuizProgressElement,
+        getQuizProgressText: callbacks.getQuizProgressText,
+        handleRankingTimeout: api.handleRankingTimeout
+      }),
+      handleRankingTimeout: () => handleRankingTimeout(getDeps(), {
+        clearRankingQuestionTimer: api.clearRankingQuestionTimer,
+        getQuizPlayRoot: getDomDeps().getQuizPlayRoot,
+        showQuizResult: callbacks.showQuizResult
+      })
+    };
+    return api;
+  }
+
   function saveRankingRecordOnQuizComplete(deps, testShopUserId) {
     if(typeof deps.saveRankingRecordOnQuizComplete === 'function') {
       return deps.saveRankingRecordOnQuizComplete({
@@ -258,6 +290,7 @@
     getRankingTimeLimitSecondsForQuiz,
     startRankingQuestionTimerIfNeeded,
     handleRankingTimeout,
+    createRankingTimerController,
     saveRankingRecordOnQuizComplete,
     grantPracticeCorrectReward,
     syncMemberTitlesAfterPracticeCompletion,

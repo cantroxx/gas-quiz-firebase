@@ -14,6 +14,10 @@ globalThis.DJ48QuizPlay = {
   canSelectQuizChoice: (question, options) => !!question && !options.currentQuestionResolved,
   applyQuizChoiceSelection: payload => !!payload.button,
   getQuizPlayKeyAction: event => event.action,
+  startRankingSessionTimerIfNeeded: payload => payload,
+  handleRankingSessionTimeout: payload => payload,
+  startRankingQuestionTimerIfNeeded: payload => payload,
+  handleRankingTimeout: payload => payload,
   showQuizResult: (isCorrect, overrideMessage, payload) => ({ isCorrect, overrideMessage, payload }),
   nextQuestion: payload => payload,
   showQuizComplete: (options, payload) => ({ options, payload })
@@ -63,6 +67,46 @@ function testRankingTimerStateCallbacks() {
     ['question', 20],
     ['session', 30]
   ]);
+}
+
+function testRankingTimerController() {
+  const calls = [];
+  const state = {
+    getCurrentRankingQuestionTimer: () => null,
+    getCurrentRankingSessionTimer: () => null,
+    setCurrentRankingQuestionTimer: timer => calls.push(['question', timer]),
+    setCurrentRankingSessionTimer: timer => calls.push(['session', timer])
+  };
+  const root = {};
+  const progress = {};
+  const controller = flow.createRankingTimerController(state, {
+    getQuizPlayDeps: () => ({ mode: 'ranking' }),
+    getQuizPlayDomDeps: () => ({
+      getQuizPlayRoot: () => root,
+      getQuizProgressElement: () => progress
+    }),
+    getQuizProgressText: () => '1/10',
+    showQuizComplete: () => 'complete',
+    showQuizResult: () => 'result'
+  });
+
+  const session = controller.startRankingSessionTimerIfNeeded();
+  assert.equal(session.mode, 'ranking');
+  assert.equal(typeof session.clearRankingSessionTimer, 'function');
+  assert.equal(typeof session.handleRankingSessionTimeout, 'function');
+
+  const sessionTimeout = controller.handleRankingSessionTimeout();
+  assert.equal(sessionTimeout.getQuizPlayRoot(), root);
+  assert.equal(sessionTimeout.showQuizComplete(), 'complete');
+
+  const question = controller.startRankingQuestionTimerIfNeeded();
+  assert.equal(question.getQuizProgressElement(), progress);
+  assert.equal(question.getQuizProgressText(), '1/10');
+  assert.equal(typeof question.handleRankingTimeout, 'function');
+
+  const timeout = controller.handleRankingTimeout();
+  assert.equal(timeout.getQuizPlayRoot(), root);
+  assert.equal(timeout.showQuizResult(), 'result');
 }
 
 function testSubmitQuizAnswer() {
@@ -177,6 +221,7 @@ function testHandleQuizPlayKeydownAdvance() {
 
 testGetQuizProgressText();
 testRankingTimerStateCallbacks();
+testRankingTimerController();
 testSubmitQuizAnswer();
 testRenderQuizQuestion();
 testQuizResultNextAndCompleteWrappers();
