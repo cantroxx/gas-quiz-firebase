@@ -211,6 +211,40 @@
     return '';
   }
 
+  const CLASSROOM_ECONOMY_ACTIONS = {
+    applyClassroomJob: { payloadKey: 'jobId', progressText: '지원 중...' },
+    assignClassroomJob: { payloadKey: 'applicationId', progressText: '배정 중...' },
+    releaseClassroomJob: { payloadKey: 'assignmentId', progressText: '해제 중...' },
+    claimClassroomJobSalary: { payloadKey: 'assignmentId', progressText: '지급 중...' },
+    purchaseClassroomShopItem: { payloadKey: 'itemId', progressText: '구매 중...' },
+    checkClassroomRoutine: { payloadKey: 'routineId', progressText: '체크 중...' }
+  };
+
+  async function runClassroomEconomyAction(actionName, options = {}, deps = {}) {
+    const action = CLASSROOM_ECONOMY_ACTIONS[actionName];
+    if(!action || !options.value) return null;
+    const button = options.button || null;
+    const originalText = button?.textContent || '';
+    if(button) {
+      button.disabled = true;
+      button.textContent = action.progressText;
+    }
+    try {
+      const result = await callClassroomEconomyActionFlow({
+        functionName: actionName,
+        payload: { [action.payloadKey]: options.value },
+        memberUserId: deps.getCurrentMemberUserId?.()
+      }, deps);
+      if(result?.success) deps.alert?.(getClassroomEconomySuccessMessage(actionName, result));
+      return result;
+    } finally {
+      if(button && deps.containsElement?.(button) !== false) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+  }
+
   async function saveClassroomRoutineFlow(options = {}, deps = {}) {
     if(!options.memberUserId) {
       deps.setStatus?.('회원 연결 후 성장루틴을 만들 수 있습니다.', true);
@@ -378,6 +412,7 @@
     awardClassroomBadgeCampaignFlow,
     callClassroomEconomyActionFlow,
     getClassroomEconomySuccessMessage,
+    runClassroomEconomyAction,
     saveClassroomRoutineFlow,
     setClassroomSelectedBadgeFlow,
     completeClassroomCheckQuestFlow,

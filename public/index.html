@@ -5014,61 +5014,44 @@
       });
     }
 
-    async function callClassroomEconomyAction(functionName, payload, button, progressText) {
-      const originalText = button?.textContent || '';
-      if(button) {
-        button.disabled = true;
-        button.textContent = progressText;
-      }
-      try {
-        return await window.DJ48ClassroomUsecases.callClassroomEconomyActionFlow({
-          functionName,
-          payload,
-          memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
-        }, {
-          loadClassroomSettings,
-          callAction: (name, nextPayload, options) => getClassroomRepository().callClassroomEconomyAction(name, nextPayload, options),
-          resetCaches: resetClassroomDataCaches,
-          renderClassroom: renderClassroomPrototype,
-          alert: window.alert,
-          warn: console.warn
-        });
-      } finally {
-        if(button && document.body.contains(button)) {
-          button.disabled = false;
-          button.textContent = originalText;
-        }
-      }
+    function getClassroomEconomyActionDeps() {
+      return {
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        loadClassroomSettings,
+        callAction: (name, nextPayload, options) => getClassroomRepository().callClassroomEconomyAction(name, nextPayload, options),
+        resetCaches: resetClassroomDataCaches,
+        renderClassroom: renderClassroomPrototype,
+        containsElement: element => document.body.contains(element),
+        alert: window.alert,
+        warn: console.warn
+      };
+    }
+
+    async function runClassroomEconomyAction(actionName, value, button) {
+      return window.DJ48ClassroomUsecases.runClassroomEconomyAction(actionName, {
+        value,
+        button
+      }, getClassroomEconomyActionDeps());
     }
 
     async function applyClassroomJob(jobId, button) {
-      if(!jobId) return;
-      const result = await callClassroomEconomyAction('applyClassroomJob', { jobId }, button, '지원 중...');
-      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('applyClassroomJob', result));
+      return runClassroomEconomyAction('applyClassroomJob', jobId, button);
     }
 
     async function assignClassroomJob(applicationId, button) {
-      if(!applicationId) return;
-      const result = await callClassroomEconomyAction('assignClassroomJob', { applicationId }, button, '배정 중...');
-      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('assignClassroomJob', result));
+      return runClassroomEconomyAction('assignClassroomJob', applicationId, button);
     }
 
     async function releaseClassroomJob(assignmentId, button) {
-      if(!assignmentId) return;
-      const result = await callClassroomEconomyAction('releaseClassroomJob', { assignmentId }, button, '해제 중...');
-      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('releaseClassroomJob', result));
+      return runClassroomEconomyAction('releaseClassroomJob', assignmentId, button);
     }
 
     async function claimClassroomJobSalary(assignmentId, button) {
-      if(!assignmentId) return;
-      const result = await callClassroomEconomyAction('claimClassroomJobSalary', { assignmentId }, button, '지급 중...');
-      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('claimClassroomJobSalary', result));
+      return runClassroomEconomyAction('claimClassroomJobSalary', assignmentId, button);
     }
 
     async function purchaseClassroomShopItem(itemId, button) {
-      if(!itemId) return;
-      const result = await callClassroomEconomyAction('purchaseClassroomShopItem', { itemId }, button, '구매 중...');
-      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('purchaseClassroomShopItem', result));
+      return runClassroomEconomyAction('purchaseClassroomShopItem', itemId, button);
     }
 
     function getClassroomRoutineFormValues() {
@@ -5096,9 +5079,7 @@
     }
 
     async function checkClassroomRoutine(routineId, button) {
-      if(!routineId) return;
-      const result = await callClassroomEconomyAction('checkClassroomRoutine', { routineId }, button, '체크 중...');
-      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('checkClassroomRoutine', result));
+      return runClassroomEconomyAction('checkClassroomRoutine', routineId, button);
     }
 
     async function completeClassroomCheckQuest(questId) {

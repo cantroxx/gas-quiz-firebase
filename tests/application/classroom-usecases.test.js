@@ -228,6 +228,36 @@ async function testEconomyActionFlow() {
   ]);
 }
 
+async function testRunClassroomEconomyAction() {
+  const button = { disabled: false, textContent: '지원' };
+  const calls = [];
+  const result = await usecases.runClassroomEconomyAction('applyClassroomJob', {
+    value: 'job-1',
+    button
+  }, {
+    getCurrentMemberUserId: () => 'member-a',
+    loadClassroomSettings: async () => ({ classId: 'c1' }),
+    callAction: async (functionName, payload, options) => {
+      calls.push(['call', functionName, payload, options, button.disabled, button.textContent]);
+      return { success: true, duplicate: false };
+    },
+    resetCaches: options => calls.push(['reset', options]),
+    renderClassroom: async forceRefresh => calls.push(['render', forceRefresh]),
+    containsElement: () => true,
+    alert: message => calls.push(['alert', message])
+  });
+
+  assert.deepEqual(result, { success: true, duplicate: false });
+  assert.equal(button.disabled, false);
+  assert.equal(button.textContent, '지원');
+  assert.deepEqual(calls, [
+    ['call', 'applyClassroomJob', { jobId: 'job-1' }, { classId: 'c1', memberUserId: 'member-a' }, true, '지원 중...'],
+    ['reset', { economy: true, wallet: true }],
+    ['render', true],
+    ['alert', '직업 지원이 저장됐습니다.']
+  ]);
+}
+
 async function testRoutineFlowValidatesMemberAndDates() {
   const calls = [];
   const result = await usecases.saveClassroomRoutineFlow({
@@ -295,6 +325,7 @@ async function testReviewFlowRequiresTeacher() {
   await testTeacherFormFlowValidatesValues();
   await testTeacherFormFlowSavesAndRerenders();
   await testEconomyActionFlow();
+  await testRunClassroomEconomyAction();
   await testRoutineFlowValidatesMemberAndDates();
   await testCompleteQuestAutoFlow();
   await testReviewFlowRequiresTeacher();
