@@ -67,9 +67,31 @@
     }
   }
 
+  async function claimCurrentMemberEventQuestRewardFlow(options = {}, deps = {}) {
+    if(!options.questId) return { skipped: true };
+    const button = deps.getClaimButton?.(options.questId) || null;
+    const originalText = button?.textContent || '';
+    if(button) {
+      button.disabled = true;
+      button.textContent = options.progressText || '수령 중...';
+    }
+    try {
+      return await claimEventQuestRewardFlow({
+        memberUserId: deps.getCurrentMemberUserId?.() || '',
+        questId: options.questId
+      }, deps);
+    } finally {
+      if(button && deps.containsElement?.(button) !== false) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+  }
+
   return {
     loadEventProgressWithCache,
     getEventProgressViewData,
-    claimEventQuestRewardFlow
+    claimEventQuestRewardFlow,
+    claimCurrentMemberEventQuestRewardFlow
   };
 });

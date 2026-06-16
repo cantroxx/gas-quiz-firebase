@@ -5174,16 +5174,12 @@
     }
 
     async function claimEventQuestReward(questId) {
-      if(!questId) return;
-      const button = document.querySelector(`[data-quest-claim-id="${questId}"]`);
-      if(button) {
-        button.disabled = true;
-        button.textContent = '수령 중...';
-      }
-      await window.DJ48EventUsecases.claimEventQuestRewardFlow({
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
+      await window.DJ48EventUsecases.claimCurrentMemberEventQuestRewardFlow({
         questId
       }, {
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getClaimButton: id => document.querySelector(`[data-quest-claim-id="${id}"]`),
+        containsElement: element => document.body.contains(element),
         claimEventQuestReward: options => getEventRepository().claimEventQuestReward(options),
         resetUserEconomyCache,
         resetEventProgressCache,

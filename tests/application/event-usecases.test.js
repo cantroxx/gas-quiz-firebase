@@ -110,10 +110,44 @@ async function testClaimRewardFlowReportsError() {
   assert.deepEqual(calls, [['warn'], ['alert', 'message:member-required'], ['render', true]]);
 }
 
+async function testClaimCurrentMemberRewardFlowControlsButton() {
+  const button = { disabled: false, textContent: '받기' };
+  const calls = [];
+  const result = await usecases.claimCurrentMemberEventQuestRewardFlow({
+    questId: 'quest-a'
+  }, {
+    getCurrentMemberUserId: () => 'member-a',
+    getClaimButton: questId => {
+      calls.push(['button', questId]);
+      return button;
+    },
+    containsElement: () => true,
+    claimEventQuestReward: async options => {
+      calls.push(['claim', options, button.disabled, button.textContent]);
+      return { rewardCoin: 5 };
+    },
+    resetUserEconomyCache: () => calls.push(['reset-economy']),
+    resetEventProgressCache: () => calls.push(['reset-event']),
+    renderEventProgress: async forceRefresh => calls.push(['render', forceRefresh])
+  });
+
+  assert.deepEqual(result.result, { rewardCoin: 5 });
+  assert.equal(button.disabled, false);
+  assert.equal(button.textContent, '받기');
+  assert.deepEqual(calls, [
+    ['button', 'quest-a'],
+    ['claim', { memberUserId: 'member-a', questId: 'quest-a' }, true, '수령 중...'],
+    ['reset-economy'],
+    ['reset-event'],
+    ['render', true]
+  ]);
+}
+
 (async () => {
   await testLoadUsesCache();
   await testLoadSetsAndClearsPromise();
   await testViewDataFallsBackOnError();
   await testClaimRewardFlowResetsAndRerenders();
   await testClaimRewardFlowReportsError();
+  await testClaimCurrentMemberRewardFlowControlsButton();
 })();
