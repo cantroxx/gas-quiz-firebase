@@ -211,20 +211,31 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 33. Removed unused ranking render wrappers from `public/index.html`.
 34. Moved profile ranking-message Firestore write into `public/js/infrastructure/profile-repository.js`.
 35. Stabilized optional profile write smoke and rechecked read-only admin smoke policy.
+36. Moved classroom read paths into `public/js/infrastructure/classroom-repository.js`.
+    - Covered economy board, wallet, gem progress, teacher review items, and quest progress reads.
+    - Kept classroom write/callable paths delegated to `public/js/features/classroom-data.js` until each path gets targeted tests.
+37. Moved selected-title ownership check and Firestore write into `public/js/infrastructure/profile-repository.js`.
+38. Moved shop purchase callable execution into `public/js/infrastructure/shop-repository.js`.
+39. Split remaining bootstrap controller event groups into feature-specific helper factories in `public/index.html`.
+    - Added common, classroom, school, home, admin, and account event helper groups.
+40. Moved profile image search flow into profile usecases and repository.
+    - `public/index.html` now passes DOM/status dependencies and delegates search orchestration.
+41. Split quiz start-flow dependency assembly into `getQuizStartFlowDeps()` in `public/index.html`.
+42. Moved profile image candidate selection and upload-preview orchestration into `public/js/application/profile-usecases.js`.
 
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: classroom orchestration wrappers, admin boot-time load orchestration, profile image upload/search wrappers, and quiz-play view entry wrappers.
+   - First candidates: profile image editor open/save orchestration, quiz submit/render dependency assembly, admin boot-time load orchestration, and classroom write orchestration wrappers.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
-   - Highest remaining candidate: `public/js/infrastructure/classroom-repository.js`, because most classroom Firestore/callable paths still delegate to `classroom-data.js`.
-   - Smaller candidates: profile image/title writes still delegate to account data helpers; shop repository still delegates to shop data helpers.
+   - Highest remaining candidate: `public/js/infrastructure/classroom-repository.js`, because classroom write/callable paths still delegate to `classroom-data.js`.
+   - Smaller candidates: profile image editor save/upload paths and shop room-selection/read helpers still delegate to older feature-data helpers.
 3. Keep optional write smoke flows targeted instead of required gates.
    - Required default smoke remains the authenticated practice/ranking/home/features flow.
    - Optional profile write smoke is stabilized for ranking-message save/restore but still writes production profile data, so run it only with a dedicated smoke account.
    - Admin write smoke must stay emulator/test-project/dry-run or exact-restore only.
-4. Continue bootstrap object assembly reduction by feature section once callbacks no longer depend on local-only variables.
+4. Continue bootstrap and app-shell reduction by moving dependency groups and callback orchestration behind usecase/controller helpers once callbacks no longer depend on local-only variables.
 5. Keep the same validation gate:
    - `npm run check`
    - authenticated browser smoke with the 4-8-23 test account when user-visible runtime code changes.
@@ -241,10 +252,11 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 
 ## Next Execution Order
 
-1. Move another classroom repository path from `classroom-data.js` delegation into `classroom-repository.js`, preferably `loadClassroomEconomyBoard` or a read-only Firestore path.
-2. Move another app-shell bootstrap event group out of inline `getAppBootstrapControllerSections()`, starting with account or school events.
-3. Move one profile image search/upload wrapper out of `public/index.html` into `home-controller` or `profile-usecases`.
-4. Move one quiz-play view entry or render dependency group out of `public/index.html`.
-5. Move one remaining profile repository write, such as selected-title save, into `profile-repository.js`.
-6. Re-run `npm run check` and authenticated browser smoke.
-7. Commit/push/deploy only when explicitly requested and smoke passes.
+1. Move one classroom write/callable path from `classroom-data.js` delegation into `classroom-repository.js`, starting with a small exact-restore-safe path such as selected badge or routine save.
+2. Move profile image editor open/save orchestration further out of `public/index.html`, preferably into `home-controller` plus `profile-usecases`.
+3. Move quiz submit/render callback dependency assembly into quiz-flow helper factories so `public/index.html` keeps only app-shell state wiring.
+4. Move one remaining shop read/write path into `shop-repository.js`, preferably room item selection or one read-only shop cache source.
+5. Reduce admin boot-time load orchestration from `showAdminView()` by adding a tested admin application flow.
+6. Add or extend targeted tests for each moved repository/usecase path before broad smoke.
+7. Re-run `npm run check` and authenticated browser smoke.
+8. Commit/push/deploy only when explicitly requested and smoke passes.
