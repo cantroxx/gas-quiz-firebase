@@ -3101,88 +3101,22 @@
     }
 
     function renderProfileRankingRecords(records = [], rankContext = {}) {
-      const root = document.getElementById('profile-ranking-root');
-      if(!root) return;
-      root.innerHTML = '';
-      const items = records.filter(record => Number(record.score) > 0);
-      if(!window.DJ48AccountState.getCurrentMemberUserId()) {
-        const empty = document.createElement('p');
-        empty.className = 'profile-ranking-empty';
-        empty.textContent = '로그인 후 내 랭킹 기록을 확인할 수 있습니다.';
-        root.appendChild(empty);
-        return;
-      }
-      if(!items.length) {
-        const empty = document.createElement('p');
-        empty.className = 'profile-ranking-empty';
-        empty.textContent = '아직 랭킹전 기록이 없습니다.';
-        root.appendChild(empty);
-        return;
-      }
-
-      const bestRows = getProfileBestRankingRecords(items)
-        .sort((a, b) => {
-          const aRank = Number((rankContext[getProfileRankingRowKey(a)] || rankContext[getProfileRankingCategoryKey(a)])?.rank || 999999);
-          const bRank = Number((rankContext[getProfileRankingRowKey(b)] || rankContext[getProfileRankingCategoryKey(b)])?.rank || 999999);
-          if(aRank !== bRank) return aRank - bRank;
-          return (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999);
-        })
-        .slice(0, 5);
-      const latestRows = items
-        .slice()
-        .sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))
-        .slice(0, 3);
-      const recentBestRows = getProfileBestRankingRecords(items)
-        .filter(record => getProfileRankingRankText(record, rankContext))
-        .sort((a, b) => getRankingRecordTimeValue(b) - getRankingRecordTimeValue(a))
-        .slice(0, 2);
-
-      const bestSection = document.createElement('div');
-      const recentSection = document.createElement('div');
-      const bestTitle = document.createElement('h4');
-      const recentTitle = document.createElement('h4');
-      const bestList = document.createElement('div');
-      const recentList = document.createElement('div');
-      bestSection.className = 'profile-ranking-block';
-      recentSection.className = 'profile-ranking-block';
-      bestTitle.textContent = '분야별 최고 기록';
-      recentTitle.textContent = '최근 랭킹전';
-      bestList.className = 'profile-ranking-list';
-      recentList.className = 'profile-ranking-list';
-
-      const appendRow = (list, record, options = {}) => {
-        const row = document.createElement('article');
-        const title = document.createElement('strong');
-        const meta = document.createElement('span');
-        const rankText = getProfileRankingRankText(record, rankContext);
-        const timeText = record.elapsedText || formatRankingElapsedText(record.elapsedSeconds);
-        const scoreText = `${Number(record.score) || 0}점`;
-        const metaParts = [timeText, scoreText, rankText].filter(Boolean);
-        row.className = 'profile-ranking-row';
-        title.className = 'profile-ranking-card-title';
-        meta.className = 'profile-ranking-card-meta';
-        title.textContent = record.category || getRankingRecordQuizTitle(record);
-        meta.textContent = options.showDate
-          ? `${formatProfileRankingDate(record)} · ${metaParts.join(' · ')}`
-          : metaParts.join(' · ');
-        row.append(title, meta);
-        list.appendChild(row);
-      };
-
-      bestRows.forEach(record => appendRow(bestList, record));
-      latestRows.forEach(record => appendRow(recentList, record, { showDate: true }));
-      bestSection.append(bestTitle, bestList);
-      recentSection.append(recentTitle, recentList);
-      if(recentBestRows.length) {
-        const subTitle = document.createElement('p');
-        const subList = document.createElement('div');
-        subTitle.className = 'profile-ranking-subtitle';
-        subTitle.textContent = '최근 순위권 기록';
-        subList.className = 'profile-ranking-list profile-ranking-list-compact';
-        recentBestRows.forEach(record => appendRow(subList, record, { showDate: true }));
-        recentSection.append(subTitle, subList);
-      }
-      root.append(bestSection, recentSection);
+      return window.DJ48RankingRender.renderProfileRankingRecords(
+        document.getElementById('profile-ranking-root'),
+        records,
+        rankContext,
+        {
+          getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+          getProfileBestRankingRecords,
+          getProfileRankingRowKey,
+          getProfileRankingCategoryKey,
+          getProfileRankingRankText,
+          getRankingRecordTimeValue,
+          formatRankingElapsedText,
+          getRankingRecordQuizTitle,
+          formatProfileRankingDate
+        }
+      );
     }
 
     async function renderProfileRankingRecordsFromFirestore() {
