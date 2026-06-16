@@ -1376,6 +1376,7 @@
   <script src="/js/features/admin-form.js"></script>
   <script src="/js/features/admin-data.js"></script>
   <script src="/js/features/admin-state.js"></script>
+  <script src="/js/application/admin-usecases.js"></script>
   <script src="/js/features/admin-controller.js"></script>
   <script src="/js/domain/account-domain.js"></script>
   <script src="/js/features/account-form.js"></script>
@@ -5944,16 +5945,16 @@
     }
 
     async function loadAdminDashboard() {
-      setAdminDashboardStatus('대시보드를 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminDashboard({
-        getFirebaseFunctions,
-        initializeAuthUser
+      return window.DJ48AdminUsecases.loadAdminDashboardFlow({}, {
+        setStatus: setAdminDashboardStatus,
+        loadDashboard: () => window.DJ48AdminData.loadAdminDashboard({
+          getFirebaseFunctions,
+          initializeAuthUser
+        }),
+        setDashboard: window.DJ48AdminState.setDashboard,
+        setSuperAdminUiEnabled,
+        renderDashboard: renderAdminDashboard
       });
-      const dashboard = window.DJ48AdminState.setDashboard(result.dashboard);
-      setSuperAdminUiEnabled(dashboard.adminLevel === 'superAdmin');
-      renderAdminDashboard(dashboard);
-      setAdminDashboardStatus('운영 상태를 불러왔습니다.');
-      return dashboard;
     }
 
     function setAdminAuditStatus(message, isError = false) {
@@ -5967,14 +5968,17 @@
     }
 
     async function loadAdminOperationalAudit() {
-      setAdminAuditStatus('운영 데이터를 점검하는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminOperationalAudit({
-        getFirebaseFunctions,
-        initializeAuthUser
+      return window.DJ48AdminUsecases.loadAdminAuditFlow({
+        loadingMessage: '운영 데이터를 점검하는 중입니다...',
+        getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
+      }, {
+        setStatus: setAdminAuditStatus,
+        loadAudit: () => window.DJ48AdminData.loadAdminOperationalAudit({
+          getFirebaseFunctions,
+          initializeAuthUser
+        }),
+        renderAudit: renderAdminOperationalAudit
       });
-      renderAdminOperationalAudit(result.audit);
-      setAdminAuditStatus(`읽기 전용 점검 완료 · ${formatAdminTimestamp(result.audit?.checkedAt)}`);
-      return result.audit;
     }
 
     function setAdminQuizQualityStatus(message, isError = false) {
@@ -5986,14 +5990,17 @@
     }
 
     async function loadAdminQuizQualityAudit() {
-      setAdminQuizQualityStatus('문제 데이터를 점검하는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminQuizQualityAudit({
-        getFirebaseFunctions,
-        initializeAuthUser
+      return window.DJ48AdminUsecases.loadAdminAuditFlow({
+        loadingMessage: '문제 데이터를 점검하는 중입니다...',
+        getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
+      }, {
+        setStatus: setAdminQuizQualityStatus,
+        loadAudit: () => window.DJ48AdminData.loadAdminQuizQualityAudit({
+          getFirebaseFunctions,
+          initializeAuthUser
+        }),
+        renderAudit: renderAdminQuizQualityAudit
       });
-      renderAdminQuizQualityAudit(result.audit);
-      setAdminQuizQualityStatus(`읽기 전용 점검 완료 · ${formatAdminTimestamp(result.audit?.checkedAt)}`);
-      return result.audit;
     }
 
     function renderAdminSummary(summary) {
@@ -6099,16 +6106,16 @@
     }
 
     async function loadAdminMembers(options = {}) {
-      const shouldUpdateStatus = options.updateStatus !== false;
-      if(shouldUpdateStatus) setAdminStatus('회원 목록을 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminMembers(getAdminFilterValues(), {
-        getFirebaseFunctions,
-        initializeAuthUser
+      return window.DJ48AdminUsecases.loadAdminMembersFlow(options, {
+        setStatus: setAdminStatus,
+        getFilterValues: getAdminFilterValues,
+        loadMembers: filters => window.DJ48AdminData.loadAdminMembers(filters, {
+          getFirebaseFunctions,
+          initializeAuthUser
+        }),
+        renderSummary: renderAdminSummary,
+        renderMemberList: renderAdminMemberList
       });
-      renderAdminSummary(result.summary);
-      renderAdminMemberList(result.members);
-      if(shouldUpdateStatus) setAdminStatus(`회원 ${result.members?.length || 0}명을 표시했습니다. 비밀번호 현황은 현재 표시된 목록 기준입니다.`);
-      return result;
     }
 
     async function runAdminMemberAction(action, memberUserId) {
