@@ -5577,31 +5577,23 @@
 
     async function setClassroomSelectedGemBadge(gemId) {
       if(!gemId || !currentMemberUserId) return;
-      const settings = await loadClassroomSettings();
       const button = document.querySelector(`[data-classroom-badge-gem-id="${gemId}"]`);
       if(button) {
         button.disabled = true;
         button.textContent = '설정 중...';
       }
-      try {
-        await window.DJ48ClassroomData.setClassroomSelectedBadge({
-          classId: settings.classId,
-          memberUserId: currentMemberUserId,
-          badgeType: 'gem',
-          badgeId: gemId
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({ students: true });
-        await renderClassroomPrototype(true);
-        window.alert('대표 뱃지를 설정했습니다.');
-      } catch(error) {
-        console.warn('Classroom selected badge save failed.', error);
-        window.alert(error.message === 'classroom-badge-select-functions-unavailable'
-          ? '대표 뱃지 설정 기능을 불러오지 못했어요.'
-          : '대표 뱃지를 설정하지 못했어요.');
-        await renderClassroomPrototype(true);
-      }
+      await window.DJ48ClassroomUsecases.setClassroomSelectedBadgeFlow({
+        memberUserId: currentMemberUserId,
+        badgeType: 'gem',
+        badgeId: gemId
+      }, {
+        loadClassroomSettings,
+        setSelectedBadge: options => window.DJ48ClassroomData.setClassroomSelectedBadge(options, { getFirebaseFunctions }),
+        resetCaches: resetClassroomDataCaches,
+        renderClassroom: renderClassroomPrototype,
+        alert: window.alert,
+        warn: console.warn
+      });
     }
 
     async function renderClassroomPrototype(forceRefresh = false) {
@@ -5651,44 +5643,40 @@
 
     async function saveClassroomQuestFromForm(event) {
       event?.preventDefault();
-      const settings = await loadClassroomSettings();
-      if(!isCurrentClassroomTeacher(settings)) {
-        setClassroomQuestEditorStatus('담임 권한이 있어야 퀘스트를 만들 수 있습니다.', true);
-        return;
-      }
-      const values = getClassroomQuestFormValues();
-      if(!values.title) {
-        setClassroomQuestEditorStatus('퀘스트 이름을 입력해 주세요.', true);
-        return;
-      }
-      if(values.rewardCoin <= 0) {
-        setClassroomQuestEditorStatus('지급 베리는 1 이상이어야 합니다.', true);
-        return;
-      }
-      setClassroomQuestEditorStatus('퀘스트를 저장하는 중입니다.');
-      try {
-        await window.DJ48ClassroomData.saveClassroomQuest({
-          classId: settings.classId,
-          values
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 퀘스트를 만들 수 있습니다.',
+          pending: '퀘스트를 저장하는 중입니다.',
+          success: '퀘스트를 저장했습니다.',
+          warn: 'Classroom quest save failed.',
+          error: '퀘스트 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-quest-functions-unavailable': '퀘스트 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: {
           settings: true,
           progress: true,
           review: true,
           wallet: true,
           gems: true
-        });
-        resetClassroomQuestForm();
-        setClassroomQuestEditorStatus('퀘스트를 저장했습니다.');
-        await renderClassroomPrototype(true);
-      } catch(error) {
-        console.warn('Classroom quest save failed.', error);
-        setClassroomQuestEditorStatus(error.message === 'classroom-quest-functions-unavailable'
-          ? '퀘스트 저장 기능을 불러오지 못했습니다.'
-          : '퀘스트 저장 중 문제가 생겼습니다.', true);
-      }
+        }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomQuestFormValues,
+        validateValues: values => {
+          if(!values.title) return '퀘스트 이름을 입력해 주세요.';
+          if(values.rewardCoin <= 0) return '지급 베리는 1 이상이어야 합니다.';
+          return '';
+        },
+        save: options => window.DJ48ClassroomData.saveClassroomQuest(options, { getFirebaseFunctions }),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: resetClassroomQuestForm,
+        setStatus: setClassroomQuestEditorStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
     }
 
     function getClassroomBadgeCampaignFormValues() {
@@ -5699,40 +5687,16 @@
 
     async function awardClassroomBadgeCampaignFromForm(event) {
       event?.preventDefault();
-      const settings = await loadClassroomSettings();
-      if(!isCurrentClassroomTeacher(settings)) {
-        setClassroomBadgeCampaignStatus('담임 권한이 있어야 뱃지를 지급할 수 있습니다.', true);
-        return;
-      }
-      const values = getClassroomBadgeCampaignFormValues();
-      if(!values.title) {
-        setClassroomBadgeCampaignStatus('뱃지 이름을 입력해 주세요.', true);
-        return;
-      }
-      if(!values.targetGemId) {
-        setClassroomBadgeCampaignStatus('기준 젬을 입력해 주세요.', true);
-        return;
-      }
-      setClassroomBadgeCampaignStatus('젬 기록을 스캔하는 중입니다.');
-      try {
-        const result = await window.DJ48ClassroomData.awardClassroomBadgeCampaign({
-          classId: settings.classId,
-          values
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({ students: true });
-        await renderClassroomPrototype(true);
-        const winnerText = Array.isArray(result.winners) && result.winners.length
-          ? `${result.winners.length}명에게 뱃지를 지급했습니다.`
-          : '지급 대상이 없습니다.';
-        setClassroomBadgeCampaignStatus(winnerText, !result.winners?.length);
-      } catch(error) {
-        console.warn('Classroom badge campaign award failed.', error);
-        setClassroomBadgeCampaignStatus(error.message === 'classroom-badge-functions-unavailable'
-          ? '뱃지 지급 기능을 불러오지 못했습니다.'
-          : '뱃지 지급 중 문제가 생겼습니다.', true);
-      }
+      await window.DJ48ClassroomUsecases.awardClassroomBadgeCampaignFlow({}, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomBadgeCampaignFormValues,
+        save: options => window.DJ48ClassroomData.awardClassroomBadgeCampaign(options, { getFirebaseFunctions }),
+        resetCaches: resetClassroomDataCaches,
+        setStatus: setClassroomBadgeCampaignStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
     }
 
     function getClassroomJobFormValues() {
@@ -5745,34 +5709,30 @@
 
     async function saveClassroomJobFromForm(event) {
       event?.preventDefault();
-      const settings = await loadClassroomSettings();
-      if(!isCurrentClassroomTeacher(settings)) {
-        setClassroomJobEditorStatus('담임 권한이 있어야 직업을 만들 수 있습니다.', true);
-        return;
-      }
-      const values = getClassroomJobFormValues();
-      if(!values.title) {
-        setClassroomJobEditorStatus('직업 이름을 입력해 주세요.', true);
-        return;
-      }
-      setClassroomJobEditorStatus('직업을 저장하는 중입니다.');
-      try {
-        await window.DJ48ClassroomData.saveClassroomJob({
-          classId: settings.classId,
-          values
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({ economy: true });
-        resetClassroomJobForm();
-        setClassroomJobEditorStatus('직업을 저장했습니다.');
-        await renderClassroomPrototype(true);
-      } catch(error) {
-        console.warn('Classroom job save failed.', error);
-        setClassroomJobEditorStatus(error.message === 'classroom-job-functions-unavailable'
-          ? '직업 저장 기능을 불러오지 못했습니다.'
-          : '직업 저장 중 문제가 생겼습니다.', true);
-      }
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 직업을 만들 수 있습니다.',
+          pending: '직업을 저장하는 중입니다.',
+          success: '직업을 저장했습니다.',
+          warn: 'Classroom job save failed.',
+          error: '직업 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-job-functions-unavailable': '직업 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomJobFormValues,
+        validateValues: values => values.title ? '' : '직업 이름을 입력해 주세요.',
+        save: options => window.DJ48ClassroomData.saveClassroomJob(options, { getFirebaseFunctions }),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: resetClassroomJobForm,
+        setStatus: setClassroomJobEditorStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
     }
 
     function getClassroomShopItemFormValues() {
@@ -5785,62 +5745,51 @@
 
     async function saveClassroomShopItemFromForm(event) {
       event?.preventDefault();
-      const settings = await loadClassroomSettings();
-      if(!isCurrentClassroomTeacher(settings)) {
-        setClassroomShopEditorStatus('담임 권한이 있어야 상품을 만들 수 있습니다.', true);
-        return;
-      }
-      const values = getClassroomShopItemFormValues();
-      if(!values.title) {
-        setClassroomShopEditorStatus('상품 이름을 입력해 주세요.', true);
-        return;
-      }
-      setClassroomShopEditorStatus('상품을 저장하는 중입니다.');
-      try {
-        await window.DJ48ClassroomData.saveClassroomShopItem({
-          classId: settings.classId,
-          values
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({ economy: true });
-        resetClassroomShopItemForm();
-        setClassroomShopEditorStatus('상품을 저장했습니다.');
-        await renderClassroomPrototype(true);
-      } catch(error) {
-        console.warn('Classroom shop item save failed.', error);
-        setClassroomShopEditorStatus(error.message === 'classroom-shop-functions-unavailable'
-          ? '상품 저장 기능을 불러오지 못했습니다.'
-          : '상품 저장 중 문제가 생겼습니다.', true);
-      }
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 상품을 만들 수 있습니다.',
+          pending: '상품을 저장하는 중입니다.',
+          success: '상품을 저장했습니다.',
+          warn: 'Classroom shop item save failed.',
+          error: '상품 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-shop-functions-unavailable': '상품 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomShopItemFormValues,
+        validateValues: values => values.title ? '' : '상품 이름을 입력해 주세요.',
+        save: options => window.DJ48ClassroomData.saveClassroomShopItem(options, { getFirebaseFunctions }),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: resetClassroomShopItemForm,
+        setStatus: setClassroomShopEditorStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
     }
 
     async function callClassroomEconomyAction(functionName, payload, button, progressText) {
-      const settings = await loadClassroomSettings();
-      if(!currentMemberUserId) {
-        window.alert('교실 기능을 불러오지 못했어요.');
-        return null;
-      }
       const originalText = button?.textContent || '';
       if(button) {
         button.disabled = true;
         button.textContent = progressText;
       }
       try {
-        const result = await window.DJ48ClassroomData.callClassroomEconomyAction(functionName, payload, {
-          classId: settings.classId,
+        return await window.DJ48ClassroomUsecases.callClassroomEconomyActionFlow({
+          functionName,
+          payload,
           memberUserId: currentMemberUserId
         }, {
-          getFirebaseFunctions
+          loadClassroomSettings,
+          callAction: (name, nextPayload, options) => window.DJ48ClassroomData.callClassroomEconomyAction(name, nextPayload, options, { getFirebaseFunctions }),
+          resetCaches: resetClassroomDataCaches,
+          renderClassroom: renderClassroomPrototype,
+          alert: window.alert,
+          warn: console.warn
         });
-        resetClassroomDataCaches({ economy: true, wallet: true });
-        await renderClassroomPrototype(true);
-        return result;
-      } catch(error) {
-        console.warn(`Classroom economy action failed: ${functionName}`, error);
-        window.alert('교실 작업 처리 중 문제가 생겼어요.');
-        await renderClassroomPrototype(true);
-        return null;
       } finally {
         if(button && document.body.contains(button)) {
           button.disabled = false;
@@ -5852,37 +5801,31 @@
     async function applyClassroomJob(jobId, button) {
       if(!jobId) return;
       const result = await callClassroomEconomyAction('applyClassroomJob', { jobId }, button, '지원 중...');
-      if(result?.success) window.alert(result.duplicate ? '이미 지원한 직업입니다.' : '직업 지원이 저장됐습니다.');
+      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('applyClassroomJob', result));
     }
 
     async function assignClassroomJob(applicationId, button) {
       if(!applicationId) return;
       const result = await callClassroomEconomyAction('assignClassroomJob', { applicationId }, button, '배정 중...');
-      if(result?.success) window.alert('직업을 배정했습니다.');
+      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('assignClassroomJob', result));
     }
 
     async function releaseClassroomJob(assignmentId, button) {
       if(!assignmentId) return;
       const result = await callClassroomEconomyAction('releaseClassroomJob', { assignmentId }, button, '해제 중...');
-      if(result?.success) window.alert('직업 배정을 해제했습니다.');
+      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('releaseClassroomJob', result));
     }
 
     async function claimClassroomJobSalary(assignmentId, button) {
       if(!assignmentId) return;
       const result = await callClassroomEconomyAction('claimClassroomJobSalary', { assignmentId }, button, '지급 중...');
-      if(result?.success) {
-        const amount = Number(result.rewardAmount || 0);
-        window.alert(result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 베리를 지급했습니다.`);
-      }
+      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('claimClassroomJobSalary', result));
     }
 
     async function purchaseClassroomShopItem(itemId, button) {
       if(!itemId) return;
       const result = await callClassroomEconomyAction('purchaseClassroomShopItem', { itemId }, button, '구매 중...');
-      if(result?.success) {
-        const amount = Number(result.priceBerry || 0);
-        window.alert(`${amount} 베리로 구매했습니다.`);
-      }
+      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('purchaseClassroomShopItem', result));
     }
 
     function getClassroomRoutineFormValues() {
@@ -5895,169 +5838,87 @@
 
     async function saveClassroomRoutineFromForm(event) {
       event?.preventDefault();
-      if(!currentMemberUserId) {
-        setClassroomRoutineStatus('회원 연결 후 성장루틴을 만들 수 있습니다.', true);
-        return;
-      }
-      const values = getClassroomRoutineFormValues();
-      if(!values.title) {
-        setClassroomRoutineStatus('루틴 이름을 입력해 주세요.', true);
-        return;
-      }
-      if(!values.startDate || !values.endDate) {
-        setClassroomRoutineStatus('시작일과 종료일을 선택해 주세요.', true);
-        return;
-      }
-      if(values.startDate > values.endDate) {
-        setClassroomRoutineStatus('종료일은 시작일 이후여야 합니다.', true);
-        return;
-      }
-      if(!values.weekdays.length) {
-        setClassroomRoutineStatus('체크할 요일을 1개 이상 선택해 주세요.', true);
-        return;
-      }
-      const settings = await loadClassroomSettings();
-      setClassroomRoutineStatus('성장루틴을 저장하는 중입니다.');
-      try {
-        await window.DJ48ClassroomData.saveClassroomRoutine({
-          classId: settings.classId,
-          memberUserId: currentMemberUserId,
-          values
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({ economy: true });
-        resetClassroomRoutineForm();
-        setClassroomRoutineStatus('성장루틴을 저장했습니다.');
-        await renderClassroomPrototype(true);
-      } catch(error) {
-        console.warn('Classroom routine save failed.', error);
-        setClassroomRoutineStatus(error.message === 'classroom-routine-functions-unavailable'
-          ? '성장루틴 저장 기능을 불러오지 못했습니다.'
-          : '성장루틴 저장 중 문제가 생겼습니다.', true);
-      }
+      await window.DJ48ClassroomUsecases.saveClassroomRoutineFlow({
+        memberUserId: currentMemberUserId
+      }, {
+        getValues: getClassroomRoutineFormValues,
+        loadClassroomSettings,
+        save: options => window.DJ48ClassroomData.saveClassroomRoutine(options, { getFirebaseFunctions }),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: resetClassroomRoutineForm,
+        setStatus: setClassroomRoutineStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
     }
 
     async function checkClassroomRoutine(routineId, button) {
       if(!routineId) return;
       const result = await callClassroomEconomyAction('checkClassroomRoutine', { routineId }, button, '체크 중...');
-      if(result?.success) {
-        if(result.duplicate) {
-          window.alert('오늘 이미 체크한 루틴입니다.');
-        } else if(result.completed) {
-          window.alert(`목표를 달성해 ${Number(result.rewardAmount || 0)} 베리를 받았습니다.`);
-        } else {
-          window.alert('오늘 체크했습니다.');
-        }
-      }
+      if(result?.success) window.alert(window.DJ48ClassroomUsecases.getClassroomEconomySuccessMessage('checkClassroomRoutine', result));
     }
 
     async function completeClassroomCheckQuest(questId) {
+      const db = getFirestoreDb();
       const settings = await loadClassroomSettings();
       const quest = window.DJ48ClassroomData.findClassroomQuest(settings, questId);
       if(!quest?.saveEnabled) return;
-      if(!currentMemberUserId) {
-        window.alert('회원 연결 후 교실 퀘스트를 저장할 수 있어요.');
-        return;
-      }
-      const db = getFirestoreDb();
-
       const button = document.querySelector(`[data-classroom-quest-action="${questId}"]`);
       if(button) {
         button.disabled = true;
-        button.textContent = quest.rewardMode === 'auto' ? '지급 중...' : '저장 중...';
+        button.textContent = quest?.rewardMode === 'auto' ? '지급 중...' : '저장 중...';
       }
 
-      try {
-        if(quest.rewardMode === 'auto') {
-          const result = await window.DJ48ClassroomData.completeClassroomAutoQuest({
-            memberUserId: currentMemberUserId,
-            classId: settings.classId,
-            questId
-          }, {
-            getFirebaseFunctions
-          });
-          resetClassroomDataCaches({ progress: true, wallet: true, gems: true });
-          resetUserEconomyCache();
-          await renderClassroomPrototype(true);
-          if(result.duplicate) {
-            window.alert('오늘 이미 완료한 퀘스트예요.');
-          } else {
-            const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardBerry || quest.rewardCoin || 0);
-            window.alert(`${amount} ${getClassroomRewardCurrencyLabel(result.rewardCurrency || quest.rewardCurrency)}를 받았어요.`);
-          }
-          return;
-        }
-
-        await window.DJ48ClassroomData.saveClassroomManualQuestProgress({
+      const result = await window.DJ48ClassroomUsecases.completeClassroomCheckQuestFlow({
+        questId,
+        memberUserId: currentMemberUserId
+      }, {
+        loadClassroomSettings: async () => settings,
+        findClassroomQuest: window.DJ48ClassroomData.findClassroomQuest,
+        completeAutoQuest: options => window.DJ48ClassroomData.completeClassroomAutoQuest(options, { getFirebaseFunctions }),
+        saveManualQuestProgress: options => window.DJ48ClassroomData.saveClassroomManualQuestProgress({
           db,
-          settings,
-          quest,
-          questId,
-          memberUserId: currentMemberUserId
+          ...options
         }, {
           getFirestoreFieldValue
-        });
-        resetClassroomDataCaches({ progress: true });
-        await renderClassroomPrototype(true);
-      } catch(error) {
-        console.warn('Classroom quest progress save failed.', error);
-        window.alert(error.message === 'classroom-auto-quest-functions-unavailable'
-          ? '교실 퀘스트 보상 기능을 불러오지 못했어요.'
-          : error.message === 'classroom-quest-progress-db-unavailable'
-            ? '교실 퀘스트 저장 기능을 불러오지 못했어요.'
-            : '교실 퀘스트 저장 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.');
-        if(button) {
-          button.disabled = false;
-          button.textContent = quest.studentAction || '완료 체크';
-        }
+        }),
+        resetClassroomCaches: resetClassroomDataCaches,
+        resetUserEconomyCache,
+        renderClassroom: renderClassroomPrototype,
+        getClassroomRewardCurrencyLabel,
+        alert: window.alert,
+        warn: console.warn
+      });
+      if(result?.error && button) {
+        button.disabled = false;
+        button.textContent = result.quest?.studentAction || quest?.studentAction || '완료 체크';
       }
     }
 
     async function reviewClassroomQuestProgress(recordId, nextStatus) {
       if(!recordId || !['approved', 'rejected'].includes(nextStatus)) return;
-      const settings = await loadClassroomSettings();
-      if(!isCurrentClassroomTeacher(settings)) {
-        window.alert('담임 권한이 있어야 처리할 수 있어요.');
-        return;
-      }
-
       const buttons = document.querySelectorAll(`[data-classroom-review-id="${recordId}"]`);
       buttons.forEach(button => {
         button.disabled = true;
         button.textContent = nextStatus === 'approved' ? '승인 중...' : '반려 중...';
       });
 
-      try {
-        const result = await window.DJ48ClassroomData.reviewClassroomQuestProgress({
-          classId: settings.classId,
-          recordId,
-          nextStatus
-        }, {
-          getFirebaseFunctions
-        });
-        resetClassroomDataCaches({
-          review: true,
-          progress: true,
-          wallet: true,
-          gems: true
-        });
-        resetUserEconomyCache();
-        await renderClassroomPrototype(true);
-        if(document.getElementById('admin-section-classroom')?.classList.contains('is-active')) {
-          await renderAdminClassroomReview(true);
-        }
-        if(nextStatus === 'approved' && !result.duplicate) {
-          const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardBerry || 0);
-          window.alert(`${amount} ${getClassroomRewardCurrencyLabel(result.rewardCurrency)}를 지급했습니다.`);
-        }
-      } catch(error) {
-        console.warn('Classroom quest review failed.', error);
-        window.alert(error.message === 'classroom-review-functions-unavailable'
-          ? '교실 퀘스트 검토 기능을 불러오지 못했어요.'
-          : '교실 퀘스트 검토 저장 중 문제가 생겼어요.');
-        await renderClassroomPrototype(true);
-      }
+      await window.DJ48ClassroomUsecases.reviewClassroomQuestProgressFlow({
+        recordId,
+        nextStatus
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        reviewProgress: options => window.DJ48ClassroomData.reviewClassroomQuestProgress(options, { getFirebaseFunctions }),
+        resetClassroomCaches: resetClassroomDataCaches,
+        resetUserEconomyCache,
+        renderClassroom: renderClassroomPrototype,
+        isAdminClassroomSectionActive: () => document.getElementById('admin-section-classroom')?.classList.contains('is-active'),
+        renderAdminClassroomReview,
+        getClassroomRewardCurrencyLabel,
+        alert: window.alert,
+        warn: console.warn
+      });
     }
 
     async function loadEventProgress(forceRefresh = false) {
