@@ -1412,6 +1412,7 @@
   <script src="/js/features/ranking-render.js"></script>
   <script src="/js/features/ranking-data.js"></script>
   <script src="/js/features/ranking-state.js"></script>
+  <script src="/js/application/ranking-usecases.js"></script>
   <script src="/js/features/school-controller.js"></script>
   <script src="/js/features/quiz-session-state.js"></script>
   <script src="/js/features/quiz-controller.js"></script>
@@ -2999,18 +3000,15 @@
     }
 
     function renderRankingView() {
-      renderRankingCards(RANKING_DATA.map(entry => ({ ...entry, title: '랭킹 불러오는 중' })));
-      renderRankingBoards(null);
-      loadRankingPlazaCardsFromFirestore()
-        .then(model => {
-          renderRankingCards(model?.cards?.length ? model.cards : RANKING_DATA);
-          renderRankingBoards(model);
-        })
-        .catch(error => {
-          console.warn('Firestore ranking plaza read failed. Using static ranking fallback.', error);
-          renderRankingCards(RANKING_DATA);
-          renderRankingBoards(null);
-        });
+      return window.DJ48RankingUsecases.renderRankingView({
+        fallbackCards: RANKING_DATA,
+        loadingTitle: '랭킹 불러오는 중'
+      }, {
+        renderRankingCards,
+        renderRankingBoards,
+        loadRankingPlazaCards: loadRankingPlazaCardsFromFirestore,
+        warn: console.warn
+      });
     }
 
     function normalizeRankingDisplayName(data) {
@@ -3056,6 +3054,17 @@
         rank: '1위',
         nickname: normalizeRankingDisplayName(record),
         title: `${Number(record.score) || 0}점${elapsed ? ` · ${elapsed}` : ''}`
+      };
+    }
+
+    function buildQuizKingRankingCard(quizKing) {
+      return {
+        rankId: 'quiz_king',
+        icon: '👑',
+        category: '퀴즈왕',
+        rank: quizKing ? '1위' : '기록 없음',
+        nickname: normalizeRankingDisplayName(quizKing),
+        title: quizKing ? `총 ${Number(quizKing.totalScore) || 0}점 · ${Number(quizKing.categoryCount) || 0}영역` : '아직 기록이 없어요'
       };
     }
 
@@ -3248,28 +3257,24 @@
     }
 
     async function renderProfileRankingRecordsFromFirestore() {
-      const root = document.getElementById('profile-ranking-root');
-      if(root) {
-        root.innerHTML = '<p class="profile-ranking-empty">내 랭킹 기록을 불러오는 중입니다...</p>';
-      }
-      const db = getFirestoreDb();
-      if(!db || !currentMemberUserId) {
-        renderProfileRankingRecords([]);
-        return [];
-      }
-      const snapshot = await db.collection('rankingRecords')
-        .where('memberUserId', '==', currentMemberUserId)
-        .limit(PROFILE_RANKING_RECORD_LIMIT)
-        .get();
-      const records = snapshot.docs
-        .map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }))
-        .filter(record => isRankingRowEnabledByFlags(record));
-      const bestRows = getProfileBestRankingRecords(records.filter(record => Number(record.score) > 0))
-        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999))
-        .slice(0, 5);
-      const rankContext = await loadProfileRankingRankContext(db, bestRows);
-      renderProfileRankingRecords(records, rankContext);
-      return records;
+      return window.DJ48RankingUsecases.renderProfileRankingRecordsFlow({
+        memberUserId: currentMemberUserId,
+        recordLimit: PROFILE_RANKING_RECORD_LIMIT,
+        bestContextLimit: 5
+      }, {
+        getFirestoreDb,
+        isRankingRowEnabledByFlags,
+        getProfileBestRankingRecords,
+        compareProfileBestRankingRecords: (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999),
+        loadProfileRankingRankContext,
+        renderProfileRankingRecords,
+        setProfileRankingLoading: () => {
+          const root = document.getElementById('profile-ranking-root');
+          if(root) {
+            root.innerHTML = '<p class="profile-ranking-empty">내 랭킹 기록을 불러오는 중입니다...</p>';
+          }
+        }
+      });
     }
 
     function getRankingRecordUserKey(record) {
@@ -3781,44 +3786,26 @@
     }
 
     async function loadRankingPlazaCardsFromFirestore() {
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-      await initializeAuthUser();
-
-      const [quizKingSnapshot, rankingRecords] = await Promise.all([
-        db.collection('quizKingSummary').orderBy('totalScore', 'desc').limit(RANKING_PLAZA_ROW_LIMIT).get(),
-        loadLimitedRankingRecordsForPlaza(db)
-      ]);
-      const rawQuizKingSummaries = quizKingSnapshot.docs.map(doc => ({ memberUserId: doc.id, ...doc.data() }));
-      const filteredRankingRecords = rankingRecords.filter(row => isRankingRowEnabledByFlags(row));
-      const profileMap = await loadMemberProfilesForRankingRows(db, rawQuizKingSummaries.concat(filteredRankingRecords));
-      const enrichedQuizKingSummaries = rawQuizKingSummaries.map(row => mergeRankingRowWithMemberProfile(row, profileMap));
-      const enrichedRankingRecords = filteredRankingRecords.map(row => mergeRankingRowWithMemberProfile(row, profileMap));
-      const quizKingSummaries = enrichedQuizKingSummaries.length
-        ? enrichedQuizKingSummaries
-        : buildQuizKingSummariesFromRankingRecords(enrichedRankingRecords);
-      const quizKing = getTopQuizKingSummaries(quizKingSummaries, 1)[0] || null;
-      const koreanBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게']);
-      const socialBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['사회삼국지', '사회고대사-삼국시대']);
-      const mathBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['수학곱셈과-나눗셈']);
-      const popularBest = getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]);
-      return {
-        cards: [
-          {
-            rankId: 'quiz_king',
-            icon: '👑',
-            category: '퀴즈왕',
-            rank: quizKing ? '1위' : '기록 없음',
-            nickname: normalizeRankingDisplayName(quizKing),
-            title: quizKing ? `총 ${Number(quizKing.totalScore) || 0}점 · ${Number(quizKing.categoryCount) || 0}영역` : '아직 기록이 없어요'
-          },
-          buildRankingRecordCard('korean_king', '📚', '국어왕', koreanBest),
-          buildRankingRecordCard('social_king', '🏛️', '사회왕', socialBest),
-          buildRankingRecordCard('math_king', '➗', '수학왕', mathBest),
-          buildRankingRecordCard('popular_king', '⭐', '인기왕', popularBest)
-        ],
-        boards: getRankingBoardModels(quizKingSummaries, enrichedRankingRecords)
-      };
+      return window.DJ48RankingUsecases.loadRankingPlazaData({
+        rowLimit: RANKING_PLAZA_ROW_LIMIT,
+        koreanCategoryKeys: ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게'],
+        socialCategoryKeys: ['사회삼국지', '사회고대사-삼국시대'],
+        mathCategoryKeys: ['수학곱셈과-나눗셈'],
+        popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]
+      }, {
+        getFirestoreDb,
+        initializeAuthUser,
+        loadLimitedRankingRecordsForPlaza,
+        isRankingRowEnabledByFlags,
+        loadMemberProfilesForRankingRows,
+        mergeRankingRowWithMemberProfile,
+        buildQuizKingSummariesFromRankingRecords,
+        getTopQuizKingSummaries,
+        getBestRankingRecordByCategoryKeys,
+        buildQuizKingCard: buildQuizKingRankingCard,
+        buildRankingRecordCard,
+        getRankingBoardModels
+      });
     }
 
     function getFirestoreDb() {
