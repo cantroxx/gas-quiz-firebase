@@ -4841,17 +4841,26 @@
       window.alert(message);
     }
 
-    async function purchaseShopItem(itemId) {
-      await window.DJ48ShopUsecases.purchaseShopItemFlow({ itemId }, {
+    function getShopWriteDeps() {
+      return {
         prepareMemberOwnedData,
         requireCurrentDataOwnerId,
+        getFirestoreDb,
         purchaseShopItem: payload => getShopRepository().purchaseShopItem(payload),
+        saveRoomItemSelection: options => getShopRepository().saveRoomItemSelection(options),
         resetShopRuntimeData,
+        resetRoomSettingsCache,
         renderShop: renderShopFromFirestore,
+        renderHomeOwnedItems: renderHomeOwnedItemsFromFirestore,
         showMessage: showShopPurchaseMessage,
         getShopPurchaseErrorMessage: window.DJ48ShopData.getShopPurchaseErrorMessage,
+        getRoomItemSaveErrorMessage: window.DJ48ShopData.getRoomItemSaveErrorMessage,
         warn: console.warn
-      });
+      };
+    }
+
+    async function purchaseShopItem(itemId) {
+      await window.DJ48ShopUsecases.purchaseShopItemFlow({ itemId }, getShopWriteDeps());
     }
 
     async function renderShopFromFirestore() {
@@ -4861,17 +4870,7 @@
     }
 
     async function saveRoomItemSelection(itemId) {
-      await window.DJ48ShopUsecases.saveRoomItemSelectionFlow({ itemId }, {
-        prepareMemberOwnedData,
-        requireCurrentDataOwnerId,
-        getFirestoreDb,
-        saveRoomItemSelection: options => getShopRepository().saveRoomItemSelection(options),
-        resetRoomSettingsCache,
-        renderHomeOwnedItems: renderHomeOwnedItemsFromFirestore,
-        showMessage: showShopPurchaseMessage,
-        getRoomItemSaveErrorMessage: window.DJ48ShopData.getRoomItemSaveErrorMessage,
-        warn: console.warn
-      });
+      await window.DJ48ShopUsecases.saveRoomItemSelectionFlow({ itemId }, getShopWriteDeps());
     }
 
     function renderEventSections(data = {}) {
