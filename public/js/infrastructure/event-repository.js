@@ -1,11 +1,28 @@
 (function (root) {
+  function getEventFunctions(deps = {}) {
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error('functions-unavailable');
+    return functions;
+  }
+
   function createEventRepository(deps = {}) {
-    const callableDeps = {
-      getFirebaseFunctions: deps.getFirebaseFunctions
-    };
     return {
-      loadEventProgress: options => root.DJ48EventData.loadEventProgress(options, callableDeps),
-      claimEventQuestReward: options => root.DJ48EventData.claimEventQuestReward(options, callableDeps)
+      async loadEventProgress(options = {}) {
+        if(!options.memberUserId) throw new Error('member-required');
+        const callable = getEventFunctions(deps).httpsCallable('getEventProgress');
+        const response = await callable({ memberUserId: options.memberUserId });
+        return response?.data || null;
+      },
+      async claimEventQuestReward(options = {}) {
+        if(!options.questId) return null;
+        if(!options.memberUserId) throw new Error('member-required');
+        const callable = getEventFunctions(deps).httpsCallable('claimEventQuestReward');
+        const response = await callable({
+          memberUserId: options.memberUserId,
+          questId: options.questId
+        });
+        return response?.data || {};
+      }
     };
   }
 
