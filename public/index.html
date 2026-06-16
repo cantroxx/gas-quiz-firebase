@@ -2778,28 +2778,29 @@
     }
 
     function openProfileImageEditor(options) {
-      const currentEdit = getProfileImageEditModel(window.DJ48AccountState.getCurrentMemberProfile() || {});
-      const editorState = window.DJ48HomeState.setProfileImageEditorState(
-        window.DJ48AccountData.buildProfileImageEditorState(options, currentEdit, {
-          normalizeDisplayImageUrl
-        })
-      );
-      window.DJ48HomeRender.renderProfileImageEditorModal({
-        modalId: 'profile-image-editor-modal',
-        imageId: 'profile-image-editor-preview-img',
-        statusId: 'profile-image-editor-status',
-        scaleId: 'profile-image-editor-scale',
-        offsetXId: 'profile-image-editor-offset-x',
-        offsetYId: 'profile-image-editor-offset-y'
-      }, editorState, {
+      return window.DJ48HomeController.openProfileImageEditor(options, {
+        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
         getProfileImageEditModel,
+        setProfileImageEditorState: window.DJ48HomeState.setProfileImageEditorState,
+        buildProfileImageEditorState: window.DJ48AccountData.buildProfileImageEditorState,
+        normalizeDisplayImageUrl,
+        renderProfileImageEditorModal: (editorState, renderDeps) => window.DJ48HomeRender.renderProfileImageEditorModal({
+          modalId: 'profile-image-editor-modal',
+          imageId: 'profile-image-editor-preview-img',
+          statusId: 'profile-image-editor-status',
+          scaleId: 'profile-image-editor-scale',
+          offsetXId: 'profile-image-editor-offset-x',
+          offsetYId: 'profile-image-editor-offset-y'
+        }, editorState, renderDeps),
         updateProfileImageEditorPreview
       });
     }
 
     function closeProfileImageEditor() {
-      window.DJ48HomeRender.closeProfileImageEditorModal('profile-image-editor-modal');
-      window.DJ48HomeState.clearProfileImageEditorState();
+      return window.DJ48HomeController.closeProfileImageEditor({
+        closeProfileImageEditorModal: () => window.DJ48HomeRender.closeProfileImageEditorModal('profile-image-editor-modal'),
+        clearProfileImageEditorState: window.DJ48HomeState.clearProfileImageEditorState
+      });
     }
 
     function resetProfileImageEditorFromHome() {

@@ -25,6 +25,25 @@
     return nextState || null;
   }
 
+  function openProfileImageEditor(options = {}, deps = {}) {
+    const currentEdit = deps.getProfileImageEditModel?.(deps.getCurrentMemberProfile?.() || {});
+    const editorState = deps.setProfileImageEditorState?.(
+      deps.buildProfileImageEditorState?.(options, currentEdit, {
+        normalizeDisplayImageUrl: deps.normalizeDisplayImageUrl
+      })
+    );
+    deps.renderProfileImageEditorModal?.(editorState, {
+      getProfileImageEditModel: deps.getProfileImageEditModel,
+      updateProfileImageEditorPreview: deps.updateProfileImageEditorPreview
+    });
+    return editorState || null;
+  }
+
+  function closeProfileImageEditor(deps = {}) {
+    deps.closeProfileImageEditorModal?.();
+    deps.clearProfileImageEditorState?.();
+  }
+
   function bindProfileHomeEvents(deps = {}) {
     document.getElementById('profile-card-root')?.addEventListener('click', event => {
       const profileToggle = event.target.closest('[data-profile-detail-toggle]');
@@ -168,6 +187,8 @@
   }
 
   const api = {
+    openProfileImageEditor,
+    closeProfileImageEditor,
     resetProfileImageEditor,
     updateProfileImageEditorPreview,
     bindProfileHomeEvents

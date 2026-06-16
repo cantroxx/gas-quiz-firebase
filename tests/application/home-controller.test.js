@@ -56,7 +56,50 @@ function testUpdateProfileImageEditorPreviewSkipsWithoutState() {
   }), null);
 }
 
+function testOpenProfileImageEditor() {
+  const calls = [];
+  const state = controller.openProfileImageEditor({ source: 'candidate' }, {
+    getCurrentMemberProfile: () => ({ profileImageScale: 1.1 }),
+    getProfileImageEditModel: profile => {
+      calls.push(['edit', profile.profileImageScale]);
+      return { profileImageScale: profile.profileImageScale };
+    },
+    buildProfileImageEditorState: (options, currentEdit, deps) => {
+      calls.push(['build', options.source, currentEdit.profileImageScale, deps.normalizeDisplayImageUrl('x')]);
+      return { source: options.source, profileImageScale: currentEdit.profileImageScale };
+    },
+    normalizeDisplayImageUrl: value => `display:${value}`,
+    setProfileImageEditorState: nextState => {
+      calls.push(['set', nextState.source]);
+      return nextState;
+    },
+    renderProfileImageEditorModal: (nextState, deps) => {
+      calls.push(['render', nextState.profileImageScale, typeof deps.updateProfileImageEditorPreview]);
+    },
+    updateProfileImageEditorPreview: () => {}
+  });
+
+  assert.deepEqual(state, { source: 'candidate', profileImageScale: 1.1 });
+  assert.deepEqual(calls, [
+    ['edit', 1.1],
+    ['build', 'candidate', 1.1, 'display:x'],
+    ['set', 'candidate'],
+    ['render', 1.1, 'function']
+  ]);
+}
+
+function testCloseProfileImageEditor() {
+  const calls = [];
+  assert.equal(controller.closeProfileImageEditor({
+    closeProfileImageEditorModal: () => calls.push('close'),
+    clearProfileImageEditorState: () => calls.push('clear')
+  }), undefined);
+  assert.deepEqual(calls, ['close', 'clear']);
+}
+
 testResetProfileImageEditor();
 testUpdateProfileImageEditorPreview();
 testUpdateProfileImageEditorPreviewSkipsWithoutState();
+testOpenProfileImageEditor();
+testCloseProfileImageEditor();
 console.log('Application tests passed: home-controller');
