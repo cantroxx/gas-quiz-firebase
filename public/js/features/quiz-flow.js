@@ -179,6 +179,52 @@
     });
   }
 
+  function selectChoiceByIndex(index, options = {}, deps = {}, callbacks = {}) {
+    const question = deps.getCurrentQuestionSet?.()[deps.getCurrentQuestionIndex?.()];
+    if(!root.DJ48QuizPlay.canSelectQuizChoice(question, {
+      currentQuestionResolved: deps.getCurrentQuestionResolved?.()
+    })) return false;
+    const button = callbacks.getChoiceButton?.(index);
+    const selected = root.DJ48QuizPlay.applyQuizChoiceSelection({
+      button,
+      choices: callbacks.getChoiceButtons?.(),
+      submitButton: callbacks.getSubmitButton?.()
+    });
+    if(!selected) return false;
+    deps.setSelectedChoiceIndex?.(index);
+    if(options.submitImmediately) callbacks.submitAnswer?.();
+    return true;
+  }
+
+  function handleQuizPlayKeydown(event, deps = {}, callbacks = {}) {
+    const action = root.DJ48QuizPlay.getQuizPlayKeyAction(event, {
+      quizPlayActive: callbacks.isQuizPlayActive?.(),
+      currentQuestionResolved: deps.getCurrentQuestionResolved?.()
+    });
+    if(action.type === 'submit-input') {
+      event.preventDefault();
+      if(action.shouldSubmit) callbacks.submitAnswer?.();
+      return action;
+    }
+
+    if(action.type === 'advance-after-result') {
+      const next = callbacks.getNextQuestionButton?.();
+      if(next && !next.disabled) {
+        event.preventDefault();
+        if(next.dataset?.completeQuiz) callbacks.showQuizComplete?.();
+        else callbacks.nextQuestion?.();
+      }
+      return action;
+    }
+
+    if(action.type !== 'select-choice') return action;
+    const selected = selectChoiceByIndex(action.choiceIndex, {
+      submitImmediately: true
+    }, deps, callbacks);
+    if(selected) event.preventDefault();
+    return action;
+  }
+
   function showQuizComplete(options = {}, deps = {}, callbacks = {}) {
     callbacks.clearRankingQuestionTimer?.();
     callbacks.clearRankingSessionTimer?.();
@@ -221,6 +267,8 @@
     renderQuizQuestion,
     showQuizResult,
     nextQuizQuestion,
+    selectChoiceByIndex,
+    handleQuizPlayKeydown,
     showQuizComplete,
     leaveQuizPlaySession
   };

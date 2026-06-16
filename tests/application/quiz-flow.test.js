@@ -11,6 +11,9 @@ globalThis.DJ48QuizPlay = {
     testShopUserId: deps.testShopUserId
   }),
   submitAnswer: payload => payload,
+  canSelectQuizChoice: (question, options) => !!question && !options.currentQuestionResolved,
+  applyQuizChoiceSelection: payload => !!payload.button,
+  getQuizPlayKeyAction: event => event.action,
   showQuizResult: (isCorrect, overrideMessage, payload) => ({ isCorrect, overrideMessage, payload }),
   nextQuestion: payload => payload,
   showQuizComplete: (options, payload) => ({ options, payload })
@@ -137,9 +140,46 @@ function testQuizResultNextAndCompleteWrappers() {
   assert.equal(complete.payload.renderRankingSaveStatus(), 'rank-status');
 }
 
+function testSelectChoiceByIndex() {
+  const calls = [];
+  const selected = flow.selectChoiceByIndex(1, { submitImmediately: true }, {
+    getCurrentQuestionSet: () => [{ id: 'q1' }, { id: 'q2' }],
+    getCurrentQuestionIndex: () => 1,
+    getCurrentQuestionResolved: () => false,
+    setSelectedChoiceIndex: index => calls.push(['set', index])
+  }, {
+    getChoiceButton: index => ({ index }),
+    getChoiceButtons: () => [{}, {}],
+    getSubmitButton: () => ({}),
+    submitAnswer: () => calls.push(['submit'])
+  });
+
+  assert.equal(selected, true);
+  assert.deepEqual(calls, [['set', 1], ['submit']]);
+}
+
+function testHandleQuizPlayKeydownAdvance() {
+  const calls = [];
+  const event = {
+    action: { type: 'advance-after-result' },
+    preventDefault: () => calls.push(['prevent'])
+  };
+  const action = flow.handleQuizPlayKeydown(event, {}, {
+    isQuizPlayActive: () => true,
+    getNextQuestionButton: () => ({ disabled: false, dataset: { completeQuiz: '1' } }),
+    showQuizComplete: () => calls.push(['complete']),
+    nextQuestion: () => calls.push(['next'])
+  });
+
+  assert.deepEqual(action, { type: 'advance-after-result' });
+  assert.deepEqual(calls, [['prevent'], ['complete']]);
+}
+
 testGetQuizProgressText();
 testRankingTimerStateCallbacks();
 testSubmitQuizAnswer();
 testRenderQuizQuestion();
 testQuizResultNextAndCompleteWrappers();
+testSelectChoiceByIndex();
+testHandleQuizPlayKeydownAdvance();
 console.log('Application tests passed: quiz-flow');

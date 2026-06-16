@@ -6161,47 +6161,27 @@
       return document.getElementById('quiz-play-view')?.hidden === false;
     }
 
+    function getQuizPlayChoiceDomDeps() {
+      return {
+        getChoiceButton: index => document.querySelector(`.quiz-choice[data-choice-index="${index}"]`),
+        getChoiceButtons: () => document.querySelectorAll('.quiz-choice'),
+        getSubmitButton: () => document.querySelector('.quiz-submit-button'),
+        getNextQuestionButton: () => document.querySelector('[data-next-question]'),
+        isQuizPlayActive,
+        submitAnswer,
+        showQuizComplete,
+        nextQuestion
+      };
+    }
+
     function selectChoiceByIndex(index, submitImmediately = false) {
-      const deps = getQuizPlayDeps();
-      const question = deps.getCurrentQuestionSet()[deps.getCurrentQuestionIndex()];
-      if(!window.DJ48QuizPlay.canSelectQuizChoice(question, { currentQuestionResolved: deps.getCurrentQuestionResolved() })) return false;
-      const button = document.querySelector(`.quiz-choice[data-choice-index="${index}"]`);
-      const selected = window.DJ48QuizPlay.applyQuizChoiceSelection({
-        button,
-        choices: document.querySelectorAll('.quiz-choice'),
-        submitButton: document.querySelector('.quiz-submit-button')
-      });
-      if(!selected) return false;
-      deps.setSelectedChoiceIndex(index);
-      if(submitImmediately) submitAnswer();
-      return true;
+      return window.DJ48QuizFlow.selectChoiceByIndex(index, {
+        submitImmediately
+      }, getQuizPlayDeps(), getQuizPlayChoiceDomDeps());
     }
 
     function handleQuizPlayKeydown(event) {
-      const deps = getQuizPlayDeps();
-      const action = window.DJ48QuizPlay.getQuizPlayKeyAction(event, {
-        quizPlayActive: isQuizPlayActive(),
-        currentQuestionResolved: deps.getCurrentQuestionResolved()
-      });
-      if(action.type === 'submit-input') {
-        event.preventDefault();
-        if(action.shouldSubmit) submitAnswer();
-        return;
-      }
-
-      if(action.type === 'advance-after-result') {
-        const next = document.querySelector('[data-next-question]');
-        if(next && !next.disabled) {
-          event.preventDefault();
-          if(next.dataset.completeQuiz) showQuizComplete();
-          else nextQuestion();
-        }
-        return;
-      }
-
-      if(action.type !== 'select-choice') return;
-      const selected = selectChoiceByIndex(action.choiceIndex, true);
-      if(selected) event.preventDefault();
+      return window.DJ48QuizFlow.handleQuizPlayKeydown(event, getQuizPlayDeps(), getQuizPlayChoiceDomDeps());
     }
 
     function showQuizResult(isCorrect, overrideMessage) {
