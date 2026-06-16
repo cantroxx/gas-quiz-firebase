@@ -2990,26 +2990,6 @@
       return String(data?.displayNickname || data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
     }
 
-    function appendRankingDisplayName(root, row) {
-      return window.DJ48RankingRender.appendRankingDisplayName(root, row, {
-        normalizeRankingDisplayName
-      });
-    }
-
-    function createRankingTitleChip(row) {
-      return window.DJ48RankingRender.createRankingTitleChip(row, {
-        getKnownTitleName
-      });
-    }
-
-    function renderRankingAvatar(root, row, fallbackText) {
-      return window.DJ48RankingRender.renderRankingAvatar(root, row, fallbackText, {
-        normalizeDisplayImageUrl,
-        normalizeRankingDisplayName,
-        applyProfileImageTransform
-      });
-    }
-
     function buildRankingRecordCard(rankId, icon, label, record) {
       if(!record) {
         return {
@@ -3389,10 +3369,6 @@
       });
     }
 
-    function renderRankingBoardPanel(panel, board) {
-      return window.DJ48RankingRender.renderRankingBoardPanel(panel, board, getRankingRenderDeps());
-    }
-
     function getRankingRowsForGroup(group, modeId = 'all') {
       if(group.keys?.length && Array.isArray(group.sourceRows)) {
         const modeValues = getRankingModeFilterValues(modeId);
@@ -3422,10 +3398,6 @@
       if(safeKeys.some(key => !speedDisabledKeys.has(key))) modes.push('speed');
       if(safeKeys.some(key => !noHintDisabledKeys.has(key))) modes.push('nohint');
       return modes;
-    }
-
-    function renderRankingGroupPanel(panel, group, board) {
-      return window.DJ48RankingRender.renderRankingGroupPanel(panel, group, board, getRankingRenderDeps());
     }
 
     function getPopularRankingAreas() {
@@ -3609,38 +3581,8 @@
       return getTopRankingRecordsByCategoryKeys(records, keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
     }
 
-    function createRankingMetaLine(row, board) {
-      return window.DJ48RankingRender.createRankingMetaLine(row, board);
-    }
-
-    function createPopularFilterButton(label, isActive, onClick) {
-      return window.DJ48RankingRender.createPopularFilterButton(label, isActive, onClick);
-    }
-
-    function renderPopularRankingBoardPanel(panel, board) {
-      return window.DJ48RankingRender.renderPopularRankingBoardPanel(panel, board, getRankingRenderDeps());
-    }
-
     function handleRankingBoardRootClick(event) {
       return window.DJ48RankingRender.handleRankingBoardRootClick(event, getRankingRenderDeps());
-    }
-
-    function renderRankingRows(panel, rows, board) {
-      return window.DJ48RankingRender.renderRankingRows(panel, rows, board, {
-        getKnownTitleName,
-        normalizeDisplayImageUrl,
-        normalizeRankingDisplayName,
-        applyProfileImageTransform
-      });
-    }
-
-    function createRankingPodiumCard(row, index, board) {
-      return window.DJ48RankingRender.createRankingPodiumCard(row, index, board, {
-        getKnownTitleName,
-        normalizeDisplayImageUrl,
-        normalizeRankingDisplayName,
-        applyProfileImageTransform
-      });
     }
 
     function getRankingCategoryLabel(row) {
