@@ -6365,6 +6365,14 @@
       });
     }
 
+    function getQuizPlayDomDeps() {
+      return {
+        getQuizAnswerInput: () => document.querySelector('.quiz-answer-input'),
+        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        getQuizProgressElement: () => document.querySelector('.quiz-progress')
+      };
+    }
+
     function clearRankingQuestionTimer() {
       return window.DJ48QuizFlow.clearRankingQuestionTimer(window.DJ48QuizSessionState);
     }
@@ -6394,7 +6402,7 @@
       return window.DJ48QuizFlow.handleRankingSessionTimeout(deps, {
         clearRankingQuestionTimer,
         clearRankingSessionTimer,
-        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot,
         showQuizComplete
       });
     }
@@ -6409,7 +6417,7 @@
       const deps = getQuizPlayDeps();
       return window.DJ48QuizFlow.startRankingQuestionTimerIfNeeded(deps, {
         ...getRankingTimerStateCallbacks(),
-        getQuizProgressElement: () => document.querySelector('.quiz-progress'),
+        getQuizProgressElement: getQuizPlayDomDeps().getQuizProgressElement,
         getQuizProgressText,
         handleRankingTimeout
       });
@@ -6419,7 +6427,7 @@
       const deps = getQuizPlayDeps();
       return window.DJ48QuizFlow.handleRankingTimeout(deps, {
         clearRankingQuestionTimer,
-        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot,
         showQuizResult
       });
     }
@@ -6443,8 +6451,7 @@
       }, getQuizPlayDeps);
       return window.DJ48QuizPlay.submitAnswer({
         ...deps,
-        getQuizAnswerInput: () => document.querySelector('.quiz-answer-input'),
-        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        ...getQuizPlayDomDeps(),
         clearRankingQuestionTimer,
         normalizeQuizAnswer,
         recordEducationCorrectForPopularUnlock,
@@ -6506,7 +6513,7 @@
       const deps = getQuizPlayDeps();
       return window.DJ48QuizPlay.showQuizResult(isCorrect, overrideMessage, {
         ...deps,
-        getQuizPlayRoot: () => document.getElementById('quiz-play-root')
+        getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot
       });
     }
 
@@ -6610,7 +6617,7 @@
       }, getQuizPlayDeps);
       return window.DJ48QuizPlay.showQuizComplete(options, {
         ...deps,
-        getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
+        getQuizPlayRoot: getQuizPlayDomDeps().getQuizPlayRoot,
         saveRankingRecordOnQuizComplete: saveCallbacks.saveRankingRecordOnQuizComplete,
         renderRankingSaveStatus
       });
