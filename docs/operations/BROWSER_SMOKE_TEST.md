@@ -52,6 +52,18 @@ Optional variables:
 
 The authenticated flow writes practice/ranking progress for the supplied account. Use a dedicated smoke account. `SMOKE_PROFILE_WRITE=1` also writes the profile ranking message, then restores the original value.
 
+## Admin Write Smoke Policy
+
+Do not add always-on admin write smoke against production settings. Admin writes can change notice board content, feature flags, login settings, room catalog items, member permissions, or wallet balances.
+
+Admin write smoke is allowed only when one of these safeguards exists:
+
+- The target is a Firebase emulator or a disposable test project.
+- The flow reads the original value, writes a smoke value, verifies it, and restores the exact original value in `finally`.
+- The callable supports an explicit dry-run or validation-only mode.
+
+Preferred first candidates are reversible setting writes such as notice board draft text or external quiz rows. Avoid member wallet, permission, password, and feature flag writes until a dedicated smoke account/project is available.
+
 ## Covered Flow
 
 - Login shell and extracted browser globals
