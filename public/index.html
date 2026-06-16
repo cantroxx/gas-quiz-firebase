@@ -1420,6 +1420,7 @@
   <script src="/js/features/quiz-session-state.js"></script>
   <script src="/js/features/quiz-controller.js"></script>
   <script src="/js/domain/quiz-domain.js"></script>
+  <script src="/js/infrastructure/quiz-repository.js"></script>
   <script src="/js/features/quiz-play.js"></script>
   <script src="/js/features/quiz-flow.js"></script>
   <script src="/js/application/quiz-usecases.js"></script>
@@ -6930,7 +6931,7 @@
     }
 
     function getQuizPlayDeps() {
-      const firebaseDeps = {
+      const quizRepository = window.DJ48QuizRepository.createQuizRepository({
         getFirestoreDb,
         getFirestoreFieldValue,
         getFirebaseFunctions,
@@ -6938,8 +6939,14 @@
         getCurrentDataOwnerId,
         loadFeatureFlags,
         loadFirebaseQuizMeta,
-        isFirestorePermissionDeniedError
-      };
+        isFirestorePermissionDeniedError,
+        resetUserEconomyCache,
+        resetTitleCatalogCache: () => {
+          titleCatalogCache = null;
+          titleCatalogMapCache = null;
+        }
+      });
+      const firebaseDeps = window.DJ48QuizRepository.getQuizPlayRepositoryDeps(quizRepository);
       const sessionStateDeps = {
         getCurrentQuestionSet,
         getCurrentSessionQuestions: () => window.DJ48QuizSessionState.getCurrentSessionQuestions(),
@@ -6997,20 +7004,12 @@
         grantPracticeCorrectReward,
         syncMemberTitlesAfterPracticeCompletion
       };
-      const cacheDeps = {
-        resetUserEconomyCache,
-        resetTitleCatalogCache: () => {
-          titleCatalogCache = null;
-          titleCatalogMapCache = null;
-        }
-      };
       return {
         ...firebaseDeps,
         ...sessionStateDeps,
         ...catalogDeps,
         ...rankingDeps,
         ...practiceDeps,
-        ...cacheDeps,
         debugLog,
         normalizeFirebaseQuizId
       };
