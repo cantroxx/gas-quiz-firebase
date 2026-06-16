@@ -1,14 +1,24 @@
 const assert = require('node:assert/strict');
 
 const calls = [];
+const serverTimestamp = { type: 'timestamp' };
+const db = {
+  collection: name => ({
+    doc: id => ({
+      set: (data, options) => {
+        calls.push(['set', name, id, data, options]);
+        return Promise.resolve();
+      }
+    })
+  })
+};
+globalThis.DJ48AccountDomain = {
+  normalizeRankingMessageInput: value => String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24)
+};
 globalThis.DJ48AccountData = {
   saveProfileImageEditorSelection: (options, deps) => {
     calls.push(['image', options.memberUserId, !!deps.getFirestoreFieldValue]);
     return { nextProfile: { profileImageUrl: 'url' } };
-  },
-  saveRankingMessageForMember: (options, deps) => {
-    calls.push(['message', options.memberUserId, options.message, !!deps.getFirestoreFieldValue]);
-    return { rankingMessage: options.message };
   },
   saveSelectedTitleForMember: (options, deps) => {
     calls.push(['title', options.memberUserId, options.titleId, !!deps.getFirestoreFieldValue]);
@@ -20,15 +30,18 @@ const { createProfileRepository } = require('../../public/js/infrastructure/prof
 
 async function testProfileRepositoryDelegatesToAccountData() {
   const repository = createProfileRepository({
-    getFirestoreFieldValue: () => ({})
+    getFirestoreFieldValue: () => ({ serverTimestamp: () => serverTimestamp })
   });
 
   assert.deepEqual(await repository.saveProfileImageEditorSelection({ memberUserId: 'member-1' }), { nextProfile: { profileImageUrl: 'url' } });
-  assert.deepEqual(await repository.saveRankingMessageForMember({ memberUserId: 'member-1', message: 'hi' }), { rankingMessage: 'hi' });
+  assert.deepEqual(await repository.saveRankingMessageForMember({ db, memberUserId: 'member-1', message: ' hi   there ' }), {
+    rankingMessage: 'hi there',
+    updatedAt: serverTimestamp
+  });
   assert.deepEqual(await repository.saveSelectedTitleForMember({ memberUserId: 'member-1', titleId: 'title-1' }), { selectedTitleId: 'title-1' });
   assert.deepEqual(calls, [
     ['image', 'member-1', true],
-    ['message', 'member-1', 'hi', true],
+    ['set', 'users', 'member-1', { rankingMessage: 'hi there', updatedAt: serverTimestamp }, { merge: true }],
     ['title', 'member-1', 'title-1', true]
   ]);
 }
