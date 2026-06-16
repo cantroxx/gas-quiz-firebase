@@ -222,15 +222,23 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
     - `public/index.html` now passes DOM/status dependencies and delegates search orchestration.
 41. Split quiz start-flow dependency assembly into `getQuizStartFlowDeps()` in `public/index.html`.
 42. Moved profile image candidate selection and upload-preview orchestration into `public/js/application/profile-usecases.js`.
+43. Moved classroom selected-badge, routine, auto-quest, and review-progress callable writes into `public/js/infrastructure/classroom-repository.js`.
+44. Moved classroom teacher write/economy/manual quest progress paths into `public/js/infrastructure/classroom-repository.js`.
+45. Moved profile image editor open/close orchestration into `public/js/features/home-controller.js`.
+46. Moved quiz submit dependency assembly into `public/js/features/quiz-flow.js`.
+47. Moved room item selection Firestore write into `public/js/infrastructure/shop-repository.js`.
+48. Moved admin initial view load orchestration into `public/js/application/admin-usecases.js`.
+49. Moved classroom settings read into `public/js/infrastructure/classroom-repository.js`.
+50. Rechecked remaining `public/index.html` direct Firebase access points for the next cleanup round.
 
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: profile image editor open/save orchestration, quiz submit/render dependency assembly, admin boot-time load orchestration, and classroom write orchestration wrappers.
+   - First candidates: popular quiz usage callable/status flow, quiz render callback assembly, profile image editor save/upload adapter boundary, and account migration helpers.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
-   - Highest remaining candidate: `public/js/infrastructure/classroom-repository.js`, because classroom write/callable paths still delegate to `classroom-data.js`.
-   - Smaller candidates: profile image editor save/upload paths and shop room-selection/read helpers still delegate to older feature-data helpers.
+   - Highest remaining candidates are now quiz popular usage callables, public notice/title/app-settings reads, and account/shop migration helpers still embedded in `public/index.html`.
+   - Smaller candidates: profile image editor save/upload paths and shop read-only cache sources still delegate to older feature-data helpers.
 3. Keep optional write smoke flows targeted instead of required gates.
    - Required default smoke remains the authenticated practice/ranking/home/features flow.
    - Optional profile write smoke is stabilized for ranking-message save/restore but still writes production profile data, so run it only with a dedicated smoke account.
@@ -252,11 +260,12 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 
 ## Next Execution Order
 
-1. Move one classroom write/callable path from `classroom-data.js` delegation into `classroom-repository.js`, starting with a small exact-restore-safe path such as selected badge or routine save.
-2. Move profile image editor open/save orchestration further out of `public/index.html`, preferably into `home-controller` plus `profile-usecases`.
-3. Move quiz submit/render callback dependency assembly into quiz-flow helper factories so `public/index.html` keeps only app-shell state wiring.
-4. Move one remaining shop read/write path into `shop-repository.js`, preferably room item selection or one read-only shop cache source.
-5. Reduce admin boot-time load orchestration from `showAdminView()` by adding a tested admin application flow.
-6. Add or extend targeted tests for each moved repository/usecase path before broad smoke.
-7. Re-run `npm run check` and authenticated browser smoke.
-8. Commit/push/deploy only when explicitly requested and smoke passes.
+1. Move popular quiz usage status/update callables out of `public/index.html` into `quiz-repository` or a small usage adapter.
+2. Move quiz render callback assembly, especially `renderQuestion()`, behind a `quiz-flow` helper.
+3. Move profile image editor save/upload adapter details further behind `profile-usecases` and `profile-repository`.
+4. Move public notice/title/app-settings reads out of `public/index.html` into matching repositories.
+5. Move account/shop user-data migration helpers into repository or maintenance-style application helpers.
+6. Audit remaining `*-data.js` functions and classify each as domain helper, presentation helper, or legacy adapter.
+7. Add or extend targeted tests for each moved repository/usecase path before broad smoke.
+8. Re-run `npm run check` and authenticated browser smoke.
+9. Commit/push/deploy only when explicitly requested and smoke passes.
