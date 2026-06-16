@@ -6249,8 +6249,9 @@
     ];
 
     function enterAppView(options = {}) {
-      return window.DJ48AppView.enterPlaceView(options, {
+      return window.DJ48AppView.enterKnownPlaceView(options, {
         appViewIds: APP_VIEW_IDS,
+        placeDetails: PLACE_DETAILS,
         leaveQuizPlaySession
       });
     }
@@ -6345,7 +6346,7 @@
       }
       enterAppView({
         viewId: 'home-view',
-        place: PLACE_DETAILS.home
+        placeKey: 'home'
       });
     }
 
@@ -6380,7 +6381,7 @@
       renderRankingView();
       enterAppView({
         viewId: 'ranking-view',
-        place: PLACE_DETAILS.ranking
+        placeKey: 'ranking'
       });
     }
 
@@ -6394,7 +6395,7 @@
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       enterAppView({
         viewId: 'shop-view',
-        place: PLACE_DETAILS.shop
+        placeKey: 'shop'
       });
 
       initializeAuthUser().then(renderShopFromFirestore);
@@ -6409,7 +6410,7 @@
       renderEventLoadingState();
       enterAppView({
         viewId: 'event-view',
-        place: PLACE_DETAILS.event
+        placeKey: 'event'
       });
       renderEventProgressFromFunctions();
     }
@@ -6423,7 +6424,7 @@
       setClassroomUnlocked(unlocked);
       enterAppView({
         viewId: 'classroom-view',
-        place: PLACE_DETAILS.classroom
+        placeKey: 'classroom'
       });
     }
 

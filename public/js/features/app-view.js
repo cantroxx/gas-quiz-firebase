@@ -1,4 +1,10 @@
-(function () {
+(function (root, factory) {
+  const api = factory(root);
+  root.DJ48AppView = api;
+  if(typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof window !== 'undefined' ? window : globalThis, function (root) {
+  const document = root.document;
+
   function showOnlyAppView(viewId, viewIds = []) {
     const hero = document.getElementById('app-hero');
     if(hero) hero.hidden = true;
@@ -38,11 +44,19 @@
     showOnlyAppView(options.viewId, deps.appViewIds || []);
   }
 
-  window.DJ48AppView = {
+  function enterKnownPlaceView(options = {}, deps = {}) {
+    return enterPlaceView({
+      ...options,
+      place: options.place || deps.placeDetails?.[options.placeKey] || null
+    }, deps);
+  }
+
+  return {
     showOnlyAppView,
     updatePlaceInfo,
     updatePlayerLocation,
     closePlaceModal,
-    enterPlaceView
+    enterPlaceView,
+    enterKnownPlaceView
   };
-})();
+});
