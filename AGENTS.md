@@ -42,24 +42,24 @@
 
 ## 임시 재개 메모
 
-* 2026-06-16 기준 마지막 완료 묶음은 엄격한 클린 아키텍처 라운드 1~3 순차 진행이다.
-* 완료된 마지막 리팩터링/계획 커밋은 `00e1c79 docs: update architecture progress after rounds`이며, 작업 트리는 최종 재개 메모 갱신 후 깨끗한 상태로 종료한다.
+* 2026-06-16 기준 마지막 완료 묶음은 엄격한 클린 아키텍처 추가 1~50 순차 진행이다.
+* 완료된 마지막 리팩터링/계획 커밋은 `e04133f docs: update architecture progress after cleanup`이며, 작업 트리는 최종 재개 메모 갱신 후 깨끗한 상태로 종료한다.
 * 완료 범위:
-  * classroom economy board, wallet, gem progress, teacher review, quest progress read path를 classroom-repository로 이동
-  * profile selected-title ownership check와 Firestore write를 profile-repository로 이동
-  * shop purchase callable 실행을 shop-repository로 이동
-  * bootstrap controller event group을 common/classroom/school/home/admin/account helper로 분리
-  * profile image search flow를 profile-usecases와 profile-repository로 이동
-  * quiz start flow dependency assembly를 `getQuizStartFlowDeps()`로 분리
-  * profile image candidate selection과 upload preview orchestration을 profile-usecases로 이동
+  * classroom selected-badge, routine, auto-quest, review-progress callable write를 classroom-repository로 이동
+  * classroom teacher writes, economy action, manual quest progress, settings read를 classroom-repository로 이동
+  * profile image editor open/close orchestration을 home-controller로 이동
+  * quiz submit dependency assembly를 quiz-flow로 이동
+  * shop room item selection Firestore write를 shop-repository로 이동
+  * admin initial view load orchestration을 admin-usecases로 이동
+  * `public/index.html`에 남은 직접 Firebase 접근 지점을 재점검
   * 병렬 작업 계획 문서를 현재 라운드 완료 상태와 다음 실행 순서 기준으로 갱신
 * 마지막 검증:
   * `npm run check` 통과
   * `SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser` 운영 사이트 인증 smoke 통과
-  * `SMOKE_PROFILE_WRITE=1 SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser` 운영 사이트 profile write smoke 통과
   * `SMOKE_ADMIN_READ=1 SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser` 운영 사이트 admin read smoke 통과
+  * `SMOKE_PROFILE_WRITE=1 SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser` 운영 사이트 profile write smoke 재실행 통과
 * 다음 작업 기준 문서는 `docs/architecture/PARALLEL_WORK_PLAN.md`이다.
-* 다음 추천 방향은 classroom write/callable repository 실질화, profile image editor open/save orchestration 축소, quiz submit/render dependency assembly 축소, shop room-selection/read repository 이동, admin boot-time load orchestration usecase화이다.
+* 다음 추천 방향은 popular quiz usage callable/status flow repository 이동, quiz render callback assembly 축소, profile image editor save/upload adapter 경계 정리, public notice/title/app-settings reads repository 이동, account/shop migration helper 분리이다.
 * 선택형 profile write smoke는 ranking-message 저장/복원 기준으로 안정화했지만 생산 프로필 데이터를 쓰므로 전용 smoke 계정에서만 실행한다. admin write smoke는 emulator/test-project/dry-run 또는 exact-restore 조건이 없으면 금지한다.
 * 이 메모는 재개용 임시 기록이다. 다음 목표가 확정되면 유지/삭제/갱신 여부를 보고한다.
 
