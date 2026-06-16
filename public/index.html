@@ -1382,6 +1382,7 @@
   <script src="/js/features/account-form.js"></script>
   <script src="/js/features/account-data.js"></script>
   <script src="/js/features/account-state.js"></script>
+  <script src="/js/infrastructure/account-repository.js"></script>
   <script src="/js/application/account-usecases.js"></script>
   <script src="/js/features/account-controller.js"></script>
   <script src="/js/features/app-view.js"></script>
@@ -4643,6 +4644,17 @@
       return firebaseAuthInitPromise;
     }
 
+    function getAccountRepository() {
+      return window.DJ48AccountRepository.createAccountRepository({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
+    }
+
+    function getAccountCallableDeps() {
+      return window.DJ48AccountRepository.getAccountCallableDeps(getAccountRepository());
+    }
+
     async function linkImportedMemberToCurrentAuthUser(values) {
       const db = getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
@@ -4653,7 +4665,7 @@
 
       const result = await window.DJ48AccountData.linkMemberWithPassword(values, {
         defaultMemberSchool: DEFAULT_MEMBER_SCHOOL,
-        getFirebaseFunctions
+        ...getAccountCallableDeps()
       });
       const linkedProfile = await window.DJ48AccountData.loadLinkedMemberProfile({
         db,
@@ -4685,9 +4697,7 @@
         currentMemberUserId,
         newPassword,
         passwordConfirm
-      }, {
-        getFirebaseFunctions
-      });
+      }, getAccountCallableDeps());
       window.DJ48AccountState.clearPendingPasswordChange();
       return result;
     }
@@ -4698,9 +4708,7 @@
         currentPassword,
         newPassword,
         passwordConfirm
-      }, {
-        getFirebaseFunctions
-      });
+      }, getAccountCallableDeps());
       currentMemberProfile = window.DJ48AccountData.mergeMemberProfile(currentMemberProfile, result);
       return result;
     }
@@ -4709,9 +4717,7 @@
       const result = await window.DJ48AccountData.updateMemberNicknameForMember({
         memberUserId: currentMemberUserId,
         nickname
-      }, {
-        getFirebaseFunctions
-      });
+      }, getAccountCallableDeps());
       currentMemberProfile = window.DJ48AccountData.mergeMemberProfile(currentMemberProfile, result);
       return result;
     }
@@ -4802,10 +4808,7 @@
         getMemberPasswordResetConfirmMessage: window.DJ48AccountForm.getMemberPasswordResetConfirmMessage,
         getMemberPasswordResetSuccessMessage: window.DJ48AccountForm.getMemberPasswordResetSuccessMessage,
         getMemberPasswordResetErrorMessage: window.DJ48AccountForm.getMemberPasswordResetErrorMessage,
-        resetMemberPasswordToTemporary: payload => window.DJ48AccountData.resetMemberPasswordToTemporary(payload, {
-          getFirebaseFunctions,
-          initializeAuthUser
-        }),
+        resetMemberPasswordToTemporary: payload => window.DJ48AccountData.resetMemberPasswordToTemporary(payload, getAccountCallableDeps()),
         setButtonBusy: window.DJ48AccountForm.setButtonBusy,
         restoreButtonState: window.DJ48AccountForm.restoreButtonState,
         setMemberLinkStatus,

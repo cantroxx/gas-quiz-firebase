@@ -140,6 +140,12 @@
   }
 
   async function callAccountCallable(callableName, payload = {}, deps = {}, errorCode = '') {
+    if(typeof deps.callAccountCallable === 'function') {
+      return deps.callAccountCallable(callableName, payload, errorCode);
+    }
+    if(deps.accountRepository && typeof deps.accountRepository.callAccountCallable === 'function') {
+      return deps.accountRepository.callAccountCallable(callableName, payload, errorCode);
+    }
     const functions = deps.getFirebaseFunctions?.();
     if(!functions) throw new Error('functions-unavailable');
     await deps.initializeAuthUser?.();
