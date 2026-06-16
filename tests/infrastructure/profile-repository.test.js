@@ -5,6 +5,14 @@ const serverTimestamp = { type: 'timestamp' };
 const db = {
   collection: name => ({
     doc: id => ({
+      collection: subName => ({
+        doc: subId => ({
+          get: () => {
+            calls.push(['get', name, id, subName, subId]);
+            return Promise.resolve({ exists: subId === 'title-1' });
+          }
+        })
+      }),
       set: (data, options) => {
         calls.push(['set', name, id, data, options]);
         return Promise.resolve();
@@ -19,10 +27,6 @@ globalThis.DJ48AccountData = {
   saveProfileImageEditorSelection: (options, deps) => {
     calls.push(['image', options.memberUserId, !!deps.getFirestoreFieldValue]);
     return { nextProfile: { profileImageUrl: 'url' } };
-  },
-  saveSelectedTitleForMember: (options, deps) => {
-    calls.push(['title', options.memberUserId, options.titleId, !!deps.getFirestoreFieldValue]);
-    return { selectedTitleId: options.titleId };
   }
 };
 
@@ -38,11 +42,20 @@ async function testProfileRepositoryDelegatesToAccountData() {
     rankingMessage: 'hi there',
     updatedAt: serverTimestamp
   });
-  assert.deepEqual(await repository.saveSelectedTitleForMember({ memberUserId: 'member-1', titleId: 'title-1' }), { selectedTitleId: 'title-1' });
+  assert.deepEqual(await repository.saveSelectedTitleForMember({ db, memberUserId: 'member-1', titleId: 'title-1' }), {
+    selectedTitleId: 'title-1',
+    updatedAt: serverTimestamp
+  });
+  await assert.rejects(
+    () => repository.saveSelectedTitleForMember({ db, memberUserId: 'member-1', titleId: 'missing-title' }),
+    /title-not-owned/
+  );
   assert.deepEqual(calls, [
     ['image', 'member-1', true],
     ['set', 'users', 'member-1', { rankingMessage: 'hi there', updatedAt: serverTimestamp }, { merge: true }],
-    ['title', 'member-1', 'title-1', true]
+    ['get', 'userTitles', 'member-1', 'titles', 'title-1'],
+    ['set', 'users', 'member-1', { selectedTitleId: 'title-1', updatedAt: serverTimestamp }, { merge: true }],
+    ['get', 'userTitles', 'member-1', 'titles', 'missing-title']
   ]);
 }
 

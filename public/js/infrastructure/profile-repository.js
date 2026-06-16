@@ -23,6 +23,34 @@
     });
   }
 
+  function buildSelectedTitleUpdate(titleId, deps = {}) {
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    return {
+      selectedTitleId: String(titleId || '').trim(),
+      updatedAt: fieldValue.serverTimestamp()
+    };
+  }
+
+  async function saveSelectedTitleForMember(options = {}, deps = {}) {
+    const selectedTitleId = String(options.titleId || '').trim();
+    if(!options.memberUserId) throw new Error('member-required');
+    if(!options.db) throw new Error('firestore-unavailable');
+    if(selectedTitleId) {
+      const titleSnapshot = await options.db
+        .collection('userTitles')
+        .doc(options.memberUserId)
+        .collection('titles')
+        .doc(selectedTitleId)
+        .get();
+      if(!titleSnapshot.exists) throw new Error('title-not-owned');
+    }
+    return saveUserProfileUpdate({
+      db: options.db,
+      memberUserId: options.memberUserId,
+      updateData: buildSelectedTitleUpdate(selectedTitleId, deps)
+    });
+  }
+
   function createProfileRepository(deps = {}) {
     const firestoreDeps = {
       getFirestoreFieldValue: deps.getFirestoreFieldValue
@@ -30,7 +58,7 @@
     return {
       saveProfileImageEditorSelection: options => root.DJ48AccountData.saveProfileImageEditorSelection(options, firestoreDeps),
       saveRankingMessageForMember: options => saveRankingMessageForMember(options, firestoreDeps),
-      saveSelectedTitleForMember: options => root.DJ48AccountData.saveSelectedTitleForMember(options, firestoreDeps)
+      saveSelectedTitleForMember: options => saveSelectedTitleForMember(options, firestoreDeps)
     };
   }
 
