@@ -97,9 +97,40 @@ function testCloseProfileImageEditor() {
   assert.deepEqual(calls, ['close', 'clear']);
 }
 
+async function testRunProfileHomeAction() {
+  const calls = [];
+  const result = await controller.runProfileHomeAction('saveRankingMessage', { source: 'home' }, {
+    profileUsecases: {
+      saveProfileRankingMessageFlow: async (options, deps) => {
+        calls.push(['usecase', options.source, deps.action]);
+        return { ok: true };
+      }
+    },
+    getActionDeps: action => ({ action })
+  });
+
+  assert.deepEqual(result, { ok: true });
+  assert.deepEqual(calls, [['usecase', 'home', 'saveRankingMessage']]);
+}
+
+async function testRunProfileHomeActionUnknown() {
+  await assert.rejects(
+    () => controller.runProfileHomeAction('missingAction', {}, { profileUsecases: {} }),
+    /unknown-profile-home-action:missingAction/
+  );
+}
+
 testResetProfileImageEditor();
 testUpdateProfileImageEditorPreview();
 testUpdateProfileImageEditorPreviewSkipsWithoutState();
 testOpenProfileImageEditor();
 testCloseProfileImageEditor();
-console.log('Application tests passed: home-controller');
+Promise.resolve()
+  .then(testRunProfileHomeAction)
+  .then(testRunProfileHomeActionUnknown)
+  .then(() => {
+    console.log('Application tests passed: home-controller');
+  }).catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  });

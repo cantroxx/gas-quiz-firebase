@@ -44,6 +44,24 @@
     deps.clearProfileImageEditorState?.();
   }
 
+  async function runProfileHomeAction(action, options = {}, deps = {}) {
+    const usecases = deps.profileUsecases || {};
+    const actionMap = {
+      searchImageCandidates: 'searchProfileImageCandidatesFlow',
+      selectImageCandidate: 'selectProfileImageCandidateFlow',
+      previewImageUpload: 'previewProfileImageUploadFlow',
+      saveImageEditorSelection: 'saveProfileImageEditorSelectionFlow',
+      saveRankingMessage: 'saveProfileRankingMessageFlow',
+      saveNickname: 'saveProfileNicknameFlow',
+      savePassword: 'saveProfilePasswordFlow',
+      saveSelectedTitle: 'saveProfileSelectedTitleFlow'
+    };
+    const usecaseName = actionMap[action] || action;
+    const usecase = usecases[usecaseName];
+    if(typeof usecase !== 'function') throw new Error(`unknown-profile-home-action:${action}`);
+    return usecase(options, deps.getActionDeps?.(action) || {});
+  }
+
   function bindProfileHomeEvents(deps = {}) {
     document.getElementById('profile-card-root')?.addEventListener('click', event => {
       const profileToggle = event.target.closest('[data-profile-detail-toggle]');
@@ -189,6 +207,7 @@
   const api = {
     openProfileImageEditor,
     closeProfileImageEditor,
+    runProfileHomeAction,
     resetProfileImageEditor,
     updateProfileImageEditorPreview,
     bindProfileHomeEvents

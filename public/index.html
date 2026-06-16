@@ -2688,29 +2688,19 @@
       });
     }
 
-    async function searchProfileImageCandidatesFromHome() {
-      return window.DJ48ProfileUsecases.searchProfileImageCandidatesFlow({}, {
-        getFirestoreDb,
-        initializeAuthUser,
-        getInput: () => document.getElementById('profile-image-search-input'),
-        getStatus: () => document.getElementById('profile-image-search-status'),
-        normalizeProfileImageInput,
-        searchProfileImageCandidates: options => getProfileRepository().searchProfileImageCandidates(options),
-        setProfileImageOptions: window.DJ48HomeState.setProfileImageOptions,
-        renderProfileImageSearchResults
+    function runProfileHomeAction(action, options = {}) {
+      return window.DJ48HomeController.runProfileHomeAction(action, options, {
+        profileUsecases: window.DJ48ProfileUsecases,
+        getActionDeps: getProfileHomeActionDeps
       });
     }
 
+    async function searchProfileImageCandidatesFromHome() {
+      return runProfileHomeAction('searchImageCandidates');
+    }
+
     async function saveSelectedProfileImageFromHome(index) {
-      return window.DJ48ProfileUsecases.selectProfileImageCandidateFlow({ index }, {
-        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
-        getStatus: () => document.getElementById('profile-image-search-status'),
-        getProfileImageOption: window.DJ48HomeState.getProfileImageOption,
-        buildCandidateProfileImageEditorOptions: option => window.DJ48AccountData.buildCandidateProfileImageEditorOptions(option, {
-          normalizeDisplayImageUrl
-        }),
-        openProfileImageEditor
-      });
+      return runProfileHomeAction('selectImageCandidate', { index });
     }
 
     function readProfileImageFilePreview(file) {
@@ -2723,14 +2713,7 @@
     }
 
     async function handleProfileImageUploadFile(file) {
-      return window.DJ48ProfileUsecases.previewProfileImageUploadFlow({ file }, {
-        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
-        getStatus: () => document.getElementById('profile-image-search-status'),
-        validateProfileImageUploadFile: window.DJ48AccountData.validateProfileImageUploadFile,
-        readProfileImageFilePreview,
-        buildUploadProfileImageEditorOptions: window.DJ48AccountData.buildUploadProfileImageEditorOptions,
-        openProfileImageEditor
-      });
+      return runProfileHomeAction('previewImageUpload', { file });
     }
 
     function setProfileImageEditorStatus(message, isError = false) {
@@ -2873,24 +2856,62 @@
       };
     }
 
+    function getProfileHomeActionDeps(action) {
+      const depsByAction = {
+        searchImageCandidates: () => ({
+          getFirestoreDb,
+          initializeAuthUser,
+          getInput: () => document.getElementById('profile-image-search-input'),
+          getStatus: () => document.getElementById('profile-image-search-status'),
+          normalizeProfileImageInput,
+          searchProfileImageCandidates: options => getProfileRepository().searchProfileImageCandidates(options),
+          setProfileImageOptions: window.DJ48HomeState.setProfileImageOptions,
+          renderProfileImageSearchResults
+        }),
+        selectImageCandidate: () => ({
+          getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+          getStatus: () => document.getElementById('profile-image-search-status'),
+          getProfileImageOption: window.DJ48HomeState.getProfileImageOption,
+          buildCandidateProfileImageEditorOptions: option => window.DJ48AccountData.buildCandidateProfileImageEditorOptions(option, {
+            normalizeDisplayImageUrl
+          }),
+          openProfileImageEditor
+        }),
+        previewImageUpload: () => ({
+          getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+          getStatus: () => document.getElementById('profile-image-search-status'),
+          validateProfileImageUploadFile: window.DJ48AccountData.validateProfileImageUploadFile,
+          readProfileImageFilePreview,
+          buildUploadProfileImageEditorOptions: window.DJ48AccountData.buildUploadProfileImageEditorOptions,
+          openProfileImageEditor
+        }),
+        saveImageEditorSelection: getProfileImageEditorSaveDeps,
+        saveRankingMessage: getProfileRankingMessageSaveDeps,
+        saveNickname: getProfileNicknameSaveDeps,
+        savePassword: getProfilePasswordSaveDeps,
+        saveSelectedTitle: getProfileSelectedTitleSaveDeps
+      };
+      return depsByAction[action]?.() || {};
+    }
+
     async function saveProfileImageEditorSelection() {
-      return window.DJ48ProfileUsecases.saveProfileImageEditorSelectionFlow({}, getProfileImageEditorSaveDeps());
+      return runProfileHomeAction('saveImageEditorSelection');
     }
 
     async function saveProfileRankingMessageFromHome() {
-      return window.DJ48ProfileUsecases.saveProfileRankingMessageFlow({}, getProfileRankingMessageSaveDeps());
+      return runProfileHomeAction('saveRankingMessage');
     }
 
     async function saveProfileNicknameFromHome() {
-      return window.DJ48ProfileUsecases.saveProfileNicknameFlow({}, getProfileNicknameSaveDeps());
+      return runProfileHomeAction('saveNickname');
     }
 
     async function saveProfilePasswordFromHome() {
-      return window.DJ48ProfileUsecases.saveProfilePasswordFlow({}, getProfilePasswordSaveDeps());
+      return runProfileHomeAction('savePassword');
     }
 
     async function saveProfileSelectedTitleFromHome(titleId) {
-      return window.DJ48ProfileUsecases.saveProfileSelectedTitleFlow({ titleId }, getProfileSelectedTitleSaveDeps());
+      return runProfileHomeAction('saveSelectedTitle', { titleId });
     }
 
     function renderHomeOwnedItemsFallback() {
