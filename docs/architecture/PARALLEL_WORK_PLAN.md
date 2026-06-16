@@ -259,11 +259,21 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
     - `public/index.html` remains at zero direct matches for `httpsCallable` and `.collection(`.
     - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` no longer contain direct Firebase/Storage access.
     - Firebase/Storage/callable access is now concentrated in `public/js/infrastructure/*-repository.js`.
+72. Moved account auth lifecycle state mutation flows into `public/js/application/account-usecases.js`.
+    - Covered restored member profile application, resolved user change handling, auth UID restore, and imported-member linking.
+73. Routed profile/home actions through `public/js/features/home-controller.js`.
+    - `public/index.html` keeps DOM/repository dependency factories but no longer calls each profile usecase directly from every home callback wrapper.
+74. Consolidated classroom repository cache loaders in `public/js/application/classroom-usecases.js`.
+    - Progress, wallet, gems, students, economy, and review loaders now share one repository-cache helper.
+75. Re-audited Firebase access boundaries after rounds 21~24:
+    - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
+    - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
+    - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
 
 ## Recommended Next Goals
 
 1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: remaining account lifecycle/app-view wrappers, profile/home callback groups, classroom/event render orchestration, and bootstrap dependency groups.
+   - First candidates: app-view/bootstrap wrappers, ranking render dependency groups, quiz play dependency groups, and event/classroom action callbacks.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
    - Current feature data/play modules are free of direct Firebase/Storage access.
@@ -289,11 +299,12 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 
 ## Next Execution Order
 
-1. Move remaining account lifecycle/app-view orchestration out of `public/index.html` when callback dependencies are stable.
-2. Move profile/home callback groups from `public/index.html` into profile/home controllers or usecases.
-3. Move classroom/event render orchestration wrappers from `public/index.html` into feature controllers where practical.
-4. Continue splitting bootstrap dependency groups from `public/index.html` into `public/js/app/bootstrap.js` or feature-specific factories.
-5. Recheck `public/index.html` for direct Firebase access and broad app-shell state coupling after each group.
-6. Add or extend targeted tests for each moved usecase/controller path before broad smoke.
-7. Re-run `npm run check` and authenticated browser smoke.
-8. Commit/push/deploy only when explicitly requested and smoke passes.
+1. Move remaining app-view/show-view orchestration out of `public/index.html` only where dependencies are already stable.
+2. Move ranking render dependency assembly into ranking usecase/controller helpers.
+3. Split quiz play dependency groups further, starting with DOM/event callback groups that can be tested without Firebase.
+4. Move event/classroom action callback routing behind controller helpers, following the profile/home action pattern.
+5. Continue splitting bootstrap dependency groups from `public/index.html` into `public/js/app/bootstrap.js` or feature-specific factories.
+6. Recheck `public/index.html` for direct Firebase access and broad app-shell state coupling after each group.
+7. Add or extend targeted tests for each moved usecase/controller path before broad smoke.
+8. Re-run `npm run check` and authenticated browser smoke.
+9. Commit/push/deploy only when explicitly requested and smoke passes.
