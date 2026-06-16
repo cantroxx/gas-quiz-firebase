@@ -6284,13 +6284,7 @@
     }
 
     function getQuizProgressText() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizPlay.getQuizProgressText({
-        questionIndex: deps.getCurrentQuestionIndex(),
-        questionCount: deps.getCurrentQuestionSet().length,
-        modeId: deps.getCurrentModeId(),
-        rankingLives: deps.getCurrentRankingLives()
-      });
+      return window.DJ48QuizFlow.getQuizProgressText(getQuizPlayDeps());
     }
 
     function getQuizPlayDomDeps() {

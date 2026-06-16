@@ -1,4 +1,4 @@
-(function () {
+(function (root) {
   function clearRankingQuestionTimer(state) {
     const timer = state.getCurrentRankingQuestionTimer();
     if(timer) clearInterval(timer);
@@ -21,11 +21,20 @@
   }
 
   function getRankingElapsedSeconds(deps) {
-    return window.DJ48QuizPlay.getRankingElapsedSeconds(deps.getCurrentQuizStartedAtMs());
+    return root.DJ48QuizPlay.getRankingElapsedSeconds(deps.getCurrentQuizStartedAtMs());
+  }
+
+  function getQuizProgressText(deps = {}) {
+    return root.DJ48QuizPlay.getQuizProgressText({
+      questionIndex: deps.getCurrentQuestionIndex?.(),
+      questionCount: deps.getCurrentQuestionSet?.().length || 0,
+      modeId: deps.getCurrentModeId?.(),
+      rankingLives: deps.getCurrentRankingLives?.()
+    });
   }
 
   function startRankingSessionTimerIfNeeded(deps, callbacks) {
-    return window.DJ48QuizPlay.startRankingSessionTimerIfNeeded({
+    return root.DJ48QuizPlay.startRankingSessionTimerIfNeeded({
       ...deps,
       clearRankingSessionTimer: callbacks.clearRankingSessionTimer,
       setCurrentRankingSessionTimer: callbacks.setCurrentRankingSessionTimer,
@@ -34,7 +43,7 @@
   }
 
   function handleRankingSessionTimeout(deps, callbacks) {
-    return window.DJ48QuizPlay.handleRankingSessionTimeout({
+    return root.DJ48QuizPlay.handleRankingSessionTimeout({
       ...deps,
       clearRankingQuestionTimer: callbacks.clearRankingQuestionTimer,
       clearRankingSessionTimer: callbacks.clearRankingSessionTimer,
@@ -44,11 +53,11 @@
   }
 
   function getRankingTimeLimitSecondsForQuiz(quizId, deps, adapters) {
-    return window.DJ48QuizPlay.getRankingTimeLimitSecondsForQuiz(quizId, deps.getCurrentRankingModeId(), adapters);
+    return root.DJ48QuizPlay.getRankingTimeLimitSecondsForQuiz(quizId, deps.getCurrentRankingModeId(), adapters);
   }
 
   function startRankingQuestionTimerIfNeeded(deps, callbacks) {
-    return window.DJ48QuizPlay.startRankingQuestionTimerIfNeeded({
+    return root.DJ48QuizPlay.startRankingQuestionTimerIfNeeded({
       ...deps,
       clearRankingQuestionTimer: callbacks.clearRankingQuestionTimer,
       setCurrentRankingQuestionTimer: callbacks.setCurrentRankingQuestionTimer,
@@ -59,7 +68,7 @@
   }
 
   function handleRankingTimeout(deps, callbacks) {
-    return window.DJ48QuizPlay.handleRankingTimeout({
+    return root.DJ48QuizPlay.handleRankingTimeout({
       ...deps,
       clearRankingQuestionTimer: callbacks.clearRankingQuestionTimer,
       getQuizPlayRoot: callbacks.getQuizPlayRoot,
@@ -68,14 +77,14 @@
   }
 
   function saveRankingRecordOnQuizComplete(deps, testShopUserId) {
-    return window.DJ48QuizPlay.saveRankingRecordOnQuizComplete({
+    return root.DJ48QuizPlay.saveRankingRecordOnQuizComplete({
       ...deps,
       testShopUserId
     });
   }
 
   function grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps) {
-    return window.DJ48QuizPlay.grantPracticeCorrectReward(memberUserId, rewardCoin, context, {
+    return root.DJ48QuizPlay.grantPracticeCorrectReward(memberUserId, rewardCoin, context, {
       getFirebaseFunctions: deps.getFirebaseFunctions,
       resetUserEconomyCache: deps.resetUserEconomyCache,
       debugLog: deps.debugLog
@@ -83,7 +92,7 @@
   }
 
   function syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps) {
-    return window.DJ48QuizPlay.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, {
+    return root.DJ48QuizPlay.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, {
       getFirebaseFunctions: deps.getFirebaseFunctions,
       resetTitleCatalogCache: deps.resetTitleCatalogCache,
       debugLog: deps.debugLog
@@ -91,7 +100,7 @@
   }
 
   function savePracticeProgressAfterCorrectAnswer(question, deps, testShopUserId) {
-    return window.DJ48QuizPlay.savePracticeProgressAfterCorrectAnswer(question, {
+    return root.DJ48QuizPlay.savePracticeProgressAfterCorrectAnswer(question, {
       ...deps,
       testShopUserId
     });
@@ -118,11 +127,12 @@
     callbacks.hideClassroomView?.();
   }
 
-  window.DJ48QuizFlow = {
+  const api = {
     clearRankingQuestionTimer,
     clearRankingSessionTimer,
     getRankingTimerStateCallbacks,
     getRankingElapsedSeconds,
+    getQuizProgressText,
     startRankingSessionTimerIfNeeded,
     handleRankingSessionTimeout,
     getRankingTimeLimitSecondsForQuiz,
@@ -135,4 +145,7 @@
     getQuizSaveCallbacks,
     leaveQuizPlaySession
   };
-})();
+
+  root.DJ48QuizFlow = api;
+  if(typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof window !== 'undefined' ? window : globalThis);
