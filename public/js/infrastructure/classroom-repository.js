@@ -31,6 +31,23 @@
     return root.DJ48ClassroomDomain.buildClassroomQuestProgressId(memberUserId, questId, dateKey);
   }
 
+  function normalizeClassroomSettings(data = {}, prototype = {}) {
+    return root.DJ48ClassroomDomain.normalizeClassroomSettings(data, prototype);
+  }
+
+  async function loadClassroomSettings(options = {}, deps = {}) {
+    const prototype = options.prototype || {};
+    const db = getClassroomDb(deps);
+    if(!db) return normalizeClassroomSettings({}, prototype);
+    try {
+      const snapshot = await db.collection('classrooms').doc(prototype.classId).get();
+      return normalizeClassroomSettings(snapshot.exists ? snapshot.data() : {}, prototype);
+    } catch(error) {
+      deps.warn?.('Classroom settings load failed. Using prototype fallback.', error);
+      return normalizeClassroomSettings({}, prototype);
+    }
+  }
+
   async function loadClassroomStudentCards(options = {}, deps = {}) {
     const { settings = {}, memberUserId = '' } = options;
     if(!memberUserId) return getEmptyClassroomStudentCards();
@@ -300,7 +317,7 @@
     };
 
     return {
-      loadClassroomSettings: options => root.DJ48ClassroomData.loadClassroomSettings(options, firestoreDeps),
+      loadClassroomSettings: options => loadClassroomSettings(options, firestoreDeps),
       loadClassroomQuestProgress: options => loadClassroomQuestProgress(options, firestoreDeps),
       loadClassroomWallet: options => loadClassroomWallet(options, firestoreDeps),
       loadClassroomGemProgress: options => loadClassroomGemProgress(options, firestoreDeps),

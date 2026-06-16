@@ -5,7 +5,12 @@ const dataCalls = [];
 const fieldValue = { serverTimestamp: () => ({ type: 'timestamp' }) };
 
 globalThis.DJ48ClassroomDomain = {
-  buildClassroomQuestProgressId: (memberUserId, questId, dateKey = '') => [memberUserId, questId, dateKey].filter(Boolean).join('__')
+  buildClassroomQuestProgressId: (memberUserId, questId, dateKey = '') => [memberUserId, questId, dateKey].filter(Boolean).join('__'),
+  normalizeClassroomSettings: (data = {}, prototype = {}) => ({
+    ...prototype,
+    ...data,
+    normalized: true
+  })
 };
 
 function makeDocSnapshot(exists, data) {
@@ -65,6 +70,7 @@ function makeDocument(path) {
     },
     async get() {
       calls.push(['doc-get', path.join('/')]);
+      if(path.at(-2) === 'classrooms') return makeDocSnapshot(true, { title: 'Classroom' });
       if(path.includes('studentWallets')) return makeDocSnapshot(true, { berry: 10 });
       if(path.includes('questProgress') && path.at(-1) === 'member-1__quest-1') return makeDocSnapshot(true, { checked: true });
       return makeDocSnapshot(false, {});
@@ -198,7 +204,11 @@ async function testClassroomRepositoryFallbacksAndDelegates() {
     warn: () => {}
   });
 
-  assert.deepEqual(await repository.loadClassroomSettings({ prototype: { classId: 'c1' } }), { classId: 'c1' });
+  assert.deepEqual(await repository.loadClassroomSettings({ prototype: { classId: 'c1' } }), {
+    classId: 'c1',
+    title: 'Classroom',
+    normalized: true
+  });
   assert.equal(await repository.setClassroomSelectedBadge({ classId: 'c1', memberUserId: 'member-1', badgeId: 'gem-1' }), undefined);
   assert.equal(await repository.saveClassroomQuest({ classId: 'c1', values: { title: 'Quest', rewardMode: 'manual' } }), undefined);
   assert.deepEqual(await repository.awardClassroomBadgeCampaign({ classId: 'c1', values: { badgeId: 'badge-1' } }), { success: true });
@@ -215,9 +225,8 @@ async function testClassroomRepositoryFallbacksAndDelegates() {
   }), { recordId: 'member-1__quest-1' });
   assert.deepEqual(await repository.reviewClassroomQuestProgress({ classId: 'c1', recordId: 'record-1', nextStatus: 'approved' }), { success: true });
 
-  assert.deepEqual(dataCalls.map(call => call[0]), [
-    'settings'
-  ]);
+  assert.deepEqual(dataCalls.map(call => call[0]), []);
+  assert(calls.some(call => call[0] === 'doc-get' && call[1] === 'classrooms/c1'));
   assert(calls.some(call => call[0] === 'setClassroomSelectedBadge' && call[1].badgeId === 'gem-1'));
   assert(calls.some(call => call[0] === 'saveClassroomQuest' && call[1].quest.title === 'Quest'));
   assert(calls.some(call => call[0] === 'awardClassroomBadgeCampaign' && call[1].campaign.badgeId === 'badge-1'));
