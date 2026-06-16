@@ -77,8 +77,34 @@ async function testRepositoryReadsRankingCollections() {
   assert.ok(db.calls.some(call => call[0] === 'where' && call[1] === 'memberUserId'));
 }
 
+async function testRepositoryBuildsProfileRankContext() {
+  const db = makeDb({
+    rankingRecords: [
+      makeDoc('r1', { memberUserId: 'u1', categoryKey: 'math', score: 90, elapsedSeconds: 20 }),
+      makeDoc('r2', { memberUserId: 'u2', categoryKey: 'math', score: 80, elapsedSeconds: 10 })
+    ]
+  });
+  const repository = createRankingRepository({ db }, {
+    getProfileRankingCategoryKey: record => record.categoryKey,
+    getRankingPlazaCategoryRecordLimit: () => 10,
+    getTopRankingRecordsByCategoryKeys: records => records,
+    getProfileRankingRowKey: record => record.recordId,
+    getRankingRecordUserKey: record => record.memberUserId,
+    getCurrentMemberUserId: () => 'u2',
+    profileRankingContextLimit: 5
+  });
+
+  const rankContext = await repository.loadProfileRankingRankContext([{ categoryKey: 'math' }]);
+
+  assert.deepEqual(rankContext.r1, { rank: 1, total: 2 });
+  assert.deepEqual(rankContext.r2, { rank: 2, total: 2 });
+  assert.deepEqual(rankContext.math, { rank: 2, total: 2 });
+  assert.ok(db.calls.some(call => call[0] === 'orderBy' && call[1] === 'score'));
+}
+
 async function run() {
   await testRepositoryReadsRankingCollections();
+  await testRepositoryBuildsProfileRankContext();
   console.log('Infrastructure tests passed: ranking-repository');
 }
 

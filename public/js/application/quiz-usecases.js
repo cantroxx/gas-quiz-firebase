@@ -1,4 +1,34 @@
 (function (root) {
+  async function buildQuizSessionQuestions(options = {}, deps = {}) {
+    const quizId = options.quizId || 'spelling';
+    const modeId = options.modeId || 'practice';
+    const normalizeQuizId = deps.normalizeFirebaseQuizId || (value => String(value || '').trim());
+    const shuffleList = deps.shuffleList || (items => items.slice());
+    const id = normalizeQuizId(quizId);
+    const quizDataCache = deps.getFirebaseQuizDataCache?.() || {};
+    const questionBank = deps.getQuestionBank?.() || {};
+    const baseQuestions = quizDataCache[id] || questionBank[quizId] || questionBank[id] || questionBank.spelling;
+    if(!Array.isArray(baseQuestions) || !baseQuestions.length) return null;
+    if(modeId === 'ranking') return shuffleList(baseQuestions.slice());
+    if(modeId !== 'practice') return baseQuestions;
+
+    try {
+      const solvedIds = await deps.loadSolvedPracticeIds?.(id);
+      if(!solvedIds?.size) return shuffleList(baseQuestions.slice());
+      const splitPracticeQuestions = deps.splitPracticeQuestionsBySolvedState || ((questions) => ({ unsolved: questions, solved: [] }));
+      const { unsolved, solved } = splitPracticeQuestions(
+        baseQuestions,
+        solvedIds,
+        deps.getPracticeQuestionIdCandidates
+      );
+      if(!unsolved.length) return shuffleList(baseQuestions.slice());
+      return shuffleList(unsolved).concat(shuffleList(solved));
+    } catch(error) {
+      deps.warn?.('Practice unsolved-first order unavailable. Using random order.', error);
+      return shuffleList(baseQuestions.slice());
+    }
+  }
+
   async function startQuizPlayFlow(options = {}, deps = {}) {
     const quizId = options.quizId || 'spelling';
     const modeId = options.modeId || 'practice';
@@ -44,7 +74,7 @@
       deps.warn?.('Firestore quiz load failed. Falling back to local QUESTION_BANK.', error);
     }
 
-    const questions = await deps.buildQuizSessionQuestions(quizId, modeId).catch(error => {
+    const questions = await buildQuizSessionQuestions({ quizId, modeId }, deps).catch(error => {
       deps.warn?.('Quiz session shuffle failed. Using cached question order.', error);
       return null;
     });
@@ -56,6 +86,7 @@
   }
 
   const api = {
+    buildQuizSessionQuestions,
     startQuizPlayFlow
   };
 

@@ -1376,6 +1376,7 @@
   <script src="/js/features/admin-form.js"></script>
   <script src="/js/features/admin-data.js"></script>
   <script src="/js/features/admin-state.js"></script>
+  <script src="/js/infrastructure/admin-repository.js"></script>
   <script src="/js/application/admin-usecases.js"></script>
   <script src="/js/features/admin-controller.js"></script>
   <script src="/js/domain/account-domain.js"></script>
@@ -1390,6 +1391,7 @@
   <script src="/js/app/bootstrap.js"></script>
   <script src="/js/features/home-state.js"></script>
   <script src="/js/features/home-data.js"></script>
+  <script src="/js/infrastructure/home-repository.js"></script>
   <script src="/js/application/home-usecases.js"></script>
   <script src="/js/application/profile-usecases.js"></script>
   <script src="/js/features/home-render.js"></script>
@@ -1398,12 +1400,14 @@
   <script src="/js/application/event-usecases.js"></script>
   <script src="/js/features/event-state.js"></script>
   <script src="/js/features/event-data.js"></script>
+  <script src="/js/infrastructure/event-repository.js"></script>
   <script src="/js/features/event-render.js"></script>
   <script src="/js/features/event-controller.js"></script>
   <script src="/js/domain/classroom-domain.js"></script>
   <script src="/js/application/classroom-usecases.js"></script>
   <script src="/js/features/classroom-state.js"></script>
   <script src="/js/features/classroom-data.js"></script>
+  <script src="/js/infrastructure/classroom-repository.js"></script>
   <script src="/js/features/classroom-form.js"></script>
   <script src="/js/features/classroom-render.js"></script>
   <script src="/js/features/classroom-controller.js"></script>
@@ -1411,6 +1415,7 @@
   <script src="/js/application/shop-usecases.js"></script>
   <script src="/js/features/shop-state.js"></script>
   <script src="/js/features/shop-data.js"></script>
+  <script src="/js/infrastructure/shop-repository.js"></script>
   <script src="/js/features/shop-render.js"></script>
   <script src="/js/features/shop-controller.js"></script>
   <script src="/js/domain/ranking-domain.js"></script>
@@ -1424,6 +1429,8 @@
   <script src="/js/features/quiz-controller.js"></script>
   <script src="/js/domain/quiz-domain.js"></script>
   <script src="/js/infrastructure/quiz-repository.js"></script>
+  <script src="/js/features/quiz-render.js"></script>
+  <script src="/js/features/quiz-popular-session.js"></script>
   <script src="/js/features/quiz-play.js"></script>
   <script src="/js/features/quiz-flow.js"></script>
   <script src="/js/application/quiz-usecases.js"></script>
@@ -1702,10 +1709,7 @@
     };
     const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 5;
 
-    let firebaseAuthUser = null;
-    let firebaseAuthInitPromise = null;
     let lastResolvedUserId = null;
-    let authStateListenerAttached = false;
     let currentMemberUserId = '';
     let currentMemberProfile = null;
     let userDataMigrationPromise = null;
@@ -2052,18 +2056,9 @@
       ]
     };
 
-    let activePokemonHubDifficulty = '';
-    let currentPopularUsageSession = null;
-    let currentPopularUsageFlushTimer = null;
     const firebaseQuizDataCache = {};
     let titleCatalogCache = null;
     let titleCatalogMapCache = null;
-    let profileImageEditorState = null;
-    let noticeBoardCache = null;
-    let featureFlagsCache = null;
-    let featureFlagsLoadPromise = null;
-    let externalQuizzesCache = null;
-    let externalQuizzesLoadPromise = null;
     let serverFreshnessPollTimer = null;
 
     function debugLog(...args) {
@@ -2107,11 +2102,6 @@
       titleCatalogCache = null;
       titleCatalogMapCache = null;
       window.DJ48HomeState.resetHomeState();
-      noticeBoardCache = null;
-      featureFlagsCache = null;
-      featureFlagsLoadPromise = null;
-      externalQuizzesCache = null;
-      externalQuizzesLoadPromise = null;
       window.DJ48AdminState.resetAdminState();
       resetEventProgressCache();
       Object.keys(firebaseQuizDataCache).forEach(key => delete firebaseQuizDataCache[key]);
@@ -2321,13 +2311,15 @@
     }
 
     async function loadNoticeBoardFromFirestore(forceRefresh = false) {
-      if(noticeBoardCache && !forceRefresh) return noticeBoardCache;
+      const cachedNoticeBoard = window.DJ48AdminState.getNoticeBoardCache();
+      if(cachedNoticeBoard && !forceRefresh) return cachedNoticeBoard;
       const db = getFirestoreDb();
       if(!db) throw new Error('firestore-unavailable');
       await initializeAuthUser();
       const snapshot = await db.collection('noticeBoard').doc('current').get();
-      noticeBoardCache = normalizeNoticeBoardData(snapshot.exists ? snapshot.data() || {} : {});
-      return noticeBoardCache;
+      return window.DJ48AdminState.setNoticeBoardCache(
+        normalizeNoticeBoardData(snapshot.exists ? snapshot.data() || {} : {})
+      );
     }
 
     function openNoticeBoardModal() {
@@ -2648,11 +2640,13 @@
         userRewardData: USER_REWARD_DATA,
         memberUserId: currentMemberUserId || ''
       }, {
-        getFirestoreDb,
+        homeRepository: window.DJ48HomeRepository.createHomeRepository({
+          getFirestoreDb,
+          getUserEconomyForRender
+        }),
         initializeAuthUser,
         loadFeatureFlags,
         getCurrentDataOwnerId,
-        getUserEconomyForRender,
         warn: console.warn,
         buildHomeMemberModel: data => window.DJ48HomeData.buildHomeMemberModel(data, {
           isPracticeBadgeVisibleByFlags,
@@ -2790,22 +2784,27 @@
     }
 
     function updateProfileImageEditorPreview() {
-      if(!profileImageEditorState) return;
+      const editorState = window.DJ48HomeState.getProfileImageEditorState();
+      if(!editorState) return;
       const values = window.DJ48HomeRender.getProfileImageEditorControlValues({
         scaleId: 'profile-image-editor-scale',
         offsetXId: 'profile-image-editor-offset-x',
         offsetYId: 'profile-image-editor-offset-y'
       });
-      profileImageEditorState = window.DJ48AccountData.applyProfileImageEditorControlValues(profileImageEditorState, values);
+      const nextState = window.DJ48HomeState.setProfileImageEditorState(
+        window.DJ48AccountData.applyProfileImageEditorControlValues(editorState, values)
+      );
       const image = document.getElementById('profile-image-editor-preview-img');
-      if(image) applyProfileImageTransform(image, profileImageEditorState);
+      if(image) applyProfileImageTransform(image, nextState);
     }
 
     function openProfileImageEditor(options) {
       const currentEdit = getProfileImageEditModel(currentMemberProfile || {});
-      profileImageEditorState = window.DJ48AccountData.buildProfileImageEditorState(options, currentEdit, {
-        normalizeDisplayImageUrl
-      });
+      const editorState = window.DJ48HomeState.setProfileImageEditorState(
+        window.DJ48AccountData.buildProfileImageEditorState(options, currentEdit, {
+          normalizeDisplayImageUrl
+        })
+      );
       window.DJ48HomeRender.renderProfileImageEditorModal({
         modalId: 'profile-image-editor-modal',
         imageId: 'profile-image-editor-preview-img',
@@ -2813,7 +2812,7 @@
         scaleId: 'profile-image-editor-scale',
         offsetXId: 'profile-image-editor-offset-x',
         offsetYId: 'profile-image-editor-offset-y'
-      }, profileImageEditorState, {
+      }, editorState, {
         getProfileImageEditModel,
         updateProfileImageEditorPreview
       });
@@ -2821,7 +2820,7 @@
 
     function closeProfileImageEditor() {
       window.DJ48HomeRender.closeProfileImageEditorModal('profile-image-editor-modal');
-      profileImageEditorState = null;
+      window.DJ48HomeState.clearProfileImageEditorState();
     }
 
     async function saveProfileImageEditorSelection() {
@@ -2829,7 +2828,7 @@
         getCurrentMemberUserId: () => currentMemberUserId,
         getFirestoreDb,
         initializeAuthUser,
-        getProfileImageEditorState: () => profileImageEditorState,
+        getProfileImageEditorState: () => window.DJ48HomeState.getProfileImageEditorState(),
         getSaveButton: () => document.getElementById('profile-image-editor-save'),
         getProfileImageEditModel,
         setProfileImageEditorStatus,
@@ -3072,52 +3071,6 @@
       const info = rankContext[getProfileRankingRowKey(record)] || rankContext[getProfileRankingCategoryKey(record)];
       if(!info?.rank) return '';
       return `${info.rank}위`;
-    }
-
-    async function loadProfileRankingRankContext(db, bestRows = []) {
-      const categoryKeys = Array.from(new Set(bestRows.map(getProfileRankingCategoryKey).filter(Boolean)));
-      if(!db || !categoryKeys.length) return {};
-      const snapshots = await Promise.all(categoryKeys.map(async categoryKey => {
-        const limit = Math.max(PROFILE_RANKING_CONTEXT_LIMIT, getRankingPlazaCategoryRecordLimit(categoryKey));
-        const baseQuery = db.collection('rankingRecords')
-          .where('categoryKey', '==', categoryKey)
-          .limit(limit);
-        try {
-          return await db.collection('rankingRecords')
-            .where('categoryKey', '==', categoryKey)
-            .orderBy('score', 'desc')
-            .orderBy('elapsedSeconds', 'asc')
-            .limit(limit)
-            .get();
-        } catch(error) {
-          console.warn('Firestore profile ranking ordered rank read failed. Falling back to limited category query.', { categoryKey, error });
-          return baseQuery.get().catch(fallbackError => {
-            console.warn('Firestore profile ranking rank read failed.', { categoryKey, error: fallbackError });
-            return null;
-          });
-        }
-      }));
-      const rankContext = {};
-      snapshots.forEach((snapshot, index) => {
-        if(!snapshot) return;
-        const categoryKey = categoryKeys[index];
-        const topRows = getTopRankingRecordsByCategoryKeys(
-          snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) })),
-          [categoryKey],
-          Math.max(PROFILE_RANKING_CONTEXT_LIMIT, getRankingPlazaCategoryRecordLimit(categoryKey))
-        );
-        topRows.forEach((row, rowIndex) => {
-          const rankInfo = {
-            rank: rowIndex + 1,
-            total: topRows.length
-          };
-          rankContext[getProfileRankingRowKey(row)] = rankInfo;
-          if(getRankingRecordUserKey(row) === currentMemberUserId) {
-            rankContext[categoryKey] = rankInfo;
-          }
-        });
-      });
-      return rankContext;
     }
 
     function renderProfileRankingRecords(records = [], rankContext = {}) {
@@ -3425,7 +3378,14 @@
       }, {
         loadLimitedRankingRecordsForPlaza,
         loadMemberProfilesForRankingRows,
-        loadProfileRankingRankContext
+        getProfileRankingCategoryKey,
+        getRankingPlazaCategoryRecordLimit,
+        getTopRankingRecordsByCategoryKeys,
+        getProfileRankingRowKey,
+        getRankingRecordUserKey,
+        getCurrentMemberUserId: () => currentMemberUserId,
+        profileRankingContextLimit: PROFILE_RANKING_CONTEXT_LIMIT,
+        warn: console.warn
       });
     }
 
@@ -3791,18 +3751,22 @@
       };
     }
 
-    function getDisabledQuizIdSet(flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS) {
+    function getActiveFeatureFlags() {
+      return window.DJ48AdminState.getFeatureFlagsCache() || DEFAULT_FEATURE_FLAGS;
+    }
+
+    function getDisabledQuizIdSet(flags = getActiveFeatureFlags()) {
       return new Set((flags.disabledQuizIds || []).map(id => normalizeFirebaseQuizId(id)).filter(Boolean));
     }
 
-    function isQuizEnabledByFlags(quizId, flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS) {
+    function isQuizEnabledByFlags(quizId, flags = getActiveFeatureFlags()) {
       const id = normalizeFirebaseQuizId(quizId);
       const quiz = QUIZ_CATALOG[id] || QUIZ_CATALOG[quizId];
       if(!id || quiz?.enabled === false) return false;
       return !getDisabledQuizIdSet(flags).has(id);
     }
 
-    function isRankingRowEnabledByFlags(row, flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS) {
+    function isRankingRowEnabledByFlags(row, flags = getActiveFeatureFlags()) {
       const quizId = normalizeFirebaseQuizId(row?.quizId || '');
       if(quizId) return isQuizEnabledByFlags(quizId, flags);
       const keyText = `${row?.categoryKey || ''} ${row?.category || ''} ${row?.rawCategory || ''}`;
@@ -3837,7 +3801,7 @@
       return !Object.entries(categoryHints).some(([id, hints]) => disabled.has(id) && hints.some(hint => keyText.includes(hint)));
     }
 
-    function isPracticeBadgeVisibleByFlags(badge, flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS) {
+    function isPracticeBadgeVisibleByFlags(badge, flags = getActiveFeatureFlags()) {
       const areaKey = String(badge?.areaKey || '').trim();
       const badgeId = String(badge?.badgeId || '').trim();
       const quizByAreaKey = {
@@ -3861,27 +3825,29 @@
     }
 
     async function loadFeatureFlags(forceRefresh = false) {
-      if(featureFlagsCache && !forceRefresh) return featureFlagsCache;
-      if(featureFlagsLoadPromise && !forceRefresh) return featureFlagsLoadPromise;
+      const cachedFlags = window.DJ48AdminState.getFeatureFlagsCache();
+      const activeLoadPromise = window.DJ48AdminState.getFeatureFlagsLoadPromise();
+      if(cachedFlags && !forceRefresh) return cachedFlags;
+      if(activeLoadPromise && !forceRefresh) return activeLoadPromise;
       const db = getFirestoreDb();
       if(!db) {
-        featureFlagsCache = { ...DEFAULT_FEATURE_FLAGS };
-        return featureFlagsCache;
+        return window.DJ48AdminState.setFeatureFlagsCache({ ...DEFAULT_FEATURE_FLAGS });
       }
-      featureFlagsLoadPromise = db.collection('appSettings').doc('featureFlags').get()
+      const loadPromise = db.collection('appSettings').doc('featureFlags').get()
         .then(snapshot => {
-          featureFlagsCache = normalizeFeatureFlags(snapshot.exists ? snapshot.data() || {} : DEFAULT_FEATURE_FLAGS);
-          return featureFlagsCache;
+          return window.DJ48AdminState.setFeatureFlagsCache(
+            normalizeFeatureFlags(snapshot.exists ? snapshot.data() || {} : DEFAULT_FEATURE_FLAGS)
+          );
         })
         .catch(error => {
           console.warn('Feature flags read failed. Using defaults.', error);
-          featureFlagsCache = { ...DEFAULT_FEATURE_FLAGS };
-          return featureFlagsCache;
+          return window.DJ48AdminState.setFeatureFlagsCache({ ...DEFAULT_FEATURE_FLAGS });
         })
         .finally(() => {
-          featureFlagsLoadPromise = null;
+          window.DJ48AdminState.setFeatureFlagsLoadPromise(null);
       });
-      return featureFlagsLoadPromise;
+      window.DJ48AdminState.setFeatureFlagsLoadPromise(loadPromise);
+      return loadPromise;
     }
 
     function normalizeExternalQuizUrl(value) {
@@ -3915,27 +3881,29 @@
     }
 
     async function loadExternalQuizzes(forceRefresh = false) {
-      if(externalQuizzesCache && !forceRefresh) return externalQuizzesCache;
-      if(externalQuizzesLoadPromise && !forceRefresh) return externalQuizzesLoadPromise;
+      const cachedExternalQuizzes = window.DJ48AdminState.getExternalQuizzesCache();
+      const activeLoadPromise = window.DJ48AdminState.getExternalQuizzesLoadPromise();
+      if(cachedExternalQuizzes && !forceRefresh) return cachedExternalQuizzes;
+      if(activeLoadPromise && !forceRefresh) return activeLoadPromise;
       const db = getFirestoreDb();
       if(!db) {
-        externalQuizzesCache = { ...DEFAULT_EXTERNAL_QUIZZES };
-        return externalQuizzesCache;
+        return window.DJ48AdminState.setExternalQuizzesCache({ ...DEFAULT_EXTERNAL_QUIZZES });
       }
-      externalQuizzesLoadPromise = db.collection('appSettings').doc('externalQuizzes').get()
+      const loadPromise = db.collection('appSettings').doc('externalQuizzes').get()
         .then(snapshot => {
-          externalQuizzesCache = normalizeExternalQuizzes(snapshot.exists ? snapshot.data() || {} : DEFAULT_EXTERNAL_QUIZZES);
-          return externalQuizzesCache;
+          return window.DJ48AdminState.setExternalQuizzesCache(
+            normalizeExternalQuizzes(snapshot.exists ? snapshot.data() || {} : DEFAULT_EXTERNAL_QUIZZES)
+          );
         })
         .catch(error => {
           console.warn('External quizzes read failed. Using empty list.', error);
-          externalQuizzesCache = { ...DEFAULT_EXTERNAL_QUIZZES };
-          return externalQuizzesCache;
+          return window.DJ48AdminState.setExternalQuizzesCache({ ...DEFAULT_EXTERNAL_QUIZZES });
         })
         .finally(() => {
-          externalQuizzesLoadPromise = null;
+          window.DJ48AdminState.setExternalQuizzesLoadPromise(null);
         });
-      return externalQuizzesLoadPromise;
+      window.DJ48AdminState.setExternalQuizzesLoadPromise(loadPromise);
+      return loadPromise;
     }
 
     function normalizeFirebaseQuizId(quizId) {
@@ -3977,40 +3945,36 @@
     }
 
     function getKstDateKey(date = new Date()) {
-      const shifted = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-      return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
+      return window.DJ48QuizDomain.getKstDateKey(date);
     }
 
     function isAfter4PmKst(date = new Date()) {
-      const shifted = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-      return shifted.getUTCHours() >= 16;
+      return window.DJ48QuizDomain.isAfter4PmKst(date);
     }
 
     function isPopularQuiz(quizId) {
-      const quiz = QUIZ_CATALOG[normalizeFirebaseQuizId(quizId)] || QUIZ_CATALOG[quizId] || {};
-      return quiz.subjectId === 'popular';
+      return window.DJ48QuizDomain.isPopularQuiz(quizId, {
+        quizCatalog: QUIZ_CATALOG,
+        normalizeFirebaseQuizId
+      });
     }
 
     function isEducationUnlockQuiz(quizId) {
-      const quiz = QUIZ_CATALOG[normalizeFirebaseQuizId(quizId)] || QUIZ_CATALOG[quizId] || {};
-      return ['korean', 'social', 'math'].includes(quiz.subjectId);
+      return window.DJ48QuizDomain.isEducationUnlockQuiz(quizId, {
+        quizCatalog: QUIZ_CATALOG,
+        normalizeFirebaseQuizId
+      });
     }
 
     function buildDailyUsageRecordId(memberUserId, dateKey = getKstDateKey()) {
-      return `${memberUserId}__${dateKey}`;
+      return window.DJ48QuizDomain.buildDailyUsageRecordId(memberUserId, dateKey);
     }
 
     function normalizeDailyUsageData(data = {}, memberUserId = getCurrentDataOwnerId(), dateKey = getKstDateKey()) {
-      return {
-        recordId: data.recordId || buildDailyUsageRecordId(memberUserId, dateKey),
-        memberUserId: data.memberUserId || memberUserId || '',
-        userId: data.userId || data.memberUserId || memberUserId || '',
-        date: data.date || dateKey,
-        funSeconds: Math.max(0, Math.round(Number(data.funSeconds) || 0)),
-        after4FunSeconds: Math.max(0, Math.round(Number(data.after4FunSeconds) || 0)),
-        eduCorrectCount: Math.max(0, Math.round(Number(data.eduCorrectCount) || 0)),
-        unlockBaseEduCorrectCount: Math.max(0, Math.round(Number(data.unlockBaseEduCorrectCount) || 0))
-      };
+      return window.DJ48QuizDomain.normalizeDailyUsageData(data, {
+        memberUserId,
+        dateKey
+      });
     }
 
     async function getDailyUsageForToday(memberUserId = getCurrentDataOwnerId()) {
@@ -4029,35 +3993,18 @@
     }
 
     function getDailyUsageAccessStatus(usage) {
-      const funSeconds = Number(usage.funSeconds) || 0;
-      const after4FunSeconds = Number(usage.after4FunSeconds) || 0;
-      const unlockBase = Math.max(0, Number(usage.unlockBaseEduCorrectCount) || 0);
-      const unlockProgress = funSeconds >= DAILY_POPULAR_SOFT_LIMIT_SECONDS
-        ? Math.max(0, (Number(usage.eduCorrectCount) || 0) - unlockBase)
-        : 0;
-      const softLocked = funSeconds >= DAILY_POPULAR_SOFT_LIMIT_SECONDS && unlockProgress < DAILY_POPULAR_UNLOCK_CORRECT_COUNT;
-      const hardLocked = after4FunSeconds >= DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS;
-      const locked = softLocked || hardLocked;
-      return {
-        ...usage,
-        unlockProgress,
-        unlockRemainingCorrect: Math.max(0, DAILY_POPULAR_UNLOCK_CORRECT_COUNT - unlockProgress),
-        softLocked,
-        hardLocked,
-        locked,
-        message: hardLocked
-          ? '오늘의 인기퀴즈 이용 시간이 모두 끝났어요. 국어·수학·사회 퀴즈를 풀며 내일 다시 도전해 주세요.'
-          : (softLocked ? `인기퀴즈 시간이 끝났어요. 국어·수학·사회 퀴즈에서 ${Math.max(0, DAILY_POPULAR_UNLOCK_CORRECT_COUNT - unlockProgress)}문제를 더 맞히면 다시 이용할 수 있어요.` : '')
-      };
+      return window.DJ48QuizDomain.getDailyUsageAccessStatus(usage, {
+        softLimitSeconds: DAILY_POPULAR_SOFT_LIMIT_SECONDS,
+        after4HardLimitSeconds: DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS,
+        unlockCorrectCount: DAILY_POPULAR_UNLOCK_CORRECT_COUNT
+      });
     }
 
     function getPopularUsageNoticeText(status) {
-      if(!status) return '인기퀴즈 이용 시간을 확인하지 못했어요.';
-      if(status.locked) return '오늘은 마감';
-      const baseRemaining = Math.max(0, DAILY_POPULAR_SOFT_LIMIT_SECONDS - (Number(status.funSeconds) || 0));
-      const after4Remaining = Math.max(0, DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS - (Number(status.after4FunSeconds) || 0));
-      const effectiveRemaining = isAfter4PmKst() ? Math.min(baseRemaining, after4Remaining) : baseRemaining;
-      return effectiveRemaining >= 60 ? '이용가능' : '끝이 보여요';
+      return window.DJ48QuizDomain.getPopularUsageNoticeText(status, {
+        softLimitSeconds: DAILY_POPULAR_SOFT_LIMIT_SECONDS,
+        after4HardLimitSeconds: DAILY_POPULAR_AFTER4_HARD_LIMIT_SECONDS
+      });
     }
 
     async function refreshPopularUsageNotices() {
@@ -4157,51 +4104,31 @@
       }
     }
 
+    function getPopularUsageSessionDeps() {
+      return {
+        normalizeFirebaseQuizId,
+        isPopularQuiz,
+        isAfter4PmKst,
+        updateDailyUsageForToday,
+        flushIntervalMs: POPULAR_USAGE_FLUSH_INTERVAL_MS,
+        warn: console.warn
+      };
+    }
+
     async function flushPopularUsageSession(force = false) {
-      if(!currentPopularUsageSession) return null;
-      const now = Date.now();
-      const elapsedSeconds = Math.floor((now - currentPopularUsageSession.lastFlushedAtMs) / 1000);
-      if(!force && elapsedSeconds < 1) return null;
-      const cappedSeconds = Math.max(0, Math.min(elapsedSeconds, 60));
-      currentPopularUsageSession.lastFlushedAtMs = now;
-      if(cappedSeconds <= 0) return null;
-      try {
-        const delta = {
-          funSeconds: cappedSeconds,
-          after4FunSeconds: (currentPopularUsageSession.after4Window || isAfter4PmKst()) ? cappedSeconds : 0
-        };
-        return await updateDailyUsageForToday(delta);
-      } catch(error) {
-        console.warn('Popular quiz usage update failed.', error);
-        return null;
-      }
+      return window.DJ48QuizPopularSession.flushPopularUsageSession(force, getPopularUsageSessionDeps());
     }
 
     function clearPopularUsageFlushTimer() {
-      if(currentPopularUsageFlushTimer) clearInterval(currentPopularUsageFlushTimer);
-      currentPopularUsageFlushTimer = null;
+      return window.DJ48QuizPopularSession.clearPopularUsageFlushTimer();
     }
 
     function startPopularUsageSessionIfNeeded(quizId) {
-      clearPopularUsageFlushTimer();
-      currentPopularUsageSession = null;
-      if(!isPopularQuiz(quizId)) return;
-      currentPopularUsageSession = {
-        quizId: normalizeFirebaseQuizId(quizId),
-        startedAtMs: Date.now(),
-        lastFlushedAtMs: Date.now(),
-        after4Window: isAfter4PmKst()
-      };
-      currentPopularUsageFlushTimer = setInterval(() => {
-        flushPopularUsageSession(false);
-      }, POPULAR_USAGE_FLUSH_INTERVAL_MS);
+      return window.DJ48QuizPopularSession.startPopularUsageSessionIfNeeded(quizId, getPopularUsageSessionDeps());
     }
 
     async function finishPopularUsageSession() {
-      clearPopularUsageFlushTimer();
-      const result = await flushPopularUsageSession(true);
-      currentPopularUsageSession = null;
-      return result;
+      return window.DJ48QuizPopularSession.finishPopularUsageSession(getPopularUsageSessionDeps());
     }
 
     function slugPracticeKey(value) {
@@ -4223,211 +4150,6 @@
         .map(entry => entry.item);
     }
 
-    async function loadFirebaseQuizMeta(quizId) {
-      const db = getFirestoreDb();
-      const id = normalizeFirebaseQuizId(quizId);
-      if(!db || !id) return null;
-      const snapshot = await db.collection('quizzes').doc(id).get();
-      return snapshot.exists ? { quizId: id, ...snapshot.data() } : null;
-    }
-
-    async function loadFirebaseQuizQuestions(quizId) {
-      const db = getFirestoreDb();
-      const id = normalizeFirebaseQuizId(quizId);
-      if(!db || !id) return [];
-      const snapshot = await db.collection('quizQuestions').doc(id).collection('questions').orderBy('order').get();
-      return snapshot.docs.map(doc => ({ questionId: doc.id, ...doc.data() }));
-    }
-
-    function makeMathChoiceQuestion(question, answer) {
-      const distractors = [
-        answer + 1,
-        Math.max(0, answer - 1),
-        answer + 10,
-        Math.max(0, answer - 10)
-      ].filter(value => value !== answer);
-      const choices = shuffleList([answer, ...distractors.slice(0, 3)]).map(String);
-      return {
-        practiceQuestionId: '',
-        question,
-        choices,
-        answer: choices.indexOf(String(answer))
-      };
-    }
-
-    function generateFirebaseRandomBasicQuestions() {
-      const questions = [];
-      let index = 1;
-      [
-        { type: 'mul10', count: 30 },
-        { type: 'mul2digit', count: 30 },
-        { type: 'div10', count: 20 },
-        { type: 'div2digit', count: 20 }
-      ].forEach(group => {
-        for(let i = 0; i < group.count; i += 1) {
-          if(group.type === 'mul10') {
-            const left = 2 + ((index + i) % 8);
-            const right = 10 * (2 + ((index * 3 + i) % 8));
-            questions.push(makeMathChoiceQuestion(`${left} x ${right}의 값은?`, left * right));
-          } else if(group.type === 'mul2digit') {
-            const left = 11 + ((index + i) % 20);
-            const right = 2 + ((index * 2 + i) % 8);
-            questions.push(makeMathChoiceQuestion(`${left} x ${right}의 값은?`, left * right));
-          } else if(group.type === 'div10') {
-            const divisor = 2 + ((index + i) % 8);
-            const quotient = 10 * (2 + ((index * 3 + i) % 8));
-            questions.push(makeMathChoiceQuestion(`${divisor * quotient} ÷ ${divisor}의 값은?`, quotient));
-          } else {
-            const divisor = 2 + ((index + i) % 8);
-            const quotient = 11 + ((index * 2 + i) % 20);
-            questions.push(makeMathChoiceQuestion(`${divisor * quotient} ÷ ${divisor}의 값은?`, quotient));
-          }
-          questions[questions.length - 1].practiceQuestionId = `math-muldiv-${group.type}-${String(index).padStart(3, '0')}`;
-          index += 1;
-        }
-      });
-      return shuffleList(questions);
-    }
-
-    function buildSpellingQuestion(question) {
-      const prompt = String(question.prompt || '').trim();
-      const answerText = String(question.answer || '').trim();
-      const match = prompt.match(/\(([^()/]+)\/([^()/]+)\)/);
-      const choices = match ? [match[1].trim(), match[2].trim()] : [answerText, ...(question.aliases || [])].filter(Boolean).slice(0, 2);
-      const normalizedChoices = choices.length >= 2 ? choices : [answerText, '다시 보기'];
-      const answerIndex = normalizedChoices.findIndex(choice => choice === answerText);
-      return {
-        practiceQuestionId: String(question.questionId || '').trim(),
-        question: prompt || '다음 중 맞는 표현은?',
-        choices: normalizedChoices,
-        answer: answerIndex >= 0 ? answerIndex : 0
-      };
-    }
-
-    function buildWordRelationQuestion(question) {
-      const relationAnswer = String(question.answer || '').trim();
-      const choices = ['다의어', '동형이의어'];
-      const answerIndex = choices.indexOf(relationAnswer);
-      const meaning1 = String(question.meaning1 || question.definition1 || question.firstMeaning || '').trim();
-      const meaning2 = String(question.meaning2 || question.definition2 || question.secondMeaning || '').trim();
-      const hint = [
-        meaning1 ? `뜻 1: ${meaning1}` : '',
-        meaning2 ? `뜻 2: ${meaning2}` : ''
-      ].filter(Boolean).join('\n') || String(question.hint || '').trim();
-      const promptParts = [
-        `${question.word || '낱말'}의 쓰임을 고르세요.`,
-        question.sentence1,
-        question.sentence2
-      ].filter(Boolean);
-      return {
-        practiceQuestionId: String(question.questionId || '').trim(),
-        question: promptParts.join('\n'),
-        choices,
-        answer: answerIndex >= 0 ? answerIndex : 0,
-        hint
-      };
-    }
-
-    function buildInputQuestion(question) {
-      const answerText = String(question.answer || '').trim();
-      const aliases = Array.isArray(question.aliases) ? question.aliases.map(alias => String(alias || '').trim()).filter(Boolean) : [];
-      return {
-        practiceQuestionId: String(question.questionId || '').trim(),
-        type: 'textInput',
-        question: String(question.prompt || question.question || '').trim(),
-        answerText,
-        aliases,
-        hint: String(question.hint || question.explanation || '').trim()
-      };
-    }
-
-    function buildChoiceQuestion(question) {
-      const choices = Array.isArray(question.choices) ? question.choices.map(choice => String(choice || '').trim()).filter(Boolean) : [];
-      const explicitAnswer = Number(question.answerIndex);
-      const answerText = String(question.answer || '').trim();
-      const answerIndex = Number.isInteger(explicitAnswer) && explicitAnswer >= 0 && explicitAnswer < choices.length
-        ? explicitAnswer
-        : choices.findIndex(choice => choice === answerText);
-      return {
-        practiceQuestionId: String(question.questionId || '').trim(),
-        type: 'choice',
-        question: String(question.prompt || question.question || '').trim(),
-        choices,
-        answer: answerIndex >= 0 ? answerIndex : 0,
-        answerText,
-        hint: String(question.hint || question.explanation || '').trim()
-      };
-    }
-
-    function buildImageInputQuestion(question) {
-      const answerText = String(question.answer || '').trim();
-      const aliases = Array.isArray(question.aliases) ? question.aliases.map(alias => String(alias || '').trim()).filter(Boolean) : [];
-      const pokemonNo = Number(question.pokemonNo || question.no || 0);
-      const pokemonPracticeId = pokemonNo > 0 ? String(pokemonNo) : '';
-      const questionId = String(question.questionId || '').trim();
-      const legacyPracticeIds = Array.isArray(question.legacyPracticeIds)
-        ? question.legacyPracticeIds.map(id => String(id || '').trim()).filter(Boolean)
-        : [];
-      return {
-        practiceQuestionId: String(question.practiceQuestionId || pokemonPracticeId || questionId).trim(),
-        legacyPracticeIds: Array.from(new Set([pokemonPracticeId, questionId, ...legacyPracticeIds].filter(Boolean))),
-        questionId,
-        pokemonNo: pokemonNo || undefined,
-        type: 'imageInput',
-        question: String(question.prompt || '이미지를 보고 정답을 입력하세요.').trim(),
-        imageUrl: String(question.imageUrl || question.question || '').trim(),
-        answerText,
-        aliases,
-        hint: String(question.hint || question.explanation || '').trim()
-      };
-    }
-
-    function isImagePromptQuestion(question) {
-      const category = String(question.category || '').trim();
-      const prompt = String(question.prompt || question.question || '').trim();
-      return category === '티니핑' || /^https?:\/\//i.test(prompt);
-    }
-
-    function buildFirestoreQuestion(question) {
-      const questionType = String(question.questionType || '').trim();
-      if(questionType === 'imageInput') return buildImageInputQuestion(question);
-      if(isImagePromptQuestion(question) && question.answer) return buildImageInputQuestion(question);
-      if(questionType === 'input' || questionType === 'textInput') return buildInputQuestion(question);
-      if(questionType === 'readingMultipleChoice' || questionType === 'sheetMultipleChoice4') return buildChoiceQuestion(question);
-      if(Array.isArray(question.choices) && question.choices.length) return buildChoiceQuestion(question);
-      if(question.imageUrl) return buildImageInputQuestion(question);
-      if(question.answer) return buildInputQuestion(question);
-      return null;
-    }
-
-    async function buildFirebaseQuizData(quizId) {
-      const id = normalizeFirebaseQuizId(quizId);
-      if(firebaseQuizDataCache[id]) return firebaseQuizDataCache[id];
-
-      const meta = await loadFirebaseQuizMeta(id);
-      if(!meta) return null;
-
-      let questions = [];
-      if(id === 'random-basic' && meta.generatorType === 'math-muldiv') {
-        questions = generateFirebaseRandomBasicQuestions();
-      } else {
-        const rows = await loadFirebaseQuizQuestions(id);
-        if(id === 'spelling') questions = rows.map(buildSpellingQuestion);
-        if(id === 'word-relation') questions = rows.map(buildWordRelationQuestion);
-        if(!questions.length) questions = rows.map(buildFirestoreQuestion).filter(Boolean);
-      }
-
-      questions = questions.filter(question => {
-        if(!question || !question.question) return false;
-        if(question.type === 'imageInput') return !!question.imageUrl && !!question.answerText;
-        if(question.type === 'textInput') return !!question.answerText;
-        return Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
-      });
-      if(!questions.length) return null;
-
-      firebaseQuizDataCache[id] = questions;
-      return questions;
-    }
 
     function getFirebaseAuth() {
       return window.DJ48Firebase.getFirebaseAuth();
@@ -4435,7 +4157,7 @@
 
     function getFirebaseAuthUser() {
       const auth = getFirebaseAuth();
-      return auth?.currentUser || firebaseAuthUser;
+      return auth?.currentUser || window.DJ48AccountState.getFirebaseAuthUser();
     }
 
     function normalizeLegacyMemberSchool(school) {
@@ -4608,32 +4330,34 @@
     }
 
     function initializeAuthUser() {
-      if(firebaseAuthInitPromise) return firebaseAuthInitPromise;
+      const activeInitPromise = window.DJ48AccountState.getFirebaseAuthInitPromise();
+      if(activeInitPromise) return activeInitPromise;
 
       const auth = getFirebaseAuth();
       if(!auth) {
         handleResolvedUserChange(TEST_SHOP_USER_ID);
-        firebaseAuthInitPromise = Promise.resolve(null);
-        return firebaseAuthInitPromise;
+        const initPromise = Promise.resolve(null);
+        window.DJ48AccountState.setFirebaseAuthInitPromise(initPromise);
+        return initPromise;
       }
 
-      if(!authStateListenerAttached) {
+      if(!window.DJ48AccountState.isAuthStateListenerAttached()) {
         auth.onAuthStateChanged(user => {
           window.DJ48AccountData.handleAuthStateUser(user, {
             testShopUserId: TEST_SHOP_USER_ID,
-            setFirebaseAuthUser: nextUser => { firebaseAuthUser = nextUser; },
+            setFirebaseAuthUser: window.DJ48AccountState.setFirebaseAuthUser,
             handleResolvedUserChange,
             restoreLinkedMemberFromAuthUid,
             renderMemberLinkPanel,
             openRestoredMemberDestination
           }).catch(error => console.warn('Linked member restore after auth state change failed.', error));
         });
-        authStateListenerAttached = true;
+        window.DJ48AccountState.setAuthStateListenerAttached(true);
       }
 
-      firebaseAuthInitPromise = window.DJ48AccountData.initializeAuthUserFlow(auth, {
+      const initPromise = window.DJ48AccountData.initializeAuthUserFlow(auth, {
         testShopUserId: TEST_SHOP_USER_ID,
-        setFirebaseAuthUser: nextUser => { firebaseAuthUser = nextUser; },
+        setFirebaseAuthUser: window.DJ48AccountState.setFirebaseAuthUser,
         handleResolvedUserChange,
         restoreLinkedMemberFromAuthUid,
         renderMemberLinkPanel,
@@ -4641,7 +4365,8 @@
         warn: console.warn
       });
 
-      return firebaseAuthInitPromise;
+      window.DJ48AccountState.setFirebaseAuthInitPromise(initPromise);
+      return initPromise;
     }
 
     function getAccountRepository() {
@@ -4737,8 +4462,7 @@
       if(state.shouldClearLinkedMemberHint) clearLinkedMemberHint();
       if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
       if(state.shouldResetFirebaseAuthState) {
-        firebaseAuthUser = null;
-        firebaseAuthInitPromise = null;
+        window.DJ48AccountState.resetFirebaseAuthState();
       }
       await auth.signOut();
       await initializeAuthUser();
@@ -4898,11 +4622,20 @@
       return window.DJ48ShopData.isRoomItemSelected(item, roomSettings);
     }
 
-    async function loadShopItemsFromFirestore() {
-      return window.DJ48ShopData.loadShopItemsFromFirestore(getFirestoreDb(), {
+    function getShopRepository() {
+      return window.DJ48ShopRepository.createShopRepository({
+        getFirestoreDb,
+        getFirebaseFunctions,
+        getFirestoreFieldValue,
         shopCategoryLabels: SHOP_CATEGORY_LABELS,
-        getShopFallbackIcon
+        getShopFallbackIcon,
+        fallbackCoin: USER_REWARD_DATA.coin,
+        testShopUserId: TEST_SHOP_USER_ID
       });
+    }
+
+    async function loadShopItemsFromFirestore() {
+      return getShopRepository().loadShopItems();
     }
 
     async function getShopItemsForRender() {
@@ -4911,10 +4644,7 @@
         warnMessage: 'Firestore shopItems read failed. Using static fallback SHOP_ITEMS.',
         fallbackFactory: () => SHOP_ITEMS
       }, {
-        getValue: window.DJ48ShopState.getShopItems,
-        setValue: window.DJ48ShopState.setShopItems,
-        getLoadPromise: window.DJ48ShopState.getShopItemsLoadPromise,
-        setLoadPromise: window.DJ48ShopState.setShopItemsLoadPromise,
+        ...window.DJ48ShopState.getShopItemsCacheAccessors(),
         loadValue: () => loadShopItemsFromFirestore()
           .then(items => window.DJ48ShopData.buildShopItemsResult(items, SHOP_ITEMS)),
         warn: console.warn
@@ -4934,7 +4664,7 @@
     }
 
     async function loadAssetCatalogFromFirestore() {
-      return window.DJ48ShopData.loadAssetCatalogFromFirestore(getFirestoreDb());
+      return getShopRepository().loadAssetCatalog();
     }
 
     async function getAssetCatalogMap() {
@@ -4942,10 +4672,7 @@
         warnMessage: 'Firestore assetCatalog read failed. Using shop item fallback icons.',
         fallbackFactory: () => ({})
       }, {
-        getValue: window.DJ48ShopState.getAssetCatalogMap,
-        setValue: window.DJ48ShopState.setAssetCatalogMap,
-        getLoadPromise: window.DJ48ShopState.getAssetCatalogLoadPromise,
-        setLoadPromise: window.DJ48ShopState.setAssetCatalogLoadPromise,
+        ...window.DJ48ShopState.getAssetCatalogCacheAccessors(),
         loadValue: loadAssetCatalogFromFirestore,
         warn: console.warn
       });
@@ -5053,28 +4780,15 @@
     }
 
     async function loadUserEconomyFromFirestore() {
-      const db = getFirestoreDb();
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
 
-      return window.DJ48ShopData.loadUserEconomyFromFirestore({
-        db,
-        userId
-      }, {
-        fallbackCoin: USER_REWARD_DATA.coin
-      });
+      return getShopRepository().loadUserEconomy({ userId });
     }
 
     async function ensureUserEconomyInitialized(userId) {
       const ownerId = userId || getCurrentDataOwnerId();
-      return window.DJ48ShopData.ensureUserEconomyInitialized({
-        db: getFirestoreDb(),
-        ownerId,
-        testShopUserId: TEST_SHOP_USER_ID
-      }, {
-        fallbackCoin: USER_REWARD_DATA.coin,
-        getFirestoreFieldValue
-      });
+      return getShopRepository().ensureUserEconomyInitialized({ ownerId });
     }
 
     async function getUserEconomyForRender() {
@@ -5086,10 +4800,7 @@
           useStaticRewardFallback: isUsingTestUserFallback()
         })
       }, {
-        getValue: window.DJ48ShopState.getUserEconomy,
-        setValue: window.DJ48ShopState.setUserEconomy,
-        getLoadPromise: window.DJ48ShopState.getUserEconomyLoadPromise,
-        setLoadPromise: window.DJ48ShopState.setUserEconomyLoadPromise,
+        ...window.DJ48ShopState.getUserEconomyCacheAccessors(),
         loadValue: () => loadUserEconomyFromFirestore()
           .then(economy => window.DJ48ShopData.buildUserEconomyForRender({
             economy,
@@ -5103,15 +4814,12 @@
     }
 
     async function loadInventoryItemIdsFromFirestore() {
-      const db = getFirestoreDb();
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
 
-      return window.DJ48ShopData.loadInventoryItemIdsFromFirestore({
-        db,
+      return getShopRepository().loadInventoryItemIds({
         userId,
-        memberUserId: currentMemberUserId,
-        testShopUserId: TEST_SHOP_USER_ID
+        memberUserId: currentMemberUserId
       });
     }
 
@@ -5120,25 +4828,19 @@
         warnMessage: 'Firestore userInventory read failed. Treating inventory as empty.',
         fallbackFactory: () => new Set()
       }, {
-        getValue: window.DJ48ShopState.getInventoryItemIds,
-        setValue: window.DJ48ShopState.setInventoryItemIds,
-        getLoadPromise: window.DJ48ShopState.getInventoryLoadPromise,
-        setLoadPromise: window.DJ48ShopState.setInventoryLoadPromise,
+        ...window.DJ48ShopState.getInventoryCacheAccessors(),
         loadValue: loadInventoryItemIdsFromFirestore,
         warn: console.warn
       });
     }
 
     async function loadRoomSettingsFromFirestore() {
-      const db = getFirestoreDb();
       await prepareMemberOwnedData();
       const userId = requireCurrentDataOwnerId();
 
-      return window.DJ48ShopData.loadRoomSettingsFromFirestore({
-        db,
+      return getShopRepository().loadRoomSettings({
         userId,
-        memberUserId: currentMemberUserId,
-        testShopUserId: TEST_SHOP_USER_ID
+        memberUserId: currentMemberUserId
       });
     }
 
@@ -5147,10 +4849,7 @@
         warnMessage: 'Firestore userRoomSettings read failed. Using empty room settings.',
         fallbackFactory: getDefaultRoomSettings
       }, {
-        getValue: window.DJ48ShopState.getRoomSettings,
-        setValue: window.DJ48ShopState.setRoomSettings,
-        getLoadPromise: window.DJ48ShopState.getRoomSettingsLoadPromise,
-        setLoadPromise: window.DJ48ShopState.setRoomSettingsLoadPromise,
+        ...window.DJ48ShopState.getRoomSettingsCacheAccessors(),
         loadValue: loadRoomSettingsFromFirestore,
         warn: console.warn
       });
@@ -5205,7 +4904,7 @@
       await window.DJ48ShopUsecases.purchaseShopItemFlow({ itemId }, {
         prepareMemberOwnedData,
         requireCurrentDataOwnerId,
-        purchaseShopItem: payload => window.DJ48ShopData.purchaseShopItem(payload, { getFirebaseFunctions }),
+        purchaseShopItem: payload => getShopRepository().purchaseShopItem(payload),
         resetShopRuntimeData,
         renderShop: renderShopFromFirestore,
         showMessage: showShopPurchaseMessage,
@@ -5222,16 +4921,10 @@
 
     async function saveRoomItemSelection(itemId) {
       await window.DJ48ShopUsecases.saveRoomItemSelectionFlow({ itemId }, {
-        getFirestoreDb,
         prepareMemberOwnedData,
         requireCurrentDataOwnerId,
-        saveRoomItemSelection: options => window.DJ48ShopData.saveRoomItemSelection(options, {
-          normalizeShopItemFromFirestore,
-          normalizeRoomSettingsFromFirestore,
-          getRoomItemCategory,
-          isRoomItemSelected,
-          getFirestoreFieldValue
-        }),
+        getFirestoreDb,
+        saveRoomItemSelection: options => getShopRepository().saveRoomItemSelection(options),
         resetRoomSettingsCache,
         renderHomeOwnedItems: renderHomeOwnedItemsFromFirestore,
         showMessage: showShopPurchaseMessage,
@@ -5253,6 +4946,12 @@
       renderEventSections(data);
     }
 
+    function getEventRepository() {
+      return window.DJ48EventRepository.createEventRepository({
+        getFirebaseFunctions
+      });
+    }
+
     function getClassroomRewardCurrencyLabel(currency) {
       return window.DJ48ClassroomData.getClassroomRewardCurrencyLabel(currency);
     }
@@ -5268,10 +4967,7 @@
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
-        loadClassroomSettings: options => window.DJ48ClassroomData.loadClassroomSettings(options, {
-          getFirestoreDb,
-          warn: console.warn
-        })
+        loadClassroomSettings: options => getClassroomRepository().loadClassroomSettings(options)
       });
     }
 
@@ -5279,8 +4975,16 @@
       return window.DJ48ClassroomData.isCurrentClassroomTeacher(currentMemberProfile || {}, settings);
     }
 
+    function getClassroomRepository() {
+      return window.DJ48ClassroomRepository.createClassroomRepository({
+        getFirestoreDb,
+        getFirestoreFieldValue,
+        getFirebaseFunctions,
+        warn: console.warn
+      });
+    }
+
     async function loadClassroomQuestProgress(forceRefresh = false) {
-      const db = getFirestoreDb();
       const settings = await loadClassroomSettings();
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('progress', {
         forceRefresh,
@@ -5291,16 +4995,11 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => window.DJ48ClassroomData.loadClassroomQuestProgress({
-          db,
-          settings: options.settings,
-          memberUserId: options.memberUserId
-        })
+        loadValue: options => getClassroomRepository().loadClassroomQuestProgress(options)
       });
     }
 
     async function loadClassroomWallet(settings, forceRefresh = false) {
-      const db = getFirestoreDb();
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('wallet', {
         forceRefresh,
         settings,
@@ -5310,18 +5009,11 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => window.DJ48ClassroomData.loadClassroomWallet({
-          db,
-          settings: options.settings,
-          memberUserId: options.memberUserId
-        }, {
-          warn: console.warn
-        })
+        loadValue: options => getClassroomRepository().loadClassroomWallet(options)
       });
     }
 
     async function loadClassroomGemProgress(settings, forceRefresh = false) {
-      const db = getFirestoreDb();
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('gems', {
         forceRefresh,
         settings,
@@ -5331,13 +5023,7 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => window.DJ48ClassroomData.loadClassroomGemProgress({
-          db,
-          settings: options.settings,
-          memberUserId: options.memberUserId
-        }, {
-          warn: console.warn
-        })
+        loadValue: options => getClassroomRepository().loadClassroomGemProgress(options)
       });
     }
 
@@ -5351,13 +5037,7 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => window.DJ48ClassroomData.loadClassroomStudentCards({
-          settings: options.settings,
-          memberUserId: options.memberUserId
-        }, {
-          getFirebaseFunctions,
-          warn: console.warn
-        })
+        loadValue: options => getClassroomRepository().loadClassroomStudentCards(options)
       });
     }
 
@@ -5371,19 +5051,12 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => window.DJ48ClassroomData.loadClassroomEconomyBoard({
-          settings: options.settings,
-          memberUserId: options.memberUserId
-        }, {
-          getFirebaseFunctions,
-          warn: console.warn
-        })
+        loadValue: options => getClassroomRepository().loadClassroomEconomyBoard(options)
       });
     }
 
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
       if(!isCurrentClassroomTeacher(settings)) return [];
-      const db = getFirestoreDb();
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('review', {
         forceRefresh,
         settings,
@@ -5393,13 +5066,7 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => window.DJ48ClassroomData.loadClassroomReviewItems({
-          db,
-          settings: options.settings,
-          canReview: options.canReview
-        }, {
-          warn: console.warn
-        })
+        loadValue: options => getClassroomRepository().loadClassroomReviewItems(options)
       });
     }
 
@@ -5445,7 +5112,7 @@
         badgeId: gemId
       }, {
         loadClassroomSettings,
-        setSelectedBadge: options => window.DJ48ClassroomData.setClassroomSelectedBadge(options, { getFirebaseFunctions }),
+        setSelectedBadge: options => getClassroomRepository().setClassroomSelectedBadge(options),
         resetCaches: resetClassroomDataCaches,
         renderClassroom: renderClassroomPrototype,
         alert: window.alert,
@@ -5527,7 +5194,7 @@
           if(values.rewardCoin <= 0) return '지급 베리는 1 이상이어야 합니다.';
           return '';
         },
-        save: options => window.DJ48ClassroomData.saveClassroomQuest(options, { getFirebaseFunctions }),
+        save: options => getClassroomRepository().saveClassroomQuest(options),
         resetCaches: resetClassroomDataCaches,
         resetForm: resetClassroomQuestForm,
         setStatus: setClassroomQuestEditorStatus,
@@ -5548,7 +5215,7 @@
         loadClassroomSettings,
         isCurrentClassroomTeacher,
         getValues: getClassroomBadgeCampaignFormValues,
-        save: options => window.DJ48ClassroomData.awardClassroomBadgeCampaign(options, { getFirebaseFunctions }),
+        save: options => getClassroomRepository().awardClassroomBadgeCampaign(options),
         resetCaches: resetClassroomDataCaches,
         setStatus: setClassroomBadgeCampaignStatus,
         renderClassroom: renderClassroomPrototype,
@@ -5583,7 +5250,7 @@
         isCurrentClassroomTeacher,
         getValues: getClassroomJobFormValues,
         validateValues: values => values.title ? '' : '직업 이름을 입력해 주세요.',
-        save: options => window.DJ48ClassroomData.saveClassroomJob(options, { getFirebaseFunctions }),
+        save: options => getClassroomRepository().saveClassroomJob(options),
         resetCaches: resetClassroomDataCaches,
         resetForm: resetClassroomJobForm,
         setStatus: setClassroomJobEditorStatus,
@@ -5619,7 +5286,7 @@
         isCurrentClassroomTeacher,
         getValues: getClassroomShopItemFormValues,
         validateValues: values => values.title ? '' : '상품 이름을 입력해 주세요.',
-        save: options => window.DJ48ClassroomData.saveClassroomShopItem(options, { getFirebaseFunctions }),
+        save: options => getClassroomRepository().saveClassroomShopItem(options),
         resetCaches: resetClassroomDataCaches,
         resetForm: resetClassroomShopItemForm,
         setStatus: setClassroomShopEditorStatus,
@@ -5641,7 +5308,7 @@
           memberUserId: currentMemberUserId
         }, {
           loadClassroomSettings,
-          callAction: (name, nextPayload, options) => window.DJ48ClassroomData.callClassroomEconomyAction(name, nextPayload, options, { getFirebaseFunctions }),
+          callAction: (name, nextPayload, options) => getClassroomRepository().callClassroomEconomyAction(name, nextPayload, options),
           resetCaches: resetClassroomDataCaches,
           renderClassroom: renderClassroomPrototype,
           alert: window.alert,
@@ -5700,7 +5367,7 @@
       }, {
         getValues: getClassroomRoutineFormValues,
         loadClassroomSettings,
-        save: options => window.DJ48ClassroomData.saveClassroomRoutine(options, { getFirebaseFunctions }),
+        save: options => getClassroomRepository().saveClassroomRoutine(options),
         resetCaches: resetClassroomDataCaches,
         resetForm: resetClassroomRoutineForm,
         setStatus: setClassroomRoutineStatus,
@@ -5716,7 +5383,6 @@
     }
 
     async function completeClassroomCheckQuest(questId) {
-      const db = getFirestoreDb();
       const settings = await loadClassroomSettings();
       const quest = window.DJ48ClassroomData.findClassroomQuest(settings, questId);
       if(!quest?.saveEnabled) return;
@@ -5732,13 +5398,8 @@
       }, {
         loadClassroomSettings: async () => settings,
         findClassroomQuest: window.DJ48ClassroomData.findClassroomQuest,
-        completeAutoQuest: options => window.DJ48ClassroomData.completeClassroomAutoQuest(options, { getFirebaseFunctions }),
-        saveManualQuestProgress: options => window.DJ48ClassroomData.saveClassroomManualQuestProgress({
-          db,
-          ...options
-        }, {
-          getFirestoreFieldValue
-        }),
+        completeAutoQuest: options => getClassroomRepository().completeClassroomAutoQuest(options),
+        saveManualQuestProgress: options => getClassroomRepository().saveClassroomManualQuestProgress(options),
         resetClassroomCaches: resetClassroomDataCaches,
         resetUserEconomyCache,
         renderClassroom: renderClassroomPrototype,
@@ -5766,7 +5427,7 @@
       }, {
         loadClassroomSettings,
         isCurrentClassroomTeacher,
-        reviewProgress: options => window.DJ48ClassroomData.reviewClassroomQuestProgress(options, { getFirebaseFunctions }),
+        reviewProgress: options => getClassroomRepository().reviewClassroomQuestProgress(options),
         resetClassroomCaches: resetClassroomDataCaches,
         resetUserEconomyCache,
         renderClassroom: renderClassroomPrototype,
@@ -5787,7 +5448,7 @@
         getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
         setEventProgress: window.DJ48EventState.setEventProgress,
         setEventProgressLoadPromise: window.DJ48EventState.setEventProgressLoadPromise,
-        loadEventProgress: options => window.DJ48EventData.loadEventProgress(options, { getFirebaseFunctions })
+        loadEventProgress: options => getEventRepository().loadEventProgress(options)
       });
     }
 
@@ -5805,7 +5466,7 @@
         getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
         setEventProgress: window.DJ48EventState.setEventProgress,
         setEventProgressLoadPromise: window.DJ48EventState.setEventProgressLoadPromise,
-        loadEventProgress: options => window.DJ48EventData.loadEventProgress(options, { getFirebaseFunctions }),
+        loadEventProgress: options => getEventRepository().loadEventProgress(options),
         getEventProgressRenderData: window.DJ48EventData.getEventProgressRenderData,
         warn: console.warn
       });
@@ -5823,7 +5484,7 @@
         memberUserId: currentMemberUserId,
         questId
       }, {
-        claimEventQuestReward: options => window.DJ48EventData.claimEventQuestReward(options, { getFirebaseFunctions }),
+        claimEventQuestReward: options => getEventRepository().claimEventQuestReward(options),
         resetUserEconomyCache,
         resetEventProgressCache,
         debugLog,
@@ -5872,6 +5533,13 @@
       return window.DJ48AdminForm.setAdminStatusElement('admin-dashboard-status', message, isError);
     }
 
+    function getAdminRepository() {
+      return window.DJ48AdminRepository.createAdminRepository({
+        getFirebaseFunctions,
+        initializeAuthUser
+      });
+    }
+
     function setSuperAdminUiEnabled(isSuperAdmin) {
       document.querySelectorAll('[data-super-admin-only]').forEach(element => {
         element.hidden = !isSuperAdmin;
@@ -5892,10 +5560,7 @@
     async function loadAdminDashboard() {
       return window.DJ48AdminUsecases.loadAdminDashboardFlow({}, {
         setStatus: setAdminDashboardStatus,
-        loadDashboard: () => window.DJ48AdminData.loadAdminDashboard({
-          getFirebaseFunctions,
-          initializeAuthUser
-        }),
+        loadDashboard: () => getAdminRepository().loadAdminDashboard(),
         setDashboard: window.DJ48AdminState.setDashboard,
         setSuperAdminUiEnabled,
         renderDashboard: renderAdminDashboard
@@ -5918,10 +5583,7 @@
         getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
       }, {
         setStatus: setAdminAuditStatus,
-        loadAudit: () => window.DJ48AdminData.loadAdminOperationalAudit({
-          getFirebaseFunctions,
-          initializeAuthUser
-        }),
+        loadAudit: () => getAdminRepository().loadAdminOperationalAudit(),
         renderAudit: renderAdminOperationalAudit
       });
     }
@@ -5940,10 +5602,7 @@
         getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
       }, {
         setStatus: setAdminQuizQualityStatus,
-        loadAudit: () => window.DJ48AdminData.loadAdminQuizQualityAudit({
-          getFirebaseFunctions,
-          initializeAuthUser
-        }),
+        loadAudit: () => getAdminRepository().loadAdminQuizQualityAudit(),
         renderAudit: renderAdminQuizQualityAudit
       });
     }
@@ -6034,10 +5693,7 @@
       document.getElementById('admin-member-detail-status').textContent = '회원 정보를 불러오는 중입니다.';
       modal.hidden = false;
       try {
-        const result = await window.DJ48AdminData.loadAdminMemberDetail(memberUserId, {
-          getFirebaseFunctions,
-          initializeAuthUser
-        });
+        const result = await getAdminRepository().loadAdminMemberDetail(memberUserId);
         renderAdminMemberDetail(result);
         document.getElementById('admin-member-detail-status').textContent = '읽기 전용 상세 데이터입니다.';
       } catch(error) {
@@ -6054,10 +5710,7 @@
       return window.DJ48AdminUsecases.loadAdminMembersFlow(options, {
         setStatus: setAdminStatus,
         getFilterValues: getAdminFilterValues,
-        loadMembers: filters => window.DJ48AdminData.loadAdminMembers(filters, {
-          getFirebaseFunctions,
-          initializeAuthUser
-        }),
+        loadMembers: filters => getAdminRepository().loadAdminMembers(filters),
         renderSummary: renderAdminSummary,
         renderMemberList: renderAdminMemberList
       });
@@ -6076,10 +5729,7 @@
       };
       if(!window.confirm(`${memberUserId}\n${labels[action] || '처리할까요?'}`)) return;
       setAdminStatus('관리자 작업을 처리하는 중입니다...');
-      const result = await window.DJ48AdminData.runAdminMemberAction(action, memberUserId, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      const result = await getAdminRepository().runAdminMemberAction(action, memberUserId);
       let completionMessage = `${memberUserId} 작업이 완료됐습니다.`;
       hideAdminTemporaryPassword();
       if(action === 'resetPassword') {
@@ -6119,14 +5769,11 @@
       const deltaText = delta > 0 ? `+${delta}` : `${delta}`;
       if(!window.confirm(`${memberUserId}\n${label} ${deltaText} 조정할까요?`)) return;
       setAdminStatus(`${memberUserId} ${label}을 조정하는 중입니다...`);
-      const result = await window.DJ48AdminData.adjustAdminMemberWallet({
+      const result = await getAdminRepository().adjustAdminMemberWallet({
         memberUserId,
         currency,
         delta,
         reason: String(reasonInput || '').trim()
-      }, {
-        getFirebaseFunctions,
-        initializeAuthUser
       });
       await Promise.all([
         loadAdminMembers({ updateStatus: false }).catch(() => null),
@@ -6150,10 +5797,7 @@
       const label = enabled ? '반 관리자로 지정' : '관리자 권한을 해제';
       if(!window.confirm(`${values.memberUserId}\n${label}할까요?`)) return;
       setAdminPermissionStatus('권한을 변경하는 중입니다...');
-      await window.DJ48AdminData.setClassAdminPermission({ ...values, enabled }, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      await getAdminRepository().setClassAdminPermission({ ...values, enabled });
       setAdminPermissionStatus(enabled
         ? `${values.memberUserId} 반 관리자 지정 완료: ${values.scopeGrade}학년 ${values.scopeClassNumber}반`
         : `${values.memberUserId} 관리자 권한을 해제했습니다.`);
@@ -6190,12 +5834,9 @@
 
     async function loadAdminNoticeBoard() {
       setAdminNoticeStatus('알림판을 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminNoticeBoard({
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      const result = await getAdminRepository().loadAdminNoticeBoard();
       setAdminNoticeForm(result.notice);
-      noticeBoardCache = normalizeNoticeBoardData(result.notice);
+      window.DJ48AdminState.setNoticeBoardCache(normalizeNoticeBoardData(result.notice));
       setAdminNoticeStatus('알림판 내용을 불러왔습니다.');
       return result.notice;
     }
@@ -6203,11 +5844,8 @@
     async function saveAdminNoticeBoard() {
       const notice = getAdminNoticeFormValues();
       setAdminNoticeStatus('알림판을 저장하는 중입니다...');
-      const result = await window.DJ48AdminData.saveAdminNoticeBoard(notice, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
-      noticeBoardCache = normalizeNoticeBoardData(result.notice);
+      const result = await getAdminRepository().saveAdminNoticeBoard(notice);
+      window.DJ48AdminState.setNoticeBoardCache(normalizeNoticeBoardData(result.notice));
       setAdminNoticeStatus('알림판을 저장했습니다.');
       return result.notice;
     }
@@ -6230,27 +5868,21 @@
 
     async function loadAdminExternalQuizzes() {
       setAdminExternalQuizzesStatus('외부 퀴즈를 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminExternalQuizzes({
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
-      externalQuizzesCache = normalizeExternalQuizzes(result.externalQuizzes);
-      renderAdminExternalQuizRows(externalQuizzesCache);
+      const result = await getAdminRepository().loadAdminExternalQuizzes();
+      const externalQuizzes = window.DJ48AdminState.setExternalQuizzesCache(normalizeExternalQuizzes(result.externalQuizzes));
+      renderAdminExternalQuizRows(externalQuizzes);
       setAdminExternalQuizzesStatus('외부 퀴즈를 불러왔습니다.');
-      return externalQuizzesCache;
+      return externalQuizzes;
     }
 
     async function saveAdminExternalQuizzes() {
       const externalQuizzes = getAdminExternalQuizzesFormValues();
       setAdminExternalQuizzesStatus('외부 퀴즈를 저장하는 중입니다...');
-      const result = await window.DJ48AdminData.saveAdminExternalQuizzes(externalQuizzes, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
-      externalQuizzesCache = normalizeExternalQuizzes(result.externalQuizzes);
-      renderAdminExternalQuizRows(externalQuizzesCache);
+      const result = await getAdminRepository().saveAdminExternalQuizzes(externalQuizzes);
+      const savedExternalQuizzes = window.DJ48AdminState.setExternalQuizzesCache(normalizeExternalQuizzes(result.externalQuizzes));
+      renderAdminExternalQuizRows(savedExternalQuizzes);
       setAdminExternalQuizzesStatus('외부 퀴즈를 저장했습니다.');
-      return externalQuizzesCache;
+      return savedExternalQuizzes;
     }
 
     function setAdminLoginSettingsStatus(message, isError = false) {
@@ -6271,10 +5903,7 @@
 
     async function loadAdminLoginSettings() {
       setAdminLoginSettingsStatus('로그인 설정을 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminLoginSettings({
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      const result = await getAdminRepository().loadAdminLoginSettings();
       setAdminLoginSettingsForm(result.settings);
       setAdminLoginSettingsStatus('로그인 설정을 불러왔습니다.');
       return result.settings;
@@ -6283,10 +5912,7 @@
     async function saveAdminLoginSettings() {
       const settings = getAdminLoginSettingsFormValues();
       setAdminLoginSettingsStatus('로그인 설정을 저장하는 중입니다...');
-      const result = await window.DJ48AdminData.saveAdminLoginSettings(settings, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      const result = await getAdminRepository().saveAdminLoginSettings(settings);
       setAdminLoginSettingsForm(result.settings);
       setAdminLoginSettingsStatus('로그인 설정을 저장했습니다.');
       return result.settings;
@@ -6356,27 +5982,21 @@
 
     async function loadAdminFeatureFlags() {
       setAdminFeatureFlagsStatus('기능 설정을 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminFeatureFlags({
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
-      featureFlagsCache = normalizeFeatureFlags(result.flags);
-      setAdminFeatureFlagsForm(featureFlagsCache);
+      const result = await getAdminRepository().loadAdminFeatureFlags();
+      const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
+      setAdminFeatureFlagsForm(featureFlags);
       setAdminFeatureFlagsStatus('기능 설정을 불러왔습니다.');
-      return featureFlagsCache;
+      return featureFlags;
     }
 
     async function saveAdminFeatureFlags() {
       const flags = getAdminFeatureFlagsFormValues();
       setAdminFeatureFlagsStatus('기능 설정을 저장하는 중입니다...');
-      const result = await window.DJ48AdminData.saveAdminFeatureFlags(flags, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
-      featureFlagsCache = normalizeFeatureFlags(result.flags);
-      setAdminFeatureFlagsForm(featureFlagsCache);
+      const result = await getAdminRepository().saveAdminFeatureFlags(flags);
+      const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
+      setAdminFeatureFlagsForm(featureFlags);
       setAdminFeatureFlagsStatus('기능 설정을 저장했습니다.');
-      return featureFlagsCache;
+      return featureFlags;
     }
 
     function setAdminRoomCatalogStatus(message, isError = false) {
@@ -6405,10 +6025,7 @@
 
     async function loadAdminRoomCatalog() {
       setAdminRoomCatalogStatus('방 가구 목록을 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminRoomCatalog({
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      const result = await getAdminRepository().loadAdminRoomCatalog();
       renderAdminRoomCatalogList(result.items || []);
       setAdminRoomCatalogStatus(`방 가구 ${result.items?.length || 0}개를 표시했습니다.`);
       return result.items || [];
@@ -6418,10 +6035,7 @@
       const values = getAdminRoomCatalogFormValues();
       if(!values.itemId || !values.name) throw new Error('admin-room-catalog-required');
       setAdminRoomCatalogStatus('방 가구 상품을 저장하는 중입니다...');
-      const result = await window.DJ48AdminData.saveAdminRoomCatalogItem(values, {
-        getFirebaseFunctions,
-        initializeAuthUser
-      });
+      const result = await getAdminRepository().saveAdminRoomCatalogItem(values);
       window.DJ48ShopState.resetShopRuntimeData();
       await loadAdminRoomCatalog();
       setAdminRoomCatalogStatus(`${values.name} 저장 완료`);
@@ -6459,13 +6073,10 @@
 
     async function loadAdminLogs() {
       setAdminLogsStatus('작업 이력을 불러오는 중입니다...');
-      const result = await window.DJ48AdminData.loadAdminLogs({
+      const result = await getAdminRepository().loadAdminLogs({
         action: document.getElementById('admin-logs-action-filter')?.value || '',
         targetUserId: document.getElementById('admin-logs-target-filter')?.value || '',
         limit: 40
-      }, {
-        getFirebaseFunctions,
-        initializeAuthUser
       });
       renderAdminLogs(result.logs);
       setAdminLogsStatus(`최근 작업 ${result.logs?.length || 0}건을 표시했습니다.`);
@@ -6477,94 +6088,32 @@
       showLoginView();
     }
 
+    function getQuizRenderDeps() {
+      return {
+        schoolQuizCards: SCHOOL_QUIZ_CARDS,
+        subjectCatalog: SUBJECT_CATALOG,
+        quizCatalog: QUIZ_CATALOG,
+        modeCatalog: MODE_CATALOG,
+        firebasePlayableQuizIds: FIREBASE_PLAYABLE_QUIZ_IDS,
+        featureFlags: getActiveFeatureFlags(),
+        defaultFeatureFlags: DEFAULT_FEATURE_FLAGS,
+        getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId(),
+        normalizeFirebaseQuizId,
+        normalizeFirebaseRankingMode,
+        isQuizEnabledByFlags,
+        getRankingModeOptionsForQuiz,
+        refreshPopularUsageNotices
+      };
+    }
+
     function renderSchoolQuizCards() {
-      const grid = document.getElementById('school-quiz-grid');
-      grid.innerHTML = '';
-      SCHOOL_QUIZ_CARDS.forEach(card => {
-        const subject = card.subjectId ? SUBJECT_CATALOG[card.subjectId] : null;
-        const viewModel = subject ? {
-          icon: subject.icon,
-          title: subject.title,
-          desc: subject.cardDesc,
-          enabled: subject.enabled,
-          subjectId: card.subjectId
-        } : {
-          ...card
-        };
-        const item = document.createElement('article');
-        const icon = document.createElement('span');
-        const title = document.createElement('h3');
-        const desc = document.createElement('p');
-        const button = document.createElement('button');
-        const usageNotice = document.createElement('p');
-
-        item.className = 'school-quiz-card';
-        if(viewModel.subjectId) item.classList.add(`school-quiz-card-${viewModel.subjectId}`);
-        if(viewModel.externalQuizHub) item.classList.add('school-quiz-card-external');
-        if(viewModel.enabled && (viewModel.subjectId || viewModel.externalQuizHub)) {
-          if(viewModel.subjectId) item.dataset.subjectId = viewModel.subjectId;
-          if(viewModel.externalQuizHub) item.dataset.externalQuizHub = 'true';
-          item.tabIndex = 0;
-          item.setAttribute('role', 'button');
-        }
-        icon.className = 'school-quiz-icon';
-        icon.textContent = viewModel.icon;
-        title.textContent = viewModel.title;
-        desc.textContent = viewModel.desc;
-        button.className = viewModel.enabled ? 'school-ready-button' : 'school-disabled-button';
-        button.type = 'button';
-        button.disabled = !viewModel.enabled;
-        button.textContent = viewModel.enabled ? '입장하기' : '준비 중';
-        if(viewModel.subjectId) button.dataset.subjectId = viewModel.subjectId;
-        if(viewModel.externalQuizHub) button.dataset.externalQuizHub = 'true';
-
-        item.append(icon, title, desc);
-        if(viewModel.subjectId === 'popular') {
-          usageNotice.className = 'popular-usage-notice';
-          usageNotice.dataset.popularUsageNotice = 'true';
-          usageNotice.textContent = '인기퀴즈 이용 시간을 확인하는 중입니다...';
-          item.appendChild(usageNotice);
-        }
-        item.appendChild(button);
-        grid.appendChild(item);
-      });
-      refreshPopularUsageNotices();
+      return window.DJ48QuizRender.renderSchoolQuizCards(getQuizRenderDeps());
     }
 
     function renderExternalQuizLinks(externalQuizzes) {
-      const section = document.getElementById('external-quiz-section');
-      const grid = document.getElementById('external-quiz-grid');
-      const status = document.getElementById('external-quiz-status');
-      if(!section || !grid || !status) return;
-      const items = normalizeExternalQuizzes(externalQuizzes).items.filter(item => item.active !== false);
-      section.hidden = false;
-      grid.innerHTML = '';
-      status.textContent = '';
-      if(!items.length) {
-        status.textContent = '아직 등록된 외부 퀴즈가 없습니다.';
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-      items.forEach(item => {
-        const card = document.createElement('article');
-        const icon = document.createElement('span');
-        const title = document.createElement('h3');
-        const desc = document.createElement('p');
-        const link = document.createElement('a');
-        card.className = 'external-quiz-card';
-        icon.className = 'school-quiz-icon';
-        icon.textContent = '🔗';
-        title.textContent = item.title;
-        desc.textContent = item.description || '새 탭에서 외부 퀴즈를 엽니다.';
-        link.className = 'school-ready-button';
-        link.href = item.url;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = '새 탭에서 열기';
-        card.append(icon, title, desc, link);
-        grid.appendChild(card);
+      return window.DJ48QuizRender.renderExternalQuizLinks(externalQuizzes, {
+        normalizeExternalQuizzes
       });
-      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     async function showExternalQuizLinks() {
@@ -6577,276 +6126,20 @@
     }
 
     function renderSubjectQuizCards(subjectId) {
-      const subject = SUBJECT_CATALOG[subjectId] || SUBJECT_CATALOG.korean;
-      const grid = document.getElementById('subject-quiz-grid');
-      const subjectUsageNotice = document.getElementById('subject-popular-usage-notice');
-      document.getElementById('subject-kicker').textContent = subject.kicker;
-      document.getElementById('subject-title').textContent = subject.hallTitle;
-      document.getElementById('subject-desc').textContent = subject.desc;
-      document.getElementById('subject-board').textContent = subject.board;
-      if(subjectUsageNotice) {
-        subjectUsageNotice.hidden = subjectId !== 'popular';
-        subjectUsageNotice.textContent = subjectId === 'popular' ? '확인 중' : '';
-        delete subjectUsageNotice.dataset.state;
-        delete subjectUsageNotice.dataset.urgency;
-      }
-      grid.setAttribute('aria-label', `${subject.hallTitle} 퀴즈 카드`);
-      grid.innerHTML = '';
-      subject.quizzes.forEach(quizId => {
-        const quiz = QUIZ_CATALOG[quizId];
-        if(!isQuizEnabledByFlags(quizId)) return;
-        const isPlayable = quiz.enabled !== false && FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(quizId));
-        const item = document.createElement('article');
-        const icon = document.createElement('span');
-        const title = document.createElement('h3');
-        const desc = document.createElement('p');
-        const button = document.createElement('button');
-        const badge = document.createElement('span');
-
-        item.className = 'subject-quiz-card';
-        if(isPlayable) {
-          item.dataset.quizId = quizId;
-          item.tabIndex = 0;
-          item.setAttribute('role', 'button');
-        }
-        icon.className = 'subject-quiz-icon';
-        icon.textContent = quiz.icon;
-        title.textContent = quiz.title.replace(' 퀴즈', '');
-        desc.textContent = quiz.desc;
-        button.className = isPlayable ? 'subject-ready-button' : 'subject-disabled-button';
-        button.type = 'button';
-        button.disabled = !isPlayable;
-        button.textContent = isPlayable ? '입장하기' : '준비 중';
-        if(isPlayable) button.dataset.quizId = quizId;
-
-        item.append(icon, title, desc);
-        if(quiz.groupLabel && quizId !== 'pokemon') {
-          badge.className = 'subject-quiz-badge';
-          badge.textContent = quiz.groupLabel;
-          item.appendChild(badge);
-        }
-        item.appendChild(button);
-        grid.appendChild(item);
-      });
-      if(subjectId === 'popular') refreshPopularUsageNotices();
+      return window.DJ48QuizRender.renderSubjectQuizCards(subjectId, getQuizRenderDeps());
     }
 
     function renderQuizSelectView(quizId) {
-      const quiz = QUIZ_CATALOG[quizId] || QUIZ_CATALOG.spelling;
-      if(!isQuizEnabledByFlags(quizId)) {
-        window.alert('이 퀴즈는 지금 점검 중입니다.');
-        showTownView();
-        return;
-      }
-      const subject = SUBJECT_CATALOG[quiz.subjectId] || SUBJECT_CATALOG.korean;
-      document.getElementById('quiz-select-kicker').textContent = quiz.kicker;
-      document.getElementById('quiz-select-title').textContent = quiz.title;
-      document.getElementById('quiz-select-desc').textContent = quiz.desc;
-      document.getElementById('quiz-select-summary').textContent = quiz.summary;
-      document.getElementById('back-to-subject-label').textContent = `${subject.hallTitle}으로 돌아가기`;
-      renderQuizModeCards(quiz.modes);
-    }
-
-    function renderQuizModeCards(modeIds) {
-      const grid = document.getElementById('quiz-mode-grid');
-      grid.innerHTML = '';
-      const lastQuizId = window.DJ48QuizSessionState.getLastQuizId();
-      if(normalizeFirebaseQuizId(lastQuizId) === 'pokemon') {
-        renderPokemonHubCards(grid);
-        return;
-      }
-      const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
-      if(!isQuizEnabledByFlags(lastQuizId, flags)) {
-        const disabled = document.createElement('p');
-        disabled.className = 'profile-ranking-empty';
-        disabled.textContent = '이 퀴즈는 지금 점검 중입니다.';
-        grid.appendChild(disabled);
-        return;
-      }
-      modeIds.forEach(modeId => {
-        if(modeId === 'records') return;
-        if(modeId === 'oneChance') return;
-        const baseMode = MODE_CATALOG[modeId] || MODE_CATALOG.practice;
-        const playable = FIREBASE_PLAYABLE_QUIZ_IDS.has(normalizeFirebaseQuizId(lastQuizId));
-        const featureEnabled = modeId !== 'ranking' || flags.rankingEnabled !== false;
-        const mode = {
-          ...baseMode,
-          enabled: baseMode.enabled && playable && featureEnabled,
-          desc: featureEnabled ? baseMode.desc : '랭킹전은 지금 점검 중입니다.'
-        };
-        const item = document.createElement('article');
-        const icon = document.createElement('span');
-        const title = document.createElement('h3');
-        const desc = document.createElement('p');
-        const button = document.createElement('button');
-
-        item.className = 'quiz-mode-card';
-        if(mode.enabled) {
-          item.dataset.modeId = modeId;
-          item.tabIndex = 0;
-          item.setAttribute('role', 'button');
-        }
-        icon.className = 'quiz-mode-icon';
-        icon.textContent = mode.icon;
-        title.textContent = mode.title;
-        desc.textContent = mode.desc;
-        button.className = mode.enabled ? 'quiz-mode-ready-button' : 'quiz-mode-disabled-button';
-        button.type = 'button';
-        button.disabled = !mode.enabled;
-        button.textContent = mode.enabled ? '시작하기' : '준비 중';
-        button.dataset.modeId = modeId;
-
-        item.append(icon, title, desc);
-        if(modeId === 'ranking' && mode.enabled) {
-          const rankingModes = document.createElement('div');
-          rankingModes.className = 'quiz-ranking-mode-grid';
-          getRankingModeOptionsForQuiz(lastQuizId).forEach(option => {
-            const modeButton = document.createElement('button');
-            modeButton.type = 'button';
-            modeButton.className = `quiz-ranking-mode-button ranking-mode-${option.value}`;
-            modeButton.textContent = option.label;
-            modeButton.dataset.modeId = 'ranking';
-            modeButton.dataset.rankingMode = option.value;
-            rankingModes.appendChild(modeButton);
-          });
-          item.appendChild(rankingModes);
-        } else {
-          item.appendChild(button);
-        }
-        grid.appendChild(item);
+      return window.DJ48QuizRender.renderQuizSelectView(quizId, {
+        ...getQuizRenderDeps(),
+        alert: window.alert,
+        showTownView,
+        renderQuizModeCards
       });
     }
 
-    function appendPokemonHubCard(grid, options) {
-      if(!isQuizEnabledByFlags(options.quizId)) return;
-      const item = document.createElement('article');
-      const icon = document.createElement('span');
-      const title = document.createElement('h3');
-      const desc = document.createElement('p');
-      const button = document.createElement('button');
-      item.className = 'quiz-mode-card';
-      item.dataset.quizId = options.quizId;
-      item.dataset.modeId = options.modeId;
-      if(options.rankingMode) item.dataset.rankingMode = options.rankingMode;
-      item.tabIndex = 0;
-      item.setAttribute('role', 'button');
-      icon.className = 'quiz-mode-icon';
-      icon.textContent = options.icon;
-      title.textContent = options.title;
-      desc.textContent = options.desc;
-      button.className = 'quiz-mode-ready-button';
-      button.type = 'button';
-      button.textContent = options.buttonLabel || '시작하기';
-      button.dataset.quizId = options.quizId;
-      button.dataset.modeId = options.modeId;
-      if(options.rankingMode) button.dataset.rankingMode = options.rankingMode;
-      item.append(icon, title, desc, button);
-      grid.appendChild(item);
-    }
-
-    function appendPokemonPracticeButton(grid, generation) {
-      const quizId = `pokemon-gen${generation}`;
-      if(!isQuizEnabledByFlags(quizId)) return;
-      const button = document.createElement('button');
-      button.className = 'pokemon-hub-practice-button';
-      button.type = 'button';
-      button.textContent = `${generation}세대`;
-      button.dataset.quizId = quizId;
-      button.dataset.modeId = 'practice';
-      grid.appendChild(button);
-    }
-
-    function getPokemonHubRankingDifficulties() {
-      return [
-        { quizId: 'pokemon-easy', label: '쉬움', value: 'easy', range: '1세대', className: 'pokemon-difficulty-easy' },
-        { quizId: 'pokemon-normal', label: '보통', value: 'normal', range: '1~2세대', className: 'pokemon-difficulty-normal' },
-        { quizId: 'pokemon-hard', label: '어려움', value: 'hard', range: '1~3세대', className: 'pokemon-difficulty-hard' },
-        { quizId: 'pokemon-very-hard', label: '헬', value: 'very-hard', range: '전체 세대', className: 'pokemon-difficulty-extreme' }
-      ];
-    }
-
-    function getPokemonHubRankingModes() {
-      return [
-        { label: '일반', value: 'normal' },
-        { label: '스피드', value: 'speed' },
-        { label: '원코', value: 'onechance' },
-        { label: '노힌트', value: 'nohint' }
-      ];
-    }
-
-    function normalizePokemonHubRankingMode(rankingMode) {
-      const mode = normalizeFirebaseRankingMode(rankingMode);
-      return getPokemonHubRankingModes().some(item => item.value === mode) ? mode : 'normal';
-    }
-
-    function selectPokemonHubDifficulty(difficultyValue) {
-      activePokemonHubDifficulty = activePokemonHubDifficulty === difficultyValue ? '' : difficultyValue;
-      const grid = document.getElementById('quiz-mode-grid');
-      if(grid) renderPokemonHubCards(grid);
-    }
-
-    function appendPokemonRankingDifficultyPanel(grid, difficulty, rankingDisabled) {
-      if(!isQuizEnabledByFlags(difficulty.quizId)) return;
-      const panel = document.createElement('article');
-      const button = document.createElement('button');
-      const detail = document.createElement('div');
-      const range = document.createElement('p');
-      const modeGrid = document.createElement('div');
-      const isOpen = activePokemonHubDifficulty === difficulty.value;
-      panel.className = `pokemon-hub-difficulty ${difficulty.className || ''} ${isOpen ? 'is-open' : ''}`;
-      button.className = 'pokemon-hub-difficulty-button';
-      button.type = 'button';
-      button.textContent = difficulty.label;
-      button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      button.addEventListener('click', () => selectPokemonHubDifficulty(difficulty.value));
-      panel.appendChild(button);
-      if(isOpen) {
-        detail.className = 'pokemon-hub-ranking-detail';
-        range.className = 'pokemon-hub-ranking-range';
-        range.textContent = `포함 범위: ${difficulty.range}`;
-        modeGrid.className = 'pokemon-hub-ranking-mode-grid';
-        if(rankingDisabled) {
-          const disabled = document.createElement('p');
-          disabled.className = 'profile-ranking-empty';
-          disabled.textContent = '랭킹전은 지금 점검 중입니다.';
-          detail.append(range, disabled);
-        } else {
-          getPokemonHubRankingModes().forEach(mode => {
-            const modeButton = document.createElement('button');
-            modeButton.className = `pokemon-hub-ranking-mode ranking-mode-${mode.value}`;
-            modeButton.type = 'button';
-            modeButton.textContent = mode.label;
-            modeButton.dataset.quizId = difficulty.quizId;
-            modeButton.dataset.modeId = 'ranking';
-            modeButton.dataset.rankingMode = normalizePokemonHubRankingMode(mode.value);
-            modeGrid.appendChild(modeButton);
-          });
-          detail.append(range, modeGrid);
-        }
-        panel.appendChild(detail);
-      }
-      grid.appendChild(panel);
-    }
-
-    function renderPokemonHubCards(grid) {
-      const flags = featureFlagsCache || DEFAULT_FEATURE_FLAGS;
-      const practiceTitle = document.createElement('p');
-      const rankingTitle = document.createElement('p');
-      const rankingDisabled = flags.rankingEnabled === false;
-      grid.innerHTML = '';
-      practiceTitle.className = 'profile-ranking-subtitle';
-      practiceTitle.textContent = '연습전: 세대별 도감 채우기';
-      rankingTitle.className = 'profile-ranking-subtitle';
-      rankingTitle.textContent = '랭킹전: 난이도를 고른 뒤 모드를 선택';
-      grid.appendChild(practiceTitle);
-      const practiceGrid = document.createElement('div');
-      practiceGrid.className = 'pokemon-hub-practice-grid';
-      for(let gen = 1; gen <= 9; gen += 1) {
-        appendPokemonPracticeButton(practiceGrid, gen);
-      }
-      grid.appendChild(practiceGrid);
-      grid.appendChild(rankingTitle);
-      getPokemonHubRankingDifficulties().forEach(difficulty => appendPokemonRankingDifficultyPanel(grid, difficulty, rankingDisabled));
+    function renderQuizModeCards(modeIds) {
+      return window.DJ48QuizRender.renderQuizModeCards(modeIds, getQuizRenderDeps());
     }
 
     async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
@@ -6872,8 +6165,14 @@
         clearRankingSessionTimer,
         startPopularUsageSessionIfNeeded,
         startRankingSessionTimerIfNeeded,
-        buildFirebaseQuizData,
-        buildQuizSessionQuestions,
+        buildFirebaseQuizData: deps.buildFirebaseQuizData,
+        normalizeFirebaseQuizId,
+        shuffleList,
+        getFirebaseQuizDataCache: deps.getFirebaseQuizDataCache,
+        getQuestionBank: deps.getQuestionBank,
+        loadSolvedPracticeIds,
+        splitPracticeQuestionsBySolvedState: window.DJ48QuizPlay.splitPracticeQuestionsBySolvedState,
+        getPracticeQuestionIdCandidates,
         setCurrentSessionQuestions: deps.setCurrentSessionQuestions,
         showQuizPlayViewOnly: () => window.DJ48AppView.showOnlyAppView('quiz-play-view', APP_VIEW_IDS),
         renderQuizPlayHeader,
@@ -6882,7 +6181,7 @@
       });
     }
 
-    function getQuizPlayDeps() {
+    function getQuizRepositoryDeps() {
       const quizRepository = window.DJ48QuizRepository.createQuizRepository({
         getFirestoreDb,
         getFirestoreFieldValue,
@@ -6890,7 +6189,9 @@
         getFirebaseAuthUser,
         getCurrentDataOwnerId,
         loadFeatureFlags,
-        loadFirebaseQuizMeta,
+        normalizeFirebaseQuizId,
+        shuffleList,
+        getFirebaseQuizDataCache: () => firebaseQuizDataCache,
         isFirestorePermissionDeniedError,
         resetUserEconomyCache,
         resetTitleCatalogCache: () => {
@@ -6898,8 +6199,11 @@
           titleCatalogMapCache = null;
         }
       });
-      const firebaseDeps = window.DJ48QuizRepository.getQuizPlayRepositoryDeps(quizRepository);
-      const sessionStateDeps = {
+      return window.DJ48QuizRepository.getQuizPlayRepositoryDeps(quizRepository);
+    }
+
+    function getQuizSessionStateDeps() {
+      return {
         getCurrentQuestionSet,
         getCurrentSessionQuestions: () => window.DJ48QuizSessionState.getCurrentSessionQuestions(),
         setCurrentSessionQuestions: questions => window.DJ48QuizSessionState.setCurrentSessionQuestions(questions),
@@ -6924,7 +6228,10 @@
         setCurrentRankingTimeLeft: value => window.DJ48QuizSessionState.setCurrentRankingTimeLeft(value),
         decreaseCurrentRankingTimeLeft: value => window.DJ48QuizSessionState.decreaseCurrentRankingTimeLeft(value)
       };
-      const catalogDeps = {
+    }
+
+    function getQuizCatalogDeps() {
+      return {
         getCurrentQuizMetaForHeader: () => QUIZ_CATALOG[window.DJ48QuizSessionState.getCurrentQuizId()] || QUIZ_CATALOG.spelling,
         getCurrentModeMetaForHeader: () => MODE_CATALOG[window.DJ48QuizSessionState.getCurrentModeId()] || MODE_CATALOG.practice,
         getQuestionBank: () => QUESTION_BANK,
@@ -6932,7 +6239,10 @@
         getCorrectRewardCoin: () => USER_REWARD_DATA.completeReward.correctCoin,
         getInvalidRankingTimeMessage: () => INVALID_RANKING_TIME_MESSAGE
       };
-      const rankingDeps = {
+    }
+
+    function getQuizRankingDeps() {
+      return {
         getRankingElapsedSeconds,
         getRankingTimeLimitSecondsForQuiz,
         getRankingTargetForQuiz,
@@ -6945,7 +6255,10 @@
         buildQuizKingSummaryUpdate,
         formatRankingElapsedText
       };
-      const practiceDeps = {
+    }
+
+    function getQuizPracticeDeps() {
+      return {
         getPracticeQuestionId,
         getPracticeQuestionIdCandidates,
         getPracticeTargetForQuiz,
@@ -6953,15 +6266,18 @@
         buildPracticeProgressRecordId,
         buildPracticeSummaryUpdate,
         buildPracticeBadgeUpdate,
-        grantPracticeCorrectReward,
-        syncMemberTitlesAfterPracticeCompletion
+        grantPracticeCorrectReward: (memberUserId, rewardCoin, context) => window.DJ48QuizFlow.grantPracticeCorrectReward(memberUserId, rewardCoin, context, getQuizPlayDeps()),
+        syncMemberTitlesAfterPracticeCompletion: (memberUserId, context) => window.DJ48QuizFlow.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, getQuizPlayDeps())
       };
+    }
+
+    function getQuizPlayDeps() {
       return {
-        ...firebaseDeps,
-        ...sessionStateDeps,
-        ...catalogDeps,
-        ...rankingDeps,
-        ...practiceDeps,
+        ...getQuizRepositoryDeps(),
+        ...getQuizSessionStateDeps(),
+        ...getQuizCatalogDeps(),
+        ...getQuizRankingDeps(),
+        ...getQuizPracticeDeps(),
         debugLog,
         normalizeFirebaseQuizId
       };
@@ -6996,47 +6312,8 @@
       return new Set((Array.isArray(data.correctIds) ? data.correctIds : []).map(value => String(value || '').trim()).filter(Boolean));
     }
 
-    function hasSolvedPracticeQuestion(question, solvedIds) {
-      return window.DJ48QuizPlay.hasSolvedPracticeQuestion(question, solvedIds, getPracticeQuestionIdCandidates);
-    }
-
-    async function buildQuizSessionQuestions(quizId, modeId) {
-      const deps = getQuizPlayDeps();
-      const id = deps.normalizeFirebaseQuizId(quizId);
-      const quizDataCache = deps.getFirebaseQuizDataCache();
-      const questionBank = deps.getQuestionBank();
-      const baseQuestions = quizDataCache[id] || questionBank[quizId] || questionBank[id] || questionBank.spelling;
-      if(!Array.isArray(baseQuestions) || !baseQuestions.length) return null;
-      if(modeId === 'ranking') return shuffleList(baseQuestions.slice());
-      if(modeId !== 'practice') return baseQuestions;
-      try {
-        const solvedIds = await loadSolvedPracticeIds(id);
-        if(!solvedIds.size) return shuffleList(baseQuestions.slice());
-        const { unsolved, solved } = window.DJ48QuizPlay.splitPracticeQuestionsBySolvedState(
-          baseQuestions,
-          solvedIds,
-          getPracticeQuestionIdCandidates
-        );
-        if(!unsolved.length) return shuffleList(baseQuestions.slice());
-        return shuffleList(unsolved).concat(shuffleList(solved));
-      } catch(error) {
-        console.warn('Practice unsolved-first order unavailable. Using random order.', error);
-        return shuffleList(baseQuestions.slice());
-      }
-    }
-
     function renderQuizPlayHeader() {
-      const deps = getQuizPlayDeps();
-      const quiz = deps.getCurrentQuizMetaForHeader();
-      const mode = deps.getCurrentModeMetaForHeader();
-      const isRanking = deps.getCurrentModeId() === 'ranking';
-      const rankingModeLabel = isRanking ? deps.getRankingModeLabelForDisplay({ rankingMode: deps.getCurrentRankingModeId() }) : '';
-      document.getElementById('quiz-play-title').textContent = window.DJ48QuizPlay.getQuizPlayHeaderTitle({
-        quizTitle: quiz.title,
-        modeTitle: mode.title,
-        rankingModeLabel,
-        isRanking
-      });
+      return window.DJ48QuizRender.renderQuizPlayHeader(getQuizPlayDeps());
     }
 
     function getKoreanInitials(value) {
@@ -7059,24 +6336,11 @@
     }
 
     function renderQuestion() {
-      const deps = getQuizPlayDeps();
-      const questionSet = deps.getCurrentQuestionSet();
-      const question = questionSet[deps.getCurrentQuestionIndex()];
-      const root = document.getElementById('quiz-play-root');
-      deps.resetSelectedChoiceIndex();
-      deps.setCurrentQuestionResolved(false);
-      root.innerHTML = '';
-
-      const hintText = getQuestionHintText(question);
-      const shouldRenderHint = !!hintText && !(deps.getCurrentModeId() === 'ranking' && deps.getCurrentRankingModeId() === 'nohint');
-      const card = window.DJ48QuizPlay.createQuizQuestionCard({
-        question,
-        progressText: getQuizProgressText(),
-        hintText,
-        shouldRenderHint
+      return window.DJ48QuizRender.renderQuestion(getQuizPlayDeps(), {
+        getQuestionHintText,
+        getQuizProgressText,
+        startRankingQuestionTimerIfNeeded
       });
-      root.appendChild(card);
-      startRankingQuestionTimerIfNeeded();
     }
 
     function getQuizProgressText() {
@@ -7167,7 +6431,7 @@
         clearRankingQuestionTimer,
         normalizeQuizAnswer,
         recordEducationCorrectForPopularUnlock,
-        savePracticeProgressAfterCorrectAnswer,
+        savePracticeProgressAfterCorrectAnswer: question => window.DJ48QuizFlow.savePracticeProgressAfterCorrectAnswer(question, getQuizPlayDeps(), TEST_SHOP_USER_ID),
         showQuizResult,
         renderPracticeSaveStatus,
         isFirestoreQuotaExceededError
@@ -7230,9 +6494,7 @@
     }
 
     function renderPracticeSaveStatus(result) {
-      const status = document.getElementById('practice-save-status');
-      if(!status) return;
-      status.textContent = window.DJ48QuizPlay.getPracticeSaveStatusText(result);
+      return window.DJ48QuizRender.renderPracticeSaveStatus(result);
     }
 
     function nextQuestion() {
@@ -7295,11 +6557,6 @@
       });
     }
 
-    async function saveRankingRecordOnQuizComplete() {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.saveRankingRecordOnQuizComplete(deps, TEST_SHOP_USER_ID);
-    }
-
     function getPracticeQuestionId(question) {
       return window.DJ48QuizPlay.getPracticeQuestionId(question);
     }
@@ -7326,21 +6583,6 @@
       });
     }
 
-    async function grantPracticeCorrectReward(memberUserId, rewardCoin, context) {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps);
-    }
-
-    async function syncMemberTitlesAfterPracticeCompletion(memberUserId, context) {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps);
-    }
-
-    async function savePracticeProgressAfterCorrectAnswer(question) {
-      const deps = getQuizPlayDeps();
-      return window.DJ48QuizFlow.savePracticeProgressAfterCorrectAnswer(question, deps, TEST_SHOP_USER_ID);
-    }
-
     function showQuizComplete(options = {}) {
       clearRankingQuestionTimer();
       clearRankingSessionTimer();
@@ -7349,26 +6591,25 @@
       return window.DJ48QuizPlay.showQuizComplete(options, {
         ...deps,
         getQuizPlayRoot: () => document.getElementById('quiz-play-root'),
-        saveRankingRecordOnQuizComplete,
+        saveRankingRecordOnQuizComplete: () => window.DJ48QuizFlow.saveRankingRecordOnQuizComplete(getQuizPlayDeps(), TEST_SHOP_USER_ID),
         renderRankingSaveStatus
       });
     }
 
     function renderRankingSaveStatus(result) {
-      const status = document.getElementById('ranking-save-status');
-      if(!status) return;
-      const deps = getQuizPlayDeps();
-      status.textContent = window.DJ48QuizPlay.getRankingSaveStatusText(result, {
-        invalidRankingTimeMessage: deps.getInvalidRankingTimeMessage()
-      });
+      return window.DJ48QuizRender.renderRankingSaveStatus(result, getQuizPlayDeps());
     }
 
     function leaveQuizPlaySession() {
-      clearRankingQuestionTimer();
-      clearRankingSessionTimer();
-      finishPopularUsageSession();
-      const classroomView = document.getElementById('classroom-view');
-      if(classroomView) classroomView.hidden = true;
+      return window.DJ48QuizFlow.leaveQuizPlaySession({
+        clearRankingQuestionTimer,
+        clearRankingSessionTimer,
+        finishPopularUsageSession,
+        hideClassroomView: () => {
+          const classroomView = document.getElementById('classroom-view');
+          if(classroomView) classroomView.hidden = true;
+        }
+      });
     }
 
     function getQuizPlayEventDeps() {
@@ -7458,7 +6699,7 @@
           loadAdminFeatureFlags().catch(error => {
             console.warn('Admin feature flags load failed.', error);
             setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
-            setAdminFeatureFlagsForm(featureFlagsCache || DEFAULT_FEATURE_FLAGS);
+            setAdminFeatureFlagsForm(getActiveFeatureFlags());
           });
           loadAdminLogs().catch(error => {
             console.warn('Admin logs load failed.', error);
@@ -7653,179 +6894,144 @@
     }
 
     function getAppBootstrapControllerSections() {
-      return [
-        {
-          name: 'app',
-          controller: window.DJ48AppEvents,
-          bind: 'bindCommonAppEvents',
-          events: {
-            openPlaceModal,
-            refreshCurrentAppData,
-            setGlobalRefreshNeedsAttention,
-            closePlaceModal,
-            showSchoolView,
-            showHomeView,
-            showRankingView,
-            showShopView,
-            showEventView,
-            showClassroomView,
-            showQuizSelectView,
-            showTownView,
-            handleRankingBoardRootClick,
-            isRoomDecorPortraitBlocked
-          }
+      return window.DJ48AppBootstrap.getDefaultControllerSections({
+        appEventsController: window.DJ48AppEvents,
+        commonAppEvents: {
+          openPlaceModal,
+          refreshCurrentAppData,
+          setGlobalRefreshNeedsAttention,
+          closePlaceModal,
+          showSchoolView,
+          showHomeView,
+          showRankingView,
+          showShopView,
+          showEventView,
+          showClassroomView,
+          showQuizSelectView,
+          showTownView,
+          handleRankingBoardRootClick,
+          isRoomDecorPortraitBlocked
         },
-        {
-          name: 'event',
-          controller: window.DJ48EventController,
-          bind: 'bindEventPlazaEvents',
-          events: {
-            claimEventQuestReward
-          }
+        eventController: window.DJ48EventController,
+        eventEvents: {
+          claimEventQuestReward
         },
-        {
-          name: 'classroom',
-          controller: window.DJ48ClassroomController,
-          bind: 'bindClassroomEvents',
-          events: {
-            handleClassroomEntrySubmit,
-            saveClassroomQuestFromForm,
-            awardClassroomBadgeCampaignFromForm,
-            saveClassroomJobFromForm,
-            saveClassroomShopItemFromForm,
-            saveClassroomRoutineFromForm,
-            setActiveClassroomTab,
-            completeClassroomCheckQuest,
-            setClassroomSelectedGemBadge,
-            applyClassroomJob,
-            assignClassroomJob,
-            releaseClassroomJob,
-            claimClassroomJobSalary,
-            purchaseClassroomShopItem,
-            checkClassroomRoutine,
-            reviewClassroomQuestProgress
-          }
+        classroomController: window.DJ48ClassroomController,
+        classroomEvents: {
+          handleClassroomEntrySubmit,
+          saveClassroomQuestFromForm,
+          awardClassroomBadgeCampaignFromForm,
+          saveClassroomJobFromForm,
+          saveClassroomShopItemFromForm,
+          saveClassroomRoutineFromForm,
+          setActiveClassroomTab,
+          completeClassroomCheckQuest,
+          setClassroomSelectedGemBadge,
+          applyClassroomJob,
+          assignClassroomJob,
+          releaseClassroomJob,
+          claimClassroomJobSalary,
+          purchaseClassroomShopItem,
+          checkClassroomRoutine,
+          reviewClassroomQuestProgress
         },
-        {
-          name: 'school',
-          controller: window.DJ48SchoolController,
-          bind: 'bindSchoolQuizSelectEvents',
-          events: {
-            showExternalQuizLinks,
-            ensurePopularSubjectAccess,
-            showSubjectView,
-            showSchoolView,
-            showQuizSelectView,
-            showQuizPlayView,
-            getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
-            getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
-          }
+        schoolController: window.DJ48SchoolController,
+        schoolEvents: {
+          showExternalQuizLinks,
+          ensurePopularSubjectAccess,
+          showSubjectView,
+          showSchoolView,
+          showQuizSelectView,
+          showQuizPlayView,
+          getCurrentSubjectId: () => window.DJ48QuizSessionState.getCurrentSubjectId(),
+          getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId()
         },
-        {
-          name: 'quiz',
-          controller: window.DJ48QuizController,
-          bind: 'bindQuizPlayEvents',
-          events: getQuizPlayEventDeps()
+        quizController: window.DJ48QuizController,
+        quizEvents: getQuizPlayEventDeps(),
+        shopController: window.DJ48ShopController,
+        shopEvents: {
+          purchaseShopItem,
+          saveRoomItemSelection
         },
-        {
-          name: 'shop',
-          controller: window.DJ48ShopController,
-          bind: 'bindShopRoomEvents',
-          events: {
-            purchaseShopItem,
-            saveRoomItemSelection
-          }
+        homeController: window.DJ48HomeController,
+        homeEvents: {
+          showRoomView,
+          saveProfileNicknameFromHome,
+          saveProfilePasswordFromHome,
+          searchProfileImageCandidatesFromHome,
+          saveSelectedProfileImageFromHome,
+          saveProfileRankingMessageFromHome,
+          handleProfileImageUploadFile,
+          closeProfileImageEditor,
+          updateProfileImageEditorPreview,
+          resetProfileImageEditorFromHome: () => {
+            const editorState = window.DJ48HomeState.getProfileImageEditorState();
+            if(!editorState) return;
+            const nextState = window.DJ48HomeState.setProfileImageEditorState({
+              ...editorState,
+              profileImageScale: 1,
+              profileImageOffsetX: 0,
+              profileImageOffsetY: 0
+            });
+            setProfileImageEditorControls(nextState);
+            updateProfileImageEditorPreview();
+          },
+          saveProfileImageEditorSelection,
+          setProfileImageEditorStatus,
+          openTitleCatalogModal,
+          renderProfileRankingRecordsFromFirestore,
+          saveProfileSelectedTitleFromHome,
+          renderHomeMemberDataFromFirestore
         },
-        {
-          name: 'home',
-          controller: window.DJ48HomeController,
-          bind: 'bindProfileHomeEvents',
-          events: {
-            showRoomView,
-            saveProfileNicknameFromHome,
-            saveProfilePasswordFromHome,
-            searchProfileImageCandidatesFromHome,
-            saveSelectedProfileImageFromHome,
-            saveProfileRankingMessageFromHome,
-            handleProfileImageUploadFile,
-            closeProfileImageEditor,
-            updateProfileImageEditorPreview,
-            resetProfileImageEditorFromHome: () => {
-              if(!profileImageEditorState) return;
-              profileImageEditorState = {
-                ...profileImageEditorState,
-                profileImageScale: 1,
-                profileImageOffsetX: 0,
-                profileImageOffsetY: 0
-              };
-              setProfileImageEditorControls(profileImageEditorState);
-              updateProfileImageEditorPreview();
-            },
-            saveProfileImageEditorSelection,
-            setProfileImageEditorStatus,
-            openTitleCatalogModal,
-            renderProfileRankingRecordsFromFirestore,
-            saveProfileSelectedTitleFromHome,
-            renderHomeMemberDataFromFirestore
-          }
+        adminController: window.DJ48AdminController,
+        adminEvents: {
+          hideAdminTemporaryPassword,
+          loadAdminMembers,
+          setAdminStatus,
+          loadAdminDashboard,
+          setAdminDashboardStatus,
+          loadAdminOperationalAudit,
+          setAdminAuditStatus,
+          loadAdminQuizQualityAudit,
+          setAdminQuizQualityStatus,
+          openAdminMemberDetail,
+          runAdminMemberAction,
+          closeAdminMemberDetailModal,
+          logoutAdminMember,
+          showTownView,
+          showClassroomView,
+          renderAdminClassroomReview,
+          setActiveAdminSection,
+          loadAdminNoticeBoard,
+          setAdminNoticeStatus,
+          saveAdminNoticeBoard,
+          loadAdminExternalQuizzes,
+          setAdminExternalQuizzesStatus,
+          saveAdminExternalQuizzes,
+          loadAdminLoginSettings,
+          setAdminLoginSettingsStatus,
+          saveAdminLoginSettings,
+          loadAdminFeatureFlags,
+          setAdminFeatureFlagsStatus,
+          saveAdminFeatureFlags,
+          resetAdminRoomCatalogForm,
+          loadAdminRoomCatalog,
+          setAdminRoomCatalogStatus,
+          saveAdminRoomCatalogItem,
+          setClassAdminPermission,
+          setAdminPermissionStatus,
+          loadAdminLogs,
+          setAdminLogsStatus
         },
-        {
-          name: 'admin',
-          controller: window.DJ48AdminController,
-          bind: 'bindAdminEvents',
-          events: {
-            hideAdminTemporaryPassword,
-            loadAdminMembers,
-            setAdminStatus,
-            loadAdminDashboard,
-            setAdminDashboardStatus,
-            loadAdminOperationalAudit,
-            setAdminAuditStatus,
-            loadAdminQuizQualityAudit,
-            setAdminQuizQualityStatus,
-            openAdminMemberDetail,
-            runAdminMemberAction,
-            closeAdminMemberDetailModal,
-            logoutAdminMember,
-            showTownView,
-            showClassroomView,
-            renderAdminClassroomReview,
-            setActiveAdminSection,
-            loadAdminNoticeBoard,
-            setAdminNoticeStatus,
-            saveAdminNoticeBoard,
-            loadAdminExternalQuizzes,
-            setAdminExternalQuizzesStatus,
-            saveAdminExternalQuizzes,
-            loadAdminLoginSettings,
-            setAdminLoginSettingsStatus,
-            saveAdminLoginSettings,
-            loadAdminFeatureFlags,
-            setAdminFeatureFlagsStatus,
-            saveAdminFeatureFlags,
-            resetAdminRoomCatalogForm,
-            loadAdminRoomCatalog,
-            setAdminRoomCatalogStatus,
-            saveAdminRoomCatalogItem,
-            setClassAdminPermission,
-            setAdminPermissionStatus,
-            loadAdminLogs,
-            setAdminLogsStatus
-          }
-        },
-        {
-          name: 'account',
-          controller: window.DJ48AccountController,
-          bind: 'bindAccountEvents',
-          events: {
-            handleMemberLinkSubmit,
-            setMemberLinkFormMode,
-            handleMemberPasswordResetClick,
-            handleMemberUnlinkClick,
-            handleMemberPasswordChangeClick
-          }
+        accountController: window.DJ48AccountController,
+        accountEvents: {
+          handleMemberLinkSubmit,
+          setMemberLinkFormMode,
+          handleMemberPasswordResetClick,
+          handleMemberUnlinkClick,
+          handleMemberPasswordChangeClick
         }
-      ];
+      });
     }
 
     window.DJ48AppBootstrap.startApp({

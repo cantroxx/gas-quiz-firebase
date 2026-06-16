@@ -190,6 +190,86 @@
     return `${base} · 생명력 ${'♥'.repeat(rankingLives)}`;
   }
 
+  function getKstDateKey(date = new Date()) {
+    const shifted = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  function isAfter4PmKst(date = new Date()) {
+    const shifted = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return shifted.getUTCHours() >= 16;
+  }
+
+  function getQuizCatalogEntry(quizId, deps = {}) {
+    const normalizeQuizId = deps.normalizeFirebaseQuizId || (value => String(value || '').trim());
+    const quizCatalog = deps.quizCatalog || {};
+    return quizCatalog[normalizeQuizId(quizId)] || quizCatalog[quizId] || {};
+  }
+
+  function isPopularQuiz(quizId, deps = {}) {
+    return getQuizCatalogEntry(quizId, deps).subjectId === 'popular';
+  }
+
+  function isEducationUnlockQuiz(quizId, deps = {}) {
+    return ['korean', 'social', 'math'].includes(getQuizCatalogEntry(quizId, deps).subjectId);
+  }
+
+  function buildDailyUsageRecordId(memberUserId, dateKey = getKstDateKey()) {
+    return `${memberUserId}__${dateKey}`;
+  }
+
+  function normalizeDailyUsageData(data = {}, options = {}) {
+    const memberUserId = options.memberUserId || '';
+    const dateKey = options.dateKey || getKstDateKey();
+    return {
+      recordId: data.recordId || buildDailyUsageRecordId(memberUserId, dateKey),
+      memberUserId: data.memberUserId || memberUserId || '',
+      userId: data.userId || data.memberUserId || memberUserId || '',
+      date: data.date || dateKey,
+      funSeconds: Math.max(0, Math.round(Number(data.funSeconds) || 0)),
+      after4FunSeconds: Math.max(0, Math.round(Number(data.after4FunSeconds) || 0)),
+      eduCorrectCount: Math.max(0, Math.round(Number(data.eduCorrectCount) || 0)),
+      unlockBaseEduCorrectCount: Math.max(0, Math.round(Number(data.unlockBaseEduCorrectCount) || 0))
+    };
+  }
+
+  function getDailyUsageAccessStatus(usage = {}, limits = {}) {
+    const softLimitSeconds = Math.max(0, Number(limits.softLimitSeconds) || 0);
+    const after4HardLimitSeconds = Math.max(0, Number(limits.after4HardLimitSeconds) || 0);
+    const unlockCorrectCount = Math.max(0, Number(limits.unlockCorrectCount) || 0);
+    const funSeconds = Number(usage.funSeconds) || 0;
+    const after4FunSeconds = Number(usage.after4FunSeconds) || 0;
+    const unlockBase = Math.max(0, Number(usage.unlockBaseEduCorrectCount) || 0);
+    const unlockProgress = funSeconds >= softLimitSeconds
+      ? Math.max(0, (Number(usage.eduCorrectCount) || 0) - unlockBase)
+      : 0;
+    const softLocked = funSeconds >= softLimitSeconds && unlockProgress < unlockCorrectCount;
+    const hardLocked = after4FunSeconds >= after4HardLimitSeconds;
+    const locked = softLocked || hardLocked;
+    return {
+      ...usage,
+      unlockProgress,
+      unlockRemainingCorrect: Math.max(0, unlockCorrectCount - unlockProgress),
+      softLocked,
+      hardLocked,
+      locked,
+      message: hardLocked
+        ? '오늘의 인기퀴즈 이용 시간이 모두 끝났어요. 국어·수학·사회 퀴즈를 풀며 내일 다시 도전해 주세요.'
+        : (softLocked ? `인기퀴즈 시간이 끝났어요. 국어·수학·사회 퀴즈에서 ${Math.max(0, unlockCorrectCount - unlockProgress)}문제를 더 맞히면 다시 이용할 수 있어요.` : '')
+    };
+  }
+
+  function getPopularUsageNoticeText(status, options = {}) {
+    if(!status) return '인기퀴즈 이용 시간을 확인하지 못했어요.';
+    if(status.locked) return '오늘은 마감';
+    const softLimitSeconds = Math.max(0, Number(options.softLimitSeconds) || 0);
+    const after4HardLimitSeconds = Math.max(0, Number(options.after4HardLimitSeconds) || 0);
+    const baseRemaining = Math.max(0, softLimitSeconds - (Number(status.funSeconds) || 0));
+    const after4Remaining = Math.max(0, after4HardLimitSeconds - (Number(status.after4FunSeconds) || 0));
+    const effectiveRemaining = isAfter4PmKst(options.now || new Date()) ? Math.min(baseRemaining, after4Remaining) : baseRemaining;
+    return effectiveRemaining >= 60 ? '이용가능' : '끝이 보여요';
+  }
+
   return {
     getKoreanInitials,
     getCurrentQuestionAnswerText,
@@ -209,6 +289,14 @@
     getPracticeQuestionId,
     getPracticeQuestionIdCandidates,
     getQuizPlayHeaderTitle,
-    getQuizProgressText
+    getQuizProgressText,
+    getKstDateKey,
+    isAfter4PmKst,
+    isPopularQuiz,
+    isEducationUnlockQuiz,
+    buildDailyUsageRecordId,
+    normalizeDailyUsageData,
+    getDailyUsageAccessStatus,
+    getPopularUsageNoticeText
   };
 });

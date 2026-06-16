@@ -8,7 +8,14 @@ const {
   getQuizPlayKeyAction,
   splitPracticeQuestionsBySolvedState,
   getPracticeQuestionIdCandidates,
-  getQuizProgressText
+  getQuizProgressText,
+  getKstDateKey,
+  isAfter4PmKst,
+  isPopularQuiz,
+  isEducationUnlockQuiz,
+  normalizeDailyUsageData,
+  getDailyUsageAccessStatus,
+  getPopularUsageNoticeText
 } = require('../../public/js/domain/quiz-domain.js');
 
 function testKoreanInitialsAndTinipingHint() {
@@ -78,12 +85,61 @@ function testProgressText() {
   assert.equal(getQuizProgressText({ questionIndex: 2, questionCount: 5, modeId: 'ranking', rankingLives: 2 }), '문제 3 / 5 · 생명력 ♥♥');
 }
 
+function testPopularQuizPolicy() {
+  const quizCatalog = {
+    'dad-joke': { subjectId: 'popular' },
+    spelling: { subjectId: 'korean' },
+    gmo: { subjectId: 'science' }
+  };
+  assert.equal(isPopularQuiz('dad-joke', { quizCatalog }), true);
+  assert.equal(isEducationUnlockQuiz('spelling', { quizCatalog }), true);
+  assert.equal(isEducationUnlockQuiz('gmo', { quizCatalog }), false);
+}
+
+function testDailyUsagePolicy() {
+  assert.equal(getKstDateKey(new Date('2026-06-15T15:00:00.000Z')), '2026-06-16');
+  assert.equal(isAfter4PmKst(new Date('2026-06-16T07:00:00.000Z')), true);
+  assert.deepEqual(
+    normalizeDailyUsageData({ funSeconds: 61.4, after4FunSeconds: -2 }, { memberUserId: 'm1', dateKey: '2026-06-16' }),
+    {
+      recordId: 'm1__2026-06-16',
+      memberUserId: 'm1',
+      userId: 'm1',
+      date: '2026-06-16',
+      funSeconds: 61,
+      after4FunSeconds: 0,
+      eduCorrectCount: 0,
+      unlockBaseEduCorrectCount: 0
+    }
+  );
+  const status = getDailyUsageAccessStatus({
+    funSeconds: 1200,
+    after4FunSeconds: 0,
+    eduCorrectCount: 1,
+    unlockBaseEduCorrectCount: 0
+  }, {
+    softLimitSeconds: 1200,
+    after4HardLimitSeconds: 600,
+    unlockCorrectCount: 3
+  });
+  assert.equal(status.softLocked, true);
+  assert.equal(status.locked, true);
+  assert.equal(status.unlockRemainingCorrect, 2);
+  assert.equal(getPopularUsageNoticeText(status, {
+    softLimitSeconds: 1200,
+    after4HardLimitSeconds: 600,
+    now: new Date('2026-06-16T06:00:00.000Z')
+  }), '오늘은 마감');
+}
+
 function run() {
   testKoreanInitialsAndTinipingHint();
   testAnswerSubmitResult();
   testKeyboardAction();
   testPracticeQuestionSplit();
   testProgressText();
+  testPopularQuizPolicy();
+  testDailyUsagePolicy();
   console.log('Domain tests passed: quiz-domain');
 }
 

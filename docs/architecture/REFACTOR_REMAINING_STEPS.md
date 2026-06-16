@@ -1,5 +1,7 @@
 # DJ48 Firebase Refactor Status
 
+> Current note: this document is an archive of the earlier refactor timeline. Do not use it as the current restart plan. For the current strict clean-architecture target, ownership rules, completed 1~7 sequence, and next execution order, use `docs/architecture/PARALLEL_WORK_PLAN.md` and `docs/architecture/CLEAN_ARCHITECTURE_TARGET.md`.
+
 ## Current Baseline
 
 - First clean-architecture refactor round is closed through Step 13I.

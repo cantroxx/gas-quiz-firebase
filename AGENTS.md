@@ -40,6 +40,31 @@
 * 사용자에게 확인받기 전 코드 이동을 커밋하려면 최소 `npm run check:static`을 통과시킨다.
 * 운영 화면에 영향을 주는 변경은 배포 전 `npm run check` 또는 동등한 browser smoke 검증을 통과시킨다.
 
+## 임시 재개 메모
+
+* 2026-06-16 기준 현재 진행 묶음은 엄격한 클린 아키텍처 1~24 순차 진행이다.
+* 완료된 마지막 커밋은 여전히 `f815874 docs: update parallel architecture work plan`이며, 이번 1~24 작업은 아직 커밋하지 않았다.
+* 완료 범위:
+  * quiz application usecases
+  * quiz repository adapter
+  * admin application usecases
+  * profile write usecases
+  * account repository adapter
+  * bootstrap controller dependency grouping
+  * targeted quiz completion smoke hardening
+  * quiz render/session/popular usage 분리
+  * home/profile, admin, account auth lifecycle state 일부 이전
+  * home/shop/admin/classroom/event repository adapter 추가
+  * ranking profile rank context repository 이동
+  * bootstrap controller binding metadata 축소
+  * parallel architecture work plan 문서 갱신
+* 마지막 검증:
+  * `npm run check` 통과
+  * `SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:browser` 운영 사이트 인증 smoke 통과
+* 다음 작업 기준 문서는 `docs/architecture/PARALLEL_WORK_PLAN.md`이다.
+* 다음 추천 방향은 `public/index.html`의 남은 회원/profile/quiz/ranking orchestration 축소와 targeted authenticated smoke 확대이다.
+* 이 메모는 재개용 임시 기록이다. 다음 목표가 확정되면 유지/삭제/갱신 여부를 보고한다.
+
 ## 기본 원칙
 
 * 프로젝트 전체를 매번 분석하지 않는다.

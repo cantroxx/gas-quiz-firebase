@@ -4,22 +4,22 @@ This document records the current parallel-work rules for the stricter clean-arc
 
 ## Completion State
 
-- `public/index.html` is still the main app shell and state owner, but controller dependency binding is grouped by feature section through `getAppBootstrapControllerSections()`.
+- `public/index.html` is still the main app shell and integration owner, but feature render/session/repository boundaries are broader and controller binding metadata is delegated to `public/js/app/bootstrap.js`.
 - Extracted modules already exist under `public/js/core`, `public/js/data`, `public/js/domain`, `public/js/application`, `public/js/infrastructure`, `public/js/features`, and `public/js/app`.
 - Browser smoke automation exists under `scripts/smoke`.
 - Project documents and scripts are grouped by domain.
 - Current architecture round has added application usecases for admin, account, classroom, event, home, profile, quiz, ranking, and shop.
-- Infrastructure repositories currently exist for account, quiz, and ranking.
+- Infrastructure repositories currently exist for account, admin, classroom, event, home, quiz, ranking, and shop.
 
 ## Ownership Rules
 
-- Admin: `public/js/features/admin-*`, `public/js/application/admin-usecases.js`, admin sections in `public/index.html`, admin callable docs.
+- Admin: `public/js/features/admin-*`, `public/js/application/admin-usecases.js`, `public/js/infrastructure/admin-repository.js`, admin sections in `public/index.html`, admin callable docs.
 - Account/login: `public/js/domain/account-domain.js`, `public/js/features/account-*`, `public/js/application/account-usecases.js`, `public/js/infrastructure/account-repository.js`, member auth/session/linking wrappers in `public/index.html`.
-- Profile/home: `public/js/features/home-*`, `public/js/application/home-usecases.js`, `public/js/application/profile-usecases.js`, profile save/upload/title/badge wrappers in `public/index.html`.
-- Shop/room: `public/js/domain/shop-domain.js`, `public/js/features/shop-*`, `public/js/application/shop-usecases.js`, `public/room.js`, `public/room.css`, room/shop write wrappers in `public/index.html`.
+- Profile/home: `public/js/features/home-*`, `public/js/application/home-usecases.js`, `public/js/application/profile-usecases.js`, `public/js/infrastructure/home-repository.js`, profile save/upload/title/badge wrappers in `public/index.html`.
+- Shop/room: `public/js/domain/shop-domain.js`, `public/js/features/shop-*`, `public/js/application/shop-usecases.js`, `public/js/infrastructure/shop-repository.js`, `public/room.js`, `public/room.css`, room/shop write wrappers in `public/index.html`.
 - Quiz: `public/js/domain/quiz-domain.js`, `public/js/features/quiz-*`, `public/js/application/quiz-usecases.js`, `public/js/infrastructure/quiz-repository.js`, `public/js/data/quiz-catalog.js`, remaining quiz-play wrappers in `public/index.html`.
 - Ranking: `public/js/domain/ranking-domain.js`, `public/js/features/ranking-*`, `public/js/application/ranking-usecases.js`, `public/js/infrastructure/ranking-repository.js`, ranking plaza/profile ranking wrappers in `public/index.html`.
-- Classroom/event: `public/js/domain/classroom-domain.js`, `public/js/domain/event-domain.js`, `public/js/features/classroom-*`, `public/js/features/event-*`, `public/js/application/classroom-usecases.js`, `public/js/application/event-usecases.js`.
+- Classroom/event: `public/js/domain/classroom-domain.js`, `public/js/domain/event-domain.js`, `public/js/features/classroom-*`, `public/js/features/event-*`, `public/js/application/classroom-usecases.js`, `public/js/application/event-usecases.js`, `public/js/infrastructure/classroom-repository.js`, `public/js/infrastructure/event-repository.js`.
 - App shell/view/bootstrap: `public/js/features/app-view.js`, `public/js/features/app-events.js`, `public/js/app/bootstrap.js`, exclusive sections of `public/index.html`.
 - Verification/docs: `scripts/smoke`, `docs/operations`, `docs/architecture`.
 
@@ -162,27 +162,51 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 5. Added account repository adapter and tests.
 6. Grouped bootstrap controller dependencies by feature section.
 7. Updated ownership rules and verification guidance.
+8. Hardened quiz completion browser smoke checks for practice/ranking persistence status and completion-card structure.
+9. Moved Firebase quiz question reads/builders into `public/js/infrastructure/quiz-repository.js`.
+10. Moved quiz session question assembly into `public/js/application/quiz-usecases.js`.
+11. Added `public/js/features/quiz-render.js` for quiz select/school/mode/Pokemon hub and quiz play DOM adapters.
+12. Moved popular quiz usage rules into `public/js/domain/quiz-domain.js`.
+13. Added `public/js/features/quiz-popular-session.js` for popular usage session/timer state.
+14. Split `getQuizPlayDeps()` into smaller feature-specific dependency factories.
+15. Thinned quiz save/reward/leave-session wrappers through `public/js/features/quiz-flow.js`.
+16. Moved profile image editor state into `public/js/features/home-state.js`.
+17. Added home read repository and application usecase coverage.
+18. Added shop/room repository and grouped shop cache accessors.
+19. Added admin repository and moved admin settings caches into `public/js/features/admin-state.js`.
+20. Added classroom repository and switched classroom Firebase/callable paths in `public/index.html` to the adapter.
+21. Added event repository and switched event callable paths in `public/index.html` to the adapter.
+22. Moved profile ranking rank-context Firestore query into `public/js/infrastructure/ranking-repository.js`.
+23. Moved account auth lifecycle state into `public/js/features/account-state.js`.
+24. Delegated bootstrap controller bind metadata to `public/js/app/bootstrap.js`.
 
 ## Recommended Next Goals
 
-1. Continue reducing `public/index.html` by moving feature-specific state application into feature/application modules.
-2. Add repositories for remaining Firebase-heavy areas:
-   - admin
-   - shop/room
-   - classroom
-   - event
-   - profile/home reads
-3. Move bootstrap dependency assembly out of inline `index.html` once remaining callbacks no longer depend on local-only variables.
-4. Add targeted browser smoke coverage for admin/account/profile write flows before moving more high-risk write logic.
+1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
+   - First candidates: current member/profile state, profile write orchestration, quiz timer/save wrappers, ranking render wrappers.
+   - Keep one integration owner for `public/index.html`.
+2. Add targeted browser smoke coverage for admin/account/profile write flows before moving more high-risk write logic.
+3. Continue moving Firebase-heavy logic out of `*-data.js` into the repository adapters when touching each feature.
+4. Move bootstrap dependency event object assembly out of inline `index.html` once remaining callbacks no longer depend on local-only variables.
 5. Keep the same validation gate:
    - `npm run check`
    - authenticated browser smoke with the 4-8-23 test account when user-visible runtime code changes.
 
 ## Parallel Terminal Shape
 
-- Terminal A: admin refactor.
-- Terminal B: verification/docs/check updates.
-- Terminal C: account or shop planning only until admin phase 2A is stable.
-- Terminal D: smoke testing and deploy verification.
+- Terminal A, UI/presentation: `public/styles.css`, `public/js/features/*-render.js`, `public/js/features/*-controller.js`.
+- Terminal B, quiz/ranking: `public/js/domain/quiz-domain.js`, `public/js/application/quiz-usecases.js`, `public/js/infrastructure/quiz-repository.js`, ranking domain/usecase/repository files.
+- Terminal C, data/repository/backend: `public/js/infrastructure/*-repository.js`, `public/js/features/*-data.js`, `functions/index.js`, Firestore/Storage rules.
+- Terminal D, verification/docs: `scripts/smoke`, `tests`, `docs/architecture`, `docs/operations`.
+- Terminal E, app shell integration: `public/index.html`, `public/js/app/bootstrap.js`; keep this exclusive.
 
 Do not run concurrent edits against `public/index.html` unless each terminal owns clearly separate line ranges and a final integration pass is planned.
+
+## Next Execution Order
+
+1. Add targeted authenticated smoke coverage for one high-risk account/profile/admin write flow.
+2. Move `currentMemberUserId/currentMemberProfile` state application behind account/home state helpers.
+3. Move one remaining quiz timer/save orchestration group out of `public/index.html`.
+4. Move one ranking render/profile wrapper group out of `public/index.html`.
+5. Re-run `npm run check` and authenticated browser smoke.
+6. Commit/push/deploy only when explicitly requested and smoke passes.

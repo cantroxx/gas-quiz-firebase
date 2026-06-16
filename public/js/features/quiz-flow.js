@@ -88,6 +88,13 @@
     });
   }
 
+  function leaveQuizPlaySession(callbacks = {}) {
+    callbacks.clearRankingQuestionTimer?.();
+    callbacks.clearRankingSessionTimer?.();
+    callbacks.finishPopularUsageSession?.();
+    callbacks.hideClassroomView?.();
+  }
+
   window.DJ48QuizFlow = {
     clearRankingQuestionTimer,
     clearRankingSessionTimer,
@@ -100,6 +107,7 @@
     saveRankingRecordOnQuizComplete,
     grantPracticeCorrectReward,
     syncMemberTitlesAfterPracticeCompletion,
-    savePracticeProgressAfterCorrectAnswer
+    savePracticeProgressAfterCorrectAnswer,
+    leaveQuizPlaySession
   };
 })();

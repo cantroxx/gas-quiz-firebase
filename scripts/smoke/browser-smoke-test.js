@@ -67,6 +67,7 @@ async function runPublicShellCheck(page, config) {
       quizCatalog: !!window.DJ48QuizCatalog,
       quizPlay: !!window.DJ48QuizPlay,
       adminData: !!window.DJ48AdminData,
+      adminRepository: hasScript('/js/infrastructure/admin-repository.js') ? !!window.DJ48AdminRepository : true,
       adminState: hasScript('/js/features/admin-state.js') ? !!window.DJ48AdminState : true,
       adminUsecases: hasScript('/js/application/admin-usecases.js') ? !!window.DJ48AdminUsecases : true,
       accountData: !!window.DJ48AccountData,
@@ -79,19 +80,23 @@ async function runPublicShellCheck(page, config) {
       appBootstrap: hasScript('/js/app/bootstrap.js') ? !!window.DJ48AppBootstrap : true,
       adminController: hasScript('/js/features/admin-controller.js') ? !!window.DJ48AdminController : true,
       homeState: hasScript('/js/features/home-state.js') ? !!window.DJ48HomeState : true,
+      homeRepository: hasScript('/js/infrastructure/home-repository.js') ? !!window.DJ48HomeRepository : true,
       homeUsecases: hasScript('/js/application/home-usecases.js') ? !!window.DJ48HomeUsecases : true,
       profileUsecases: hasScript('/js/application/profile-usecases.js') ? !!window.DJ48ProfileUsecases : true,
       homeController: hasScript('/js/features/home-controller.js') ? !!window.DJ48HomeController : true,
       eventState: hasScript('/js/features/event-state.js') ? !!window.DJ48EventState : true,
       eventDomain: hasScript('/js/domain/event-domain.js') ? !!window.DJ48EventDomain : true,
+      eventRepository: hasScript('/js/infrastructure/event-repository.js') ? !!window.DJ48EventRepository : true,
       eventUsecases: hasScript('/js/application/event-usecases.js') ? !!window.DJ48EventUsecases : true,
       eventController: hasScript('/js/features/event-controller.js') ? !!window.DJ48EventController : true,
       classroomState: hasScript('/js/features/classroom-state.js') ? !!window.DJ48ClassroomState : true,
       classroomDomain: hasScript('/js/domain/classroom-domain.js') ? !!window.DJ48ClassroomDomain : true,
+      classroomRepository: hasScript('/js/infrastructure/classroom-repository.js') ? !!window.DJ48ClassroomRepository : true,
       classroomUsecases: hasScript('/js/application/classroom-usecases.js') ? !!window.DJ48ClassroomUsecases : true,
       classroomController: hasScript('/js/features/classroom-controller.js') ? !!window.DJ48ClassroomController : true,
       shopState: hasScript('/js/features/shop-state.js') ? !!window.DJ48ShopState : true,
       shopUsecases: hasScript('/js/application/shop-usecases.js') ? !!window.DJ48ShopUsecases : true,
+      shopRepository: hasScript('/js/infrastructure/shop-repository.js') ? !!window.DJ48ShopRepository : true,
       shopController: hasScript('/js/features/shop-controller.js') ? !!window.DJ48ShopController : true,
       rankingState: hasScript('/js/features/ranking-state.js') ? !!window.DJ48RankingState : true,
       rankingRepository: hasScript('/js/infrastructure/ranking-repository.js') ? !!window.DJ48RankingRepository : true,
@@ -101,6 +106,8 @@ async function runPublicShellCheck(page, config) {
       quizController: hasScript('/js/features/quiz-controller.js') ? !!window.DJ48QuizController : true,
       quizDomain: hasScript('/js/domain/quiz-domain.js') ? !!window.DJ48QuizDomain : true,
       quizRepository: hasScript('/js/infrastructure/quiz-repository.js') ? !!window.DJ48QuizRepository : true,
+      quizRender: hasScript('/js/features/quiz-render.js') ? !!window.DJ48QuizRender : true,
+      quizPopularSession: hasScript('/js/features/quiz-popular-session.js') ? !!window.DJ48QuizPopularSession : true,
       quizFlow: hasScript('/js/features/quiz-flow.js') ? !!window.DJ48QuizFlow : true,
       quizUsecases: hasScript('/js/application/quiz-usecases.js') ? !!window.DJ48QuizUsecases : true,
       homeRender: !!window.DJ48HomeRender,
@@ -118,6 +125,7 @@ async function runPublicShellCheck(page, config) {
     quizCatalog: true,
     quizPlay: true,
     adminData: true,
+    adminRepository: true,
     adminState: true,
     adminUsecases: true,
     accountData: true,
@@ -130,19 +138,23 @@ async function runPublicShellCheck(page, config) {
     appBootstrap: true,
     adminController: true,
     homeState: true,
+    homeRepository: true,
     homeUsecases: true,
     profileUsecases: true,
     homeController: true,
     eventState: true,
     eventDomain: true,
+    eventRepository: true,
     eventUsecases: true,
     eventController: true,
     classroomState: true,
     classroomDomain: true,
+    classroomRepository: true,
     classroomUsecases: true,
     classroomController: true,
     shopState: true,
     shopUsecases: true,
+    shopRepository: true,
     shopController: true,
     rankingState: true,
     rankingRepository: true,
@@ -152,6 +164,8 @@ async function runPublicShellCheck(page, config) {
     quizController: true,
     quizDomain: true,
     quizRepository: true,
+    quizRender: true,
+    quizPopularSession: true,
     quizFlow: true,
     quizUsecases: true,
     homeRender: true,
@@ -256,15 +270,61 @@ async function answerCurrentQuestion(page, options = {}) {
   await waitForVisible(page, '.quiz-result-card');
 }
 
+async function expectPracticePersistenceStatus(page) {
+  const status = page.locator('#practice-save-status');
+  await status.waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForFunction(() => {
+    const text = document.getElementById('practice-save-status')?.textContent?.trim() || '';
+    return /기록 저장 완료|이미 맞힌 문제|기록 저장을 확인하지 못했어요/.test(text) && !/저장 중/.test(text);
+  }, null, { timeout: 20000 });
+  const text = (await status.innerText()).trim();
+  assert.match(
+    text,
+    /기록 저장 완료|이미 맞힌 문제|기록 저장을 확인하지 못했어요/,
+    `Unexpected practice persistence status: ${text}`
+  );
+  assert.doesNotMatch(text, /저장 중/, 'Practice persistence status did not settle.');
+}
+
+async function expectQuizCompleteCard(page, options = {}) {
+  await waitForVisible(page, '.quiz-complete-card');
+  const cardState = await page.locator('.quiz-complete-card').evaluate(card => ({
+    title: card.querySelector('h3')?.textContent?.trim() || '',
+    score: card.querySelector('.quiz-complete-score')?.textContent?.trim() || '',
+    rewardCount: card.querySelectorAll('.quiz-reward-card').length,
+    hasBackButton: !!card.querySelector('[data-back-to-quiz-select]')
+  }));
+  assert.equal(cardState.title, options.expectedTitle);
+  assert.match(cardState.score, /\d+문제 중 \d+개/);
+  assert.ok(cardState.rewardCount >= 2, 'Expected quiz completion reward/status cards.');
+  assert.equal(cardState.hasBackButton, true);
+}
+
+async function expectRankingPersistenceStatus(page) {
+  const status = page.locator('#ranking-save-status');
+  await status.waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForFunction(() => {
+    const text = document.getElementById('ranking-save-status')?.textContent?.trim() || '';
+    return /랭킹 기록 저장 완료|점수가 0점|랭킹 기록 저장을 확인하지 못했어요|20분이 초과되어/.test(text) && !/저장 중/.test(text);
+  }, null, { timeout: 20000 });
+  const text = (await status.innerText()).trim();
+  assert.match(
+    text,
+    /랭킹 기록 저장 완료|점수가 0점|랭킹 기록 저장을 확인하지 못했어요|20분이 초과되어/,
+    `Unexpected ranking persistence status: ${text}`
+  );
+  assert.doesNotMatch(text, /저장 중/, 'Ranking persistence status did not settle.');
+}
+
 async function runPracticeFlow(page, config) {
   await openQuiz(page, config, 'practice');
   await waitForVisible(page, '#quiz-play-view');
   await answerCurrentQuestion(page);
-  await page.locator('#practice-save-status').waitFor({ state: 'visible', timeout: 15000 });
+  await expectPracticePersistenceStatus(page);
   await page.click('[data-next-question]');
   await waitForVisible(page, '.quiz-question-card');
   await page.evaluate(() => window.showQuizComplete?.());
-  await waitForVisible(page, '.quiz-complete-card');
+  await expectQuizCompleteCard(page, { expectedTitle: '연습 완료' });
   await page.click('[data-back-to-quiz-select]');
   await waitForVisible(page, '#quiz-select-view');
 }
@@ -276,8 +336,8 @@ async function runRankingFlow(page, config) {
   const resultText = await page.locator('.quiz-result-card').innerText();
   assert.match(resultText, /오답|시간 초과|결과 보기|다음 문제/);
   await page.evaluate(() => window.showQuizComplete?.());
-  await waitForVisible(page, '.quiz-complete-card');
-  await page.locator('#ranking-save-status').waitFor({ state: 'visible', timeout: 15000 });
+  await expectQuizCompleteCard(page, { expectedTitle: '랭킹전 종료' });
+  await expectRankingPersistenceStatus(page);
   await page.click('[data-back-to-quiz-select]');
   await waitForVisible(page, '#quiz-select-view');
 }

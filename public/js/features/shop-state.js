@@ -55,6 +55,51 @@
     inventoryLoadPromise = null;
   }
 
+  function getShopItemsCacheAccessors() {
+    return {
+      getValue: getShopItems,
+      setValue: setShopItems,
+      getLoadPromise: getShopItemsLoadPromise,
+      setLoadPromise: setShopItemsLoadPromise
+    };
+  }
+
+  function getAssetCatalogCacheAccessors() {
+    return {
+      getValue: getAssetCatalogMap,
+      setValue: setAssetCatalogMap,
+      getLoadPromise: getAssetCatalogLoadPromise,
+      setLoadPromise: setAssetCatalogLoadPromise
+    };
+  }
+
+  function getUserEconomyCacheAccessors() {
+    return {
+      getValue: getUserEconomy,
+      setValue: setUserEconomy,
+      getLoadPromise: getUserEconomyLoadPromise,
+      setLoadPromise: setUserEconomyLoadPromise
+    };
+  }
+
+  function getInventoryCacheAccessors() {
+    return {
+      getValue: getInventoryItemIds,
+      setValue: setInventoryItemIds,
+      getLoadPromise: getInventoryLoadPromise,
+      setLoadPromise: setInventoryLoadPromise
+    };
+  }
+
+  function getRoomSettingsCacheAccessors() {
+    return {
+      getValue: getRoomSettings,
+      setValue: setRoomSettings,
+      getLoadPromise: getRoomSettingsLoadPromise,
+      setLoadPromise: setRoomSettingsLoadPromise
+    };
+  }
+
   window.DJ48ShopState = {
     getShopItems,
     setShopItems,
@@ -76,6 +121,11 @@
     setRoomSettings,
     getRoomSettingsLoadPromise,
     setRoomSettingsLoadPromise,
+    getShopItemsCacheAccessors,
+    getAssetCatalogCacheAccessors,
+    getUserEconomyCacheAccessors,
+    getInventoryCacheAccessors,
+    getRoomSettingsCacheAccessors,
     resetShopRuntimeData,
     resetUserEconomyCache,
     resetRoomSettingsCache

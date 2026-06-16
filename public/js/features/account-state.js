@@ -2,6 +2,9 @@
   let memberLinkInProgress = false;
   let memberLinkSubmitAction = 'login';
   let pendingPasswordChange = null;
+  let firebaseAuthUser = null;
+  let firebaseAuthInitPromise = null;
+  let authStateListenerAttached = false;
 
   function isMemberLinkInProgress() {
     return memberLinkInProgress;
@@ -34,6 +37,38 @@
     pendingPasswordChange = null;
   }
 
+  function getFirebaseAuthUser() {
+    return firebaseAuthUser;
+  }
+
+  function setFirebaseAuthUser(value) {
+    firebaseAuthUser = value || null;
+    return firebaseAuthUser;
+  }
+
+  function getFirebaseAuthInitPromise() {
+    return firebaseAuthInitPromise;
+  }
+
+  function setFirebaseAuthInitPromise(value) {
+    firebaseAuthInitPromise = value || null;
+    return firebaseAuthInitPromise;
+  }
+
+  function isAuthStateListenerAttached() {
+    return authStateListenerAttached;
+  }
+
+  function setAuthStateListenerAttached(value) {
+    authStateListenerAttached = !!value;
+    return authStateListenerAttached;
+  }
+
+  function resetFirebaseAuthState() {
+    firebaseAuthUser = null;
+    firebaseAuthInitPromise = null;
+  }
+
   window.DJ48AccountState = {
     isMemberLinkInProgress,
     setMemberLinkInProgress,
@@ -41,6 +76,13 @@
     setMemberLinkSubmitAction,
     getPendingPasswordChange,
     setPendingPasswordChange,
-    clearPendingPasswordChange
+    clearPendingPasswordChange,
+    getFirebaseAuthUser,
+    setFirebaseAuthUser,
+    getFirebaseAuthInitPromise,
+    setFirebaseAuthInitPromise,
+    isAuthStateListenerAttached,
+    setAuthStateListenerAttached,
+    resetFirebaseAuthState
   };
 })();

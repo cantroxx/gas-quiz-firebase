@@ -21,21 +21,20 @@ function createDoc(id, data = {}) {
 
 async function testLoadHomeMemberDataBuildsModel() {
   const calls = [];
-  const db = {
-    collection: name => ({
-      doc: id => ({
-        get: async () => {
-          calls.push(['get', name, id]);
-          return createDocSnapshot({ selectedTitleId: 'title-1' });
-        },
-        collection: childName => ({
-          get: async () => {
-            calls.push(['get-sub', name, id, childName]);
-            return createCollectionSnapshot([createDoc('owned-1', { name: '획득' })]);
-          }
-        })
-      })
-    })
+  const homeRepository = {
+    getUserEconomyForRender: async () => ({ djCoin: 7 }),
+    getUserTitleSummary: async memberUserId => {
+      calls.push(['title-summary', memberUserId]);
+      return createDocSnapshot({ selectedTitleId: 'title-1' });
+    },
+    getUserTitles: async memberUserId => {
+      calls.push(['titles', memberUserId]);
+      return createCollectionSnapshot([createDoc('owned-1', { name: '획득' })]);
+    },
+    getUserBadges: async memberUserId => {
+      calls.push(['badges', memberUserId]);
+      return createCollectionSnapshot([createDoc('badge-1', { name: '뱃지' })]);
+    }
   };
 
   const result = await usecases.loadHomeMemberData({
@@ -44,11 +43,10 @@ async function testLoadHomeMemberDataBuildsModel() {
     profileData: {},
     userRewardData: {}
   }, {
-    getFirestoreDb: () => db,
+    homeRepository,
     initializeAuthUser: async () => calls.push(['auth']),
     loadFeatureFlags: async () => calls.push(['flags']),
     getCurrentDataOwnerId: () => 'owner-a',
-    getUserEconomyForRender: async () => ({ djCoin: 7 }),
     buildHomeMemberModel: data => ({ builtFrom: data.memberUserId, economy: data.economy, dataOwnerId: data.dataOwnerId })
   });
 

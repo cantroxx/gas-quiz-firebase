@@ -52,8 +52,8 @@ Optional variables:
 
 - Login shell and extracted browser globals
 - Authenticated login
-- Practice quiz start, answer submit, next question, completion
-- Ranking quiz start, wrong answer heart/result path, completion save status
+- Practice quiz start, answer submit, persistence status settle check, next question, completion card structure
+- Ranking quiz start, wrong answer heart/result path, completion card structure, persistence status settle check
 - Home/profile detail toggles
 - Ranking plaza entry
 - Shop entry

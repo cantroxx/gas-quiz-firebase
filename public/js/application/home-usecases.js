@@ -4,27 +4,27 @@
   root.DJ48HomeUsecases = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function () {
   async function loadHomeMemberData(options = {}, deps = {}) {
-    const db = deps.getFirestoreDb?.();
-    if(!db) throw new Error('firestore-unavailable');
+    const repository = deps.homeRepository || deps.createHomeRepository?.();
+    if(!repository) throw new Error('home-repository-unavailable');
     await deps.initializeAuthUser?.();
     await deps.loadFeatureFlags?.();
 
     const dataOwnerId = deps.getCurrentDataOwnerId?.() || '';
     const memberUserId = options.memberUserId || '';
     const profile = options.profile || null;
-    const economyPromise = deps.getUserEconomyForRender()
+    const economyPromise = repository.getUserEconomyForRender()
       .catch(error => {
         deps.warn?.('Home userEconomy read failed. Using profile fallback economy.', error);
         return null;
       });
     const titleSummaryPromise = memberUserId
-      ? db.collection('userTitleSummary').doc(memberUserId).get().catch(() => null)
+      ? repository.getUserTitleSummary(memberUserId)
       : Promise.resolve(null);
     const titlesPromise = memberUserId
-      ? db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null)
+      ? repository.getUserTitles(memberUserId)
       : Promise.resolve(null);
     const badgesPromise = memberUserId
-      ? db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null)
+      ? repository.getUserBadges(memberUserId)
       : Promise.resolve(null);
 
     const [economy, titleSummarySnapshot, titlesSnapshot, badgesSnapshot] = await Promise.all([
