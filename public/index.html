@@ -1381,6 +1381,7 @@
   <script src="/js/features/account-form.js"></script>
   <script src="/js/features/account-data.js"></script>
   <script src="/js/features/account-state.js"></script>
+  <script src="/js/application/account-usecases.js"></script>
   <script src="/js/features/account-controller.js"></script>
   <script src="/js/features/app-view.js"></script>
   <script src="/js/features/app-events.js"></script>
@@ -4783,110 +4784,106 @@
 
     async function handleMemberUnlinkClick() {
       const button = document.getElementById('member-unlink-button');
-      if(button) button.disabled = true;
-      setMemberLinkStatus('현재 브라우저의 회원 연결을 해제하고 있습니다...');
-
-      try {
-        await unlinkCurrentMemberForTesting();
-        renderMemberLinkPanel();
-        renderProfileCard();
-        renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
-        renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
-        renderHomeOwnedItemsFallback();
-        setMemberLinkStatus('현재 브라우저 연결을 초기화했어요. 다른 학생 정보로 다시 연결할 수 있습니다.');
-        showLoginView();
-      } catch(error) {
-        console.warn('Member auth unlink failed.', error);
-        setMemberLinkStatus(window.DJ48AccountForm.getMemberUnlinkErrorMessage(error), true);
-        renderMemberLinkPanel();
-      }
+      return window.DJ48AccountUsecases.unlinkCurrentMemberFlow({
+        button,
+        pendingMessage: '현재 브라우저의 회원 연결을 해제하고 있습니다...',
+        successMessage: '현재 브라우저 연결을 초기화했어요. 다른 학생 정보로 다시 연결할 수 있습니다.'
+      }, {
+        unlinkCurrentMemberForTesting,
+        renderLoggedOutHomeState: () => {
+          renderMemberLinkPanel();
+          renderProfileCard();
+          renderCollectionCards('title-card-grid', TITLE_DATA, 'title-card');
+          renderCollectionCards('badge-card-grid', BADGE_DATA, 'badge-card');
+          renderHomeOwnedItemsFallback();
+        },
+        setMemberLinkStatus,
+        getMemberUnlinkErrorMessage: window.DJ48AccountForm.getMemberUnlinkErrorMessage,
+        renderMemberLinkPanel,
+        showLoginView,
+        warn: console.warn
+      });
     }
 
     async function handleMemberPasswordChangeClick() {
       const button = document.getElementById('member-password-change-button');
-      const { newPassword, passwordConfirm } = getMemberPasswordChangeValues();
-      const buttonState = window.DJ48AccountForm.setButtonBusy(button, '저장 중...');
-
-      try {
-        const result = await changeCurrentMemberPassword(newPassword, passwordConfirm);
-        renderMemberLinkPanel();
-        setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordChangeSuccessMessage());
-        const destination = window.DJ48AccountForm.getMemberLinkDestination(result?.profile || {}, currentMemberProfile);
-        if(destination === 'admin') showAdminView();
-        else showTownView();
-      } catch(error) {
-        console.warn('Member password change failed.', error);
-        appendMemberLinkError(window.DJ48AccountForm.getMemberPasswordChangeErrorMessage(error));
-      } finally {
-        const nextButton = document.getElementById('member-password-change-button');
-        window.DJ48AccountForm.restoreButtonState(nextButton, buttonState);
-      }
+      return window.DJ48AccountUsecases.changePendingMemberPasswordFlow({
+        button,
+        busyText: '저장 중...'
+      }, {
+        getMemberPasswordChangeValues,
+        setButtonBusy: window.DJ48AccountForm.setButtonBusy,
+        restoreButtonState: window.DJ48AccountForm.restoreButtonState,
+        getPasswordChangeButton: () => document.getElementById('member-password-change-button'),
+        changeCurrentMemberPassword,
+        renderMemberLinkPanel,
+        setMemberLinkStatus,
+        getMemberPasswordChangeSuccessMessage: window.DJ48AccountForm.getMemberPasswordChangeSuccessMessage,
+        getMemberPasswordChangeErrorMessage: window.DJ48AccountForm.getMemberPasswordChangeErrorMessage,
+        appendMemberLinkError,
+        openMemberDestination: profile => {
+          const destination = window.DJ48AccountForm.getMemberLinkDestination(profile, currentMemberProfile);
+          if(destination === 'admin') showAdminView();
+          else showTownView();
+        },
+        warn: console.warn
+      });
     }
 
     async function handleMemberPasswordResetClick() {
-      if(window.DJ48AccountState.isMemberLinkInProgress()) return;
-      const values = getMemberLinkFormValues();
-      const temporaryPassword = getTemporaryPasswordText(values);
-      if(!temporaryPassword) {
-        setMemberLinkStatus('학교, 학년, 반, 번호를 먼저 입력해 주세요.', true);
-        return;
-      }
-      const confirmed = window.confirm(window.DJ48AccountForm.getMemberPasswordResetConfirmMessage(temporaryPassword));
-      if(!confirmed) return;
-
       const button = document.getElementById('member-password-reset-button');
-      const buttonState = window.DJ48AccountForm.setButtonBusy(button, '초기화 중...');
-      window.DJ48AccountState.setMemberLinkInProgress(true);
-      setMemberLinkStatus('비밀번호를 임시 비밀번호로 바꾸고 있습니다...');
-
-      try {
-        const result = await window.DJ48AccountData.resetMemberPasswordToTemporary({
-          school: values.school || DEFAULT_MEMBER_SCHOOL,
-          grade: values.grade,
-          classNumber: values.classNumber,
-          studentNumber: values.studentNumber
-        }, {
+      return window.DJ48AccountUsecases.resetMemberPasswordFlow({
+        button,
+        defaultMemberSchool: DEFAULT_MEMBER_SCHOOL,
+        identityRequiredMessage: '학교, 학년, 반, 번호를 먼저 입력해 주세요.',
+        pendingMessage: '비밀번호를 임시 비밀번호로 바꾸고 있습니다...',
+        busyText: '초기화 중...'
+      }, {
+        isMemberLinkInProgress: window.DJ48AccountState.isMemberLinkInProgress,
+        setMemberLinkInProgress: window.DJ48AccountState.setMemberLinkInProgress,
+        getMemberLinkFormValues,
+        getTemporaryPasswordText,
+        getMemberPasswordResetConfirmMessage: window.DJ48AccountForm.getMemberPasswordResetConfirmMessage,
+        getMemberPasswordResetSuccessMessage: window.DJ48AccountForm.getMemberPasswordResetSuccessMessage,
+        getMemberPasswordResetErrorMessage: window.DJ48AccountForm.getMemberPasswordResetErrorMessage,
+        resetMemberPasswordToTemporary: payload => window.DJ48AccountData.resetMemberPasswordToTemporary(payload, {
           getFirebaseFunctions,
           initializeAuthUser
-        });
-        setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordResetSuccessMessage(temporaryPassword));
-      } catch(error) {
-        console.warn('Member password reset failed.', error);
-        setMemberLinkStatus(window.DJ48AccountForm.getMemberPasswordResetErrorMessage(error), true);
-      } finally {
-        window.DJ48AccountState.setMemberLinkInProgress(false);
-        window.DJ48AccountForm.restoreButtonState(button, buttonState);
-      }
+        }),
+        setButtonBusy: window.DJ48AccountForm.setButtonBusy,
+        restoreButtonState: window.DJ48AccountForm.restoreButtonState,
+        setMemberLinkStatus,
+        confirm: window.confirm,
+        warn: console.warn
+      });
     }
 
     async function handleMemberLinkSubmit(event) {
       event.preventDefault();
-      if(window.DJ48AccountState.isMemberLinkInProgress()) return;
-
-      window.DJ48AccountState.setMemberLinkInProgress(true);
-      window.DJ48AccountState.setMemberLinkSubmitAction(event.submitter?.value || window.DJ48AccountState.getMemberLinkSubmitAction() || 'login');
-      const values = getMemberLinkFormValues();
-      setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitPendingMessage(values));
-
-      try {
-        const profile = await linkImportedMemberToCurrentAuthUser(values);
-        renderMemberLinkPanel();
-        setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitSuccessMessage(profile));
-        if(window.DJ48AccountForm.shouldWaitForRequiredPasswordChange({
+      return window.DJ48AccountUsecases.submitMemberLinkFlow({
+        submitAction: event.submitter?.value
+      }, {
+        isMemberLinkInProgress: window.DJ48AccountState.isMemberLinkInProgress,
+        setMemberLinkInProgress: window.DJ48AccountState.setMemberLinkInProgress,
+        getMemberLinkSubmitAction: window.DJ48AccountState.getMemberLinkSubmitAction,
+        setMemberLinkSubmitAction: window.DJ48AccountState.setMemberLinkSubmitAction,
+        getMemberLinkFormValues,
+        setMemberLinkStatus,
+        getMemberLinkSubmitPendingMessage: window.DJ48AccountForm.getMemberLinkSubmitPendingMessage,
+        getMemberLinkSubmitSuccessMessage: window.DJ48AccountForm.getMemberLinkSubmitSuccessMessage,
+        getMemberLinkSubmitErrorMessage: window.DJ48AccountForm.getMemberLinkSubmitErrorMessage,
+        linkImportedMemberToCurrentAuthUser,
+        renderMemberLinkPanel,
+        shouldWaitForRequiredPasswordChange: () => window.DJ48AccountForm.shouldWaitForRequiredPasswordChange({
           pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange(),
           currentMemberUserId
-        })) {
-          renderMemberLinkPanel();
-          return;
-        }
-        if(window.DJ48AccountForm.getMemberLinkDestination(profile) === 'admin') showAdminView();
-        else showTownView();
-      } catch(error) {
-        console.warn('Member auth link failed.', error);
-        setMemberLinkStatus(window.DJ48AccountForm.getMemberLinkSubmitErrorMessage(error), true);
-      } finally {
-        window.DJ48AccountState.setMemberLinkInProgress(false);
-      }
+        }),
+        openMemberDestination: profile => {
+          if(window.DJ48AccountForm.getMemberLinkDestination(profile) === 'admin') showAdminView();
+          else showTownView();
+        },
+        warn: console.warn
+      });
     }
 
     function getShopFallbackIcon(itemId, category) {

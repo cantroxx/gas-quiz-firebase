@@ -5,7 +5,7 @@
     "check": "npm run check:static && npm run test:domain && npm run test:application && SMOKE_PUBLIC_ONLY=1 npm run smoke:browser",
     "check:static": "node scripts/smoke/check-project.js",
     "test:domain": "node tests/domain/shop-domain.test.js && node tests/domain/ranking-domain.test.js && node tests/domain/quiz-domain.test.js && node tests/domain/account-domain.test.js && node tests/domain/classroom-domain.test.js && node tests/domain/event-domain.test.js",
-    "test:application": "node tests/application/event-usecases.test.js && node tests/application/classroom-usecases.test.js && node tests/application/shop-usecases.test.js && node tests/application/home-usecases.test.js && node tests/application/ranking-usecases.test.js",
+    "test:application": "node tests/application/event-usecases.test.js && node tests/application/classroom-usecases.test.js && node tests/application/shop-usecases.test.js && node tests/application/home-usecases.test.js && node tests/application/ranking-usecases.test.js && node tests/application/account-usecases.test.js",
     "smoke:browser": "node scripts/smoke/browser-smoke-test.js"
   },
   "devDependencies": {
