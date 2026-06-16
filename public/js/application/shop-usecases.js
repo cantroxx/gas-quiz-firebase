@@ -37,6 +37,74 @@
     return { items, assetCatalogMap, economy, inventoryItemIds };
   }
 
+  function getShopItemsForRender(deps = {}) {
+    return loadShopCachedValue({
+      shouldCache: items => Array.isArray(items) && items.length > 0,
+      warnMessage: 'Firestore shopItems read failed. Using static fallback SHOP_ITEMS.',
+      fallbackFactory: () => deps.getFallbackShopItems?.() || []
+    }, {
+      ...deps.getShopItemsCacheAccessors?.(),
+      loadValue: () => deps.loadShopItems()
+        .then(items => deps.buildShopItemsResult(items, deps.getFallbackShopItems?.() || [])),
+      warn: deps.warn
+    });
+  }
+
+  function getAssetCatalogMap(deps = {}) {
+    return loadShopCachedValue({
+      warnMessage: 'Firestore assetCatalog read failed. Using shop item fallback icons.',
+      fallbackFactory: () => ({})
+    }, {
+      ...deps.getAssetCatalogCacheAccessors?.(),
+      loadValue: deps.loadAssetCatalog,
+      warn: deps.warn
+    });
+  }
+
+  function getUserEconomyForRender(deps = {}) {
+    return loadShopCachedValue({
+      warnMessage: 'Firestore userEconomy read failed. Using static reward fallback.',
+      fallbackFactory: () => deps.buildEconomyFallback({
+        userId: deps.getCurrentDataOwnerId?.() || '',
+        fallbackCoin: deps.getFallbackCoin?.() || 0,
+        useStaticRewardFallback: deps.isUsingTestUserFallback?.() === true
+      })
+    }, {
+      ...deps.getUserEconomyCacheAccessors?.(),
+      loadValue: () => deps.loadUserEconomy()
+        .then(economy => deps.buildUserEconomyForRender({
+          economy,
+          ownerId: deps.getCurrentDataOwnerId?.(),
+          ensureUserEconomyInitialized: deps.ensureUserEconomyInitialized,
+          fallbackCoin: deps.getFallbackCoin?.() || 0,
+          useStaticRewardFallback: false
+        })),
+      warn: deps.warn
+    });
+  }
+
+  function getInventoryItemIdsForRender(deps = {}) {
+    return loadShopCachedValue({
+      warnMessage: 'Firestore userInventory read failed. Treating inventory as empty.',
+      fallbackFactory: () => new Set()
+    }, {
+      ...deps.getInventoryCacheAccessors?.(),
+      loadValue: deps.loadInventoryItemIds,
+      warn: deps.warn
+    });
+  }
+
+  function getRoomSettingsForRender(deps = {}) {
+    return loadShopCachedValue({
+      warnMessage: 'Firestore userRoomSettings read failed. Using empty room settings.',
+      fallbackFactory: () => deps.getDefaultRoomSettings?.()
+    }, {
+      ...deps.getRoomSettingsCacheAccessors?.(),
+      loadValue: deps.loadRoomSettings,
+      warn: deps.warn
+    });
+  }
+
   async function purchaseShopItemFlow(options = {}, deps = {}) {
     try {
       await deps.prepareMemberOwnedData?.();
@@ -82,7 +150,12 @@
 
   return {
     loadShopCachedValue,
+    getAssetCatalogMap,
+    getInventoryItemIdsForRender,
+    getRoomSettingsForRender,
+    getShopItemsForRender,
     getShopRenderData,
+    getUserEconomyForRender,
     purchaseShopItemFlow,
     saveRoomItemSelectionFlow
   };

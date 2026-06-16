@@ -47,6 +47,49 @@ async function testShopRenderDataComposesLoaders() {
   assert.deepEqual(Array.from(result.inventoryItemIds), ['item']);
 }
 
+async function testShopSpecificRenderLoaders() {
+  const cache = {
+    value: null,
+    promise: null
+  };
+  const accessors = {
+    getValue: () => cache.value,
+    setValue: value => {
+      cache.value = value;
+    },
+    getLoadPromise: () => cache.promise,
+    setLoadPromise: value => {
+      cache.promise = value;
+    }
+  };
+
+  const items = await usecases.getShopItemsForRender({
+    getFallbackShopItems: () => ['fallback'],
+    getShopItemsCacheAccessors: () => accessors,
+    loadShopItems: async () => ['loaded'],
+    buildShopItemsResult: (loadedItems, fallbackItems) => loadedItems.length ? loadedItems : fallbackItems
+  });
+  assert.deepEqual(items, ['loaded']);
+  assert.deepEqual(cache.value, ['loaded']);
+
+  const economy = await usecases.getUserEconomyForRender({
+    getCurrentDataOwnerId: () => 'member-1',
+    getFallbackCoin: () => 48,
+    isUsingTestUserFallback: () => false,
+    getUserEconomyCacheAccessors: () => ({
+      getValue: () => null,
+      setValue: () => {},
+      getLoadPromise: () => null,
+      setLoadPromise: () => {}
+    }),
+    loadUserEconomy: async () => null,
+    buildEconomyFallback: options => ({ userId: options.userId, djCoin: options.fallbackCoin }),
+    buildUserEconomyForRender: async options => options.economy || options.ensureUserEconomyInitialized(options.ownerId),
+    ensureUserEconomyInitialized: async ownerId => ({ userId: ownerId, djCoin: 12 })
+  });
+  assert.deepEqual(economy, { userId: 'member-1', djCoin: 12 });
+}
+
 async function testPurchaseShopItemFlow() {
   const calls = [];
   const result = await usecases.purchaseShopItemFlow({ itemId: 'shop-a' }, {
@@ -83,6 +126,7 @@ async function testRoomSelectionRequiresFirestore() {
   await testCachedValueUsesCache();
   await testCachedValueLoadsAndClearsPromise();
   await testShopRenderDataComposesLoaders();
+  await testShopSpecificRenderLoaders();
   await testPurchaseShopItemFlow();
   await testRoomSelectionRequiresFirestore();
 })();
