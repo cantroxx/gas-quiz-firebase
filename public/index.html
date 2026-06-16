@@ -6596,43 +6596,38 @@
       'classroom-view'
     ];
 
+    function enterAppView(options = {}) {
+      return window.DJ48AppView.enterPlaceView(options, {
+        appViewIds: APP_VIEW_IDS,
+        leaveQuizPlaySession
+      });
+    }
+
     function showSchoolView() {
       renderSchoolQuizCards();
       const externalSection = document.getElementById('external-quiz-section');
       if(externalSection) externalSection.hidden = true;
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'school-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
     function showTownView() {
       startServerFreshnessPolling();
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'town-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
     function showLoginView() {
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'login-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
     function showAdminView() {
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'admin-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
       setActiveAdminSection('dashboard');
       loadAdminDashboard().then(dashboard => {
@@ -6687,12 +6682,9 @@
           if(!document.getElementById('home-view')?.hidden) renderHomeView();
         });
       }
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'home-view',
         place: PLACE_DETAILS.home
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
@@ -6706,11 +6698,8 @@
         showHomeView();
         return;
       }
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'room-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
       try {
         if(window.RoomDecor && typeof window.RoomDecor.open === 'function') {
@@ -6728,12 +6717,9 @@
         return;
       }
       renderRankingView();
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'ranking-view',
         place: PLACE_DETAILS.ranking
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
@@ -6745,12 +6731,9 @@
       }
       renderShopWallet();
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'shop-view',
         place: PLACE_DETAILS.shop
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
 
       initializeAuthUser().then(renderShopFromFirestore);
@@ -6763,12 +6746,9 @@
         return;
       }
       renderEventLoadingState();
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'event-view',
         place: PLACE_DETAILS.event
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
       renderEventProgressFromFunctions();
     }
@@ -6780,12 +6760,9 @@
 
     function showClassroomView(unlocked = false) {
       setClassroomUnlocked(unlocked);
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'classroom-view',
         place: PLACE_DETAILS.classroom
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
@@ -6811,11 +6788,8 @@
     function showSubjectView(subjectId) {
       window.DJ48QuizSessionState.setCurrentSubjectId(subjectId);
       renderSubjectQuizCards(subjectId);
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'subject-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
@@ -6828,11 +6802,8 @@
       loadFeatureFlags().then(() => {
         if(window.DJ48QuizSessionState.getLastQuizId() === quizId && !document.getElementById('quiz-select-view').hidden) renderQuizModeCards(quiz.modes);
       });
-      window.DJ48AppView.enterPlaceView({
+      enterAppView({
         viewId: 'quiz-select-view'
-      }, {
-        appViewIds: APP_VIEW_IDS,
-        leaveQuizPlaySession
       });
     }
 
