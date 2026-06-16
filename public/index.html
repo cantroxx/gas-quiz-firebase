@@ -4733,90 +4733,60 @@
       });
     }
 
-    async function loadClassroomQuestProgress(forceRefresh = false) {
-      const settings = await loadClassroomSettings();
-      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('progress', {
-        forceRefresh,
-        settings,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
-      }, {
+    function getClassroomCacheDeps() {
+      return {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => getClassroomRepository().loadClassroomQuestProgress(options)
-      });
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getRepository: getClassroomRepository
+      };
+    }
+
+    async function loadClassroomQuestProgress(forceRefresh = false) {
+      const settings = await loadClassroomSettings();
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('progress', {
+        forceRefresh,
+        settings
+      }, getClassroomCacheDeps());
     }
 
     async function loadClassroomWallet(settings, forceRefresh = false) {
-      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('wallet', {
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('wallet', {
         forceRefresh,
-        settings,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
-      }, {
-        getValue: window.DJ48ClassroomState.getValue,
-        setValue: window.DJ48ClassroomState.setValue,
-        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
-        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => getClassroomRepository().loadClassroomWallet(options)
-      });
+        settings
+      }, getClassroomCacheDeps());
     }
 
     async function loadClassroomGemProgress(settings, forceRefresh = false) {
-      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('gems', {
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('gems', {
         forceRefresh,
-        settings,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
-      }, {
-        getValue: window.DJ48ClassroomState.getValue,
-        setValue: window.DJ48ClassroomState.setValue,
-        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
-        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => getClassroomRepository().loadClassroomGemProgress(options)
-      });
+        settings
+      }, getClassroomCacheDeps());
     }
 
     async function loadClassroomStudentCards(settings, forceRefresh = false) {
-      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('students', {
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('students', {
         forceRefresh,
-        settings,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
-      }, {
-        getValue: window.DJ48ClassroomState.getValue,
-        setValue: window.DJ48ClassroomState.setValue,
-        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
-        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => getClassroomRepository().loadClassroomStudentCards(options)
-      });
+        settings
+      }, getClassroomCacheDeps());
     }
 
     async function loadClassroomEconomyBoard(settings, forceRefresh = false) {
-      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('economy', {
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('economy', {
         forceRefresh,
-        settings,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
-      }, {
-        getValue: window.DJ48ClassroomState.getValue,
-        setValue: window.DJ48ClassroomState.setValue,
-        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
-        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => getClassroomRepository().loadClassroomEconomyBoard(options)
-      });
+        settings
+      }, getClassroomCacheDeps());
     }
 
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
       if(!isCurrentClassroomTeacher(settings)) return [];
-      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('review', {
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('review', {
         forceRefresh,
         settings,
         canReview: true
-      }, {
-        getValue: window.DJ48ClassroomState.getValue,
-        setValue: window.DJ48ClassroomState.setValue,
-        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
-        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
-        loadValue: options => getClassroomRepository().loadClassroomReviewItems(options)
-      });
+      }, getClassroomCacheDeps());
     }
 
     function renderClassroomReviewList(settings, reviewItems = [], options = {}) {

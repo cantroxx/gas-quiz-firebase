@@ -32,6 +32,32 @@
     return loadPromise;
   }
 
+  async function loadClassroomRepositoryCachedValue(key, options = {}, deps = {}) {
+    const loaderNames = {
+      progress: 'loadClassroomQuestProgress',
+      wallet: 'loadClassroomWallet',
+      gems: 'loadClassroomGemProgress',
+      students: 'loadClassroomStudentCards',
+      economy: 'loadClassroomEconomyBoard',
+      review: 'loadClassroomReviewItems'
+    };
+    const loaderName = loaderNames[key];
+    const repository = deps.getRepository?.();
+    const loader = repository?.[loaderName];
+    if(typeof loader !== 'function') throw new Error(`unknown-classroom-cache:${key}`);
+
+    return loadClassroomCachedValue(key, {
+      ...options,
+      memberUserId: deps.getCurrentMemberUserId?.()
+    }, {
+      getValue: deps.getValue,
+      setValue: deps.setValue,
+      getLoadPromise: deps.getLoadPromise,
+      setLoadPromise: deps.setLoadPromise,
+      loadValue: payload => loader.call(repository, payload)
+    });
+  }
+
   async function getClassroomReviewViewData(options = {}, deps = {}) {
     const settings = await deps.loadClassroomSettings(options.forceRefresh === true);
     const reviewItems = await deps.loadClassroomReviewItems(settings, options.forceRefresh === true);
@@ -345,6 +371,7 @@
   return {
     loadClassroomSettingsWithCache,
     loadClassroomCachedValue,
+    loadClassroomRepositoryCachedValue,
     getClassroomReviewViewData,
     getClassroomPrototypeViewData,
     saveClassroomTeacherFormFlow,

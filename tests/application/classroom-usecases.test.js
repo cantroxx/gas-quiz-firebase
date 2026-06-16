@@ -69,6 +69,45 @@ async function testCachedValueLoadsAndClearsPromise() {
   assert.deepEqual(promiseStates[1], ['wallet', null]);
 }
 
+async function testRepositoryCachedValueRoutesToRepositoryLoader() {
+  const calls = [];
+  const value = await usecases.loadClassroomRepositoryCachedValue('students', {
+    settings: { classId: 'c1' },
+    forceRefresh: true
+  }, {
+    getValue: key => {
+      calls.push(['get-value', key]);
+      return null;
+    },
+    setValue: (key, nextValue) => {
+      calls.push(['set-value', key, nextValue.length]);
+      return nextValue;
+    },
+    getLoadPromise: key => {
+      calls.push(['get-promise', key]);
+      return null;
+    },
+    setLoadPromise: (key, nextValue) => calls.push(['set-promise', key, nextValue === null ? 'clear' : 'pending']),
+    getCurrentMemberUserId: () => 'member-a',
+    getRepository: () => ({
+      loadClassroomStudentCards: async options => {
+        calls.push(['repo', options.settings.classId, options.memberUserId, options.forceRefresh]);
+        return [{ memberUserId: options.memberUserId }];
+      }
+    })
+  });
+
+  assert.deepEqual(value, [{ memberUserId: 'member-a' }]);
+  assert.deepEqual(calls, [
+    ['get-value', 'students'],
+    ['get-promise', 'students'],
+    ['repo', 'c1', 'member-a', true],
+    ['set-promise', 'students', 'pending'],
+    ['set-value', 'students', 1],
+    ['set-promise', 'students', 'clear']
+  ]);
+}
+
 async function testPrototypeViewDataComposesLoaders() {
   const calls = [];
   const data = await usecases.getClassroomPrototypeViewData({
@@ -251,6 +290,7 @@ async function testReviewFlowRequiresTeacher() {
   await testSettingsForceRefresh();
   await testCachedValueUsesActivePromise();
   await testCachedValueLoadsAndClearsPromise();
+  await testRepositoryCachedValueRoutesToRepositoryLoader();
   await testPrototypeViewDataComposesLoaders();
   await testTeacherFormFlowValidatesValues();
   await testTeacherFormFlowSavesAndRerenders();
