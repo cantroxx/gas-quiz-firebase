@@ -1,6 +1,12 @@
 const assert = require('node:assert/strict');
 
 const calls = [];
+const functions = {
+  httpsCallable: name => async payload => {
+    calls.push([name, payload]);
+    return { data: { success: true, itemId: payload.itemId } };
+  }
+};
 globalThis.DJ48ShopData = {
   loadShopItemsFromFirestore: (db, deps) => {
     calls.push(['items', db, deps.shopCategoryLabels]);
@@ -26,10 +32,6 @@ globalThis.DJ48ShopData = {
     calls.push(['room', options.userId, options.memberUserId, options.testShopUserId]);
     return { userId: options.userId };
   },
-  purchaseShopItem: (payload, deps) => {
-    calls.push(['purchase', payload.itemId, !!deps.getFirebaseFunctions]);
-    return { success: true };
-  },
   saveRoomItemSelection: (options, deps) => {
     calls.push(['save-room', options.userId, options.itemId, !!deps.getFirestoreFieldValue]);
     return { selectedAvatarItemId: options.itemId };
@@ -46,7 +48,7 @@ async function testShopRepositoryDelegatesToShopData() {
   const db = { id: 'db' };
   const repository = createShopRepository({
     getFirestoreDb: () => db,
-    getFirebaseFunctions: () => ({}),
+    getFirebaseFunctions: () => functions,
     getFirestoreFieldValue: () => ({}),
     shopCategoryLabels: { avatar: '아바타' },
     fallbackCoin: 48,
@@ -59,7 +61,7 @@ async function testShopRepositoryDelegatesToShopData() {
   assert.deepEqual(await repository.ensureUserEconomyInitialized({ ownerId: 'member-1' }), { userId: 'member-1' });
   assert.deepEqual(await repository.loadInventoryItemIds({ userId: 'member-1', memberUserId: 'member-1' }), new Set(['a']));
   assert.deepEqual(await repository.loadRoomSettings({ userId: 'member-1', memberUserId: 'member-1' }), { userId: 'member-1' });
-  assert.deepEqual(await repository.purchaseShopItem({ itemId: 'shop-a' }), { success: true });
+  assert.deepEqual(await repository.purchaseShopItem({ itemId: 'shop-a' }), { success: true, itemId: 'shop-a' });
   assert.deepEqual(await repository.saveRoomItemSelection({ userId: 'member-1', itemId: 'room-a' }), { selectedAvatarItemId: 'room-a' });
   assert.deepEqual(calls.map(call => call[0]), [
     'items',
@@ -68,7 +70,7 @@ async function testShopRepositoryDelegatesToShopData() {
     'ensure-economy',
     'inventory',
     'room',
-    'purchase',
+    'purchaseShopItem',
     'save-room'
   ]);
 }

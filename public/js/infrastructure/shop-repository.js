@@ -1,4 +1,18 @@
 (function (root) {
+  async function callShopCallable(callableName, payload = {}, deps = {}, errorCode = '') {
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions) throw new Error('functions-unavailable');
+    const callable = functions.httpsCallable(callableName);
+    const response = await callable(payload);
+    const result = response?.data || {};
+    if(!result.success) throw new Error(errorCode || `${callableName || 'shop-call'}-failed`);
+    return result;
+  }
+
+  function purchaseShopItem(payload = {}, deps = {}) {
+    return callShopCallable('purchaseShopItem', payload, deps, 'purchase-function-failed');
+  }
+
   function createShopRepository(deps = {}) {
     return {
       loadShopItems() {
@@ -45,7 +59,7 @@
         });
       },
       purchaseShopItem(payload = {}) {
-        return root.DJ48ShopData.purchaseShopItem(payload, {
+        return purchaseShopItem(payload, {
           getFirebaseFunctions: deps.getFirebaseFunctions
         });
       },
