@@ -300,6 +300,70 @@ async function testCompleteQuestAutoFlow() {
   ]);
 }
 
+async function testCompleteCurrentMemberQuestControlsButton() {
+  const button = { disabled: false, textContent: '완료' };
+  const calls = [];
+  const result = await usecases.completeCurrentMemberClassroomQuestFlow({
+    questId: 'q1'
+  }, {
+    loadClassroomSettings: async () => ({ classId: 'c1', quests: [] }),
+    findClassroomQuest: () => ({ id: 'q1', saveEnabled: true, rewardMode: 'manual', studentAction: '확인 요청' }),
+    getCurrentMemberUserId: () => 'member-a',
+    getQuestActionButton: questId => {
+      calls.push(['button', questId]);
+      return button;
+    },
+    saveManualQuestProgress: async options => {
+      calls.push(['save', options.questId, options.memberUserId, button.disabled, button.textContent]);
+      return { recordId: 'r1' };
+    },
+    resetClassroomCaches: options => calls.push(['reset', options]),
+    renderClassroom: async forceRefresh => calls.push(['render', forceRefresh])
+  });
+
+  assert.equal(result.error, null);
+  assert.equal(button.disabled, true);
+  assert.equal(button.textContent, '저장 중...');
+  assert.deepEqual(calls, [
+    ['button', 'q1'],
+    ['save', 'q1', 'member-a', true, '저장 중...'],
+    ['reset', { progress: true }],
+    ['render', true]
+  ]);
+}
+
+async function testReviewWithButtonsFlow() {
+  const buttons = [{ disabled: false, textContent: '승인' }, { disabled: false, textContent: '반려' }];
+  const calls = [];
+  const result = await usecases.reviewClassroomQuestProgressWithButtonsFlow({
+    recordId: 'r1',
+    nextStatus: 'approved'
+  }, {
+    getReviewButtons: recordId => {
+      calls.push(['buttons', recordId]);
+      return buttons;
+    },
+    loadClassroomSettings: async () => ({ classId: 'c1' }),
+    isCurrentClassroomTeacher: () => true,
+    reviewProgress: async options => {
+      calls.push(['review', options.recordId, options.nextStatus, buttons[0].disabled, buttons[0].textContent]);
+      return { duplicate: false, rewardAmount: 2, rewardCurrency: 'berry' };
+    },
+    resetClassroomCaches: options => calls.push(['reset', options]),
+    resetUserEconomyCache: () => calls.push(['reset-economy']),
+    renderClassroom: async forceRefresh => calls.push(['render', forceRefresh]),
+    isAdminClassroomSectionActive: () => false,
+    getClassroomRewardCurrencyLabel: () => '베리',
+    alert: message => calls.push(['alert', message])
+  });
+
+  assert.equal(result.error, null);
+  assert.equal(buttons[0].disabled, true);
+  assert.equal(buttons[0].textContent, '승인 중...');
+  assert.equal(buttons[1].textContent, '승인 중...');
+  assert.deepEqual(calls.map(call => call[0]), ['buttons', 'review', 'reset', 'reset-economy', 'render', 'alert']);
+}
+
 async function testReviewFlowRequiresTeacher() {
   const calls = [];
   const result = await usecases.reviewClassroomQuestProgressFlow({
@@ -328,5 +392,7 @@ async function testReviewFlowRequiresTeacher() {
   await testRunClassroomEconomyAction();
   await testRoutineFlowValidatesMemberAndDates();
   await testCompleteQuestAutoFlow();
+  await testCompleteCurrentMemberQuestControlsButton();
+  await testReviewWithButtonsFlow();
   await testReviewFlowRequiresTeacher();
 })();

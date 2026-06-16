@@ -5083,21 +5083,13 @@
     }
 
     async function completeClassroomCheckQuest(questId) {
-      const settings = await loadClassroomSettings();
-      const quest = window.DJ48ClassroomData.findClassroomQuest(settings, questId);
-      if(!quest?.saveEnabled) return;
-      const button = document.querySelector(`[data-classroom-quest-action="${questId}"]`);
-      if(button) {
-        button.disabled = true;
-        button.textContent = quest?.rewardMode === 'auto' ? '지급 중...' : '저장 중...';
-      }
-
-      const result = await window.DJ48ClassroomUsecases.completeClassroomCheckQuestFlow({
-        questId,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
+      return window.DJ48ClassroomUsecases.completeCurrentMemberClassroomQuestFlow({
+        questId
       }, {
-        loadClassroomSettings: async () => settings,
+        loadClassroomSettings,
         findClassroomQuest: window.DJ48ClassroomData.findClassroomQuest,
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getQuestActionButton: id => document.querySelector(`[data-classroom-quest-action="${id}"]`),
         completeAutoQuest: options => getClassroomRepository().completeClassroomAutoQuest(options),
         saveManualQuestProgress: options => getClassroomRepository().saveClassroomManualQuestProgress(options),
         resetClassroomCaches: resetClassroomDataCaches,
@@ -5107,24 +5099,14 @@
         alert: window.alert,
         warn: console.warn
       });
-      if(result?.error && button) {
-        button.disabled = false;
-        button.textContent = result.quest?.studentAction || quest?.studentAction || '완료 체크';
-      }
     }
 
     async function reviewClassroomQuestProgress(recordId, nextStatus) {
-      if(!recordId || !['approved', 'rejected'].includes(nextStatus)) return;
-      const buttons = document.querySelectorAll(`[data-classroom-review-id="${recordId}"]`);
-      buttons.forEach(button => {
-        button.disabled = true;
-        button.textContent = nextStatus === 'approved' ? '승인 중...' : '반려 중...';
-      });
-
-      await window.DJ48ClassroomUsecases.reviewClassroomQuestProgressFlow({
+      return window.DJ48ClassroomUsecases.reviewClassroomQuestProgressWithButtonsFlow({
         recordId,
         nextStatus
       }, {
+        getReviewButtons: id => document.querySelectorAll(`[data-classroom-review-id="${id}"]`),
         loadClassroomSettings,
         isCurrentClassroomTeacher,
         reviewProgress: options => getClassroomRepository().reviewClassroomQuestProgress(options),

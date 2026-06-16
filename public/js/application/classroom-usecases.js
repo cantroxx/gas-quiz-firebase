@@ -362,6 +362,29 @@
     }
   }
 
+  async function completeCurrentMemberClassroomQuestFlow(options = {}, deps = {}) {
+    const settings = await deps.loadClassroomSettings();
+    const quest = deps.findClassroomQuest(settings, options.questId);
+    if(!quest?.saveEnabled) return { skipped: true, reason: 'quest-disabled' };
+    const button = deps.getQuestActionButton?.(options.questId) || null;
+    if(button) {
+      button.disabled = true;
+      button.textContent = quest.rewardMode === 'auto' ? '지급 중...' : '저장 중...';
+    }
+    const result = await completeClassroomCheckQuestFlow({
+      questId: options.questId,
+      memberUserId: deps.getCurrentMemberUserId?.() || ''
+    }, {
+      ...deps,
+      loadClassroomSettings: async () => settings
+    });
+    if(result?.error && button) {
+      button.disabled = false;
+      button.textContent = result.quest?.studentAction || quest.studentAction || '완료 체크';
+    }
+    return result;
+  }
+
   async function reviewClassroomQuestProgressFlow(options = {}, deps = {}) {
     if(!options.recordId || !['approved', 'rejected'].includes(options.nextStatus)) return { skipped: true };
     const settings = await deps.loadClassroomSettings();
@@ -402,6 +425,16 @@
     }
   }
 
+  async function reviewClassroomQuestProgressWithButtonsFlow(options = {}, deps = {}) {
+    if(!options.recordId || !['approved', 'rejected'].includes(options.nextStatus)) return { skipped: true };
+    const buttons = Array.from(deps.getReviewButtons?.(options.recordId) || []);
+    buttons.forEach(button => {
+      button.disabled = true;
+      button.textContent = options.nextStatus === 'approved' ? '승인 중...' : '반려 중...';
+    });
+    return reviewClassroomQuestProgressFlow(options, deps);
+  }
+
   return {
     loadClassroomSettingsWithCache,
     loadClassroomCachedValue,
@@ -416,6 +449,8 @@
     saveClassroomRoutineFlow,
     setClassroomSelectedBadgeFlow,
     completeClassroomCheckQuestFlow,
-    reviewClassroomQuestProgressFlow
+    completeCurrentMemberClassroomQuestFlow,
+    reviewClassroomQuestProgressFlow,
+    reviewClassroomQuestProgressWithButtonsFlow
   };
 });
