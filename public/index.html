@@ -2213,8 +2213,8 @@
         return;
       }
       const place = PLACE_DETAILS[placeId] || PLACE_DETAILS.notice;
-      updatePlaceInfo(place);
-      updatePlayerLocation(place);
+      window.DJ48AppView.updatePlaceInfo(place);
+      window.DJ48AppView.updatePlayerLocation(place);
       renderPlacePanel(place);
       document.getElementById('place-modal').hidden = false;
     }
@@ -2307,8 +2307,8 @@
 
     function openNoticeBoardModal() {
       const fallbackPlace = buildNoticePlace(getFallbackNoticeBoard());
-      updatePlaceInfo(fallbackPlace);
-      updatePlayerLocation(fallbackPlace);
+      window.DJ48AppView.updatePlaceInfo(fallbackPlace);
+      window.DJ48AppView.updatePlayerLocation(fallbackPlace);
       renderPlacePanel({
         ...fallbackPlace,
         desc: '알림판을 불러오는 중입니다.'
@@ -2317,8 +2317,8 @@
       loadNoticeBoardFromFirestore()
         .then(notice => {
           const place = buildNoticePlace(notice);
-          updatePlaceInfo(place);
-          updatePlayerLocation(place);
+          window.DJ48AppView.updatePlaceInfo(place);
+          window.DJ48AppView.updatePlayerLocation(place);
           renderPlacePanel(place);
         })
         .catch(error => {
@@ -6469,18 +6469,6 @@
       });
     }
 
-    function updatePlaceInfo(place) {
-      return window.DJ48AppView.updatePlaceInfo(place);
-    }
-
-    function updatePlayerLocation(place) {
-      return window.DJ48AppView.updatePlayerLocation(place);
-    }
-
-    function closePlaceModal() {
-      return window.DJ48AppView.closePlaceModal();
-    }
-
     function getEventControllerEvents() {
       return {
         claimEventQuestReward
@@ -6499,7 +6487,7 @@
         openPlaceModal,
         refreshCurrentAppData,
         setGlobalRefreshNeedsAttention,
-        closePlaceModal,
+        closePlaceModal: window.DJ48AppView.closePlaceModal,
         showSchoolView,
         showHomeView,
         showRankingView,
