@@ -295,11 +295,20 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
     - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
     - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
     - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
+87. Completed the final `public/index.html` wrapper audit.
+    - Added `docs/architecture/INDEX_WRAPPER_AUDIT.md`.
+    - Classified remaining wrappers as app-shell-only, acceptable thin feature wrappers, and move-with-care candidates.
+88. Removed remaining app-view passthrough wrappers from `public/index.html`.
+    - Directly uses `window.DJ48AppView.updatePlaceInfo`, `updatePlayerLocation`, and `closePlaceModal` where needed.
+89. Re-audited Firebase access boundaries after rounds 57~70:
+    - `public/index.html` remains at zero direct matches for `httpsCallable`, `.collection(`, `storage.ref`, and `.put(`.
+    - `public/js/features/*-data.js` and `public/js/features/quiz-play.js` remain free of direct Firebase/Storage access.
+    - Firebase/Storage/callable access remains concentrated in `public/js/infrastructure/*-repository.js`.
 
 ## Recommended Next Goals
 
-1. Continue reducing `public/index.html` by moving remaining feature-specific orchestration into feature/application modules.
-   - First candidates: any remaining app shell wrappers that still contain branching logic, especially auth destination and feature view preload wrappers.
+1. Treat the current architecture migration as effectively closed unless a new feature or bug fix exposes a specific ownership problem.
+   - Use `docs/architecture/INDEX_WRAPPER_AUDIT.md` as the decision rule for whether a remaining `public/index.html` wrapper should move.
    - Keep one integration owner for `public/index.html`.
 2. Continue moving Firebase-heavy logic out of `*-data.js` into repository adapters when touching each feature.
    - Current feature data/play modules are free of direct Firebase/Storage access.
@@ -308,7 +317,7 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
    - Required default smoke remains the authenticated practice/ranking/home/features flow.
    - Optional profile write smoke is stabilized for ranking-message save/restore but still writes production profile data, so run it only with a dedicated smoke account.
    - Admin write smoke must stay emulator/test-project/dry-run or exact-restore only.
-4. Continue bootstrap and app-shell reduction by moving dependency groups and callback orchestration behind usecase/controller helpers once callbacks no longer depend on local-only variables.
+4. Keep app-shell-only wrappers in `public/index.html` unless there is a targeted, tested migration reason.
 5. Keep the same validation gate:
    - `npm run check`
    - authenticated browser smoke with the 4-8-23 test account when user-visible runtime code changes.
@@ -325,9 +334,9 @@ Do not run concurrent edits against `public/index.html` unless each terminal own
 
 ## Next Execution Order
 
-1. Run a final `public/index.html` wrapper audit and classify the remaining functions as app-shell-only, feature-owned, or TODO.
-2. Move only clearly feature-owned branching that still has low-risk dependencies; avoid forcing global auth/view state out prematurely.
-3. Confirm all feature data/play modules remain Firebase-free and all Firebase access remains in `public/js/infrastructure/*-repository.js`.
-4. Update ownership docs to match the actual final file boundaries.
-5. Re-run `npm run check` and authenticated browser smoke.
+1. For new work, choose the owner file from the ownership rules before touching `public/index.html`.
+2. If `public/index.html` must change, check `docs/architecture/INDEX_WRAPPER_AUDIT.md` first.
+3. Move only clearly feature-owned branching with targeted tests; keep app-shell-only wrappers in place.
+4. Confirm feature data/play modules remain Firebase-free and Firebase access remains in `public/js/infrastructure/*-repository.js`.
+5. Re-run `npm run check` and authenticated browser smoke for user-visible runtime changes.
 6. Commit/push/deploy only when explicitly requested and smoke passes.

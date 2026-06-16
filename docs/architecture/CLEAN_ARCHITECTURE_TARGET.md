@@ -6,6 +6,8 @@ This document defines the stricter target structure for the Firebase app after t
 
 Make `public/index.html` a thin app shell and keep feature work parallelizable across UI, quiz, ranking, shop, admin, account, event, and classroom areas.
 
+The current accepted app-shell boundary is documented in `docs/architecture/INDEX_WRAPPER_AUDIT.md`. `public/index.html` does not need to be empty; it may keep global view routing, auth destination handling, controller bootstrap, and cross-feature dependency assembly when moving those pieces would increase risk or blur ownership.
+
 ## Layers
 
 - Domain: pure rules and calculations. No DOM, Firebase, Storage, network, timers, or `window` reads during calculation.
@@ -53,6 +55,16 @@ Only one terminal should edit `public/index.html` at a time. Feature work should
 3. Move Firebase-heavy functions from `*-data.js` into repositories.
 4. Move app startup and binding assembly from `public/index.html` into `public/js/app` bootstrap modules.
 5. Reduce `window.DJ48...` usage to explicit bootstrap boundaries where practical.
+
+## Current Completion Rule
+
+The migration target is satisfied when:
+
+- `public/index.html` has no direct Firebase/Storage/callable access.
+- `public/js/features/*-data.js` and `public/js/features/quiz-play.js` have no direct Firebase/Storage/callable access.
+- Firebase/Storage/callable access is concentrated in `public/js/infrastructure/*-repository.js`.
+- Remaining `public/index.html` wrappers are classified by `docs/architecture/INDEX_WRAPPER_AUDIT.md`.
+- New feature work can be assigned to one ownership area without broad app-shell edits.
 
 ## Validation Gate
 
