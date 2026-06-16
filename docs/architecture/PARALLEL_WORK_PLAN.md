@@ -58,6 +58,15 @@ When using multiple terminals, keep each terminal inside one ownership area unle
 - `package.json`: one integration owner when changing test scripts.
 - `scripts/smoke/browser-smoke-test.js`: one verification owner when adding required globals or new user flows.
 
+## Window/Global Exposure Rules
+
+- Current browser modules expose one namespaced API per file, such as `window.DJ48QuizPlay`, `window.DJ48AccountState`, or `window.DJ48EventRepository`.
+- Domain, application, and infrastructure modules that need Node tests may use the existing root/global wrapper pattern, but should still expose only their module API.
+- Do not add loose globals or feature state directly to `window`; put mutable state in the matching `*-state.js` module.
+- New repository adapters should receive Firebase accessors through `create*Repository(deps)` instead of reading Firebase globals directly.
+- `public/index.html` remains the temporary integration shell that reads these module APIs. New feature work should reduce direct `window.DJ48...` calls in `index.html` by grouping deps or moving orchestration into application/controller modules.
+- Script order changes are app-shell work and require the integration owner plus `npm run check:static` at minimum.
+
 ## Required Checks
 
 Before committing code movement:
@@ -179,6 +188,9 @@ SMOKE_GRADE=4 SMOKE_CLASS=8 SMOKE_NUMBER=23 SMOKE_PASSWORD='1111' npm run smoke:
 22. Moved profile ranking rank-context Firestore query into `public/js/infrastructure/ranking-repository.js`.
 23. Moved account auth lifecycle state into `public/js/features/account-state.js`.
 24. Delegated bootstrap controller bind metadata to `public/js/app/bootstrap.js`.
+25. Moved event and admin callable implementations into their repository adapters.
+26. Split event bootstrap event-object assembly and centralized app view entry dependencies in `public/index.html`.
+27. Documented current `window.DJ48...` exposure rules for parallel work.
 
 ## Recommended Next Goals
 
