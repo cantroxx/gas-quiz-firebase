@@ -375,6 +375,10 @@ async function runProfileWriteFlow(page) {
   const smokeMessage = `smoke-${Date.now().toString(36).slice(-6)}`;
 
   async function saveMessage(message, expectedPattern) {
+    if(!await input.isVisible()) {
+      await messageToggle.click();
+      await input.waitFor({ state: 'visible', timeout: 15000 });
+    }
     await input.fill(message);
     await button.click();
     await page.waitForFunction(pattern => {

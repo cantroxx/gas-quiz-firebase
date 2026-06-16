@@ -2820,11 +2820,22 @@
       window.DJ48HomeState.clearProfileImageEditorState();
     }
 
-    async function saveProfileImageEditorSelection() {
-      return window.DJ48ProfileUsecases.saveProfileImageEditorSelectionFlow({}, {
+    function getProfileWriteDeps() {
+      return {
         getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         getFirestoreDb,
         initializeAuthUser,
+        getFirestoreFieldValue,
+        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
+        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
+        renderHomeMemberDataFromFirestore,
+        warn: console.warn
+      };
+    }
+
+    function getProfileImageEditorSaveDeps() {
+      return {
+        ...getProfileWriteDeps(),
         getProfileImageEditorState: () => window.DJ48HomeState.getProfileImageEditorState(),
         getSaveButton: () => document.getElementById('profile-image-editor-save'),
         getProfileImageEditModel,
@@ -2832,34 +2843,23 @@
         saveProfileImageEditorSelection: window.DJ48AccountData.saveProfileImageEditorSelection,
         getFirebaseStorage,
         getAuthUid: () => window.firebase?.auth?.().currentUser?.uid || '',
-        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
-        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
-        getFirestoreFieldValue,
-        closeProfileImageEditor,
-        renderHomeMemberDataFromFirestore,
-        warn: console.warn
-      });
+        closeProfileImageEditor
+      };
     }
 
-    async function saveProfileRankingMessageFromHome() {
-      return window.DJ48ProfileUsecases.saveProfileRankingMessageFlow({}, {
-        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
-        getFirestoreDb,
-        initializeAuthUser,
+    function getProfileRankingMessageSaveDeps() {
+      return {
+        ...getProfileWriteDeps(),
         getInput: () => document.getElementById('profile-ranking-message-input'),
         getStatus: () => document.getElementById('profile-ranking-message-status'),
         getButton: () => document.getElementById('profile-ranking-message-save-button'),
         normalizeRankingMessageInput,
-        saveRankingMessageForMember: window.DJ48AccountData.saveRankingMessageForMember,
-        getFirestoreFieldValue,
-        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
-        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
-        warn: console.warn
-      });
+        saveRankingMessageForMember: window.DJ48AccountData.saveRankingMessageForMember
+      };
     }
 
-    async function saveProfileNicknameFromHome() {
-      return window.DJ48ProfileUsecases.saveProfileNicknameFlow({}, {
+    function getProfileNicknameSaveDeps() {
+      return {
         getInput: () => document.getElementById('profile-nickname-input'),
         getStatus: () => document.getElementById('profile-nickname-status'),
         getButton: () => document.getElementById('profile-nickname-save-button'),
@@ -2867,11 +2867,11 @@
         renderHomeMemberDataFromFirestore,
         getProfileNicknameErrorMessage: window.DJ48AccountForm.getProfileNicknameErrorMessage,
         warn: console.warn
-      });
+      };
     }
 
-    async function saveProfilePasswordFromHome() {
-      return window.DJ48ProfileUsecases.saveProfilePasswordFlow({}, {
+    function getProfilePasswordSaveDeps() {
+      return {
         getCurrentInput: () => document.getElementById('profile-current-password-input'),
         getNewInput: () => document.getElementById('profile-new-password-input'),
         getConfirmInput: () => document.getElementById('profile-confirm-password-input'),
@@ -2880,20 +2880,34 @@
         changeCurrentMemberPasswordWithCurrentPassword,
         getProfilePasswordErrorMessage: window.DJ48AccountForm.getProfilePasswordErrorMessage,
         warn: console.warn
-      });
+      };
+    }
+
+    function getProfileSelectedTitleSaveDeps() {
+      return {
+        ...getProfileWriteDeps(),
+        saveSelectedTitleForMember: window.DJ48AccountData.saveSelectedTitleForMember
+      };
+    }
+
+    async function saveProfileImageEditorSelection() {
+      return window.DJ48ProfileUsecases.saveProfileImageEditorSelectionFlow({}, getProfileImageEditorSaveDeps());
+    }
+
+    async function saveProfileRankingMessageFromHome() {
+      return window.DJ48ProfileUsecases.saveProfileRankingMessageFlow({}, getProfileRankingMessageSaveDeps());
+    }
+
+    async function saveProfileNicknameFromHome() {
+      return window.DJ48ProfileUsecases.saveProfileNicknameFlow({}, getProfileNicknameSaveDeps());
+    }
+
+    async function saveProfilePasswordFromHome() {
+      return window.DJ48ProfileUsecases.saveProfilePasswordFlow({}, getProfilePasswordSaveDeps());
     }
 
     async function saveProfileSelectedTitleFromHome(titleId) {
-      return window.DJ48ProfileUsecases.saveProfileSelectedTitleFlow({ titleId }, {
-        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
-        getFirestoreDb,
-        initializeAuthUser,
-        saveSelectedTitleForMember: window.DJ48AccountData.saveSelectedTitleForMember,
-        getFirestoreFieldValue,
-        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
-        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
-        renderHomeMemberDataFromFirestore
-      });
+      return window.DJ48ProfileUsecases.saveProfileSelectedTitleFlow({ titleId }, getProfileSelectedTitleSaveDeps());
     }
 
     function renderHomeOwnedItemsFallback() {
