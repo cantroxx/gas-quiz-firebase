@@ -1422,6 +1422,7 @@
   <script src="/js/domain/quiz-domain.js"></script>
   <script src="/js/features/quiz-play.js"></script>
   <script src="/js/features/quiz-flow.js"></script>
+  <script src="/js/application/quiz-usecases.js"></script>
   <script>
     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
 
@@ -6896,60 +6897,36 @@
     }
 
     async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
-      await finishPopularUsageSession();
-      if(modeId === 'ranking') {
-        const flags = await loadFeatureFlags();
-        if(!isQuizEnabledByFlags(quizId, flags)) {
-          window.alert('이 퀴즈는 지금 점검 중입니다.');
-          showTownView();
-          return;
-        }
-        if(flags.rankingEnabled === false) {
-          window.alert('랭킹전은 지금 점검 중입니다.');
-          showQuizSelectView(quizId);
-          return;
-        }
-      } else {
-        const flags = await loadFeatureFlags();
-        if(!isQuizEnabledByFlags(quizId, flags)) {
-          window.alert('이 퀴즈는 지금 점검 중입니다.');
-          showTownView();
-          return;
-        }
-      }
-      const access = await ensurePopularQuizAccess(quizId);
-      if(!access.canAccess) {
-        if(isPopularQuiz(quizId)) {
-          showSchoolView();
-        } else {
-          showQuizSelectView(quizId);
-        }
-        return;
-      }
-      const nextSessionState = window.DJ48QuizPlay.createQuizPlaySessionState({
+      const deps = getQuizPlayDeps();
+      return window.DJ48QuizUsecases.startQuizPlayFlow({
         quizId,
         modeId,
-        rankingModeId: modeId === 'ranking' ? getSupportedRankingModeForQuiz(quizId, rankingModeId) : 'normal',
-        startedAtMs: Date.now()
+        rankingModeId
+      }, {
+        finishPopularUsageSession,
+        loadFeatureFlags,
+        isQuizEnabledByFlags,
+        alert: window.alert,
+        showTownView,
+        showQuizSelectView,
+        ensurePopularQuizAccess,
+        isPopularQuiz,
+        showSchoolView,
+        createQuizPlaySessionState: window.DJ48QuizPlay.createQuizPlaySessionState,
+        getSupportedRankingModeForQuiz,
+        applyQuizPlaySessionState: deps.applyQuizPlaySessionState,
+        clearRankingQuestionTimer,
+        clearRankingSessionTimer,
+        startPopularUsageSessionIfNeeded,
+        startRankingSessionTimerIfNeeded,
+        buildFirebaseQuizData,
+        buildQuizSessionQuestions,
+        setCurrentSessionQuestions: deps.setCurrentSessionQuestions,
+        showQuizPlayViewOnly: () => window.DJ48AppView.showOnlyAppView('quiz-play-view', APP_VIEW_IDS),
+        renderQuizPlayHeader,
+        renderQuestion,
+        warn: console.warn
       });
-      const deps = getQuizPlayDeps();
-      deps.applyQuizPlaySessionState(nextSessionState);
-      clearRankingQuestionTimer();
-      clearRankingSessionTimer();
-      startPopularUsageSessionIfNeeded(quizId);
-      startRankingSessionTimerIfNeeded();
-      try {
-        await buildFirebaseQuizData(quizId);
-      } catch(error) {
-        console.warn('Firestore quiz load failed. Falling back to local QUESTION_BANK.', error);
-      }
-      deps.setCurrentSessionQuestions(await buildQuizSessionQuestions(quizId, modeId).catch(error => {
-        console.warn('Quiz session shuffle failed. Using cached question order.', error);
-        return null;
-      }));
-      window.DJ48AppView.showOnlyAppView('quiz-play-view', APP_VIEW_IDS);
-      renderQuizPlayHeader();
-      renderQuestion();
     }
 
     function getQuizPlayDeps() {
