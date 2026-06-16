@@ -1386,6 +1386,7 @@
   <script src="/js/features/app-events.js"></script>
   <script src="/js/features/home-state.js"></script>
   <script src="/js/features/home-data.js"></script>
+  <script src="/js/application/home-usecases.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/home-controller.js"></script>
   <script src="/js/domain/event-domain.js"></script>
@@ -2632,67 +2633,43 @@
     }
 
     async function loadHomeMemberDataFromFirestore() {
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
-      await initializeAuthUser();
-      await loadFeatureFlags();
-      const dataOwnerId = getCurrentDataOwnerId();
-      const memberUserId = currentMemberUserId || '';
-      const profile = currentMemberProfile || null;
-
-      const economyPromise = getUserEconomyForRender().catch(error => {
-        console.warn('Home userEconomy read failed. Using profile fallback economy.', error);
-        return null;
-      });
-      const titleSummaryPromise = memberUserId
-        ? db.collection('userTitleSummary').doc(memberUserId).get().catch(() => null)
-        : Promise.resolve(null);
-      const titlesPromise = memberUserId
-        ? db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null)
-        : Promise.resolve(null);
-      const badgesPromise = memberUserId
-        ? db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null)
-        : Promise.resolve(null);
-
-      const [economy, titleSummarySnapshot, titlesSnapshot, badgesSnapshot] = await Promise.all([
-        economyPromise,
-        titleSummaryPromise,
-        titlesPromise,
-        badgesPromise
-      ]);
-      return window.DJ48HomeData.buildHomeMemberModel({
-        profile,
+      return window.DJ48HomeUsecases.loadHomeMemberData({
+        profile: currentMemberProfile || null,
         profileData: PROFILE_DATA,
         userRewardData: USER_REWARD_DATA,
-        economy,
-        titleSummarySnapshot,
-        titlesSnapshot,
-        badgesSnapshot,
-        dataOwnerId,
-        memberUserId
+        memberUserId: currentMemberUserId || ''
       }, {
-        isPracticeBadgeVisibleByFlags,
-        getKnownTitleName,
-        fallbackTitleName: findTitle(PROFILE_DATA.mainTitleId).name,
-        fallbackBadgeName: findBadge(PROFILE_DATA.mainBadgeId).name
+        getFirestoreDb,
+        initializeAuthUser,
+        loadFeatureFlags,
+        getCurrentDataOwnerId,
+        getUserEconomyForRender,
+        warn: console.warn,
+        buildHomeMemberModel: data => window.DJ48HomeData.buildHomeMemberModel(data, {
+          isPracticeBadgeVisibleByFlags,
+          getKnownTitleName,
+          fallbackTitleName: findTitle(PROFILE_DATA.mainTitleId).name,
+          fallbackBadgeName: findBadge(PROFILE_DATA.mainBadgeId).name
+        })
       });
     }
 
     function renderHomeMemberDataFromFirestore() {
-      loadHomeMemberDataFromFirestore()
-        .then(model => {
-          renderProfileCard(model.profile);
-          const selectedTitleId = currentMemberProfile?.selectedTitleId || '';
-          const titleCards = window.DJ48HomeData.buildTitleCardsForRender(model.titleCards, selectedTitleId);
-          renderCollectionCards('title-card-grid', titleCards.length ? titleCards : window.DJ48HomeData.getDefaultTitleCards(), 'title-card');
-          renderBadgeProgressGroups('badge-card-grid', model.badgeCards.length ? model.badgeCards : window.DJ48HomeData.getDefaultBadgeCards());
-          renderProfileRankingRecordsFromFirestore().catch(error => {
-            console.warn('Firestore profile ranking records refresh failed.', error);
-          });
-        })
-        .catch(error => {
-          console.warn('Firestore home member data read failed. Using static home fallback.', error);
-        });
+      return window.DJ48HomeUsecases.renderHomeMemberData({
+        selectedTitleId: currentMemberProfile?.selectedTitleId || ''
+      }, {
+        loadHomeMemberData: loadHomeMemberDataFromFirestore,
+        renderProfileCard,
+        buildTitleCardsForRender: window.DJ48HomeData.buildTitleCardsForRender,
+        getDefaultTitleCards: window.DJ48HomeData.getDefaultTitleCards,
+        getDefaultBadgeCards: window.DJ48HomeData.getDefaultBadgeCards,
+        renderCollectionCards,
+        renderBadgeProgressGroups,
+        renderProfileRankingRecords: () => renderProfileRankingRecordsFromFirestore().catch(error => {
+          console.warn('Firestore profile ranking records refresh failed.', error);
+        }),
+        warn: console.warn
+      });
     }
 
     function renderMemberLinkPanel() {
@@ -2996,24 +2973,18 @@
     async function renderHomeOwnedItemsFromFirestore() {
       const root = document.getElementById('owned-item-grid');
       if(!root) return;
-      if(!currentMemberUserId) {
-        renderHomeOwnedItems([], {});
-        return;
-      }
-
-      try {
-        const [items, assetCatalogMap, inventoryItemIds, roomSettings] = await Promise.all([
-          getShopItemsForRender(),
-          getAssetCatalogMap(),
-          getInventoryItemIdsForRender(),
-          getRoomSettingsForRender()
-        ]);
-        const ownedItems = window.DJ48ShopData.getOwnedShopItems(items, inventoryItemIds);
-        renderHomeOwnedItems(ownedItems, assetCatalogMap, roomSettings);
-      } catch(error) {
-        console.warn('Home inventory read failed. Keeping owned item fallback.', error);
-        renderHomeOwnedItems([], {});
-      }
+      await window.DJ48HomeUsecases.renderHomeOwnedItems({
+        memberUserId: currentMemberUserId
+      }, {
+        getShopItemsForRender,
+        getAssetCatalogMap,
+        getInventoryItemIdsForRender,
+        getRoomSettingsForRender,
+        getOwnedShopItems: window.DJ48ShopData.getOwnedShopItems,
+        getDefaultRoomSettings,
+        renderHomeOwnedItems,
+        warn: console.warn
+      });
     }
 
     function renderHomeOwnedItems(items, assetCatalogMap = {}, roomSettings = getDefaultRoomSettings()) {
