@@ -1395,6 +1395,7 @@
   <script src="/js/features/event-render.js"></script>
   <script src="/js/features/event-controller.js"></script>
   <script src="/js/domain/classroom-domain.js"></script>
+  <script src="/js/application/classroom-usecases.js"></script>
   <script src="/js/features/classroom-state.js"></script>
   <script src="/js/features/classroom-data.js"></script>
   <script src="/js/features/classroom-form.js"></script>
@@ -5404,16 +5405,17 @@
     }
 
     async function loadClassroomSettings(forceRefresh = false) {
-      if(window.DJ48ClassroomState.getValue('settings') && !forceRefresh) {
-        return window.DJ48ClassroomState.getValue('settings');
-      }
-      const settings = await window.DJ48ClassroomData.loadClassroomSettings({
+      return window.DJ48ClassroomUsecases.loadClassroomSettingsWithCache({
+        forceRefresh,
         prototype: CLASSROOM_PROTOTYPE
       }, {
-        getFirestoreDb,
-        warn: console.warn
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        loadClassroomSettings: options => window.DJ48ClassroomData.loadClassroomSettings(options, {
+          getFirestoreDb,
+          warn: console.warn
+        })
       });
-      return window.DJ48ClassroomState.setValue('settings', settings);
     }
 
     function isCurrentClassroomTeacher(settings = CLASSROOM_PROTOTYPE) {
@@ -5421,115 +5423,127 @@
     }
 
     async function loadClassroomQuestProgress(forceRefresh = false) {
-      if(window.DJ48ClassroomState.getValue('progress') && !forceRefresh) return window.DJ48ClassroomState.getValue('progress');
-      if(window.DJ48ClassroomState.getLoadPromise('progress') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('progress');
       const db = getFirestoreDb();
       const settings = await loadClassroomSettings();
-      const loadPromise = window.DJ48ClassroomData.loadClassroomQuestProgress({
-        db,
+      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('progress', {
+        forceRefresh,
         settings,
         memberUserId: currentMemberUserId
-      }).then(progress => {
-        return window.DJ48ClassroomState.setValue('progress', progress);
-      }).finally(() => {
-        window.DJ48ClassroomState.setLoadPromise('progress', null);
+      }, {
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        loadValue: options => window.DJ48ClassroomData.loadClassroomQuestProgress({
+          db,
+          settings: options.settings,
+          memberUserId: options.memberUserId
+        })
       });
-      window.DJ48ClassroomState.setLoadPromise('progress', loadPromise);
-      return loadPromise;
     }
 
     async function loadClassroomWallet(settings, forceRefresh = false) {
-      if(window.DJ48ClassroomState.getValue('wallet') && !forceRefresh) return window.DJ48ClassroomState.getValue('wallet');
-      if(window.DJ48ClassroomState.getLoadPromise('wallet') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('wallet');
       const db = getFirestoreDb();
-      const loadPromise = window.DJ48ClassroomData.loadClassroomWallet({
-        db,
+      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('wallet', {
+        forceRefresh,
         settings,
         memberUserId: currentMemberUserId
       }, {
-        warn: console.warn
-      }).then(wallet => {
-        return window.DJ48ClassroomState.setValue('wallet', wallet);
-      }).finally(() => {
-        window.DJ48ClassroomState.setLoadPromise('wallet', null);
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        loadValue: options => window.DJ48ClassroomData.loadClassroomWallet({
+          db,
+          settings: options.settings,
+          memberUserId: options.memberUserId
+        }, {
+          warn: console.warn
+        })
       });
-      window.DJ48ClassroomState.setLoadPromise('wallet', loadPromise);
-      return loadPromise;
     }
 
     async function loadClassroomGemProgress(settings, forceRefresh = false) {
-      if(window.DJ48ClassroomState.getValue('gems') && !forceRefresh) return window.DJ48ClassroomState.getValue('gems');
-      if(window.DJ48ClassroomState.getLoadPromise('gems') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('gems');
       const db = getFirestoreDb();
-      const loadPromise = window.DJ48ClassroomData.loadClassroomGemProgress({
-        db,
+      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('gems', {
+        forceRefresh,
         settings,
         memberUserId: currentMemberUserId
       }, {
-        warn: console.warn
-      }).then(progress => {
-        return window.DJ48ClassroomState.setValue('gems', progress);
-      }).finally(() => {
-        window.DJ48ClassroomState.setLoadPromise('gems', null);
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        loadValue: options => window.DJ48ClassroomData.loadClassroomGemProgress({
+          db,
+          settings: options.settings,
+          memberUserId: options.memberUserId
+        }, {
+          warn: console.warn
+        })
       });
-      window.DJ48ClassroomState.setLoadPromise('gems', loadPromise);
-      return loadPromise;
     }
 
     async function loadClassroomStudentCards(settings, forceRefresh = false) {
-      if(window.DJ48ClassroomState.getValue('students') && !forceRefresh) return window.DJ48ClassroomState.getValue('students');
-      if(window.DJ48ClassroomState.getLoadPromise('students') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('students');
-      const loadPromise = window.DJ48ClassroomData.loadClassroomStudentCards({
+      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('students', {
+        forceRefresh,
         settings,
         memberUserId: currentMemberUserId
       }, {
-        getFirebaseFunctions,
-        warn: console.warn
-      }).then(students => {
-        return window.DJ48ClassroomState.setValue('students', students);
-      }).finally(() => {
-        window.DJ48ClassroomState.setLoadPromise('students', null);
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        loadValue: options => window.DJ48ClassroomData.loadClassroomStudentCards({
+          settings: options.settings,
+          memberUserId: options.memberUserId
+        }, {
+          getFirebaseFunctions,
+          warn: console.warn
+        })
       });
-      window.DJ48ClassroomState.setLoadPromise('students', loadPromise);
-      return loadPromise;
     }
 
     async function loadClassroomEconomyBoard(settings, forceRefresh = false) {
-      if(window.DJ48ClassroomState.getValue('economy') && !forceRefresh) return window.DJ48ClassroomState.getValue('economy');
-      if(window.DJ48ClassroomState.getLoadPromise('economy') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('economy');
-      const loadPromise = window.DJ48ClassroomData.loadClassroomEconomyBoard({
+      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('economy', {
+        forceRefresh,
         settings,
         memberUserId: currentMemberUserId
       }, {
-        getFirebaseFunctions,
-        warn: console.warn
-      }).then(board => {
-        return window.DJ48ClassroomState.setValue('economy', board);
-      }).finally(() => {
-        window.DJ48ClassroomState.setLoadPromise('economy', null);
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        loadValue: options => window.DJ48ClassroomData.loadClassroomEconomyBoard({
+          settings: options.settings,
+          memberUserId: options.memberUserId
+        }, {
+          getFirebaseFunctions,
+          warn: console.warn
+        })
       });
-      window.DJ48ClassroomState.setLoadPromise('economy', loadPromise);
-      return loadPromise;
     }
 
     async function loadClassroomReviewItems(settings, forceRefresh = false) {
       if(!isCurrentClassroomTeacher(settings)) return [];
-      if(window.DJ48ClassroomState.getValue('review') && !forceRefresh) return window.DJ48ClassroomState.getValue('review');
-      if(window.DJ48ClassroomState.getLoadPromise('review') && !forceRefresh) return window.DJ48ClassroomState.getLoadPromise('review');
       const db = getFirestoreDb();
-      const loadPromise = window.DJ48ClassroomData.loadClassroomReviewItems({
-        db,
+      return window.DJ48ClassroomUsecases.loadClassroomCachedValue('review', {
+        forceRefresh,
         settings,
-        canReview: isCurrentClassroomTeacher(settings)
+        canReview: true
       }, {
-        warn: console.warn
-      }).then(items => {
-        return window.DJ48ClassroomState.setValue('review', items);
-      }).finally(() => {
-        window.DJ48ClassroomState.setLoadPromise('review', null);
+        getValue: window.DJ48ClassroomState.getValue,
+        setValue: window.DJ48ClassroomState.setValue,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        loadValue: options => window.DJ48ClassroomData.loadClassroomReviewItems({
+          db,
+          settings: options.settings,
+          canReview: options.canReview
+        }, {
+          warn: console.warn
+        })
       });
-      window.DJ48ClassroomState.setLoadPromise('review', loadPromise);
-      return loadPromise;
     }
 
     function renderClassroomReviewList(settings, reviewItems = [], options = {}) {
@@ -5540,8 +5554,12 @@
     }
 
     async function renderAdminClassroomReview(forceRefresh = false) {
-      const settings = await loadClassroomSettings(forceRefresh);
-      const reviewItems = await loadClassroomReviewItems(settings, forceRefresh);
+      const { settings, reviewItems } = await window.DJ48ClassroomUsecases.getClassroomReviewViewData({
+        forceRefresh
+      }, {
+        loadClassroomSettings,
+        loadClassroomReviewItems
+      });
       renderClassroomReviewList(settings, reviewItems, {
         statusId: 'admin-classroom-status',
         gridId: 'admin-classroom-review-grid'
@@ -5587,24 +5605,18 @@
     }
 
     async function renderClassroomPrototype(forceRefresh = false) {
-      const settings = await loadClassroomSettings(forceRefresh);
-      const [progressMap, reviewItems, wallet, gemProgress, studentCards, economyBoard] = await Promise.all([
-        loadClassroomQuestProgress(forceRefresh),
-        loadClassroomReviewItems(settings, forceRefresh),
-        loadClassroomWallet(settings, forceRefresh),
-        loadClassroomGemProgress(settings, forceRefresh),
-        loadClassroomStudentCards(settings, forceRefresh),
-        loadClassroomEconomyBoard(settings, forceRefresh)
-      ]);
-      window.DJ48ClassroomRender.renderClassroomSections({
-        settings,
-        progressMap,
-        reviewItems,
-        wallet,
-        gemProgress,
-        studentCards,
-        economyBoard
-      }, getClassroomRenderDeps());
+      const data = await window.DJ48ClassroomUsecases.getClassroomPrototypeViewData({
+        forceRefresh
+      }, {
+        loadClassroomSettings,
+        loadClassroomQuestProgress,
+        loadClassroomReviewItems,
+        loadClassroomWallet,
+        loadClassroomGemProgress,
+        loadClassroomStudentCards,
+        loadClassroomEconomyBoard
+      });
+      window.DJ48ClassroomRender.renderClassroomSections(data, getClassroomRenderDeps());
     }
 
     function setClassroomQuestEditorStatus(message, isError = false) {
