@@ -5,6 +5,8 @@
   let firebaseAuthUser = null;
   let firebaseAuthInitPromise = null;
   let authStateListenerAttached = false;
+  let currentMemberUserId = '';
+  let currentMemberProfile = null;
 
   function isMemberLinkInProgress() {
     return memberLinkInProgress;
@@ -69,6 +71,37 @@
     firebaseAuthInitPromise = null;
   }
 
+  function getCurrentMemberUserId() {
+    return currentMemberUserId;
+  }
+
+  function setCurrentMemberUserId(value) {
+    currentMemberUserId = value || '';
+    return currentMemberUserId;
+  }
+
+  function getCurrentMemberProfile() {
+    return currentMemberProfile;
+  }
+
+  function setCurrentMemberProfile(value) {
+    currentMemberProfile = value || null;
+    return currentMemberProfile;
+  }
+
+  function setCurrentMemberSession(value = {}) {
+    currentMemberUserId = value.currentMemberUserId || '';
+    currentMemberProfile = value.currentMemberProfile || null;
+    return {
+      currentMemberUserId,
+      currentMemberProfile
+    };
+  }
+
+  function clearCurrentMemberSession() {
+    return setCurrentMemberSession();
+  }
+
   window.DJ48AccountState = {
     isMemberLinkInProgress,
     setMemberLinkInProgress,
@@ -83,6 +116,12 @@
     setFirebaseAuthInitPromise,
     isAuthStateListenerAttached,
     setAuthStateListenerAttached,
-    resetFirebaseAuthState
+    resetFirebaseAuthState,
+    getCurrentMemberUserId,
+    setCurrentMemberUserId,
+    getCurrentMemberProfile,
+    setCurrentMemberProfile,
+    setCurrentMemberSession,
+    clearCurrentMemberSession
   };
 })();

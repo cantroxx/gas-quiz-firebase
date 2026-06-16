@@ -1710,8 +1710,6 @@
     const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 5;
 
     let lastResolvedUserId = null;
-    let currentMemberUserId = '';
-    let currentMemberProfile = null;
     let userDataMigrationPromise = null;
 
     const QUEST_DATA = [
@@ -2131,7 +2129,7 @@
     }
 
     async function checkServerFreshness() {
-      if(!currentMemberUserId) return;
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) return;
       try {
         const signature = await loadServerFreshnessSignature();
         if(!signature) return;
@@ -2529,13 +2527,13 @@
     function renderHomeView() {
       renderProfileCard();
       renderMemberLinkPanel();
-      renderCollectionCards('title-card-grid', currentMemberUserId ? [{
+      renderCollectionCards('title-card-grid', window.DJ48AccountState.getCurrentMemberUserId() ? [{
         titleId: 'loading',
         icon: '🏷️',
         name: '칭호 불러오는 중',
         desc: '보유 칭호를 확인하고 있습니다.'
       }] : TITLE_DATA, 'title-card');
-      renderCollectionCards('badge-card-grid', currentMemberUserId ? [{
+      renderCollectionCards('badge-card-grid', window.DJ48AccountState.getCurrentMemberUserId() ? [{
         badgeId: 'loading',
         icon: '🏅',
         name: '연습 현황 불러오는 중',
@@ -2635,10 +2633,10 @@
 
     async function loadHomeMemberDataFromFirestore() {
       return window.DJ48HomeUsecases.loadHomeMemberData({
-        profile: currentMemberProfile || null,
+        profile: window.DJ48AccountState.getCurrentMemberProfile() || null,
         profileData: PROFILE_DATA,
         userRewardData: USER_REWARD_DATA,
-        memberUserId: currentMemberUserId || ''
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId() || ''
       }, {
         homeRepository: window.DJ48HomeRepository.createHomeRepository({
           getFirestoreDb,
@@ -2659,7 +2657,7 @@
 
     function renderHomeMemberDataFromFirestore() {
       return window.DJ48HomeUsecases.renderHomeMemberData({
-        selectedTitleId: currentMemberProfile?.selectedTitleId || ''
+        selectedTitleId: window.DJ48AccountState.getCurrentMemberProfile()?.selectedTitleId || ''
       }, {
         loadHomeMemberData: loadHomeMemberDataFromFirestore,
         renderProfileCard,
@@ -2677,8 +2675,8 @@
 
     function renderMemberLinkPanel() {
       return window.DJ48AccountForm.renderMemberLinkPanel({
-        currentMemberProfile,
-        currentMemberUserId,
+        currentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile(),
+        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange()
       });
     }
@@ -2728,7 +2726,7 @@
     }
 
     async function saveSelectedProfileImageFromHome(index) {
-      if(!currentMemberUserId) throw new Error('member-required');
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) throw new Error('member-required');
       const status = document.getElementById('profile-image-search-status');
       const option = window.DJ48HomeState.getProfileImageOption(index);
       if(!option) {
@@ -2757,7 +2755,7 @@
     }
 
     async function handleProfileImageUploadFile(file) {
-      if(!currentMemberUserId) throw new Error('member-required');
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) throw new Error('member-required');
       const status = document.getElementById('profile-image-search-status');
       const validation = window.DJ48AccountData.validateProfileImageUploadFile(file);
       if(!validation.ok) {
@@ -2799,7 +2797,7 @@
     }
 
     function openProfileImageEditor(options) {
-      const currentEdit = getProfileImageEditModel(currentMemberProfile || {});
+      const currentEdit = getProfileImageEditModel(window.DJ48AccountState.getCurrentMemberProfile() || {});
       const editorState = window.DJ48HomeState.setProfileImageEditorState(
         window.DJ48AccountData.buildProfileImageEditorState(options, currentEdit, {
           normalizeDisplayImageUrl
@@ -2825,7 +2823,7 @@
 
     async function saveProfileImageEditorSelection() {
       return window.DJ48ProfileUsecases.saveProfileImageEditorSelectionFlow({}, {
-        getCurrentMemberUserId: () => currentMemberUserId,
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         getFirestoreDb,
         initializeAuthUser,
         getProfileImageEditorState: () => window.DJ48HomeState.getProfileImageEditorState(),
@@ -2835,8 +2833,8 @@
         saveProfileImageEditorSelection: window.DJ48AccountData.saveProfileImageEditorSelection,
         getFirebaseStorage,
         getAuthUid: () => window.firebase?.auth?.().currentUser?.uid || '',
-        getCurrentMemberProfile: () => currentMemberProfile,
-        setCurrentMemberProfile: profile => { currentMemberProfile = profile; },
+        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
+        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
         getFirestoreFieldValue,
         closeProfileImageEditor,
         renderHomeMemberDataFromFirestore,
@@ -2846,7 +2844,7 @@
 
     async function saveProfileRankingMessageFromHome() {
       return window.DJ48ProfileUsecases.saveProfileRankingMessageFlow({}, {
-        getCurrentMemberUserId: () => currentMemberUserId,
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         getFirestoreDb,
         initializeAuthUser,
         getInput: () => document.getElementById('profile-ranking-message-input'),
@@ -2855,8 +2853,8 @@
         normalizeRankingMessageInput,
         saveRankingMessageForMember: window.DJ48AccountData.saveRankingMessageForMember,
         getFirestoreFieldValue,
-        getCurrentMemberProfile: () => currentMemberProfile,
-        setCurrentMemberProfile: profile => { currentMemberProfile = profile; },
+        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
+        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
         warn: console.warn
       });
     }
@@ -2888,13 +2886,13 @@
 
     async function saveProfileSelectedTitleFromHome(titleId) {
       return window.DJ48ProfileUsecases.saveProfileSelectedTitleFlow({ titleId }, {
-        getCurrentMemberUserId: () => currentMemberUserId,
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         getFirestoreDb,
         initializeAuthUser,
         saveSelectedTitleForMember: window.DJ48AccountData.saveSelectedTitleForMember,
         getFirestoreFieldValue,
-        getCurrentMemberProfile: () => currentMemberProfile,
-        setCurrentMemberProfile: profile => { currentMemberProfile = profile; },
+        getCurrentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile,
+        setCurrentMemberProfile: window.DJ48AccountState.setCurrentMemberProfile,
         renderHomeMemberDataFromFirestore
       });
     }
@@ -2923,7 +2921,7 @@
       const root = document.getElementById('owned-item-grid');
       if(!root) return;
       await window.DJ48HomeUsecases.renderHomeOwnedItems({
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getShopItemsForRender,
         getAssetCatalogMap,
@@ -3078,7 +3076,7 @@
       if(!root) return;
       root.innerHTML = '';
       const items = records.filter(record => Number(record.score) > 0);
-      if(!currentMemberUserId) {
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) {
         const empty = document.createElement('p');
         empty.className = 'profile-ranking-empty';
         empty.textContent = '로그인 후 내 랭킹 기록을 확인할 수 있습니다.';
@@ -3160,7 +3158,7 @@
 
     async function renderProfileRankingRecordsFromFirestore() {
       return window.DJ48RankingUsecases.renderProfileRankingRecordsFlow({
-        memberUserId: currentMemberUserId,
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         recordLimit: PROFILE_RANKING_RECORD_LIMIT,
         bestContextLimit: 5
       }, {
@@ -3383,7 +3381,7 @@
         getTopRankingRecordsByCategoryKeys,
         getProfileRankingRowKey,
         getRankingRecordUserKey,
-        getCurrentMemberUserId: () => currentMemberUserId,
+        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         profileRankingContextLimit: PROFILE_RANKING_CONTEXT_LIMIT,
         warn: console.warn
       });
@@ -4230,8 +4228,10 @@
 
     function applyRestoredMemberProfile(profile) {
       const state = window.DJ48AccountData.getRestoredMemberState(profile);
-      currentMemberUserId = state.currentMemberUserId;
-      currentMemberProfile = state.currentMemberProfile;
+      window.DJ48AccountState.setCurrentMemberSession({
+        currentMemberUserId: state.currentMemberUserId,
+        currentMemberProfile: state.currentMemberProfile
+      });
       if(state.linkedMemberHintUserId) maybeSaveLinkedMemberHint(state.linkedMemberHintUserId);
       if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
       return profile;
@@ -4255,7 +4255,7 @@
     }
 
     function getCurrentDataOwnerId() {
-      return currentMemberUserId || getCurrentUserId() || TEST_SHOP_USER_ID;
+      return window.DJ48AccountState.getCurrentMemberUserId() || getCurrentUserId() || TEST_SHOP_USER_ID;
     }
 
     function requireCurrentDataOwnerId() {
@@ -4294,8 +4294,7 @@
         testShopUserId: TEST_SHOP_USER_ID
       });
       if(state.shouldClearMemberProfile) {
-        currentMemberUserId = '';
-        currentMemberProfile = null;
+        window.DJ48AccountState.clearCurrentMemberSession();
         if(state.shouldClearLinkedMemberHint) clearLinkedMemberHint();
         if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
       }
@@ -4312,8 +4311,8 @@
       return window.DJ48AccountData.restoreLinkedMemberProfile({
         db,
         authUid,
-        currentMemberUserId,
-        currentMemberProfile,
+        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
+        currentMemberProfile: window.DJ48AccountState.getCurrentMemberProfile(),
         hintedMemberUserId: getLinkedMemberHint(),
         testShopUserId: TEST_SHOP_USER_ID
       }, {
@@ -4398,8 +4397,10 @@
         result
       });
 
-      currentMemberUserId = result.memberUserId;
-      currentMemberProfile = linkedProfile;
+      window.DJ48AccountState.setCurrentMemberSession({
+        currentMemberUserId: result.memberUserId,
+        currentMemberProfile: linkedProfile
+      });
       window.DJ48AccountState.setPendingPasswordChange(result.forcePasswordChange === true
         ? {
           memberUserId: result.memberUserId,
@@ -4419,7 +4420,7 @@
     async function changeCurrentMemberPassword(newPassword, passwordConfirm) {
       const result = await window.DJ48AccountData.changePendingMemberPassword({
         pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange(),
-        currentMemberUserId,
+        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         newPassword,
         passwordConfirm
       }, getAccountCallableDeps());
@@ -4429,36 +4430,42 @@
 
     async function changeCurrentMemberPasswordWithCurrentPassword(currentPassword, newPassword, passwordConfirm) {
       const result = await window.DJ48AccountData.changeMemberPasswordWithCurrentPassword({
-        memberUserId: currentMemberUserId,
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         currentPassword,
         newPassword,
         passwordConfirm
       }, getAccountCallableDeps());
-      currentMemberProfile = window.DJ48AccountData.mergeMemberProfile(currentMemberProfile, result);
+      window.DJ48AccountState.setCurrentMemberProfile(
+        window.DJ48AccountData.mergeMemberProfile(window.DJ48AccountState.getCurrentMemberProfile(), result)
+      );
       return result;
     }
 
     async function updateCurrentMemberNickname(nickname) {
       const result = await window.DJ48AccountData.updateMemberNicknameForMember({
-        memberUserId: currentMemberUserId,
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         nickname
       }, getAccountCallableDeps());
-      currentMemberProfile = window.DJ48AccountData.mergeMemberProfile(currentMemberProfile, result);
+      window.DJ48AccountState.setCurrentMemberProfile(
+        window.DJ48AccountData.mergeMemberProfile(window.DJ48AccountState.getCurrentMemberProfile(), result)
+      );
       return result;
     }
 
     async function unlinkCurrentMemberForTesting() {
       const auth = getFirebaseAuth();
       const authUid = getFirebaseAuthUser()?.uid || '';
-      const memberUserId = currentMemberUserId;
+      const memberUserId = window.DJ48AccountState.getCurrentMemberUserId();
 
       const state = window.DJ48AccountData.getUnlinkCurrentMemberState({
         auth,
         authUid,
         memberUserId
       });
-      currentMemberUserId = state.currentMemberUserId;
-      currentMemberProfile = state.currentMemberProfile;
+      window.DJ48AccountState.setCurrentMemberSession({
+        currentMemberUserId: state.currentMemberUserId,
+        currentMemberProfile: state.currentMemberProfile
+      });
       if(state.shouldClearLinkedMemberHint) clearLinkedMemberHint();
       if(state.shouldResetUserScopedRuntimeData) resetUserScopedRuntimeData();
       if(state.shouldResetFirebaseAuthState) {
@@ -4508,7 +4515,7 @@
         getMemberPasswordChangeErrorMessage: window.DJ48AccountForm.getMemberPasswordChangeErrorMessage,
         appendMemberLinkError,
         openMemberDestination: profile => {
-          const destination = window.DJ48AccountForm.getMemberLinkDestination(profile, currentMemberProfile);
+          const destination = window.DJ48AccountForm.getMemberLinkDestination(profile, window.DJ48AccountState.getCurrentMemberProfile());
           if(destination === 'admin') showAdminView();
           else showTownView();
         },
@@ -4559,7 +4566,7 @@
         renderMemberLinkPanel,
         shouldWaitForRequiredPasswordChange: () => window.DJ48AccountForm.shouldWaitForRequiredPasswordChange({
           pendingPasswordChange: window.DJ48AccountState.getPendingPasswordChange(),
-          currentMemberUserId
+          currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId()
         }),
         openMemberDestination: profile => {
           if(window.DJ48AccountForm.getMemberLinkDestination(profile) === 'admin') showAdminView();
@@ -4746,11 +4753,11 @@
     }
 
     async function migrateUserDataToMemberIdIfNeeded() {
-      if(!currentMemberUserId) return { skipped: true, reason: 'member-not-linked' };
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) return { skipped: true, reason: 'member-not-linked' };
       if(userDataMigrationPromise) return userDataMigrationPromise;
 
       const sourceUid = getCurrentUserId();
-      const memberUserId = currentMemberUserId;
+      const memberUserId = window.DJ48AccountState.getCurrentMemberUserId();
       if(!sourceUid || sourceUid === TEST_SHOP_USER_ID || sourceUid === memberUserId) {
         return { skipped: true, reason: 'no-auth-source' };
       }
@@ -4770,7 +4777,7 @@
     }
 
     async function prepareMemberOwnedData() {
-      if(!currentMemberUserId) return null;
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) return null;
       try {
         return await migrateUserDataToMemberIdIfNeeded();
       } catch(error) {
@@ -4819,7 +4826,7 @@
 
       return getShopRepository().loadInventoryItemIds({
         userId,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       });
     }
 
@@ -4840,7 +4847,7 @@
 
       return getShopRepository().loadRoomSettings({
         userId,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       });
     }
 
@@ -4880,7 +4887,7 @@
     function renderShopWallet(economy = null) {
       return window.DJ48ShopRender.renderShopWallet(economy, {
         userRewardData: USER_REWARD_DATA,
-        currentMemberUserId
+        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       });
     }
 
@@ -4972,7 +4979,7 @@
     }
 
     function isCurrentClassroomTeacher(settings = CLASSROOM_PROTOTYPE) {
-      return window.DJ48ClassroomData.isCurrentClassroomTeacher(currentMemberProfile || {}, settings);
+      return window.DJ48ClassroomData.isCurrentClassroomTeacher(window.DJ48AccountState.getCurrentMemberProfile() || {}, settings);
     }
 
     function getClassroomRepository() {
@@ -4989,7 +4996,7 @@
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('progress', {
         forceRefresh,
         settings,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
@@ -5003,7 +5010,7 @@
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('wallet', {
         forceRefresh,
         settings,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
@@ -5017,7 +5024,7 @@
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('gems', {
         forceRefresh,
         settings,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
@@ -5031,7 +5038,7 @@
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('students', {
         forceRefresh,
         settings,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
@@ -5045,7 +5052,7 @@
       return window.DJ48ClassroomUsecases.loadClassroomCachedValue('economy', {
         forceRefresh,
         settings,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
@@ -5093,21 +5100,21 @@
     function getClassroomRenderDeps() {
       return {
         isCurrentClassroomTeacher,
-        currentMemberUserId,
+        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         getClassroomRewardCurrencyLabel,
         normalizeDisplayImageUrl
       };
     }
 
     async function setClassroomSelectedGemBadge(gemId) {
-      if(!gemId || !currentMemberUserId) return;
+      if(!gemId || !window.DJ48AccountState.getCurrentMemberUserId()) return;
       const button = document.querySelector(`[data-classroom-badge-gem-id="${gemId}"]`);
       if(button) {
         button.disabled = true;
         button.textContent = '설정 중...';
       }
       await window.DJ48ClassroomUsecases.setClassroomSelectedBadgeFlow({
-        memberUserId: currentMemberUserId,
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         badgeType: 'gem',
         badgeId: gemId
       }, {
@@ -5305,7 +5312,7 @@
         return await window.DJ48ClassroomUsecases.callClassroomEconomyActionFlow({
           functionName,
           payload,
-          memberUserId: currentMemberUserId
+          memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
         }, {
           loadClassroomSettings,
           callAction: (name, nextPayload, options) => getClassroomRepository().callClassroomEconomyAction(name, nextPayload, options),
@@ -5363,7 +5370,7 @@
     async function saveClassroomRoutineFromForm(event) {
       event?.preventDefault();
       await window.DJ48ClassroomUsecases.saveClassroomRoutineFlow({
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getValues: getClassroomRoutineFormValues,
         loadClassroomSettings,
@@ -5394,7 +5401,7 @@
 
       const result = await window.DJ48ClassroomUsecases.completeClassroomCheckQuestFlow({
         questId,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         loadClassroomSettings: async () => settings,
         findClassroomQuest: window.DJ48ClassroomData.findClassroomQuest,
@@ -5442,7 +5449,7 @@
     async function loadEventProgress(forceRefresh = false) {
       return window.DJ48EventUsecases.loadEventProgressWithCache({
         forceRefresh,
-        memberUserId: currentMemberUserId
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getEventProgress: window.DJ48EventState.getEventProgress,
         getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
@@ -5455,7 +5462,7 @@
     async function renderEventProgressFromFunctions(forceRefresh = false) {
       const result = await window.DJ48EventUsecases.getEventProgressViewData({
         forceRefresh,
-        memberUserId: currentMemberUserId,
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         fallback: {
           quests: QUEST_DATA,
           classMissions: CLASS_MISSION_DATA,
@@ -5481,7 +5488,7 @@
         button.textContent = '수령 중...';
       }
       await window.DJ48EventUsecases.claimEventQuestRewardFlow({
-        memberUserId: currentMemberUserId,
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         questId
       }, {
         claimEventQuestReward: options => getEventRepository().claimEventQuestReward(options),
@@ -6214,7 +6221,7 @@
         advanceCurrentQuestionIndex: () => window.DJ48QuizSessionState.advanceCurrentQuestionIndex(),
         getCorrectAnswerCount: () => window.DJ48QuizSessionState.getCorrectAnswerCount(),
         incrementCorrectAnswerCount: () => window.DJ48QuizSessionState.incrementCorrectAnswerCount(),
-        getCurrentMemberProfile: () => currentMemberProfile || {},
+        getCurrentMemberProfile: () => window.DJ48AccountState.getCurrentMemberProfile() || {},
         getCurrentQuizStartedAtMs: () => window.DJ48QuizSessionState.getCurrentQuizStartedAtMs(),
         getCurrentRankingModeId: () => window.DJ48QuizSessionState.getCurrentRankingModeId(),
         getCurrentRankingLives: () => window.DJ48QuizSessionState.getCurrentRankingLives(),
@@ -6725,7 +6732,7 @@
     }
 
     function showHomeView() {
-      if(currentMemberUserId) {
+      if(window.DJ48AccountState.getCurrentMemberUserId()) {
         renderHomeView();
       } else {
         initializeAuthUser().then(() => {
