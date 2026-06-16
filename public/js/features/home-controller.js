@@ -1,4 +1,18 @@
 (function () {
+  function resetProfileImageEditor(deps = {}) {
+    const editorState = deps.getProfileImageEditorState?.();
+    if(!editorState) return null;
+    const nextState = deps.setProfileImageEditorState?.({
+      ...editorState,
+      profileImageScale: 1,
+      profileImageOffsetX: 0,
+      profileImageOffsetY: 0
+    });
+    deps.setProfileImageEditorControls?.(nextState);
+    deps.updateProfileImageEditorPreview?.();
+    return nextState;
+  }
+
   function bindProfileHomeEvents(deps = {}) {
     document.getElementById('profile-card-root')?.addEventListener('click', event => {
       const profileToggle = event.target.closest('[data-profile-detail-toggle]');
@@ -142,6 +156,7 @@
   }
 
   window.DJ48HomeController = {
+    resetProfileImageEditor,
     bindProfileHomeEvents
   };
 })();

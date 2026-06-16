@@ -2820,6 +2820,15 @@
       window.DJ48HomeState.clearProfileImageEditorState();
     }
 
+    function resetProfileImageEditorFromHome() {
+      return window.DJ48HomeController.resetProfileImageEditor({
+        getProfileImageEditorState: () => window.DJ48HomeState.getProfileImageEditorState(),
+        setProfileImageEditorState: window.DJ48HomeState.setProfileImageEditorState,
+        setProfileImageEditorControls,
+        updateProfileImageEditorPreview
+      });
+    }
+
     function getProfileWriteDeps() {
       return {
         getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
@@ -6960,18 +6969,7 @@
           handleProfileImageUploadFile,
           closeProfileImageEditor,
           updateProfileImageEditorPreview,
-          resetProfileImageEditorFromHome: () => {
-            const editorState = window.DJ48HomeState.getProfileImageEditorState();
-            if(!editorState) return;
-            const nextState = window.DJ48HomeState.setProfileImageEditorState({
-              ...editorState,
-              profileImageScale: 1,
-              profileImageOffsetX: 0,
-              profileImageOffsetY: 0
-            });
-            setProfileImageEditorControls(nextState);
-            updateProfileImageEditorPreview();
-          },
+          resetProfileImageEditorFromHome,
           saveProfileImageEditorSelection,
           setProfileImageEditorStatus,
           openTitleCatalogModal,
