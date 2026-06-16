@@ -6544,51 +6544,60 @@
     }
 
     function showAdminView() {
-      enterAppView({
-        viewId: 'admin-view'
-      });
-      setActiveAdminSection('dashboard');
-      loadAdminDashboard().then(dashboard => {
-        if(dashboard?.adminLevel === 'superAdmin') {
-          loadAdminNoticeBoard().catch(error => {
-            console.warn('Admin notice board load failed.', error);
-            setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
-            setAdminNoticeForm(getFallbackNoticeBoard());
-          });
-          loadAdminExternalQuizzes().catch(error => {
-            console.warn('Admin external quizzes load failed.', error);
-            setAdminExternalQuizzesStatus('외부 퀴즈를 불러오지 못했습니다.', true);
-            renderAdminExternalQuizRows(DEFAULT_EXTERNAL_QUIZZES);
-          });
-          loadAdminLoginSettings().catch(error => {
-            console.warn('Admin login settings load failed.', error);
-            setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true);
-          });
-          loadAdminFeatureFlags().catch(error => {
-            console.warn('Admin feature flags load failed.', error);
-            setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
-            setAdminFeatureFlagsForm(getActiveFeatureFlags());
-          });
-          loadAdminLogs().catch(error => {
-            console.warn('Admin logs load failed.', error);
-            setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true);
-          });
-          loadAdminOperationalAudit().catch(error => {
-            console.warn('Admin operational audit load failed.', error);
-            setAdminAuditStatus('운영 점검을 불러오지 못했습니다.', true);
-          });
-          loadAdminQuizQualityAudit().catch(error => {
-            console.warn('Admin quiz quality audit load failed.', error);
-            setAdminQuizQualityStatus('문제 점검을 불러오지 못했습니다.', true);
-          });
-        }
-      }).catch(error => {
-        console.warn('Admin dashboard load failed.', error);
-        setAdminDashboardStatus('대시보드를 불러오지 못했습니다.', true);
-      });
-      loadAdminMembers().catch(error => {
-        console.warn('Admin member list load failed.', error);
-        setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true);
+      return window.DJ48AdminUsecases.loadAdminInitialViewFlow({}, {
+        enterAdminView: () => enterAppView({ viewId: 'admin-view' }),
+        setActiveAdminSection,
+        loadAdminDashboard,
+        loadAdminMembers,
+        getSuperAdminInitialLoads: () => [
+          {
+            load: loadAdminNoticeBoard,
+            warnMessage: 'Admin notice board load failed.',
+            onError: () => {
+              setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
+              setAdminNoticeForm(getFallbackNoticeBoard());
+            }
+          },
+          {
+            load: loadAdminExternalQuizzes,
+            warnMessage: 'Admin external quizzes load failed.',
+            onError: () => {
+              setAdminExternalQuizzesStatus('외부 퀴즈를 불러오지 못했습니다.', true);
+              renderAdminExternalQuizRows(DEFAULT_EXTERNAL_QUIZZES);
+            }
+          },
+          {
+            load: loadAdminLoginSettings,
+            warnMessage: 'Admin login settings load failed.',
+            onError: () => setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true)
+          },
+          {
+            load: loadAdminFeatureFlags,
+            warnMessage: 'Admin feature flags load failed.',
+            onError: () => {
+              setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
+              setAdminFeatureFlagsForm(getActiveFeatureFlags());
+            }
+          },
+          {
+            load: loadAdminLogs,
+            warnMessage: 'Admin logs load failed.',
+            onError: () => setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true)
+          },
+          {
+            load: loadAdminOperationalAudit,
+            warnMessage: 'Admin operational audit load failed.',
+            onError: () => setAdminAuditStatus('운영 점검을 불러오지 못했습니다.', true)
+          },
+          {
+            load: loadAdminQuizQualityAudit,
+            warnMessage: 'Admin quiz quality audit load failed.',
+            onError: () => setAdminQuizQualityStatus('문제 점검을 불러오지 못했습니다.', true)
+          }
+        ],
+        onDashboardError: () => setAdminDashboardStatus('대시보드를 불러오지 못했습니다.', true),
+        onMembersError: () => setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true),
+        warn: console.warn
       });
     }
 

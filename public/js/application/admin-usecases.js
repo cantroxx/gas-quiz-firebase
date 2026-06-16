@@ -34,10 +34,44 @@
     return result;
   }
 
+  async function loadAdminInitialViewFlow(options = {}, deps = {}) {
+    deps.enterAdminView?.();
+    deps.setActiveAdminSection?.(options.sectionId || 'dashboard');
+    const warn = deps.warn || (() => {});
+
+    const dashboardPromise = deps.loadAdminDashboard()
+      .then(dashboard => {
+        if(dashboard?.adminLevel !== 'superAdmin') return dashboard;
+        const optionalLoads = deps.getSuperAdminInitialLoads?.() || [];
+        optionalLoads.forEach(loadConfig => {
+          loadConfig.load?.().catch(error => {
+            warn(loadConfig.warnMessage || 'Admin optional load failed.', error);
+            loadConfig.onError?.(error);
+          });
+        });
+        return dashboard;
+      })
+      .catch(error => {
+        warn('Admin dashboard load failed.', error);
+        deps.onDashboardError?.(error);
+        return null;
+      });
+
+    const membersPromise = deps.loadAdminMembers?.().catch(error => {
+      warn('Admin member list load failed.', error);
+      deps.onMembersError?.(error);
+      return null;
+    });
+
+    const [dashboard, members] = await Promise.all([dashboardPromise, membersPromise]);
+    return { dashboard, members };
+  }
+
   const api = {
     loadAdminDashboardFlow,
     loadAdminAuditFlow,
-    loadAdminMembersFlow
+    loadAdminMembersFlow,
+    loadAdminInitialViewFlow
   };
 
   root.DJ48AdminUsecases = api;

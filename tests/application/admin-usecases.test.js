@@ -81,11 +81,87 @@ async function testLoadAdminMembersFlowWithoutStatus() {
   assert.deepEqual(calls, [['summary'], ['members']]);
 }
 
+async function testLoadAdminInitialViewFlow() {
+  const calls = [];
+  const result = await usecases.loadAdminInitialViewFlow({}, {
+    enterAdminView: () => calls.push(['enter']),
+    setActiveAdminSection: section => calls.push(['section', section]),
+    loadAdminDashboard: async () => {
+      calls.push(['dashboard']);
+      return { adminLevel: 'superAdmin' };
+    },
+    loadAdminMembers: async () => {
+      calls.push(['members']);
+      return { members: [] };
+    },
+    getSuperAdminInitialLoads: () => [
+      {
+        load: async () => calls.push(['notice'])
+      },
+      {
+        load: async () => {
+          calls.push(['logs']);
+          throw new Error('logs-failed');
+        },
+        warnMessage: 'logs failed',
+        onError: () => calls.push(['logs-error'])
+      }
+    ],
+    warn: message => calls.push(['warn', message])
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  assert.deepEqual(result, {
+    dashboard: { adminLevel: 'superAdmin' },
+    members: { members: [] }
+  });
+  assert.deepEqual(calls, [
+    ['enter'],
+    ['section', 'dashboard'],
+    ['dashboard'],
+    ['members'],
+    ['notice'],
+    ['logs'],
+    ['warn', 'logs failed'],
+    ['logs-error']
+  ]);
+}
+
+async function testLoadAdminInitialViewFlowErrors() {
+  const calls = [];
+  const result = await usecases.loadAdminInitialViewFlow({}, {
+    enterAdminView: () => calls.push(['enter']),
+    setActiveAdminSection: section => calls.push(['section', section]),
+    loadAdminDashboard: async () => {
+      throw new Error('dashboard-failed');
+    },
+    loadAdminMembers: async () => {
+      throw new Error('members-failed');
+    },
+    onDashboardError: () => calls.push(['dashboard-error']),
+    onMembersError: () => calls.push(['members-error']),
+    warn: message => calls.push(['warn', message])
+  });
+
+  assert.deepEqual(result, { dashboard: null, members: null });
+  assert.deepEqual(calls.slice(0, 2), [
+    ['enter'],
+    ['section', 'dashboard']
+  ]);
+  assert(calls.some(call => call[0] === 'warn' && call[1] === 'Admin dashboard load failed.'));
+  assert(calls.some(call => call[0] === 'dashboard-error'));
+  assert(calls.some(call => call[0] === 'warn' && call[1] === 'Admin member list load failed.'));
+  assert(calls.some(call => call[0] === 'members-error'));
+}
+
 async function run() {
   await testLoadAdminDashboardFlow();
   await testLoadAdminAuditFlow();
   await testLoadAdminMembersFlow();
   await testLoadAdminMembersFlowWithoutStatus();
+  await testLoadAdminInitialViewFlow();
+  await testLoadAdminInitialViewFlowErrors();
 }
 
 run().then(() => {
