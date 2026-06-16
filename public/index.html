@@ -3151,10 +3151,6 @@
       return window.DJ48RankingDomain.getRankingModeFilterValues(modeId);
     }
 
-    function getSubjectRankingModeFilterValues(modeId) {
-      return window.DJ48RankingDomain.getRankingModeFilterValues(modeId);
-    }
-
     function isRankingModeAllowed(record, allowedModes) {
       return window.DJ48RankingDomain.isRankingModeAllowed(record, allowedModes);
     }
@@ -3399,11 +3395,11 @@
 
     function getRankingRowsForGroup(group, modeId = 'all') {
       if(group.keys?.length && Array.isArray(group.sourceRows)) {
-        const modeValues = getSubjectRankingModeFilterValues(modeId);
+        const modeValues = getRankingModeFilterValues(modeId);
         return getTopRankingRecordsByCategoryKeys(group.sourceRows, group.keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
       }
       if(modeId === 'all') return group.rows || [];
-      const modeValues = getSubjectRankingModeFilterValues(modeId);
+      const modeValues = getRankingModeFilterValues(modeId);
       const keys = Array.from(new Set((group.rows || []).map(row => row.categoryKey).filter(Boolean)));
       return getTopRankingRecordsByCategoryKeys(group.rows || [], keys, RANKING_PLAZA_ROW_LIMIT, modeValues);
     }
