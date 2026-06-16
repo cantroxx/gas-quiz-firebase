@@ -82,6 +82,35 @@
     return updateData;
   }
 
+  async function migrateRoomSettingsToMemberId(options = {}, deps = {}) {
+    const {
+      db,
+      sourceUid,
+      memberUserId
+    } = options;
+    if(!db) throw new Error('firestore-unavailable');
+    if(!sourceUid || !memberUserId || sourceUid === memberUserId) return false;
+
+    const sourceRef = db.collection('userRoomSettings').doc(sourceUid);
+    const targetRef = db.collection('userRoomSettings').doc(memberUserId);
+    const [sourceSnapshot, targetSnapshot] = await Promise.all([
+      sourceRef.get(),
+      targetRef.get()
+    ]);
+
+    if(targetSnapshot.exists || !sourceSnapshot.exists) return false;
+
+    const fieldValue = deps.getFirestoreFieldValue?.();
+    await targetRef.set({
+      ...sourceSnapshot.data(),
+      userId: memberUserId,
+      migratedFromUid: sourceUid,
+      migratedAt: fieldValue.serverTimestamp(),
+      updatedAt: fieldValue.serverTimestamp()
+    }, { merge: false });
+    return true;
+  }
+
   function createShopRepository(deps = {}) {
     return {
       loadShopItems() {
@@ -148,6 +177,15 @@
           }),
           getRoomItemCategory: root.DJ48ShopData.getRoomItemCategory,
           isRoomItemSelected: root.DJ48ShopData.isRoomItemSelected
+        });
+      },
+      migrateRoomSettingsToMemberId(options = {}) {
+        return migrateRoomSettingsToMemberId({
+          db: deps.getFirestoreDb?.(),
+          sourceUid: options.sourceUid,
+          memberUserId: options.memberUserId
+        }, {
+          getFirestoreFieldValue: deps.getFirestoreFieldValue
         });
       }
     };

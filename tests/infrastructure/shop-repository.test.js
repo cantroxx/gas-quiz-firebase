@@ -54,6 +54,13 @@ function makeDocument(path) {
       }
       if(collectionName === 'items') return makeDocSnapshot(true, {});
       if(collectionName === 'userRoomSettings') {
+        if(path.at(-1) === 'auth-uid') {
+          return makeDocSnapshot(true, {
+            userId: path.at(-1),
+            selectedAvatarItemId: 'room-a'
+          });
+        }
+        if(path.at(-1) === 'member-2') return makeDocSnapshot(false, {});
         return makeDocSnapshot(true, {
           userId: path.at(-1),
           selectedAvatarItemId: ''
@@ -131,6 +138,10 @@ async function testShopRepositoryDelegatesToShopData() {
     updatedAt: { type: 'timestamp' },
     selectedAvatarItemId: 'room-a'
   });
+  assert.equal(await repository.migrateRoomSettingsToMemberId({
+    sourceUid: 'auth-uid',
+    memberUserId: 'member-2'
+  }), true);
   assert.deepEqual(calls.filter(call => [
     'items',
     'assets',
@@ -151,6 +162,7 @@ async function testShopRepositoryDelegatesToShopData() {
   assert(calls.some(call => call[0] === 'get' && call[1] === 'shopItems/room-a'));
   assert(calls.some(call => call[0] === 'get' && call[1] === 'userInventory/member-1/items/room-a'));
   assert(calls.some(call => call[0] === 'set' && call[1] === 'userRoomSettings/member-1' && call[2].selectedAvatarItemId === 'room-a'));
+  assert(calls.some(call => call[0] === 'set' && call[1] === 'userRoomSettings/member-2' && call[2].migratedFromUid === 'auth-uid'));
   assert(!calls.some(call => call[0] === 'legacy-save-room'));
 }
 
