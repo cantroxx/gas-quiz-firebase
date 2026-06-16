@@ -115,6 +115,14 @@ async function testQuizRepositoryReadsFirestoreQuestions() {
     getFirestoreDb: () => ({
       collection: name => ({
         doc: id => {
+          if(name === 'practiceRecords') {
+            return {
+              get: async () => ({
+                exists: true,
+                data: () => ({ correctIds: [' q1 ', '', 'q2'] })
+              })
+            };
+          }
           if(name === 'quizzes') {
             return {
               get: async () => ({
@@ -155,6 +163,7 @@ async function testQuizRepositoryReadsFirestoreQuestions() {
     answer: '정답',
     hint: '힌트'
   }]);
+  assert.deepEqual(await repository.loadPracticeRecordCorrectIds('member__area'), new Set(['q1', 'q2']));
 }
 
 async function run() {

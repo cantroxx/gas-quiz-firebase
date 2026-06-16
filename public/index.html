@@ -6077,17 +6077,13 @@
       const deps = getQuizPlayDeps();
       if(deps.getCurrentModeId() !== 'practice') return new Set();
       const id = deps.normalizeFirebaseQuizId(quizId);
-      const db = deps.getFirestoreDb();
       const memberUserId = deps.getCurrentDataOwnerId();
-      if(!db || !memberUserId || memberUserId === TEST_SHOP_USER_ID) return new Set();
+      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return new Set();
       const meta = await deps.loadFirebaseQuizMeta(id);
       const target = deps.getPracticeTargetForQuiz(id, meta);
       if(!target) return new Set();
       const recordId = deps.buildPracticeProgressRecordId(memberUserId, target.areaKey);
-      const snapshot = await db.collection('practiceRecords').doc(recordId).get();
-      if(!snapshot.exists) return new Set();
-      const data = snapshot.data() || {};
-      return new Set((Array.isArray(data.correctIds) ? data.correctIds : []).map(value => String(value || '').trim()).filter(Boolean));
+      return deps.loadPracticeRecordCorrectIds(recordId);
     }
 
     function renderQuizPlayHeader() {

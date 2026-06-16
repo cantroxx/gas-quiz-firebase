@@ -279,6 +279,16 @@
         const result = response?.data || {};
         if(!result.success) throw new Error('popular-usage-update-failed');
         return result.status || {};
+      },
+      async loadPracticeRecordCorrectIds(recordId) {
+        const db = deps.getFirestoreDb?.();
+        if(!db || !recordId) return new Set();
+        const snapshot = await db.collection('practiceRecords').doc(recordId).get();
+        if(!snapshot.exists) return new Set();
+        const data = snapshot.data() || {};
+        return new Set((Array.isArray(data.correctIds) ? data.correctIds : [])
+          .map(value => String(value || '').trim())
+          .filter(Boolean));
       }
     };
   }
@@ -298,7 +308,8 @@
       resetUserEconomyCache: () => repository.resetUserEconomyCache(),
       resetTitleCatalogCache: () => repository.resetTitleCatalogCache(),
       getPopularQuizUsageStatus: options => repository.getPopularQuizUsageStatus(options),
-      updatePopularQuizUsage: options => repository.updatePopularQuizUsage(options)
+      updatePopularQuizUsage: options => repository.updatePopularQuizUsage(options),
+      loadPracticeRecordCorrectIds: recordId => repository.loadPracticeRecordCorrectIds(recordId)
     };
   }
 
