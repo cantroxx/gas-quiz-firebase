@@ -2312,12 +2312,10 @@
     async function loadNoticeBoardFromFirestore(forceRefresh = false) {
       const cachedNoticeBoard = window.DJ48AdminState.getNoticeBoardCache();
       if(cachedNoticeBoard && !forceRefresh) return cachedNoticeBoard;
-      const db = getFirestoreDb();
-      if(!db) throw new Error('firestore-unavailable');
       await initializeAuthUser();
-      const snapshot = await db.collection('noticeBoard').doc('current').get();
+      const data = await getAdminRepository().loadPublicNoticeBoard();
       return window.DJ48AdminState.setNoticeBoardCache(
-        normalizeNoticeBoardData(snapshot.exists ? snapshot.data() || {} : {})
+        normalizeNoticeBoardData(data)
       );
     }
 

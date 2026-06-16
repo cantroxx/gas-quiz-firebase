@@ -17,6 +17,16 @@ async function assertAdminCall(actual, name, payload) {
 
 async function testAdminRepositoryCallsAdminFunctions() {
   const repository = createAdminRepository({
+    getFirestoreDb: () => ({
+      collection: name => ({
+        doc: id => ({
+          get: async () => ({
+            exists: true,
+            data: () => ({ name, id, title: 'Notice' })
+          })
+        })
+      })
+    }),
     getFirebaseFunctions: () => functions,
     initializeAuthUser: async () => {
       authCalls += 1;
@@ -24,6 +34,11 @@ async function testAdminRepositoryCallsAdminFunctions() {
     }
   });
 
+  assert.deepEqual(await repository.loadPublicNoticeBoard(), {
+    name: 'noticeBoard',
+    id: 'current',
+    title: 'Notice'
+  });
   await assertAdminCall(await repository.loadAdminDashboard(), 'adminGetDashboard', {});
   await assertAdminCall(await repository.loadAdminOperationalAudit(), 'adminGetOperationalAudit', {});
   await assertAdminCall(await repository.loadAdminQuizQualityAudit(), 'adminGetQuizQualityAudit', {});

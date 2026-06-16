@@ -34,6 +34,12 @@
 
   function createAdminRepository(deps = {}) {
     return {
+      async loadPublicNoticeBoard() {
+        const db = deps.getFirestoreDb?.();
+        if(!db) throw new Error('firestore-unavailable');
+        const snapshot = await db.collection('noticeBoard').doc('current').get();
+        return snapshot.exists ? snapshot.data() || {} : {};
+      },
       loadAdminDashboard: () => callAdminCallable({
         callableName: 'adminGetDashboard',
         errorCode: 'admin-dashboard-load-failed'
