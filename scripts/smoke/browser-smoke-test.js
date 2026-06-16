@@ -18,7 +18,8 @@ function getConfig() {
     password: process.env.SMOKE_PASSWORD || '',
     quizId: process.env.SMOKE_QUIZ_ID || 'spelling',
     rankingMode: process.env.SMOKE_RANKING_MODE || 'normal',
-    profileWrite: process.env.SMOKE_PROFILE_WRITE === '1'
+    profileWrite: process.env.SMOKE_PROFILE_WRITE === '1',
+    adminRead: process.env.SMOKE_ADMIN_READ === '1'
   };
 }
 
@@ -393,6 +394,24 @@ async function runProfileWriteFlow(page) {
   }
 }
 
+async function runAdminReadFlow(page) {
+  const isAdminViewVisible = await page.evaluate(() => document.getElementById('admin-view')?.hidden === false);
+  if(!isAdminViewVisible) return { skipped: true, reason: 'not-admin-session' };
+
+  await page.locator('#admin-dashboard-grid').waitFor({ state: 'visible', timeout: 20000 });
+  await page.waitForFunction(() => {
+    const status = document.getElementById('admin-dashboard-status')?.textContent?.trim() || '';
+    return status && !/불러오는 중|로드 중|점검하는 중/.test(status);
+  }, null, { timeout: 20000 });
+  await page.locator('#admin-member-list').waitFor({ state: 'visible', timeout: 20000 });
+  await page.waitForFunction(() => {
+    const status = document.getElementById('admin-status')?.textContent?.trim() || '';
+    const list = document.getElementById('admin-member-list');
+    return (status && !/불러오는 중|조회 중/.test(status)) || !!list?.children?.length;
+  }, null, { timeout: 20000 });
+  return { skipped: false };
+}
+
 async function runSchoolSelectCheck(page) {
   await page.evaluate(() => window.showSchoolView?.());
   await waitForVisible(page, '#school-view');
@@ -480,6 +499,7 @@ async function main() {
     await runAdminShellCheck(page);
     if(!config.publicOnly) {
       await login(page, config);
+      if(config.adminRead) await runAdminReadFlow(page);
       await runPracticeFlow(page, config);
       await runRankingFlow(page, config);
       await runHomeProfileCheck(page);

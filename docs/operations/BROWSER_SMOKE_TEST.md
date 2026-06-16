@@ -47,6 +47,7 @@ Optional variables:
 - `SMOKE_QUIZ_ID`: default `spelling`
 - `SMOKE_RANKING_MODE`: default `normal`
 - `SMOKE_PROFILE_WRITE=1`: additionally saves and restores the profile ranking message
+- `SMOKE_ADMIN_READ=1`: additionally checks read-only admin dashboard/member-list loading when the account opens the admin view
 - `SMOKE_HEADLESS=0`: show Chrome while running
 
 The authenticated flow writes practice/ranking progress for the supplied account. Use a dedicated smoke account. `SMOKE_PROFILE_WRITE=1` also writes the profile ranking message, then restores the original value.
@@ -59,6 +60,7 @@ The authenticated flow writes practice/ranking progress for the supplied account
 - Ranking quiz start, wrong answer heart/result path, completion card structure, persistence status settle check
 - Home/profile detail toggles
 - Optional profile ranking-message write and restore when `SMOKE_PROFILE_WRITE=1`
+- Optional read-only admin dashboard/member-list check when `SMOKE_ADMIN_READ=1` and the account is an admin
 - Ranking plaza entry
 - Shop entry
 - Event plaza entry
