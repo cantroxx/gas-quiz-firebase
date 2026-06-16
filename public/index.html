@@ -1394,6 +1394,7 @@
   <script src="/js/infrastructure/home-repository.js"></script>
   <script src="/js/application/home-usecases.js"></script>
   <script src="/js/application/profile-usecases.js"></script>
+  <script src="/js/infrastructure/profile-repository.js"></script>
   <script src="/js/features/home-render.js"></script>
   <script src="/js/features/home-controller.js"></script>
   <script src="/js/domain/event-domain.js"></script>
@@ -2842,6 +2843,12 @@
       };
     }
 
+    function getProfileRepository() {
+      return window.DJ48ProfileRepository.createProfileRepository({
+        getFirestoreFieldValue
+      });
+    }
+
     function getProfileImageEditorSaveDeps() {
       return {
         ...getProfileWriteDeps(),
@@ -2849,7 +2856,7 @@
         getSaveButton: () => document.getElementById('profile-image-editor-save'),
         getProfileImageEditModel,
         setProfileImageEditorStatus,
-        saveProfileImageEditorSelection: window.DJ48AccountData.saveProfileImageEditorSelection,
+        saveProfileImageEditorSelection: options => getProfileRepository().saveProfileImageEditorSelection(options),
         getFirebaseStorage,
         getAuthUid: () => window.firebase?.auth?.().currentUser?.uid || '',
         closeProfileImageEditor
@@ -2863,7 +2870,7 @@
         getStatus: () => document.getElementById('profile-ranking-message-status'),
         getButton: () => document.getElementById('profile-ranking-message-save-button'),
         normalizeRankingMessageInput,
-        saveRankingMessageForMember: window.DJ48AccountData.saveRankingMessageForMember
+        saveRankingMessageForMember: options => getProfileRepository().saveRankingMessageForMember(options)
       };
     }
 
@@ -2895,7 +2902,7 @@
     function getProfileSelectedTitleSaveDeps() {
       return {
         ...getProfileWriteDeps(),
-        saveSelectedTitleForMember: window.DJ48AccountData.saveSelectedTitleForMember
+        saveSelectedTitleForMember: options => getProfileRepository().saveSelectedTitleForMember(options)
       };
     }
 
