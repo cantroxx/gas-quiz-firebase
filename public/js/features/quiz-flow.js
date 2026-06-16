@@ -11,6 +11,15 @@
     state.setCurrentRankingSessionTimer(null);
   }
 
+  function getRankingTimerStateCallbacks(state) {
+    return {
+      clearRankingQuestionTimer: () => clearRankingQuestionTimer(state),
+      clearRankingSessionTimer: () => clearRankingSessionTimer(state),
+      setCurrentRankingQuestionTimer: timer => state.setCurrentRankingQuestionTimer(timer),
+      setCurrentRankingSessionTimer: timer => state.setCurrentRankingSessionTimer(timer)
+    };
+  }
+
   function getRankingElapsedSeconds(deps) {
     return window.DJ48QuizPlay.getRankingElapsedSeconds(deps.getCurrentQuizStartedAtMs());
   }
@@ -98,6 +107,7 @@
   window.DJ48QuizFlow = {
     clearRankingQuestionTimer,
     clearRankingSessionTimer,
+    getRankingTimerStateCallbacks,
     getRankingElapsedSeconds,
     startRankingSessionTimerIfNeeded,
     handleRankingSessionTimeout,

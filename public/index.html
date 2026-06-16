@@ -6377,11 +6377,14 @@
       return window.DJ48QuizFlow.getRankingElapsedSeconds(getQuizPlayDeps());
     }
 
+    function getRankingTimerStateCallbacks() {
+      return window.DJ48QuizFlow.getRankingTimerStateCallbacks(window.DJ48QuizSessionState);
+    }
+
     function startRankingSessionTimerIfNeeded() {
       const deps = getQuizPlayDeps();
       return window.DJ48QuizFlow.startRankingSessionTimerIfNeeded(deps, {
-        clearRankingSessionTimer,
-        setCurrentRankingSessionTimer: timer => window.DJ48QuizSessionState.setCurrentRankingSessionTimer(timer),
+        ...getRankingTimerStateCallbacks(),
         handleRankingSessionTimeout
       });
     }
@@ -6405,8 +6408,7 @@
     function startRankingQuestionTimerIfNeeded() {
       const deps = getQuizPlayDeps();
       return window.DJ48QuizFlow.startRankingQuestionTimerIfNeeded(deps, {
-        clearRankingQuestionTimer,
-        setCurrentRankingQuestionTimer: timer => window.DJ48QuizSessionState.setCurrentRankingQuestionTimer(timer),
+        ...getRankingTimerStateCallbacks(),
         getQuizProgressElement: () => document.querySelector('.quiz-progress'),
         getQuizProgressText,
         handleRankingTimeout
