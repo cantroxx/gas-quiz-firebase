@@ -5839,7 +5839,7 @@
         getFirebaseFunctions,
         getFirebaseAuthUser,
         getCurrentDataOwnerId,
-        loadFeatureFlags,
+        loadFeatureFlags: () => loadFeatureFlags(true),
         normalizeFirebaseQuizId,
         shuffleList,
         getFirebaseQuizDataCache: () => firebaseQuizDataCache,
@@ -6402,7 +6402,7 @@
     }
 
     async function showEventView() {
-      const flags = await loadFeatureFlags();
+      const flags = await loadFeatureFlags(true);
       if(flags.eventPlazaEnabled === false) {
         window.alert('이벤트 광장은 지금 점검 중입니다.');
         return;
