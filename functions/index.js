@@ -5027,7 +5027,6 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
 
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
-    assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
     await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
 
     const itemRef = db.collection("shopItems").doc(itemId);
@@ -5049,6 +5048,13 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
     }
 
     const item = itemSnapshot.data() || {};
+    const isRoomFurniturePurchase = String(item.assetId || itemId).startsWith("room_")
+      || String(item.category || "").trim() === "방 가구";
+    assertFeatureEnabled(
+      flags,
+      isRoomFurniturePurchase ? "roomDecorEnabled" : "shopEnabled",
+      isRoomFurniturePurchase ? "Room decor is disabled." : "Shop is disabled."
+    );
     if (item.enabled !== true) {
       throw new HttpsError("failed-precondition", "Shop item is disabled.");
     }

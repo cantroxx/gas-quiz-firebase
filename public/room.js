@@ -78,6 +78,10 @@ window.RoomDecor = (function () {
       C(gx + a.x, gy + a.y, z)
     ], fill, op);
   }
+  function isSouthFaceVisible(rot) {
+    const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
+    return rotation === 0 || rotation === 270;
+  }
   function wallRect(wall, u, z, w, h, fill, op) {
     const pts = wall === 'right'
       ? [C(u, 0, z + h), C(u + w, 0, z + h), C(u + w, 0, z), C(u, 0, z)]
@@ -108,6 +112,7 @@ window.RoomDecor = (function () {
     },
     shelf(x, y, rot = 0) {
       let s = obox(x, y, 1, .5, rot, 0, 0, 1, .5, 0, 58, col('#9a6a3c'));
+      if (!isSouthFaceVisible(rot)) return s;
       const faceY = .51;
       const books = ['#e2574c', '#4f9dd6', '#f0b840', '#69b56b', '#9b6fc9', '#e58fb0'];
       [8, 26, 44].forEach((z0, row) => {
@@ -228,7 +233,9 @@ window.RoomDecor = (function () {
         + obox(x, y, 2, 1, rot, 1.12, .24, .64, .46, 17, 5, col('#91bdd9'));
     },
     wardrobe(x, y, rot = 0) {
-      return obox(x, y, 1, 1, rot, 0, 0, 1, 1, 0, 68, col('#a06a3a'))
+      const s = obox(x, y, 1, 1, rot, 0, 0, 1, 1, 0, 68, col('#a06a3a'));
+      if (!isSouthFaceVisible(rot)) return s;
+      return s
         + oface(x, y, 1, 1, rot, .06, 1.01, .48, 1.01, 7, 54, '#bf8750')
         + oface(x, y, 1, 1, rot, .52, 1.01, .94, 1.01, 7, 54, '#b77b45')
         + oface(x, y, 1, 1, rot, .49, 1.02, .51, 1.02, 8, 52, '#734824')

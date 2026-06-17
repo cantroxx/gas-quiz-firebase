@@ -103,6 +103,9 @@
 
     return {
       profile: {
+        userId: profile?.userId || memberUserId || dataOwnerId || '',
+        role: profile?.role || '',
+        adminLevel: profile?.adminLevel || '',
         avatar: profileData.avatar,
         profileImageUrl: profile?.profileImageUrl || '',
         profileImageSource: profile?.profileImageSource || '',
