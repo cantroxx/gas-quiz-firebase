@@ -1024,6 +1024,13 @@
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
+              <input id="admin-feature-external-quizzes" type="checkbox">
+              <span>
+                <strong>외부 퀴즈 열기</strong>
+                <small>닫으면 등록된 외부 퀴즈를 학생 화면에서 숨기고 진입을 막습니다.</small>
+              </span>
+            </label>
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-event" type="checkbox">
               <span>
                 <strong>이벤트 광장 열기</strong>
@@ -1712,6 +1719,7 @@
       practiceRewardEnabled: true,
       shopEnabled: true,
       roomDecorEnabled: true,
+      externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
       disabledQuizIds: []
@@ -3609,6 +3617,7 @@
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         shopEnabled: data.shopEnabled !== false,
         roomDecorEnabled: data.roomDecorEnabled !== false,
+        externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
         disabledQuizIds
@@ -5809,6 +5818,15 @@
     async function showExternalQuizLinks() {
       const status = document.getElementById('external-quiz-status');
       const section = document.getElementById('external-quiz-section');
+      const flags = await loadFeatureFlags();
+      if(flags.externalQuizzesEnabled === false) {
+        if(section) section.hidden = false;
+        document.querySelectorAll('[data-external-quiz-hub]').forEach(element => {
+          element.setAttribute('aria-expanded', 'false');
+        });
+        if(status) status.textContent = '외부 퀴즈는 지금 점검 중입니다.';
+        return;
+      }
       if(section && !section.hidden) {
         section.hidden = true;
         document.querySelectorAll('[data-external-quiz-hub]').forEach(element => {

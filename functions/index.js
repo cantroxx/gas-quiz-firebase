@@ -31,6 +31,7 @@ const DEFAULT_FEATURE_FLAGS = {
   practiceRewardEnabled: true,
   shopEnabled: true,
   roomDecorEnabled: true,
+  externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true,
   disabledQuizIds: []
@@ -220,6 +221,7 @@ function publicFeatureFlags(data = {}) {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     shopEnabled: data.shopEnabled !== false,
     roomDecorEnabled: data.roomDecorEnabled !== false,
+    externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
     rankingEnabled: data.rankingEnabled !== false,
     disabledQuizIds

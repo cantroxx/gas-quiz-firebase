@@ -197,6 +197,7 @@
     document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
     document.getElementById('admin-feature-shop').checked = data.shopEnabled;
     document.getElementById('admin-feature-room-decor').checked = data.roomDecorEnabled;
+    document.getElementById('admin-feature-external-quizzes').checked = data.externalQuizzesEnabled;
     document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
     document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
     renderAdminQuizToggleGrid(data);
@@ -213,6 +214,7 @@
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
       shopEnabled: document.getElementById('admin-feature-shop')?.checked === true,
       roomDecorEnabled: document.getElementById('admin-feature-room-decor')?.checked === true,
+      externalQuizzesEnabled: document.getElementById('admin-feature-external-quizzes')?.checked === true,
       eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
       rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,
       disabledQuizIds

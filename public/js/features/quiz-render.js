@@ -16,6 +16,9 @@
       } : {
         ...card
       };
+      if(viewModel.externalQuizHub && deps.featureFlags?.externalQuizzesEnabled === false) {
+        viewModel.enabled = false;
+      }
       const item = document.createElement('article');
       const icon = document.createElement('span');
       const title = document.createElement('h3');
