@@ -300,9 +300,8 @@
       statusButton.textContent = member.status === 'active' ? '비활성화' : '활성화';
       walletButton.type = 'button';
       walletButton.className = 'admin-action-button';
-      walletButton.dataset.adminAction = 'adjustWallet';
-      walletButton.disabled = member.role === 'admin';
-      walletButton.textContent = '재화 조정';
+      walletButton.dataset.adminAction = member.role === 'admin' ? 'adjustAdminWallet' : 'adjustWallet';
+      walletButton.textContent = member.role === 'admin' ? '관리자 코인 조정' : '재화 조정';
       actions.className = 'admin-member-actions';
       actions.append(detailButton, walletButton, resetButton, unlinkButton, statusButton);
       main.append(title, meta, state, passwordState);

@@ -99,6 +99,11 @@
         payload,
         errorCode: 'admin-wallet-adjust-failed'
       }, deps),
+      adjustAdminWallet: (payload = {}) => callAdminCallable({
+        callableName: 'adminAdjustAdminWallet',
+        payload,
+        errorCode: 'admin-admin-wallet-adjust-failed'
+      }, deps),
       setClassAdminPermission: (payload = {}) => callAdminCallable({
         callableName: 'adminSetClassAdmin',
         payload,

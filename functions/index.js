@@ -2951,6 +2951,88 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.adminAdjustAdminWallet = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const delta = Math.round(Number(payload.delta));
+  const reason = String(payload.reason || "").trim().slice(0, 200);
+  if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 100000) {
+    throw new HttpsError("invalid-argument", "delta must be between -100000 and 100000, excluding zero.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const walletRef = db.collection("userEconomy").doc(memberUserId);
+    const [memberSnapshot, walletSnapshot] = await Promise.all([
+      transaction.get(memberRef),
+      transaction.get(walletRef)
+    ]);
+    if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+    const memberData = memberSnapshot.data() || {};
+    assertActiveMember(memberData);
+    if (memberData.role !== "admin") {
+      throw new HttpsError("failed-precondition", "Target member is not an admin.");
+    }
+
+    const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
+    const currentAmount = Number(wallet.djCoin ?? wallet.coin ?? 0) || 0;
+    const nextAmount = currentAmount + delta;
+    if (nextAmount < 0) {
+      throw new HttpsError("failed-precondition", "Wallet balance cannot become negative.");
+    }
+
+    transaction.set(walletRef, {
+      userId: memberUserId,
+      djCoin: nextAmount,
+      adminAdjustedDjCoin: FieldValue.increment(delta),
+      lastAdminAdjustmentDelta: delta,
+      lastAdminAdjustedBy: adminMember.memberUserId,
+      lastAdminAdjustmentReason: reason,
+      lastAdminTargetRole: "admin",
+      updatedAt: FieldValue.serverTimestamp(),
+      adminAdjustedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return {
+      beforeAmount: currentAmount,
+      afterAmount: nextAmount,
+      walletPath: walletRef.path,
+      memberProfile: publicMemberProfile(memberUserId, memberData)
+    };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminAdjustAdminWallet",
+    targetUserId: memberUserId,
+    before: {
+      currency: "djCoin",
+      amount: result.beforeAmount
+    },
+    after: {
+      currency: "djCoin",
+      amount: result.afterAmount,
+      delta,
+      walletPath: result.walletPath
+    },
+    reason: reason || "admin wallet adjustment"
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    currency: "djCoin",
+    delta,
+    beforeAmount: result.beforeAmount,
+    afterAmount: result.afterAmount,
+    walletPath: result.walletPath,
+    profile: result.memberProfile
+  };
+});
+
 const ROOM_CATALOG_DRAW_KEYS = new Set([
   "bed", "desk", "chair", "shelf", "piano", "sofa", "wardrobe", "computer", "rug",
   "plant", "lamp", "bear", "table", "toybox", "tv", "aquarium", "trophy",

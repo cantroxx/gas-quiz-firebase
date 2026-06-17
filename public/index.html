@@ -5385,6 +5385,10 @@
         await runAdminWalletAdjustAction(memberUserId);
         return;
       }
+      if(action === 'adjustAdminWallet') {
+        await runAdminAccountWalletAdjustAction(memberUserId);
+        return;
+      }
       const labels = {
         resetPassword: '비밀번호를 임시 비밀번호로 초기화할까요?',
         unlinkAuth: '현재 브라우저 연결을 해제할까요?',
@@ -5444,6 +5448,31 @@
         loadAdminLogs().catch(() => null)
       ]);
       setAdminStatus(`${memberUserId} ${label}: ${Number(result.beforeAmount || 0).toLocaleString('ko-KR')} → ${Number(result.afterAmount || 0).toLocaleString('ko-KR')} (${deltaText})`);
+    }
+
+    async function runAdminAccountWalletAdjustAction(memberUserId) {
+      const amountInput = window.prompt(`${memberUserId}\n관리자 계정 DJ코인 증감 수량을 입력하세요.\n예: 100, -50`, '100');
+      if(amountInput === null) return;
+      const delta = Math.round(Number(String(amountInput).replace(/,/g, '').trim()));
+      if(!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 100000) {
+        setAdminStatus('관리자 DJ코인 증감 수량은 -100000부터 100000 사이의 0이 아닌 숫자로 입력해 주세요.', true);
+        return;
+      }
+      const reasonInput = window.prompt('관리 로그에 남길 사유를 입력하세요.', '관리자 테스트용 DJ코인 조정');
+      if(reasonInput === null) return;
+      const deltaText = delta > 0 ? `+${delta}` : `${delta}`;
+      if(!window.confirm(`${memberUserId}\n관리자 계정 DJ코인 ${deltaText} 조정할까요?`)) return;
+      setAdminStatus(`${memberUserId} 관리자 DJ코인을 조정하는 중입니다...`);
+      const result = await getAdminRepository().adjustAdminWallet({
+        memberUserId,
+        delta,
+        reason: String(reasonInput || '').trim()
+      });
+      await Promise.all([
+        loadAdminMembers({ updateStatus: false }).catch(() => null),
+        loadAdminLogs().catch(() => null)
+      ]);
+      setAdminStatus(`${memberUserId} 관리자 DJ코인: ${Number(result.beforeAmount || 0).toLocaleString('ko-KR')} → ${Number(result.afterAmount || 0).toLocaleString('ko-KR')} (${deltaText})`);
     }
 
     function setAdminPermissionStatus(message, isError = false) {
