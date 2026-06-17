@@ -8,9 +8,16 @@
  *   또는 `firebase login` 상태에서 GCLOUD_PROJECT=dj48-quiztown-firebase
  * 멱등성: 같은 ID로 set(merge)하므로 여러 번 실행해도 안전
  * ============================================================ */
-const admin = require('firebase-admin');
-admin.initializeApp({ projectId: 'dj48-quiztown-firebase' });
-const db = admin.firestore();
+const { initializeApp, applicationDefault, getApps } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+
+if (!getApps().length) {
+  initializeApp({
+    credential: applicationDefault(),
+    projectId: 'dj48-quiztown-firebase'
+  });
+}
+const db = getFirestore();
 
 /* 무료 가구: assetCatalog에만 등록 (인벤토리 체크 생략 대상) */
 /* 유료 가구: assetCatalog + shopItems 동시 등록 → purchaseShopItem 재사용 */
@@ -54,7 +61,7 @@ async function main() {
       flat: !!it.flat, drawKey: it.drawKey,
       free: !!it.free, price: it.price || 0,
       sortOrder: it.sortOrder,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 
     // 2) shopItems — 유료 아이템만 (purchaseShopItem 트랜잭션 대상)
@@ -69,7 +76,7 @@ async function main() {
         enabled: true,
         assetId: it.id,            // assetCatalog/{id} 참조
         category: '방 가구',        // 기존 상점 카테고리('배경','아바타','방 장식' 등)와 구분
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       }, { merge: true });
     }
   }
