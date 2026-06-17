@@ -200,6 +200,77 @@ window.RoomDecor = (function () {
       s += obox(x, y, 2, .96, rot, .3, .72, .45, .05, 30, 3, col('#ffd23f'), .8);
       return s;
     },
+    sofa(x, y, rot = 0) {
+      return obox(x, y, 2, 1, rot, .05, .18, 1.9, .72, 0, 16, col('#7aa6c8'))
+        + obox(x, y, 2, 1, rot, .05, .08, 1.9, .18, 16, 30, col('#5f8fb7'))
+        + obox(x, y, 2, 1, rot, -.02, .2, .18, .66, 12, 24, col('#557fa4'))
+        + obox(x, y, 2, 1, rot, 1.84, .2, .18, .66, 12, 24, col('#557fa4'))
+        + obox(x, y, 2, 1, rot, .24, .24, .64, .46, 17, 5, col('#91bdd9'))
+        + obox(x, y, 2, 1, rot, 1.12, .24, .64, .46, 17, 5, col('#91bdd9'));
+    },
+    wardrobe(x, y, rot = 0) {
+      let s = obox(x, y, 1, 1, rot, 0, 0, 1, 1, 0, 68, col('#a06a3a'))
+        + obox(x, y, 1, 1, rot, .07, .08, .4, .84, 4, 58, col('#bf8750'))
+        + obox(x, y, 1, 1, rot, .53, .08, .4, .84, 4, 58, col('#b77b45'));
+      const a = orientRect(1, 1, rot, .43, .5, .05, .08);
+      const b = orientRect(1, 1, rot, .52, .5, .05, .08);
+      s += box(x + a.x, y + a.y, a.w, a.d, 35, 4, col('#e0c16a'));
+      s += box(x + b.x, y + b.y, b.w, b.d, 35, 4, col('#e0c16a'));
+      return s;
+    },
+    computer(x, y, rot = 0) {
+      let s = DRAW.desk(x, y, rot)
+        + obox(x, y, 2, 1, rot, .74, .18, .52, .08, 31, 28, col('#3a3a44'))
+        + obox(x, y, 2, 1, rot, .8, .24, .4, .04, 35, 18, col('#73d7e0'), .86)
+        + obox(x, y, 2, 1, rot, .92, .3, .16, .16, 31, 4, col('#3a3a44'))
+        + obox(x, y, 2, 1, rot, 1.3, .42, .34, .18, 31, 3, col('#303038'));
+      return s;
+    },
+    table(x, y, rot = 0) {
+      let s = '';
+      [[.12, .12], [.72, .12], [.12, .72], [.72, .72]].forEach(([a, b]) =>
+        s += obox(x, y, 1, 1, rot, a, b, .16, .16, 0, 22, col('#805737')));
+      s += obox(x, y, 1, 1, rot, 0, 0, 1, 1, 22, 6, col('#d3a165'));
+      const [cx, cy] = C(x + .5, y + .5, 31);
+      s += `<ellipse cx="${cx}" cy="${cy}" rx="13" ry="7" fill="#f3e2bd"/>`
+        + `<circle cx="${cx - 5}" cy="${cy - 2}" r="2" fill="#e2574c"/>`
+        + `<circle cx="${cx + 4}" cy="${cy + 1}" r="2" fill="#69b56b"/>`;
+      return s;
+    },
+    toybox(x, y, rot = 0) {
+      let s = obox(x, y, 1, 1, rot, .05, .12, .9, .76, 0, 24, col('#e39b46'))
+        + obox(x, y, 1, 1, rot, .02, .08, .96, .82, 24, 7, col('#f2c15e'))
+        + obox(x, y, 1, 1, rot, .38, .1, .24, .78, 28, 3, col('#5fa3d8'));
+      const [cx, cy] = C(x + .5, y + .5, 36);
+      s += `<circle cx="${cx - 12}" cy="${cy - 8}" r="5" fill="#e2574c"/>`
+        + `<circle cx="${cx + 11}" cy="${cy - 6}" r="5" fill="#69b56b"/>`
+        + `<rect x="${cx - 4}" y="${cy - 15}" width="8" height="8" rx="1" fill="#7b62c9"/>`;
+      return s;
+    },
+    clock(x, y, rot = 0, item = {}) {
+      const wall = item.wall || 'left';
+      const u = Number(item.wx ?? 2.6);
+      const z = Number(item.wz ?? 62);
+      const w = Number(catalog[item.type]?.ww || 1.2);
+      const h = Number(catalog[item.type]?.wh || 28);
+      const [cx, cy] = wall === 'right'
+        ? C(u + w / 2, 0, z + h / 2)
+        : C(0, u + w / 2, z + h / 2);
+      return wallRect(wall, u, z, w, h, '#f6e7bd', .94)
+        + `<ellipse cx="${cx}" cy="${cy}" rx="17" ry="13" fill="#fff6d8" stroke="#8a6544" stroke-width="3"/>`
+        + `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - 8}" stroke="#4a3425" stroke-width="2"/>`
+        + `<line x1="${cx}" y1="${cy}" x2="${cx + 8}" y2="${cy + 2}" stroke="#4a3425" stroke-width="2"/>`;
+    },
+    mirror(x, y, rot = 0, item = {}) {
+      const wall = item.wall || 'right';
+      const u = Number(item.wx ?? 2.4);
+      const z = Number(item.wz ?? 36);
+      const w = Number(catalog[item.type]?.ww || 1.4);
+      const h = Number(catalog[item.type]?.wh || 46);
+      return wallRect(wall, u, z, w, h, '#b98958')
+        + wallRect(wall, u + .15, z + 4, Math.max(.2, w - .3), Math.max(6, h - 8), '#c8edf2', .82)
+        + wallRect(wall, u + .3, z + h - 18, .28, 11, '#ffffff', .62);
+    },
   };
 
   /* ---------- 기본 카탈로그 (assetCatalog 미시딩 시 폴백) ---------- */
@@ -209,12 +280,19 @@ window.RoomDecor = (function () {
     { id: 'room_chair',    name: '의자',       cat: 'furniture', w: 1, d: 1, h: 44, drawKey: 'chair',    free: true },
     { id: 'room_shelf',    name: '책장',       cat: 'furniture', w: 1, d: 1, h: 60, drawKey: 'shelf',    free: true },
     { id: 'room_piano',    name: '피아노',     cat: 'furniture', w: 2, d: 1, h: 36, drawKey: 'piano',    free: false, price: 150 },
+    { id: 'room_sofa',     name: '소파',       cat: 'furniture', w: 2, d: 1, h: 46, drawKey: 'sofa',     free: false, price: 120, sortOrder: 60 },
+    { id: 'room_wardrobe', name: '옷장',       cat: 'furniture', w: 1, d: 1, h: 68, drawKey: 'wardrobe', free: false, price: 110, sortOrder: 70 },
+    { id: 'room_computer', name: '컴퓨터 책상', cat: 'furniture', w: 2, d: 1, h: 60, drawKey: 'computer', free: false, price: 180, sortOrder: 80 },
     { id: 'room_window',   name: '창문',       cat: 'deco', w: 1, d: 1, h: 50, surface: 'wall', wall: 'left',  ww: 2.6, wh: 50, drawKey: 'window', free: true, sortOrder: 5 },
     { id: 'room_frame',    name: '액자',       cat: 'deco', w: 1, d: 1, h: 32, surface: 'wall', wall: 'right', ww: 1.8, wh: 32, drawKey: 'frame',  free: true, sortOrder: 6 },
+    { id: 'room_clock',    name: '벽시계',     cat: 'deco', w: 1, d: 1, h: 28, surface: 'wall', wall: 'left',  ww: 1.2, wh: 28, drawKey: 'clock',  free: true, sortOrder: 7 },
+    { id: 'room_mirror',   name: '거울',       cat: 'deco', w: 1, d: 1, h: 46, surface: 'wall', wall: 'right', ww: 1.4, wh: 46, drawKey: 'mirror', free: false, price: 40, sortOrder: 8 },
     { id: 'room_rug',      name: '러그',       cat: 'deco', w: 2, d: 2, h: 4, flat: true, drawKey: 'rug', free: true },
     { id: 'room_plant',    name: '화분',       cat: 'deco', w: 1, d: 1, h: 42, drawKey: 'plant',    free: true },
     { id: 'room_lamp',     name: '램프',       cat: 'deco', w: 1, d: 1, h: 62, drawKey: 'lamp',     free: true },
     { id: 'room_bear',     name: '곰인형',     cat: 'deco', w: 1, d: 1, h: 40, drawKey: 'bear',     free: true },
+    { id: 'room_table',    name: '작은 테이블', cat: 'deco', w: 1, d: 1, h: 34, drawKey: 'table',    free: true, sortOrder: 45 },
+    { id: 'room_toybox',   name: '장난감 상자', cat: 'deco', w: 1, d: 1, h: 39, drawKey: 'toybox',   free: false, price: 50, sortOrder: 48 },
     { id: 'room_tv',       name: 'TV',         cat: 'deco', w: 1, d: 1, h: 36, drawKey: 'tv',       free: false, price: 80 },
     { id: 'room_aquarium', name: '어항',       cat: 'deco', w: 1, d: 1, h: 38, drawKey: 'aquarium', free: false, price: 100 },
     { id: 'room_trophy',   name: '황금 트로피', cat: 'deco', w: 1, d: 1, h: 48, drawKey: 'trophy',   free: false, price: 60 },
@@ -317,7 +395,7 @@ window.RoomDecor = (function () {
   }
   function canRotateItem(type) {
     const drawKey = catalog[type]?.drawKey || '';
-    return ['bed', 'desk', 'chair', 'shelf', 'piano', 'tv', 'rug'].includes(drawKey);
+    return ['bed', 'desk', 'chair', 'shelf', 'piano', 'sofa', 'wardrobe', 'computer', 'table', 'toybox', 'tv', 'rug'].includes(drawKey);
   }
   function normalizePlacedItem(item) {
     if (isWallItem(item.type) || item.surface === 'wall') {

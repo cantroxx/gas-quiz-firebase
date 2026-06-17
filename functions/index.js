@@ -2943,9 +2943,9 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
 });
 
 const ROOM_CATALOG_DRAW_KEYS = new Set([
-  "bed", "desk", "chair", "shelf", "piano", "rug",
-  "plant", "lamp", "bear", "tv", "aquarium", "trophy",
-  "window", "frame"
+  "bed", "desk", "chair", "shelf", "piano", "sofa", "wardrobe", "computer", "rug",
+  "plant", "lamp", "bear", "table", "toybox", "tv", "aquarium", "trophy",
+  "window", "frame", "clock", "mirror"
 ]);
 
 function normalizeRoomCatalogItemPayload(payload = {}) {
@@ -2966,9 +2966,10 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
   const w = Math.max(1, Math.min(4, Math.round(Number(payload.w) || 1)));
   const d = Math.max(1, Math.min(4, Math.round(Number(payload.d) || 1)));
   const h = Math.max(1, Math.min(120, Math.round(Number(payload.h) || 30)));
-  const isWall = drawKey === "window" || drawKey === "frame" || String(payload.surface || "").trim() === "wall";
-  const wall = String(payload.wall || (drawKey === "frame" ? "right" : "left")).trim() === "right" ? "right" : "left";
-  const ww = Math.max(0, Math.min(8, Number(payload.ww || (drawKey === "window" ? 2.6 : drawKey === "frame" ? 1.8 : 0))));
+  const isWall = ["window", "frame", "clock", "mirror"].includes(drawKey) || String(payload.surface || "").trim() === "wall";
+  const wall = String(payload.wall || (["frame", "mirror"].includes(drawKey) ? "right" : "left")).trim() === "right" ? "right" : "left";
+  const defaultWallWidth = drawKey === "window" ? 2.6 : drawKey === "frame" ? 1.8 : drawKey === "clock" ? 1.2 : drawKey === "mirror" ? 1.4 : 0;
+  const ww = Math.max(0, Math.min(8, Number(payload.ww || defaultWallWidth)));
   const wh = Math.max(0, Math.min(104, Number(payload.wh || h)));
   const sortOrder = Math.max(0, Math.min(9999, Math.round(Number(payload.sortOrder) || 100)));
   const free = payload.free === true;
