@@ -139,6 +139,34 @@
 #room-view .rd-range-label input{
   grid-column:1 / -1; width:100%; accent-color:var(--rd-accent);
 }
+#room-view .rd-layout-grid{
+  display:grid; gap:8px; margin-bottom:12px;
+}
+#room-view .rd-layout-card{
+  display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:8px; align-items:center;
+  min-height:54px; padding:8px 9px; border:2.5px solid var(--rd-ink); border-radius:12px;
+  background:#fff; color:var(--rd-ink); text-align:left; cursor:pointer;
+}
+#room-view .rd-layout-card.on{
+  background:#fff3ee; outline:3px solid var(--rd-accent); outline-offset:-2px;
+}
+#room-view .rd-layout-card.locked{
+  background:#f3ead6;
+}
+#room-view .rd-layout-card strong,
+#room-view .rd-layout-card small,
+#room-view .rd-layout-card em{
+  display:block; line-height:1.25;
+}
+#room-view .rd-layout-card strong{
+  font-size:13px; font-weight:900;
+}
+#room-view .rd-layout-card small{
+  margin-top:2px; font-size:11px; font-weight:800; color:#725f4f;
+}
+#room-view .rd-layout-card em{
+  justify-self:end; font-style:normal; font-size:11px; font-weight:900; white-space:nowrap;
+}
 #room-view .rd-swrow{display:flex; gap:9px; flex-wrap:wrap; margin-bottom:8px;}
 #room-view .rd-sw{
   width:44px; height:44px; border-radius:10px; border:2.5px solid var(--rd-ink); cursor:pointer;

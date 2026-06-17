@@ -22,6 +22,7 @@ window.RoomDecor = (function () {
     COL_CATALOG: 'assetCatalog',        // 가구 메타 (없으면 내장 기본값 사용)
     CATALOG_TYPE: 'roomFurniture',
     PURCHASE_FN: 'purchaseShopItem',    // 파라미터: { memberUserId, itemId } (운영 시그니처 확인됨)
+    PURCHASE_LAYOUT_FN: 'purchaseRoomLayout',
     SAVE_DEBOUNCE_MS: 800,
     MIN_ZOOM: 0.75,
     MAX_ZOOM: 1.45,
@@ -326,9 +327,16 @@ window.RoomDecor = (function () {
     green: { l: '#bdd9b4', r: '#d2e8ca', name: '연두' },
   };
   const DEFAULT_ROOM = {
-    floor: 'wood', wall: 'cream',
+    floor: 'wood', wall: 'cream', layout: 'cozy',
+    unlockedLayouts: ['cozy'],
     lightsOn: true, lightLevel: 100,
     placed: [],
+  };
+  const ROOM_LAYOUTS = {
+    cozy: { id: 'cozy', name: '기본방', desc: '처음 내 집', w: 8, d: 8, price: 0 },
+    wide: { id: 'wide', name: '넓은 방', desc: '가로 공간 확장', w: 10, d: 8, price: 120 },
+    studio: { id: 'studio', name: '스튜디오', desc: '정사각형 큰 방', w: 10, d: 10, price: 220 },
+    suite: { id: 'suite', name: '큰 집', desc: '여러 구역 배치용', w: 12, d: 10, price: 360 }
   };
 
   /* ---------- 모듈 상태 ---------- */
@@ -375,14 +383,38 @@ window.RoomDecor = (function () {
   function normalizeLightLevel(value) {
     return Math.max(20, Math.min(100, Math.round(Number(value) || 100)));
   }
+  function normalizeLayoutId(value) {
+    return ROOM_LAYOUTS[value] ? value : DEFAULT_ROOM.layout;
+  }
+  function normalizeUnlockedLayouts(value) {
+    const unlocked = new Set(Array.isArray(value) ? value.filter(id => ROOM_LAYOUTS[id]) : []);
+    unlocked.add(DEFAULT_ROOM.layout);
+    return Array.from(unlocked);
+  }
   function normalizeRoomData(data = {}) {
     return {
       floor: data.floor || DEFAULT_ROOM.floor,
       wall: data.wall || DEFAULT_ROOM.wall,
+      layout: normalizeLayoutId(data.layout),
+      unlockedLayouts: normalizeUnlockedLayouts(data.unlockedLayouts),
       lightsOn: data.lightsOn !== false,
       lightLevel: normalizeLightLevel(data.lightLevel),
       placed: Array.isArray(data.placed) ? data.placed : []
     };
+  }
+  function getRoomLayout(layoutId = room?.layout) {
+    return ROOM_LAYOUTS[normalizeLayoutId(layoutId)] || ROOM_LAYOUTS.cozy;
+  }
+  function getRoomSize(layoutId = room?.layout) {
+    const layout = getRoomLayout(layoutId);
+    return { w: Number(layout.w || CONFIG.GRID), d: Number(layout.d || CONFIG.GRID) };
+  }
+  function getWallLength(wall, layoutId = room?.layout) {
+    const size = getRoomSize(layoutId);
+    return normalizeWall(wall) === 'right' ? size.w : size.d;
+  }
+  function isLayoutUnlocked(layoutId) {
+    return normalizeUnlockedLayouts(room?.unlockedLayouts).includes(layoutId);
   }
   function watchEconomy(uid) {
     unsubs.push(db.collection(CONFIG.COL_ECONOMY).doc(uid).onSnapshot(doc => {
@@ -452,6 +484,8 @@ window.RoomDecor = (function () {
       [CONFIG.ROOM_FIELD]: {
         floor: room.floor,
         wall: room.wall,
+        layout: normalizeLayoutId(room.layout),
+        unlockedLayouts: normalizeUnlockedLayouts(room.unlockedLayouts),
         lightsOn: room.lightsOn !== false,
         lightLevel: normalizeLightLevel(room.lightLevel),
         placed: room.placed.map(normalizePlacedItem)
@@ -512,7 +546,8 @@ window.RoomDecor = (function () {
     if (!it) return false;
     if (isWallItem(type)) return false;
     const fp = getFootprint(type, rot);
-    if (gx < 0 || gy < 0 || gx + fp.w > CONFIG.GRID || gy + fp.d > CONFIG.GRID) return false;
+    const size = getRoomSize();
+    if (gx < 0 || gy < 0 || gx + fp.w > size.w || gy + fp.d > size.d) return false;
     return !room.placed.some(p => {
       if (p.id === ignoreId) return false;
       const o = catalog[p.type];
@@ -522,23 +557,25 @@ window.RoomDecor = (function () {
       return gx < p.gx + ofp.w && gx + fp.w > p.gx && gy < p.gy + ofp.d && gy + fp.d > p.gy;
     });
   }
-  function getWallSize(type) {
+  function getWallSize(type, wall = 'left', layoutId = room?.layout) {
     const it = catalog[type] || {};
+    const wallLength = getWallLength(wall, layoutId);
     return {
-      w: Math.max(.5, Math.min(CONFIG.GRID, Number(it.ww || it.w || 1.8))),
+      w: Math.max(.5, Math.min(wallLength, Number(it.ww || it.w || 1.8))),
       h: Math.max(10, Math.min(WALL_H - 8, Number(it.wh || it.h || 32)))
     };
   }
   function fitsWall(type, wall, wx, wz, ignoreId) {
     if (!isWallItem(type)) return false;
-    const size = getWallSize(type);
+    const size = getWallSize(type, wall);
     const u = Number(wx), z = Number(wz);
     if (!Number.isFinite(u) || !Number.isFinite(z)) return false;
-    if (u < .25 || u + size.w > CONFIG.GRID - .25 || z < 12 || z + size.h > WALL_H - 8) return false;
+    const wallLength = getWallLength(wall);
+    if (u < .25 || u + size.w > wallLength - .25 || z < 12 || z + size.h > WALL_H - 8) return false;
     return !room.placed.some(p => {
       if (p.id === ignoreId || !isWallItem(p.type)) return false;
       if (normalizeWall(p.wall) !== normalizeWall(wall)) return false;
-      const other = getWallSize(p.type);
+      const other = getWallSize(p.type, p.wall);
       const pu = Number(p.wx ?? 0), pz = Number(p.wz ?? 0);
       return u < pu + other.w && u + size.w > pu && z < pz + other.h && z + size.h > pz;
     });
@@ -546,11 +583,67 @@ window.RoomDecor = (function () {
   function wallSlots() {
     const slots = [];
     ['left', 'right'].forEach(wall => {
-      [1, 3.2, 5.4].forEach(wx => {
-        [30, 62].forEach(wz => slots.push({ wall, wx, wz }));
-      });
+      const wallLength = getWallLength(wall);
+      for (let wx = 1; wx <= wallLength - 1.7; wx += 2.2) {
+        [30, 62].forEach(wz => slots.push({ wall, wx: Number(wx.toFixed(1)), wz }));
+      }
     });
     return slots;
+  }
+  function canUseLayout(layoutId) {
+    const size = getRoomSize(layoutId);
+    return room.placed.every(item => {
+      if (!catalog[item.type]) return true;
+      if (isWallItem(item.type)) {
+        const wall = normalizeWall(item.wall);
+        const wallLength = getWallLength(wall, layoutId);
+        const itemSize = getWallSize(item.type, wall, layoutId);
+        const u = Number(item.wx ?? 0);
+        return u >= .25 && u + itemSize.w <= wallLength - .25;
+      }
+      const fp = getFootprint(item.type, item.rot);
+      return Number(item.gx) >= 0 && Number(item.gy) >= 0
+        && Number(item.gx) + fp.w <= size.w
+        && Number(item.gy) + fp.d <= size.d;
+    });
+  }
+  async function chooseLayout(layoutId) {
+    const layout = ROOM_LAYOUTS[layoutId];
+    if (!layout) return;
+    if (!canUseLayout(layoutId)) {
+      showToast('작은 집으로 가려면 바깥쪽 가구를 먼저 옮겨야 해요.');
+      return;
+    }
+    if (isLayoutUnlocked(layoutId)) {
+      room.layout = layoutId;
+      room.unlockedLayouts = normalizeUnlockedLayouts(room.unlockedLayouts);
+      renderSidebar(); render(); scheduleSave();
+      showToast(`${layout.name}으로 변경했어요`);
+      return;
+    }
+    if (coins < layout.price) {
+      showToast(`DJ코인이 부족해요! (${(layout.price - coins).toLocaleString()}개 더 필요)`);
+      return;
+    }
+    try {
+      showToast('이사 준비 중...');
+      const result = await fns.httpsCallable(CONFIG.PURCHASE_LAYOUT_FN)({ memberUserId: getUserId(), layoutId });
+      room.layout = result?.data?.layoutId || layoutId;
+      room.unlockedLayouts = normalizeUnlockedLayouts(result?.data?.unlockedLayouts);
+      if (Number.isFinite(Number(result?.data?.nextDjCoin))) {
+        coins = Number(result.data.nextDjCoin);
+        if ($coin) $coin.textContent = coins.toLocaleString();
+      }
+      renderSidebar(); render(); scheduleSave();
+      showToast(`${layout.name}으로 이사했어요`);
+    } catch (e) {
+      console.error('[room] 집 타입 구매 실패', e);
+      const code = e && e.code;
+      const message = String(e && e.message || '');
+      showToast(code === 'functions/failed-precondition' && message.includes('Not enough') ? 'DJ코인이 부족해요.'
+        : code === 'functions/failed-precondition' && message.includes('disabled') ? '집 꾸미기가 점검 중입니다.'
+        : '이사에 실패했어요.');
+    }
   }
   function getHoverItem(type, item) {
     if (!type || !item) return null;
@@ -586,10 +679,17 @@ window.RoomDecor = (function () {
   }
   function render() {
     if (!$svg || !room) return;
-    const F = FLOORS[room.floor] || FLOORS.wood, W = WALLS[room.wall] || WALLS.cream, G = CONFIG.GRID;
-    let s = `<polygon points="${P([C(-.3, -.3, -6), C(G + .3, -.3, -6), C(G + .3, G + .3, -6), C(-.3, G + .3, -6)])}" fill="#000" fill-opacity="0.3"/>`;
-    s += poly([C(0, 0, WALL_H), C(0, G, WALL_H), C(0, G, 0), C(0, 0, 0)], W.l);
-    s += poly([C(0, 0, WALL_H), C(G, 0, WALL_H), C(G, 0, 0), C(0, 0, 0)], W.r);
+    const F = FLOORS[room.floor] || FLOORS.wood, W = WALLS[room.wall] || WALLS.cream;
+    const roomSize = getRoomSize();
+    const Gx = roomSize.w, Gy = roomSize.d;
+    const viewX = -Gy * TW2 - 90;
+    const viewY = -WALL_H - 52;
+    const viewW = (Gx + Gy) * TW2 + 180;
+    const viewH = (Gx + Gy) * TH2 + WALL_H + 150;
+    $svg.setAttribute('viewBox', `${viewX} ${viewY} ${viewW} ${viewH}`);
+    let s = `<polygon points="${P([C(-.3, -.3, -6), C(Gx + .3, -.3, -6), C(Gx + .3, Gy + .3, -6), C(-.3, Gy + .3, -6)])}" fill="#000" fill-opacity="0.3"/>`;
+    s += poly([C(0, 0, WALL_H), C(0, Gy, WALL_H), C(0, Gy, 0), C(0, 0, 0)], W.l);
+    s += poly([C(0, 0, WALL_H), C(Gx, 0, WALL_H), C(Gx, 0, 0), C(0, 0, 0)], W.r);
     const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
     const wallActive = ghostType && isWallItem(ghostType);
     if (wallActive) {
@@ -605,9 +705,9 @@ window.RoomDecor = (function () {
       if (p.id === movingId && hover) continue;
       s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
     }
-    s += poly([C(0, 0, 7), C(0, G, 7), C(0, G, 0), C(0, 0, 0)], shade(W.l, .82));
-    s += poly([C(0, 0, 7), C(G, 0, 7), C(G, 0, 0), C(0, 0, 0)], shade(W.r, .82));
-    for (let gy = 0; gy < G; gy++) for (let gx = 0; gx < G; gx++) {
+    s += poly([C(0, 0, 7), C(0, Gy, 7), C(0, Gy, 0), C(0, 0, 0)], shade(W.l, .82));
+    s += poly([C(0, 0, 7), C(Gx, 0, 7), C(Gx, 0, 0), C(0, 0, 0)], shade(W.r, .82));
+    for (let gy = 0; gy < Gy; gy++) for (let gx = 0; gx < Gx; gx++) {
       const c = (gx + gy) % 2 ? F.b : F.a;
       const hov = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
       s += `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${P([C(gx, gy), C(gx + 1, gy), C(gx + 1, gy + 1), C(gx, gy + 1)])}" fill="${c}" stroke="${shade(F.b, .8)}" stroke-width="1" ${hov ? 'opacity="0.85"' : ''}/>`;
@@ -629,7 +729,8 @@ window.RoomDecor = (function () {
       if (isWallItem(ghostType) && hover.surface === 'wall') {
         const ok = fitsWall(ghostType, hover.wall, hover.wx, hover.wz, movingId);
         const ghost = getHoverItem(ghostType, hover);
-        s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' : wallRect(hover.wall, hover.wx, hover.wz, getWallSize(ghostType).w, getWallSize(ghostType).h, '#e2574c', .55)}${getObjectMarkup(ghost)}</g>`;
+        const wallSize = getWallSize(ghostType, hover.wall);
+        s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' : wallRect(hover.wall, hover.wx, hover.wz, wallSize.w, wallSize.h, '#e2574c', .55)}${getObjectMarkup(ghost)}</g>`;
       } else if (!isWallItem(ghostType) && hover.surface !== 'wall') {
         const ok = fits(ghostType, hover.gx, hover.gy, movingId);
         const fp = getFootprint(ghostType, rot);
@@ -644,7 +745,7 @@ window.RoomDecor = (function () {
       s += `<rect x="-1000" y="-1000" width="2000" height="2000" fill="#050719" opacity="${dimOpacity.toFixed(2)}" style="pointer-events:none"/>`;
     }
     if (room.lightsOn !== false && lightLevel >= 70) {
-      const [gx, gy] = C(G * .5, G * .2, WALL_H - 10);
+      const [gx, gy] = C(Gx * .5, Gy * .2, WALL_H - 10);
       s += `<ellipse cx="${gx}" cy="${gy}" rx="${70 + lightLevel * .35}" ry="${24 + lightLevel * .12}" fill="#fff0a8" opacity="${(lightLevel / 100 * .16).toFixed(2)}" style="pointer-events:none"/>`;
     }
     $svg.innerHTML = s;
@@ -668,6 +769,14 @@ window.RoomDecor = (function () {
           `<button class="rd-light-toggle${room.lightsOn === false ? '' : ' on'}" data-light-toggle type="button">${room.lightsOn === false ? '불 켜기' : '불 끄기'}</button>` +
           `<label class="rd-range-label">밝기 <strong>${normalizeLightLevel(room.lightLevel)}%</strong><input data-light-level type="range" min="20" max="100" step="10" value="${normalizeLightLevel(room.lightLevel)}"${room.lightsOn === false ? ' disabled' : ''}></label>` +
         `</div>` +
+        `<h4>집 크기</h4><div class="rd-layout-grid">${Object.values(ROOM_LAYOUTS).map(layout => {
+          const unlocked = isLayoutUnlocked(layout.id);
+          const active = normalizeLayoutId(room.layout) === layout.id;
+          return `<button class="rd-layout-card${active ? ' on' : ''}${unlocked ? '' : ' locked'}" data-layout="${layout.id}" type="button">
+            <span><strong>${layout.name}</strong><small>${layout.desc} · ${layout.w}x${layout.d}</small></span>
+            <em>${unlocked ? (active ? '사용 중' : '선택') : `🪙 ${Number(layout.price || 0).toLocaleString()}`}</em>
+          </button>`;
+        }).join('')}</div>` +
         `<h4>바닥</h4><div class="rd-swrow">${Object.entries(FLOORS).map(([k, f]) =>
           `<div class="rd-sw${room.floor === k ? ' on' : ''}" data-floor="${k}" title="${f.name}" style="background:linear-gradient(135deg, ${f.a} 50%, ${f.b} 50%)"></div>`).join('')}</div>` +
         `<h4>벽지</h4><div class="rd-swrow">${Object.entries(WALLS).map(([k, w]) =>
@@ -734,6 +843,11 @@ window.RoomDecor = (function () {
         room.lightsOn = room.lightsOn === false;
         renderSidebar(); render(); scheduleSave();
         showToast(room.lightsOn === false ? '불을 껐어요' : '불을 켰어요');
+        return;
+      }
+      const layoutButton = e.target.closest('[data-layout]');
+      if (layoutButton) {
+        chooseLayout(layoutButton.dataset.layout);
         return;
       }
       const f = e.target.dataset.floor, w = e.target.dataset.wall;

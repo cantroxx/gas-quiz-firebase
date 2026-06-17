@@ -35,6 +35,13 @@ const DEFAULT_FEATURE_FLAGS = {
   disabledQuizIds: []
 };
 
+const ROOM_LAYOUTS = {
+  cozy: { layoutId: "cozy", name: "기본방", w: 8, d: 8, price: 0 },
+  wide: { layoutId: "wide", name: "넓은 방", w: 10, d: 8, price: 120 },
+  studio: { layoutId: "studio", name: "스튜디오", w: 10, d: 10, price: 220 },
+  suite: { layoutId: "suite", name: "큰 집", w: 12, d: 10, price: 360 }
+};
+
 const DEFAULT_EXTERNAL_QUIZZES = {
   items: []
 };
@@ -5001,6 +5008,93 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
       pricePaid: price,
       nextDjCoin: djCoin - price,
       inventoryPath: inventoryRef.path,
+      purchaseLogPath: purchaseLogRef.path
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    ...result
+  };
+});
+
+exports.purchaseRoomLayout = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const layoutId = normalizeId(payload.layoutId, "layoutId");
+  const layout = ROOM_LAYOUTS[layoutId];
+  if (!layout) throw new HttpsError("invalid-argument", "Room layout is invalid.");
+
+  const result = await db.runTransaction(async transaction => {
+    const flags = await getFeatureFlags(transaction);
+    assertFeatureEnabled(flags, "roomDecorEnabled", "Room decor is disabled.");
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+
+    const roomRef = db.collection("userRoomSettings").doc(memberUserId);
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const purchaseLogRef = db.collection("purchaseLogs").doc();
+    const [roomSnapshot, economySnapshot] = await Promise.all([
+      transaction.get(roomRef),
+      transaction.get(economyRef)
+    ]);
+
+    const roomSettings = roomSnapshot.exists ? roomSnapshot.data() || {} : {};
+    const homeRoom = roomSettings.homeRoom && typeof roomSettings.homeRoom === "object"
+      ? roomSettings.homeRoom
+      : {};
+    const unlockedLayouts = new Set(Array.isArray(homeRoom.unlockedLayouts) ? homeRoom.unlockedLayouts : []);
+    unlockedLayouts.add("cozy");
+
+    const alreadyUnlocked = unlockedLayouts.has(layoutId);
+    const price = alreadyUnlocked ? 0 : Number(layout.price || 0);
+    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+    const djCoin = Number(economy.djCoin ?? economy.coin ?? 0);
+    if (!alreadyUnlocked && (!Number.isFinite(djCoin) || djCoin < price)) {
+      throw new HttpsError("failed-precondition", "Not enough DJ coins.");
+    }
+
+    unlockedLayouts.add(layoutId);
+    const nextUnlockedLayouts = Array.from(unlockedLayouts);
+    if (price > 0) {
+      transaction.set(economyRef, {
+        userId: memberUserId,
+        djCoin: djCoin - price,
+        totalSpent: FieldValue.increment(price),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+    transaction.set(roomRef, {
+      userId: memberUserId,
+      homeRoom: {
+        layout: layoutId,
+        unlockedLayouts: nextUnlockedLayouts
+      },
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(purchaseLogRef, {
+      logId: purchaseLogRef.id,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      itemId: `room_layout_${layoutId}`,
+      assetId: `room_layout_${layoutId}`,
+      coinDelta: -price,
+      pricePaid: price,
+      priceType: "djCoin",
+      roomLayout: layoutId,
+      serverVerified: true,
+      source: alreadyUnlocked ? "room_layout_select_function" : "room_layout_purchase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      layoutId,
+      layout,
+      unlockedLayouts: nextUnlockedLayouts,
+      pricePaid: price,
+      nextDjCoin: price > 0 ? djCoin - price : djCoin,
       purchaseLogPath: purchaseLogRef.path
     };
   });
