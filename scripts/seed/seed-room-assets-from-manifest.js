@@ -2,7 +2,8 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const admin = require('firebase-admin');
+const { initializeApp, applicationDefault, getApps } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 const DEFAULT_MANIFEST_PATH = path.join('public', 'images', 'room-assets', 'manifest.json');
 const ROTATION_KEYS = ['0', '90', '180', '270'];
@@ -34,12 +35,13 @@ function parseArgs(argv) {
 }
 
 function initializeAdmin() {
-  if (admin.apps.length) return admin.firestore();
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    projectId: 'dj48-quiztown-firebase'
-  });
-  return admin.firestore();
+  if (!getApps().length) {
+    initializeApp({
+      credential: applicationDefault(),
+      projectId: 'dj48-quiztown-firebase'
+    });
+  }
+  return getFirestore();
 }
 
 function normalizeText(value) {
@@ -156,7 +158,7 @@ function buildAssetPayload(item) {
     offsetX: item.offsetX,
     offsetY: item.offsetY,
     zIndexOffset: item.zIndexOffset,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    updatedAt: FieldValue.serverTimestamp()
   };
 }
 
@@ -171,7 +173,7 @@ function buildShopPayload(item) {
     assetId: item.itemId,
     category: '방 가구',
     sortOrder: item.sortOrder,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    updatedAt: FieldValue.serverTimestamp()
   };
 }
 
