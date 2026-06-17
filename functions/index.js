@@ -1320,6 +1320,20 @@ async function assertLinkedMemberAuth(transaction, memberUserId, authUid) {
   return memberData;
 }
 
+async function assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid) {
+  const memberRef = db.collection("users").doc(memberUserId);
+  const memberSnapshot = await transaction.get(memberRef);
+  if (!memberSnapshot.exists) {
+    throw new HttpsError("not-found", "Member not found.");
+  }
+  const memberData = memberSnapshot.data() || {};
+  assertActiveMember(memberData);
+  if (memberData.authUid !== authUid) {
+    throw new HttpsError("permission-denied", "Member is not linked to current auth.");
+  }
+  return memberData;
+}
+
 async function getPasswordSetupSettings(transaction) {
   const settingsRef = db.collection("authSettings").doc("memberPasswordSetup");
   const settingsSnapshot = await transaction.get(settingsRef);
@@ -5014,7 +5028,7 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
     assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
 
     const itemRef = db.collection("shopItems").doc(itemId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
@@ -5113,7 +5127,7 @@ exports.purchaseRoomLayout = onCall({ region: REGION }, async request => {
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
     assertFeatureEnabled(flags, "roomDecorEnabled", "Room decor is disabled.");
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
 
     const roomRef = db.collection("userRoomSettings").doc(memberUserId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
