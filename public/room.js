@@ -1,6 +1,6 @@
 /* ============================================================
  * DJ48 퀴즈타운 — 내 방 꾸미기 모듈 (room.js)
- * - 모든 가구/배경은 SVG 코드로 생성 (외부 이미지 없음)
+ * - 가구/배경은 내장 SVG 또는 이미지/SVG 에셋으로 렌더링
  * - 데이터: userRoomSettings / userInventory / userEconomy / shopItems / assetCatalog
  * - 구매: callable purchaseShopItem (기존 트랜잭션 재사용)
  * 사용법:
@@ -56,6 +56,7 @@ window.RoomDecor = (function () {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
   const ROTATION_KEYS = ['0', '90', '180', '270'];
+  const FACING_BY_ROTATION = { 0: 'south', 90: 'east', 180: 'north', 270: 'west' };
   function normalizeRenderType(value) {
     return value === 'image' ? 'image' : 'draw';
   }
@@ -120,6 +121,43 @@ window.RoomDecor = (function () {
       ? [C(u, 0, z + h), C(u + w, 0, z + h), C(u + w, 0, z), C(u, 0, z)]
       : [C(0, u, z + h), C(0, u + w, z + h), C(0, u + w, z), C(0, u, z)];
     return poly(pts, fill, op);
+  }
+  function gridToScreen(x, y, z = 0) {
+    return C(Number(x) || 0, Number(y) || 0, Number(z) || 0);
+  }
+  function wallToScreen(wall, u, z) {
+    return normalizeWall(wall) === 'right'
+      ? gridToScreen(Number(u) || 0, 0, Number(z) || 0)
+      : gridToScreen(0, Number(u) || 0, Number(z) || 0);
+  }
+  function getFacing(value) {
+    return FACING_BY_ROTATION[getRotation(value)] || FACING_BY_ROTATION[0];
+  }
+  function getItemSurface(item = {}, type = item.type) {
+    return isWallItem(type) || item.surface === 'wall' ? 'wall' : 'floor';
+  }
+  function getFloorAnchor(item = {}, type = item.type) {
+    const fp = getFootprint(type, item.rot);
+    return {
+      gx: Number(item.gx || 0) + fp.w / 2,
+      gy: Number(item.gy || 0) + fp.d,
+      z: 0,
+      screen: gridToScreen(Number(item.gx || 0) + fp.w / 2, Number(item.gy || 0) + fp.d, 0)
+    };
+  }
+  function getWallAnchor(item = {}, type = item.type) {
+    const it = catalog[type] || {};
+    const wall = normalizeWall(item.wall || it.wall);
+    const size = getWallSize(type, wall);
+    const u = Number(item.wx ?? 2) + size.w / 2;
+    const z = Number(item.wz ?? 42) + size.h / 2;
+    return { wall, u, z, size, screen: wallToScreen(wall, u, z) };
+  }
+  function getFloorSortKey(item = {}) {
+    const it = catalog[item.type] || {};
+    const fp = getFootprint(item.type, item.rot);
+    const zBias = Number(it.zIndexOffset || 0) / 100;
+    return Number(item.gx || 0) + fp.w + Number(item.gy || 0) + fp.d + zBias;
   }
 
   /* ---------- 가구 드로잉 ---------- */
@@ -733,10 +771,29 @@ window.RoomDecor = (function () {
     const it = catalog[item.type];
     if (!it) return '';
     const rot = getRotation(item.rot);
-    if (normalizeRenderType(it.renderType) === 'image') return renderImageItem(item, it, rot);
+    const facing = getFacing(rot);
+    const surface = getItemSurface(item);
+    return surface === 'wall'
+      ? renderWallObject(item, it, rot, facing)
+      : renderFloorObject(item, it, rot, facing);
+  }
+
+  function renderFloorObject(item, it, rot = 0, facing = 'south') {
+    if (normalizeRenderType(it.renderType) === 'image') return renderFloorImageItem(item, it, rot, facing);
+    return renderDrawItem(item, it, rot, facing);
+  }
+
+  function renderWallObject(item, it, rot = 0, facing = 'south') {
+    if (normalizeRenderType(it.renderType) === 'image') return renderWallImageItem(item, it, rot, facing);
+    return renderDrawItem(item, it, rot, facing);
+  }
+
+  function renderDrawItem(item, it, rot = 0) {
+    if (!it.drawKey || !DRAW[it.drawKey]) return '';
     return DRAW[it.drawKey](item.gx || 0, item.gy || 0, canRotateItem(item.type) ? rot : 0, item);
   }
-  function renderImageItem(item, it, rot = 0) {
+
+  function renderFloorImageItem(item, it, rot = 0) {
     const href = imageUrlForRotation(it, canRotateItem(item.type) ? rot : 0);
     if (!href) return '';
     const { width, height } = imageSize(it);
@@ -744,21 +801,20 @@ window.RoomDecor = (function () {
     const anchorY = Number(it.anchorY || 0) || height;
     const offsetX = Number(it.offsetX || 0) || 0;
     const offsetY = Number(it.offsetY || 0) || 0;
-    if (isWallItem(item.type) || item.surface === 'wall') {
-      const wall = normalizeWall(item.wall || it.wall);
-      const wallSize = getWallSize(item.type, wall);
-      const wx = Number(item.wx ?? 2);
-      const wz = Number(item.wz ?? 42);
-      const centerU = wx + wallSize.w / 2;
-      const centerZ = wz + wallSize.h / 2;
-      const anchor = wall === 'right'
-        ? C(centerU, 0, centerZ)
-        : C(0, centerU, centerZ);
-      return `<image href="${escAttr(href)}" x="${(anchor[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMid meet"/>`;
-    }
-    const fp = getFootprint(item.type, item.rot);
-    const anchor = C(Number(item.gx || 0) + fp.w / 2, Number(item.gy || 0) + fp.d, 0);
-    return `<image href="${escAttr(href)}" x="${(anchor[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
+    const anchor = getFloorAnchor(item);
+    return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
+  }
+
+  function renderWallImageItem(item, it, rot = 0) {
+    const href = imageUrlForRotation(it, canRotateItem(item.type) ? rot : 0);
+    if (!href) return '';
+    const { width, height } = imageSize(it);
+    const anchorX = Number(it.anchorX || 0) || width / 2;
+    const anchorY = Number(it.anchorY || 0) || height / 2;
+    const offsetX = Number(it.offsetX || 0) || 0;
+    const offsetY = Number(it.offsetY || 0) || 0;
+    const anchor = getWallAnchor(item);
+    return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMid meet"/>`;
   }
   function applyZoom() {
     if (!$svg) return;
@@ -788,7 +844,8 @@ window.RoomDecor = (function () {
       for (const slot of wallSlots()) {
         const hov = hover && hover.surface === 'wall'
           && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
-        s += wallRect(slot.wall, slot.wx, slot.wz, 1.45, 24, hov ? '#ffd23f' : '#ffffff', hov ? .34 : .12)
+        const slotSize = getWallSize(ghostType, slot.wall);
+        s += wallRect(slot.wall, slot.wx, slot.wz, slotSize.w, slotSize.h, hov ? '#ffd23f' : '#ffffff', hov ? .34 : .12)
           .replace('<polygon ', `<polygon class="rd-wall-tile" data-wall="${slot.wall}" data-wx="${slot.wx}" data-wz="${slot.wz}" `);
       }
     }
@@ -807,11 +864,7 @@ window.RoomDecor = (function () {
     const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type)).sort((a, b) => {
       const A = catalog[a.type], B = catalog[b.type];
       if (!!A.flat !== !!B.flat) return A.flat ? -1 : 1;
-      const afp = getFootprint(a.type, a.rot);
-      const bfp = getFootprint(b.type, b.rot);
-      const az = Number(A.zIndexOffset || 0) / 100;
-      const bz = Number(B.zIndexOffset || 0) / 100;
-      return (a.gx + afp.w + a.gy + afp.d + az) - (b.gx + bfp.w + b.gy + bfp.d + bz);
+      return getFloorSortKey(a) - getFloorSortKey(b);
     });
     for (const p of sorted) {
       if (p.id === movingId && hover) continue;
