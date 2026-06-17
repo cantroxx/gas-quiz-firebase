@@ -87,6 +87,10 @@
         deps.showRoomView?.();
         return;
       }
+      if(event.target.closest('[data-profile-open-admin]')) {
+        deps.showAdminView?.();
+        return;
+      }
       if(event.target.closest('#profile-nickname-save-button')) {
         deps.saveProfileNicknameFromHome?.();
         return;

@@ -30,7 +30,9 @@
     const body = document.createElement('div');
     const nameRow = document.createElement('div');
     const name = document.createElement('h3');
+    const actionRow = document.createElement('div');
     const decorateButton = document.createElement('button');
+    const adminButton = document.createElement('button');
     const school = document.createElement('p');
     const meta = document.createElement('div');
     const title = document.createElement('p');
@@ -80,10 +82,15 @@
     body.className = 'profile-body';
     nameRow.className = 'profile-name-row';
     name.textContent = profile.nickname;
+    actionRow.className = 'profile-name-actions';
     decorateButton.className = 'profile-decorate-button';
     decorateButton.type = 'button';
     decorateButton.dataset.profileDecorateHome = 'true';
     decorateButton.textContent = '집꾸미기';
+    adminButton.className = 'profile-decorate-button profile-admin-center-button';
+    adminButton.type = 'button';
+    adminButton.dataset.profileOpenAdmin = 'true';
+    adminButton.textContent = '관리자 화면으로';
     school.className = 'profile-school';
     school.textContent = profile.school;
     meta.className = 'profile-meta';
@@ -221,7 +228,9 @@
     });
     detailRoot.className = 'profile-detail-root';
     detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
-    nameRow.append(name, decorateButton);
+    actionRow.appendChild(decorateButton);
+    if(deps.isAdminProfile?.(profile)) actionRow.appendChild(adminButton);
+    nameRow.append(name, actionRow);
     body.append(nameRow, school, meta, toggleGrid, detailRoot);
     card.append(avatar, body);
     root.appendChild(card);

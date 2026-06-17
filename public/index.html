@@ -2597,7 +2597,8 @@
       const profile = profileModel || getFallbackProfileModel();
       return window.DJ48HomeRender.renderProfileCard('profile-card-root', profile, {
         normalizeDisplayImageUrl,
-        applyProfileImageTransform
+        applyProfileImageTransform,
+        isAdminProfile: profileData => profileData?.role === 'admin' || String(profileData?.adminLevel || '').trim() !== ''
       });
     }
 
@@ -6610,6 +6611,7 @@
     function getHomeControllerEvents() {
       return {
         showRoomView,
+        showAdminView,
         saveProfileNicknameFromHome,
         saveProfilePasswordFromHome,
         searchProfileImageCandidatesFromHome,
