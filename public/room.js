@@ -56,9 +56,26 @@ window.RoomDecor = (function () {
     if (rotation === 270) return { x: ly, y: baseW - lx - w, w: d, d: w };
     return { x: lx, y: ly, w, d };
   }
+  function orientPoint(baseW, baseD, rot, lx, ly) {
+    const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
+    if (rotation === 90) return { x: baseD - ly, y: lx };
+    if (rotation === 180) return { x: baseW - lx, y: baseD - ly };
+    if (rotation === 270) return { x: ly, y: baseW - lx };
+    return { x: lx, y: ly };
+  }
   function obox(gx, gy, baseW, baseD, rot, lx, ly, w, d, z, h, c, op) {
     const rect = orientRect(baseW, baseD, rot, lx, ly, w, d);
     return box(gx + rect.x, gy + rect.y, rect.w, rect.d, z, h, c, op);
+  }
+  function oface(gx, gy, baseW, baseD, rot, ax, ay, bx, by, z, h, fill, op) {
+    const a = orientPoint(baseW, baseD, rot, ax, ay);
+    const b = orientPoint(baseW, baseD, rot, bx, by);
+    return poly([
+      C(gx + a.x, gy + a.y, z + h),
+      C(gx + b.x, gy + b.y, z + h),
+      C(gx + b.x, gy + b.y, z),
+      C(gx + a.x, gy + a.y, z)
+    ], fill, op);
   }
   function wallRect(wall, u, z, w, h, fill, op) {
     const pts = wall === 'right'
@@ -209,14 +226,12 @@ window.RoomDecor = (function () {
         + obox(x, y, 2, 1, rot, 1.12, .24, .64, .46, 17, 5, col('#91bdd9'));
     },
     wardrobe(x, y, rot = 0) {
-      let s = obox(x, y, 1, 1, rot, 0, 0, 1, 1, 0, 68, col('#a06a3a'))
-        + obox(x, y, 1, 1, rot, .07, .08, .4, .84, 4, 58, col('#bf8750'))
-        + obox(x, y, 1, 1, rot, .53, .08, .4, .84, 4, 58, col('#b77b45'));
-      const a = orientRect(1, 1, rot, .43, .5, .05, .08);
-      const b = orientRect(1, 1, rot, .52, .5, .05, .08);
-      s += box(x + a.x, y + a.y, a.w, a.d, 35, 4, col('#e0c16a'));
-      s += box(x + b.x, y + b.y, b.w, b.d, 35, 4, col('#e0c16a'));
-      return s;
+      return obox(x, y, 1, 1, rot, 0, 0, 1, 1, 0, 68, col('#a06a3a'))
+        + oface(x, y, 1, 1, rot, .06, 1.01, .48, 1.01, 7, 54, '#bf8750')
+        + oface(x, y, 1, 1, rot, .52, 1.01, .94, 1.01, 7, 54, '#b77b45')
+        + oface(x, y, 1, 1, rot, .49, 1.02, .51, 1.02, 8, 52, '#734824')
+        + oface(x, y, 1, 1, rot, .42, 1.03, .47, 1.03, 33, 5, '#e0c16a')
+        + oface(x, y, 1, 1, rot, .53, 1.03, .58, 1.03, 33, 5, '#e0c16a');
     },
     computer(x, y, rot = 0) {
       let s = DRAW.desk(x, y, rot)
