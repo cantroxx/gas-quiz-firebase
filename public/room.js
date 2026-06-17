@@ -107,13 +107,14 @@ window.RoomDecor = (function () {
     },
     shelf(x, y, rot = 0) {
       let s = obox(x, y, 1, .5, rot, 0, 0, 1, .5, 0, 58, col('#9a6a3c'));
-      const fy = y + .5, books = ['#e2574c', '#4f9dd6', '#f0b840', '#69b56b', '#9b6fc9', '#e58fb0'];
+      const faceY = .51;
+      const books = ['#e2574c', '#4f9dd6', '#f0b840', '#69b56b', '#9b6fc9', '#e58fb0'];
       [8, 26, 44].forEach((z0, row) => {
-        s += poly([C(x + .06, fy, z0 - 2), C(x + .94, fy, z0 - 2), C(x + .94, fy, z0 + 13), C(x + .06, fy, z0 + 13)], '#5e3c1e');
-        let bx = x + .1;
+        s += oface(x, y, 1, .5, rot, .06, faceY, .94, faceY, z0 - 2, 15, '#5e3c1e');
+        let bx = .1;
         for (let k = 0; k < 4; k++) {
           const bw = .17 + ((row + k) % 3) * .015;
-          s += poly([C(bx, fy, z0), C(bx + bw, fy, z0), C(bx + bw, fy, z0 + 12), C(bx, fy, z0 + 12)], books[(row * 2 + k) % books.length]);
+          s += oface(x, y, 1, .5, rot, bx, faceY + .01, bx + bw, faceY + .01, z0, 12, books[(row * 2 + k) % books.length]);
           bx += bw + .025;
         }
       });
