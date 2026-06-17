@@ -327,6 +327,7 @@ window.RoomDecor = (function () {
   };
   const DEFAULT_ROOM = {
     floor: 'wood', wall: 'cream',
+    lightsOn: true, lightLevel: 100,
     placed: [],
   };
 
@@ -363,13 +364,25 @@ window.RoomDecor = (function () {
       const doc = await db.collection(CONFIG.COL_ROOM).doc(uid).get();
       const d = doc.exists ? (doc.data() || {})[CONFIG.ROOM_FIELD] : null;
       room = (d && Array.isArray(d.placed))
-        ? { floor: d.floor || 'wood', wall: d.wall || 'cream', placed: d.placed }
+        ? normalizeRoomData(d)
         : JSON.parse(JSON.stringify(DEFAULT_ROOM));
     } catch (e) {
       console.warn('[room] userRoomSettings 로드 실패', e);
       room = JSON.parse(JSON.stringify(DEFAULT_ROOM));
     }
     nextId = room.placed.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1;
+  }
+  function normalizeLightLevel(value) {
+    return Math.max(20, Math.min(100, Math.round(Number(value) || 100)));
+  }
+  function normalizeRoomData(data = {}) {
+    return {
+      floor: data.floor || DEFAULT_ROOM.floor,
+      wall: data.wall || DEFAULT_ROOM.wall,
+      lightsOn: data.lightsOn !== false,
+      lightLevel: normalizeLightLevel(data.lightLevel),
+      placed: Array.isArray(data.placed) ? data.placed : []
+    };
   }
   function watchEconomy(uid) {
     unsubs.push(db.collection(CONFIG.COL_ECONOMY).doc(uid).onSnapshot(doc => {
@@ -436,7 +449,13 @@ window.RoomDecor = (function () {
   }
   function roomPayload() {
     return {
-      [CONFIG.ROOM_FIELD]: { floor: room.floor, wall: room.wall, placed: room.placed.map(normalizePlacedItem) },
+      [CONFIG.ROOM_FIELD]: {
+        floor: room.floor,
+        wall: room.wall,
+        lightsOn: room.lightsOn !== false,
+        lightLevel: normalizeLightLevel(room.lightLevel),
+        placed: room.placed.map(normalizePlacedItem)
+      },
       userId: getUserId(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
@@ -619,6 +638,15 @@ window.RoomDecor = (function () {
         }${getObjectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
       }
     }
+    const lightLevel = normalizeLightLevel(room.lightLevel);
+    const dimOpacity = room.lightsOn === false ? .48 : Math.max(0, (100 - lightLevel) / 100 * .26);
+    if (dimOpacity > 0) {
+      s += `<rect x="-1000" y="-1000" width="2000" height="2000" fill="#050719" opacity="${dimOpacity.toFixed(2)}" style="pointer-events:none"/>`;
+    }
+    if (room.lightsOn !== false && lightLevel >= 70) {
+      const [gx, gy] = C(G * .5, G * .2, WALL_H - 10);
+      s += `<ellipse cx="${gx}" cy="${gy}" rx="${70 + lightLevel * .35}" ry="${24 + lightLevel * .12}" fill="#fff0a8" opacity="${(lightLevel / 100 * .16).toFixed(2)}" style="pointer-events:none"/>`;
+    }
     $svg.innerHTML = s;
     $svg.classList.toggle('placing', !!(placingType || movingId));
     applyZoom();
@@ -636,6 +664,10 @@ window.RoomDecor = (function () {
     if (curTab === 'style') {
       $grid.style.display = 'none'; $styleGrid.style.display = 'block';
       $styleGrid.innerHTML =
+        `<h4>조명</h4><div class="rd-control-row">` +
+          `<button class="rd-light-toggle${room.lightsOn === false ? '' : ' on'}" data-light-toggle type="button">${room.lightsOn === false ? '불 켜기' : '불 끄기'}</button>` +
+          `<label class="rd-range-label">밝기 <strong>${normalizeLightLevel(room.lightLevel)}%</strong><input data-light-level type="range" min="20" max="100" step="10" value="${normalizeLightLevel(room.lightLevel)}"${room.lightsOn === false ? ' disabled' : ''}></label>` +
+        `</div>` +
         `<h4>바닥</h4><div class="rd-swrow">${Object.entries(FLOORS).map(([k, f]) =>
           `<div class="rd-sw${room.floor === k ? ' on' : ''}" data-floor="${k}" title="${f.name}" style="background:linear-gradient(135deg, ${f.a} 50%, ${f.b} 50%)"></div>`).join('')}</div>` +
         `<h4>벽지</h4><div class="rd-swrow">${Object.entries(WALLS).map(([k, w]) =>
@@ -697,10 +729,24 @@ window.RoomDecor = (function () {
       renderSidebar(); render();
     };
     $styleGrid.onclick = e => {
+      const lightToggle = e.target.closest('[data-light-toggle]');
+      if (lightToggle) {
+        room.lightsOn = room.lightsOn === false;
+        renderSidebar(); render(); scheduleSave();
+        showToast(room.lightsOn === false ? '불을 껐어요' : '불을 켰어요');
+        return;
+      }
       const f = e.target.dataset.floor, w = e.target.dataset.wall;
       if (f) room.floor = f;
       if (w) room.wall = w;
       if (f || w) { renderSidebar(); render(); scheduleSave(); }
+    };
+    $styleGrid.oninput = e => {
+      if (!e.target.matches('[data-light-level]')) return;
+      room.lightLevel = normalizeLightLevel(e.target.value);
+      const labelValue = e.target.closest('.rd-range-label')?.querySelector('strong');
+      if (labelValue) labelValue.textContent = `${room.lightLevel}%`;
+      render(); scheduleSave();
     };
     $svg.addEventListener('mousemove', e => {
       if (!placingType && !movingId) return;
