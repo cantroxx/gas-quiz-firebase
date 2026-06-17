@@ -441,12 +441,13 @@
     return shuffleList(questions);
   }
 
-  function buildSpellingQuestion(question) {
+  function buildSpellingQuestion(question, deps = {}) {
+    const shuffleList = deps.shuffleList || defaultShuffleList;
     const prompt = String(question.prompt || '').trim();
     const answerText = String(question.answer || '').trim();
     const match = prompt.match(/\(([^()/]+)\/([^()/]+)\)/);
     const choices = match ? [match[1].trim(), match[2].trim()] : [answerText, ...(question.aliases || [])].filter(Boolean).slice(0, 2);
-    const normalizedChoices = choices.length >= 2 ? choices : [answerText, '다시 보기'];
+    const normalizedChoices = shuffleList(choices.length >= 2 ? choices : [answerText, '다시 보기']);
     const answerIndex = normalizedChoices.findIndex(choice => choice === answerText);
     return {
       practiceQuestionId: String(question.questionId || '').trim(),
@@ -609,7 +610,7 @@
           questions = generateFirebaseRandomBasicQuestions(deps);
         } else {
           const rows = await this.loadFirebaseQuizQuestions(id);
-          if(id === 'spelling') questions = rows.map(buildSpellingQuestion);
+          if(id === 'spelling') questions = rows.map(row => buildSpellingQuestion(row, deps));
           if(id === 'word-relation') questions = rows.map(buildWordRelationQuestion);
           if(!questions.length) questions = rows.map(buildFirestoreQuestion).filter(Boolean);
         }

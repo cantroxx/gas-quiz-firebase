@@ -1,5 +1,6 @@
 const assert = require('assert');
 const {
+  buildSpellingQuestion,
   createQuizRepository,
   getQuizPlayRepositoryDeps
 } = require('../../public/js/infrastructure/quiz-repository.js');
@@ -35,6 +36,7 @@ async function testQuizRepositoryPorts() {
     loadFeatureFlags: async () => ({ rankingEnabled: true }),
     loadFirebaseQuizMeta: async quizId => ({ quizId }),
     loadFirebaseQuizQuestions: async quizId => [{ questionId: `${quizId}-1`, prompt: '안 (되/돼)', answer: '돼' }],
+    shuffleList: items => items.slice(),
     getFirebaseQuizDataCache: () => cache,
     isFirestorePermissionDeniedError: error => error?.code === 'permission-denied',
     resetUserEconomyCache: () => calls.push('economy'),
@@ -80,6 +82,20 @@ async function testQuizRepositoryPorts() {
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'getPopularQuizUsageStatus'));
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'recordPopularQuizUsageSeconds' && call[2].seconds === 12));
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'recordEducationCorrectForPopularUnlock'));
+}
+
+function testBuildSpellingQuestionShufflesChoices() {
+  const question = buildSpellingQuestion(
+    { questionId: 'spelling-1', prompt: '(왠지/웬지) 오늘은 좋은 일이 생길 것 같아.', answer: '왠지' },
+    { shuffleList: items => items.slice().reverse() }
+  );
+
+  assert.deepEqual(question, {
+    practiceQuestionId: 'spelling-1',
+    question: '(왠지/웬지) 오늘은 좋은 일이 생길 것 같아.',
+    choices: ['웬지', '왠지'],
+    answer: 1
+  });
 }
 
 async function testQuizPlayRepositoryDeps() {
@@ -294,6 +310,7 @@ async function testQuizRepositoryWritesRankingAndPracticeProgress() {
 }
 
 async function run() {
+  testBuildSpellingQuestionShufflesChoices();
   await testQuizRepositoryPorts();
   await testQuizPlayRepositoryDeps();
   await testQuizRepositoryReadsFirestoreQuestions();
