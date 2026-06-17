@@ -5182,6 +5182,7 @@
 
     function getAdminRepository() {
       return window.DJ48AdminRepository.createAdminRepository({
+        getFirestoreDb,
         getFirebaseFunctions,
         initializeAuthUser
       });
