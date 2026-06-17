@@ -1236,11 +1236,7 @@
         <div id="school-quiz-grid" class="school-quiz-grid" aria-label="학교 퀴즈 카드"></div>
       </div>
 
-      <section id="external-quiz-section" class="external-quiz-section" aria-labelledby="external-quiz-heading" hidden>
-        <div class="event-section-heading">
-          <p class="eyebrow">External Quizzes</p>
-          <h3 id="external-quiz-heading">외부 퀴즈</h3>
-        </div>
+      <section id="external-quiz-section" class="external-quiz-section" aria-label="외부 퀴즈 링크" hidden>
         <div id="external-quiz-grid" class="external-quiz-grid" aria-label="외부 퀴즈 링크"></div>
         <p id="external-quiz-status" class="external-quiz-status" aria-live="polite"></p>
       </section>
@@ -1723,7 +1719,7 @@
     const DEFAULT_EXTERNAL_QUIZZES = {
       items: []
     };
-    const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 5;
+    const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 12;
 
     let lastResolvedUserId = null;
     let userDataMigrationPromise = null;
@@ -5812,7 +5808,17 @@
     async function showExternalQuizLinks() {
       const status = document.getElementById('external-quiz-status');
       const section = document.getElementById('external-quiz-section');
+      if(section && !section.hidden) {
+        section.hidden = true;
+        document.querySelectorAll('[data-external-quiz-hub]').forEach(element => {
+          element.setAttribute('aria-expanded', 'false');
+        });
+        return;
+      }
       if(section) section.hidden = false;
+      document.querySelectorAll('[data-external-quiz-hub]').forEach(element => {
+        element.setAttribute('aria-expanded', 'true');
+      });
       if(status) status.textContent = '외부 퀴즈를 불러오는 중입니다...';
       const externalQuizzes = await loadExternalQuizzes(true);
       renderExternalQuizLinks(externalQuizzes);
@@ -6306,6 +6312,9 @@
       renderSchoolQuizCards();
       const externalSection = document.getElementById('external-quiz-section');
       if(externalSection) externalSection.hidden = true;
+      document.querySelectorAll('[data-external-quiz-hub]').forEach(element => {
+        element.setAttribute('aria-expanded', 'false');
+      });
       enterAppView({
         viewId: 'school-view'
       });

@@ -29,6 +29,7 @@
       if(viewModel.enabled && (viewModel.subjectId || viewModel.externalQuizHub)) {
         if(viewModel.subjectId) item.dataset.subjectId = viewModel.subjectId;
         if(viewModel.externalQuizHub) item.dataset.externalQuizHub = 'true';
+        if(viewModel.externalQuizHub) item.setAttribute('aria-expanded', 'false');
         item.tabIndex = 0;
         item.setAttribute('role', 'button');
       }
@@ -41,7 +42,10 @@
       button.disabled = !viewModel.enabled;
       button.textContent = viewModel.enabled ? '입장하기' : '준비 중';
       if(viewModel.subjectId) button.dataset.subjectId = viewModel.subjectId;
-      if(viewModel.externalQuizHub) button.dataset.externalQuizHub = 'true';
+      if(viewModel.externalQuizHub) {
+        button.dataset.externalQuizHub = 'true';
+        button.setAttribute('aria-expanded', 'false');
+      }
 
       item.append(icon, title, desc);
       if(viewModel.subjectId === 'popular') {
@@ -72,23 +76,14 @@
       return;
     }
     items.forEach(item => {
-      const card = document.createElement('article');
-      const icon = document.createElement('span');
-      const title = document.createElement('h3');
-      const desc = document.createElement('p');
       const link = document.createElement('a');
-      card.className = 'external-quiz-card';
-      icon.className = 'school-quiz-icon';
-      icon.textContent = '🔗';
-      title.textContent = item.title;
-      desc.textContent = item.description || '새 탭에서 외부 퀴즈를 엽니다.';
-      link.className = 'school-ready-button';
+      link.className = 'external-quiz-button';
       link.href = item.url;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      link.textContent = '새 탭에서 열기';
-      card.append(icon, title, desc, link);
-      grid.appendChild(card);
+      link.textContent = item.title;
+      if(item.description) link.title = item.description;
+      grid.appendChild(link);
     });
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }

@@ -20,6 +20,7 @@ const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
 const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
 const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
+const MAX_EXTERNAL_QUIZ_ITEMS = 12;
 const POPULAR_USAGE_SOFT_LIMIT_SECONDS = 10 * 60;
 const POPULAR_USAGE_AFTER4_HARD_LIMIT_SECONDS = 30 * 60;
 const POPULAR_USAGE_UNLOCK_CORRECT_COUNT = 15;
@@ -254,7 +255,7 @@ function normalizeExternalQuizUrl(value) {
 
 function publicExternalQuizzes(data = {}) {
   const rawItems = Array.isArray(data.items) ? data.items : [];
-  const items = rawItems.slice(0, 5)
+  const items = rawItems.slice(0, MAX_EXTERNAL_QUIZ_ITEMS)
     .map((item, index) => {
       const title = String(item?.title || "").trim().slice(0, 40);
       const url = normalizeExternalQuizUrl(item?.url || "");
