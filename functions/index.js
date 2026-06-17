@@ -3508,12 +3508,36 @@ exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const before = await getFeatureFlags();
   const next = publicFeatureFlags(payload.flags || payload);
+  let externalQuizUpdate = null;
 
   await db.doc(FEATURE_FLAGS_DOC_PATH).set({
     ...next,
     updatedAt: FieldValue.serverTimestamp(),
     updatedByAdminUserId: adminMember.memberUserId
   }, { merge: true });
+
+  if (next.externalQuizzesEnabled === false) {
+    const externalRef = db.doc(EXTERNAL_QUIZZES_DOC_PATH);
+    const beforeExternalSnapshot = await externalRef.get();
+    const beforeExternal = beforeExternalSnapshot.exists
+      ? publicExternalQuizzes(beforeExternalSnapshot.data() || {})
+      : DEFAULT_EXTERNAL_QUIZZES;
+    const nextExternal = publicExternalQuizzes({
+      items: (beforeExternal.items || []).map(item => ({
+        ...item,
+        active: false
+      }))
+    });
+    const changed = JSON.stringify(beforeExternal) !== JSON.stringify(nextExternal);
+    if (changed) {
+      await externalRef.set({
+        ...nextExternal,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedByAdminUserId: adminMember.memberUserId
+      }, { merge: true });
+      externalQuizUpdate = { before: beforeExternal, after: nextExternal };
+    }
+  }
 
   await writeAdminLog({
     adminUserId: adminMember.memberUserId,
@@ -3523,6 +3547,17 @@ exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
     after: next,
     reason: "feature flags update"
   });
+
+  if (externalQuizUpdate) {
+    await writeAdminLog({
+      adminUserId: adminMember.memberUserId,
+      action: "adminUpdateExternalQuizzes",
+      targetUserId: EXTERNAL_QUIZZES_DOC_PATH,
+      before: externalQuizUpdate.before,
+      after: externalQuizUpdate.after,
+      reason: "external quizzes disabled by feature flag"
+    });
+  }
 
   return {
     success: true,

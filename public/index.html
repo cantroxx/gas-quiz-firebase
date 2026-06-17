@@ -5694,7 +5694,14 @@
       const result = await getAdminRepository().saveAdminFeatureFlags(flags);
       const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
       setAdminFeatureFlagsForm(featureFlags);
-      setAdminFeatureFlagsStatus('기능 설정을 저장했습니다.');
+      if(featureFlags.externalQuizzesEnabled === false) {
+        await loadAdminExternalQuizzes().catch(error => {
+          console.warn('Admin external quizzes refresh after feature flag save failed.', error);
+        });
+      }
+      setAdminFeatureFlagsStatus(featureFlags.externalQuizzesEnabled === false
+        ? '기능 설정을 저장했고 외부 퀴즈 활성 체크를 모두 해제했습니다.'
+        : '기능 설정을 저장했습니다.');
       return featureFlags;
     }
 
