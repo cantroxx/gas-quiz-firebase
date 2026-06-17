@@ -435,8 +435,10 @@
       card.className = 'admin-audit-card';
       heading.textContent = `${item.name || item.itemId} · ${item.itemId}`;
       meta.className = 'admin-audit-card-meta';
+      const spriteCount = Object.values(item.rotationSprites || {}).filter(Boolean).length;
       meta.append(
         createAdminInfoChip(item.cat === 'deco' ? '장식' : '가구', item.drawKey || '-'),
+        createAdminInfoChip('렌더', item.renderType === 'image' ? `이미지${spriteCount ? ` ${spriteCount}방향` : ''}` : '내장 SVG'),
         createAdminInfoChip('크기', `${item.w || 1}x${item.d || 1} / h${item.h || 0}`),
         createAdminInfoChip('가격', item.free ? '무료' : `${Number(item.price || 0).toLocaleString('ko-KR')} DJ코인`),
         createAdminInfoChip('판매', item.free ? '기본 제공' : (item.enabled === false ? '중지' : '활성'))

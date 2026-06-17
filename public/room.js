@@ -50,6 +50,39 @@ window.RoomDecor = (function () {
     return `rgb(${r | 0},${g | 0},${b | 0})`;
   };
   const col = hex => ({ t: shade(hex, 1.12), r: shade(hex, 0.92), l: shade(hex, 0.74) });
+  const escAttr = value => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const ROTATION_KEYS = ['0', '90', '180', '270'];
+  function normalizeRenderType(value) {
+    return value === 'image' ? 'image' : 'draw';
+  }
+  function normalizeRotationSprites(value = {}) {
+    const source = value && typeof value === 'object' ? value : {};
+    return ROTATION_KEYS.reduce((next, key) => {
+      next[key] = String(source[key] || '').trim();
+      return next;
+    }, {});
+  }
+  function hasRotationSprites(it = {}) {
+    const sprites = normalizeRotationSprites(it.rotationSprites);
+    return ROTATION_KEYS.some(key => !!sprites[key]);
+  }
+  function imageUrlForRotation(it = {}, rot = 0) {
+    const sprites = normalizeRotationSprites(it.rotationSprites);
+    const rotation = String(getRotation(rot));
+    return sprites[rotation] || sprites['0'] || String(it.assetUrl || '').trim();
+  }
+  function imageSize(it = {}) {
+    const fallbackW = Math.max(48, (Number(it.w || 1) + Number(it.d || 1)) * TW2 + 34);
+    const fallbackH = Math.max(48, Number(it.h || 30) + (Number(it.w || 1) + Number(it.d || 1)) * TH2 + 28);
+    return {
+      width: Math.max(1, Number(it.pixelWidth || 0) || fallbackW),
+      height: Math.max(1, Number(it.pixelHeight || 0) || fallbackH)
+    };
+  }
   function orientRect(baseW, baseD, rot, lx, ly, w, d) {
     const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
     if (rotation === 90) return { x: baseD - ly - d, y: lx, w: d, d: w };
@@ -364,15 +397,40 @@ window.RoomDecor = (function () {
   /* ---------- Firestore ---------- */
   async function loadCatalog() {
     catalog = {};
-    DEFAULT_CATALOG.forEach(it => catalog[it.id] = { ...it });
+    DEFAULT_CATALOG.forEach(it => catalog[it.id] = normalizeCatalogItem(it.id, it));
     try {
       const snap = await db.collection(CONFIG.COL_CATALOG)
         .where('type', '==', CONFIG.CATALOG_TYPE).get();
       snap.forEach(doc => {
         const d = doc.data();
-        if (d.drawKey && DRAW[d.drawKey]) catalog[doc.id] = { id: doc.id, ...d };
+        const item = normalizeCatalogItem(doc.id, d);
+        if (canRenderCatalogItem(item)) catalog[doc.id] = item;
       });
     } catch (e) { console.warn('[room] assetCatalog 로드 실패, 기본 카탈로그 사용', e); }
+  }
+  function normalizeCatalogItem(id, data = {}) {
+    const renderType = normalizeRenderType(data.renderType);
+    const rotationSprites = normalizeRotationSprites(data.rotationSprites);
+    return {
+      id,
+      ...data,
+      renderType,
+      drawKey: String(data.drawKey || ''),
+      assetUrl: String(data.assetUrl || '').trim(),
+      thumbUrl: String(data.thumbUrl || '').trim(),
+      rotationSprites,
+      pixelWidth: Number(data.pixelWidth || 0) || 0,
+      pixelHeight: Number(data.pixelHeight || 0) || 0,
+      anchorX: Number(data.anchorX || 0) || 0,
+      anchorY: Number(data.anchorY || 0) || 0,
+      offsetX: Number(data.offsetX || 0) || 0,
+      offsetY: Number(data.offsetY || 0) || 0,
+      zIndexOffset: Number(data.zIndexOffset || 0) || 0
+    };
+  }
+  function canRenderCatalogItem(it = {}) {
+    if (normalizeRenderType(it.renderType) === 'image') return !!(it.assetUrl || hasRotationSprites(it));
+    return !!(it.drawKey && DRAW[it.drawKey]);
   }
   async function loadRoom(uid) {
     try {
@@ -462,7 +520,9 @@ window.RoomDecor = (function () {
       : { w: it.w, d: it.d };
   }
   function canRotateItem(type) {
-    const drawKey = catalog[type]?.drawKey || '';
+    const it = catalog[type] || {};
+    if (normalizeRenderType(it.renderType) === 'image') return hasRotationSprites(it);
+    const drawKey = it.drawKey || '';
     return ['bed', 'desk', 'chair', 'shelf', 'piano', 'sofa', 'wardrobe', 'computer', 'table', 'toybox', 'tv', 'rug'].includes(drawKey);
   }
   function normalizePlacedItem(item) {
@@ -673,7 +733,32 @@ window.RoomDecor = (function () {
     const it = catalog[item.type];
     if (!it) return '';
     const rot = getRotation(item.rot);
+    if (normalizeRenderType(it.renderType) === 'image') return renderImageItem(item, it, rot);
     return DRAW[it.drawKey](item.gx || 0, item.gy || 0, canRotateItem(item.type) ? rot : 0, item);
+  }
+  function renderImageItem(item, it, rot = 0) {
+    const href = imageUrlForRotation(it, canRotateItem(item.type) ? rot : 0);
+    if (!href) return '';
+    const { width, height } = imageSize(it);
+    const anchorX = Number(it.anchorX || 0) || width / 2;
+    const anchorY = Number(it.anchorY || 0) || height;
+    const offsetX = Number(it.offsetX || 0) || 0;
+    const offsetY = Number(it.offsetY || 0) || 0;
+    if (isWallItem(item.type) || item.surface === 'wall') {
+      const wall = normalizeWall(item.wall || it.wall);
+      const wallSize = getWallSize(item.type, wall);
+      const wx = Number(item.wx ?? 2);
+      const wz = Number(item.wz ?? 42);
+      const centerU = wx + wallSize.w / 2;
+      const centerZ = wz + wallSize.h / 2;
+      const anchor = wall === 'right'
+        ? C(centerU, 0, centerZ)
+        : C(0, centerU, centerZ);
+      return `<image href="${escAttr(href)}" x="${(anchor[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMid meet"/>`;
+    }
+    const fp = getFootprint(item.type, item.rot);
+    const anchor = C(Number(item.gx || 0) + fp.w / 2, Number(item.gy || 0) + fp.d, 0);
+    return `<image href="${escAttr(href)}" x="${(anchor[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
   }
   function applyZoom() {
     if (!$svg) return;
@@ -724,7 +809,9 @@ window.RoomDecor = (function () {
       if (!!A.flat !== !!B.flat) return A.flat ? -1 : 1;
       const afp = getFootprint(a.type, a.rot);
       const bfp = getFootprint(b.type, b.rot);
-      return (a.gx + afp.w + a.gy + afp.d) - (b.gx + bfp.w + b.gy + bfp.d);
+      const az = Number(A.zIndexOffset || 0) / 100;
+      const bz = Number(B.zIndexOffset || 0) / 100;
+      return (a.gx + afp.w + a.gy + afp.d + az) - (b.gx + bfp.w + b.gy + bfp.d + bz);
     });
     for (const p of sorted) {
       if (p.id === movingId && hover) continue;
@@ -760,6 +847,10 @@ window.RoomDecor = (function () {
     applyZoom();
   }
   function itemThumb(it) {
+    const imageThumb = it.thumbUrl || imageUrlForRotation(it, 0);
+    if (normalizeRenderType(it.renderType) === 'image' && imageThumb) {
+      return `<img class="rd-thumb-img" src="${escAttr(imageThumb)}" alt="${escAttr(it.name || '')}" loading="lazy">`;
+    }
     if (isWallItem(it.id)) {
       return `<svg viewBox="-90 -120 180 150">${DRAW[it.drawKey](0, 0, 0, { type: it.id, wall: it.wall || 'left', wx: 1.2, wz: 22 })}</svg>`;
     }

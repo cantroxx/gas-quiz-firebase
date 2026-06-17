@@ -3055,6 +3055,31 @@ const ROOM_CATALOG_DRAW_KEYS = new Set([
   "plant", "lamp", "bear", "table", "toybox", "tv", "aquarium", "trophy",
   "window", "frame", "clock", "mirror"
 ]);
+const ROOM_CATALOG_RENDER_TYPES = new Set(["draw", "image"]);
+const ROOM_CATALOG_ROTATION_KEYS = ["0", "90", "180", "270"];
+
+function normalizeRoomAssetUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (/^https:\/\//i.test(url)) return url.slice(0, 2000);
+  if (/^\/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]+$/.test(url)) return url.slice(0, 2000);
+  if (/^data:image\/(?:png|jpe?g|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(url) && url.length <= 250000) {
+    return url;
+  }
+  throw new HttpsError("invalid-argument", "Room catalog asset URL is invalid.");
+}
+
+function normalizeRoomRotationSprites(value = {}) {
+  const source = value && typeof value === "object" ? value : {};
+  return ROOM_CATALOG_ROTATION_KEYS.reduce((next, key) => {
+    next[key] = normalizeRoomAssetUrl(source[key]);
+    return next;
+  }, {});
+}
+
+function hasRoomRotationSprite(rotationSprites = {}) {
+  return ROOM_CATALOG_ROTATION_KEYS.some(key => !!rotationSprites[key]);
+}
 
 function normalizeRoomCatalogItemPayload(payload = {}) {
   const itemId = normalizeId(payload.itemId || payload.assetId, "itemId");
@@ -3067,9 +3092,21 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
   if (!["furniture", "deco"].includes(cat)) {
     throw new HttpsError("invalid-argument", "Room catalog category is invalid.");
   }
+  const renderType = ROOM_CATALOG_RENDER_TYPES.has(String(payload.renderType || "").trim())
+    ? String(payload.renderType || "").trim()
+    : "draw";
   const drawKey = String(payload.drawKey || "").trim();
-  if (!ROOM_CATALOG_DRAW_KEYS.has(drawKey)) {
+  if (renderType === "draw" && !ROOM_CATALOG_DRAW_KEYS.has(drawKey)) {
     throw new HttpsError("invalid-argument", "Room catalog drawKey is invalid.");
+  }
+  if (renderType === "image" && drawKey && !ROOM_CATALOG_DRAW_KEYS.has(drawKey)) {
+    throw new HttpsError("invalid-argument", "Room catalog fallback drawKey is invalid.");
+  }
+  const assetUrl = normalizeRoomAssetUrl(payload.assetUrl);
+  const thumbUrl = normalizeRoomAssetUrl(payload.thumbUrl);
+  const rotationSprites = normalizeRoomRotationSprites(payload.rotationSprites);
+  if (renderType === "image" && !assetUrl && !hasRoomRotationSprite(rotationSprites)) {
+    throw new HttpsError("invalid-argument", "Room catalog image asset URL is required.");
   }
   const w = Math.max(1, Math.min(4, Math.round(Number(payload.w) || 1)));
   const d = Math.max(1, Math.min(4, Math.round(Number(payload.d) || 1)));
@@ -3079,6 +3116,13 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
   const defaultWallWidth = drawKey === "window" ? 2.6 : drawKey === "frame" ? 1.8 : drawKey === "clock" ? 1.2 : drawKey === "mirror" ? 1.4 : 0;
   const ww = Math.max(0, Math.min(8, Number(payload.ww || defaultWallWidth)));
   const wh = Math.max(0, Math.min(104, Number(payload.wh || h)));
+  const pixelWidth = Math.max(0, Math.min(1000, Math.round(Number(payload.pixelWidth) || 0)));
+  const pixelHeight = Math.max(0, Math.min(1000, Math.round(Number(payload.pixelHeight) || 0)));
+  const anchorX = Math.max(0, Math.min(1000, Math.round(Number(payload.anchorX) || 0)));
+  const anchorY = Math.max(0, Math.min(1000, Math.round(Number(payload.anchorY) || 0)));
+  const offsetX = Math.max(-500, Math.min(500, Math.round(Number(payload.offsetX) || 0)));
+  const offsetY = Math.max(-500, Math.min(500, Math.round(Number(payload.offsetY) || 0)));
+  const zIndexOffset = Math.max(-100, Math.min(100, Math.round(Number(payload.zIndexOffset) || 0)));
   const sortOrder = Math.max(0, Math.min(9999, Math.round(Number(payload.sortOrder) || 100)));
   const free = payload.free === true;
   const price = free ? 0 : Math.max(0, Math.min(100000, Math.round(Number(payload.price) || 0)));
@@ -3089,7 +3133,11 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
     itemId,
     name,
     cat,
+    renderType,
     drawKey,
+    assetUrl,
+    thumbUrl,
+    rotationSprites,
     w,
     d,
     h,
@@ -3097,6 +3145,13 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
     wall: isWall ? wall : "",
     ww: isWall ? ww : 0,
     wh: isWall ? wh : 0,
+    pixelWidth,
+    pixelHeight,
+    anchorX,
+    anchorY,
+    offsetX,
+    offsetY,
+    zIndexOffset,
     flat: payload.flat === true,
     free,
     price,
@@ -3114,7 +3169,11 @@ function publicRoomCatalogItem(assetDoc, shopDoc = null) {
     assetId: itemId,
     name: String(asset.name || shop.name || itemId),
     cat: String(asset.cat || "furniture"),
+    renderType: String(asset.renderType || "draw"),
     drawKey: String(asset.drawKey || ""),
+    assetUrl: String(asset.assetUrl || ""),
+    thumbUrl: String(asset.thumbUrl || ""),
+    rotationSprites: normalizeRoomRotationSprites(asset.rotationSprites),
     w: Number(asset.w || 1),
     d: Number(asset.d || 1),
     h: Number(asset.h || 30),
@@ -3122,6 +3181,13 @@ function publicRoomCatalogItem(assetDoc, shopDoc = null) {
     wall: String(asset.wall || ""),
     ww: Number(asset.ww || 0),
     wh: Number(asset.wh || 0),
+    pixelWidth: Number(asset.pixelWidth || 0),
+    pixelHeight: Number(asset.pixelHeight || 0),
+    anchorX: Number(asset.anchorX || 0),
+    anchorY: Number(asset.anchorY || 0),
+    offsetX: Number(asset.offsetX || 0),
+    offsetY: Number(asset.offsetY || 0),
+    zIndexOffset: Number(asset.zIndexOffset || 0),
     flat: asset.flat === true,
     free: asset.free === true,
     price: Number(asset.price ?? shop.price ?? 0) || 0,
@@ -3165,6 +3231,7 @@ exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
       itemId: item.itemId,
       name: item.name,
       cat: item.cat,
+      renderType: item.renderType,
       w: item.w,
       d: item.d,
       h: item.h,
@@ -3174,6 +3241,16 @@ exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
       wh: item.wh,
       flat: item.flat,
       drawKey: item.drawKey,
+      assetUrl: item.assetUrl,
+      thumbUrl: item.thumbUrl,
+      rotationSprites: item.rotationSprites,
+      pixelWidth: item.pixelWidth,
+      pixelHeight: item.pixelHeight,
+      anchorX: item.anchorX,
+      anchorY: item.anchorY,
+      offsetX: item.offsetX,
+      offsetY: item.offsetY,
+      zIndexOffset: item.zIndexOffset,
       free: item.free,
       price: item.price,
       sortOrder: item.sortOrder,

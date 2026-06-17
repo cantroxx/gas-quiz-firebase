@@ -1086,7 +1086,14 @@
               </select>
             </label>
             <label>
-              모양(drawKey)
+              렌더 방식
+              <select id="admin-room-render-type-input">
+                <option value="draw">내장 SVG</option>
+                <option value="image">이미지/SVG 파일</option>
+              </select>
+            </label>
+            <label>
+              내장 모양(drawKey)
               <select id="admin-room-draw-key-input">
                 <option value="bed">침대</option>
                 <option value="desk">책상</option>
@@ -1112,6 +1119,30 @@
               </select>
             </label>
             <label>
+              대표 이미지 URL
+              <input id="admin-room-asset-url-input" type="text" maxlength="2000" placeholder="/images/room-assets/sofa.png">
+            </label>
+            <label>
+              썸네일 URL
+              <input id="admin-room-thumb-url-input" type="text" maxlength="2000" placeholder="비우면 대표 이미지 사용">
+            </label>
+            <label>
+              남쪽(0도) 이미지
+              <input id="admin-room-sprite-0-input" type="text" maxlength="2000" placeholder="/images/room-assets/sofa-s.png">
+            </label>
+            <label>
+              동쪽(90도) 이미지
+              <input id="admin-room-sprite-90-input" type="text" maxlength="2000" placeholder="/images/room-assets/sofa-e.png">
+            </label>
+            <label>
+              북쪽(180도) 이미지
+              <input id="admin-room-sprite-180-input" type="text" maxlength="2000" placeholder="/images/room-assets/sofa-n.png">
+            </label>
+            <label>
+              서쪽(270도) 이미지
+              <input id="admin-room-sprite-270-input" type="text" maxlength="2000" placeholder="/images/room-assets/sofa-w.png">
+            </label>
+            <label>
               가로 칸
               <input id="admin-room-width-input" type="number" min="1" max="4" inputmode="numeric" value="1">
             </label>
@@ -1124,6 +1155,49 @@
               <input id="admin-room-height-input" type="number" min="1" max="120" inputmode="numeric" value="30">
             </label>
             <label>
+              이미지 가로(px)
+              <input id="admin-room-pixel-width-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+            </label>
+            <label>
+              이미지 세로(px)
+              <input id="admin-room-pixel-height-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+            </label>
+            <label>
+              앵커 X(px)
+              <input id="admin-room-anchor-x-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+            </label>
+            <label>
+              앵커 Y(px)
+              <input id="admin-room-anchor-y-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+            </label>
+            <label>
+              오프셋 X(px)
+              <input id="admin-room-offset-x-input" type="number" min="-500" max="500" inputmode="numeric" value="0">
+            </label>
+            <label>
+              오프셋 Y(px)
+              <input id="admin-room-offset-y-input" type="number" min="-500" max="500" inputmode="numeric" value="0">
+            </label>
+            <label>
+              겹침 보정
+              <input id="admin-room-z-index-offset-input" type="number" min="-100" max="100" inputmode="numeric" value="0">
+            </label>
+            <label>
+              벽 방향
+              <select id="admin-room-wall-input">
+                <option value="left">왼쪽 벽</option>
+                <option value="right">오른쪽 벽</option>
+              </select>
+            </label>
+            <label>
+              벽 가로
+              <input id="admin-room-wall-width-input" type="number" min="0" max="8" step="0.1" inputmode="decimal" value="0">
+            </label>
+            <label>
+              벽 세로
+              <input id="admin-room-wall-height-input" type="number" min="0" max="104" step="1" inputmode="numeric" value="0">
+            </label>
+            <label>
               가격
               <input id="admin-room-price-input" type="number" min="0" max="100000" inputmode="numeric" value="0">
             </label>
@@ -1134,6 +1208,10 @@
             <label class="admin-checkbox-label">
               <input id="admin-room-flat-input" type="checkbox">
               바닥 장식
+            </label>
+            <label class="admin-checkbox-label">
+              <input id="admin-room-surface-wall-input" type="checkbox">
+              벽에 부착
             </label>
             <label class="admin-checkbox-label">
               <input id="admin-room-free-input" type="checkbox">

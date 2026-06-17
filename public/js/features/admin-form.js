@@ -225,13 +225,31 @@
     document.getElementById('admin-room-item-id-input').value = '';
     document.getElementById('admin-room-name-input').value = '';
     document.getElementById('admin-room-cat-input').value = 'furniture';
+    document.getElementById('admin-room-render-type-input').value = 'draw';
     document.getElementById('admin-room-draw-key-input').value = 'bed';
+    document.getElementById('admin-room-asset-url-input').value = '';
+    document.getElementById('admin-room-thumb-url-input').value = '';
+    document.getElementById('admin-room-sprite-0-input').value = '';
+    document.getElementById('admin-room-sprite-90-input').value = '';
+    document.getElementById('admin-room-sprite-180-input').value = '';
+    document.getElementById('admin-room-sprite-270-input').value = '';
     document.getElementById('admin-room-width-input').value = '1';
     document.getElementById('admin-room-depth-input').value = '1';
     document.getElementById('admin-room-height-input').value = '30';
+    document.getElementById('admin-room-pixel-width-input').value = '0';
+    document.getElementById('admin-room-pixel-height-input').value = '0';
+    document.getElementById('admin-room-anchor-x-input').value = '0';
+    document.getElementById('admin-room-anchor-y-input').value = '0';
+    document.getElementById('admin-room-offset-x-input').value = '0';
+    document.getElementById('admin-room-offset-y-input').value = '0';
+    document.getElementById('admin-room-z-index-offset-input').value = '0';
+    document.getElementById('admin-room-wall-input').value = 'left';
+    document.getElementById('admin-room-wall-width-input').value = '0';
+    document.getElementById('admin-room-wall-height-input').value = '0';
     document.getElementById('admin-room-price-input').value = '0';
     document.getElementById('admin-room-sort-input').value = '100';
     document.getElementById('admin-room-flat-input').checked = false;
+    document.getElementById('admin-room-surface-wall-input').checked = false;
     document.getElementById('admin-room-free-input').checked = false;
     document.getElementById('admin-room-enabled-input').checked = true;
     deps.setAdminRoomCatalogStatus?.('');
@@ -241,13 +259,31 @@
     document.getElementById('admin-room-item-id-input').value = item.itemId || item.assetId || '';
     document.getElementById('admin-room-name-input').value = item.name || '';
     document.getElementById('admin-room-cat-input').value = item.cat || 'furniture';
+    document.getElementById('admin-room-render-type-input').value = item.renderType || 'draw';
     document.getElementById('admin-room-draw-key-input').value = item.drawKey || 'bed';
+    document.getElementById('admin-room-asset-url-input').value = item.assetUrl || '';
+    document.getElementById('admin-room-thumb-url-input').value = item.thumbUrl || '';
+    document.getElementById('admin-room-sprite-0-input').value = item.rotationSprites?.['0'] || '';
+    document.getElementById('admin-room-sprite-90-input').value = item.rotationSprites?.['90'] || '';
+    document.getElementById('admin-room-sprite-180-input').value = item.rotationSprites?.['180'] || '';
+    document.getElementById('admin-room-sprite-270-input').value = item.rotationSprites?.['270'] || '';
     document.getElementById('admin-room-width-input').value = String(item.w || 1);
     document.getElementById('admin-room-depth-input').value = String(item.d || 1);
     document.getElementById('admin-room-height-input').value = String(item.h || 30);
+    document.getElementById('admin-room-pixel-width-input').value = String(item.pixelWidth || 0);
+    document.getElementById('admin-room-pixel-height-input').value = String(item.pixelHeight || 0);
+    document.getElementById('admin-room-anchor-x-input').value = String(item.anchorX || 0);
+    document.getElementById('admin-room-anchor-y-input').value = String(item.anchorY || 0);
+    document.getElementById('admin-room-offset-x-input').value = String(item.offsetX || 0);
+    document.getElementById('admin-room-offset-y-input').value = String(item.offsetY || 0);
+    document.getElementById('admin-room-z-index-offset-input').value = String(item.zIndexOffset || 0);
+    document.getElementById('admin-room-wall-input').value = item.wall || 'left';
+    document.getElementById('admin-room-wall-width-input').value = String(item.ww || 0);
+    document.getElementById('admin-room-wall-height-input').value = String(item.wh || 0);
     document.getElementById('admin-room-price-input').value = String(item.price || 0);
     document.getElementById('admin-room-sort-input').value = String(item.sortOrder || 100);
     document.getElementById('admin-room-flat-input').checked = item.flat === true;
+    document.getElementById('admin-room-surface-wall-input').checked = item.surface === 'wall';
     document.getElementById('admin-room-free-input').checked = item.free === true;
     document.getElementById('admin-room-enabled-input').checked = item.enabled !== false;
   }
@@ -257,10 +293,30 @@
       itemId: String(document.getElementById('admin-room-item-id-input')?.value || '').trim(),
       name: String(document.getElementById('admin-room-name-input')?.value || '').trim(),
       cat: document.getElementById('admin-room-cat-input')?.value || 'furniture',
+      renderType: document.getElementById('admin-room-render-type-input')?.value || 'draw',
       drawKey: document.getElementById('admin-room-draw-key-input')?.value || 'bed',
+      assetUrl: String(document.getElementById('admin-room-asset-url-input')?.value || '').trim(),
+      thumbUrl: String(document.getElementById('admin-room-thumb-url-input')?.value || '').trim(),
+      rotationSprites: {
+        0: String(document.getElementById('admin-room-sprite-0-input')?.value || '').trim(),
+        90: String(document.getElementById('admin-room-sprite-90-input')?.value || '').trim(),
+        180: String(document.getElementById('admin-room-sprite-180-input')?.value || '').trim(),
+        270: String(document.getElementById('admin-room-sprite-270-input')?.value || '').trim()
+      },
       w: Number(document.getElementById('admin-room-width-input')?.value || 1),
       d: Number(document.getElementById('admin-room-depth-input')?.value || 1),
       h: Number(document.getElementById('admin-room-height-input')?.value || 30),
+      pixelWidth: Number(document.getElementById('admin-room-pixel-width-input')?.value || 0),
+      pixelHeight: Number(document.getElementById('admin-room-pixel-height-input')?.value || 0),
+      anchorX: Number(document.getElementById('admin-room-anchor-x-input')?.value || 0),
+      anchorY: Number(document.getElementById('admin-room-anchor-y-input')?.value || 0),
+      offsetX: Number(document.getElementById('admin-room-offset-x-input')?.value || 0),
+      offsetY: Number(document.getElementById('admin-room-offset-y-input')?.value || 0),
+      zIndexOffset: Number(document.getElementById('admin-room-z-index-offset-input')?.value || 0),
+      surface: document.getElementById('admin-room-surface-wall-input')?.checked === true ? 'wall' : '',
+      wall: document.getElementById('admin-room-wall-input')?.value || 'left',
+      ww: Number(document.getElementById('admin-room-wall-width-input')?.value || 0),
+      wh: Number(document.getElementById('admin-room-wall-height-input')?.value || 0),
       price: Number(document.getElementById('admin-room-price-input')?.value || 0),
       sortOrder: Number(document.getElementById('admin-room-sort-input')?.value || 100),
       flat: document.getElementById('admin-room-flat-input')?.checked === true,

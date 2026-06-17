@@ -111,10 +111,13 @@
 }
 #room-view .rd-card:hover{transform:translateY(-2px);}
 #room-view .rd-card.on{outline:3px solid var(--rd-accent); outline-offset:-1px; background:#fff3ee;}
-#room-view .rd-card svg{width:100%; height:70px; display:block;}
+#room-view .rd-card svg,
+#room-view .rd-card .rd-thumb-img{width:100%; height:70px; display:block;}
+#room-view .rd-card .rd-thumb-img{object-fit:contain;}
 #room-view .rd-card .nm{font-size:12.5px; font-weight:800; margin-top:2px;}
 #room-view .rd-card .pr{font-size:11px; font-weight:800; color:#b8860b; margin-top:1px;}
-#room-view .rd-card.locked svg{filter:grayscale(.85) opacity(.55);}
+#room-view .rd-card.locked svg,
+#room-view .rd-card.locked .rd-thumb-img{filter:grayscale(.85) opacity(.55);}
 #room-view .rd-card.locked::after{content:"🔒"; position:absolute; top:6px; right:8px; font-size:15px;}
 
 #room-view .rd-style{padding:12px; overflow-y:auto;}
