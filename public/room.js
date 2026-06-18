@@ -585,14 +585,14 @@ window.RoomDecor = (function () {
   }
 
   function renderWallBaseboards(size) {
-    const leftTop = points([iso(0, 0, 10), iso(0, size.d, 10), iso(0, size.d, 2), iso(0, 0, 2)]);
-    const rightTop = points([iso(0, 0, 10), iso(size.w, 0, 10), iso(size.w, 0, 2), iso(0, 0, 2)]);
-    const leftShadow = points([iso(0, 0, 2), iso(0, size.d, 2), iso(.22, size.d, 0), iso(.22, 0, 0)]);
-    const rightShadow = points([iso(0, 0, 2), iso(size.w, 0, 2), iso(size.w, .22, 0), iso(0, .22, 0)]);
-    return `<polygon points="${leftShadow}" fill="#171225" opacity=".62" style="pointer-events:none"/>`
-      + `<polygon points="${rightShadow}" fill="#171225" opacity=".52" style="pointer-events:none"/>`
-      + `<polygon points="${leftTop}" fill="#493743" opacity=".92" style="pointer-events:none"/>`
-      + `<polygon points="${rightTop}" fill="#5a4048" opacity=".9" style="pointer-events:none"/>`;
+    const leftBand = points([iso(0, 0, 8), iso(0, size.d, 8), iso(0, size.d, 0), iso(0, 0, 0)]);
+    const rightBand = points([iso(0, 0, 8), iso(size.w, 0, 8), iso(size.w, 0, 0), iso(0, 0, 0)]);
+    const leftShadow = points([iso(0, 0, 0), iso(0, size.d, 0), iso(.06, size.d, 0), iso(.06, 0, 0)]);
+    const rightShadow = points([iso(0, 0, 0), iso(size.w, 0, 0), iso(size.w, .06, 0), iso(0, .06, 0)]);
+    return `<polygon points="${leftBand}" fill="#4c373c" opacity=".7" style="pointer-events:none"/>`
+      + `<polygon points="${rightBand}" fill="#5b3f43" opacity=".68" style="pointer-events:none"/>`
+      + `<polygon points="${leftShadow}" fill="#171225" opacity=".28" style="pointer-events:none"/>`
+      + `<polygon points="${rightShadow}" fill="#171225" opacity=".24" style="pointer-events:none"/>`;
   }
 
   function renderFloorObject(item) {
