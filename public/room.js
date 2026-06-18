@@ -92,6 +92,44 @@ window.RoomDecor = (function () {
     }
   };
 
+  const ROOM_THEMES = {
+    classic: {
+      id: 'classic',
+      name: '클래식 룸',
+      desc: '기본 우드 바닥과 밝은 벽',
+      floor: 'woodbright',
+      wall: 'bone'
+    },
+    studio: {
+      id: 'studio',
+      name: '스튜디오',
+      desc: '밝은 목재 바닥과 하늘색 벽',
+      floor: 'woodlight',
+      wall: 'sky'
+    },
+    office: {
+      id: 'office',
+      name: '오피스',
+      desc: '차분한 업무방 분위기',
+      floor: 'woodbright',
+      wall: 'brick'
+    },
+    japan: {
+      id: 'japan',
+      name: '재패니즈',
+      desc: '차분한 일본풍 방',
+      floor: 'japan',
+      wall: 'japan'
+    },
+    bath: {
+      id: 'bath',
+      name: '욕실',
+      desc: '욕실 타일 테마',
+      floor: 'bath',
+      wall: 'bath'
+    }
+  };
+
   const ROOM_LAYOUTS = {
     cozy: { id: 'cozy', name: '기본방', desc: '처음 내 집', w: 8, d: 8, price: 0 },
     wide: { id: 'wide', name: '넓은 방', desc: '가로 공간 확장', w: 10, d: 8, price: 120 },
@@ -255,6 +293,13 @@ window.RoomDecor = (function () {
 
   function normalizeWall(value) {
     return WALL_STYLES[value] ? value : DEFAULT_ROOM.wall;
+  }
+
+  function getActiveThemeId() {
+    const floor = normalizeFloor(room?.floor);
+    const wall = normalizeWall(room?.wall);
+    const matched = Object.values(ROOM_THEMES).find(theme => theme.floor === floor && theme.wall === wall);
+    return matched ? matched.id : '';
   }
 
   function normalizeLayout(value) {
@@ -570,6 +615,17 @@ window.RoomDecor = (function () {
       + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${tilePoly}" fill="${hoverActive ? '#ffd23f' : '#fff'}" fill-opacity="${hoverActive ? '.28' : '0'}" stroke="none"/>`;
   }
 
+  function renderFloorLayer(size) {
+    let html = '';
+    for (let gy = 0; gy < size.d; gy += 1) {
+      for (let gx = 0; gx < size.w; gx += 1) {
+        const active = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
+        html += renderFloorTile(gx, gy, active);
+      }
+    }
+    return html;
+  }
+
   function renderWalls(size) {
     const style = WALL_STYLES[normalizeWall(room.wall)];
     let html = '';
@@ -635,38 +691,34 @@ window.RoomDecor = (function () {
     return `<polygon class="rd-wall-tile" data-wall="${wall}" data-wx="${u}" data-wz="${z}" points="${points([a, b, c, d])}" fill="${active ? '#ffd23f' : '#fff'}" fill-opacity="${active ? '.3' : '0'}" stroke="none"/>`;
   }
 
+  function renderWallSlots() {
+    const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
+    if (!ghostType || !isWallItem(ghostType)) return '';
+    return wallSlots().map(slot => {
+      const active = hover && hover.surface === 'wall' && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
+      return wallSlotMarkup(slot, active);
+    }).join('');
+  }
+
   function render() {
     if (!$svg || !room) return;
     const size = getRoomSize();
-    const viewX = -size.d * HALF_W - 110;
-    const viewY = -WALL_H - 80;
-    const viewW = (size.w + size.d) * HALF_W + 220;
-    const viewH = (size.w + size.d) * HALF_H + WALL_H + 160;
+    const viewX = -size.d * HALF_W - 76;
+    const viewY = -WALL_H - 54;
+    const viewW = (size.w + size.d) * HALF_W + 152;
+    const viewH = (size.w + size.d) * HALF_H + WALL_H + 118;
     $svg.setAttribute('viewBox', `${viewX} ${viewY} ${viewW} ${viewH}`);
 
-    let html = '';
+    let html = renderFloorLayer(size);
     html += renderWalls(size);
 
     const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
-    const wallMode = ghostType && isWallItem(ghostType);
-    if (wallMode) {
-      for (const slot of wallSlots()) {
-        const active = hover && hover.surface === 'wall' && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
-        html += wallSlotMarkup(slot, active);
-      }
-    }
+    html += renderWallSlots();
 
     const wallItems = room.placed.filter(item => catalog[item.type] && isWallItem(item.type));
     for (const item of wallItems) {
       if (item.id === movingId && hover) continue;
       html += `<g class="rd-obj${item.id === selectedId ? ' sel' : ''}" data-id="${item.id}">${objectMarkup(item)}</g>`;
-    }
-
-    for (let gy = 0; gy < size.d; gy += 1) {
-      for (let gx = 0; gx < size.w; gx += 1) {
-        const active = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
-        html += renderFloorTile(gx, gy, active);
-      }
     }
 
     const floorItems = room.placed
@@ -726,6 +778,13 @@ window.RoomDecor = (function () {
           `<label class="rd-range-label">밝기 <strong>${normalizeLightLevel(room.lightLevel)}%</strong><input data-light-level type="range" min="20" max="100" step="10" value="${normalizeLightLevel(room.lightLevel)}"${room.lightsOn === false ? ' disabled' : ''}></label>` +
         `</div>` +
         `<button class="rd-showroom-button" data-native-showroom type="button">Interiors 예시방 배치</button>` +
+        `<h4>방 테마</h4><div class="rd-theme-grid">${Object.values(ROOM_THEMES).map(theme => {
+          const active = getActiveThemeId() === theme.id;
+          return `<button class="rd-theme-card${active ? ' on' : ''}" data-room-theme="${escAttr(theme.id)}" type="button">
+            <span class="rd-theme-preview"><img src="${escAttr(FLOOR_STYLES[theme.floor].asset)}" alt=""><img src="${escAttr(WALL_STYLES[theme.wall].right)}" alt=""></span>
+            <span><strong>${escAttr(theme.name)}</strong><small>${escAttr(theme.desc)}</small></span>
+          </button>`;
+        }).join('')}</div>` +
         `<h4>집 크기</h4><div class="rd-layout-grid">${Object.values(ROOM_LAYOUTS).map(layout => {
           const unlocked = isLayoutUnlocked(layout.id);
           const active = normalizeLayout(room.layout) === layout.id;
@@ -865,6 +924,19 @@ window.RoomDecor = (function () {
       const showroom = event.target.closest('[data-native-showroom]');
       if (showroom) {
         applyShowroom();
+        return;
+      }
+      const theme = event.target.closest('[data-room-theme]');
+      if (theme) {
+        const nextTheme = ROOM_THEMES[theme.dataset.roomTheme];
+        if (nextTheme) {
+          room.floor = normalizeFloor(nextTheme.floor);
+          room.wall = normalizeWall(nextTheme.wall);
+          renderSidebar();
+          render();
+          scheduleSave();
+          showToast(`${nextTheme.name} 테마로 변경했어요`);
+        }
         return;
       }
       const layout = event.target.closest('[data-layout]');
