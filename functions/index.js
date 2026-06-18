@@ -3089,6 +3089,18 @@ function normalizeRoomRotationSprites(value = {}) {
   }, {});
 }
 
+function normalizeRoomPlacementOffsets(value = {}) {
+  const source = value && typeof value === "object" ? value : {};
+  return ROOM_CATALOG_ROTATION_KEYS.reduce((next, key) => {
+    const raw = source[key] && typeof source[key] === "object" ? source[key] : {};
+    next[key] = {
+      x: Math.max(-500, Math.min(500, Math.round(Number(raw.x) || 0))),
+      y: Math.max(-500, Math.min(500, Math.round(Number(raw.y) || 0)))
+    };
+    return next;
+  }, {});
+}
+
 function hasRoomRotationSprite(rotationSprites = {}) {
   return ROOM_CATALOG_ROTATION_KEYS.some(key => !!rotationSprites[key]);
 }
@@ -3117,6 +3129,7 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
   const assetUrl = normalizeRoomAssetUrl(payload.assetUrl);
   const thumbUrl = normalizeRoomAssetUrl(payload.thumbUrl);
   const rotationSprites = normalizeRoomRotationSprites(payload.rotationSprites);
+  const placementOffsets = normalizeRoomPlacementOffsets(payload.placementOffsets);
   if (renderType === "image" && !assetUrl && !hasRoomRotationSprite(rotationSprites)) {
     throw new HttpsError("invalid-argument", "Room catalog image asset URL is required.");
   }
@@ -3150,6 +3163,7 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
     assetUrl,
     thumbUrl,
     rotationSprites,
+    placementOffsets,
     w,
     d,
     h,
@@ -3186,6 +3200,7 @@ function publicRoomCatalogItem(assetDoc, shopDoc = null) {
     assetUrl: String(asset.assetUrl || ""),
     thumbUrl: String(asset.thumbUrl || ""),
     rotationSprites: normalizeRoomRotationSprites(asset.rotationSprites),
+    placementOffsets: normalizeRoomPlacementOffsets(asset.placementOffsets),
     w: Number(asset.w || 1),
     d: Number(asset.d || 1),
     h: Number(asset.h || 30),
@@ -3256,6 +3271,7 @@ exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
       assetUrl: item.assetUrl,
       thumbUrl: item.thumbUrl,
       rotationSprites: item.rotationSprites,
+      placementOffsets: item.placementOffsets,
       pixelWidth: item.pixelWidth,
       pixelHeight: item.pixelHeight,
       anchorX: item.anchorX,

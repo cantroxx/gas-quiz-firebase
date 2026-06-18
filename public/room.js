@@ -67,6 +67,17 @@ window.RoomDecor = (function () {
       return next;
     }, {});
   }
+  function normalizePlacementOffsets(value = {}) {
+    const source = value && typeof value === 'object' ? value : {};
+    return ROTATION_KEYS.reduce((next, key) => {
+      const raw = source[key] && typeof source[key] === 'object' ? source[key] : {};
+      next[key] = {
+        x: Number(raw.x || 0) || 0,
+        y: Number(raw.y || 0) || 0
+      };
+      return next;
+    }, {});
+  }
   function hasRotationSprites(it = {}) {
     const sprites = normalizeRotationSprites(it.rotationSprites);
     return ROTATION_KEYS.some(key => !!sprites[key]);
@@ -75,6 +86,10 @@ window.RoomDecor = (function () {
     const sprites = normalizeRotationSprites(it.rotationSprites);
     const rotation = String(getRotation(rot));
     return sprites[rotation] || sprites['0'] || String(it.assetUrl || '').trim();
+  }
+  function placementOffsetForRotation(it = {}, rot = 0) {
+    const offsets = normalizePlacementOffsets(it.placementOffsets);
+    return offsets[String(getRotation(rot))] || offsets['0'] || { x: 0, y: 0 };
   }
   function imageSize(it = {}) {
     const fallbackW = Math.max(48, (Number(it.w || 1) + Number(it.d || 1)) * TW2 + 34);
@@ -473,6 +488,7 @@ window.RoomDecor = (function () {
   function normalizeCatalogItem(id, data = {}) {
     const renderType = normalizeRenderType(data.renderType);
     const rotationSprites = normalizeRotationSprites(data.rotationSprites);
+    const placementOffsets = normalizePlacementOffsets(data.placementOffsets);
     return {
       id,
       ...data,
@@ -481,6 +497,7 @@ window.RoomDecor = (function () {
       assetUrl: String(data.assetUrl || '').trim(),
       thumbUrl: String(data.thumbUrl || '').trim(),
       rotationSprites,
+      placementOffsets,
       pixelWidth: Number(data.pixelWidth || 0) || 0,
       pixelHeight: Number(data.pixelHeight || 0) || 0,
       anchorX: Number(data.anchorX || 0) || 0,
@@ -854,8 +871,9 @@ window.RoomDecor = (function () {
     const anchorY = Number(it.anchorY || 0) || height;
     const offsetX = Number(it.offsetX || 0) || 0;
     const offsetY = Number(it.offsetY || 0) || 0;
+    const placementOffset = placementOffsetForRotation(it, rot);
     const anchor = getFloorAnchor(item);
-    return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
+    return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX + placementOffset.x).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY + placementOffset.y).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
   }
 
   function renderWallImageItem(item, it, rot = 0) {

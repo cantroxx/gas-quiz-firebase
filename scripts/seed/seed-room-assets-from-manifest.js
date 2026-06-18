@@ -64,6 +64,18 @@ function normalizeRotationSprites(value = {}) {
   }, {});
 }
 
+function normalizePlacementOffsets(value = {}) {
+  const source = value && typeof value === 'object' ? value : {};
+  return ROTATION_KEYS.reduce((next, key) => {
+    const raw = source[key] && typeof source[key] === 'object' ? source[key] : {};
+    next[key] = {
+      x: Math.max(-500, Math.min(500, Math.round(Number(raw.x) || 0))),
+      y: Math.max(-500, Math.min(500, Math.round(Number(raw.y) || 0)))
+    };
+    return next;
+  }, {});
+}
+
 function hasRotationSprites(rotationSprites = {}) {
   return ROTATION_KEYS.some(key => !!rotationSprites[key]);
 }
@@ -81,6 +93,7 @@ function normalizeItem(raw = {}) {
   const assetUrl = normalizeUrl(raw.assetUrl);
   const thumbUrl = normalizeUrl(raw.thumbUrl);
   const rotationSprites = normalizeRotationSprites(raw.rotationSprites);
+  const placementOffsets = normalizePlacementOffsets(raw.placementOffsets);
   if (renderType === 'image' && !assetUrl && !hasRotationSprites(rotationSprites)) {
     throw new Error(`Image room item requires assetUrl or rotationSprites: ${id}`);
   }
@@ -98,6 +111,7 @@ function normalizeItem(raw = {}) {
     assetUrl,
     thumbUrl,
     rotationSprites,
+    placementOffsets,
     w: Math.max(1, Math.min(4, Math.round(Number(raw.w) || 1))),
     d: Math.max(1, Math.min(4, Math.round(Number(raw.d) || 1))),
     h: Math.max(1, Math.min(120, Math.round(Number(raw.h) || 30))),
@@ -140,6 +154,7 @@ function buildAssetPayload(item) {
     assetUrl: item.assetUrl,
     thumbUrl: item.thumbUrl,
     rotationSprites: item.rotationSprites,
+    placementOffsets: item.placementOffsets,
     w: item.w,
     d: item.d,
     h: item.h,
