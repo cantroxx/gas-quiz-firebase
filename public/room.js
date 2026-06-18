@@ -585,6 +585,28 @@ window.RoomDecor = (function () {
       ? { w: it.d, d: it.w }
       : { w: it.w, d: it.d };
   }
+  function getPlacementLayer(type, it = catalog[type] || {}) {
+    const id = String(type || it.id || '').toLowerCase();
+    const drawKey = String(it.drawKey || '').toLowerCase();
+    if (isWallItem(type)) return 'wall';
+    if (it.flat === true || drawKey === 'rug' || id.includes('rug') || id.includes('carpet')) return 'floor';
+    if (drawKey === 'chair' || id.includes('chair') || id.includes('seat')) return 'seat';
+    if (['desk', 'table', 'computer'].includes(drawKey) || id.includes('desk') || id.includes('table')) return 'surface';
+    return 'furniture';
+  }
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.d && a.y + a.d > b.y;
+  }
+  function canOverlapFloorItems(typeA, typeB) {
+    const layerA = getPlacementLayer(typeA);
+    const layerB = getPlacementLayer(typeB);
+    if (layerA === 'floor' || layerB === 'floor') return true;
+    if ((layerA === 'seat' && layerB === 'surface') || (layerA === 'surface' && layerB === 'seat')) return true;
+    return false;
+  }
+  function getLayerSortWeight(type) {
+    return { floor: 0, furniture: 1, surface: 2, seat: 3, wall: 4 }[getPlacementLayer(type)] ?? 1;
+  }
   function canRotateItem(type) {
     const it = catalog[type] || {};
     if (normalizeRenderType(it.renderType) === 'image') return hasRotationSprites(it);
@@ -682,13 +704,14 @@ window.RoomDecor = (function () {
     const fp = getFootprint(type, rot);
     const size = getRoomSize();
     if (gx < 0 || gy < 0 || gx + fp.w > size.w || gy + fp.d > size.d) return false;
+    const rect = { x: gx, y: gy, w: fp.w, d: fp.d };
     return !room.placed.some(p => {
       if (p.id === ignoreId) return false;
       const o = catalog[p.type];
       if (isWallItem(p.type)) return false;
-      if (!o || !!o.flat !== !!it.flat) return false;
+      if (!o || canOverlapFloorItems(type, p.type)) return false;
       const ofp = getFootprint(p.type, p.rot);
-      return gx < p.gx + ofp.w && gx + fp.w > p.gx && gy < p.gy + ofp.d && gy + fp.d > p.gy;
+      return rectsOverlap(rect, { x: Number(p.gx || 0), y: Number(p.gy || 0), w: ofp.w, d: ofp.d });
     });
   }
   function getWallSize(type, wall = 'left', layoutId = room?.layout) {
@@ -982,8 +1005,8 @@ window.RoomDecor = (function () {
       s += renderFloorTile(gx, gy, c, shade(F.b, .8), hov);
     }
     const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type) && canRenderInCurrentSkin(catalog[p.type])).sort((a, b) => {
-      const A = catalog[a.type], B = catalog[b.type];
-      if (!!A.flat !== !!B.flat) return A.flat ? -1 : 1;
+      const layerDiff = getLayerSortWeight(a.type) - getLayerSortWeight(b.type);
+      if (layerDiff) return layerDiff;
       return getFloorSortKey(a) - getFloorSortKey(b);
     });
     for (const p of sorted) {
@@ -1204,16 +1227,17 @@ window.RoomDecor = (function () {
       }
       if (obj && !placingType && !movingId) {
         selectedId = +obj.dataset.id;
-        movingId = selectedId;
-        const p = room.placed.find(p => p.id === movingId);
-        setTip(`「${catalog[p.type].name}」 새 위치를 누르세요`);
+        const p = room.placed.find(p => p.id === selectedId);
+        setTip(`「${catalog[p.type].name}」 선택됨 · 이동/회전/삭제를 선택하세요`);
         updateActionBar(); render(); return;
       }
       if (!obj) { clearModes(); }
     });
     $view.querySelector('#rd-ab-move').onclick = () => {
+      if (!selectedId) return;
       movingId = selectedId;
       const p = room.placed.find(p => p.id === movingId);
+      if (!p) return;
       setTip(`「${catalog[p.type].name}」 새 위치를 누르세요`);
       updateActionBar(); render();
     };
