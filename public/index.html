@@ -2684,6 +2684,7 @@
       return window.DJ48HomeRender.renderProfileCard('profile-card-root', profile, {
         normalizeDisplayImageUrl,
         applyProfileImageTransform,
+        canOpenRoomDecor: canShowRoomDecorEntryForCurrentUser,
         isAdminProfile: profileData => profileData?.role === 'admin' || String(profileData?.adminLevel || '').trim() !== ''
       });
     }
@@ -6522,6 +6523,12 @@
 
     function isRoomDecorEnabledForCurrentUser(flags = getActiveFeatureFlags()) {
       return flags.roomDecorEnabled !== false || isCurrentSuperAdminMember();
+    }
+
+    function canShowRoomDecorEntryForCurrentUser() {
+      const flags = window.DJ48AdminState.getFeatureFlagsCache();
+      if(!flags) return isCurrentSuperAdminMember();
+      return isRoomDecorEnabledForCurrentUser(flags);
     }
 
     async function showRoomView() {

@@ -240,6 +240,18 @@ function assertFeatureEnabled(flags, key, message) {
   }
 }
 
+function isSuperAdminMemberData(memberUserId, memberData = {}) {
+  const adminLevel = String(memberData.adminLevel || "").toLowerCase();
+  return memberUserId === SUPER_ADMIN_MEMBER_USER_ID
+    || adminLevel === "superadmin"
+    || adminLevel === "fulladmin";
+}
+
+function assertRoomDecorEnabledForMember(flags, memberUserId, memberData = {}) {
+  if (flags?.roomDecorEnabled !== false || isSuperAdminMemberData(memberUserId, memberData)) return;
+  throw new HttpsError("failed-precondition", "Room decor is disabled.");
+}
+
 function normalizeExternalQuizUrl(value) {
   const url = String(value || "").trim();
   if (!url) return "";
@@ -5141,7 +5153,7 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
 
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
-    await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+    const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
 
     const itemRef = db.collection("shopItems").doc(itemId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
@@ -5164,11 +5176,11 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
     const item = itemSnapshot.data() || {};
     const isRoomFurniturePurchase = String(item.assetId || itemId).startsWith("room_")
       || String(item.category || "").trim() === "방 가구";
-    assertFeatureEnabled(
-      flags,
-      isRoomFurniturePurchase ? "roomDecorEnabled" : "shopEnabled",
-      isRoomFurniturePurchase ? "Room decor is disabled." : "Shop is disabled."
-    );
+    if (isRoomFurniturePurchase) {
+      assertRoomDecorEnabledForMember(flags, memberUserId, memberData);
+    } else {
+      assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
+    }
     if (item.enabled !== true) {
       throw new HttpsError("failed-precondition", "Shop item is disabled.");
     }
@@ -5246,8 +5258,8 @@ exports.purchaseRoomLayout = onCall({ region: REGION }, async request => {
 
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
-    assertFeatureEnabled(flags, "roomDecorEnabled", "Room decor is disabled.");
-    await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+    const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+    assertRoomDecorEnabledForMember(flags, memberUserId, memberData);
 
     const roomRef = db.collection("userRoomSettings").doc(memberUserId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);

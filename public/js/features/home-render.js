@@ -228,7 +228,7 @@
     });
     detailRoot.className = 'profile-detail-root';
     detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
-    actionRow.appendChild(decorateButton);
+    if(deps.canOpenRoomDecor?.(profile) !== false) actionRow.appendChild(decorateButton);
     if(deps.isAdminProfile?.(profile)) actionRow.appendChild(adminButton);
     nameRow.append(name, actionRow);
     body.append(nameRow, school, meta, toggleGrid, detailRoot);
