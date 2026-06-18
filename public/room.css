@@ -43,6 +43,10 @@
   transform-origin:center center;
   transition:transform .16s ease;
 }
+#room-view #rd-svg image{
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+}
 #room-view #rd-svg .rd-tile,
 #room-view #rd-svg .rd-wall-tile{cursor:pointer;}
 #room-view #rd-svg .rd-obj{cursor:pointer;}

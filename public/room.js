@@ -1,7 +1,7 @@
 /* ============================================================
  * DJ48 Quiztown - Interiors native room decorator
- * - Renderer is built around Pixel Salvaje TinyHouse interiors assets.
- * - Legacy SVG/Kenney drawing paths are intentionally removed.
+ * - Visual room shell is built from Pixel Salvaje TinyHouse interiors PNGs.
+ * - SVG stays as the interaction layer for coordinates, hit targets, and guides.
  * - Data contracts remain: userRoomSettings.homeRoom, userInventory,
  *   userEconomy, assetCatalog, purchaseShopItem, purchaseRoomLayout.
  * ============================================================ */
@@ -567,7 +567,7 @@ window.RoomDecor = (function () {
     const [x, y] = iso(gx, gy);
     const tilePoly = points([iso(gx, gy), iso(gx + 1, gy), iso(gx + 1, gy + 1), iso(gx, gy + 1)]);
     return renderImage(x - 32, y - 16, asset, 64, 64, ' style="pointer-events:none"')
-      + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${tilePoly}" fill="${hoverActive ? '#ffd23f' : '#fff'}" fill-opacity="${hoverActive ? '.32' : '.01'}" stroke="#211820" stroke-opacity=".18" stroke-width="1"/>`;
+      + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${tilePoly}" fill="${hoverActive ? '#ffd23f' : '#fff'}" fill-opacity="${hoverActive ? '.28' : '0'}" stroke="none"/>`;
   }
 
   function renderWalls(size) {
@@ -582,17 +582,6 @@ window.RoomDecor = (function () {
       html += renderImage(x - 32, y + WALL_TILE_Y, style.right, 64, 64, ' style="pointer-events:none"');
     }
     return html;
-  }
-
-  function renderWallBaseboards(size) {
-    const leftBand = points([iso(0, 0, 8), iso(0, size.d, 8), iso(0, size.d, 0), iso(0, 0, 0)]);
-    const rightBand = points([iso(0, 0, 8), iso(size.w, 0, 8), iso(size.w, 0, 0), iso(0, 0, 0)]);
-    const leftShadow = points([iso(0, 0, 0), iso(0, size.d, 0), iso(.06, size.d, 0), iso(.06, 0, 0)]);
-    const rightShadow = points([iso(0, 0, 0), iso(size.w, 0, 0), iso(size.w, .06, 0), iso(0, .06, 0)]);
-    return `<polygon points="${leftBand}" fill="#4c373c" opacity=".7" style="pointer-events:none"/>`
-      + `<polygon points="${rightBand}" fill="#5b3f43" opacity=".68" style="pointer-events:none"/>`
-      + `<polygon points="${leftShadow}" fill="#171225" opacity=".28" style="pointer-events:none"/>`
-      + `<polygon points="${rightShadow}" fill="#171225" opacity=".24" style="pointer-events:none"/>`;
   }
 
   function renderFloorObject(item) {
@@ -643,7 +632,7 @@ window.RoomDecor = (function () {
     const b = wall === 'left' ? iso(0, u + 1, z + 22) : iso(u + 1, 0, z + 22);
     const c = wall === 'left' ? iso(0, u + 1, z) : iso(u + 1, 0, z);
     const d = wall === 'left' ? iso(0, u, z) : iso(u, 0, z);
-    return `<polygon class="rd-wall-tile" data-wall="${wall}" data-wx="${u}" data-wz="${z}" points="${points([a, b, c, d])}" fill="${active ? '#ffd23f' : '#fff'}" fill-opacity="${active ? '.34' : '.1'}" stroke="#211820" stroke-opacity=".12" stroke-width="1"/>`;
+    return `<polygon class="rd-wall-tile" data-wall="${wall}" data-wx="${u}" data-wz="${z}" points="${points([a, b, c, d])}" fill="${active ? '#ffd23f' : '#fff'}" fill-opacity="${active ? '.3' : '0'}" stroke="none"/>`;
   }
 
   function render() {
@@ -655,7 +644,7 @@ window.RoomDecor = (function () {
     const viewH = (size.w + size.d) * HALF_H + WALL_H + 160;
     $svg.setAttribute('viewBox', `${viewX} ${viewY} ${viewW} ${viewH}`);
 
-    let html = `<polygon points="${points([iso(-.4, -.4, -10), iso(size.w + .4, -.4, -10), iso(size.w + .4, size.d + .4, -10), iso(-.4, size.d + .4, -10)])}" fill="#0b0b20" opacity=".7"/>`;
+    let html = '';
     html += renderWalls(size);
 
     const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
@@ -679,7 +668,6 @@ window.RoomDecor = (function () {
         html += renderFloorTile(gx, gy, active);
       }
     }
-    html += renderWallBaseboards(size);
 
     const floorItems = room.placed
       .filter(item => catalog[item.type] && !isWallItem(item.type))
