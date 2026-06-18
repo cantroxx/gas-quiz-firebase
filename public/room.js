@@ -854,28 +854,18 @@ window.RoomDecor = (function () {
 
   function getWallPalette(baseWall) {
     if (getRoomSkin().id !== 'kenney') return baseWall;
-    return { l: '#f5efe2', r: '#fff8e8', name: 'Kenney' };
+    return { l: '#f8f2e3', r: '#fff8e8', name: 'Kenney' };
   }
 
-  function renderKenneyWallImage(href, x, y, width, height) {
-    return `<image href="${href}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet" style="pointer-events:none"/>`;
-  }
-
-  function renderKenneyWalls(Gx, Gy) {
-    const wallW = TW2 * 1.62;
-    const wallH = WALL_H + 4;
-    let s = '';
-    for (let y = 0; y < Gy; y += 1) {
-      const top = C(0, y, WALL_H);
-      s += renderKenneyWallImage('/images/room-assets/kenney/wall_SE.png', top[0] - wallW * .5, top[1], wallW, wallH);
-    }
-    for (let x = 0; x < Gx; x += 1) {
-      const top = C(x, 0, WALL_H);
-      s += renderKenneyWallImage('/images/room-assets/kenney/wall_NW.png', top[0] - wallW * .5, top[1], wallW, wallH);
-    }
-    const corner = C(0, 0, WALL_H);
-    s += renderKenneyWallImage('/images/room-assets/kenney/wallCorner_NW.png', corner[0] - wallW * .5, corner[1] - 2, wallW, wallH + 2);
-    return s;
+  function renderKenneyWallTrim(Gx, Gy) {
+    const topLeft = P([C(0, 0, WALL_H + 1), C(0, Gy, WALL_H + 1), C(0, Gy, WALL_H - 4), C(0, 0, WALL_H - 4)]);
+    const topRight = P([C(0, 0, WALL_H + 1), C(Gx, 0, WALL_H + 1), C(Gx, 0, WALL_H - 4), C(0, 0, WALL_H - 4)]);
+    const baseLeft = P([C(0, 0, 7), C(0, Gy, 7), C(0, Gy, 0), C(0, 0, 0)]);
+    const baseRight = P([C(0, 0, 7), C(Gx, 0, 7), C(Gx, 0, 0), C(0, 0, 0)]);
+    return `<polygon points="${topLeft}" fill="#ffc678" stroke="#2a201a" stroke-opacity=".12" stroke-width="1"/>`
+      + `<polygon points="${topRight}" fill="#ffd08a" stroke="#2a201a" stroke-opacity=".12" stroke-width="1"/>`
+      + `<polygon points="${baseLeft}" fill="#d8d1bf" stroke="#2a201a" stroke-opacity=".14" stroke-width="1"/>`
+      + `<polygon points="${baseRight}" fill="#ece4d1" stroke="#2a201a" stroke-opacity=".14" stroke-width="1"/>`;
   }
 
   function canRenderInCurrentSkin(it = {}) {
@@ -922,7 +912,7 @@ window.RoomDecor = (function () {
     let s = `<polygon points="${P([C(-.3, -.3, -6), C(Gx + .3, -.3, -6), C(Gx + .3, Gy + .3, -6), C(-.3, Gy + .3, -6)])}" fill="#000" fill-opacity="0.3"/>`;
     s += poly([C(0, 0, WALL_H), C(0, Gy, WALL_H), C(0, Gy, 0), C(0, 0, 0)], W.l);
     s += poly([C(0, 0, WALL_H), C(Gx, 0, WALL_H), C(Gx, 0, 0), C(0, 0, 0)], W.r);
-    if (getRoomSkin().id === 'kenney') s += renderKenneyWalls(Gx, Gy);
+    if (getRoomSkin().id === 'kenney') s += renderKenneyWallTrim(Gx, Gy);
     const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
     const wallActive = ghostType && isWallItem(ghostType);
     if (wallActive) {
