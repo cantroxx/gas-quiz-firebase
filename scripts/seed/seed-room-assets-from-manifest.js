@@ -76,6 +76,11 @@ function normalizePlacementOffsets(value = {}) {
   }, {});
 }
 
+function normalizeLayer(value = '') {
+  const layer = normalizeText(value);
+  return ['floor', 'seat', 'surface', 'furniture', 'wall'].includes(layer) ? layer : '';
+}
+
 function hasRotationSprites(rotationSprites = {}) {
   return ROTATION_KEYS.some(key => !!rotationSprites[key]);
 }
@@ -116,6 +121,7 @@ function normalizeItem(raw = {}) {
     d: Math.max(1, Math.min(4, Math.round(Number(raw.d) || 1))),
     h: Math.max(1, Math.min(120, Math.round(Number(raw.h) || 30))),
     surface: normalizeText(raw.surface) === 'wall' ? 'wall' : '',
+    layer: normalizeLayer(raw.layer),
     wall: normalizeText(raw.wall) === 'right' ? 'right' : 'left',
     ww: Math.max(0, Math.min(8, Number(raw.ww || 0))),
     wh: Math.max(0, Math.min(104, Number(raw.wh || 0))),
@@ -159,12 +165,14 @@ function buildAssetPayload(item) {
     d: item.d,
     h: item.h,
     surface: item.surface,
+    layer: item.layer,
     wall: item.surface === 'wall' ? item.wall : '',
     ww: item.surface === 'wall' ? item.ww : 0,
     wh: item.surface === 'wall' ? item.wh : 0,
     flat: item.flat,
     free: item.free,
     price: item.price,
+    enabled: item.enabled,
     sortOrder: item.sortOrder,
     pixelWidth: item.pixelWidth,
     pixelHeight: item.pixelHeight,

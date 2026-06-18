@@ -409,20 +409,36 @@ window.RoomDecor = (function () {
   ];
   const FLOORS = {
     wood:  { a: '#caa06b', b: '#bb9059', name: '원목' },
+    bone:  { a: '#f2ead8', b: '#e4d9c1', name: '본 타일' },
+    sky:   { a: '#cfe7ef', b: '#b9d5df', name: '스카이 타일' },
     mint:  { a: '#bfe6c8', b: '#a8d9b4', name: '민트' },
     lav:   { a: '#d6c8ee', b: '#c5b3e4', name: '라벤더' },
     check: { a: '#f2e3c9', b: '#86c9c2', name: '체크' },
   };
   const WALLS = {
     cream: { l: '#e6d2ab', r: '#f2e2c4', name: '크림' },
+    bone:  { l: '#d6d4c2', r: '#ebe5cf', name: '본 벽지' },
+    sky:   { l: '#bdd7df', r: '#d8edf3', name: '스카이 벽지' },
+    woodBright: { l: '#d6b07c', r: '#ebc58f', name: '우드 벽지' },
     blue:  { l: '#b9d4e8', r: '#cfe3f2', name: '하늘' },
     pink:  { l: '#ecc3d2', r: '#f7d8e3', name: '분홍' },
     green: { l: '#bdd9b4', r: '#d2e8ca', name: '연두' },
   };
   const ROOM_SKINS = {
-    legacy: { id: 'legacy', name: '기존 방', desc: '현재 SVG 방' },
-    kenney: { id: 'kenney', name: 'Kenney 프로토타입', desc: '외부 에셋 기준 방' },
+    legacy: { id: 'legacy', name: '기존 방', desc: '현재 SVG 방', visible: false },
+    kenney: { id: 'kenney', name: 'Kenney 프로토타입', desc: '외부 에셋 기준 방', visible: false },
     interiors: { id: 'interiors', name: 'Interiors 프로토타입', desc: '구매 에셋 타일셋 방' }
+  };
+  const INTERIORS_FLOOR_ASSETS = {
+    wood: '/images/room-assets/interiors/Floor_64_WoodBright.png',
+    bone: '/images/room-assets/interiors/Floor_64_Bone.png',
+    sky: '/images/room-assets/interiors/Floor_64_Sky.png'
+  };
+  const INTERIORS_WALL_PALETTES = {
+    cream: { l: '#d6d4c2', r: '#ebe5cf', name: 'Interiors' },
+    bone: { l: '#d6d4c2', r: '#ebe5cf', name: '본 벽지' },
+    sky: { l: '#bdd7df', r: '#d8edf3', name: '스카이 벽지' },
+    woodBright: { l: '#d6b07c', r: '#ebc58f', name: '우드 벽지' }
   };
   const KENNEY_SHOWROOM_ITEMS = [
     { type: 'room_kenney_lounge_sofa', gx: 1, gy: 1, rot: 0 },
@@ -444,7 +460,7 @@ window.RoomDecor = (function () {
     { type: 'room_interiors_lamp', gx: 7, gy: 2, rot: 0 }
   ];
   const DEFAULT_ROOM = {
-    floor: 'wood', wall: 'cream', skin: 'legacy', layout: 'cozy',
+    floor: 'wood', wall: 'cream', skin: 'interiors', layout: 'cozy',
     unlockedLayouts: ['cozy'],
     lightsOn: true, lightLevel: 100,
     placed: [],
@@ -508,6 +524,7 @@ window.RoomDecor = (function () {
     };
   }
   function canRenderCatalogItem(it = {}) {
+    if (it.enabled === false) return false;
     if (normalizeRenderType(it.renderType) === 'image') return !!(it.assetUrl || hasRotationSprites(it));
     return !!(it.drawKey && DRAW[it.drawKey]);
   }
@@ -531,7 +548,8 @@ window.RoomDecor = (function () {
     return ROOM_LAYOUTS[value] ? value : DEFAULT_ROOM.layout;
   }
   function normalizeSkinId(value) {
-    return ROOM_SKINS[value] ? value : DEFAULT_ROOM.skin;
+    const skin = ROOM_SKINS[value];
+    return skin && skin.visible !== false ? value : DEFAULT_ROOM.skin;
   }
   function normalizeUnlockedLayouts(value) {
     const unlocked = new Set(Array.isArray(value) ? value.filter(id => ROOM_LAYOUTS[id]) : []);
@@ -603,6 +621,7 @@ window.RoomDecor = (function () {
       : { w: it.w, d: it.d };
   }
   function getPlacementLayer(type, it = catalog[type] || {}) {
+    if (['floor', 'seat', 'surface', 'furniture', 'wall'].includes(it.layer)) return it.layer;
     const id = String(type || it.id || '').toLowerCase();
     const drawKey = String(it.drawKey || '').toLowerCase();
     if (isWallItem(type)) return 'wall';
@@ -904,7 +923,8 @@ window.RoomDecor = (function () {
     }
     if (skinId === 'interiors') {
       const [x, y] = C(gx, gy);
-      return `<image href="/images/room-assets/interiors/Floor_64_WoodBright.png" x="${(x - 32).toFixed(1)}" y="${(y - 16).toFixed(1)}" width="64" height="64" preserveAspectRatio="xMidYMin meet" style="pointer-events:none"/>`
+      const floorAsset = INTERIORS_FLOOR_ASSETS[room?.floor] || INTERIORS_FLOOR_ASSETS.wood;
+      return `<image href="${escAttr(floorAsset)}" x="${(x - 32).toFixed(1)}" y="${(y - 16).toFixed(1)}" width="64" height="64" preserveAspectRatio="xMidYMin meet" style="pointer-events:none"/>`
         + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${points}" fill="${isHover ? '#ffd23f' : '#ffffff'}" fill-opacity="${isHover ? '.28' : '.01'}" stroke="#31212b" stroke-opacity=".16" stroke-width="1"/>`;
     }
     const [x, y] = C(gx, gy);
@@ -916,7 +936,7 @@ window.RoomDecor = (function () {
 
   function getWallPalette(baseWall) {
     const skinId = getRoomSkin().id;
-    if (skinId === 'interiors') return { l: '#d6d4c2', r: '#ebe5cf', name: 'Interiors' };
+    if (skinId === 'interiors') return INTERIORS_WALL_PALETTES[room?.wall] || INTERIORS_WALL_PALETTES.cream;
     if (skinId !== 'kenney') return baseWall;
     return { l: '#f8f2e3', r: '#fff8e8', name: 'Kenney' };
   }
@@ -1081,7 +1101,7 @@ window.RoomDecor = (function () {
           `<button class="rd-light-toggle${room.lightsOn === false ? '' : ' on'}" data-light-toggle type="button">${room.lightsOn === false ? '불 켜기' : '불 끄기'}</button>` +
           `<label class="rd-range-label">밝기 <strong>${normalizeLightLevel(room.lightLevel)}%</strong><input data-light-level type="range" min="20" max="100" step="10" value="${normalizeLightLevel(room.lightLevel)}"${room.lightsOn === false ? ' disabled' : ''}></label>` +
         `</div>` +
-        `<h4>방 스킨</h4><div class="rd-skin-grid">${Object.values(ROOM_SKINS).map(skin => {
+        `<h4>방 스킨</h4><div class="rd-skin-grid">${Object.values(ROOM_SKINS).filter(skin => skin.visible !== false).map(skin => {
           const active = normalizeSkinId(room.skin) === skin.id;
           return `<button class="rd-skin-card${active ? ' on' : ''}" data-skin="${skin.id}" type="button">
             <strong>${skin.name}</strong><small>${skin.desc}</small>

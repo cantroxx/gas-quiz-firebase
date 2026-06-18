@@ -3069,6 +3069,7 @@ const ROOM_CATALOG_DRAW_KEYS = new Set([
 ]);
 const ROOM_CATALOG_RENDER_TYPES = new Set(["draw", "image"]);
 const ROOM_CATALOG_ROTATION_KEYS = ["0", "90", "180", "270"];
+const ROOM_CATALOG_LAYERS = new Set(["floor", "seat", "surface", "furniture", "wall"]);
 
 function normalizeRoomAssetUrl(value) {
   const url = String(value || "").trim();
@@ -3137,6 +3138,7 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
   const d = Math.max(1, Math.min(4, Math.round(Number(payload.d) || 1)));
   const h = Math.max(1, Math.min(120, Math.round(Number(payload.h) || 30)));
   const isWall = ["window", "frame", "clock", "mirror"].includes(drawKey) || String(payload.surface || "").trim() === "wall";
+  const layer = ROOM_CATALOG_LAYERS.has(String(payload.layer || "").trim()) ? String(payload.layer || "").trim() : "";
   const wall = String(payload.wall || (["frame", "mirror"].includes(drawKey) ? "right" : "left")).trim() === "right" ? "right" : "left";
   const defaultWallWidth = drawKey === "window" ? 2.6 : drawKey === "frame" ? 1.8 : drawKey === "clock" ? 1.2 : drawKey === "mirror" ? 1.4 : 0;
   const ww = Math.max(0, Math.min(8, Number(payload.ww || defaultWallWidth)));
@@ -3168,6 +3170,7 @@ function normalizeRoomCatalogItemPayload(payload = {}) {
     d,
     h,
     surface: isWall ? "wall" : "",
+    layer,
     wall: isWall ? wall : "",
     ww: isWall ? ww : 0,
     wh: isWall ? wh : 0,
@@ -3205,6 +3208,7 @@ function publicRoomCatalogItem(assetDoc, shopDoc = null) {
     d: Number(asset.d || 1),
     h: Number(asset.h || 30),
     surface: String(asset.surface || ""),
+    layer: String(asset.layer || ""),
     wall: String(asset.wall || ""),
     ww: Number(asset.ww || 0),
     wh: Number(asset.wh || 0),
@@ -3219,7 +3223,7 @@ function publicRoomCatalogItem(assetDoc, shopDoc = null) {
     free: asset.free === true,
     price: Number(asset.price ?? shop.price ?? 0) || 0,
     sortOrder: Number(asset.sortOrder || 100),
-    enabled: asset.free === true ? true : shop.enabled === true,
+    enabled: asset.enabled !== false && (asset.free === true || shop.enabled === true),
     hasShopItem: !!shopDoc?.exists,
     updatedAt: asset.updatedAt || shop.updatedAt || null
   };
@@ -3263,6 +3267,7 @@ exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
       d: item.d,
       h: item.h,
       surface: item.surface,
+      layer: item.layer,
       wall: item.wall,
       ww: item.ww,
       wh: item.wh,
@@ -3281,6 +3286,7 @@ exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
       zIndexOffset: item.zIndexOffset,
       free: item.free,
       price: item.price,
+      enabled: item.enabled,
       sortOrder: item.sortOrder,
       updatedAt: FieldValue.serverTimestamp(),
       updatedByAdminUserId: adminMember.memberUserId
