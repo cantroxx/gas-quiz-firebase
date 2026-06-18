@@ -408,6 +408,15 @@ window.RoomDecor = (function () {
     legacy: { id: 'legacy', name: '기존 방', desc: '현재 SVG 방' },
     kenney: { id: 'kenney', name: 'Kenney 프로토타입', desc: '외부 에셋 기준 방' }
   };
+  const KENNEY_SHOWROOM_ITEMS = [
+    { type: 'room_kenney_lounge_sofa', gx: 1, gy: 1, rot: 0 },
+    { type: 'room_kenney_single_bed', gx: 4, gy: 3, rot: 0 },
+    { type: 'room_kenney_rectangle_rug', gx: 4, gy: 5, rot: 0 },
+    { type: 'room_kenney_coffee_table', gx: 3, gy: 4, rot: 0 },
+    { type: 'room_kenney_rounded_chair', gx: 6, gy: 5, rot: 270 },
+    { type: 'room_kenney_square_floor_lamp', gx: 7, gy: 1, rot: 0 },
+    { type: 'room_kenney_small_plant', gx: 1, gy: 6, rot: 0 }
+  ];
   const DEFAULT_ROOM = {
     floor: 'wood', wall: 'cream', skin: 'legacy', layout: 'cozy',
     unlockedLayouts: ['cozy'],
@@ -798,6 +807,7 @@ window.RoomDecor = (function () {
   }
 
   function renderDrawItem(item, it, rot = 0) {
+    if (getRoomSkin().id === 'kenney') return '';
     if (!it.drawKey || !DRAW[it.drawKey]) return '';
     return DRAW[it.drawKey](item.gx || 0, item.gy || 0, canRotateItem(item.type) ? rot : 0, item);
   }
@@ -846,6 +856,50 @@ window.RoomDecor = (function () {
     if (getRoomSkin().id !== 'kenney') return baseWall;
     return { l: '#f5efe2', r: '#fff8e8', name: 'Kenney' };
   }
+
+  function renderKenneyWallImage(href, x, y, width, height) {
+    return `<image href="${href}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet" style="pointer-events:none"/>`;
+  }
+
+  function renderKenneyWalls(Gx, Gy) {
+    const wallW = TW2 * 1.62;
+    const wallH = WALL_H + 4;
+    let s = '';
+    for (let y = 0; y < Gy; y += 1) {
+      const top = C(0, y, WALL_H);
+      s += renderKenneyWallImage('/images/room-assets/kenney/wall_SE.png', top[0] - wallW * .5, top[1], wallW, wallH);
+    }
+    for (let x = 0; x < Gx; x += 1) {
+      const top = C(x, 0, WALL_H);
+      s += renderKenneyWallImage('/images/room-assets/kenney/wall_NW.png', top[0] - wallW * .5, top[1], wallW, wallH);
+    }
+    const corner = C(0, 0, WALL_H);
+    s += renderKenneyWallImage('/images/room-assets/kenney/wallCorner_NW.png', corner[0] - wallW * .5, corner[1] - 2, wallW, wallH + 2);
+    return s;
+  }
+
+  function canRenderInCurrentSkin(it = {}) {
+    if (getRoomSkin().id !== 'kenney') return true;
+    return normalizeRenderType(it.renderType) === 'image';
+  }
+
+  function applyKenneyShowroom() {
+    const next = [];
+    KENNEY_SHOWROOM_ITEMS.forEach(sample => {
+      const it = catalog[sample.type];
+      if (!it || !canRenderCatalogItem(it)) return;
+      if (!isOwned(sample.type)) return;
+      next.push({ id: nextId++, ...sample });
+    });
+    if (!next.length) {
+      showToast('보유한 Kenney 가구가 아직 없어요');
+      return;
+    }
+    room.placed = next;
+    room.skin = 'kenney';
+    renderSidebar(); render(); scheduleSave();
+    showToast('Kenney 샘플방을 배치했어요');
+  }
   function applyZoom() {
     if (!$svg) return;
     $svg.style.transform = `scale(${zoom.toFixed(2)})`;
@@ -868,6 +922,7 @@ window.RoomDecor = (function () {
     let s = `<polygon points="${P([C(-.3, -.3, -6), C(Gx + .3, -.3, -6), C(Gx + .3, Gy + .3, -6), C(-.3, Gy + .3, -6)])}" fill="#000" fill-opacity="0.3"/>`;
     s += poly([C(0, 0, WALL_H), C(0, Gy, WALL_H), C(0, Gy, 0), C(0, 0, 0)], W.l);
     s += poly([C(0, 0, WALL_H), C(Gx, 0, WALL_H), C(Gx, 0, 0), C(0, 0, 0)], W.r);
+    if (getRoomSkin().id === 'kenney') s += renderKenneyWalls(Gx, Gy);
     const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
     const wallActive = ghostType && isWallItem(ghostType);
     if (wallActive) {
@@ -879,7 +934,7 @@ window.RoomDecor = (function () {
           .replace('<polygon ', `<polygon class="rd-wall-tile" data-wall="${slot.wall}" data-wx="${slot.wx}" data-wz="${slot.wz}" `);
       }
     }
-    const wallItems = room.placed.filter(p => catalog[p.type] && isWallItem(p.type));
+    const wallItems = room.placed.filter(p => catalog[p.type] && isWallItem(p.type) && canRenderInCurrentSkin(catalog[p.type]));
     for (const p of wallItems) {
       if (p.id === movingId && hover) continue;
       s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
@@ -891,7 +946,7 @@ window.RoomDecor = (function () {
       const hov = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
       s += renderFloorTile(gx, gy, c, shade(F.b, .8), hov);
     }
-    const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type)).sort((a, b) => {
+    const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type) && canRenderInCurrentSkin(catalog[p.type])).sort((a, b) => {
       const A = catalog[a.type], B = catalog[b.type];
       if (!!A.flat !== !!B.flat) return A.flat ? -1 : 1;
       return getFloorSortKey(a) - getFloorSortKey(b);
@@ -956,6 +1011,7 @@ window.RoomDecor = (function () {
             <strong>${skin.name}</strong><small>${skin.desc}</small>
           </button>`;
         }).join('')}</div>` +
+        `${normalizeSkinId(room.skin) === 'kenney' ? '<button class="rd-showroom-button" data-kenney-showroom type="button">Kenney 샘플방 배치</button>' : ''}` +
         `<h4>집 크기</h4><div class="rd-layout-grid">${Object.values(ROOM_LAYOUTS).map(layout => {
           const unlocked = isLayoutUnlocked(layout.id);
           const active = normalizeLayoutId(room.layout) === layout.id;
@@ -973,6 +1029,7 @@ window.RoomDecor = (function () {
     $grid.style.display = 'grid'; $styleGrid.style.display = 'none';
     $grid.innerHTML = Object.values(catalog)
       .filter(it => it.cat === curTab)
+      .filter(it => canRenderInCurrentSkin(it))
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
       .map(it => {
         const locked = !isOwned(it.id);
@@ -1042,6 +1099,10 @@ window.RoomDecor = (function () {
         room.skin = normalizeSkinId(skinButton.dataset.skin);
         renderSidebar(); render(); scheduleSave();
         showToast(`${ROOM_SKINS[room.skin].name}으로 바꿨어요`);
+        return;
+      }
+      if (e.target.closest('[data-kenney-showroom]')) {
+        applyKenneyShowroom();
         return;
       }
       const f = e.target.dataset.floor, w = e.target.dataset.wall;
