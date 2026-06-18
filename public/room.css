@@ -142,6 +142,22 @@
 #room-view .rd-range-label input{
   grid-column:1 / -1; width:100%; accent-color:var(--rd-accent);
 }
+#room-view .rd-skin-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;
+}
+#room-view .rd-skin-card{
+  min-height:58px; padding:8px; border:2.5px solid var(--rd-ink); border-radius:12px;
+  background:#fff; color:var(--rd-ink); text-align:left; cursor:pointer;
+}
+#room-view .rd-skin-card.on{
+  background:#fff3ee; outline:3px solid var(--rd-accent); outline-offset:-2px;
+}
+#room-view .rd-skin-card strong,
+#room-view .rd-skin-card small{
+  display:block; line-height:1.25;
+}
+#room-view .rd-skin-card strong{font-size:12px; font-weight:900;}
+#room-view .rd-skin-card small{margin-top:3px; font-size:10.5px; font-weight:800; color:#725f4f;}
 #room-view .rd-layout-grid{
   display:grid; gap:8px; margin-bottom:12px;
 }

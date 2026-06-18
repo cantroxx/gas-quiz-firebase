@@ -404,8 +404,12 @@ window.RoomDecor = (function () {
     pink:  { l: '#ecc3d2', r: '#f7d8e3', name: '분홍' },
     green: { l: '#bdd9b4', r: '#d2e8ca', name: '연두' },
   };
+  const ROOM_SKINS = {
+    legacy: { id: 'legacy', name: '기존 방', desc: '현재 SVG 방' },
+    kenney: { id: 'kenney', name: 'Kenney 프로토타입', desc: '외부 에셋 기준 방' }
+  };
   const DEFAULT_ROOM = {
-    floor: 'wood', wall: 'cream', layout: 'cozy',
+    floor: 'wood', wall: 'cream', skin: 'legacy', layout: 'cozy',
     unlockedLayouts: ['cozy'],
     lightsOn: true, lightLevel: 100,
     placed: [],
@@ -489,6 +493,9 @@ window.RoomDecor = (function () {
   function normalizeLayoutId(value) {
     return ROOM_LAYOUTS[value] ? value : DEFAULT_ROOM.layout;
   }
+  function normalizeSkinId(value) {
+    return ROOM_SKINS[value] ? value : DEFAULT_ROOM.skin;
+  }
   function normalizeUnlockedLayouts(value) {
     const unlocked = new Set(Array.isArray(value) ? value.filter(id => ROOM_LAYOUTS[id]) : []);
     unlocked.add(DEFAULT_ROOM.layout);
@@ -498,6 +505,7 @@ window.RoomDecor = (function () {
     return {
       floor: data.floor || DEFAULT_ROOM.floor,
       wall: data.wall || DEFAULT_ROOM.wall,
+      skin: normalizeSkinId(data.skin),
       layout: normalizeLayoutId(data.layout),
       unlockedLayouts: normalizeUnlockedLayouts(data.unlockedLayouts),
       lightsOn: data.lightsOn !== false,
@@ -589,6 +597,7 @@ window.RoomDecor = (function () {
       [CONFIG.ROOM_FIELD]: {
         floor: room.floor,
         wall: room.wall,
+        skin: normalizeSkinId(room.skin),
         layout: normalizeLayoutId(room.layout),
         unlockedLayouts: normalizeUnlockedLayouts(room.unlockedLayouts),
         lightsOn: room.lightsOn !== false,
@@ -816,6 +825,27 @@ window.RoomDecor = (function () {
     const anchor = getWallAnchor(item);
     return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMid meet"/>`;
   }
+
+  function getRoomSkin() {
+    return ROOM_SKINS[normalizeSkinId(room?.skin)] || ROOM_SKINS.legacy;
+  }
+
+  function renderFloorTile(gx, gy, fill, stroke, isHover) {
+    const points = P([C(gx, gy), C(gx + 1, gy), C(gx + 1, gy + 1), C(gx, gy + 1)]);
+    if (getRoomSkin().id !== 'kenney') {
+      return `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${points}" fill="${fill}" stroke="${stroke}" stroke-width="1" ${isHover ? 'opacity="0.85"' : ''}/>`;
+    }
+    const [x, y] = C(gx, gy);
+    const tileW = TW2 * 2.08;
+    const tileH = TH2 * 4.48;
+    return `<image href="/images/room-assets/kenney/floorFull_SE.png" x="${(x - tileW / 2).toFixed(1)}" y="${(y - 1).toFixed(1)}" width="${tileW.toFixed(1)}" height="${tileH.toFixed(1)}" preserveAspectRatio="xMidYMin meet" style="pointer-events:none"/>`
+      + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${points}" fill="${isHover ? '#ffd23f' : '#ffffff'}" fill-opacity="${isHover ? '.28' : '.01'}" stroke="#35283f" stroke-opacity=".18" stroke-width="1"/>`;
+  }
+
+  function getWallPalette(baseWall) {
+    if (getRoomSkin().id !== 'kenney') return baseWall;
+    return { l: '#f5efe2', r: '#fff8e8', name: 'Kenney' };
+  }
   function applyZoom() {
     if (!$svg) return;
     $svg.style.transform = `scale(${zoom.toFixed(2)})`;
@@ -827,7 +857,7 @@ window.RoomDecor = (function () {
   }
   function render() {
     if (!$svg || !room) return;
-    const F = FLOORS[room.floor] || FLOORS.wood, W = WALLS[room.wall] || WALLS.cream;
+    const F = FLOORS[room.floor] || FLOORS.wood, W = getWallPalette(WALLS[room.wall] || WALLS.cream);
     const roomSize = getRoomSize();
     const Gx = roomSize.w, Gy = roomSize.d;
     const viewX = -Gy * TW2 - 90;
@@ -859,7 +889,7 @@ window.RoomDecor = (function () {
     for (let gy = 0; gy < Gy; gy++) for (let gx = 0; gx < Gx; gx++) {
       const c = (gx + gy) % 2 ? F.b : F.a;
       const hov = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
-      s += `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${P([C(gx, gy), C(gx + 1, gy), C(gx + 1, gy + 1), C(gx, gy + 1)])}" fill="${c}" stroke="${shade(F.b, .8)}" stroke-width="1" ${hov ? 'opacity="0.85"' : ''}/>`;
+      s += renderFloorTile(gx, gy, c, shade(F.b, .8), hov);
     }
     const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type)).sort((a, b) => {
       const A = catalog[a.type], B = catalog[b.type];
@@ -920,6 +950,12 @@ window.RoomDecor = (function () {
           `<button class="rd-light-toggle${room.lightsOn === false ? '' : ' on'}" data-light-toggle type="button">${room.lightsOn === false ? '불 켜기' : '불 끄기'}</button>` +
           `<label class="rd-range-label">밝기 <strong>${normalizeLightLevel(room.lightLevel)}%</strong><input data-light-level type="range" min="20" max="100" step="10" value="${normalizeLightLevel(room.lightLevel)}"${room.lightsOn === false ? ' disabled' : ''}></label>` +
         `</div>` +
+        `<h4>방 스킨</h4><div class="rd-skin-grid">${Object.values(ROOM_SKINS).map(skin => {
+          const active = normalizeSkinId(room.skin) === skin.id;
+          return `<button class="rd-skin-card${active ? ' on' : ''}" data-skin="${skin.id}" type="button">
+            <strong>${skin.name}</strong><small>${skin.desc}</small>
+          </button>`;
+        }).join('')}</div>` +
         `<h4>집 크기</h4><div class="rd-layout-grid">${Object.values(ROOM_LAYOUTS).map(layout => {
           const unlocked = isLayoutUnlocked(layout.id);
           const active = normalizeLayoutId(room.layout) === layout.id;
@@ -999,6 +1035,13 @@ window.RoomDecor = (function () {
       const layoutButton = e.target.closest('[data-layout]');
       if (layoutButton) {
         chooseLayout(layoutButton.dataset.layout);
+        return;
+      }
+      const skinButton = e.target.closest('[data-skin]');
+      if (skinButton) {
+        room.skin = normalizeSkinId(skinButton.dataset.skin);
+        renderSidebar(); render(); scheduleSave();
+        showToast(`${ROOM_SKINS[room.skin].name}으로 바꿨어요`);
         return;
       }
       const f = e.target.dataset.floor, w = e.target.dataset.wall;
