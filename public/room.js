@@ -29,6 +29,7 @@ window.RoomDecor = (function () {
   const HALF_W = TILE_W / 2;
   const HALF_H = TILE_H / 2;
   const WALL_H = 120;
+  const WALL_TILE_Y = -50;
   const ROTATIONS = ['0', '90', '180', '270'];
 
   const FLOOR_STYLES = {
@@ -574,17 +575,24 @@ window.RoomDecor = (function () {
     let html = '';
     for (let gy = size.d - 1; gy >= 0; gy -= 1) {
       const [x, y] = iso(0, gy);
-      html += renderImage(x - 32, y - 80, style.left, 64, 64, ' style="pointer-events:none"');
+      html += renderImage(x - 32, y + WALL_TILE_Y, style.left, 64, 64, ' style="pointer-events:none"');
     }
     for (let gx = size.w - 1; gx >= 0; gx -= 1) {
       const [x, y] = iso(gx, 0);
-      html += renderImage(x - 32, y - 80, style.right, 64, 64, ' style="pointer-events:none"');
+      html += renderImage(x - 32, y + WALL_TILE_Y, style.right, 64, 64, ' style="pointer-events:none"');
     }
-    const leftBase = points([iso(0, 0, 0), iso(0, size.d, 0), iso(0, size.d, 8), iso(0, 0, 8)]);
-    const rightBase = points([iso(0, 0, 0), iso(size.w, 0, 0), iso(size.w, 0, 8), iso(0, 0, 8)]);
-    html += `<polygon points="${leftBase}" fill="#2a2025" opacity=".35" style="pointer-events:none"/>`;
-    html += `<polygon points="${rightBase}" fill="#2a2025" opacity=".25" style="pointer-events:none"/>`;
     return html;
+  }
+
+  function renderWallBaseboards(size) {
+    const leftTop = points([iso(0, 0, 10), iso(0, size.d, 10), iso(0, size.d, 2), iso(0, 0, 2)]);
+    const rightTop = points([iso(0, 0, 10), iso(size.w, 0, 10), iso(size.w, 0, 2), iso(0, 0, 2)]);
+    const leftShadow = points([iso(0, 0, 2), iso(0, size.d, 2), iso(.22, size.d, 0), iso(.22, 0, 0)]);
+    const rightShadow = points([iso(0, 0, 2), iso(size.w, 0, 2), iso(size.w, .22, 0), iso(0, .22, 0)]);
+    return `<polygon points="${leftShadow}" fill="#171225" opacity=".62" style="pointer-events:none"/>`
+      + `<polygon points="${rightShadow}" fill="#171225" opacity=".52" style="pointer-events:none"/>`
+      + `<polygon points="${leftTop}" fill="#493743" opacity=".92" style="pointer-events:none"/>`
+      + `<polygon points="${rightTop}" fill="#5a4048" opacity=".9" style="pointer-events:none"/>`;
   }
 
   function renderFloorObject(item) {
@@ -671,6 +679,7 @@ window.RoomDecor = (function () {
         html += renderFloorTile(gx, gy, active);
       }
     }
+    html += renderWallBaseboards(size);
 
     const floorItems = room.placed
       .filter(item => catalog[item.type] && !isWallItem(item.type))
