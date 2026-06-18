@@ -605,7 +605,7 @@ window.RoomDecor = (function () {
     return false;
   }
   function getLayerSortWeight(type) {
-    return { floor: 0, furniture: 1, surface: 2, seat: 3, wall: 4 }[getPlacementLayer(type)] ?? 1;
+    return { floor: 0, furniture: 1, seat: 1.5, surface: 2, wall: 4 }[getPlacementLayer(type)] ?? 1;
   }
   function canRotateItem(type) {
     const it = catalog[type] || {};
@@ -1265,6 +1265,11 @@ window.RoomDecor = (function () {
     $view.querySelector('#rd-ab-cancel').onclick = () => { clearModes(); };
     $view.querySelector('#rd-zoom-out').onclick = () => setZoom(zoom - CONFIG.ZOOM_STEP);
     $view.querySelector('#rd-zoom-in').onclick = () => setZoom(zoom + CONFIG.ZOOM_STEP);
+    $svg.addEventListener('wheel', e => {
+      if (!opened) return;
+      e.preventDefault();
+      setZoom(zoom + (e.deltaY < 0 ? CONFIG.ZOOM_STEP : -CONFIG.ZOOM_STEP));
+    }, { passive: false });
     $view.querySelector('#rd-back').onclick = () => { close(); if (onBack) onBack(); };
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && opened) clearModes();
