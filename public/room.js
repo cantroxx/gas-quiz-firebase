@@ -1,75 +1,179 @@
 /* ============================================================
- * DJ48 퀴즈타운 — 내 방 꾸미기 모듈 (room.js)
- * - 가구/배경은 내장 SVG 또는 이미지/SVG 에셋으로 렌더링
- * - 데이터: userRoomSettings / userInventory / userEconomy / shopItems / assetCatalog
- * - 구매: callable purchaseShopItem (기존 트랜잭션 재사용)
- * 사용법:
- *   RoomDecor.init({ getUserId, onBack });   // 앱 부팅 시 1회
- *   RoomDecor.open();                        // "내 방 꾸미기" 버튼에서 호출
- *   RoomDecor.close();                       // room-view 이탈 시 호출
+ * DJ48 Quiztown - Interiors native room decorator
+ * - Renderer is built around Pixel Salvaje TinyHouse interiors assets.
+ * - Legacy SVG/Kenney drawing paths are intentionally removed.
+ * - Data contracts remain: userRoomSettings.homeRoom, userInventory,
+ *   userEconomy, assetCatalog, purchaseShopItem, purchaseRoomLayout.
  * ============================================================ */
 window.RoomDecor = (function () {
   'use strict';
 
-  /* ---------- 설정 (운영 코드 대조 완료: 2026-06-12) ---------- */
   const CONFIG = {
     REGION: 'asia-northeast3',
-    GRID: 8,
-    COL_ROOM: 'userRoomSettings',       // 기존 selected* 필드와 공존 — homeRoom 맵에 격리 저장
-    ROOM_FIELD: 'homeRoom',             // userRoomSettings/{uid}.homeRoom = {floor, wall, placed}
-    COL_INVENTORY: 'userInventory',     // userInventory/{memberUserId}/items/{itemId}
-    COL_ECONOMY: 'userEconomy',         // 코인 필드: djCoin (레거시 폴백: coin) — purchaseShopItem과 동일
-    COL_CATALOG: 'assetCatalog',        // 가구 메타 (없으면 내장 기본값 사용)
+    COL_ROOM: 'userRoomSettings',
+    ROOM_FIELD: 'homeRoom',
+    COL_INVENTORY: 'userInventory',
+    COL_ECONOMY: 'userEconomy',
+    COL_CATALOG: 'assetCatalog',
     CATALOG_TYPE: 'roomFurniture',
-    PURCHASE_FN: 'purchaseShopItem',    // 파라미터: { memberUserId, itemId } (운영 시그니처 확인됨)
+    PURCHASE_FN: 'purchaseShopItem',
     PURCHASE_LAYOUT_FN: 'purchaseRoomLayout',
     SAVE_DEBOUNCE_MS: 800,
-    MIN_ZOOM: 0.75,
-    MAX_ZOOM: 1.45,
-    ZOOM_STEP: 0.1,
+    MIN_ZOOM: 0.7,
+    MAX_ZOOM: 1.7,
+    ZOOM_STEP: 0.1
   };
-  // getUserId는 운영 코드의 getCurrentDataOwnerId()를 연결할 것 (memberUserId = 'G학년-C반-N번호')
-  // userEconomy/userInventory/userRoomSettings 문서 키와 동일한 ID 체계.
 
-  /* ---------- 아이소메트릭 헬퍼 ---------- */
-  const TW2 = 34, TH2 = 17, WALL_H = 112;
-  const C = (x, y, z = 0) => [(x - y) * TW2, (x + y) * TH2 - z];
-  const P = pts => pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  const poly = (pts, fill, op) =>
-    `<polygon points="${P(pts)}" fill="${fill}"${op ? ` fill-opacity="${op}"` : ''} stroke="#2a201a" stroke-opacity="0.18" stroke-width="1"/>`;
-  function box(gx, gy, w, d, z, h, c, op) {
-    const N = C(gx, gy, z + h), E = C(gx + w, gy, z + h),
-          S = C(gx + w, gy + d, z + h), W = C(gx, gy + d, z + h);
-    const E0 = C(gx + w, gy, z), S0 = C(gx + w, gy + d, z), W0 = C(gx, gy + d, z);
-    return poly([W, S, S0, W0], c.l, op) + poly([S, E, E0, S0], c.r, op) + poly([N, E, S, W], c.t, op);
-  }
-  const shade = (hex, f) => {
-    const n = parseInt(hex.slice(1), 16);
-    const r = Math.min(255, ((n >> 16) & 255) * f), g = Math.min(255, ((n >> 8) & 255) * f),
-          b = Math.min(255, (n & 255) * f);
-    return `rgb(${r | 0},${g | 0},${b | 0})`;
+  const TILE_W = 64;
+  const TILE_H = 32;
+  const HALF_W = TILE_W / 2;
+  const HALF_H = TILE_H / 2;
+  const WALL_H = 120;
+  const ROTATIONS = ['0', '90', '180', '270'];
+
+  const FLOOR_STYLES = {
+    woodbright: {
+      name: '우드 브라이트',
+      asset: '/images/room-assets/interiors/floor_wall_tiles_64/floor_64_woodbright.png'
+    },
+    woodlight: {
+      name: '우드 라이트',
+      asset: '/images/room-assets/interiors/floor_wall_tiles_64/floor_64_woodlight.png'
+    },
+    bone: {
+      name: '본 타일',
+      asset: '/images/room-assets/interiors/floor_wall_tiles_64/floor_64_bone.png'
+    },
+    sky: {
+      name: '스카이',
+      asset: '/images/room-assets/interiors/floor_wall_tiles_64/floor_64_sky.png'
+    },
+    japan: {
+      name: '재패니즈',
+      asset: '/images/room-assets/interiors/floor_wall_tiles_64/floor_64_japan_1.png'
+    },
+    bath: {
+      name: '욕실',
+      asset: '/images/room-assets/interiors/floor_wall_tiles_64/floor_bath_1_64.png'
+    }
   };
-  const col = hex => ({ t: shade(hex, 1.12), r: shade(hex, 0.92), l: shade(hex, 0.74) });
+
+  const WALL_STYLES = {
+    woodbright: {
+      name: '우드 브라이트',
+      left: '/images/room-assets/interiors/floor_wall_tiles_64/wall_l_64_woodbright.png',
+      right: '/images/room-assets/interiors/floor_wall_tiles_64/wall_r_64_woodbright.png'
+    },
+    bone: {
+      name: '본 벽',
+      left: '/images/room-assets/interiors/floor_wall_tiles_64/wall_l_64_bone.png',
+      right: '/images/room-assets/interiors/floor_wall_tiles_64/wall_r_64_bone.png'
+    },
+    sky: {
+      name: '스카이',
+      left: '/images/room-assets/interiors/floor_wall_tiles_64/wall_l_64_sky.png',
+      right: '/images/room-assets/interiors/floor_wall_tiles_64/wall_r_64_sky.png'
+    },
+    brick: {
+      name: '브릭',
+      left: '/images/room-assets/interiors/floor_wall_tiles_64/wall_l_64_brick.png',
+      right: '/images/room-assets/interiors/floor_wall_tiles_64/wall_r_64_brick.png'
+    },
+    japan: {
+      name: '재패니즈',
+      left: '/images/room-assets/interiors/floor_wall_tiles_64/wall_l_64_japan_1.png',
+      right: '/images/room-assets/interiors/floor_wall_tiles_64/wall_r_64_japan_1.png'
+    },
+    bath: {
+      name: '욕실',
+      left: '/images/room-assets/interiors/floor_wall_tiles_64/wall_bath_3_64.png',
+      right: '/images/room-assets/interiors/floor_wall_tiles_64/wall_bath_4_64.png'
+    }
+  };
+
+  const ROOM_LAYOUTS = {
+    cozy: { id: 'cozy', name: '기본방', desc: '처음 내 집', w: 8, d: 8, price: 0 },
+    wide: { id: 'wide', name: '넓은 방', desc: '가로 공간 확장', w: 10, d: 8, price: 120 },
+    studio: { id: 'studio', name: '스튜디오', desc: '정사각형 큰 방', w: 10, d: 10, price: 220 },
+    suite: { id: 'suite', name: '큰 집', desc: '여러 구역 배치용', w: 12, d: 10, price: 360 }
+  };
+
+  const DEFAULT_ROOM = {
+    floor: 'woodbright',
+    wall: 'bone',
+    skin: 'interiors',
+    layout: 'cozy',
+    unlockedLayouts: ['cozy'],
+    lightsOn: true,
+    lightLevel: 100,
+    placed: []
+  };
+
+  const NATIVE_SHOWROOM_ITEMS = [
+    { type: 'room_interiors_bed_a', gx: 2, gy: 1, rot: 0 },
+    { type: 'room_interiors_night_table', gx: 4, gy: 1, rot: 0 },
+    { type: 'room_interiors_sofa_3', gx: 5, gy: 3, rot: 180 },
+    { type: 'room_interiors_carpet_3', gx: 2, gy: 4, rot: 0 },
+    { type: 'room_interiors_desk_1', gx: 4, gy: 5, rot: 0 },
+    { type: 'room_interiors_chair_2', gx: 5, gy: 6, rot: 180 },
+    { type: 'room_interiors_plant_1', gx: 1, gy: 6, rot: 0 },
+    { type: 'room_interiors_lamp_8', gx: 7, gy: 2, rot: 0 },
+    { type: 'room_interiors_window_11', surface: 'wall', wall: 'right', wx: 4, wz: 52, rot: 0 }
+  ];
+
   const escAttr = value => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  const ROTATION_KEYS = ['0', '90', '180', '270'];
-  const FACING_BY_ROTATION = { 0: 'south', 90: 'east', 180: 'north', 270: 'west' };
+
+  const deepClone = value => JSON.parse(JSON.stringify(value));
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const iso = (x, y, z = 0) => [(x - y) * HALF_W, (x + y) * HALF_H - z];
+  const points = pts => pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+
+  let db = null;
+  let fns = null;
+  let getUserId = null;
+  let onBack = null;
+  let catalog = {};
+  let owned = new Set();
+  let coins = 0;
+  let room = null;
+  let nextId = 1;
+  let placingType = null;
+  let movingId = null;
+  let selectedId = null;
+  let hover = null;
+  let zoom = 1;
+  let curTab = 'furniture';
+  let openVersion = 0;
+  let unsubs = [];
+  let saveTimer = null;
+  let opened = false;
+  let toastTimer = null;
+  let $view, $svg, $grid, $styleGrid, $coin, $tip, $bar, $toast, $zoomLabel;
+
   function normalizeRenderType(value) {
-    return value === 'image' ? 'image' : 'draw';
+    return value === 'image' ? 'image' : 'image';
   }
+
+  function normalizeRotation(value) {
+    const rot = Math.round(Number(value) || 0) % 360;
+    return rot < 0 ? rot + 360 : rot;
+  }
+
   function normalizeRotationSprites(value = {}) {
     const source = value && typeof value === 'object' ? value : {};
-    return ROTATION_KEYS.reduce((next, key) => {
+    return ROTATIONS.reduce((next, key) => {
       next[key] = String(source[key] || '').trim();
       return next;
     }, {});
   }
+
   function normalizePlacementOffsets(value = {}) {
     const source = value && typeof value === 'object' ? value : {};
-    return ROTATION_KEYS.reduce((next, key) => {
+    return ROTATIONS.reduce((next, key) => {
       const raw = source[key] && typeof source[key] === 'object' ? source[key] : {};
       next[key] = {
         x: Number(raw.x || 0) || 0,
@@ -78,739 +182,343 @@ window.RoomDecor = (function () {
       return next;
     }, {});
   }
-  function hasRotationSprites(it = {}) {
-    const sprites = normalizeRotationSprites(it.rotationSprites);
-    return ROTATION_KEYS.some(key => !!sprites[key]);
-  }
-  function imageUrlForRotation(it = {}, rot = 0) {
-    const sprites = normalizeRotationSprites(it.rotationSprites);
-    const rotation = String(getRotation(rot));
-    return sprites[rotation] || sprites['0'] || String(it.assetUrl || '').trim();
-  }
-  function placementOffsetForRotation(it = {}, rot = 0) {
-    const offsets = normalizePlacementOffsets(it.placementOffsets);
-    return offsets[String(getRotation(rot))] || offsets['0'] || { x: 0, y: 0 };
-  }
-  function imageSize(it = {}) {
-    const fallbackW = Math.max(48, (Number(it.w || 1) + Number(it.d || 1)) * TW2 + 34);
-    const fallbackH = Math.max(48, Number(it.h || 30) + (Number(it.w || 1) + Number(it.d || 1)) * TH2 + 28);
-    return {
-      width: Math.max(1, Number(it.pixelWidth || 0) || fallbackW),
-      height: Math.max(1, Number(it.pixelHeight || 0) || fallbackH)
-    };
-  }
-  function orientRect(baseW, baseD, rot, lx, ly, w, d) {
-    const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
-    if (rotation === 90) return { x: baseD - ly - d, y: lx, w: d, d: w };
-    if (rotation === 180) return { x: baseW - lx - w, y: baseD - ly - d, w, d };
-    if (rotation === 270) return { x: ly, y: baseW - lx - w, w: d, d: w };
-    return { x: lx, y: ly, w, d };
-  }
-  function orientPoint(baseW, baseD, rot, lx, ly) {
-    const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
-    if (rotation === 90) return { x: baseD - ly, y: lx };
-    if (rotation === 180) return { x: baseW - lx, y: baseD - ly };
-    if (rotation === 270) return { x: ly, y: baseW - lx };
-    return { x: lx, y: ly };
-  }
-  function obox(gx, gy, baseW, baseD, rot, lx, ly, w, d, z, h, c, op) {
-    const rect = orientRect(baseW, baseD, rot, lx, ly, w, d);
-    return box(gx + rect.x, gy + rect.y, rect.w, rect.d, z, h, c, op);
-  }
-  function oface(gx, gy, baseW, baseD, rot, ax, ay, bx, by, z, h, fill, op) {
-    const a = orientPoint(baseW, baseD, rot, ax, ay);
-    const b = orientPoint(baseW, baseD, rot, bx, by);
-    return poly([
-      C(gx + a.x, gy + a.y, z + h),
-      C(gx + b.x, gy + b.y, z + h),
-      C(gx + b.x, gy + b.y, z),
-      C(gx + a.x, gy + a.y, z)
-    ], fill, op);
-  }
-  function isSouthFaceVisible(rot) {
-    const rotation = ((Math.round(Number(rot) || 0) % 360) + 360) % 360;
-    return rotation === 0 || rotation === 270;
-  }
-  function wallRect(wall, u, z, w, h, fill, op) {
-    const pts = wall === 'right'
-      ? [C(u, 0, z + h), C(u + w, 0, z + h), C(u + w, 0, z), C(u, 0, z)]
-      : [C(0, u, z + h), C(0, u + w, z + h), C(0, u + w, z), C(0, u, z)];
-    return poly(pts, fill, op);
-  }
-  function gridToScreen(x, y, z = 0) {
-    return C(Number(x) || 0, Number(y) || 0, Number(z) || 0);
-  }
-  function wallToScreen(wall, u, z) {
-    return normalizeWall(wall) === 'right'
-      ? gridToScreen(Number(u) || 0, 0, Number(z) || 0)
-      : gridToScreen(0, Number(u) || 0, Number(z) || 0);
-  }
-  function getFacing(value) {
-    return FACING_BY_ROTATION[getRotation(value)] || FACING_BY_ROTATION[0];
-  }
-  function getItemSurface(item = {}, type = item.type) {
-    return isWallItem(type) || item.surface === 'wall' ? 'wall' : 'floor';
-  }
-  function getFloorAnchor(item = {}, type = item.type) {
-    const fp = getFootprint(type, item.rot);
-    return {
-      gx: Number(item.gx || 0) + fp.w / 2,
-      gy: Number(item.gy || 0) + fp.d,
-      z: 0,
-      screen: gridToScreen(Number(item.gx || 0) + fp.w / 2, Number(item.gy || 0) + fp.d, 0)
-    };
-  }
-  function getWallAnchor(item = {}, type = item.type) {
-    const it = catalog[type] || {};
-    const wall = normalizeWall(item.wall || it.wall);
-    const size = getWallSize(type, wall);
-    const u = Number(item.wx ?? 2) + size.w / 2;
-    const z = Number(item.wz ?? 42) + size.h / 2;
-    return { wall, u, z, size, screen: wallToScreen(wall, u, z) };
-  }
-  function getFloorSortKey(item = {}) {
-    const it = catalog[item.type] || {};
-    const fp = getFootprint(item.type, item.rot);
-    const zBias = Number(it.zIndexOffset || 0) / 100;
-    return Number(item.gx || 0) + fp.w + Number(item.gy || 0) + fp.d + zBias;
+
+  function hasRotationSprites(item = {}) {
+    const sprites = normalizeRotationSprites(item.rotationSprites);
+    return ROTATIONS.some(key => !!sprites[key]);
   }
 
-  /* ---------- 가구 드로잉 ---------- */
-  const DRAW = {
-    bed(x, y, rot = 0) {
-      return obox(x, y, 1, 2, rot, 0, 0, 1, 2, 0, 10, col('#a9743f'))
-        + obox(x, y, 1, 2, rot, .05, .05, .9, 1.9, 10, 6, col('#f4efe2'))
-        + obox(x, y, 1, 2, rot, .05, .8, .9, 1.13, 16, 5, col('#e2574c'))
-        + obox(x, y, 1, 2, rot, .16, .14, .68, .44, 16, 6, col('#ffffff'));
-    },
-    desk(x, y, rot = 0) {
-      let s = '';
-      [[.06, .06], [1.7, .06], [.06, .72], [1.7, .72]].forEach(([a, b]) =>
-        s += obox(x, y, 2, 1, rot, a, b, .14, .14, 0, 24, col('#7a5430')));
-      s += obox(x, y, 2, 1, rot, 0, 0, 2, 1, 24, 7, col('#c89a62'));
-      s += obox(x, y, 2, 1, rot, .25, .2, .55, .4, 31, 3, col('#5b87b8'));
-      return s;
-    },
-    chair(x, y, rot = 0) {
-      return obox(x, y, 1, 1, rot, .32, .32, .36, .36, 0, 13, col('#6b4a2e'))
-        + obox(x, y, 1, 1, rot, .1, .1, .8, .8, 13, 6, col('#5fa3d8'))
-        + obox(x, y, 1, 1, rot, .1, .1, .8, .16, 19, 24, col('#4a8cc0'));
-    },
-    shelf(x, y, rot = 0) {
-      let s = obox(x, y, 1, .5, rot, 0, 0, 1, .5, 0, 58, col('#9a6a3c'));
-      if (!isSouthFaceVisible(rot)) return s;
-      const faceY = .51;
-      const books = ['#e2574c', '#4f9dd6', '#f0b840', '#69b56b', '#9b6fc9', '#e58fb0'];
-      [8, 26, 44].forEach((z0, row) => {
-        s += oface(x, y, 1, .5, rot, .06, faceY, .94, faceY, z0 - 2, 15, '#5e3c1e');
-        let bx = .1;
-        for (let k = 0; k < 4; k++) {
-          const bw = .17 + ((row + k) % 3) * .015;
-          s += oface(x, y, 1, .5, rot, bx, faceY + .01, bx + bw, faceY + .01, z0, 12, books[(row * 2 + k) % books.length]);
-          bx += bw + .025;
-        }
-      });
-      return s;
-    },
-    window(x, y, rot = 0, item = {}) {
-      const wall = item.wall || 'left';
-      const u = Number(item.wx ?? 2.2);
-      const z = Number(item.wz ?? 36);
-      const w = Number(catalog[item.type]?.ww || 2.6);
-      const h = Number(catalog[item.type]?.wh || 50);
-      const mid = u + w / 2;
-      return wallRect(wall, u, z, w, h, '#9fd9f0')
-        + wallRect(wall, u, z + h - 4, w, 4, '#ffffff')
-        + wallRect(wall, mid - .04, z, .08, h, '#ffffff')
-        + wallRect(wall, u + .5, z + h - 22, .5, 8, '#ffe27a');
-    },
-    frame(x, y, rot = 0, item = {}) {
-      const wall = item.wall || 'right';
-      const u = Number(item.wx ?? 2.4);
-      const z = Number(item.wz ?? 52);
-      const w = Number(catalog[item.type]?.ww || 1.8);
-      const h = Number(catalog[item.type]?.wh || 32);
-      return wallRect(wall, u, z, w, h, '#a9743f')
-        + wallRect(wall, u + .15, z + 4, Math.max(.2, w - .3), Math.max(4, h - 8), '#cfe9d8')
-        + wallRect(wall, u + .25, z + 4, .55, 12, '#69b56b')
-        + wallRect(wall, u + .8, z + 4, .45, 8, '#79bd7b');
-    },
-    plant(x, y) {
-      let s = box(x + .3, y + .3, .4, .4, 0, 13, col('#c1683f'))
-        + box(x + .26, y + .26, .48, .48, 13, 4, col('#d57a4c'));
-      const [cx, cy] = C(x + .5, y + .5, 30);
-      s += `<ellipse cx="${cx - 8}" cy="${cy + 3}" rx="11" ry="9" fill="#4d8f4f"/>`
-        + `<ellipse cx="${cx + 8}" cy="${cy + 2}" rx="11" ry="9" fill="#5fa35f"/>`
-        + `<ellipse cx="${cx}" cy="${cy - 7}" rx="12" ry="10" fill="#6db86b"/>`
-        + `<ellipse cx="${cx - 3}" cy="${cy - 10}" rx="5" ry="4" fill="#8ecf8a"/>`;
-      return s;
-    },
-    rug(x, y) {
-      return poly([C(x, y, 1), C(x + 2, y, 1), C(x + 2, y + 2, 1), C(x, y + 2, 1)], '#e8a0b4')
-        + poly([C(x + .22, y + .22, 1.5), C(x + 1.78, y + .22, 1.5), C(x + 1.78, y + 1.78, 1.5), C(x + .22, y + 1.78, 1.5)], '#f5c6d3')
-        + poly([C(x + .8, y + .8, 2), C(x + 1.2, y + .8, 2), C(x + 1.2, y + 1.2, 2), C(x + .8, y + 1.2, 2)], '#e8a0b4');
-    },
-    lamp(x, y) {
-      let s = box(x + .33, y + .33, .34, .34, 0, 5, col('#4a3a5a'))
-        + box(x + .46, y + .46, .09, .09, 5, 40, col('#5a4a6a'));
-      const [gx2, gy2] = C(x + .5, y + .5, 52);
-      s += `<ellipse cx="${gx2}" cy="${gy2}" rx="30" ry="18" fill="#ffe9a8" fill-opacity="0.22"/>`;
-      s += box(x + .24, y + .24, .52, .52, 45, 15, col('#ffd66e'));
-      return s;
-    },
-    bear(x, y) {
-      const [cx, cy] = C(x + .5, y + .55, 0);
-      return `<ellipse cx="${cx}" cy="${cy + 2}" rx="16" ry="7" fill="#000" fill-opacity="0.15"/>`
-        + `<circle cx="${cx - 13}" cy="${cy - 12}" r="6" fill="#b98850"/>`
-        + `<circle cx="${cx + 13}" cy="${cy - 12}" r="6" fill="#b98850"/>`
-        + `<ellipse cx="${cx}" cy="${cy - 12}" rx="13" ry="14" fill="#c79760"/>`
-        + `<ellipse cx="${cx}" cy="${cy - 8}" rx="8" ry="9" fill="#e8cfa6"/>`
-        + `<circle cx="${cx - 9}" cy="${cy - 31}" r="5" fill="#b98850"/>`
-        + `<circle cx="${cx + 9}" cy="${cy - 31}" r="5" fill="#b98850"/>`
-        + `<circle cx="${cx}" cy="${cy - 26}" r="11" fill="#c79760"/>`
-        + `<ellipse cx="${cx}" cy="${cy - 23}" rx="5.5" ry="4.5" fill="#e8cfa6"/>`
-        + `<circle cx="${cx - 4}" cy="${cy - 28}" r="1.6" fill="#3a2f28"/>`
-        + `<circle cx="${cx + 4}" cy="${cy - 28}" r="1.6" fill="#3a2f28"/>`
-        + `<circle cx="${cx}" cy="${cy - 24}" r="1.8" fill="#3a2f28"/>`;
-    },
-    tv(x, y, rot = 0) {
-      let s = obox(x, y, 1, 1, rot, .12, .4, .76, .3, 0, 7, col('#5a4a3a'))
-        + obox(x, y, 1, 1, rot, .05, .5, .9, .1, 7, 27, col('#3a3a44'));
-      s += obox(x, y, 1, 1, rot, .1, .58, .8, .04, 11, 19, col('#7fe3e8'), .82);
-      return s;
-    },
-    aquarium(x, y) {
-      let s = box(x + .1, y + .1, .8, .8, 0, 13, col('#8a5f33'))
-        + box(x + .13, y + .13, .74, .74, 13, 19, col('#9fd4ef'), .55);
-      const [cx, cy] = C(x + .5, y + .5, 22);
-      s += `<ellipse cx="${cx}" cy="${cy}" rx="6" ry="4" fill="#ff8c42"/>`
-        + `<polygon points="${cx + 5},${cy} ${cx + 10},${cy - 4} ${cx + 10},${cy + 4}" fill="#ff8c42"/>`
-        + `<circle cx="${cx - 3}" cy="${cy - 1}" r="1" fill="#3a2f28"/>`
-        + `<circle cx="${cx + 4}" cy="${cy - 9}" r="1.5" fill="#fff" fill-opacity="0.7"/>`
-        + `<circle cx="${cx + 7}" cy="${cy - 13}" r="1.2" fill="#fff" fill-opacity="0.6"/>`;
-      s += box(x + .11, y + .11, .78, .78, 32, 2, col('#b9e2f5'), .8);
-      return s;
-    },
-    trophy(x, y) {
-      let s = box(x + .26, y + .26, .48, .48, 0, 11, col('#5a4a8a'));
-      const [cx, cy] = C(x + .5, y + .5, 11);
-      s += `<rect x="${cx - 3}" y="${cy - 14}" width="6" height="12" fill="#caa53d"/>`
-        + `<path d="M ${cx - 11} ${cy - 32} L ${cx + 11} ${cy - 32} L ${cx + 8} ${cy - 14} L ${cx - 8} ${cy - 14} Z" fill="#ffd23f"/>`
-        + `<ellipse cx="${cx}" cy="${cy - 32}" rx="11" ry="4" fill="#ffe27a"/>`
-        + `<path d="M ${cx - 11} ${cy - 30} q -9 2 -2 11" stroke="#ffd23f" stroke-width="3" fill="none"/>`
-        + `<path d="M ${cx + 11} ${cy - 30} q 9 2 2 11" stroke="#ffd23f" stroke-width="3" fill="none"/>`
-        + `<circle cx="${cx - 4}" cy="${cy - 27}" r="2" fill="#fff" fill-opacity="0.85"/>`;
-      return s;
-    },
-    piano(x, y, rot = 0) {
-      let s = obox(x, y, 2, .96, rot, 0, 0, 2, .72, 0, 34, col('#33333d'))
-        + obox(x, y, 2, .96, rot, .05, .72, 1.9, .24, 20, 6, col('#f5f1e6'));
-      for (let k = 0; k < 7; k++)
-        s += obox(x, y, 2, .96, rot, .17 + k * .26, .73, .1, .13, 26, 2, col('#26262e'));
-      s += obox(x, y, 2, .96, rot, .3, .72, .45, .05, 30, 3, col('#ffd23f'), .8);
-      return s;
-    },
-    sofa(x, y, rot = 0) {
-      return obox(x, y, 2, 1, rot, .05, .18, 1.9, .72, 0, 16, col('#7aa6c8'))
-        + obox(x, y, 2, 1, rot, .05, .08, 1.9, .18, 16, 30, col('#5f8fb7'))
-        + obox(x, y, 2, 1, rot, -.02, .2, .18, .66, 12, 24, col('#557fa4'))
-        + obox(x, y, 2, 1, rot, 1.84, .2, .18, .66, 12, 24, col('#557fa4'))
-        + obox(x, y, 2, 1, rot, .24, .24, .64, .46, 17, 5, col('#91bdd9'))
-        + obox(x, y, 2, 1, rot, 1.12, .24, .64, .46, 17, 5, col('#91bdd9'));
-    },
-    wardrobe(x, y, rot = 0) {
-      const s = obox(x, y, 1, 1, rot, 0, 0, 1, 1, 0, 68, col('#a06a3a'));
-      if (!isSouthFaceVisible(rot)) return s;
-      return s
-        + oface(x, y, 1, 1, rot, .06, 1.01, .48, 1.01, 7, 54, '#bf8750')
-        + oface(x, y, 1, 1, rot, .52, 1.01, .94, 1.01, 7, 54, '#b77b45')
-        + oface(x, y, 1, 1, rot, .49, 1.02, .51, 1.02, 8, 52, '#734824')
-        + oface(x, y, 1, 1, rot, .42, 1.03, .47, 1.03, 33, 5, '#e0c16a')
-        + oface(x, y, 1, 1, rot, .53, 1.03, .58, 1.03, 33, 5, '#e0c16a');
-    },
-    computer(x, y, rot = 0) {
-      let s = DRAW.desk(x, y, rot)
-        + obox(x, y, 2, 1, rot, .74, .18, .52, .08, 31, 28, col('#3a3a44'))
-        + obox(x, y, 2, 1, rot, .8, .24, .4, .04, 35, 18, col('#73d7e0'), .86)
-        + obox(x, y, 2, 1, rot, .92, .3, .16, .16, 31, 4, col('#3a3a44'))
-        + obox(x, y, 2, 1, rot, 1.3, .42, .34, .18, 31, 3, col('#303038'));
-      return s;
-    },
-    table(x, y, rot = 0) {
-      let s = '';
-      [[.12, .12], [.72, .12], [.12, .72], [.72, .72]].forEach(([a, b]) =>
-        s += obox(x, y, 1, 1, rot, a, b, .16, .16, 0, 22, col('#805737')));
-      s += obox(x, y, 1, 1, rot, 0, 0, 1, 1, 22, 6, col('#d3a165'));
-      const [cx, cy] = C(x + .5, y + .5, 31);
-      s += `<ellipse cx="${cx}" cy="${cy}" rx="13" ry="7" fill="#f3e2bd"/>`
-        + `<circle cx="${cx - 5}" cy="${cy - 2}" r="2" fill="#e2574c"/>`
-        + `<circle cx="${cx + 4}" cy="${cy + 1}" r="2" fill="#69b56b"/>`;
-      return s;
-    },
-    toybox(x, y, rot = 0) {
-      let s = obox(x, y, 1, 1, rot, .05, .12, .9, .76, 0, 24, col('#e39b46'))
-        + obox(x, y, 1, 1, rot, .02, .08, .96, .82, 24, 7, col('#f2c15e'))
-        + obox(x, y, 1, 1, rot, .38, .1, .24, .78, 28, 3, col('#5fa3d8'));
-      const [cx, cy] = C(x + .5, y + .5, 36);
-      s += `<circle cx="${cx - 12}" cy="${cy - 8}" r="5" fill="#e2574c"/>`
-        + `<circle cx="${cx + 11}" cy="${cy - 6}" r="5" fill="#69b56b"/>`
-        + `<rect x="${cx - 4}" y="${cy - 15}" width="8" height="8" rx="1" fill="#7b62c9"/>`;
-      return s;
-    },
-    clock(x, y, rot = 0, item = {}) {
-      const wall = item.wall || 'left';
-      const u = Number(item.wx ?? 2.6);
-      const z = Number(item.wz ?? 62);
-      const w = Number(catalog[item.type]?.ww || 1.2);
-      const h = Number(catalog[item.type]?.wh || 28);
-      const [cx, cy] = wall === 'right'
-        ? C(u + w / 2, 0, z + h / 2)
-        : C(0, u + w / 2, z + h / 2);
-      return wallRect(wall, u, z, w, h, '#f6e7bd', .94)
-        + `<ellipse cx="${cx}" cy="${cy}" rx="17" ry="13" fill="#fff6d8" stroke="#8a6544" stroke-width="3"/>`
-        + `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - 8}" stroke="#4a3425" stroke-width="2"/>`
-        + `<line x1="${cx}" y1="${cy}" x2="${cx + 8}" y2="${cy + 2}" stroke="#4a3425" stroke-width="2"/>`;
-    },
-    mirror(x, y, rot = 0, item = {}) {
-      const wall = item.wall || 'right';
-      const u = Number(item.wx ?? 2.4);
-      const z = Number(item.wz ?? 36);
-      const w = Number(catalog[item.type]?.ww || 1.4);
-      const h = Number(catalog[item.type]?.wh || 46);
-      return wallRect(wall, u, z, w, h, '#b98958')
-        + wallRect(wall, u + .15, z + 4, Math.max(.2, w - .3), Math.max(6, h - 8), '#c8edf2', .82)
-        + wallRect(wall, u + .3, z + h - 18, .28, 11, '#ffffff', .62);
-    },
-  };
-
-  /* ---------- 기본 카탈로그 (assetCatalog 미시딩 시 폴백) ---------- */
-  const DEFAULT_CATALOG = [
-    { id: 'room_bed',      name: '침대',       cat: 'furniture', w: 1, d: 2, h: 24, drawKey: 'bed',      free: true },
-    { id: 'room_desk',     name: '책상',       cat: 'furniture', w: 2, d: 1, h: 34, drawKey: 'desk',     free: true },
-    { id: 'room_chair',    name: '의자',       cat: 'furniture', w: 1, d: 1, h: 44, drawKey: 'chair',    free: true },
-    { id: 'room_shelf',    name: '책장',       cat: 'furniture', w: 1, d: 1, h: 60, drawKey: 'shelf',    free: true },
-    { id: 'room_piano',    name: '피아노',     cat: 'furniture', w: 2, d: 1, h: 36, drawKey: 'piano',    free: false, price: 150 },
-    { id: 'room_sofa',     name: '소파',       cat: 'furniture', w: 2, d: 1, h: 46, drawKey: 'sofa',     free: false, price: 120, sortOrder: 60 },
-    { id: 'room_wardrobe', name: '옷장',       cat: 'furniture', w: 1, d: 1, h: 68, drawKey: 'wardrobe', free: false, price: 110, sortOrder: 70 },
-    { id: 'room_computer', name: '컴퓨터 책상', cat: 'furniture', w: 2, d: 1, h: 60, drawKey: 'computer', free: false, price: 180, sortOrder: 80 },
-    { id: 'room_window',   name: '창문',       cat: 'deco', w: 1, d: 1, h: 50, surface: 'wall', wall: 'left',  ww: 2.6, wh: 50, drawKey: 'window', free: true, sortOrder: 5 },
-    { id: 'room_frame',    name: '액자',       cat: 'deco', w: 1, d: 1, h: 32, surface: 'wall', wall: 'right', ww: 1.8, wh: 32, drawKey: 'frame',  free: true, sortOrder: 6 },
-    { id: 'room_clock',    name: '벽시계',     cat: 'deco', w: 1, d: 1, h: 28, surface: 'wall', wall: 'left',  ww: 1.2, wh: 28, drawKey: 'clock',  free: true, sortOrder: 7 },
-    { id: 'room_mirror',   name: '거울',       cat: 'deco', w: 1, d: 1, h: 46, surface: 'wall', wall: 'right', ww: 1.4, wh: 46, drawKey: 'mirror', free: false, price: 40, sortOrder: 8 },
-    { id: 'room_rug',      name: '러그',       cat: 'deco', w: 2, d: 2, h: 4, flat: true, drawKey: 'rug', free: true },
-    { id: 'room_plant',    name: '화분',       cat: 'deco', w: 1, d: 1, h: 42, drawKey: 'plant',    free: true },
-    { id: 'room_lamp',     name: '램프',       cat: 'deco', w: 1, d: 1, h: 62, drawKey: 'lamp',     free: true },
-    { id: 'room_bear',     name: '곰인형',     cat: 'deco', w: 1, d: 1, h: 40, drawKey: 'bear',     free: true },
-    { id: 'room_table',    name: '작은 테이블', cat: 'deco', w: 1, d: 1, h: 34, drawKey: 'table',    free: true, sortOrder: 45 },
-    { id: 'room_toybox',   name: '장난감 상자', cat: 'deco', w: 1, d: 1, h: 39, drawKey: 'toybox',   free: false, price: 50, sortOrder: 48 },
-    { id: 'room_tv',       name: 'TV',         cat: 'deco', w: 1, d: 1, h: 36, drawKey: 'tv',       free: false, price: 80 },
-    { id: 'room_aquarium', name: '어항',       cat: 'deco', w: 1, d: 1, h: 38, drawKey: 'aquarium', free: false, price: 100 },
-    { id: 'room_trophy',   name: '황금 트로피', cat: 'deco', w: 1, d: 1, h: 48, drawKey: 'trophy',   free: false, price: 60 },
-  ];
-  const FLOORS = {
-    wood:  { a: '#caa06b', b: '#bb9059', name: '원목' },
-    bone:  { a: '#f2ead8', b: '#e4d9c1', name: '본 타일' },
-    sky:   { a: '#cfe7ef', b: '#b9d5df', name: '스카이 타일' },
-    mint:  { a: '#bfe6c8', b: '#a8d9b4', name: '민트' },
-    lav:   { a: '#d6c8ee', b: '#c5b3e4', name: '라벤더' },
-    check: { a: '#f2e3c9', b: '#86c9c2', name: '체크' },
-  };
-  const WALLS = {
-    cream: { l: '#e6d2ab', r: '#f2e2c4', name: '크림' },
-    bone:  { l: '#d6d4c2', r: '#ebe5cf', name: '본 벽지' },
-    sky:   { l: '#bdd7df', r: '#d8edf3', name: '스카이 벽지' },
-    woodBright: { l: '#d6b07c', r: '#ebc58f', name: '우드 벽지' },
-    blue:  { l: '#b9d4e8', r: '#cfe3f2', name: '하늘' },
-    pink:  { l: '#ecc3d2', r: '#f7d8e3', name: '분홍' },
-    green: { l: '#bdd9b4', r: '#d2e8ca', name: '연두' },
-  };
-  const ROOM_SKINS = {
-    legacy: { id: 'legacy', name: '기존 방', desc: '현재 SVG 방', visible: false },
-    kenney: { id: 'kenney', name: 'Kenney 프로토타입', desc: '외부 에셋 기준 방', visible: false },
-    interiors: { id: 'interiors', name: 'Interiors 프로토타입', desc: '구매 에셋 타일셋 방' }
-  };
-  const INTERIORS_FLOOR_ASSETS = {
-    wood: '/images/room-assets/interiors/Floor_64_WoodBright.png',
-    bone: '/images/room-assets/interiors/Floor_64_Bone.png',
-    sky: '/images/room-assets/interiors/Floor_64_Sky.png'
-  };
-  const INTERIORS_WALL_PALETTES = {
-    cream: { l: '#d6d4c2', r: '#ebe5cf', name: 'Interiors' },
-    bone: { l: '#d6d4c2', r: '#ebe5cf', name: '본 벽지' },
-    sky: { l: '#bdd7df', r: '#d8edf3', name: '스카이 벽지' },
-    woodBright: { l: '#d6b07c', r: '#ebc58f', name: '우드 벽지' }
-  };
-  const KENNEY_SHOWROOM_ITEMS = [
-    { type: 'room_kenney_lounge_sofa', gx: 1, gy: 1, rot: 0 },
-    { type: 'room_kenney_single_bed', gx: 4, gy: 3, rot: 0 },
-    { type: 'room_kenney_rectangle_rug', gx: 4, gy: 5, rot: 0 },
-    { type: 'room_kenney_coffee_table', gx: 3, gy: 4, rot: 0 },
-    { type: 'room_kenney_rounded_chair', gx: 6, gy: 5, rot: 270 },
-    { type: 'room_kenney_square_floor_lamp', gx: 7, gy: 1, rot: 0 },
-    { type: 'room_kenney_small_plant', gx: 1, gy: 6, rot: 0 }
-  ];
-  const INTERIORS_SHOWROOM_ITEMS = [
-    { type: 'room_interiors_sofa_blue', gx: 4, gy: 1, rot: 0 },
-    { type: 'room_interiors_bed_red', gx: 1, gy: 2, rot: 0 },
-    { type: 'room_interiors_carpet_red', gx: 3, gy: 4, rot: 0 },
-    { type: 'room_interiors_desk_wood', gx: 5, gy: 4, rot: 0 },
-    { type: 'room_interiors_chair_blue', gx: 6, gy: 5, rot: 180 },
-    { type: 'room_interiors_night_table', gx: 2, gy: 1, rot: 0 },
-    { type: 'room_interiors_plant', gx: 1, gy: 6, rot: 0 },
-    { type: 'room_interiors_lamp', gx: 7, gy: 2, rot: 0 }
-  ];
-  const DEFAULT_ROOM = {
-    floor: 'wood', wall: 'cream', skin: 'interiors', layout: 'cozy',
-    unlockedLayouts: ['cozy'],
-    lightsOn: true, lightLevel: 100,
-    placed: [],
-  };
-  const ROOM_LAYOUTS = {
-    cozy: { id: 'cozy', name: '기본방', desc: '처음 내 집', w: 8, d: 8, price: 0 },
-    wide: { id: 'wide', name: '넓은 방', desc: '가로 공간 확장', w: 10, d: 8, price: 120 },
-    studio: { id: 'studio', name: '스튜디오', desc: '정사각형 큰 방', w: 10, d: 10, price: 220 },
-    suite: { id: 'suite', name: '큰 집', desc: '여러 구역 배치용', w: 12, d: 10, price: 360 }
-  };
-
-  /* ---------- 모듈 상태 ---------- */
-  let db = null, fns = null, getUserId = null, onBack = null;
-  let catalog = {};           // id -> 정의
-  let owned = new Set();      // 보유 아이템 id
-  let coins = 0;
-  let room = null;            // {floor, wall, placed}
-  let nextId = 1;
-  let placingType = null, movingId = null, selectedId = null, hover = null;
-  let zoom = 1;
-  let curTab = 'furniture';
-  let openVersion = 0;
-  let unsubs = [], saveTimer = null, opened = false;
-  let $view, $svg, $grid, $styleGrid, $coin, $tip, $bar, $toast, $zoomLabel;
-  let toastTimer = null;
-
-  /* ---------- Firestore ---------- */
-  async function loadCatalog() {
-    catalog = {};
-    DEFAULT_CATALOG.forEach(it => catalog[it.id] = normalizeCatalogItem(it.id, it));
-    try {
-      const snap = await db.collection(CONFIG.COL_CATALOG)
-        .where('type', '==', CONFIG.CATALOG_TYPE).get();
-      snap.forEach(doc => {
-        const d = doc.data();
-        const item = normalizeCatalogItem(doc.id, d);
-        if (canRenderCatalogItem(item)) catalog[doc.id] = item;
-      });
-    } catch (e) { console.warn('[room] assetCatalog 로드 실패, 기본 카탈로그 사용', e); }
+  function imageUrlForRotation(item = {}, rot = 0) {
+    const sprites = normalizeRotationSprites(item.rotationSprites);
+    const key = String(normalizeRotation(rot));
+    return sprites[key] || sprites['0'] || String(item.assetUrl || '').trim();
   }
+
+  function placementOffsetForRotation(item = {}, rot = 0) {
+    const offsets = normalizePlacementOffsets(item.placementOffsets);
+    return offsets[String(normalizeRotation(rot))] || offsets['0'] || { x: 0, y: 0 };
+  }
+
+  function normalizeLayer(value) {
+    return ['floor', 'seat', 'surface', 'furniture', 'wall'].includes(value) ? value : '';
+  }
+
   function normalizeCatalogItem(id, data = {}) {
-    const renderType = normalizeRenderType(data.renderType);
-    const rotationSprites = normalizeRotationSprites(data.rotationSprites);
-    const placementOffsets = normalizePlacementOffsets(data.placementOffsets);
     return {
       id,
       ...data,
-      renderType,
-      drawKey: String(data.drawKey || ''),
+      renderType: normalizeRenderType(data.renderType),
+      layer: normalizeLayer(data.layer),
       assetUrl: String(data.assetUrl || '').trim(),
       thumbUrl: String(data.thumbUrl || '').trim(),
-      rotationSprites,
-      placementOffsets,
+      rotationSprites: normalizeRotationSprites(data.rotationSprites),
+      placementOffsets: normalizePlacementOffsets(data.placementOffsets),
+      w: Math.max(1, Number(data.w || 1) || 1),
+      d: Math.max(1, Number(data.d || 1) || 1),
+      h: Math.max(1, Number(data.h || 30) || 30),
       pixelWidth: Number(data.pixelWidth || 0) || 0,
       pixelHeight: Number(data.pixelHeight || 0) || 0,
       anchorX: Number(data.anchorX || 0) || 0,
       anchorY: Number(data.anchorY || 0) || 0,
       offsetX: Number(data.offsetX || 0) || 0,
       offsetY: Number(data.offsetY || 0) || 0,
-      zIndexOffset: Number(data.zIndexOffset || 0) || 0
+      zIndexOffset: Number(data.zIndexOffset || 0) || 0,
+      sortOrder: Number(data.sortOrder || 100) || 100
     };
   }
-  function canRenderCatalogItem(it = {}) {
-    if (it.enabled === false) return false;
-    if (normalizeRenderType(it.renderType) === 'image') return !!(it.assetUrl || hasRotationSprites(it));
-    return !!(it.drawKey && DRAW[it.drawKey]);
+
+  function canRenderCatalogItem(item = {}) {
+    return item.enabled !== false && !!(item.assetUrl || hasRotationSprites(item));
   }
-  async function loadRoom(uid) {
+
+  async function loadCatalog() {
+    catalog = {};
     try {
-      const doc = await db.collection(CONFIG.COL_ROOM).doc(uid).get();
-      const d = doc.exists ? (doc.data() || {})[CONFIG.ROOM_FIELD] : null;
-      room = (d && Array.isArray(d.placed))
-        ? normalizeRoomData(d)
-        : JSON.parse(JSON.stringify(DEFAULT_ROOM));
-    } catch (e) {
-      console.warn('[room] userRoomSettings 로드 실패', e);
-      room = JSON.parse(JSON.stringify(DEFAULT_ROOM));
+      const snap = await db.collection(CONFIG.COL_CATALOG)
+        .where('type', '==', CONFIG.CATALOG_TYPE)
+        .get();
+      snap.forEach(doc => {
+        const item = normalizeCatalogItem(doc.id, doc.data() || {});
+        if (canRenderCatalogItem(item) && String(item.id || '').startsWith('room_interiors_')) {
+          catalog[doc.id] = item;
+        }
+      });
+    } catch (error) {
+      console.warn('[room] assetCatalog load failed.', error);
     }
-    nextId = room.placed.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1;
   }
-  function normalizeLightLevel(value) {
-    return Math.max(20, Math.min(100, Math.round(Number(value) || 100)));
+
+  function normalizeFloor(value) {
+    return FLOOR_STYLES[value] ? value : DEFAULT_ROOM.floor;
   }
-  function normalizeLayoutId(value) {
+
+  function normalizeWall(value) {
+    return WALL_STYLES[value] ? value : DEFAULT_ROOM.wall;
+  }
+
+  function normalizeLayout(value) {
     return ROOM_LAYOUTS[value] ? value : DEFAULT_ROOM.layout;
   }
-  function normalizeSkinId(value) {
-    const skin = ROOM_SKINS[value];
-    return skin && skin.visible !== false ? value : DEFAULT_ROOM.skin;
-  }
+
   function normalizeUnlockedLayouts(value) {
-    const unlocked = new Set(Array.isArray(value) ? value.filter(id => ROOM_LAYOUTS[id]) : []);
-    unlocked.add(DEFAULT_ROOM.layout);
-    return Array.from(unlocked);
+    const next = new Set(Array.isArray(value) ? value.filter(id => ROOM_LAYOUTS[id]) : []);
+    next.add(DEFAULT_ROOM.layout);
+    return Array.from(next);
   }
-  function normalizeRoomData(data = {}) {
-    return {
-      floor: data.floor || DEFAULT_ROOM.floor,
-      wall: data.wall || DEFAULT_ROOM.wall,
-      skin: normalizeSkinId(data.skin),
-      layout: normalizeLayoutId(data.layout),
-      unlockedLayouts: normalizeUnlockedLayouts(data.unlockedLayouts),
-      lightsOn: data.lightsOn !== false,
-      lightLevel: normalizeLightLevel(data.lightLevel),
-      placed: Array.isArray(data.placed) ? data.placed : []
-    };
+
+  function normalizeLightLevel(value) {
+    return clamp(Math.round(Number(value) || 100), 20, 100);
   }
-  function getRoomLayout(layoutId = room?.layout) {
-    return ROOM_LAYOUTS[normalizeLayoutId(layoutId)] || ROOM_LAYOUTS.cozy;
-  }
-  function getRoomSize(layoutId = room?.layout) {
-    const layout = getRoomLayout(layoutId);
-    return { w: Number(layout.w || CONFIG.GRID), d: Number(layout.d || CONFIG.GRID) };
-  }
-  function getWallLength(wall, layoutId = room?.layout) {
-    const size = getRoomSize(layoutId);
-    return normalizeWall(wall) === 'right' ? size.w : size.d;
-  }
-  function isLayoutUnlocked(layoutId) {
-    return normalizeUnlockedLayouts(room?.unlockedLayouts).includes(layoutId);
-  }
-  function watchEconomy(uid) {
-    unsubs.push(db.collection(CONFIG.COL_ECONOMY).doc(uid).onSnapshot(doc => {
-      const d = (doc.exists && doc.data()) || {};
-      coins = Number(d.djCoin ?? d.coin ?? 0) || 0; // purchaseShopItem과 동일한 폴백 규칙
-      if ($coin) $coin.textContent = coins.toLocaleString();
-      if (curTab !== 'style') renderSidebar(); // 구매 가능 여부 갱신
-    }, e => console.warn('[room] userEconomy 구독 실패', e)));
-  }
-  function watchInventory(uid) {
-    unsubs.push(db.collection(CONFIG.COL_INVENTORY).doc(uid).collection('items')
-      .onSnapshot(snap => {
-        owned = new Set();
-        snap.forEach(doc => owned.add(doc.id));
-        if (curTab !== 'style') renderSidebar();
-      }, e => console.warn('[room] userInventory 구독 실패', e)));
-  }
-  function isOwned(id) { return catalog[id] && (catalog[id].free || owned.has(id)); }
+
   function isWallItem(type) {
-    const it = catalog[type];
-    return !!it && (it.surface === 'wall' || it.drawKey === 'window' || it.drawKey === 'frame');
+    const item = catalog[type];
+    return !!item && (item.surface === 'wall' || item.layer === 'wall');
   }
-  function normalizeWall(value) {
-    return value === 'right' ? 'right' : 'left';
-  }
-  function getRotation(value) {
-    const rot = Math.round(Number(value) || 0) % 360;
-    return rot < 0 ? rot + 360 : rot;
-  }
-  function getFootprint(type, rot) {
-    const it = catalog[type];
-    const rotation = getRotation(rot);
-    if (!it) return { w: 0, d: 0 };
-    if (isWallItem(type)) return { w: 0, d: 0 };
-    if (!canRotateItem(type)) return { w: it.w, d: it.d };
-    return rotation === 90 || rotation === 270
-      ? { w: it.d, d: it.w }
-      : { w: it.w, d: it.d };
-  }
-  function getPlacementLayer(type, it = catalog[type] || {}) {
-    if (['floor', 'seat', 'surface', 'furniture', 'wall'].includes(it.layer)) return it.layer;
-    const id = String(type || it.id || '').toLowerCase();
-    const drawKey = String(it.drawKey || '').toLowerCase();
-    if (isWallItem(type)) return 'wall';
-    if (it.flat === true || drawKey === 'rug' || id.includes('rug') || id.includes('carpet')) return 'floor';
-    if (drawKey === 'chair' || id.includes('chair') || id.includes('seat')) return 'seat';
-    if (['desk', 'table', 'computer'].includes(drawKey) || id.includes('desk') || id.includes('table')) return 'surface';
-    return 'furniture';
-  }
-  function rectsOverlap(a, b) {
-    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.d && a.y + a.d > b.y;
-  }
-  function canOverlapFloorItems(typeA, typeB) {
-    const layerA = getPlacementLayer(typeA);
-    const layerB = getPlacementLayer(typeB);
-    if (layerA === 'floor' || layerB === 'floor') return true;
-    if ((layerA === 'seat' && layerB === 'surface') || (layerA === 'surface' && layerB === 'seat')) return true;
-    return false;
-  }
-  function getLayerSortWeight(type) {
-    return { floor: 0, furniture: 1, seat: 1.5, surface: 2, wall: 4 }[getPlacementLayer(type)] ?? 1;
-  }
-  function canRotateItem(type) {
-    const it = catalog[type] || {};
-    if (normalizeRenderType(it.renderType) === 'image') return hasRotationSprites(it);
-    const drawKey = it.drawKey || '';
-    return ['bed', 'desk', 'chair', 'shelf', 'piano', 'sofa', 'wardrobe', 'computer', 'table', 'toybox', 'tv', 'rug'].includes(drawKey);
-  }
-  function normalizePlacedItem(item) {
+
+  function normalizePlacedItem(item = {}) {
     if (isWallItem(item.type) || item.surface === 'wall') {
-      const it = catalog[item.type] || {};
+      const catalogItem = catalog[item.type] || {};
       return {
-        id: item.id,
+        id: Number(item.id || nextId++),
         type: item.type,
         surface: 'wall',
-        wall: normalizeWall(item.wall || it.wall),
+        wall: item.wall === 'left' ? 'left' : (catalogItem.wall || 'right'),
         wx: Number(item.wx ?? 2),
-        wz: Number(item.wz ?? 42),
+        wz: Number(item.wz ?? 48),
         rot: 0
       };
     }
     return {
-      id: item.id,
+      id: Number(item.id || nextId++),
       type: item.type,
-      gx: item.gx,
-      gy: item.gy,
-      rot: getRotation(item.rot)
+      gx: Number(item.gx || 0),
+      gy: Number(item.gy || 0),
+      rot: normalizeRotation(item.rot)
     };
   }
+
+  function normalizeRoomData(data = {}) {
+    const normalized = {
+      ...DEFAULT_ROOM,
+      ...data,
+      floor: normalizeFloor(data.floor),
+      wall: normalizeWall(data.wall),
+      skin: 'interiors',
+      layout: normalizeLayout(data.layout),
+      unlockedLayouts: normalizeUnlockedLayouts(data.unlockedLayouts),
+      lightsOn: data.lightsOn !== false,
+      lightLevel: normalizeLightLevel(data.lightLevel),
+      placed: Array.isArray(data.placed) ? data.placed.filter(p => catalog[p.type]).map(normalizePlacedItem) : []
+    };
+    return normalized;
+  }
+
+  async function loadRoom(uid) {
+    try {
+      const doc = await db.collection(CONFIG.COL_ROOM).doc(uid).get();
+      const data = doc.exists ? (doc.data() || {})[CONFIG.ROOM_FIELD] : null;
+      room = data && typeof data === 'object' ? normalizeRoomData(data) : deepClone(DEFAULT_ROOM);
+    } catch (error) {
+      console.warn('[room] userRoomSettings load failed.', error);
+      room = deepClone(DEFAULT_ROOM);
+    }
+    nextId = room.placed.reduce((max, item) => Math.max(max, Number(item.id || 0)), 0) + 1;
+  }
+
   function roomPayload() {
     return {
       [CONFIG.ROOM_FIELD]: {
-        floor: room.floor,
-        wall: room.wall,
-        skin: normalizeSkinId(room.skin),
-        layout: normalizeLayoutId(room.layout),
+        floor: normalizeFloor(room.floor),
+        wall: normalizeWall(room.wall),
+        skin: 'interiors',
+        layout: normalizeLayout(room.layout),
         unlockedLayouts: normalizeUnlockedLayouts(room.unlockedLayouts),
         lightsOn: room.lightsOn !== false,
         lightLevel: normalizeLightLevel(room.lightLevel),
         placed: room.placed.map(normalizePlacedItem)
       },
       userId: getUserId(),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
   }
+
   function scheduleSave() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      const uid = getUserId();
-      if (!uid) return;
+      const uid = getUserId && getUserId();
+      if (!uid || !room) return;
       try {
         await db.collection(CONFIG.COL_ROOM).doc(uid).set(roomPayload(), { merge: true });
-      } catch (e) {
-        console.error('[room] 저장 실패', e);
+      } catch (error) {
+        console.error('[room] save failed.', error);
         showToast('저장에 실패했어요. 잠시 후 다시 시도해 주세요.');
       }
     }, CONFIG.SAVE_DEBOUNCE_MS);
   }
+
+  function watchEconomy(uid) {
+    unsubs.push(db.collection(CONFIG.COL_ECONOMY).doc(uid).onSnapshot(doc => {
+      const data = doc.exists ? doc.data() || {} : {};
+      coins = Number(data.djCoin ?? data.coin ?? 0) || 0;
+      if ($coin) $coin.textContent = coins.toLocaleString();
+    }, error => console.warn('[room] economy watch failed.', error)));
+  }
+
+  function watchInventory(uid) {
+    unsubs.push(db.collection(CONFIG.COL_INVENTORY).doc(uid).collection('items').onSnapshot(snap => {
+      owned = new Set();
+      snap.forEach(doc => owned.add(doc.id));
+      renderSidebar();
+    }, error => console.warn('[room] inventory watch failed.', error)));
+  }
+
+  function isOwned(id) {
+    const item = catalog[id];
+    return !!item && (item.free === true || owned.has(id));
+  }
+
   async function purchase(id) {
-    const it = catalog[id];
-    if (coins < it.price) { showToast(`DJ코인이 부족해요! (${(it.price - coins).toLocaleString()}개 더 필요)`); return; }
+    const item = catalog[id];
+    if (!item) return;
+    if (coins < Number(item.price || 0)) {
+      showToast(`DJ코인이 부족해요! (${(Number(item.price || 0) - coins).toLocaleString()}개 더 필요)`);
+      return;
+    }
     try {
       showToast('구매 중...');
-      // 운영 시그니처: { memberUserId, itemId } — index.html:7251 클라이언트 호출부와 동일
       await fns.httpsCallable(CONFIG.PURCHASE_FN)({ memberUserId: getUserId(), itemId: id });
       owned.add(id);
       selectedId = null;
       movingId = null;
       placingType = id;
-      setTip(`「${it.name}」 구매 완료! 놓을 ${isWallItem(id) ? '벽 위치' : '바닥 칸'}을 눌러 배치하세요`);
+      setTip(`「${item.name}」 구매 완료! 놓을 위치를 선택하세요`);
       renderSidebar();
       render();
-      showToast(`🎉 ${it.name} 구매 완료!`);
-    } catch (e) {
-      console.error('[room] 구매 실패', e);
-      const code = e && e.code;
-      const message = String(e && e.message || '');
-      showToast(code === 'functions/not-found' ? '상품 정보가 아직 등록되지 않았어요.'
-        : code === 'functions/failed-precondition' && message.includes('disabled') ? '지금은 판매 중지된 가구예요.'
-        : code === 'functions/failed-precondition' && message.includes('Not enough') ? 'DJ코인이 부족해요.'
-        : code === 'functions/failed-precondition' ? '구매 조건을 확인해 주세요.'
-        : code === 'functions/already-exists' ? '이미 가지고 있는 아이템이에요!'
-        : '구매에 실패했어요.');
+      showToast(`${item.name} 구매 완료!`);
+    } catch (error) {
+      console.error('[room] purchase failed.', error);
+      showToast(error?.message || '구매에 실패했어요.');
     }
   }
 
-  /* ---------- 배치 검사 ---------- */
-  function fits(type, gx, gy, ignoreId) {
-    if (isWallItem(type)) return false;
-    const moving = room.placed.find(p => p.id === ignoreId);
-    return fitsWithRotation(type, gx, gy, moving ? moving.rot : 0, ignoreId);
+  function getRoomSize(layoutId = room?.layout) {
+    const layout = ROOM_LAYOUTS[normalizeLayout(layoutId)] || ROOM_LAYOUTS.cozy;
+    return { w: Number(layout.w || 8), d: Number(layout.d || 8) };
   }
-  function fitsWithRotation(type, gx, gy, rot = 0, ignoreId) {
-    const it = catalog[type];
-    if (!it) return false;
-    if (isWallItem(type)) return false;
-    const fp = getFootprint(type, rot);
+
+  function getLayer(type) {
+    const item = catalog[type] || {};
+    if (isWallItem(type)) return 'wall';
+    return normalizeLayer(item.layer) || (item.flat ? 'floor' : 'furniture');
+  }
+
+  function getFootprint(type, rot = 0) {
+    const item = catalog[type];
+    if (!item || isWallItem(type)) return { w: 0, d: 0 };
+    if (!canRotateItem(type)) return { w: item.w, d: item.d };
+    const rotation = normalizeRotation(rot);
+    return rotation === 90 || rotation === 270
+      ? { w: item.d, d: item.w }
+      : { w: item.w, d: item.d };
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.d && a.y + a.d > b.y;
+  }
+
+  function canOverlap(typeA, typeB) {
+    const a = getLayer(typeA);
+    const b = getLayer(typeB);
+    if (a === 'floor' || b === 'floor') return true;
+    if ((a === 'seat' && b === 'surface') || (a === 'surface' && b === 'seat')) return true;
+    return false;
+  }
+
+  function fits(type, gx, gy, ignoreId = null, rot = null) {
+    const item = catalog[type];
+    if (!item || isWallItem(type)) return false;
+    const moving = ignoreId ? room.placed.find(p => p.id === ignoreId) : null;
+    const rotation = rot == null ? normalizeRotation(moving?.rot || 0) : normalizeRotation(rot);
+    const fp = getFootprint(type, rotation);
     const size = getRoomSize();
     if (gx < 0 || gy < 0 || gx + fp.w > size.w || gy + fp.d > size.d) return false;
     const rect = { x: gx, y: gy, w: fp.w, d: fp.d };
-    return !room.placed.some(p => {
-      if (p.id === ignoreId) return false;
-      const o = catalog[p.type];
-      if (isWallItem(p.type)) return false;
-      if (!o || canOverlapFloorItems(type, p.type)) return false;
-      const ofp = getFootprint(p.type, p.rot);
-      return rectsOverlap(rect, { x: Number(p.gx || 0), y: Number(p.gy || 0), w: ofp.w, d: ofp.d });
+    return room.placed.every(other => {
+      if (other.id === ignoreId || isWallItem(other.type)) return true;
+      const otherFp = getFootprint(other.type, other.rot);
+      const otherRect = { x: other.gx, y: other.gy, w: otherFp.w, d: otherFp.d };
+      return !rectsOverlap(rect, otherRect) || canOverlap(type, other.type);
     });
   }
-  function getWallSize(type, wall = 'left', layoutId = room?.layout) {
-    const it = catalog[type] || {};
-    const wallLength = getWallLength(wall, layoutId);
-    return {
-      w: Math.max(.5, Math.min(wallLength, Number(it.ww || it.w || 1.8))),
-      h: Math.max(10, Math.min(WALL_H - 8, Number(it.wh || it.h || 32)))
-    };
+
+  function fitsWithRotation(type, gx, gy, rot, ignoreId = null) {
+    return fits(type, gx, gy, ignoreId, rot);
   }
-  function fitsWall(type, wall, wx, wz, ignoreId) {
-    if (!isWallItem(type)) return false;
-    const size = getWallSize(type, wall);
-    const u = Number(wx), z = Number(wz);
-    if (!Number.isFinite(u) || !Number.isFinite(z)) return false;
-    const wallLength = getWallLength(wall);
-    if (u < .25 || u + size.w > wallLength - .25 || z < 12 || z + size.h > WALL_H - 8) return false;
-    return !room.placed.some(p => {
-      if (p.id === ignoreId || !isWallItem(p.type)) return false;
-      if (normalizeWall(p.wall) !== normalizeWall(wall)) return false;
-      const other = getWallSize(p.type, p.wall);
-      const pu = Number(p.wx ?? 0), pz = Number(p.wz ?? 0);
-      return u < pu + other.w && u + size.w > pu && z < pz + other.h && z + size.h > pz;
-    });
+
+  function getWallLength(wall) {
+    const size = getRoomSize();
+    return wall === 'left' ? size.d : size.w;
   }
+
+  function getWallSize(type) {
+    const item = catalog[type] || {};
+    return { w: Number(item.ww || 1), h: Number(item.wh || item.h || 40) };
+  }
+
   function wallSlots() {
     const slots = [];
-    ['left', 'right'].forEach(wall => {
-      const wallLength = getWallLength(wall);
-      for (let wx = 1; wx <= wallLength - 1.7; wx += 2.2) {
-        [30, 62].forEach(wz => slots.push({ wall, wx: Number(wx.toFixed(1)), wz }));
+    for (const wall of ['left', 'right']) {
+      const length = getWallLength(wall);
+      for (let u = 1; u < length; u += 1) {
+        slots.push({ surface: 'wall', wall, wx: u, wz: 44 });
+        slots.push({ surface: 'wall', wall, wx: u, wz: 72 });
       }
-    });
+    }
     return slots;
   }
+
+  function fitsWall(type, wall, wx, wz, ignoreId = null) {
+    const size = getWallSize(type);
+    if (wx < 0 || wz < 16 || wx + size.w > getWallLength(wall) || wz + size.h > WALL_H - 8) return false;
+    return room.placed.every(other => {
+      if (other.id === ignoreId || !isWallItem(other.type) || other.wall !== wall) return true;
+      const otherSize = getWallSize(other.type);
+      return wx >= other.wx + otherSize.w
+        || wx + size.w <= other.wx
+        || wz >= other.wz + otherSize.h
+        || wz + size.h <= other.wz;
+    });
+  }
+
   function canUseLayout(layoutId) {
     const size = getRoomSize(layoutId);
     return room.placed.every(item => {
-      if (!catalog[item.type]) return true;
       if (isWallItem(item.type)) {
-        const wall = normalizeWall(item.wall);
-        const wallLength = getWallLength(wall, layoutId);
-        const itemSize = getWallSize(item.type, wall, layoutId);
-        const u = Number(item.wx ?? 0);
-        return u >= .25 && u + itemSize.w <= wallLength - .25;
+        const itemSize = getWallSize(item.type);
+        return item.wx + itemSize.w <= (item.wall === 'left' ? size.d : size.w);
       }
       const fp = getFootprint(item.type, item.rot);
-      return Number(item.gx) >= 0 && Number(item.gy) >= 0
-        && Number(item.gx) + fp.w <= size.w
-        && Number(item.gy) + fp.d <= size.d;
+      return item.gx + fp.w <= size.w && item.gy + fp.d <= size.d;
     });
   }
+
+  function isLayoutUnlocked(layoutId) {
+    return normalizeUnlockedLayouts(room?.unlockedLayouts).includes(layoutId);
+  }
+
   async function chooseLayout(layoutId) {
     const layout = ROOM_LAYOUTS[layoutId];
     if (!layout) return;
     if (!canUseLayout(layoutId)) {
-      showToast('작은 집으로 가려면 바깥쪽 가구를 먼저 옮겨야 해요.');
+      showToast('현재 배치된 가구가 새 집 크기를 벗어나요.');
       return;
     }
     if (isLayoutUnlocked(layoutId)) {
       room.layout = layoutId;
       room.unlockedLayouts = normalizeUnlockedLayouts(room.unlockedLayouts);
-      renderSidebar(); render(); scheduleSave();
+      renderSidebar();
+      render();
+      scheduleSave();
       showToast(`${layout.name}으로 변경했어요`);
       return;
     }
@@ -823,505 +531,518 @@ window.RoomDecor = (function () {
       const result = await fns.httpsCallable(CONFIG.PURCHASE_LAYOUT_FN)({ memberUserId: getUserId(), layoutId });
       room.layout = result?.data?.layoutId || layoutId;
       room.unlockedLayouts = normalizeUnlockedLayouts(result?.data?.unlockedLayouts);
-      if (Number.isFinite(Number(result?.data?.nextDjCoin))) {
-        coins = Number(result.data.nextDjCoin);
-        if ($coin) $coin.textContent = coins.toLocaleString();
-      }
-      renderSidebar(); render(); scheduleSave();
+      renderSidebar();
+      render();
       showToast(`${layout.name}으로 이사했어요`);
-    } catch (e) {
-      console.error('[room] 집 타입 구매 실패', e);
-      const code = e && e.code;
-      const message = String(e && e.message || '');
-      showToast(code === 'functions/failed-precondition' && message.includes('Not enough') ? 'DJ코인이 부족해요.'
-        : code === 'functions/failed-precondition' && message.includes('disabled') ? '집 꾸미기가 점검 중입니다.'
-        : '이사에 실패했어요.');
+    } catch (error) {
+      console.error('[room] layout purchase failed.', error);
+      showToast(error?.message || '이사에 실패했어요.');
     }
   }
-  function getHoverItem(type, item) {
-    if (!type || !item) return null;
-    if (isWallItem(type)) {
-      const it = catalog[type] || {};
-      return {
-        type,
-        surface: 'wall',
-        wall: normalizeWall(item.wall || it.wall),
-        wx: Number(item.wx ?? 2),
-        wz: Number(item.wz ?? 42),
-        rot: 0
-      };
+
+  function canRotateItem(type) {
+    return hasRotationSprites(catalog[type] || {});
+  }
+
+  function floorSortKey(item) {
+    const fp = getFootprint(item.type, item.rot);
+    return (item.gx + fp.w + item.gy + fp.d) * 100 + (catalog[item.type]?.zIndexOffset || 0);
+  }
+
+  function layerSortWeight(type) {
+    return { floor: 0, furniture: 1, seat: 1.5, surface: 2, wall: 4 }[getLayer(type)] ?? 1;
+  }
+
+  function tileAnchor(gx, gy, fp) {
+    return iso(gx + fp.w / 2, gy + fp.d / 2, 0);
+  }
+
+  function renderImage(x, y, href, width, height, extra = '') {
+    return `<image href="${escAttr(href)}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"${extra}/>`;
+  }
+
+  function renderFloorTile(gx, gy, hoverActive) {
+    const asset = FLOOR_STYLES[normalizeFloor(room.floor)].asset;
+    const [x, y] = iso(gx, gy);
+    const tilePoly = points([iso(gx, gy), iso(gx + 1, gy), iso(gx + 1, gy + 1), iso(gx, gy + 1)]);
+    return renderImage(x - 32, y - 16, asset, 64, 64, ' style="pointer-events:none"')
+      + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${tilePoly}" fill="${hoverActive ? '#ffd23f' : '#fff'}" fill-opacity="${hoverActive ? '.32' : '.01'}" stroke="#211820" stroke-opacity=".18" stroke-width="1"/>`;
+  }
+
+  function renderWalls(size) {
+    const style = WALL_STYLES[normalizeWall(room.wall)];
+    let html = '';
+    for (let gy = size.d - 1; gy >= 0; gy -= 1) {
+      const [x, y] = iso(0, gy);
+      html += renderImage(x - 32, y - 80, style.left, 64, 64, ' style="pointer-events:none"');
     }
-    return { type, gx: item.gx, gy: item.gy, rot: item.rot || 0 };
+    for (let gx = size.w - 1; gx >= 0; gx -= 1) {
+      const [x, y] = iso(gx, 0);
+      html += renderImage(x - 32, y - 80, style.right, 64, 64, ' style="pointer-events:none"');
+    }
+    const leftBase = points([iso(0, 0, 0), iso(0, size.d, 0), iso(0, size.d, 8), iso(0, 0, 8)]);
+    const rightBase = points([iso(0, 0, 0), iso(size.w, 0, 0), iso(size.w, 0, 8), iso(0, 0, 8)]);
+    html += `<polygon points="${leftBase}" fill="#2a2025" opacity=".35" style="pointer-events:none"/>`;
+    html += `<polygon points="${rightBase}" fill="#2a2025" opacity=".25" style="pointer-events:none"/>`;
+    return html;
   }
 
-  /* ---------- 렌더링 ---------- */
-  function getObjectMarkup(item) {
-    const it = catalog[item.type];
-    if (!it) return '';
-    const rot = getRotation(item.rot);
-    const facing = getFacing(rot);
-    const surface = getItemSurface(item);
-    return surface === 'wall'
-      ? renderWallObject(item, it, rot, facing)
-      : renderFloorObject(item, it, rot, facing);
-  }
-
-  function renderFloorObject(item, it, rot = 0, facing = 'south') {
-    if (normalizeRenderType(it.renderType) === 'image') return renderFloorImageItem(item, it, rot, facing);
-    return renderDrawItem(item, it, rot, facing);
-  }
-
-  function renderWallObject(item, it, rot = 0, facing = 'south') {
-    if (normalizeRenderType(it.renderType) === 'image') return renderWallImageItem(item, it, rot, facing);
-    return renderDrawItem(item, it, rot, facing);
-  }
-
-  function renderDrawItem(item, it, rot = 0) {
-    if (isImageAssetSkin()) return '';
-    if (!it.drawKey || !DRAW[it.drawKey]) return '';
-    return DRAW[it.drawKey](item.gx || 0, item.gy || 0, canRotateItem(item.type) ? rot : 0, item);
-  }
-
-  function renderFloorImageItem(item, it, rot = 0) {
-    const href = imageUrlForRotation(it, canRotateItem(item.type) ? rot : 0);
+  function renderFloorObject(item) {
+    const def = catalog[item.type];
+    if (!def) return '';
+    const rot = normalizeRotation(item.rot);
+    const href = imageUrlForRotation(def, canRotateItem(item.type) ? rot : 0);
     if (!href) return '';
-    const { width, height } = imageSize(it);
-    const anchorX = Number(it.anchorX || 0) || width / 2;
-    const anchorY = Number(it.anchorY || 0) || height;
-    const offsetX = Number(it.offsetX || 0) || 0;
-    const offsetY = Number(it.offsetY || 0) || 0;
-    const placementOffset = placementOffsetForRotation(it, rot);
-    const anchor = getFloorAnchor(item);
-    return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX + placementOffset.x).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY + placementOffset.y).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"/>`;
+    const fp = getFootprint(item.type, rot);
+    const [sx, sy] = tileAnchor(item.gx, item.gy, fp);
+    const width = Number(def.pixelWidth || 0) || 64;
+    const height = Number(def.pixelHeight || 0) || 64;
+    const anchorX = Number(def.anchorX || 0) || width / 2;
+    const anchorY = Number(def.anchorY || 0) || height;
+    const placement = placementOffsetForRotation(def, rot);
+    const x = sx - anchorX + Number(def.offsetX || 0) + placement.x;
+    const y = sy - anchorY + Number(def.offsetY || 0) + placement.y;
+    return renderImage(x, y, href, width, height);
   }
 
-  function renderWallImageItem(item, it, rot = 0) {
-    const href = imageUrlForRotation(it, canRotateItem(item.type) ? rot : 0);
+  function wallAnchor(item) {
+    if (item.wall === 'left') return iso(0, Number(item.wx || 0), Number(item.wz || 48));
+    return iso(Number(item.wx || 0), 0, Number(item.wz || 48));
+  }
+
+  function renderWallObject(item) {
+    const def = catalog[item.type];
+    if (!def) return '';
+    const href = imageUrlForRotation(def, 0);
     if (!href) return '';
-    const { width, height } = imageSize(it);
-    const anchorX = Number(it.anchorX || 0) || width / 2;
-    const anchorY = Number(it.anchorY || 0) || height / 2;
-    const offsetX = Number(it.offsetX || 0) || 0;
-    const offsetY = Number(it.offsetY || 0) || 0;
-    const anchor = getWallAnchor(item);
-    return `<image href="${escAttr(href)}" x="${(anchor.screen[0] - anchorX + offsetX).toFixed(1)}" y="${(anchor.screen[1] - anchorY + offsetY).toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMid meet"/>`;
+    const [sx, sy] = wallAnchor(item);
+    const width = Number(def.pixelWidth || 0) || 64;
+    const height = Number(def.pixelHeight || 0) || 64;
+    const anchorX = Number(def.anchorX || 0) || width / 2;
+    const anchorY = Number(def.anchorY || 0) || height / 2;
+    return renderImage(sx - anchorX + Number(def.offsetX || 0), sy - anchorY + Number(def.offsetY || 0), href, width, height);
   }
 
-  function getRoomSkin() {
-    return ROOM_SKINS[normalizeSkinId(room?.skin)] || ROOM_SKINS.legacy;
+  function objectMarkup(item) {
+    return isWallItem(item.type) ? renderWallObject(item) : renderFloorObject(item);
   }
 
-  function isImageAssetSkin(skinId = getRoomSkin().id) {
-    return skinId === 'kenney' || skinId === 'interiors';
+  function wallSlotMarkup(slot, active) {
+    const u = Number(slot.wx || 0);
+    const z = Number(slot.wz || 48);
+    const wall = slot.wall === 'left' ? 'left' : 'right';
+    const a = wall === 'left' ? iso(0, u, z + 22) : iso(u, 0, z + 22);
+    const b = wall === 'left' ? iso(0, u + 1, z + 22) : iso(u + 1, 0, z + 22);
+    const c = wall === 'left' ? iso(0, u + 1, z) : iso(u + 1, 0, z);
+    const d = wall === 'left' ? iso(0, u, z) : iso(u, 0, z);
+    return `<polygon class="rd-wall-tile" data-wall="${wall}" data-wx="${u}" data-wz="${z}" points="${points([a, b, c, d])}" fill="${active ? '#ffd23f' : '#fff'}" fill-opacity="${active ? '.34' : '.1'}" stroke="#211820" stroke-opacity=".12" stroke-width="1"/>`;
   }
 
-  function renderFloorTile(gx, gy, fill, stroke, isHover) {
-    const points = P([C(gx, gy), C(gx + 1, gy), C(gx + 1, gy + 1), C(gx, gy + 1)]);
-    const skinId = getRoomSkin().id;
-    if (!isImageAssetSkin(skinId)) {
-      return `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${points}" fill="${fill}" stroke="${stroke}" stroke-width="1" ${isHover ? 'opacity="0.85"' : ''}/>`;
-    }
-    if (skinId === 'interiors') {
-      const [x, y] = C(gx, gy);
-      const floorAsset = INTERIORS_FLOOR_ASSETS[room?.floor] || INTERIORS_FLOOR_ASSETS.wood;
-      return `<image href="${escAttr(floorAsset)}" x="${(x - 32).toFixed(1)}" y="${(y - 16).toFixed(1)}" width="64" height="64" preserveAspectRatio="xMidYMin meet" style="pointer-events:none"/>`
-        + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${points}" fill="${isHover ? '#ffd23f' : '#ffffff'}" fill-opacity="${isHover ? '.28' : '.01'}" stroke="#31212b" stroke-opacity=".16" stroke-width="1"/>`;
-    }
-    const [x, y] = C(gx, gy);
-    const tileW = TW2 * 2.08;
-    const tileH = TH2 * 4.48;
-    return `<image href="/images/room-assets/kenney/floorFull_SE.png" x="${(x - tileW / 2).toFixed(1)}" y="${(y - 1).toFixed(1)}" width="${tileW.toFixed(1)}" height="${tileH.toFixed(1)}" preserveAspectRatio="xMidYMin meet" style="pointer-events:none"/>`
-      + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${points}" fill="${isHover ? '#ffd23f' : '#ffffff'}" fill-opacity="${isHover ? '.28' : '.01'}" stroke="#35283f" stroke-opacity=".18" stroke-width="1"/>`;
-  }
-
-  function getWallPalette(baseWall) {
-    const skinId = getRoomSkin().id;
-    if (skinId === 'interiors') return INTERIORS_WALL_PALETTES[room?.wall] || INTERIORS_WALL_PALETTES.cream;
-    if (skinId !== 'kenney') return baseWall;
-    return { l: '#f8f2e3', r: '#fff8e8', name: 'Kenney' };
-  }
-
-  function renderKenneyWallTrim(Gx, Gy) {
-    const topLeft = P([C(0, 0, WALL_H + 1), C(0, Gy, WALL_H + 1), C(0, Gy, WALL_H - 4), C(0, 0, WALL_H - 4)]);
-    const topRight = P([C(0, 0, WALL_H + 1), C(Gx, 0, WALL_H + 1), C(Gx, 0, WALL_H - 4), C(0, 0, WALL_H - 4)]);
-    const baseLeft = P([C(0, 0, 7), C(0, Gy, 7), C(0, Gy, 0), C(0, 0, 0)]);
-    const baseRight = P([C(0, 0, 7), C(Gx, 0, 7), C(Gx, 0, 0), C(0, 0, 0)]);
-    return `<polygon points="${topLeft}" fill="#ffc678" stroke="#2a201a" stroke-opacity=".12" stroke-width="1"/>`
-      + `<polygon points="${topRight}" fill="#ffd08a" stroke="#2a201a" stroke-opacity=".12" stroke-width="1"/>`
-      + `<polygon points="${baseLeft}" fill="#d8d1bf" stroke="#2a201a" stroke-opacity=".14" stroke-width="1"/>`
-      + `<polygon points="${baseRight}" fill="#ece4d1" stroke="#2a201a" stroke-opacity=".14" stroke-width="1"/>`;
-  }
-
-  function renderInteriorsWallTrim(Gx, Gy) {
-    const topLeft = P([C(0, 0, WALL_H + 1), C(0, Gy, WALL_H + 1), C(0, Gy, WALL_H - 4), C(0, 0, WALL_H - 4)]);
-    const topRight = P([C(0, 0, WALL_H + 1), C(Gx, 0, WALL_H + 1), C(Gx, 0, WALL_H - 4), C(0, 0, WALL_H - 4)]);
-    const baseLeft = P([C(0, 0, 7), C(0, Gy, 7), C(0, Gy, 0), C(0, 0, 0)]);
-    const baseRight = P([C(0, 0, 7), C(Gx, 0, 7), C(Gx, 0, 0), C(0, 0, 0)]);
-    return `<polygon points="${topLeft}" fill="#51414a" stroke="#21171d" stroke-opacity=".25" stroke-width="1"/>`
-      + `<polygon points="${topRight}" fill="#5e4a52" stroke="#21171d" stroke-opacity=".25" stroke-width="1"/>`
-      + `<polygon points="${baseLeft}" fill="#cfc8b6" stroke="#21171d" stroke-opacity=".18" stroke-width="1"/>`
-      + `<polygon points="${baseRight}" fill="#eee6d4" stroke="#21171d" stroke-opacity=".18" stroke-width="1"/>`;
-  }
-
-  function canRenderInCurrentSkin(it = {}) {
-    const skinId = getRoomSkin().id;
-    if (skinId === 'kenney') return normalizeRenderType(it.renderType) === 'image' && String(it.id || '').startsWith('room_kenney_');
-    if (skinId === 'interiors') return normalizeRenderType(it.renderType) === 'image' && String(it.id || '').startsWith('room_interiors_');
-    return !String(it.id || '').startsWith('room_kenney_') && !String(it.id || '').startsWith('room_interiors_');
-  }
-
-  function applySampleRoom(samples, skinId, label) {
-    const next = [];
-    samples.forEach(sample => {
-      const it = catalog[sample.type];
-      if (!it || !canRenderCatalogItem(it)) return;
-      if (!isOwned(sample.type)) return;
-      next.push({ id: nextId++, ...sample });
-    });
-    if (!next.length) {
-      showToast(`보유한 ${label} 가구가 아직 없어요`);
-      return;
-    }
-    room.placed = next;
-    room.skin = skinId;
-    renderSidebar(); render(); scheduleSave();
-    showToast(`${label} 샘플방을 배치했어요`);
-  }
-
-  function applyKenneyShowroom() {
-    applySampleRoom(KENNEY_SHOWROOM_ITEMS, 'kenney', 'Kenney');
-  }
-
-  function applyInteriorsShowroom() {
-    applySampleRoom(INTERIORS_SHOWROOM_ITEMS, 'interiors', 'Interiors');
-  }
-  function applyZoom() {
-    if (!$svg) return;
-    $svg.style.transform = `scale(${zoom.toFixed(2)})`;
-    if ($zoomLabel) $zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
-  }
-  function setZoom(nextZoom) {
-    zoom = Math.min(CONFIG.MAX_ZOOM, Math.max(CONFIG.MIN_ZOOM, Number(nextZoom) || 1));
-    applyZoom();
-  }
   function render() {
     if (!$svg || !room) return;
-    const F = FLOORS[room.floor] || FLOORS.wood, W = getWallPalette(WALLS[room.wall] || WALLS.cream);
-    const roomSize = getRoomSize();
-    const Gx = roomSize.w, Gy = roomSize.d;
-    const viewX = -Gy * TW2 - 90;
-    const viewY = -WALL_H - 52;
-    const viewW = (Gx + Gy) * TW2 + 180;
-    const viewH = (Gx + Gy) * TH2 + WALL_H + 150;
+    const size = getRoomSize();
+    const viewX = -size.d * HALF_W - 110;
+    const viewY = -WALL_H - 80;
+    const viewW = (size.w + size.d) * HALF_W + 220;
+    const viewH = (size.w + size.d) * HALF_H + WALL_H + 160;
     $svg.setAttribute('viewBox', `${viewX} ${viewY} ${viewW} ${viewH}`);
-    let s = `<polygon points="${P([C(-.3, -.3, -6), C(Gx + .3, -.3, -6), C(Gx + .3, Gy + .3, -6), C(-.3, Gy + .3, -6)])}" fill="#000" fill-opacity="0.3"/>`;
-    s += poly([C(0, 0, WALL_H), C(0, Gy, WALL_H), C(0, Gy, 0), C(0, 0, 0)], W.l);
-    s += poly([C(0, 0, WALL_H), C(Gx, 0, WALL_H), C(Gx, 0, 0), C(0, 0, 0)], W.r);
-    if (getRoomSkin().id === 'kenney') s += renderKenneyWallTrim(Gx, Gy);
-    if (getRoomSkin().id === 'interiors') s += renderInteriorsWallTrim(Gx, Gy);
-    const ghostType = placingType || (movingId && (room.placed.find(p => p.id === movingId) || {}).type);
-    const wallActive = ghostType && isWallItem(ghostType);
-    if (wallActive) {
+
+    let html = `<polygon points="${points([iso(-.4, -.4, -10), iso(size.w + .4, -.4, -10), iso(size.w + .4, size.d + .4, -10), iso(-.4, size.d + .4, -10)])}" fill="#0b0b20" opacity=".7"/>`;
+    html += renderWalls(size);
+
+    const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
+    const wallMode = ghostType && isWallItem(ghostType);
+    if (wallMode) {
       for (const slot of wallSlots()) {
-        const hov = hover && hover.surface === 'wall'
-          && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
-        const slotSize = getWallSize(ghostType, slot.wall);
-        s += wallRect(slot.wall, slot.wx, slot.wz, slotSize.w, slotSize.h, hov ? '#ffd23f' : '#ffffff', hov ? .34 : .12)
-          .replace('<polygon ', `<polygon class="rd-wall-tile" data-wall="${slot.wall}" data-wx="${slot.wx}" data-wz="${slot.wz}" `);
+        const active = hover && hover.surface === 'wall' && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
+        html += wallSlotMarkup(slot, active);
       }
     }
-    const wallItems = room.placed.filter(p => catalog[p.type] && isWallItem(p.type) && canRenderInCurrentSkin(catalog[p.type]));
-    for (const p of wallItems) {
-      if (p.id === movingId && hover) continue;
-      s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
+
+    const wallItems = room.placed.filter(item => catalog[item.type] && isWallItem(item.type));
+    for (const item of wallItems) {
+      if (item.id === movingId && hover) continue;
+      html += `<g class="rd-obj${item.id === selectedId ? ' sel' : ''}" data-id="${item.id}">${objectMarkup(item)}</g>`;
     }
-    s += poly([C(0, 0, 7), C(0, Gy, 7), C(0, Gy, 0), C(0, 0, 0)], shade(W.l, .82));
-    s += poly([C(0, 0, 7), C(Gx, 0, 7), C(Gx, 0, 0), C(0, 0, 0)], shade(W.r, .82));
-    for (let gy = 0; gy < Gy; gy++) for (let gx = 0; gx < Gx; gx++) {
-      const c = (gx + gy) % 2 ? F.b : F.a;
-      const hov = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
-      s += renderFloorTile(gx, gy, c, shade(F.b, .8), hov);
+
+    for (let gy = 0; gy < size.d; gy += 1) {
+      for (let gx = 0; gx < size.w; gx += 1) {
+        const active = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
+        html += renderFloorTile(gx, gy, active);
+      }
     }
-    const sorted = room.placed.filter(p => catalog[p.type] && !isWallItem(p.type) && canRenderInCurrentSkin(catalog[p.type])).sort((a, b) => {
-      const layerDiff = getLayerSortWeight(a.type) - getLayerSortWeight(b.type);
-      if (layerDiff) return layerDiff;
-      return getFloorSortKey(a) - getFloorSortKey(b);
-    });
-    for (const p of sorted) {
-      if (p.id === movingId && hover) continue;
-      s += `<g class="rd-obj${p.id === selectedId ? ' sel' : ''}" data-id="${p.id}">${getObjectMarkup(p)}</g>`;
+
+    const floorItems = room.placed
+      .filter(item => catalog[item.type] && !isWallItem(item.type))
+      .sort((a, b) => {
+        const layerDiff = layerSortWeight(a.type) - layerSortWeight(b.type);
+        return layerDiff || floorSortKey(a) - floorSortKey(b);
+      });
+    for (const item of floorItems) {
+      if (item.id === movingId && hover) continue;
+      html += `<g class="rd-obj${item.id === selectedId ? ' sel' : ''}" data-id="${item.id}">${objectMarkup(item)}</g>`;
     }
+
     if (ghostType && hover && catalog[ghostType]) {
       const moving = movingId ? room.placed.find(p => p.id === movingId) : null;
       const rot = moving ? moving.rot : 0;
       if (isWallItem(ghostType) && hover.surface === 'wall') {
         const ok = fitsWall(ghostType, hover.wall, hover.wx, hover.wz, movingId);
-        const ghost = getHoverItem(ghostType, hover);
-        const wallSize = getWallSize(ghostType, hover.wall);
-        s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' : wallRect(hover.wall, hover.wx, hover.wz, wallSize.w, wallSize.h, '#e2574c', .55)}${getObjectMarkup(ghost)}</g>`;
+        const ghost = { type: ghostType, surface: 'wall', wall: hover.wall, wx: hover.wx, wz: hover.wz, rot: 0 };
+        html += `<g opacity=".58" style="pointer-events:none">${ok ? '' : wallSlotMarkup(hover, true)}${objectMarkup(ghost)}</g>`;
       } else if (!isWallItem(ghostType) && hover.surface !== 'wall') {
-        const ok = fits(ghostType, hover.gx, hover.gy, movingId);
+        const ok = fits(ghostType, hover.gx, hover.gy, movingId, rot);
         const fp = getFootprint(ghostType, rot);
-        s += `<g opacity="0.55" style="pointer-events:none">${ok ? '' :
-          `<polygon points="${P([C(hover.gx, hover.gy), C(hover.gx + fp.w, hover.gy), C(hover.gx + fp.w, hover.gy + fp.d), C(hover.gx, hover.gy + fp.d)])}" fill="#e2574c" fill-opacity="0.6"/>`
-        }${getObjectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
+        if (!ok) {
+          html += `<polygon points="${points([iso(hover.gx, hover.gy), iso(hover.gx + fp.w, hover.gy), iso(hover.gx + fp.w, hover.gy + fp.d), iso(hover.gx, hover.gy + fp.d)])}" fill="#e2574c" fill-opacity=".55" style="pointer-events:none"/>`;
+        }
+        html += `<g opacity=".58" style="pointer-events:none">${objectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
       }
     }
+
     const lightLevel = normalizeLightLevel(room.lightLevel);
     const dimOpacity = room.lightsOn === false ? .48 : Math.max(0, (100 - lightLevel) / 100 * .26);
-    if (dimOpacity > 0) {
-      s += `<rect x="-1000" y="-1000" width="2000" height="2000" fill="#050719" opacity="${dimOpacity.toFixed(2)}" style="pointer-events:none"/>`;
-    }
+    if (dimOpacity > 0) html += `<rect x="-1000" y="-1000" width="2000" height="2000" fill="#050719" opacity="${dimOpacity.toFixed(2)}" style="pointer-events:none"/>`;
     if (room.lightsOn !== false && lightLevel >= 70) {
-      const [gx, gy] = C(Gx * .5, Gy * .2, WALL_H - 10);
-      s += `<ellipse cx="${gx}" cy="${gy}" rx="${70 + lightLevel * .35}" ry="${24 + lightLevel * .12}" fill="#fff0a8" opacity="${(lightLevel / 100 * .16).toFixed(2)}" style="pointer-events:none"/>`;
+      const [lx, ly] = iso(size.w * .58, size.d * .18, WALL_H - 20);
+      html += `<ellipse cx="${lx}" cy="${ly}" rx="${70 + lightLevel * .35}" ry="${24 + lightLevel * .12}" fill="#fff0a8" opacity="${(lightLevel / 100 * .16).toFixed(2)}" style="pointer-events:none"/>`;
     }
-    $svg.innerHTML = s;
+
+    $svg.innerHTML = html;
     $svg.classList.toggle('placing', !!(placingType || movingId));
     applyZoom();
   }
-  function itemThumb(it) {
-    const imageThumb = it.thumbUrl || imageUrlForRotation(it, 0);
-    if (normalizeRenderType(it.renderType) === 'image' && imageThumb) {
-      return `<img class="rd-thumb-img" src="${escAttr(imageThumb)}" alt="${escAttr(it.name || '')}" loading="lazy">`;
-    }
-    if (isWallItem(it.id)) {
-      return `<svg viewBox="-90 -120 180 150">${DRAW[it.drawKey](0, 0, 0, { type: it.id, wall: it.wall || 'left', wx: 1.2, wz: 22 })}</svg>`;
-    }
-    const minX = -it.d * TW2 - 6, w = (it.w + it.d) * TW2 + 12;
-    const minY = -it.h - 8, h = (it.w + it.d) * TH2 + it.h + 16;
-    return `<svg viewBox="${minX} ${minY} ${w} ${h}">${DRAW[it.drawKey](0, 0)}</svg>`;
+
+  function itemThumb(item) {
+    const href = item.thumbUrl || imageUrlForRotation(item, 0);
+    return `<img class="rd-thumb-img" src="${escAttr(href)}" alt="${escAttr(item.name || '')}" loading="lazy">`;
   }
+
   function renderSidebar() {
-    if (!$grid) return;
+    if (!$grid || !$styleGrid || !room) return;
     if (curTab === 'style') {
-      $grid.style.display = 'none'; $styleGrid.style.display = 'block';
+      $grid.style.display = 'none';
+      $styleGrid.style.display = 'block';
       $styleGrid.innerHTML =
         `<h4>조명</h4><div class="rd-control-row">` +
           `<button class="rd-light-toggle${room.lightsOn === false ? '' : ' on'}" data-light-toggle type="button">${room.lightsOn === false ? '불 켜기' : '불 끄기'}</button>` +
           `<label class="rd-range-label">밝기 <strong>${normalizeLightLevel(room.lightLevel)}%</strong><input data-light-level type="range" min="20" max="100" step="10" value="${normalizeLightLevel(room.lightLevel)}"${room.lightsOn === false ? ' disabled' : ''}></label>` +
         `</div>` +
-        `<h4>방 스킨</h4><div class="rd-skin-grid">${Object.values(ROOM_SKINS).filter(skin => skin.visible !== false).map(skin => {
-          const active = normalizeSkinId(room.skin) === skin.id;
-          return `<button class="rd-skin-card${active ? ' on' : ''}" data-skin="${skin.id}" type="button">
-            <strong>${skin.name}</strong><small>${skin.desc}</small>
-          </button>`;
-        }).join('')}</div>` +
-        `${normalizeSkinId(room.skin) === 'kenney' ? '<button class="rd-showroom-button" data-kenney-showroom type="button">Kenney 샘플방 배치</button>' : ''}` +
-        `${normalizeSkinId(room.skin) === 'interiors' ? '<button class="rd-showroom-button" data-interiors-showroom type="button">Interiors 샘플방 배치</button>' : ''}` +
+        `<button class="rd-showroom-button" data-native-showroom type="button">Interiors 예시방 배치</button>` +
         `<h4>집 크기</h4><div class="rd-layout-grid">${Object.values(ROOM_LAYOUTS).map(layout => {
           const unlocked = isLayoutUnlocked(layout.id);
-          const active = normalizeLayoutId(room.layout) === layout.id;
+          const active = normalizeLayout(room.layout) === layout.id;
           return `<button class="rd-layout-card${active ? ' on' : ''}${unlocked ? '' : ' locked'}" data-layout="${layout.id}" type="button">
             <span><strong>${layout.name}</strong><small>${layout.desc} · ${layout.w}x${layout.d}</small></span>
-            <em>${unlocked ? (active ? '사용 중' : '선택') : `🪙 ${Number(layout.price || 0).toLocaleString()}`}</em>
+            <em>${unlocked ? (active ? '사용 중' : '선택') : `DJ ${Number(layout.price || 0).toLocaleString()}`}</em>
           </button>`;
         }).join('')}</div>` +
-        `<h4>바닥</h4><div class="rd-swrow">${Object.entries(FLOORS).map(([k, f]) =>
-          `<div class="rd-sw${room.floor === k ? ' on' : ''}" data-floor="${k}" title="${f.name}" style="background:linear-gradient(135deg, ${f.a} 50%, ${f.b} 50%)"></div>`).join('')}</div>` +
-        `<h4>벽지</h4><div class="rd-swrow">${Object.entries(WALLS).map(([k, w]) =>
-          `<div class="rd-sw${room.wall === k ? ' on' : ''}" data-wall="${k}" title="${w.name}" style="background:linear-gradient(135deg, ${w.r} 50%, ${w.l} 50%)"></div>`).join('')}</div>`;
+        `<h4>바닥</h4><div class="rd-swrow">${Object.entries(FLOOR_STYLES).map(([key, floor]) =>
+          `<button class="rd-sw${normalizeFloor(room.floor) === key ? ' on' : ''}" data-floor="${key}" title="${escAttr(floor.name)}" type="button"><img src="${escAttr(floor.asset)}" alt=""></button>`).join('')}</div>` +
+        `<h4>벽지</h4><div class="rd-swrow">${Object.entries(WALL_STYLES).map(([key, wall]) =>
+          `<button class="rd-sw${normalizeWall(room.wall) === key ? ' on' : ''}" data-wall-style="${key}" title="${escAttr(wall.name)}" type="button"><img src="${escAttr(wall.right)}" alt=""></button>`).join('')}</div>`;
       return;
     }
-    $grid.style.display = 'grid'; $styleGrid.style.display = 'none';
+
+    $grid.style.display = 'grid';
+    $styleGrid.style.display = 'none';
     $grid.innerHTML = Object.values(catalog)
-      .filter(it => it.cat === curTab)
-      .filter(it => canRenderInCurrentSkin(it))
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-      .map(it => {
-        const locked = !isOwned(it.id);
-        return `<div class="rd-card${locked ? ' locked' : ''}${placingType === it.id ? ' on' : ''}" data-item="${it.id}">
-          ${itemThumb(it)}<div class="nm">${it.name}</div>
-          ${locked ? `<div class="pr">🪙 ${Number(it.price || 0).toLocaleString()}</div>` : ''}
+      .filter(item => item.cat === curTab)
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id))
+      .map(item => {
+        const locked = !isOwned(item.id);
+        return `<div class="rd-card${locked ? ' locked' : ''}${placingType === item.id ? ' on' : ''}" data-item="${escAttr(item.id)}">
+          ${itemThumb(item)}
+          <div class="nm">${escAttr(item.name)}</div>
+          ${locked ? `<div class="pr">DJ ${Number(item.price || 0).toLocaleString()}</div>` : ''}
         </div>`;
       }).join('');
   }
 
-  /* ---------- UI 유틸 ---------- */
-  function showToast(msg) {
+  function setTip(message) {
+    if (!$tip) return;
+    $tip.textContent = message || '';
+    $tip.style.display = message ? 'block' : 'none';
+  }
+
+  function showToast(message) {
     if (!$toast) return;
-    $toast.textContent = msg; $toast.classList.add('show');
+    $toast.textContent = message;
+    $toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => $toast.classList.remove('show'), 1800);
   }
-  function setTip(msg) {
-    if (!$tip) return;
-    $tip.style.display = msg ? 'block' : 'none';
-    if (msg) $tip.textContent = msg;
-  }
+
   function updateActionBar() {
-    const p = room && room.placed.find(p => p.id === selectedId);
-    $bar.style.display = p ? 'flex' : 'none';
-    if (p) {
-      $view.querySelector('#rd-ab-name').textContent = catalog[p.type].name;
-      const rotateButton = $view.querySelector('#rd-ab-rotate');
-      if (rotateButton) rotateButton.disabled = !canRotateItem(p.type);
+    if (!$bar) return;
+    const item = room && room.placed.find(p => p.id === selectedId);
+    if (!item || !catalog[item.type]) {
+      $bar.style.display = 'none';
+      return;
     }
-  }
-  function clearModes() {
-    placingType = null; movingId = null; selectedId = null; hover = null;
-    setTip(''); updateActionBar(); renderSidebar(); render();
+    $bar.style.display = 'flex';
+    $view.querySelector('#rd-ab-name').textContent = catalog[item.type].name;
+    const rotate = $view.querySelector('#rd-ab-rotate');
+    if (rotate) rotate.disabled = !canRotateItem(item.type);
   }
 
-  /* ---------- 이벤트 바인딩 (1회) ---------- */
-  function bindEvents() {
-    $view.querySelectorAll('.rd-tabs button').forEach(b => b.onclick = () => {
-      $view.querySelectorAll('.rd-tabs button').forEach(x => x.classList.remove('on'));
-      b.classList.add('on'); curTab = b.dataset.tab; renderSidebar();
+  function clearModes() {
+    placingType = null;
+    movingId = null;
+    selectedId = null;
+    hover = null;
+    setTip('');
+    updateActionBar();
+    renderSidebar();
+    render();
+  }
+
+  function applyShowroom() {
+    const next = [];
+    NATIVE_SHOWROOM_ITEMS.forEach(sample => {
+      if (!catalog[sample.type] || !isOwned(sample.type)) return;
+      next.push({ id: nextId++, ...sample });
     });
-    $grid.onclick = e => {
-      const card = e.target.closest('.rd-card'); if (!card) return;
+    if (!next.length) {
+      showToast('보유한 Interiors 가구가 아직 없어요');
+      return;
+    }
+    room.placed = next;
+    room.floor = 'woodbright';
+    room.wall = 'bone';
+    renderSidebar();
+    render();
+    scheduleSave();
+    showToast('Interiors 예시방을 배치했어요');
+  }
+
+  function applyZoom() {
+    if (!$svg) return;
+    $svg.style.transform = `scale(${zoom.toFixed(2)})`;
+    if ($zoomLabel) $zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+  }
+
+  function setZoom(value) {
+    zoom = clamp(Number(value) || 1, CONFIG.MIN_ZOOM, CONFIG.MAX_ZOOM);
+    applyZoom();
+  }
+
+  function bindEvents() {
+    $view.querySelectorAll('.rd-tabs button').forEach(button => {
+      button.onclick = () => {
+        $view.querySelectorAll('.rd-tabs button').forEach(node => node.classList.remove('on'));
+        button.classList.add('on');
+        curTab = button.dataset.tab;
+        clearModes();
+      };
+    });
+
+    $grid.onclick = event => {
+      const card = event.target.closest('.rd-card');
+      if (!card) return;
       const id = card.dataset.item;
-      if (!isOwned(id)) { purchase(id); return; }
-      selectedId = null; movingId = null; updateActionBar();
-      placingType = placingType === id ? null : id;
-      setTip(placingType ? `${isWallItem(id) ? '벽 위치' : '바닥 칸'}을 눌러 「${catalog[id].name}」 배치` : '');
-      renderSidebar(); render();
+      const item = catalog[id];
+      if (!item) return;
+      if (!isOwned(id)) {
+        purchase(id);
+        return;
+      }
+      selectedId = null;
+      movingId = null;
+      placingType = id;
+      hover = null;
+      setTip(`「${item.name}」 놓을 위치를 선택하세요`);
+      renderSidebar();
+      render();
     };
-    $styleGrid.onclick = e => {
-      const lightToggle = e.target.closest('[data-light-toggle]');
-      if (lightToggle) {
+
+    $styleGrid.onclick = event => {
+      if (event.target.closest('[data-light-toggle]')) {
         room.lightsOn = room.lightsOn === false;
-        renderSidebar(); render(); scheduleSave();
+        renderSidebar();
+        render();
+        scheduleSave();
         showToast(room.lightsOn === false ? '불을 껐어요' : '불을 켰어요');
         return;
       }
-      const layoutButton = e.target.closest('[data-layout]');
-      if (layoutButton) {
-        chooseLayout(layoutButton.dataset.layout);
+      const showroom = event.target.closest('[data-native-showroom]');
+      if (showroom) {
+        applyShowroom();
         return;
       }
-      const skinButton = e.target.closest('[data-skin]');
-      if (skinButton) {
-        room.skin = normalizeSkinId(skinButton.dataset.skin);
-        renderSidebar(); render(); scheduleSave();
-        showToast(`${ROOM_SKINS[room.skin].name}으로 바꿨어요`);
+      const layout = event.target.closest('[data-layout]');
+      if (layout) {
+        chooseLayout(layout.dataset.layout);
         return;
       }
-      if (e.target.closest('[data-kenney-showroom]')) {
-        applyKenneyShowroom();
+      const floor = event.target.closest('[data-floor]');
+      if (floor) {
+        room.floor = normalizeFloor(floor.dataset.floor);
+        renderSidebar();
+        render();
+        scheduleSave();
         return;
       }
-      if (e.target.closest('[data-interiors-showroom]')) {
-        applyInteriorsShowroom();
-        return;
+      const wall = event.target.closest('[data-wall-style]');
+      if (wall) {
+        room.wall = normalizeWall(wall.dataset.wallStyle);
+        renderSidebar();
+        render();
+        scheduleSave();
       }
-      const f = e.target.dataset.floor, w = e.target.dataset.wall;
-      if (f) room.floor = f;
-      if (w) room.wall = w;
-      if (f || w) { renderSidebar(); render(); scheduleSave(); }
     };
-    $styleGrid.oninput = e => {
-      if (!e.target.matches('[data-light-level]')) return;
-      room.lightLevel = normalizeLightLevel(e.target.value);
-      const labelValue = e.target.closest('.rd-range-label')?.querySelector('strong');
-      if (labelValue) labelValue.textContent = `${room.lightLevel}%`;
-      render(); scheduleSave();
+
+    $styleGrid.oninput = event => {
+      if (!event.target.matches('[data-light-level]')) return;
+      room.lightLevel = normalizeLightLevel(event.target.value);
+      const value = event.target.closest('.rd-range-label')?.querySelector('strong');
+      if (value) value.textContent = `${room.lightLevel}%`;
+      render();
+      scheduleSave();
     };
-    $svg.addEventListener('mousemove', e => {
+
+    $svg.addEventListener('mousemove', event => {
       if (!placingType && !movingId) return;
-      const type = placingType || (room.placed.find(p => p.id === movingId) || {}).type;
-      const wallTile = e.target.closest('.rd-wall-tile');
-      const floorTile = e.target.closest('.rd-tile');
-      const nh = isWallItem(type)
-        ? (wallTile ? { surface: 'wall', wall: normalizeWall(wallTile.dataset.wall), wx: +wallTile.dataset.wx, wz: +wallTile.dataset.wz } : null)
-        : (floorTile ? { surface: 'floor', gx: +floorTile.dataset.gx, gy: +floorTile.dataset.gy } : null);
-      if (JSON.stringify(nh) !== JSON.stringify(hover)) { hover = nh; render(); }
+      const type = placingType || room.placed.find(p => p.id === movingId)?.type;
+      const wallTile = event.target.closest('.rd-wall-tile');
+      const floorTile = event.target.closest('.rd-tile');
+      const nextHover = isWallItem(type)
+        ? (wallTile ? { surface: 'wall', wall: wallTile.dataset.wall, wx: Number(wallTile.dataset.wx), wz: Number(wallTile.dataset.wz) } : null)
+        : (floorTile ? { surface: 'floor', gx: Number(floorTile.dataset.gx), gy: Number(floorTile.dataset.gy) } : null);
+      if (JSON.stringify(nextHover) !== JSON.stringify(hover)) {
+        hover = nextHover;
+        render();
+      }
     });
-    $svg.addEventListener('click', e => {
-      const tile = e.target.closest('.rd-tile');
-      const wallTile = e.target.closest('.rd-wall-tile');
-      const obj = e.target.closest('.rd-obj');
+
+    $svg.addEventListener('click', event => {
+      const obj = event.target.closest('.rd-obj');
+      const tile = event.target.closest('.rd-tile');
+      const wallTile = event.target.closest('.rd-wall-tile');
+
       if (placingType || movingId) {
         const current = movingId ? room.placed.find(p => p.id === movingId) : null;
         const type = placingType || current?.type;
         if (!type) return;
-        if (isWallItem(type) && wallTile) {
-          const wall = normalizeWall(wallTile.dataset.wall);
-          const wx = +wallTile.dataset.wx, wz = +wallTile.dataset.wz;
-          if (!fitsWall(type, wall, wx, wz, movingId)) { showToast('여기에는 놓을 수 없어요!'); return; }
-          if (placingType) {
-            room.placed.push({ id: nextId++, type: placingType, surface: 'wall', wall, wx, wz, rot: 0 });
-            showToast(`${catalog[placingType].name} 배치 완료!`);
-          } else if (current) {
-            current.surface = 'wall'; current.wall = wall; current.wx = wx; current.wz = wz; current.rot = 0;
+        if (isWallItem(type)) {
+          if (!wallTile) return;
+          const wall = wallTile.dataset.wall;
+          const wx = Number(wallTile.dataset.wx);
+          const wz = Number(wallTile.dataset.wz);
+          if (!fitsWall(type, wall, wx, wz, movingId)) {
+            showToast('여기에는 놓을 수 없어요!');
+            return;
           }
-          clearModes(); scheduleSave();
+          if (placingType) {
+            room.placed.push({ id: nextId++, type, surface: 'wall', wall, wx, wz, rot: 0 });
+            showToast(`${catalog[type].name} 배치 완료!`);
+          } else if (current) {
+            current.surface = 'wall';
+            current.wall = wall;
+            current.wx = wx;
+            current.wz = wz;
+            current.rot = 0;
+          }
+          clearModes();
+          scheduleSave();
           return;
         }
-        if (isWallItem(type)) return;
         if (!tile) return;
-        const gx = +tile.dataset.gx, gy = +tile.dataset.gy;
-        if (!fits(type, gx, gy, movingId)) { showToast('여기에는 놓을 수 없어요!'); return; }
-        if (placingType) {
-          room.placed.push({ id: nextId++, type: placingType, gx, gy, rot: 0 });
-          showToast(`${catalog[placingType].name} 배치 완료!`);
-        } else {
-          const p = room.placed.find(p => p.id === movingId);
-          p.gx = gx; p.gy = gy;
+        const gx = Number(tile.dataset.gx);
+        const gy = Number(tile.dataset.gy);
+        const rot = current ? current.rot : 0;
+        if (!fits(type, gx, gy, movingId, rot)) {
+          showToast('여기에는 놓을 수 없어요!');
+          return;
         }
-        clearModes(); scheduleSave();
+        if (placingType) {
+          room.placed.push({ id: nextId++, type, gx, gy, rot: 0 });
+          showToast(`${catalog[type].name} 배치 완료!`);
+        } else if (current) {
+          current.gx = gx;
+          current.gy = gy;
+        }
+        clearModes();
+        scheduleSave();
         return;
       }
-      if (obj && !placingType && !movingId) {
-        selectedId = +obj.dataset.id;
-        const p = room.placed.find(p => p.id === selectedId);
-        setTip(`「${catalog[p.type].name}」 선택됨 · 이동/회전/삭제를 선택하세요`);
-        updateActionBar(); render(); return;
+
+      if (obj) {
+        selectedId = Number(obj.dataset.id);
+        const item = room.placed.find(p => p.id === selectedId);
+        setTip(`「${catalog[item.type].name}」 선택됨 · 이동/회전/삭제를 선택하세요`);
+        updateActionBar();
+        render();
+        return;
       }
-      if (!obj) { clearModes(); }
+      clearModes();
     });
+
     $view.querySelector('#rd-ab-move').onclick = () => {
       if (!selectedId) return;
       movingId = selectedId;
-      const p = room.placed.find(p => p.id === movingId);
-      if (!p) return;
-      setTip(`「${catalog[p.type].name}」 새 위치를 누르세요`);
-      updateActionBar(); render();
+      const item = room.placed.find(p => p.id === movingId);
+      if (!item) return;
+      setTip(`「${catalog[item.type].name}」 새 위치를 선택하세요`);
+      updateActionBar();
+      render();
     };
+
     $view.querySelector('#rd-ab-rotate').onclick = () => {
-      const p = room.placed.find(p => p.id === selectedId);
-      if (!p) return;
-      if (!canRotateItem(p.type)) {
+      const item = room.placed.find(p => p.id === selectedId);
+      if (!item) return;
+      if (!canRotateItem(item.type)) {
         showToast('이 아이템은 회전하지 않아도 되는 장식이에요.');
         return;
       }
-      const nextRot = (getRotation(p.rot) + 90) % 360;
-      if (!fitsWithRotation(p.type, p.gx, p.gy, nextRot, p.id)) {
+      const nextRot = (normalizeRotation(item.rot) + 90) % 360;
+      if (!isWallItem(item.type) && !fitsWithRotation(item.type, item.gx, item.gy, nextRot, item.id)) {
         showToast('이 위치에서는 회전할 수 없어요!');
         return;
       }
-      p.rot = nextRot;
+      item.rot = nextRot;
       showToast('아이템을 회전했어요');
-      updateActionBar(); render(); scheduleSave();
+      updateActionBar();
+      render();
+      scheduleSave();
     };
+
     $view.querySelector('#rd-ab-del').onclick = () => {
       room.placed = room.placed.filter(p => p.id !== selectedId);
-      selectedId = null; updateActionBar(); render(); scheduleSave();
+      selectedId = null;
+      updateActionBar();
+      render();
+      scheduleSave();
       showToast('아이템을 보관함에 넣었어요');
     };
-    $view.querySelector('#rd-ab-cancel').onclick = () => { clearModes(); };
+
+    $view.querySelector('#rd-ab-cancel').onclick = () => clearModes();
     $view.querySelector('#rd-zoom-out').onclick = () => setZoom(zoom - CONFIG.ZOOM_STEP);
     $view.querySelector('#rd-zoom-in').onclick = () => setZoom(zoom + CONFIG.ZOOM_STEP);
-    $svg.addEventListener('wheel', e => {
+    $svg.addEventListener('wheel', event => {
       if (!opened) return;
-      e.preventDefault();
-      setZoom(zoom + (e.deltaY < 0 ? CONFIG.ZOOM_STEP : -CONFIG.ZOOM_STEP));
+      event.preventDefault();
+      setZoom(zoom + (event.deltaY < 0 ? CONFIG.ZOOM_STEP : -CONFIG.ZOOM_STEP));
     }, { passive: false });
-    $view.querySelector('#rd-back').onclick = () => { close(); if (onBack) onBack(); };
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && opened) clearModes();
+    $view.querySelector('#rd-back').onclick = () => {
+      close();
+      if (onBack) onBack();
+    };
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && opened) clearModes();
     });
   }
 
-  /* ---------- 공개 API ---------- */
-  function init(opts) {
+  function init(opts = {}) {
     getUserId = opts.getUserId;
     onBack = opts.onBack || null;
     db = firebase.firestore();
     fns = firebase.app().functions(CONFIG.REGION);
     $view = document.getElementById('room-view');
-    if (!$view) { console.error('[room] #room-view 마크업이 없습니다'); return; }
+    if (!$view) {
+      console.error('[room] #room-view is missing.');
+      return;
+    }
     $svg = $view.querySelector('#rd-svg');
     $grid = $view.querySelector('#rd-grid');
     $styleGrid = $view.querySelector('#rd-style');
@@ -1331,14 +1052,17 @@ window.RoomDecor = (function () {
     $toast = $view.querySelector('#rd-toast');
     $zoomLabel = $view.querySelector('#rd-zoom-label');
     bindEvents();
-    // 다른 show*View가 room-view를 hidden 처리하면 자동으로 정리/저장
     new MutationObserver(() => {
       if ($view.hidden && opened) close();
     }).observe($view, { attributes: true, attributeFilter: ['hidden'] });
   }
+
   async function open() {
     const uid = getUserId && getUserId();
-    if (!uid) { console.warn('[room] 로그인 사용자 없음'); return; }
+    if (!uid) {
+      console.warn('[room] no user id.');
+      return;
+    }
     const version = ++openVersion;
     opened = true;
     await loadCatalog();
@@ -1349,21 +1073,28 @@ window.RoomDecor = (function () {
     watchInventory(uid);
     setZoom(1);
     curTab = 'furniture';
+    $view.querySelectorAll('.rd-tabs button').forEach(button => {
+      button.classList.toggle('on', button.dataset.tab === curTab);
+    });
     clearModes();
   }
+
   function close() {
     if (!opened) return;
     opened = false;
     openVersion += 1;
-    unsubs.forEach(u => { try { u(); } catch (e) {} });
+    unsubs.forEach(unsub => {
+      try { unsub(); } catch (error) { console.warn('[room] unsubscribe failed.', error); }
+    });
     unsubs = [];
     clearTimeout(saveTimer);
-    // 닫을 때 즉시 저장
-    const uid = getUserId && getUserId();
-    if (uid && room) {
-      db.collection(CONFIG.COL_ROOM).doc(uid).set(roomPayload(), { merge: true })
-        .catch(e => console.error('[room] 종료 저장 실패', e));
-    }
+    saveTimer = null;
+    placingType = null;
+    movingId = null;
+    selectedId = null;
+    hover = null;
+    setTip('');
+    if ($bar) $bar.style.display = 'none';
   }
 
   return { init, open, close };

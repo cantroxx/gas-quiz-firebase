@@ -213,6 +213,7 @@ async function main() {
   if (args.dryRun) return;
   const db = initializeAdmin();
   const batch = db.batch();
+  const manifestIds = new Set(items.map(item => item.itemId));
   items.forEach(item => {
     batch.set(db.collection('assetCatalog').doc(item.itemId), buildAssetPayload(item), { merge: true });
     const shopRef = db.collection('shopItems').doc(item.itemId);
@@ -222,8 +223,23 @@ async function main() {
       batch.set(shopRef, buildShopPayload(item), { merge: true });
     }
   });
+  const existing = await db.collection('assetCatalog')
+    .where('type', '==', 'roomFurniture')
+    .get();
+  existing.docs.forEach(doc => {
+    if (manifestIds.has(doc.id)) return;
+    batch.set(doc.ref, {
+      enabled: false,
+      retiredAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    batch.set(db.collection('shopItems').doc(doc.id), {
+      enabled: false,
+      retiredAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
   await batch.commit();
   console.log(`Seeded ${items.length} room asset catalog items.`);
+  console.log(`Retired ${existing.docs.filter(doc => !manifestIds.has(doc.id)).length} stale room asset catalog items.`);
 }
 
 main().catch(error => {
