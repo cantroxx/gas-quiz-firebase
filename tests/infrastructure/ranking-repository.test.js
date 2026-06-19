@@ -71,6 +71,9 @@ async function testRepositoryReadsRankingCollections() {
       profileImageStoragePath: 'profiles/u1.png'
     },
     'userTitleSummary/u1': {},
+    'userRoomSettings/u1': {
+      selectedTitleFrameItemId: 'chalk_nameplate_frame'
+    },
     'userTitles/u1/titles/title-1': {
       titleName: 'Quiz Master'
     }
@@ -108,6 +111,7 @@ async function testRepositoryReadsRankingCollections() {
   assert.deepEqual(plazaRecords, [{ recordId: 'r1', memberUserId: 'u1', score: 90 }]);
   assert.deepEqual(profileMap.u1.nickname, 'Student');
   assert.deepEqual(profileMap.u1.selectedTitleName, 'Quiz Master');
+  assert.deepEqual(profileMap.u1.selectedTitleFrameItemId, 'chalk_nameplate_frame');
   assert.deepEqual(profileMap.u1.profileImageUrl, 'https://cdn.test/profiles/u1.png');
   assert.deepEqual(storageCalls, ['profiles/u1.png']);
   assert.equal(rankContextDb, db);

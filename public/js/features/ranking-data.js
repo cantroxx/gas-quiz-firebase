@@ -62,7 +62,8 @@
       totalXp: profile.totalXp ?? row.totalXp,
       tier: profile.tier || row.tier || '',
       medalId: profile.medalId || row.medalId || '',
-      rankIconUrl: profile.rankIconUrl || row.rankIconUrl || ''
+      rankIconUrl: profile.rankIconUrl || row.rankIconUrl || '',
+      selectedTitleFrameItemId: profile.selectedTitleFrameItemId || row.selectedTitleFrameItemId || ''
     };
   }
 

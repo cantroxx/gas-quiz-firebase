@@ -16,7 +16,7 @@
       } : {
         ...card
       };
-      if(viewModel.externalQuizHub && deps.featureFlags?.externalQuizzesEnabled === false) {
+      if(viewModel.externalQuizHub && deps.featureFlags?.externalQuizzesEnabled === false && !deps.isAdminMember?.()) {
         viewModel.enabled = false;
       }
       const item = document.createElement('article');
@@ -191,7 +191,7 @@
       const baseMode = deps.modeCatalog?.[modeId] || deps.modeCatalog?.practice;
       if(!baseMode) return;
       const playable = deps.firebasePlayableQuizIds?.has(deps.normalizeFirebaseQuizId?.(lastQuizId));
-      const featureEnabled = modeId !== 'ranking' || flags.rankingEnabled !== false;
+      const featureEnabled = modeId !== 'ranking' || flags.rankingEnabled !== false || deps.isAdminMember?.();
       const mode = {
         ...baseMode,
         enabled: baseMode.enabled && playable && featureEnabled,
@@ -378,7 +378,7 @@
     const flags = deps.featureFlags || deps.defaultFeatureFlags || {};
     const practiceTitle = document.createElement('p');
     const rankingTitle = document.createElement('p');
-    const rankingDisabled = flags.rankingEnabled === false;
+    const rankingDisabled = flags.rankingEnabled === false && !deps.isAdminMember?.();
     grid.innerHTML = '';
     practiceTitle.className = 'profile-ranking-subtitle';
     practiceTitle.textContent = '연습전: 세대별 도감 채우기';

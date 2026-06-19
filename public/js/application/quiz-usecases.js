@@ -41,7 +41,7 @@
       deps.showTownView();
       return { started: false, reason: 'quiz-disabled' };
     }
-    if(modeId === 'ranking' && flags.rankingEnabled === false) {
+    if(modeId === 'ranking' && flags.rankingEnabled === false && !deps.isAdminMember?.()) {
       deps.alert?.('랭킹전은 지금 점검 중입니다.');
       deps.showQuizSelectView(quizId);
       return { started: false, reason: 'ranking-disabled' };

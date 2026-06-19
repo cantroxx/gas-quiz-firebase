@@ -3833,6 +3833,39 @@ h2 {
   line-height: 1.25;
 }
 
+.ranking-title-frame-gold_title_frame {
+  border-color: rgba(202, 142, 20, 0.62);
+  background: linear-gradient(135deg, #fff3b8, #ffd36e 58%, #fffaf0);
+  color: #704400;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.ranking-title-frame-chalk_nameplate_frame {
+  border-color: rgba(37, 91, 68, 0.58);
+  background: #275f4d;
+  color: #f7ffe6;
+  box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.18);
+}
+
+.ranking-title-frame-notebook_nameplate_frame {
+  border-color: rgba(64, 125, 194, 0.45);
+  background: repeating-linear-gradient(0deg, #f7fbff 0 8px, #e7f2ff 9px 10px);
+  color: #24538a;
+}
+
+.ranking-title-frame-starlight_nameplate_frame {
+  border-color: rgba(82, 92, 180, 0.42);
+  background: linear-gradient(135deg, #edf1ff, #fff7cf 52%, #e6fff8);
+  color: #39407e;
+}
+
+.ranking-title-frame-honor_nameplate_frame {
+  border-color: rgba(35, 50, 72, 0.5);
+  background: linear-gradient(135deg, #28384f, #f3df95);
+  color: #fff8df;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
 .ranking-board-name .ranking-title-chip {
   margin-right: 6px;
   vertical-align: middle;

@@ -89,6 +89,18 @@ async function testRankingDisabledRedirectsSelect() {
   assert.deepEqual(calls.find(call => call[0] === 'select'), ['select', 'spelling']);
 }
 
+async function testAdminCanStartRankingWhenRankingDisabled() {
+  const { calls, deps } = createBaseDeps({
+    loadFeatureFlags: async () => ({ rankingEnabled: false }),
+    isAdminMember: () => true
+  });
+  const result = await quizUsecases.startQuizPlayFlow({ quizId: 'spelling', modeId: 'ranking' }, deps);
+
+  assert.equal(result.started, true);
+  assert.ok(calls.some(call => call[0] === 'showQuiz'));
+  assert.ok(!calls.some(call => call[0] === 'select'));
+}
+
 async function testAccessDeniedRedirectsPopularToSchool() {
   const { calls, deps } = createBaseDeps({
     ensurePopularQuizAccess: async () => ({ canAccess: false }),
@@ -140,6 +152,7 @@ async function run() {
   await testStartQuizPlayFlowSuccess();
   await testDisabledQuizRedirectsTown();
   await testRankingDisabledRedirectsSelect();
+  await testAdminCanStartRankingWhenRankingDisabled();
   await testAccessDeniedRedirectsPopularToSchool();
   await testBuildQuizSessionQuestionsUsesCachedFirebaseQuestions();
   await testBuildQuizSessionQuestionsOrdersUnsolvedPracticeFirst();

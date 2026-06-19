@@ -225,6 +225,33 @@ function assertFeatureEnabled(flags, key, message) {
   }
 }
 
+function isAdminMemberData(memberData = {}) {
+  return memberData.role === "admin" || !!String(memberData.adminLevel || "").trim();
+}
+
+function assertFeatureEnabledForMember(flags, key, memberData, message) {
+  if (isAdminMemberData(memberData)) return;
+  assertFeatureEnabled(flags, key, message);
+}
+
+function getAdminPopularUsageBypassStatus(memberUserId) {
+  return {
+    memberUserId,
+    userId: memberUserId,
+    date: getKstDateKey(),
+    funSeconds: 0,
+    after4FunSeconds: 0,
+    eduCorrectCount: 0,
+    unlockBaseEduCorrectCount: 0,
+    unlockProgress: POPULAR_USAGE_UNLOCK_CORRECT_COUNT,
+    unlockRemainingCorrect: 0,
+    softLocked: false,
+    hardLocked: false,
+    locked: false,
+    adminBypass: true
+  };
+}
+
 function normalizeExternalQuizUrl(value) {
   const url = String(value || "").trim();
   if (!url) return "";
@@ -1350,7 +1377,7 @@ async function loadLinkedMemberForEvent(authUid, memberUserId) {
     throw new HttpsError("not-found", "Member not found.");
   }
   const memberData = snapshot.data() || {};
-  assertActiveStudent(memberData);
+  assertActiveMember(memberData);
   if (memberData.authUid !== authUid) {
     throw new HttpsError("permission-denied", "Member is not linked to current auth.");
   }
@@ -1361,7 +1388,13 @@ exports.getPopularQuizUsageStatus = onCall({ region: REGION }, async request => 
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  await loadLinkedMemberForEvent(authUid, memberUserId);
+  const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
+  if (isAdminMemberData(memberData)) {
+    return {
+      success: true,
+      status: getAdminPopularUsageBypassStatus(memberUserId)
+    };
+  }
   const dateKey = getKstDateKey();
   const recordId = buildDailyUsageRecordId(memberUserId, dateKey);
   const snapshot = await db.collection("dailyUsage").doc(recordId).get();
@@ -1376,7 +1409,13 @@ exports.recordPopularQuizUsageSeconds = onCall({ region: REGION }, async request
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  await loadLinkedMemberForEvent(authUid, memberUserId);
+  const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
+  if (isAdminMemberData(memberData)) {
+    return {
+      success: true,
+      status: getAdminPopularUsageBypassStatus(memberUserId)
+    };
+  }
   const seconds = Math.max(0, Math.round(Number(payload.seconds) || 0));
   if (seconds <= 0) {
     const dateKey = getKstDateKey();
@@ -1395,6 +1434,13 @@ exports.recordEducationCorrectForPopularUnlock = onCall({ region: REGION }, asyn
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
+  if (isAdminMemberData(memberData)) {
+    return {
+      success: true,
+      status: getAdminPopularUsageBypassStatus(memberUserId)
+    };
+  }
   const status = await updateDailyUsageForLinkedMember(authUid, memberUserId, { eduCorrectCount: 1 });
   return { success: true, status };
 });
@@ -1596,7 +1642,7 @@ async function assertLinkedMemberAuth(transaction, memberUserId, authUid) {
     throw new HttpsError("not-found", "Member not found.");
   }
   const memberData = memberSnapshot.data() || {};
-  assertActiveStudent(memberData);
+  assertActiveMember(memberData);
   if (memberData.authUid !== authUid) {
     throw new HttpsError("permission-denied", "Member is not linked to current auth.");
   }
@@ -2539,6 +2585,10 @@ function normalizeAuditRankingCategoryKey(categoryKey, category = "") {
   return key;
 }
 
+function normalizeAuditRankingMode(rankingMode) {
+  return String(rankingMode || "normal").trim() || "normal";
+}
+
 function isBetterAuditRankingRecord(next, current) {
   if (!current) return true;
   const scoreDiff = (Number(next.score) || 0) - (Number(current.score) || 0);
@@ -2548,10 +2598,10 @@ function isBetterAuditRankingRecord(next, current) {
 
 function buildAuditQuizKingSummary(rows) {
   const bestByUser = new Map();
-  const allowedModes = new Set(["normal", "speed", "onechance", "nohint"]);
+  const allowedModes = new Set(["normal", "speed", "onechance", "nohint", "legacy"]);
   rows.forEach(record => {
     const memberUserId = String(record.memberUserId || record.userId || "").trim();
-    const rankingMode = String(record.rankingMode || "").trim();
+    const rankingMode = normalizeAuditRankingMode(record.rankingMode);
     const categoryKey = normalizeAuditRankingCategoryKey(record.categoryKey, record.category);
     if (!memberUserId || !categoryKey || !allowedModes.has(rankingMode) || Number(record.score) <= 0) return;
     if (!bestByUser.has(memberUserId)) bestByUser.set(memberUserId, new Map());
@@ -3731,9 +3781,9 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
   const flags = await getFeatureFlags();
-  assertFeatureEnabled(flags, "eventPlazaEnabled", "Event plaza is disabled.");
 
   const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
+  assertFeatureEnabledForMember(flags, "eventPlazaEnabled", memberData, "Event plaza is disabled.");
   const dateKey = getKstDateKey();
   const weekKey = getKstWeekKey();
   const activeQuests = getActiveEventQuests(dateKey);
@@ -3790,8 +3840,8 @@ exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
   }
 
   const flags = await getFeatureFlags();
-  assertFeatureEnabled(flags, "eventPlazaEnabled", "Event plaza is disabled.");
-  await loadLinkedMemberForEvent(authUid, memberUserId);
+  const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
+  assertFeatureEnabledForMember(flags, "eventPlazaEnabled", memberData, "Event plaza is disabled.");
 
   const result = await db.runTransaction(async transaction => {
     await assertLinkedMemberAuth(transaction, memberUserId, authUid);
@@ -5221,7 +5271,7 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
 
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
-    await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+    const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
 
     const itemRef = db.collection("shopItems").doc(itemId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
@@ -5242,7 +5292,7 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
     }
 
     const item = itemSnapshot.data() || {};
-    assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
+    assertFeatureEnabledForMember(flags, "shopEnabled", memberData, "Shop is disabled.");
     if (item.enabled !== true) {
       throw new HttpsError("failed-precondition", "Shop item is disabled.");
     }

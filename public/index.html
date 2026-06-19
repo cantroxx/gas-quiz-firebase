@@ -1538,6 +1538,38 @@
         desc: '대표 칭호를 더 돋보이게 보여주는 프레임 아이템입니다.',
         price: ECONOMY_CONSTANTS.shopPriceTable.titleFrame,
         icon: '🟨'
+      },
+      {
+        itemId: 'chalk_nameplate_frame',
+        category: '칭호 프레임',
+        name: '칠판 이름표',
+        desc: '랭킹과 프로필에서 대표 칭호를 칠판 느낌으로 보여주는 이름표입니다.',
+        price: 160,
+        icon: '▰'
+      },
+      {
+        itemId: 'notebook_nameplate_frame',
+        category: '칭호 프레임',
+        name: '공책 이름표',
+        desc: '대표 칭호에 공책 라벨 같은 깔끔한 테두리를 더합니다.',
+        price: 180,
+        icon: '▣'
+      },
+      {
+        itemId: 'starlight_nameplate_frame',
+        category: '칭호 프레임',
+        name: '별빛 이름표',
+        desc: '랭킹에서 대표 칭호를 반짝이는 별빛 분위기로 보여줍니다.',
+        price: 320,
+        icon: '✦'
+      },
+      {
+        itemId: 'honor_nameplate_frame',
+        category: '칭호 프레임',
+        name: '명예의 전당 이름표',
+        desc: '상위 랭킹에 어울리는 묵직한 명예 배지를 대표 칭호에 붙입니다.',
+        price: 520,
+        icon: '◆'
       }
     ];
 
@@ -1559,6 +1591,10 @@
       flowerpot: '🪴',
       golden_title_frame: '🟨',
       gold_title_frame: '🟨',
+      chalk_nameplate_frame: '▰',
+      notebook_nameplate_frame: '▣',
+      starlight_nameplate_frame: '✦',
+      honor_nameplate_frame: '◆',
       background: '🌄',
       avatar: '🙂',
       roomDecor: '🪴',
@@ -3488,10 +3524,12 @@
       const id = normalizeFirebaseQuizId(quizId);
       const quiz = QUIZ_CATALOG[id] || QUIZ_CATALOG[quizId];
       if(!id || quiz?.enabled === false) return false;
+      if(isCurrentAdminMember()) return true;
       return !getDisabledQuizIdSet(flags).has(id);
     }
 
     function isRankingRowEnabledByFlags(row, flags = getActiveFeatureFlags()) {
+      if(isCurrentAdminMember()) return true;
       const quizId = normalizeFirebaseQuizId(row?.quizId || '');
       if(quizId) return isQuizEnabledByFlags(quizId, flags);
       const keyText = `${row?.categoryKey || ''} ${row?.category || ''} ${row?.rawCategory || ''}`;
@@ -3527,6 +3565,7 @@
     }
 
     function isPracticeBadgeVisibleByFlags(badge, flags = getActiveFeatureFlags()) {
+      if(isCurrentAdminMember()) return true;
       const areaKey = String(badge?.areaKey || '').trim();
       const badgeId = String(badge?.badgeId || '').trim();
       const quizByAreaKey = {
@@ -3730,6 +3769,17 @@
     async function refreshPopularUsageNotices() {
       const targets = Array.from(document.querySelectorAll('[data-popular-usage-notice]'));
       if(!targets.length) return;
+      if(isCurrentAdminMember()) {
+        targets.forEach(target => {
+          const card = target.closest('.school-quiz-card, .subject-quiz-card');
+          target.hidden = false;
+          target.textContent = '관리자 자유 접근';
+          target.dataset.state = 'available';
+          target.dataset.urgency = 'low';
+          if(card) card.classList.remove('is-popular-locked');
+        });
+        return;
+      }
       const memberUserId = getCurrentDataOwnerId();
       targets.forEach(target => {
         target.hidden = false;
@@ -3764,6 +3814,7 @@
 
     async function ensurePopularQuizAccess(quizId) {
       if(!isPopularQuiz(quizId)) return { canAccess: true };
+      if(isCurrentAdminMember()) return { canAccess: true, status: { adminBypass: true } };
       const memberUserId = getCurrentDataOwnerId();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return { canAccess: true };
       try {
@@ -3782,6 +3833,7 @@
     }
 
     async function ensurePopularSubjectAccess() {
+      if(isCurrentAdminMember()) return true;
       const memberUserId = getCurrentDataOwnerId();
       if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return true;
       try {
@@ -5609,6 +5661,7 @@
         getLastQuizId: () => window.DJ48QuizSessionState.getLastQuizId(),
         normalizeFirebaseQuizId,
         normalizeFirebaseRankingMode,
+        isAdminMember: isCurrentAdminMember,
         isQuizEnabledByFlags,
         getRankingModeOptionsForQuiz,
         refreshPopularUsageNotices
@@ -5629,7 +5682,7 @@
       const status = document.getElementById('external-quiz-status');
       const section = document.getElementById('external-quiz-section');
       const flags = await loadFeatureFlags();
-      if(flags.externalQuizzesEnabled === false) {
+      if(flags.externalQuizzesEnabled === false && !isCurrentAdminMember()) {
         if(section) section.hidden = false;
         document.querySelectorAll('[data-external-quiz-hub]').forEach(element => {
           element.setAttribute('aria-expanded', 'false');
@@ -5676,6 +5729,7 @@
         finishPopularUsageSession,
         loadFeatureFlags,
         isQuizEnabledByFlags,
+        isAdminMember: isCurrentAdminMember,
         alert: window.alert,
         showTownView,
         showQuizSelectView,
@@ -6240,9 +6294,14 @@
       return memberUserId === 'G9-C9-N99' || adminLevel === 'superadmin';
     }
 
+    function isCurrentAdminMember() {
+      const profile = window.DJ48AccountState.getCurrentMemberProfile?.() || {};
+      return profile.role === 'admin' || !!String(profile.adminLevel || '').trim();
+    }
+
     async function showRankingView() {
       const flags = await loadFeatureFlags();
-      if(flags.rankingEnabled === false) {
+      if(flags.rankingEnabled === false && !isCurrentAdminMember()) {
         window.alert('랭킹 광장은 지금 점검 중입니다.');
         return;
       }
@@ -6255,7 +6314,7 @@
 
     async function showShopView() {
       const flags = await loadFeatureFlags();
-      if(flags.shopEnabled === false) {
+      if(flags.shopEnabled === false && !isCurrentAdminMember()) {
         window.alert('상점은 지금 점검 중입니다.');
         return;
       }
@@ -6271,7 +6330,7 @@
 
     async function showEventView() {
       const flags = await loadFeatureFlags(true);
-      if(flags.eventPlazaEnabled === false) {
+      if(flags.eventPlazaEnabled === false && !isCurrentAdminMember()) {
         window.alert('이벤트 광장은 지금 점검 중입니다.');
         return;
       }

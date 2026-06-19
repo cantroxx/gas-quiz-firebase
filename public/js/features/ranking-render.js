@@ -66,8 +66,9 @@
     const getKnownTitleName = deps.getKnownTitleName || (() => '');
     const titleText = String(row?.selectedTitle || row?.selectedTitleName || getKnownTitleName(row?.selectedTitleId)).trim();
     if(!titleText) return null;
+    const frameId = String(row?.selectedTitleFrameItemId || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
     const chip = document.createElement('span');
-    chip.className = 'ranking-title-chip';
+    chip.className = ['ranking-title-chip', frameId ? `ranking-title-frame-${frameId}` : ''].filter(Boolean).join(' ');
     chip.textContent = titleText;
     return chip;
   }
