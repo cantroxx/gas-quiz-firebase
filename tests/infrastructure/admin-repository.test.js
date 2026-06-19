@@ -74,8 +74,6 @@ async function testAdminRepositoryCallsAdminFunctions() {
   await assertAdminCall(await repository.saveAdminLoginSettings({ enabled: false }), 'adminUpdatePasswordSetupSettings', { settings: { enabled: false } });
   await assertAdminCall(await repository.loadAdminFeatureFlags(), 'adminGetFeatureFlags', {});
   await assertAdminCall(await repository.saveAdminFeatureFlags({ beta: true }), 'adminUpdateFeatureFlags', { flags: { beta: true } });
-  await assertAdminCall(await repository.loadAdminRoomCatalog(), 'adminListRoomCatalog', {});
-  await assertAdminCall(await repository.saveAdminRoomCatalogItem({ id: 'chair' }), 'adminSaveRoomCatalogItem', { id: 'chair' });
   await assertAdminCall(await repository.loadAdminLogs({ limit: 20 }), 'adminListLogs', { limit: 20 });
 
   assert.equal(authCalls, calls.length);
@@ -99,8 +97,6 @@ async function testAdminRepositoryCallsAdminFunctions() {
     'adminUpdatePasswordSetupSettings',
     'adminGetFeatureFlags',
     'adminUpdateFeatureFlags',
-    'adminListRoomCatalog',
-    'adminSaveRoomCatalogItem',
     'adminListLogs'
   ]);
 

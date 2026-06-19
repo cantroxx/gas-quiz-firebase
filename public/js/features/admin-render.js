@@ -414,48 +414,6 @@
     });
   }
 
-  function renderAdminRoomCatalogList(items = [], deps = {}) {
-    const root = document.getElementById('admin-room-catalog-list');
-    const onEdit = deps.onEdit;
-    if(!root) return;
-    root.innerHTML = '';
-    if(!items.length) {
-      const empty = document.createElement('p');
-      empty.className = 'admin-empty';
-      empty.textContent = '등록된 방 가구가 없습니다.';
-      root.appendChild(empty);
-      return;
-    }
-    items.forEach(item => {
-      const card = document.createElement('article');
-      const heading = document.createElement('strong');
-      const meta = document.createElement('div');
-      const actions = document.createElement('div');
-      const editButton = document.createElement('button');
-      card.className = 'admin-audit-card';
-      heading.textContent = `${item.name || item.itemId} · ${item.itemId}`;
-      meta.className = 'admin-audit-card-meta';
-      const spriteCount = Object.values(item.rotationSprites || {}).filter(Boolean).length;
-      meta.append(
-        createAdminInfoChip(item.cat === 'deco' ? '장식' : '가구', item.drawKey || '-'),
-        createAdminInfoChip('렌더', item.renderType === 'image' ? `이미지${spriteCount ? ` ${spriteCount}방향` : ''}` : '내장 SVG'),
-        createAdminInfoChip('크기', `${item.w || 1}x${item.d || 1} / h${item.h || 0}`),
-        createAdminInfoChip('가격', item.free ? '무료' : `${Number(item.price || 0).toLocaleString('ko-KR')} DJ코인`),
-        createAdminInfoChip('판매', item.free ? '기본 제공' : (item.enabled === false ? '중지' : '활성'))
-      );
-      actions.className = 'admin-notice-actions';
-      editButton.type = 'button';
-      editButton.className = 'admin-action-button';
-      editButton.textContent = '수정';
-      editButton.addEventListener('click', () => {
-        if(typeof onEdit === 'function') onEdit(item);
-      });
-      actions.appendChild(editButton);
-      card.append(heading, meta, actions);
-      root.appendChild(card);
-    });
-  }
-
   function renderAdminLogs(logs, deps = {}) {
     const root = document.getElementById('admin-logs-list');
     if(!root) return;
@@ -501,7 +459,6 @@
     renderAdminExternalQuizRows,
     renderAdminQuizToggleGrid,
     renderAdminDashboard,
-    renderAdminRoomCatalogList,
     renderAdminLogs
   };
 })();

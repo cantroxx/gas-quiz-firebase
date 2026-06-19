@@ -31,7 +31,7 @@
     };
   }
 
-  function isRoomFurnitureShopItem(item) {
+  function isRetiredShopCatalogItem(item) {
     const rawCategory = String(item?.rawCategory || item?.category || '').trim();
     const assetId = String(item?.assetId || '').trim();
     const itemId = String(item?.itemId || '').trim();
@@ -242,7 +242,7 @@
   window.DJ48ShopData = {
     isUsableImageUrl,
     normalizeShopItemFromFirestore,
-    isRoomFurnitureShopItem,
+    isRetiredShopCatalogItem,
     normalizeAssetCatalogFromFirestore,
     normalizeUserEconomyFromFirestore,
     getInitialUserEconomy,

@@ -30,18 +30,10 @@ const db = getFirestore();
 const DEFAULT_FEATURE_FLAGS = {
   practiceRewardEnabled: true,
   shopEnabled: true,
-  roomDecorEnabled: true,
   externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true,
   disabledQuizIds: []
-};
-
-const ROOM_LAYOUTS = {
-  cozy: { layoutId: "cozy", name: "기본방", w: 8, d: 8, price: 0 },
-  wide: { layoutId: "wide", name: "넓은 방", w: 10, d: 8, price: 120 },
-  studio: { layoutId: "studio", name: "스튜디오", w: 10, d: 10, price: 220 },
-  suite: { layoutId: "suite", name: "큰 집", w: 12, d: 10, price: 360 }
 };
 
 const DEFAULT_EXTERNAL_QUIZZES = {
@@ -220,7 +212,6 @@ function publicFeatureFlags(data = {}) {
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     shopEnabled: data.shopEnabled !== false,
-    roomDecorEnabled: data.roomDecorEnabled !== false,
     externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
     rankingEnabled: data.rankingEnabled !== false,
@@ -238,18 +229,6 @@ function assertFeatureEnabled(flags, key, message) {
   if (flags?.[key] === false) {
     throw new HttpsError("failed-precondition", message || "Feature is disabled.");
   }
-}
-
-function isSuperAdminMemberData(memberUserId, memberData = {}) {
-  const adminLevel = String(memberData.adminLevel || "").toLowerCase();
-  return memberUserId === SUPER_ADMIN_MEMBER_USER_ID
-    || adminLevel === "superadmin"
-    || adminLevel === "fulladmin";
-}
-
-function assertRoomDecorEnabledForMember(flags, memberUserId, memberData = {}) {
-  if (flags?.roomDecorEnabled !== false || isSuperAdminMemberData(memberUserId, memberData)) return;
-  throw new HttpsError("failed-precondition", "Room decor is disabled.");
 }
 
 function normalizeExternalQuizUrl(value) {
@@ -3062,266 +3041,6 @@ exports.adminAdjustAdminWallet = onCall({ region: REGION }, async request => {
   };
 });
 
-const ROOM_CATALOG_DRAW_KEYS = new Set([
-  "bed", "desk", "chair", "shelf", "piano", "sofa", "wardrobe", "computer", "rug",
-  "plant", "lamp", "bear", "table", "toybox", "tv", "aquarium", "trophy",
-  "window", "frame", "clock", "mirror"
-]);
-const ROOM_CATALOG_RENDER_TYPES = new Set(["draw", "image"]);
-const ROOM_CATALOG_ROTATION_KEYS = ["0", "90", "180", "270"];
-const ROOM_CATALOG_LAYERS = new Set(["floor", "seat", "surface", "furniture", "wall"]);
-
-function normalizeRoomAssetUrl(value) {
-  const url = String(value || "").trim();
-  if (!url) return "";
-  if (/^https:\/\//i.test(url)) return url.slice(0, 2000);
-  if (/^\/[A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]+$/.test(url)) return url.slice(0, 2000);
-  if (/^data:image\/(?:png|jpe?g|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/i.test(url) && url.length <= 250000) {
-    return url;
-  }
-  throw new HttpsError("invalid-argument", "Room catalog asset URL is invalid.");
-}
-
-function normalizeRoomRotationSprites(value = {}) {
-  const source = value && typeof value === "object" ? value : {};
-  return ROOM_CATALOG_ROTATION_KEYS.reduce((next, key) => {
-    next[key] = normalizeRoomAssetUrl(source[key]);
-    return next;
-  }, {});
-}
-
-function normalizeRoomPlacementOffsets(value = {}) {
-  const source = value && typeof value === "object" ? value : {};
-  return ROOM_CATALOG_ROTATION_KEYS.reduce((next, key) => {
-    const raw = source[key] && typeof source[key] === "object" ? source[key] : {};
-    next[key] = {
-      x: Math.max(-500, Math.min(500, Math.round(Number(raw.x) || 0))),
-      y: Math.max(-500, Math.min(500, Math.round(Number(raw.y) || 0)))
-    };
-    return next;
-  }, {});
-}
-
-function hasRoomRotationSprite(rotationSprites = {}) {
-  return ROOM_CATALOG_ROTATION_KEYS.some(key => !!rotationSprites[key]);
-}
-
-function normalizeRoomCatalogItemPayload(payload = {}) {
-  const itemId = normalizeId(payload.itemId || payload.assetId, "itemId");
-  if (!itemId.startsWith("room_")) {
-    throw new HttpsError("invalid-argument", "Room catalog itemId must start with room_.");
-  }
-  const name = String(payload.name || "").trim().slice(0, 40);
-  if (!name) throw new HttpsError("invalid-argument", "Room catalog name is required.");
-  const cat = String(payload.cat || "furniture").trim();
-  if (!["furniture", "deco"].includes(cat)) {
-    throw new HttpsError("invalid-argument", "Room catalog category is invalid.");
-  }
-  const renderType = ROOM_CATALOG_RENDER_TYPES.has(String(payload.renderType || "").trim())
-    ? String(payload.renderType || "").trim()
-    : "draw";
-  const drawKey = String(payload.drawKey || "").trim();
-  if (renderType === "draw" && !ROOM_CATALOG_DRAW_KEYS.has(drawKey)) {
-    throw new HttpsError("invalid-argument", "Room catalog drawKey is invalid.");
-  }
-  if (renderType === "image" && drawKey && !ROOM_CATALOG_DRAW_KEYS.has(drawKey)) {
-    throw new HttpsError("invalid-argument", "Room catalog fallback drawKey is invalid.");
-  }
-  const assetUrl = normalizeRoomAssetUrl(payload.assetUrl);
-  const thumbUrl = normalizeRoomAssetUrl(payload.thumbUrl);
-  const rotationSprites = normalizeRoomRotationSprites(payload.rotationSprites);
-  const placementOffsets = normalizeRoomPlacementOffsets(payload.placementOffsets);
-  if (renderType === "image" && !assetUrl && !hasRoomRotationSprite(rotationSprites)) {
-    throw new HttpsError("invalid-argument", "Room catalog image asset URL is required.");
-  }
-  const w = Math.max(1, Math.min(4, Math.round(Number(payload.w) || 1)));
-  const d = Math.max(1, Math.min(4, Math.round(Number(payload.d) || 1)));
-  const h = Math.max(1, Math.min(120, Math.round(Number(payload.h) || 30)));
-  const isWall = ["window", "frame", "clock", "mirror"].includes(drawKey) || String(payload.surface || "").trim() === "wall";
-  const layer = ROOM_CATALOG_LAYERS.has(String(payload.layer || "").trim()) ? String(payload.layer || "").trim() : "";
-  const wall = String(payload.wall || (["frame", "mirror"].includes(drawKey) ? "right" : "left")).trim() === "right" ? "right" : "left";
-  const defaultWallWidth = drawKey === "window" ? 2.6 : drawKey === "frame" ? 1.8 : drawKey === "clock" ? 1.2 : drawKey === "mirror" ? 1.4 : 0;
-  const ww = Math.max(0, Math.min(8, Number(payload.ww || defaultWallWidth)));
-  const wh = Math.max(0, Math.min(104, Number(payload.wh || h)));
-  const pixelWidth = Math.max(0, Math.min(1000, Math.round(Number(payload.pixelWidth) || 0)));
-  const pixelHeight = Math.max(0, Math.min(1000, Math.round(Number(payload.pixelHeight) || 0)));
-  const anchorX = Math.max(0, Math.min(1000, Math.round(Number(payload.anchorX) || 0)));
-  const anchorY = Math.max(0, Math.min(1000, Math.round(Number(payload.anchorY) || 0)));
-  const offsetX = Math.max(-500, Math.min(500, Math.round(Number(payload.offsetX) || 0)));
-  const offsetY = Math.max(-500, Math.min(500, Math.round(Number(payload.offsetY) || 0)));
-  const zIndexOffset = Math.max(-100, Math.min(100, Math.round(Number(payload.zIndexOffset) || 0)));
-  const sortOrder = Math.max(0, Math.min(9999, Math.round(Number(payload.sortOrder) || 100)));
-  const free = payload.free === true;
-  const price = free ? 0 : Math.max(0, Math.min(100000, Math.round(Number(payload.price) || 0)));
-  if (!free && price <= 0) {
-    throw new HttpsError("invalid-argument", "Paid room catalog price is required.");
-  }
-  return {
-    itemId,
-    name,
-    cat,
-    renderType,
-    drawKey,
-    assetUrl,
-    thumbUrl,
-    rotationSprites,
-    placementOffsets,
-    w,
-    d,
-    h,
-    surface: isWall ? "wall" : "",
-    layer,
-    wall: isWall ? wall : "",
-    ww: isWall ? ww : 0,
-    wh: isWall ? wh : 0,
-    pixelWidth,
-    pixelHeight,
-    anchorX,
-    anchorY,
-    offsetX,
-    offsetY,
-    zIndexOffset,
-    flat: payload.flat === true,
-    free,
-    price,
-    sortOrder,
-    enabled: payload.enabled !== false
-  };
-}
-
-function publicRoomCatalogItem(assetDoc, shopDoc = null) {
-  const asset = assetDoc.data ? assetDoc.data() || {} : assetDoc || {};
-  const shop = shopDoc?.exists ? shopDoc.data() || {} : {};
-  const itemId = assetDoc.id || asset.itemId || asset.assetId || shop.itemId || "";
-  return {
-    itemId,
-    assetId: itemId,
-    name: String(asset.name || shop.name || itemId),
-    cat: String(asset.cat || "furniture"),
-    renderType: String(asset.renderType || "draw"),
-    drawKey: String(asset.drawKey || ""),
-    assetUrl: String(asset.assetUrl || ""),
-    thumbUrl: String(asset.thumbUrl || ""),
-    rotationSprites: normalizeRoomRotationSprites(asset.rotationSprites),
-    placementOffsets: normalizeRoomPlacementOffsets(asset.placementOffsets),
-    w: Number(asset.w || 1),
-    d: Number(asset.d || 1),
-    h: Number(asset.h || 30),
-    surface: String(asset.surface || ""),
-    layer: String(asset.layer || ""),
-    wall: String(asset.wall || ""),
-    ww: Number(asset.ww || 0),
-    wh: Number(asset.wh || 0),
-    pixelWidth: Number(asset.pixelWidth || 0),
-    pixelHeight: Number(asset.pixelHeight || 0),
-    anchorX: Number(asset.anchorX || 0),
-    anchorY: Number(asset.anchorY || 0),
-    offsetX: Number(asset.offsetX || 0),
-    offsetY: Number(asset.offsetY || 0),
-    zIndexOffset: Number(asset.zIndexOffset || 0),
-    flat: asset.flat === true,
-    free: asset.free === true,
-    price: Number(asset.price ?? shop.price ?? 0) || 0,
-    sortOrder: Number(asset.sortOrder || 100),
-    enabled: asset.enabled !== false && (asset.free === true || shop.enabled === true),
-    hasShopItem: !!shopDoc?.exists,
-    updatedAt: asset.updatedAt || shop.updatedAt || null
-  };
-}
-
-exports.adminListRoomCatalog = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const adminMember = await getAdminMemberForAuth(authUid);
-  assertSuperAdmin(adminMember);
-  const assetSnapshot = await db.collection("assetCatalog")
-    .where("type", "==", "roomFurniture")
-    .get();
-  const shopSnapshots = assetSnapshot.empty
-    ? []
-    : await db.getAll(...assetSnapshot.docs.map(doc => db.collection("shopItems").doc(doc.id)));
-  const shopById = new Map(shopSnapshots.map(snapshot => [snapshot.id, snapshot]));
-  const items = assetSnapshot.docs
-    .map(doc => publicRoomCatalogItem(doc, shopById.get(doc.id)))
-    .sort((a, b) => (a.cat || "").localeCompare(b.cat || "") || a.sortOrder - b.sortOrder || a.itemId.localeCompare(b.itemId));
-  return { success: true, items };
-});
-
-exports.adminSaveRoomCatalogItem = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const adminMember = await getAdminMemberForAuth(authUid);
-  assertSuperAdmin(adminMember);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const item = normalizeRoomCatalogItemPayload(payload);
-  const assetRef = db.collection("assetCatalog").doc(item.itemId);
-  const shopRef = db.collection("shopItems").doc(item.itemId);
-
-  await db.runTransaction(async transaction => {
-    transaction.set(assetRef, {
-      type: "roomFurniture",
-      assetId: item.itemId,
-      itemId: item.itemId,
-      name: item.name,
-      cat: item.cat,
-      renderType: item.renderType,
-      w: item.w,
-      d: item.d,
-      h: item.h,
-      surface: item.surface,
-      layer: item.layer,
-      wall: item.wall,
-      ww: item.ww,
-      wh: item.wh,
-      flat: item.flat,
-      drawKey: item.drawKey,
-      assetUrl: item.assetUrl,
-      thumbUrl: item.thumbUrl,
-      rotationSprites: item.rotationSprites,
-      placementOffsets: item.placementOffsets,
-      pixelWidth: item.pixelWidth,
-      pixelHeight: item.pixelHeight,
-      anchorX: item.anchorX,
-      anchorY: item.anchorY,
-      offsetX: item.offsetX,
-      offsetY: item.offsetY,
-      zIndexOffset: item.zIndexOffset,
-      free: item.free,
-      price: item.price,
-      enabled: item.enabled,
-      sortOrder: item.sortOrder,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedByAdminUserId: adminMember.memberUserId
-    }, { merge: true });
-    if (item.free) {
-      transaction.delete(shopRef);
-    } else {
-      transaction.set(shopRef, {
-        itemId: item.itemId,
-        name: item.name,
-        desc: "내 방 꾸미기에서 사용하는 방 가구입니다.",
-        price: item.price,
-        priceType: "djCoin",
-        enabled: item.enabled,
-        assetId: item.itemId,
-        category: "방 가구",
-        sortOrder: item.sortOrder,
-        updatedAt: FieldValue.serverTimestamp(),
-        updatedByAdminUserId: adminMember.memberUserId
-      }, { merge: true });
-    }
-  });
-
-  await writeAdminLog({
-    adminUserId: adminMember.memberUserId,
-    action: "adminSaveRoomCatalogItem",
-    targetUserId: item.itemId,
-    before: null,
-    after: item,
-    reason: "room catalog item save"
-  });
-
-  return { success: true, item };
-});
-
 exports.adminSetClassAdmin = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -5175,7 +4894,7 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
 
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
-    const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+    await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
 
     const itemRef = db.collection("shopItems").doc(itemId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
@@ -5196,13 +4915,7 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
     }
 
     const item = itemSnapshot.data() || {};
-    const isRoomFurniturePurchase = String(item.assetId || itemId).startsWith("room_")
-      || String(item.category || "").trim() === "방 가구";
-    if (isRoomFurniturePurchase) {
-      assertRoomDecorEnabledForMember(flags, memberUserId, memberData);
-    } else {
-      assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
-    }
+    assertFeatureEnabled(flags, "shopEnabled", "Shop is disabled.");
     if (item.enabled !== true) {
       throw new HttpsError("failed-precondition", "Shop item is disabled.");
     }
@@ -5259,93 +4972,6 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
       pricePaid: price,
       nextDjCoin: djCoin - price,
       inventoryPath: inventoryRef.path,
-      purchaseLogPath: purchaseLogRef.path
-    };
-  });
-
-  return {
-    success: true,
-    memberUserId,
-    ...result
-  };
-});
-
-exports.purchaseRoomLayout = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  const layoutId = normalizeId(payload.layoutId, "layoutId");
-  const layout = ROOM_LAYOUTS[layoutId];
-  if (!layout) throw new HttpsError("invalid-argument", "Room layout is invalid.");
-
-  const result = await db.runTransaction(async transaction => {
-    const flags = await getFeatureFlags(transaction);
-    const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
-    assertRoomDecorEnabledForMember(flags, memberUserId, memberData);
-
-    const roomRef = db.collection("userRoomSettings").doc(memberUserId);
-    const economyRef = db.collection("userEconomy").doc(memberUserId);
-    const purchaseLogRef = db.collection("purchaseLogs").doc();
-    const [roomSnapshot, economySnapshot] = await Promise.all([
-      transaction.get(roomRef),
-      transaction.get(economyRef)
-    ]);
-
-    const roomSettings = roomSnapshot.exists ? roomSnapshot.data() || {} : {};
-    const homeRoom = roomSettings.homeRoom && typeof roomSettings.homeRoom === "object"
-      ? roomSettings.homeRoom
-      : {};
-    const unlockedLayouts = new Set(Array.isArray(homeRoom.unlockedLayouts) ? homeRoom.unlockedLayouts : []);
-    unlockedLayouts.add("cozy");
-
-    const alreadyUnlocked = unlockedLayouts.has(layoutId);
-    const price = alreadyUnlocked ? 0 : Number(layout.price || 0);
-    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
-    const djCoin = Number(economy.djCoin ?? economy.coin ?? 0);
-    if (!alreadyUnlocked && (!Number.isFinite(djCoin) || djCoin < price)) {
-      throw new HttpsError("failed-precondition", "Not enough DJ coins.");
-    }
-
-    unlockedLayouts.add(layoutId);
-    const nextUnlockedLayouts = Array.from(unlockedLayouts);
-    if (price > 0) {
-      transaction.set(economyRef, {
-        userId: memberUserId,
-        djCoin: djCoin - price,
-        totalSpent: FieldValue.increment(price),
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-    }
-    transaction.set(roomRef, {
-      userId: memberUserId,
-      homeRoom: {
-        layout: layoutId,
-        unlockedLayouts: nextUnlockedLayouts
-      },
-      updatedAt: FieldValue.serverTimestamp()
-    }, { merge: true });
-    transaction.set(purchaseLogRef, {
-      logId: purchaseLogRef.id,
-      userId: memberUserId,
-      memberUserId,
-      authUid,
-      itemId: `room_layout_${layoutId}`,
-      assetId: `room_layout_${layoutId}`,
-      coinDelta: -price,
-      pricePaid: price,
-      priceType: "djCoin",
-      roomLayout: layoutId,
-      serverVerified: true,
-      source: alreadyUnlocked ? "room_layout_select_function" : "room_layout_purchase_function",
-      createdAt: FieldValue.serverTimestamp()
-    }, { merge: false });
-
-    return {
-      layoutId,
-      layout,
-      unlockedLayouts: nextUnlockedLayouts,
-      pricePaid: price,
-      nextDjCoin: price > 0 ? djCoin - price : djCoin,
       purchaseLogPath: purchaseLogRef.path
     };
   });

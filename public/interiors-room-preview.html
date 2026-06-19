@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>내 집 꾸미기</title>
+  <link rel="stylesheet" href="/interiors-room-preview.css">
+</head>
+<body>
+  <main class="housing-shell">
+    <header class="housing-header">
+      <button class="housing-back-button" type="button" id="interiors-exit-button">내 집으로</button>
+      <div class="housing-title-block">
+        <p class="housing-eyebrow">연습장 · 아직 저장되지 않아요</p>
+        <h1>내 집 꾸미기</h1>
+      </div>
+      <button class="housing-reset-button" type="button" id="interiors-reset-button">처음으로</button>
+    </header>
+
+    <section class="room-choice" aria-label="방 고르기">
+      <button class="room-choice-card" type="button" data-preset-choice="interiors_room">아늑한 방</button>
+      <button class="room-choice-card" type="button" data-preset-choice="interiors_office">공부방</button>
+      <button class="room-choice-card" type="button" data-preset-choice="interiors_bath">타일 방</button>
+      <button class="room-choice-card" type="button" data-preset-choice="interiors_japanese">일본풍 방</button>
+      <p class="room-choice-note">방을 바꾸면 꾸민 내용이 처음 상태로 돌아가요.</p>
+    </section>
+
+    <section class="housing-room-area" aria-label="내 방">
+      <div id="interiors-room-stage" class="interiors-room-stage" role="application" aria-label="내 집 꾸미기 방"></div>
+
+      <aside class="selected-card" id="interiors-selected-card" aria-live="polite">
+        <div>
+          <strong id="interiors-selected-label">물건을 골라보세요</strong>
+          <span id="interiors-selected-detail">보관함에서 물건을 놓거나 방 안의 물건을 눌러요.</span>
+        </div>
+        <div class="selected-actions selected-actions--floor" data-selected-actions="floor">
+          <button type="button" data-command="move-floor" data-dx="0" data-dy="-1">뒤로</button>
+          <button type="button" data-command="move-floor" data-dx="1" data-dy="0">오른쪽</button>
+          <button type="button" data-command="move-floor" data-dx="0" data-dy="1">앞으로</button>
+          <button type="button" data-command="move-floor" data-dx="-1" data-dy="0">왼쪽</button>
+        </div>
+        <div class="selected-actions selected-actions--wall" data-selected-actions="wall">
+          <button type="button" data-command="move-wall" data-ds="-1">왼쪽으로</button>
+          <button type="button" data-command="move-wall" data-ds="1">오른쪽으로</button>
+          <button type="button" data-command="wall-height" data-dh="1">위로</button>
+          <button type="button" data-command="wall-height" data-dh="-1">아래로</button>
+        </div>
+        <div class="selected-actions selected-actions--common">
+          <button type="button" data-command="rotate">돌리기</button>
+          <button type="button" data-command="clear">선택 풀기</button>
+          <button type="button" data-command="delete">치우기</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="item-dock" aria-label="가구 보관함">
+      <div class="item-dock-header">
+        <h2>가구 보관함</h2>
+        <div class="item-filter-tabs" role="group" aria-label="보관함 종류">
+          <button type="button" data-item-filter="all">전체</button>
+          <button type="button" data-item-filter="floor">바닥 가구</button>
+          <button type="button" data-item-filter="wall">벽 꾸미기</button>
+        </div>
+      </div>
+      <div id="interiors-item-tray" class="item-tray"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/interiors-room/preview.js"></script>
+</body>
+</html>

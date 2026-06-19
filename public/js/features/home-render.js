@@ -31,7 +31,6 @@
     const nameRow = document.createElement('div');
     const name = document.createElement('h3');
     const actionRow = document.createElement('div');
-    const decorateButton = document.createElement('button');
     const adminButton = document.createElement('button');
     const school = document.createElement('p');
     const meta = document.createElement('div');
@@ -83,10 +82,6 @@
     nameRow.className = 'profile-name-row';
     name.textContent = profile.nickname;
     actionRow.className = 'profile-name-actions';
-    decorateButton.className = 'profile-decorate-button';
-    decorateButton.type = 'button';
-    decorateButton.dataset.profileDecorateHome = 'true';
-    decorateButton.textContent = '집꾸미기';
     adminButton.className = 'profile-decorate-button profile-admin-center-button';
     adminButton.type = 'button';
     adminButton.dataset.profileOpenAdmin = 'true';
@@ -228,7 +223,6 @@
     });
     detailRoot.className = 'profile-detail-root';
     detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
-    if(deps.canOpenRoomDecor?.(profile) !== false) actionRow.appendChild(decorateButton);
     if(deps.isAdminProfile?.(profile)) actionRow.appendChild(adminButton);
     nameRow.append(name, actionRow);
     body.append(nameRow, school, meta, toggleGrid, detailRoot);

@@ -44,42 +44,9 @@
     bindControllerSections(deps.controllerSections || getDefaultControllerSections(deps));
   }
 
-  function createRoomDecorInitializer(options = {}, deps = {}) {
-    let initialized = false;
-    return function initializeRoomDecorIfAvailable() {
-      if(initialized) return false;
-      const roomDecor = deps.getRoomDecor?.() || root.RoomDecor;
-      if(!roomDecor || typeof roomDecor.init !== 'function') return false;
-      try {
-        roomDecor.init({
-          getUserId: options.getUserId,
-          onBack: options.onBack
-        });
-        initialized = true;
-        return true;
-      } catch(error) {
-        deps.warn?.('RoomDecor init failed.', error);
-        return false;
-      }
-    };
-  }
-
   function startApp(options = {}, deps = {}) {
     bindAppControllers(deps);
-    const initializeRoomDecor = createRoomDecorInitializer({
-      getUserId: options.getRoomDecorUserId,
-      onBack: options.onRoomDecorBack
-    }, {
-      getRoomDecor: deps.getRoomDecor,
-      warn: deps.warn
-    });
-
-    const authPromise = Promise.resolve().then(() => deps.initializeAuthUser?.());
-    return authPromise.finally(() => {
-      initializeRoomDecor();
-      deps.addWindowLoadListener?.(initializeRoomDecor);
-      deps.defer?.(initializeRoomDecor);
-    });
+    return Promise.resolve().then(() => deps.initializeAuthUser?.());
   }
 
   const api = {
@@ -87,7 +54,6 @@
     getControllerSectionsFromRegistry,
     bindControllerSections,
     bindAppControllers,
-    createRoomDecorInitializer,
     startApp
   };
 

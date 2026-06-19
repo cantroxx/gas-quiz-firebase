@@ -147,22 +147,6 @@
       });
     });
 
-    document.getElementById('admin-room-catalog-new')?.addEventListener('click', deps.resetAdminRoomCatalogForm);
-
-    document.getElementById('admin-room-catalog-load')?.addEventListener('click', () => {
-      deps.loadAdminRoomCatalog?.().catch(error => {
-        console.warn('Admin room catalog load failed.', error);
-        deps.setAdminRoomCatalogStatus?.('방 가구 목록을 불러오지 못했습니다.', true);
-      });
-    });
-
-    document.getElementById('admin-room-catalog-save')?.addEventListener('click', () => {
-      deps.saveAdminRoomCatalogItem?.().catch(error => {
-        console.warn('Admin room catalog save failed.', error);
-        deps.setAdminRoomCatalogStatus?.(window.DJ48AdminForm.getAdminRoomCatalogSaveErrorMessage(error), true);
-      });
-    });
-
     document.getElementById('admin-permission-grant')?.addEventListener('click', () => {
       deps.setClassAdminPermission?.(true).catch(error => {
         console.warn('Admin class permission grant failed.', error);

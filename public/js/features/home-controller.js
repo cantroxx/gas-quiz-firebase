@@ -83,10 +83,6 @@
         }
         return;
       }
-      if(event.target.closest('[data-profile-decorate-home]')) {
-        deps.showRoomView?.();
-        return;
-      }
       if(event.target.closest('[data-profile-open-admin]')) {
         deps.showAdminView?.();
         return;
@@ -126,6 +122,10 @@
     });
 
     document.getElementById('home-view')?.addEventListener('click', event => {
+      if(event.target.closest('[data-open-interiors-room-preview]')) {
+        window.location.assign('/interiors-room-preview.html');
+        return;
+      }
       const homeToggle = event.target.closest('[data-home-detail-toggle]');
       if(!homeToggle) return;
       const key = homeToggle.dataset.homeDetailToggle || '';

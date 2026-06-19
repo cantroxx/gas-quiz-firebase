@@ -154,7 +154,7 @@ globalThis.DJ48ShopData = {
       sortOrder: Number(data.sortOrder) || 999
     };
   },
-  isRoomFurnitureShopItem: item => item.rawCategory === '방 가구',
+  isRetiredShopCatalogItem: item => item.rawCategory === '방 가구',
   normalizeAssetCatalogFromFirestore: doc => ({ assetId: doc.data().assetId, enabled: doc.data().enabled }),
   normalizeUserEconomyFromFirestore: doc => doc.exists ? ({ userId: doc.data().userId, djCoin: doc.data().djCoin }) : null,
   getInitialUserEconomy: userId => ({ userId, djCoin: 0, totalEarned: 0, totalSpent: 0 }),

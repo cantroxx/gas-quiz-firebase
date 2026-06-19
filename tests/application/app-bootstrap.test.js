@@ -105,50 +105,15 @@ function testControllerSectionsFromRegistry() {
   assert.equal(sections[8].events.id, 'account-events');
 }
 
-function testCreateRoomDecorInitializerOnlyRunsOnce() {
-  let initCount = 0;
-  const initialize = bootstrap.createRoomDecorInitializer({
-    getUserId: () => 'u1',
-    onBack: () => {}
-  }, {
-    getRoomDecor: () => ({
-      init(options) {
-        initCount += 1;
-        assert.equal(options.getUserId(), 'u1');
-      }
-    })
-  });
-
-  assert.equal(initialize(), true);
-  assert.equal(initialize(), false);
-  assert.equal(initCount, 1);
-}
-
 async function testStartApp() {
   const calls = [];
-  await bootstrap.startApp({
-    getRoomDecorUserId: () => 'u1',
-    onRoomDecorBack: () => {}
-  }, {
+  await bootstrap.startApp({}, {
     appEventsController: makeController('bindCommonAppEvents', calls, 'app'),
     commonAppEvents: {},
-    initializeAuthUser: async () => calls.push(['auth']),
-    getRoomDecor: () => ({
-      init() {
-        calls.push(['room']);
-      }
-    }),
-    addWindowLoadListener: handler => {
-      calls.push(['load-listener']);
-      handler();
-    },
-    defer: handler => {
-      calls.push(['defer']);
-      handler();
-    }
+    initializeAuthUser: async () => calls.push(['auth'])
   });
 
-  assert.deepEqual(calls.map(call => call[0]), ['app', 'auth', 'room', 'load-listener', 'defer']);
+  assert.deepEqual(calls.map(call => call[0]), ['app', 'auth']);
 }
 
 async function run() {
@@ -156,7 +121,6 @@ async function run() {
   testBindControllerSections();
   testDefaultControllerSections();
   testControllerSectionsFromRegistry();
-  testCreateRoomDecorInitializerOnlyRunsOnce();
   await testStartApp();
   console.log('Application tests passed: app-bootstrap');
 }

@@ -26,7 +26,7 @@
     const snapshot = await requireFirestoreDb(db).collection('shopItems').get();
     return getDocs(snapshot)
       .map(doc => deps.normalizeShopItemFromFirestore(doc))
-      .filter(item => item.enabled && !deps.isRoomFurnitureShopItem(item))
+      .filter(item => item.enabled && !deps.isRetiredShopCatalogItem(item))
       .sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
@@ -186,7 +186,7 @@
             shopCategoryLabels: deps.shopCategoryLabels,
             getShopFallbackIcon: deps.getShopFallbackIcon
           }),
-          isRoomFurnitureShopItem: root.DJ48ShopData.isRoomFurnitureShopItem
+          isRetiredShopCatalogItem: root.DJ48ShopData.isRetiredShopCatalogItem
         });
       },
       loadAssetCatalog() {

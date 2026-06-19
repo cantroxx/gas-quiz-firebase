@@ -145,15 +145,6 @@
         payload: { flags },
         errorCode: 'admin-feature-flags-save-failed'
       }, deps),
-      loadAdminRoomCatalog: () => callAdminCallable({
-        callableName: 'adminListRoomCatalog',
-        errorCode: 'admin-room-catalog-load-failed'
-      }, deps),
-      saveAdminRoomCatalogItem: (item = {}) => callAdminCallable({
-        callableName: 'adminSaveRoomCatalogItem',
-        payload: item,
-        errorCode: 'admin-room-catalog-save-failed'
-      }, deps),
       loadAdminLogs: (payload = {}) => callAdminCallable({
         callableName: 'adminListLogs',
         payload,

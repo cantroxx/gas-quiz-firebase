@@ -40,17 +40,6 @@
       if(event.key === 'Escape') deps.closePlaceModal?.();
     });
 
-    window.addEventListener('resize', () => {
-      const roomView = document.getElementById('room-view');
-      if(!roomView || roomView.hidden || !deps.isRoomDecorPortraitBlocked?.()) return;
-      try {
-        if(window.RoomDecor && typeof window.RoomDecor.close === 'function') window.RoomDecor.close();
-      } catch(error) {
-        console.warn('RoomDecor close failed after portrait resize.', error);
-      }
-      window.alert('방 꾸미기는 화면을 가로로 돌린 뒤 이용할 수 있어요.');
-      deps.showHomeView?.();
-    });
   }
 
   window.DJ48AppEvents = {
