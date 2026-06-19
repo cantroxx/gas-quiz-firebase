@@ -28,9 +28,20 @@ window.RoomDecor = (function () {
   const TILE_H = 32;
   const HALF_W = TILE_W / 2;
   const HALF_H = TILE_H / 2;
-  const WALL_H = 96;
+  const WALL_H = 128;
   const ROTATIONS = ['0', '90', '180', '270'];
   const SHELL_TILE = { w: 64, h: 64, anchorX: 32, floorY: -16, wallY: -56 };
+  const SHELL_MODULE = { cells: 2, w: 128, h: 128, anchorX: 64, floorY: -32, wallY: -112 };
+
+  const DETAILED_SHELL = {
+    floor: '/images/room-assets/interiors/japanese_room/floor_japanese_128.png',
+    left: '/images/room-assets/interiors/japanese_room/wall_l_japanese_128.png',
+    right: '/images/room-assets/interiors/japanese_room/wall_r_japanese_128.png',
+    leftTop: '/images/room-assets/interiors/japanese_room/wall_top_l_japanese_128.png',
+    rightTop: '/images/room-assets/interiors/japanese_room/wall_top_r_japanese_128.png',
+    leftWindow: '/images/room-assets/interiors/japanese_room/wall_window_l_japanese_128.png',
+    rightWindow: '/images/room-assets/interiors/japanese_room/wall_window_r_japanese_128.png'
+  };
 
   const FLOOR_STYLES = {
     woodbright: {
@@ -97,8 +108,8 @@ window.RoomDecor = (function () {
       id: 'classic',
       name: '클래식 룸',
       desc: '기본 우드 바닥과 밝은 벽',
-      floor: 'woodbright',
-      wall: 'bone'
+      floor: 'japan',
+      wall: 'japan'
     },
     studio: {
       id: 'studio',
@@ -138,8 +149,8 @@ window.RoomDecor = (function () {
   };
 
   const DEFAULT_ROOM = {
-    floor: 'woodbright',
-    wall: 'bone',
+    floor: 'japan',
+    wall: 'japan',
     skin: 'interiors',
     layout: 'cozy',
     unlockedLayouts: ['cozy'],
@@ -661,6 +672,33 @@ window.RoomDecor = (function () {
     return String(url || '');
   }
 
+  function wallModuleAssetUrl(url) {
+    const value = String(url || '');
+    if (value.includes('/floor_wall_tiles_64/wall_bath_')) {
+      return value
+        .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
+        .replace('_64.png', '_128.png')
+        .replace('wall_bath_3_', 'wall_bath_1_')
+        .replace('wall_bath_4_', 'wall_bath_2_');
+    }
+    return value
+      .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
+      .replace('wall_l_64_', 'wall_l_128_')
+      .replace('wall_r_64_', 'wall_r_128_');
+  }
+
+  function floorModuleAssetUrl(url) {
+    return String(url || '')
+      .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
+      .replace('floor_64_', 'floor_128_')
+      .replace('floor_bath_1_64', 'floor_bath_1_128')
+      .replace('floor_bath_2_64', 'floor_bath_2_128');
+  }
+
+  function useDetailedShell() {
+    return true;
+  }
+
   function drawImage(url, x, y, width, height, alpha = 1) {
     const img = imageFor(url);
     if (!img || !img.complete || !img.naturalWidth) return;
@@ -764,11 +802,28 @@ window.RoomDecor = (function () {
   }
 
   function drawFloor(size) {
-    const asset = floorAssetUrl(FLOOR_STYLES[normalizeFloor(room.floor)].asset);
+    const detailed = useDetailedShell();
+    const moduleAsset = detailed ? DETAILED_SHELL.floor : floorModuleAssetUrl(FLOOR_STYLES[normalizeFloor(room.floor)].asset);
+    const fallbackAsset = floorAssetUrl(FLOOR_STYLES[normalizeFloor(room.floor)].asset);
+    for (let gy = 0; gy < size.d; gy += SHELL_MODULE.cells) {
+      for (let gx = 0; gx < size.w; gx += SHELL_MODULE.cells) {
+        const [x, y] = iso(gx, gy);
+        const fullModule = gx + SHELL_MODULE.cells <= size.w && gy + SHELL_MODULE.cells <= size.d;
+        if (fullModule) {
+          drawImage(moduleAsset, x - SHELL_MODULE.anchorX, y + SHELL_MODULE.floorY, SHELL_MODULE.w, SHELL_MODULE.h);
+        } else {
+          for (let dy = 0; dy < SHELL_MODULE.cells; dy += 1) {
+            for (let dx = 0; dx < SHELL_MODULE.cells; dx += 1) {
+              if (gx + dx >= size.w || gy + dy >= size.d) continue;
+              const [tx, ty] = iso(gx + dx, gy + dy);
+              drawImage(fallbackAsset, tx - SHELL_TILE.anchorX, ty + SHELL_TILE.floorY, SHELL_TILE.w, SHELL_TILE.h);
+            }
+          }
+        }
+      }
+    }
     for (let gy = 0; gy < size.d; gy += 1) {
       for (let gx = 0; gx < size.w; gx += 1) {
-        const [x, y] = iso(gx, gy);
-        drawImage(asset, x - SHELL_TILE.anchorX, y + SHELL_TILE.floorY, SHELL_TILE.w, SHELL_TILE.h);
         const poly = tilePath(gx, gy);
         pushHit({ kind: 'floor', gx, gy, poly });
         if ((placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy) {
@@ -780,30 +835,45 @@ window.RoomDecor = (function () {
 
   function drawWalls(size) {
     const style = WALL_STYLES[normalizeWall(room.wall)];
-    const left = wallAssetUrl(style.left);
-    const right = wallAssetUrl(style.right);
-    for (let gy = size.d - 1; gy >= 0; gy -= 1) {
+    const detailed = useDetailedShell();
+    const left = detailed ? DETAILED_SHELL.left : wallModuleAssetUrl(style.left);
+    const right = detailed ? DETAILED_SHELL.right : wallModuleAssetUrl(style.right);
+    const leftTop = null;
+    const rightTop = null;
+    const leftWindow = detailed ? DETAILED_SHELL.leftWindow : null;
+    const rightWindow = detailed ? DETAILED_SHELL.rightWindow : null;
+    const leftWindowU = Math.max(2, Math.floor(size.d / 2));
+    const rightWindowU = Math.max(2, Math.floor(size.w / 2));
+
+    for (let gy = Math.max(0, size.d - SHELL_MODULE.cells); gy >= 0; gy -= SHELL_MODULE.cells) {
       const [x, y] = iso(0, gy);
-      drawImage(left, x - SHELL_TILE.anchorX, y + SHELL_TILE.wallY, SHELL_TILE.w, SHELL_TILE.h);
+      const asset = leftWindow && Math.abs(gy - leftWindowU) < SHELL_MODULE.cells
+        ? leftWindow
+        : (leftTop && (gy === 0 || gy === size.d - SHELL_MODULE.cells) ? leftTop : left);
+      drawImage(asset, x - SHELL_MODULE.anchorX, y + SHELL_MODULE.wallY, SHELL_MODULE.w, SHELL_MODULE.h);
     }
-    for (let gx = 0; gx < size.w; gx += 1) {
+    for (let gx = 0; gx <= size.w - SHELL_MODULE.cells; gx += SHELL_MODULE.cells) {
       const [x, y] = iso(gx, 0);
-      drawImage(right, x - SHELL_TILE.anchorX, y + SHELL_TILE.wallY, SHELL_TILE.w, SHELL_TILE.h);
+      const asset = rightWindow && Math.abs(gx - rightWindowU) < SHELL_MODULE.cells
+        ? rightWindow
+        : (rightTop && (gx === 0 || gx === size.w - SHELL_MODULE.cells) ? rightTop : right);
+      drawImage(asset, x - SHELL_MODULE.anchorX, y + SHELL_MODULE.wallY, SHELL_MODULE.w, SHELL_MODULE.h);
     }
   }
 
-  function drawBackSeams(size) {
-    const leftEdge = [iso(0, 0), iso(0, size.d)];
-    const rightEdge = [iso(0, 0), iso(size.w, 0)];
+  function drawOuterRim(size) {
+    const back = [iso(0, 0), iso(size.w, 0), iso(size.w, size.d), iso(0, size.d)];
     ctx.save();
     ctx.lineCap = 'square';
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = 'rgba(38, 31, 45, .76)';
+    ctx.lineJoin = 'miter';
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = 'rgba(38, 31, 45, .92)';
     ctx.beginPath();
-    ctx.moveTo(leftEdge[0][0], leftEdge[0][1]);
-    ctx.lineTo(leftEdge[1][0], leftEdge[1][1]);
-    ctx.moveTo(rightEdge[0][0], rightEdge[0][1]);
-    ctx.lineTo(rightEdge[1][0], rightEdge[1][1]);
+    back.forEach(([x, y], index) => {
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
     ctx.stroke();
     ctx.restore();
   }
@@ -811,8 +881,8 @@ window.RoomDecor = (function () {
   function drawRoomShell(size) {
     drawShellShadow(size);
     drawFloor(size);
+    drawOuterRim(size);
     drawWalls(size);
-    drawBackSeams(size);
   }
 
   function drawWallSlots() {
@@ -1063,8 +1133,8 @@ window.RoomDecor = (function () {
       return;
     }
     room.placed = next;
-    room.floor = 'woodbright';
-    room.wall = 'bone';
+    room.floor = 'japan';
+    room.wall = 'japan';
     renderSidebar();
     render();
     scheduleSave();
