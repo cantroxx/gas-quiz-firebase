@@ -1,7 +1,7 @@
 /* ============================================================
  * DJ48 Quiztown - Interiors native room decorator
- * - Visual room shell is built from Pixel Salvaje TinyHouse interiors PNGs.
- * - SVG stays as the interaction layer for coordinates, hit targets, and guides.
+ * - Visual room shell is rendered on canvas from Pixel Salvaje TinyHouse interiors PNGs.
+ * - SVG-era drawing and DOM hit targets are intentionally removed.
  * - Data contracts remain: userRoomSettings.homeRoom, userInventory,
  *   userEconomy, assetCatalog, purchaseShopItem, purchaseRoomLayout.
  * ============================================================ */
@@ -28,9 +28,9 @@ window.RoomDecor = (function () {
   const TILE_H = 32;
   const HALF_W = TILE_W / 2;
   const HALF_H = TILE_H / 2;
-  const WALL_H = 120;
-  const WALL_TILE_Y = -50;
+  const WALL_H = 150;
   const ROTATIONS = ['0', '90', '180', '270'];
+  const WALL_DRAW = { w: 128, h: 128, y: -112 };
 
   const FLOOR_STYLES = {
     woodbright: {
@@ -191,7 +191,10 @@ window.RoomDecor = (function () {
   let saveTimer = null;
   let opened = false;
   let toastTimer = null;
-  let $view, $svg, $grid, $styleGrid, $coin, $tip, $bar, $toast, $zoomLabel;
+  let $view, $canvas, ctx, $grid, $styleGrid, $coin, $tip, $bar, $toast, $zoomLabel;
+  let drawState = { viewX: -360, viewY: -220, scale: 1, offsetX: 0, offsetY: 0, dpr: 1 };
+  let hitRegions = [];
+  const imageCache = new Map();
 
   function normalizeRenderType(value) {
     return value === 'image' ? 'image' : 'image';
@@ -603,49 +606,181 @@ window.RoomDecor = (function () {
     return iso(gx + fp.w / 2, gy + fp.d / 2, 0);
   }
 
-  function renderImage(x, y, href, width, height, extra = '') {
-    return `<image href="${escAttr(href)}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" preserveAspectRatio="xMidYMax meet"${extra}/>`;
+  function imageFor(url) {
+    const href = String(url || '').trim();
+    if (!href) return null;
+    if (imageCache.has(href)) return imageCache.get(href);
+    const img = new Image();
+    img.onload = () => render();
+    img.onerror = () => console.warn('[room] failed to load image:', href);
+    img.src = href;
+    imageCache.set(href, img);
+    return img;
   }
 
-  function renderFloorTile(gx, gy, hoverActive) {
-    const asset = FLOOR_STYLES[normalizeFloor(room.floor)].asset;
-    const [x, y] = iso(gx, gy);
-    const tilePoly = points([iso(gx, gy), iso(gx + 1, gy), iso(gx + 1, gy + 1), iso(gx, gy + 1)]);
-    return renderImage(x - 32, y - 16, asset, 64, 64, ' style="pointer-events:none"')
-      + `<polygon class="rd-tile" data-gx="${gx}" data-gy="${gy}" points="${tilePoly}" fill="${hoverActive ? '#ffd23f' : '#fff'}" fill-opacity="${hoverActive ? '.28' : '0'}" stroke="none"/>`;
+  function wallAssetUrl(url) {
+    const value = String(url || '');
+    if (value.includes('/floor_wall_tiles_64/wall_bath_')) {
+      return value
+        .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
+        .replace('_64.png', '_128.png')
+        .replace('wall_bath_3_', 'wall_bath_1_')
+        .replace('wall_bath_4_', 'wall_bath_2_');
+    }
+    return value
+      .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
+      .replace('wall_l_64_', 'wall_l_128_')
+      .replace('wall_r_64_', 'wall_r_128_');
   }
 
-  function renderFloorLayer(size) {
-    let html = '';
+  function floorAssetUrl(url) {
+    return String(url || '')
+      .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
+      .replace('floor_64_', 'floor_128_')
+      .replace('floor_bath_1_64', 'floor_bath_1_128')
+      .replace('floor_bath_2_64', 'floor_bath_2_128');
+  }
+
+  function drawImage(url, x, y, width, height, alpha = 1) {
+    const img = imageFor(url);
+    if (!img || !img.complete || !img.naturalWidth) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, x, y, width, height);
+    ctx.restore();
+  }
+
+  function worldPolygon(path, fill, alpha = 1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    path.forEach(([x, y], index) => {
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function tilePath(gx, gy, w = 1, d = 1) {
+    return [iso(gx, gy), iso(gx + w, gy), iso(gx + w, gy + d), iso(gx, gy + d)];
+  }
+
+  function pointInPolygon(point, polygon) {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+      const xi = polygon[i][0], yi = polygon[i][1];
+      const xj = polygon[j][0], yj = polygon[j][1];
+      const intersect = ((yi > point.y) !== (yj > point.y))
+        && (point.x < (xj - xi) * (point.y - yi) / ((yj - yi) || 1) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  function pointInRect(point, rect) {
+    return point.x >= rect.x && point.x <= rect.x + rect.w && point.y >= rect.y && point.y <= rect.y + rect.h;
+  }
+
+  function setupCanvas(size) {
+    const box = $canvas.getBoundingClientRect();
+    const cssW = Math.max(320, Math.floor(box.width || $canvas.clientWidth || 960));
+    const cssH = Math.max(320, Math.floor(box.height || $canvas.clientHeight || 620));
+    const dpr = window.devicePixelRatio || 1;
+    if ($canvas.width !== Math.floor(cssW * dpr) || $canvas.height !== Math.floor(cssH * dpr)) {
+      $canvas.width = Math.floor(cssW * dpr);
+      $canvas.height = Math.floor(cssH * dpr);
+    }
+    const viewX = -size.d * HALF_W - 120;
+    const viewY = -WALL_H - 92;
+    const viewW = (size.w + size.d) * HALF_W + 240;
+    const viewH = (size.w + size.d) * HALF_H + WALL_H + 150;
+    const fit = Math.min(cssW / viewW, cssH / viewH) * 0.94;
+    const scale = fit * zoom;
+    const offsetX = (cssW - viewW * scale) / 2;
+    const offsetY = (cssH - viewH * scale) / 2;
+    drawState = { viewX, viewY, viewW, viewH, scale, offsetX, offsetY, dpr };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * (offsetX - viewX * scale), dpr * (offsetY - viewY * scale));
+  }
+
+  function canvasToWorld(event) {
+    const rect = $canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    return {
+      x: (x - drawState.offsetX) / drawState.scale + drawState.viewX,
+      y: (y - drawState.offsetY) / drawState.scale + drawState.viewY
+    };
+  }
+
+  function pushHit(region) {
+    hitRegions.push(region);
+  }
+
+  function findHit(point, kind = null) {
+    for (let i = hitRegions.length - 1; i >= 0; i -= 1) {
+      const region = hitRegions[i];
+      if (kind && region.kind !== kind) continue;
+      if (region.rect && pointInRect(point, region.rect)) return region;
+      if (region.poly && pointInPolygon(point, region.poly)) return region;
+    }
+    return null;
+  }
+
+  function drawFloor(size) {
+    const asset = floorAssetUrl(FLOOR_STYLES[normalizeFloor(room.floor)].asset);
     for (let gy = 0; gy < size.d; gy += 1) {
       for (let gx = 0; gx < size.w; gx += 1) {
-        const active = (placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy;
-        html += renderFloorTile(gx, gy, active);
+        const [x, y] = iso(gx, gy);
+        drawImage(asset, x - 64, y - 32, 128, 128);
+        const poly = tilePath(gx, gy);
+        pushHit({ kind: 'floor', gx, gy, poly });
+        if ((placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy) {
+          worldPolygon(poly, '#ffd23f', .28);
+        }
       }
     }
-    return html;
   }
 
-  function renderWalls(size) {
+  function drawWalls(size) {
     const style = WALL_STYLES[normalizeWall(room.wall)];
-    let html = '';
+    const left = wallAssetUrl(style.left);
+    const right = wallAssetUrl(style.right);
     for (let gy = size.d - 1; gy >= 0; gy -= 1) {
       const [x, y] = iso(0, gy);
-      html += renderImage(x - 32, y + WALL_TILE_Y, style.left, 64, 64, ' style="pointer-events:none"');
+      drawImage(left, x - 64, y + WALL_DRAW.y, WALL_DRAW.w, WALL_DRAW.h);
     }
     for (let gx = size.w - 1; gx >= 0; gx -= 1) {
       const [x, y] = iso(gx, 0);
-      html += renderImage(x - 32, y + WALL_TILE_Y, style.right, 64, 64, ' style="pointer-events:none"');
+      drawImage(right, x - 64, y + WALL_DRAW.y, WALL_DRAW.w, WALL_DRAW.h);
     }
-    return html;
   }
 
-  function renderFloorObject(item) {
+  function drawWallSlots() {
+    const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
+    if (!ghostType || !isWallItem(ghostType)) return;
+    for (const slot of wallSlots()) {
+      const u = Number(slot.wx || 0);
+      const z = Number(slot.wz || 48);
+      const wall = slot.wall === 'left' ? 'left' : 'right';
+      const poly = wall === 'left'
+        ? [iso(0, u, z + 34), iso(0, u + 1, z + 34), iso(0, u + 1, z), iso(0, u, z)]
+        : [iso(u, 0, z + 34), iso(u + 1, 0, z + 34), iso(u + 1, 0, z), iso(u, 0, z)];
+      pushHit({ kind: 'wall', surface: 'wall', wall, wx: u, wz: z, poly });
+      if (hover && hover.surface === 'wall' && hover.wall === wall && hover.wx === u && hover.wz === z) {
+        worldPolygon(poly, '#ffd23f', .3);
+      }
+    }
+  }
+
+  function floorObjectBounds(item) {
     const def = catalog[item.type];
-    if (!def) return '';
     const rot = normalizeRotation(item.rot);
-    const href = imageUrlForRotation(def, canRotateItem(item.type) ? rot : 0);
-    if (!href) return '';
     const fp = getFootprint(item.type, rot);
     const [sx, sy] = tileAnchor(item.gx, item.gy, fp);
     const width = Number(def.pixelWidth || 0) || 64;
@@ -653,112 +788,121 @@ window.RoomDecor = (function () {
     const anchorX = Number(def.anchorX || 0) || width / 2;
     const anchorY = Number(def.anchorY || 0) || height;
     const placement = placementOffsetForRotation(def, rot);
-    const x = sx - anchorX + Number(def.offsetX || 0) + placement.x;
-    const y = sy - anchorY + Number(def.offsetY || 0) + placement.y;
-    return renderImage(x, y, href, width, height);
+    return {
+      x: sx - anchorX + Number(def.offsetX || 0) + placement.x,
+      y: sy - anchorY + Number(def.offsetY || 0) + placement.y,
+      w: width,
+      h: height,
+      href: imageUrlForRotation(def, canRotateItem(item.type) ? rot : 0)
+    };
   }
 
   function wallAnchor(item) {
-    if (item.wall === 'left') return iso(0, Number(item.wx || 0), Number(item.wz || 48));
-    return iso(Number(item.wx || 0), 0, Number(item.wz || 48));
+    if (item.wall === 'left') return iso(0, Number(item.wx || 0), Number(item.wz || 70));
+    return iso(Number(item.wx || 0), 0, Number(item.wz || 70));
   }
 
-  function renderWallObject(item) {
+  function wallObjectBounds(item) {
     const def = catalog[item.type];
-    if (!def) return '';
-    const href = imageUrlForRotation(def, 0);
-    if (!href) return '';
     const [sx, sy] = wallAnchor(item);
     const width = Number(def.pixelWidth || 0) || 64;
     const height = Number(def.pixelHeight || 0) || 64;
     const anchorX = Number(def.anchorX || 0) || width / 2;
     const anchorY = Number(def.anchorY || 0) || height / 2;
-    return renderImage(sx - anchorX + Number(def.offsetX || 0), sy - anchorY + Number(def.offsetY || 0), href, width, height);
+    return {
+      x: sx - anchorX + Number(def.offsetX || 0),
+      y: sy - anchorY + Number(def.offsetY || 0),
+      w: width,
+      h: height,
+      href: imageUrlForRotation(def, normalizeRotation(item.rot || 0))
+    };
   }
 
-  function objectMarkup(item) {
-    return isWallItem(item.type) ? renderWallObject(item) : renderFloorObject(item);
-  }
-
-  function wallSlotMarkup(slot, active) {
-    const u = Number(slot.wx || 0);
-    const z = Number(slot.wz || 48);
-    const wall = slot.wall === 'left' ? 'left' : 'right';
-    const a = wall === 'left' ? iso(0, u, z + 22) : iso(u, 0, z + 22);
-    const b = wall === 'left' ? iso(0, u + 1, z + 22) : iso(u + 1, 0, z + 22);
-    const c = wall === 'left' ? iso(0, u + 1, z) : iso(u + 1, 0, z);
-    const d = wall === 'left' ? iso(0, u, z) : iso(u, 0, z);
-    return `<polygon class="rd-wall-tile" data-wall="${wall}" data-wx="${u}" data-wz="${z}" points="${points([a, b, c, d])}" fill="${active ? '#ffd23f' : '#fff'}" fill-opacity="${active ? '.3' : '0'}" stroke="none"/>`;
-  }
-
-  function renderWallSlots() {
-    const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
-    if (!ghostType || !isWallItem(ghostType)) return '';
-    return wallSlots().map(slot => {
-      const active = hover && hover.surface === 'wall' && hover.wall === slot.wall && hover.wx === slot.wx && hover.wz === slot.wz;
-      return wallSlotMarkup(slot, active);
-    }).join('');
-  }
-
-  function render() {
-    if (!$svg || !room) return;
-    const size = getRoomSize();
-    const viewX = -size.d * HALF_W - 76;
-    const viewY = -WALL_H - 54;
-    const viewW = (size.w + size.d) * HALF_W + 152;
-    const viewH = (size.w + size.d) * HALF_H + WALL_H + 118;
-    $svg.setAttribute('viewBox', `${viewX} ${viewY} ${viewW} ${viewH}`);
-
-    let html = renderFloorLayer(size);
-    html += renderWalls(size);
-
-    const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
-    html += renderWallSlots();
-
-    const wallItems = room.placed.filter(item => catalog[item.type] && isWallItem(item.type));
-    for (const item of wallItems) {
-      if (item.id === movingId && hover) continue;
-      html += `<g class="rd-obj${item.id === selectedId ? ' sel' : ''}" data-id="${item.id}">${objectMarkup(item)}</g>`;
+  function drawObject(item, alpha = 1) {
+    const def = catalog[item.type];
+    if (!def) return;
+    const bounds = isWallItem(item.type) ? wallObjectBounds(item) : floorObjectBounds(item);
+    if (!bounds.href) return;
+    drawImage(bounds.href, bounds.x, bounds.y, bounds.w, bounds.h, alpha);
+    if (alpha === 1) pushHit({ kind: 'object', id: item.id, rect: bounds });
+    if (item.id === selectedId) {
+      ctx.save();
+      ctx.strokeStyle = '#ffd23f';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(bounds.x + 2, bounds.y + 2, bounds.w - 4, bounds.h - 4);
+      ctx.restore();
     }
+  }
 
-    const floorItems = room.placed
+  function drawObjects() {
+    room.placed
+      .filter(item => catalog[item.type] && isWallItem(item.type))
+      .forEach(item => {
+        if (item.id !== movingId || !hover) drawObject(item);
+      });
+    room.placed
       .filter(item => catalog[item.type] && !isWallItem(item.type))
       .sort((a, b) => {
         const layerDiff = layerSortWeight(a.type) - layerSortWeight(b.type);
         return layerDiff || floorSortKey(a) - floorSortKey(b);
+      })
+      .forEach(item => {
+        if (item.id !== movingId || !hover) drawObject(item);
       });
-    for (const item of floorItems) {
-      if (item.id === movingId && hover) continue;
-      html += `<g class="rd-obj${item.id === selectedId ? ' sel' : ''}" data-id="${item.id}">${objectMarkup(item)}</g>`;
-    }
+  }
 
-    if (ghostType && hover && catalog[ghostType]) {
-      const moving = movingId ? room.placed.find(p => p.id === movingId) : null;
-      const rot = moving ? moving.rot : 0;
-      if (isWallItem(ghostType) && hover.surface === 'wall') {
-        const ok = fitsWall(ghostType, hover.wall, hover.wx, hover.wz, movingId);
-        const ghost = { type: ghostType, surface: 'wall', wall: hover.wall, wx: hover.wx, wz: hover.wz, rot: 0 };
-        html += `<g opacity=".58" style="pointer-events:none">${ok ? '' : wallSlotMarkup(hover, true)}${objectMarkup(ghost)}</g>`;
-      } else if (!isWallItem(ghostType) && hover.surface !== 'wall') {
-        const ok = fits(ghostType, hover.gx, hover.gy, movingId, rot);
-        const fp = getFootprint(ghostType, rot);
-        if (!ok) {
-          html += `<polygon points="${points([iso(hover.gx, hover.gy), iso(hover.gx + fp.w, hover.gy), iso(hover.gx + fp.w, hover.gy + fp.d), iso(hover.gx, hover.gy + fp.d)])}" fill="#e2574c" fill-opacity=".55" style="pointer-events:none"/>`;
-        }
-        html += `<g opacity=".58" style="pointer-events:none">${objectMarkup({ type: ghostType, gx: hover.gx, gy: hover.gy, rot })}</g>`;
-      }
+  function drawGhost() {
+    const ghostType = placingType || (movingId && room.placed.find(p => p.id === movingId)?.type);
+    if (!ghostType || !hover || !catalog[ghostType]) return;
+    const moving = movingId ? room.placed.find(p => p.id === movingId) : null;
+    const rot = moving ? moving.rot : 0;
+    if (isWallItem(ghostType) && hover.surface === 'wall') {
+      drawObject({ id: -1, type: ghostType, surface: 'wall', wall: hover.wall, wx: hover.wx, wz: hover.wz, rot: 0 }, .58);
+      return;
     }
+    if (!isWallItem(ghostType) && hover.surface !== 'wall') {
+      const ok = fits(ghostType, hover.gx, hover.gy, movingId, rot);
+      const fp = getFootprint(ghostType, rot);
+      if (!ok) worldPolygon(tilePath(hover.gx, hover.gy, fp.w, fp.d), '#e2574c', .55);
+      drawObject({ id: -1, type: ghostType, gx: hover.gx, gy: hover.gy, rot }, .58);
+    }
+  }
 
+  function drawLighting(size) {
     const lightLevel = normalizeLightLevel(room.lightLevel);
-    const dimOpacity = room.lightsOn === false ? .48 : Math.max(0, (100 - lightLevel) / 100 * .26);
-    if (dimOpacity > 0) html += `<rect x="-1000" y="-1000" width="2000" height="2000" fill="#050719" opacity="${dimOpacity.toFixed(2)}" style="pointer-events:none"/>`;
     if (room.lightsOn !== false && lightLevel >= 70) {
-      const [lx, ly] = iso(size.w * .58, size.d * .18, WALL_H - 20);
-      html += `<ellipse cx="${lx}" cy="${ly}" rx="${70 + lightLevel * .35}" ry="${24 + lightLevel * .12}" fill="#fff0a8" opacity="${(lightLevel / 100 * .16).toFixed(2)}" style="pointer-events:none"/>`;
+      const [lx, ly] = iso(size.w * .58, size.d * .18, WALL_H - 26);
+      ctx.save();
+      ctx.fillStyle = '#fff0a8';
+      ctx.globalAlpha = lightLevel / 100 * .14;
+      ctx.beginPath();
+      ctx.ellipse(lx, ly, 70 + lightLevel * .35, 24 + lightLevel * .12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
+    const dimOpacity = room.lightsOn === false ? .48 : Math.max(0, (100 - lightLevel) / 100 * .26);
+    if (dimOpacity > 0) {
+      ctx.save();
+      ctx.setTransform(drawState.dpr, 0, 0, drawState.dpr, 0, 0);
+      ctx.fillStyle = '#050719';
+      ctx.globalAlpha = dimOpacity;
+      ctx.fillRect(0, 0, $canvas.width / drawState.dpr, $canvas.height / drawState.dpr);
+      ctx.restore();
+    }
+  }
 
-    $svg.innerHTML = html;
-    $svg.classList.toggle('placing', !!(placingType || movingId));
+  function render() {
+    if (!$canvas || !ctx || !room) return;
+    const size = getRoomSize();
+    hitRegions = [];
+    setupCanvas(size);
+    drawFloor(size);
+    drawWalls(size);
+    drawWallSlots();
+    drawObjects();
+    drawGhost();
+    drawLighting(size);
+    $canvas.classList.toggle('placing', !!(placingType || movingId));
     applyZoom();
   }
 
@@ -873,14 +1017,28 @@ window.RoomDecor = (function () {
   }
 
   function applyZoom() {
-    if (!$svg) return;
-    $svg.style.transform = `scale(${zoom.toFixed(2)})`;
     if ($zoomLabel) $zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
   }
 
   function setZoom(value) {
     zoom = clamp(Number(value) || 1, CONFIG.MIN_ZOOM, CONFIG.MAX_ZOOM);
-    applyZoom();
+    render();
+  }
+
+  function hoverFromEvent(event) {
+    const type = placingType || room.placed.find(p => p.id === movingId)?.type;
+    if (!type) return null;
+    const point = canvasToWorld(event);
+    if (isWallItem(type)) {
+      const wallHit = findHit(point, 'wall');
+      return wallHit ? { surface: 'wall', wall: wallHit.wall, wx: wallHit.wx, wz: wallHit.wz } : null;
+    }
+    const floorHit = findHit(point, 'floor');
+    return floorHit ? { surface: 'floor', gx: floorHit.gx, gy: floorHit.gy } : null;
+  }
+
+  function sameHover(a, b) {
+    return JSON.stringify(a || null) === JSON.stringify(b || null);
   }
 
   function bindEvents() {
@@ -970,24 +1128,20 @@ window.RoomDecor = (function () {
       scheduleSave();
     };
 
-    $svg.addEventListener('mousemove', event => {
+    $canvas.addEventListener('mousemove', event => {
       if (!placingType && !movingId) return;
-      const type = placingType || room.placed.find(p => p.id === movingId)?.type;
-      const wallTile = event.target.closest('.rd-wall-tile');
-      const floorTile = event.target.closest('.rd-tile');
-      const nextHover = isWallItem(type)
-        ? (wallTile ? { surface: 'wall', wall: wallTile.dataset.wall, wx: Number(wallTile.dataset.wx), wz: Number(wallTile.dataset.wz) } : null)
-        : (floorTile ? { surface: 'floor', gx: Number(floorTile.dataset.gx), gy: Number(floorTile.dataset.gy) } : null);
-      if (JSON.stringify(nextHover) !== JSON.stringify(hover)) {
+      const nextHover = hoverFromEvent(event);
+      if (!sameHover(nextHover, hover)) {
         hover = nextHover;
         render();
       }
     });
 
-    $svg.addEventListener('click', event => {
-      const obj = event.target.closest('.rd-obj');
-      const tile = event.target.closest('.rd-tile');
-      const wallTile = event.target.closest('.rd-wall-tile');
+    $canvas.addEventListener('click', event => {
+      const point = canvasToWorld(event);
+      const obj = findHit(point, 'object');
+      const tile = findHit(point, 'floor');
+      const wallTile = findHit(point, 'wall');
 
       if (placingType || movingId) {
         const current = movingId ? room.placed.find(p => p.id === movingId) : null;
@@ -995,9 +1149,9 @@ window.RoomDecor = (function () {
         if (!type) return;
         if (isWallItem(type)) {
           if (!wallTile) return;
-          const wall = wallTile.dataset.wall;
-          const wx = Number(wallTile.dataset.wx);
-          const wz = Number(wallTile.dataset.wz);
+          const wall = wallTile.wall;
+          const wx = Number(wallTile.wx);
+          const wz = Number(wallTile.wz);
           if (!fitsWall(type, wall, wx, wz, movingId)) {
             showToast('여기에는 놓을 수 없어요!');
             return;
@@ -1017,8 +1171,8 @@ window.RoomDecor = (function () {
           return;
         }
         if (!tile) return;
-        const gx = Number(tile.dataset.gx);
-        const gy = Number(tile.dataset.gy);
+        const gx = Number(tile.gx);
+        const gy = Number(tile.gy);
         const rot = current ? current.rot : 0;
         if (!fits(type, gx, gy, movingId, rot)) {
           showToast('여기에는 놓을 수 없어요!');
@@ -1037,7 +1191,7 @@ window.RoomDecor = (function () {
       }
 
       if (obj) {
-        selectedId = Number(obj.dataset.id);
+        selectedId = Number(obj.id);
         const item = room.placed.find(p => p.id === selectedId);
         setTip(`「${catalog[item.type].name}」 선택됨 · 이동/회전/삭제를 선택하세요`);
         updateActionBar();
@@ -1088,7 +1242,7 @@ window.RoomDecor = (function () {
     $view.querySelector('#rd-ab-cancel').onclick = () => clearModes();
     $view.querySelector('#rd-zoom-out').onclick = () => setZoom(zoom - CONFIG.ZOOM_STEP);
     $view.querySelector('#rd-zoom-in').onclick = () => setZoom(zoom + CONFIG.ZOOM_STEP);
-    $svg.addEventListener('wheel', event => {
+    $canvas.addEventListener('wheel', event => {
       if (!opened) return;
       event.preventDefault();
       setZoom(zoom + (event.deltaY < 0 ? CONFIG.ZOOM_STEP : -CONFIG.ZOOM_STEP));
@@ -1112,7 +1266,8 @@ window.RoomDecor = (function () {
       console.error('[room] #room-view is missing.');
       return;
     }
-    $svg = $view.querySelector('#rd-svg');
+    $canvas = $view.querySelector('#rd-canvas');
+    ctx = $canvas && $canvas.getContext ? $canvas.getContext('2d') : null;
     $grid = $view.querySelector('#rd-grid');
     $styleGrid = $view.querySelector('#rd-style');
     $coin = $view.querySelector('#rd-coin');
@@ -1120,7 +1275,16 @@ window.RoomDecor = (function () {
     $bar = $view.querySelector('#rd-actionbar');
     $toast = $view.querySelector('#rd-toast');
     $zoomLabel = $view.querySelector('#rd-zoom-label');
+    if (!$canvas || !ctx) {
+      console.error('[room] #rd-canvas is missing.');
+      return;
+    }
     bindEvents();
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => render()).observe($canvas);
+    } else {
+      window.addEventListener('resize', () => render());
+    }
     new MutationObserver(() => {
       if ($view.hidden && opened) close();
     }).observe($view, { attributes: true, attributeFilter: ['hidden'] });
