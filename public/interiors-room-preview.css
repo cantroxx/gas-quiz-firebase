@@ -397,8 +397,8 @@ button:disabled {
   }
 
   .interiors-room-stage {
-    height: 45vh;
-    min-height: 310px;
+    height: min(36vh, 340px);
+    min-height: 300px;
   }
 
   .selected-card {
