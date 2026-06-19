@@ -28,9 +28,9 @@ window.RoomDecor = (function () {
   const TILE_H = 32;
   const HALF_W = TILE_W / 2;
   const HALF_H = TILE_H / 2;
-  const WALL_H = 184;
+  const WALL_H = 96;
   const ROTATIONS = ['0', '90', '180', '270'];
-  const WALL_DRAW = { w: 128, h: 128, y: -116 };
+  const SHELL_TILE = { w: 64, h: 64, anchorX: 32, floorY: -16, wallY: -56 };
 
   const FLOOR_STYLES = {
     woodbright: {
@@ -366,7 +366,7 @@ window.RoomDecor = (function () {
         surface: 'wall',
         wall: item.wall === 'left' ? 'left' : (catalogItem.wall || 'right'),
         wx: Number(item.wx ?? 2),
-        wz: Number(item.wz ?? (Number(catalogItem.h || 0) > 60 ? 48 : 92)),
+        wz: Number(item.wz ?? (Number(catalogItem.h || 0) > 60 ? 28 : 58)),
         rot: 0,
         state: normalizeItemState(item.type, item.state)
       };
@@ -551,7 +551,7 @@ window.RoomDecor = (function () {
 
   function wallSlots() {
     const slots = [];
-    const levels = [58, 96, 128];
+    const levels = [26, 50, 72];
     for (const wall of ['left', 'right']) {
       const length = getWallLength(wall);
       for (let u = 1; u < length; u += 1) {
@@ -563,7 +563,7 @@ window.RoomDecor = (function () {
 
   function fitsWall(type, wall, wx, wz, ignoreId = null) {
     const size = getWallSize(type);
-    if (wx < 0 || wz < 16 || wx + size.w > getWallLength(wall) || wz + size.h > WALL_H - 8) return false;
+    if (wx < 0 || wz < 8 || wx + size.w > getWallLength(wall) || wz + size.h > WALL_H - 4) return false;
     return room.placed.every(other => {
       if (other.id === ignoreId || !isWallItem(other.type) || other.wall !== wall) return true;
       const otherSize = getWallSize(other.type);
@@ -654,26 +654,11 @@ window.RoomDecor = (function () {
   }
 
   function wallAssetUrl(url) {
-    const value = String(url || '');
-    if (value.includes('/floor_wall_tiles_64/wall_bath_')) {
-      return value
-        .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
-        .replace('_64.png', '_128.png')
-        .replace('wall_bath_3_', 'wall_bath_1_')
-        .replace('wall_bath_4_', 'wall_bath_2_');
-    }
-    return value
-      .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
-      .replace('wall_l_64_', 'wall_l_128_')
-      .replace('wall_r_64_', 'wall_r_128_');
+    return String(url || '');
   }
 
   function floorAssetUrl(url) {
-    return String(url || '')
-      .replace('/floor_wall_tiles_64/', '/floor_wall_tiles_128/')
-      .replace('floor_64_', 'floor_128_')
-      .replace('floor_bath_1_64', 'floor_bath_1_128')
-      .replace('floor_bath_2_64', 'floor_bath_2_128');
+    return String(url || '');
   }
 
   function drawImage(url, x, y, width, height, alpha = 1) {
@@ -729,10 +714,10 @@ window.RoomDecor = (function () {
       $canvas.width = Math.floor(cssW * dpr);
       $canvas.height = Math.floor(cssH * dpr);
     }
-    const viewX = -size.d * HALF_W - 120;
-    const viewY = -WALL_H - 92;
-    const viewW = (size.w + size.d) * HALF_W + 240;
-    const viewH = (size.w + size.d) * HALF_H + WALL_H + 150;
+    const viewX = -size.d * HALF_W - 90;
+    const viewY = -WALL_H - 54;
+    const viewW = (size.w + size.d) * HALF_W + 180;
+    const viewH = (size.w + size.d) * HALF_H + WALL_H + 100;
     const fit = Math.min(cssW / viewW, cssH / viewH) * 0.94;
     const scale = fit * zoom;
     const offsetX = (cssW - viewW * scale) / 2;
@@ -767,12 +752,23 @@ window.RoomDecor = (function () {
     return null;
   }
 
+  function drawShellShadow(size) {
+    const pad = 22;
+    const base = [iso(0, 0), iso(size.w, 0), iso(size.w, size.d), iso(0, size.d)];
+    worldPolygon([
+      [base[0][0] - pad, base[0][1] + 18],
+      [base[1][0] + pad, base[1][1] + 18],
+      [base[2][0] + pad, base[2][1] + 18],
+      [base[3][0] - pad, base[3][1] + 18]
+    ], '#060817', .56);
+  }
+
   function drawFloor(size) {
     const asset = floorAssetUrl(FLOOR_STYLES[normalizeFloor(room.floor)].asset);
     for (let gy = 0; gy < size.d; gy += 1) {
       for (let gx = 0; gx < size.w; gx += 1) {
         const [x, y] = iso(gx, gy);
-        drawImage(asset, x - 64, y - 32, 128, 128);
+        drawImage(asset, x - SHELL_TILE.anchorX, y + SHELL_TILE.floorY, SHELL_TILE.w, SHELL_TILE.h);
         const poly = tilePath(gx, gy);
         pushHit({ kind: 'floor', gx, gy, poly });
         if ((placingType || movingId) && hover && hover.surface !== 'wall' && hover.gx === gx && hover.gy === gy) {
@@ -788,12 +784,35 @@ window.RoomDecor = (function () {
     const right = wallAssetUrl(style.right);
     for (let gy = size.d - 1; gy >= 0; gy -= 1) {
       const [x, y] = iso(0, gy);
-      drawImage(left, x - 64, y + WALL_DRAW.y, WALL_DRAW.w, WALL_DRAW.h);
+      drawImage(left, x - SHELL_TILE.anchorX, y + SHELL_TILE.wallY, SHELL_TILE.w, SHELL_TILE.h);
     }
-    for (let gx = size.w - 1; gx >= 0; gx -= 1) {
+    for (let gx = 0; gx < size.w; gx += 1) {
       const [x, y] = iso(gx, 0);
-      drawImage(right, x - 64, y + WALL_DRAW.y, WALL_DRAW.w, WALL_DRAW.h);
+      drawImage(right, x - SHELL_TILE.anchorX, y + SHELL_TILE.wallY, SHELL_TILE.w, SHELL_TILE.h);
     }
+  }
+
+  function drawBackSeams(size) {
+    const leftEdge = [iso(0, 0), iso(0, size.d)];
+    const rightEdge = [iso(0, 0), iso(size.w, 0)];
+    ctx.save();
+    ctx.lineCap = 'square';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(38, 31, 45, .76)';
+    ctx.beginPath();
+    ctx.moveTo(leftEdge[0][0], leftEdge[0][1]);
+    ctx.lineTo(leftEdge[1][0], leftEdge[1][1]);
+    ctx.moveTo(rightEdge[0][0], rightEdge[0][1]);
+    ctx.lineTo(rightEdge[1][0], rightEdge[1][1]);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRoomShell(size) {
+    drawShellShadow(size);
+    drawFloor(size);
+    drawWalls(size);
+    drawBackSeams(size);
   }
 
   function drawWallSlots() {
@@ -931,8 +950,7 @@ window.RoomDecor = (function () {
     const size = getRoomSize();
     hitRegions = [];
     setupCanvas(size);
-    drawFloor(size);
-    drawWalls(size);
+    drawRoomShell(size);
     drawWallSlots();
     drawObjects();
     drawGhost();
