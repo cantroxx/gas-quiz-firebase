@@ -23,6 +23,11 @@
       <button class="room-choice-card" type="button" data-preset-choice="interiors_bath">타일 방</button>
       <button class="room-choice-card" type="button" data-preset-choice="interiors_japanese">일본풍 방</button>
       <p class="room-choice-note">방을 바꾸면 꾸민 내용이 처음 상태로 돌아가요.</p>
+      <label class="wall-height-control">
+        <span>벽 높이</span>
+        <input id="interiors-wall-height" type="range" min="80" max="140" step="4" value="96">
+        <output id="interiors-wall-height-value">96</output>
+      </label>
     </section>
 
     <section class="housing-room-area" aria-label="내 방">
@@ -49,8 +54,16 @@
           <button type="button" data-command="place-surface">위에 올리기</button>
           <button type="button" data-command="next-surface-slot">자리 바꾸기</button>
           <button type="button" data-command="detach-surface">내려놓기</button>
+          <button type="button" data-command="nudge-surface" data-dx="0" data-dy="-4">위</button>
+          <button type="button" data-command="nudge-surface" data-dx="-4" data-dy="0">왼쪽</button>
+          <button type="button" data-command="nudge-surface" data-dx="4" data-dy="0">오른쪽</button>
+          <button type="button" data-command="nudge-surface" data-dx="0" data-dy="4">아래</button>
+        </div>
+        <div class="selected-actions selected-actions--seat" data-selected-actions="seat">
+          <button type="button" data-command="attach-seat">책상에 붙이기</button>
         </div>
         <div class="selected-actions selected-actions--common">
+          <button type="button" data-command="begin-place">옮기기</button>
           <button type="button" data-command="rotate">돌리기</button>
           <button type="button" data-command="clear">선택 풀기</button>
           <button type="button" data-command="delete">치우기</button>

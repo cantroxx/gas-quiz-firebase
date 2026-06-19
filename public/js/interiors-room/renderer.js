@@ -1,6 +1,6 @@
 import { getItemDefinition } from './asset-manifest.js';
 
-const LAYER_NAMES = ['floor', 'walls', 'wallObjects', 'floorObjects', 'surfaceObjects', 'selection', 'debug'];
+const LAYER_NAMES = ['floor', 'walls', 'wallObjects', 'floorObjects', 'surfaceObjects', 'selection', 'placement', 'debug'];
 
 export class InteriorsRoomRenderer {
   constructor(stage) {
@@ -31,6 +31,7 @@ export class InteriorsRoomRenderer {
     this.renderShell(roomState.preset);
     this.renderPlacedItems(roomState.items);
     this.renderSelectionAnchor(roomState.items);
+    this.renderPlacementPreview(roomState);
     this.renderDebugOverlay(roomState.preset);
   }
 
@@ -56,7 +57,8 @@ export class InteriorsRoomRenderer {
     const floorWidth = (preset.grid.width + preset.grid.depth) * stepX + module;
     const floorHeight = (preset.grid.width + preset.grid.depth) * stepY + module;
     const roomWidth = floorWidth + module;
-    const roomHeight = floorHeight + preset.wallHeight + module * 0.4;
+    const wallHeight = Number(preset.currentWallHeight ?? preset.wallHeight);
+    const roomHeight = floorHeight + wallHeight + module * 0.4;
     return {
       module,
       stepX,
@@ -69,7 +71,7 @@ export class InteriorsRoomRenderer {
       roomWidth,
       roomHeight,
       originX: roomWidth / 2 - stepX,
-      originY: preset.wallHeight + 34
+      originY: wallHeight + 34
     };
   }
 
@@ -151,6 +153,25 @@ export class InteriorsRoomRenderer {
     this.layers.get('selection').append(anchor);
   }
 
+  renderPlacementPreview(roomState) {
+    const placement = roomState.placement;
+    if(!placement?.isActive || !placement.preview) return;
+    const definition = getItemDefinition(placement.itemId);
+    if(!definition) return;
+    const item = {
+      id: 'placement-preview',
+      itemId: placement.itemId,
+      direction: placement.direction || definition.directions[0],
+      ...placement.preview
+    };
+    const point = this.objectPoint(item, definition, roomState.items);
+    const image = this.createObjectImage(this.resolveSprite(definition, item), point.left, point.top, point.zIndex + 500, item, definition);
+    image.classList.add('is-placement-preview');
+    image.removeAttribute('data-item-id');
+    image.addEventListener('click', event => event.stopPropagation());
+    this.layers.get('placement').append(image);
+  }
+
   renderDebugOverlay(preset) {
     if(!this.shouldShowDebug()) return;
     const debugLayer = this.layers.get('debug');
@@ -216,8 +237,8 @@ export class InteriorsRoomRenderer {
     const imageSize = definition.size || this.metrics.module;
     const verticalLift = imageSize >= this.metrics.module ? this.metrics.module / 2 : imageSize * 0.68;
     return {
-      left: anchor.left - imageSize / 2,
-      top: anchor.top - verticalLift,
+      left: anchor.left - imageSize / 2 + Number(item.visualOffsetX || 0),
+      top: anchor.top - verticalLift + Number(item.visualOffsetY || 0),
       zIndex: 100 + (item.x + item.y) * 10 + (item.z || 0)
     };
   }
@@ -268,8 +289,8 @@ export class InteriorsRoomRenderer {
     const slot = hostDefinition.surfaceSlots?.find(candidate => candidate.id === item.slotId) || hostDefinition.surfaceSlots?.[0];
     if(!slot) return this.floorAnchorPoint(item);
     return {
-      left: hostPoint.left + slot.x,
-      top: hostPoint.top + slot.y
+      left: hostPoint.left + slot.x + Number(item.offsetX || 0),
+      top: hostPoint.top + slot.y + Number(item.offsetY || 0)
     };
   }
 
@@ -324,8 +345,51 @@ export class InteriorsRoomRenderer {
     element.style.zIndex = String(zIndex);
   }
 
+  stagePointFromEvent(event) {
+    const rect = this.stage.getBoundingClientRect();
+    return {
+      left: (event.clientX - rect.left - this.stageOffset.x) / this.scale,
+      top: (event.clientY - rect.top - this.stageOffset.y) / this.scale
+    };
+  }
+
+  floorCellFromStagePoint(point) {
+    const localX = point.left - this.metrics.originX - this.metrics.module / 2;
+    const localY = point.top - this.metrics.originY - this.metrics.module / 2;
+    const x = Math.round((localY / this.metrics.stepY + localX / this.metrics.stepX) / 2);
+    const y = Math.round((localY / this.metrics.stepY - localX / this.metrics.stepX) / 2);
+    return {
+      x: clamp(x, 0, this.preset.grid.width - 1),
+      y: clamp(y, 0, this.preset.grid.depth - 1)
+    };
+  }
+
+  wallCellFromStagePoint(point) {
+    const leftCandidates = Array.from({ length: this.preset.grid.depth }, (_, segment) => {
+      const wallPoint = this.leftWallPoint(segment);
+      return {
+        wall: 'left',
+        segment,
+        distance: Math.abs(point.left - (wallPoint.left + this.metrics.module * 0.45)) + Math.abs(point.top - (wallPoint.top + this.metrics.module * 0.55))
+      };
+    });
+    const rightCandidates = Array.from({ length: this.preset.grid.width }, (_, segment) => {
+      const wallPoint = this.rightWallPoint(segment);
+      return {
+        wall: 'right',
+        segment,
+        distance: Math.abs(point.left - (wallPoint.left + this.metrics.module * 0.58)) + Math.abs(point.top - (wallPoint.top + this.metrics.module * 0.55))
+      };
+    });
+    return [...leftCandidates, ...rightCandidates].sort((a, b) => a.distance - b.distance)[0];
+  }
+
   resolveSprite(definition, item) {
     const direction = item.direction || definition.directions[0];
     return definition.sprites[direction] || definition.sprites[definition.directions[0]];
   }
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }

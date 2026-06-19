@@ -45,6 +45,7 @@ function floorItems(items) {
       footprint: item.footprint || { width: 1, depth: 1 },
       surfaceTags: item.surfaceTags || [],
       surfaceSlots: item.surfaceSlots || [],
+      seatSockets: item.seatSockets || [],
       directions,
       sprites
     }];
@@ -119,6 +120,10 @@ export const ROOM_ITEMS = Object.freeze({
     surfaceSlots: [
       { id: 'left', x: 48, y: 55, accepts: ['book', 'desk.small', 'computer.small', 'gift'] },
       { id: 'right', x: 82, y: 58, accepts: ['book', 'desk.small', 'computer.small', 'dish', 'gift'] }
+    ],
+    seatSockets: [
+      { id: 'front', x: 0, y: 1, preferredDirection: 'c', visualOffsetX: 0, visualOffsetY: -18, z: -14 },
+      { id: 'side', x: -1, y: 0, preferredDirection: 'a', visualOffsetX: 14, visualOffsetY: 2, z: -8 }
     ],
     directions: ['a', 'b'],
     sprites: {
@@ -248,6 +253,10 @@ export const ROOM_ITEMS = Object.freeze({
       surfaceSlots: [
         { id: 'left', x: 47, y: 54, accepts: ['book', 'desk.small', 'dish', 'gift'] },
         { id: 'right', x: 82, y: 57, accepts: ['book', 'desk.small', 'dish', 'gift'] }
+      ],
+      seatSockets: [
+        { id: 'front-left', x: 0, y: 1, preferredDirection: 'c', visualOffsetX: 4, visualOffsetY: -14, z: -12 },
+        { id: 'front-right', x: 1, y: 1, preferredDirection: 'c', visualOffsetX: -4, visualOffsetY: -14, z: -12 }
       ]
     },
     {
@@ -332,6 +341,10 @@ export const ROOM_ITEMS = Object.freeze({
       surfaceSlots: [
         { id: 'left', x: 48, y: 55, accepts: ['dish', 'book', 'desk.small', 'gift'] },
         { id: 'right', x: 83, y: 57, accepts: ['dish', 'book', 'desk.small', 'gift'] }
+      ],
+      seatSockets: [
+        { id: 'front-left', x: 0, y: 1, preferredDirection: 'c', visualOffsetX: 4, visualOffsetY: -14, z: -12 },
+        { id: 'front-right', x: 1, y: 1, preferredDirection: 'c', visualOffsetX: -4, visualOffsetY: -14, z: -12 }
       ]
     },
     { id: 'kitchenStool', name: '주방 의자', type: 'seat.object', size: 64, path: 'kitchen/kitchen_stool.png' },
@@ -379,6 +392,10 @@ export const ROOM_ITEMS = Object.freeze({
       surfaceSlots: [
         { id: 'tea-left', x: 50, y: 56, accepts: ['dish', 'book', 'desk.small'] },
         { id: 'tea-right', x: 80, y: 56, accepts: ['dish', 'book', 'desk.small'] }
+      ],
+      seatSockets: [
+        { id: 'front-left', x: 0, y: 1, preferredDirection: 'c', visualOffsetX: 4, visualOffsetY: -12, z: -12 },
+        { id: 'front-right', x: 1, y: 1, preferredDirection: 'c', visualOffsetX: -4, visualOffsetY: -12, z: -12 }
       ]
     },
     { id: 'japaneseSeat', name: '방석', type: 'seat.object', size: 64, path: 'japanese_room/japanese_seat.png' },
@@ -398,6 +415,9 @@ export const ROOM_ITEMS = Object.freeze({
       footprint: { width: 2, depth: 1 },
       surfaceSlots: [
         { id: 'work', x: 68, y: 52, accepts: ['book', 'desk.small', 'computer.small'] }
+      ],
+      seatSockets: [
+        { id: 'front', x: 0, y: 1, preferredDirection: 'c', visualOffsetX: 0, visualOffsetY: -16, z: -12 }
       ]
     },
     {
@@ -409,6 +429,10 @@ export const ROOM_ITEMS = Object.freeze({
       surfaceSlots: [
         { id: 'left', x: 50, y: 55, accepts: ['book', 'desk.small', 'dish'] },
         { id: 'right', x: 82, y: 57, accepts: ['book', 'desk.small', 'dish'] }
+      ],
+      seatSockets: [
+        { id: 'front-left', x: 0, y: 1, preferredDirection: 'c', visualOffsetX: 4, visualOffsetY: -14, z: -12 },
+        { id: 'front-right', x: 1, y: 1, preferredDirection: 'c', visualOffsetX: -4, visualOffsetY: -14, z: -12 }
       ]
     },
     { id: 'officePartition', name: '파티션', size: 128, path: 'office/office_partition.png' },

@@ -7,10 +7,12 @@ export class InteriorsRoomInteractionController {
     this.elements = elements;
     this.itemFilter = 'all';
     this.isDirty = false;
+    const preset = clonePreset(getShellPreset('interiors_room'));
     this.state = {
-      preset: getShellPreset('interiors_room'),
-      items: cloneDefaultPlaced(getShellPreset('interiors_room')),
-      selectedId: null
+      preset,
+      items: cloneDefaultPlaced(preset),
+      selectedId: null,
+      placement: null
     };
   }
 
@@ -25,7 +27,12 @@ export class InteriorsRoomInteractionController {
       this.render();
     });
 
-    this.renderer.stage.addEventListener('click', () => {
+    this.renderer.stage.addEventListener('pointermove', event => {
+      this.updatePlacementPreview(event);
+    });
+
+    this.renderer.stage.addEventListener('click', event => {
+      if(this.commitPlacement(event)) return;
       this.state.selectedId = null;
       this.render();
     });
@@ -46,7 +53,7 @@ export class InteriorsRoomInteractionController {
     this.elements.itemTray.addEventListener('click', event => {
       const button = event.target.closest('[data-add-item]');
       if(!button) return;
-      this.addItem(button.dataset.addItem);
+      this.startPlacement(button.dataset.addItem);
     });
 
     this.elements.exitButton.addEventListener('click', () => {
@@ -57,6 +64,7 @@ export class InteriorsRoomInteractionController {
       if(this.isDirty && !window.confirm('처음 상태로 돌릴까요? 지금 꾸민 내용은 사라져요.')) return;
       this.state.items = cloneDefaultPlaced(this.state.preset);
       this.state.selectedId = null;
+      this.state.placement = null;
       this.isDirty = false;
       this.render();
     });
@@ -67,16 +75,21 @@ export class InteriorsRoomInteractionController {
       });
     });
 
+    this.elements.wallHeightInput?.addEventListener('input', () => {
+      this.changeRoomWallHeight(Number(this.elements.wallHeightInput.value));
+    });
+
     window.addEventListener('resize', () => this.render());
   }
 
   selectPreset(presetId) {
     if(presetId === this.state.preset.id) return;
     if(this.isDirty && !window.confirm('방을 바꾸면 꾸민 내용이 처음 상태로 돌아가요. 바꿀까요?')) return;
-    const preset = getShellPreset(presetId);
+    const preset = clonePreset(getShellPreset(presetId));
     this.state.preset = preset;
     this.state.items = cloneDefaultPlaced(preset);
     this.state.selectedId = null;
+    this.state.placement = null;
     this.isDirty = false;
     this.render();
   }
@@ -119,6 +132,24 @@ export class InteriorsRoomInteractionController {
     this.render();
   }
 
+  startPlacement(itemId, existingItem = null) {
+    const definition = getItemDefinition(itemId);
+    if(!definition) return;
+    const direction = existingItem?.direction || (definition.directions.includes('left') ? 'left' : definition.directions[0]);
+    const preview = existingItem
+      ? this.placementPreviewFromItem(existingItem)
+      : this.defaultPlacementPreview(definition, direction);
+    this.state.placement = {
+      isActive: true,
+      itemId,
+      existingId: existingItem?.id || null,
+      direction,
+      preview
+    };
+    this.state.selectedId = existingItem?.id || null;
+    this.render();
+  }
+
   runCommand(button) {
     const selected = this.getSelectedItem();
     const command = button.dataset.command;
@@ -137,7 +168,9 @@ export class InteriorsRoomInteractionController {
       return;
     }
 
-    if(command === 'rotate') {
+    if(command === 'begin-place') {
+      this.startPlacement(selected.itemId, selected);
+    } else if(command === 'rotate') {
       this.rotateItem(selected);
     } else if(command === 'move-floor') {
       this.moveFloorItem(selected, Number(button.dataset.dx), Number(button.dataset.dy));
@@ -151,10 +184,122 @@ export class InteriorsRoomInteractionController {
       this.detachFromSurface(selected);
     } else if(command === 'next-surface-slot') {
       this.moveToNextSurfaceSlot(selected);
+    } else if(command === 'nudge-surface') {
+      this.nudgeSurfaceItem(selected, Number(button.dataset.dx), Number(button.dataset.dy));
+    } else if(command === 'attach-seat') {
+      this.attachSeatToNearestSocket(selected);
     }
 
     this.isDirty = true;
     this.render();
+  }
+
+  changeRoomWallHeight(wallHeight) {
+    this.state.preset = {
+      ...this.state.preset,
+      currentWallHeight: clamp(wallHeight, 80, 140)
+    };
+    this.isDirty = true;
+    this.render();
+  }
+
+  defaultPlacementPreview(definition, direction) {
+    if(definition.anchor === 'wall') {
+      return {
+        anchor: 'wall',
+        wall: direction === 'right' ? 'right' : 'left',
+        segment: 2,
+        height: 1
+      };
+    }
+    return {
+      anchor: 'floor',
+      x: Math.floor(this.state.preset.grid.width / 2),
+      y: Math.floor(this.state.preset.grid.depth / 2)
+    };
+  }
+
+  placementPreviewFromItem(item) {
+    if(item.anchor === 'wall') {
+      return {
+        anchor: 'wall',
+        wall: item.wall,
+        segment: item.segment,
+        height: item.height || 1
+      };
+    }
+    if(item.anchor === 'surface') {
+      const host = this.state.items.find(candidate => candidate.id === item.hostId);
+      return {
+        anchor: 'floor',
+        x: clamp(host?.x ?? Math.floor(this.state.preset.grid.width / 2), 0, this.state.preset.grid.width - 1),
+        y: clamp((host?.y ?? Math.floor(this.state.preset.grid.depth / 2)) + 1, 0, this.state.preset.grid.depth - 1)
+      };
+    }
+    return {
+      anchor: 'floor',
+      x: item.x,
+      y: item.y
+    };
+  }
+
+  updatePlacementPreview(event) {
+    if(!this.state.placement?.isActive) return;
+    const definition = getItemDefinition(this.state.placement.itemId);
+    if(!definition) return;
+    const point = this.renderer.stagePointFromEvent(event);
+    if(definition.anchor === 'wall') {
+      const wallCell = this.renderer.wallCellFromStagePoint(point);
+      this.state.placement.preview = {
+        anchor: 'wall',
+        wall: wallCell.wall,
+        segment: wallCell.segment,
+        height: this.state.placement.preview?.height || 1
+      };
+      this.state.placement.direction = wallCell.wall === 'right' && definition.directions.includes('right') ? 'right' : definition.directions[0];
+    } else {
+      this.state.placement.preview = {
+        anchor: 'floor',
+        ...this.renderer.floorCellFromStagePoint(point)
+      };
+    }
+    this.render();
+  }
+
+  commitPlacement(event) {
+    const placement = this.state.placement;
+    if(!placement?.isActive) return false;
+    this.updatePlacementPreview(event);
+    const definition = getItemDefinition(placement.itemId);
+    if(!definition || !placement.preview) return true;
+
+    const existing = placement.existingId
+      ? this.state.items.find(item => item.id === placement.existingId)
+      : null;
+    const item = existing || {
+      id: `${placement.itemId}-${Date.now().toString(36)}`,
+      itemId: placement.itemId
+    };
+    Object.assign(item, placement.preview, {
+      direction: placement.direction || definition.directions[0]
+    });
+    delete item.hostId;
+    delete item.slotId;
+    delete item.slotOrder;
+    delete item.offsetX;
+    delete item.offsetY;
+    delete item.seatHostId;
+    delete item.seatSocketId;
+    delete item.visualOffsetX;
+    delete item.visualOffsetY;
+    delete item.z;
+
+    if(!existing) this.state.items = [...this.state.items, item];
+    this.state.selectedId = item.id;
+    this.state.placement = null;
+    this.isDirty = true;
+    this.render();
+    return true;
   }
 
   rotateItem(item) {
@@ -171,6 +316,7 @@ export class InteriorsRoomInteractionController {
     if(item.anchor !== 'floor') return;
     item.x = clamp(item.x + dx, 0, this.state.preset.grid.width - 1);
     item.y = clamp(item.y + dy, 0, this.state.preset.grid.depth - 1);
+    this.clearSeatAttachment(item);
   }
 
   moveWallItem(item, ds) {
@@ -193,6 +339,8 @@ export class InteriorsRoomInteractionController {
     item.hostId = target.host.id;
     item.slotId = target.slot.id;
     item.slotOrder = target.slotIndex;
+    item.offsetX = 0;
+    item.offsetY = 0;
     delete item.x;
     delete item.y;
   }
@@ -206,6 +354,8 @@ export class InteriorsRoomInteractionController {
     delete item.hostId;
     delete item.slotId;
     delete item.slotOrder;
+    delete item.offsetX;
+    delete item.offsetY;
   }
 
   moveToNextSurfaceSlot(item) {
@@ -264,6 +414,53 @@ export class InteriorsRoomInteractionController {
     });
   }
 
+  nudgeSurfaceItem(item, dx, dy) {
+    if(item.anchor !== 'surface') return;
+    item.offsetX = clamp(Number(item.offsetX || 0) + dx, -24, 24);
+    item.offsetY = clamp(Number(item.offsetY || 0) + dy, -18, 18);
+  }
+
+  attachSeatToNearestSocket(item) {
+    const definition = getItemDefinition(item.itemId);
+    if(!definition || definition.type !== 'seat.object') return;
+    const target = this.findNearestSeatSocket(item);
+    if(!target) return;
+    item.anchor = 'floor';
+    item.x = target.x;
+    item.y = target.y;
+    item.direction = target.socket.preferredDirection || item.direction;
+    item.seatHostId = target.host.id;
+    item.seatSocketId = target.socket.id;
+    item.visualOffsetX = target.socket.visualOffsetX || 0;
+    item.visualOffsetY = target.socket.visualOffsetY || 0;
+    item.z = target.socket.z || 0;
+  }
+
+  clearSeatAttachment(item) {
+    delete item.seatHostId;
+    delete item.seatSocketId;
+    delete item.visualOffsetX;
+    delete item.visualOffsetY;
+    delete item.z;
+  }
+
+  findNearestSeatSocket(item) {
+    const sourceX = Number(item.x ?? 0);
+    const sourceY = Number(item.y ?? 0);
+    const candidates = [];
+    this.state.items.forEach(host => {
+      if(host.id === item.id || host.anchor !== 'floor') return;
+      const hostDefinition = getItemDefinition(host.itemId);
+      (hostDefinition?.seatSockets || []).forEach((socket, socketIndex) => {
+        const x = clamp((host.x ?? 0) + socket.x, 0, this.state.preset.grid.width - 1);
+        const y = clamp((host.y ?? 0) + socket.y, 0, this.state.preset.grid.depth - 1);
+        const distance = Math.abs(x - sourceX) + Math.abs(y - sourceY);
+        candidates.push({ host, socket, socketIndex, x, y, distance });
+      });
+    });
+    return candidates.sort((a, b) => a.distance - b.distance || a.socketIndex - b.socketIndex)[0] || null;
+  }
+
   getSelectedItem() {
     return this.state.items.find(item => item.id === this.state.selectedId) || null;
   }
@@ -319,6 +516,14 @@ export class InteriorsRoomInteractionController {
     this.elements.selectedCard.classList.toggle('is-floor-selection', selected?.anchor === 'floor');
     this.elements.selectedCard.classList.toggle('is-wall-selection', selected?.anchor === 'wall');
     this.elements.selectedCard.classList.toggle('is-surface-selection', this.canUseSurfaceCommands(selected));
+    this.elements.selectedCard.classList.toggle('is-seat-selection', this.canUseSeatCommands(selected));
+
+    if(this.state.placement?.isActive) {
+      const definition = getItemDefinition(this.state.placement.itemId);
+      this.elements.selectedLabel.textContent = `${definition?.name || '물건'} 놓는 중`;
+      this.elements.selectedDetail.textContent = '방 위에서 움직인 다음 놓을 곳을 눌러요.';
+      return;
+    }
 
     if(!selected) {
       this.elements.selectedLabel.textContent = '물건을 골라보세요';
@@ -336,6 +541,10 @@ export class InteriorsRoomInteractionController {
       const host = this.state.items.find(item => item.id === selected.hostId);
       const hostDefinition = host ? getItemDefinition(host.itemId) : null;
       this.elements.selectedDetail.textContent = `${hostDefinition?.name || '가구'} 위에 올려져 있어요.`;
+    } else if(selected.seatHostId) {
+      const host = this.state.items.find(item => item.id === selected.seatHostId);
+      const hostDefinition = host ? getItemDefinition(host.itemId) : null;
+      this.elements.selectedDetail.textContent = `${hostDefinition?.name || '가구'}에 붙어 있어요.`;
     } else if(definition?.type === 'surface.object') {
       this.elements.selectedDetail.textContent = '가까운 책상이나 탁자 위에 올릴 수 있어요.';
     } else {
@@ -356,8 +565,22 @@ export class InteriorsRoomInteractionController {
         button.disabled = !selected || definition?.type !== 'surface.object' || selected.anchor !== 'surface';
         return;
       }
+      if(command === 'nudge-surface') {
+        button.disabled = !selected || definition?.type !== 'surface.object' || selected.anchor !== 'surface';
+        return;
+      }
+      if(command === 'attach-seat') {
+        button.disabled = !selected || definition?.type !== 'seat.object';
+        return;
+      }
       button.disabled = command !== 'clear' && !selected;
     });
+
+    if(this.elements.wallHeightInput) {
+      const wallHeight = Number(this.state.preset.currentWallHeight ?? this.state.preset.wallHeight);
+      this.elements.wallHeightInput.value = String(wallHeight);
+      if(this.elements.wallHeightValue) this.elements.wallHeightValue.textContent = String(wallHeight);
+    }
   }
 
   canUseSurfaceCommands(item) {
@@ -365,8 +588,25 @@ export class InteriorsRoomInteractionController {
     const definition = getItemDefinition(item.itemId);
     return definition?.type === 'surface.object';
   }
+
+  canUseSeatCommands(item) {
+    if(!item) return false;
+    const definition = getItemDefinition(item.itemId);
+    return definition?.type === 'seat.object';
+  }
 }
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function clonePreset(preset) {
+  return {
+    ...preset,
+    currentWallHeight: preset.currentWallHeight ?? preset.wallHeight,
+    grid: { ...preset.grid },
+    assets: { ...preset.assets },
+    defaultPlaced: preset.defaultPlaced.map(item => ({ ...item })),
+    shellDecor: preset.shellDecor?.map(item => ({ ...item })) || undefined
+  };
 }

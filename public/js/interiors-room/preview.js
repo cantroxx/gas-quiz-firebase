@@ -14,7 +14,9 @@ const controller = new InteriorsRoomInteractionController({
     commandButtons: [...document.querySelectorAll('[data-command]')],
     selectedCard: document.getElementById('interiors-selected-card'),
     selectedLabel: document.getElementById('interiors-selected-label'),
-    selectedDetail: document.getElementById('interiors-selected-detail')
+    selectedDetail: document.getElementById('interiors-selected-detail'),
+    wallHeightInput: document.getElementById('interiors-wall-height'),
+    wallHeightValue: document.getElementById('interiors-wall-height-value')
   }
 });
 

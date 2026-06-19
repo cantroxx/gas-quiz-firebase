@@ -117,6 +117,23 @@ button:disabled {
   text-align: center;
 }
 
+.wall-height-control {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(120px, 320px) 42px;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  color: var(--housing-accent-strong);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.wall-height-control input {
+  width: 100%;
+  accent-color: var(--housing-accent);
+}
+
 .room-choice-card {
   min-height: 52px;
   padding: 8px;
@@ -184,6 +201,14 @@ button:disabled {
     drop-shadow(0 0 0 #fff)
     drop-shadow(0 0 5px rgba(63, 143, 107, 0.98))
     drop-shadow(0 0 13px rgba(243, 164, 59, 0.7));
+}
+
+.interiors-room-object.is-placement-preview {
+  opacity: 0.72;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 0 0 #fff)
+    drop-shadow(0 0 8px rgba(243, 164, 59, 0.95));
 }
 
 .interiors-room-anchor {
@@ -280,7 +305,8 @@ button:disabled {
 .selected-card.has-selection .selected-actions--common,
 .selected-card.is-floor-selection .selected-actions--floor,
 .selected-card.is-wall-selection .selected-actions--wall,
-.selected-card.is-surface-selection .selected-actions--surface {
+.selected-card.is-surface-selection .selected-actions--surface,
+.selected-card.is-seat-selection .selected-actions--seat {
   display: grid;
 }
 
@@ -291,11 +317,15 @@ button:disabled {
 }
 
 .selected-actions--common {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .selected-actions--surface {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.selected-actions--seat {
+  grid-template-columns: 1fr;
 }
 
 [data-command="delete"] {
@@ -399,6 +429,11 @@ button:disabled {
 
   .room-choice-note {
     text-align: left;
+  }
+
+  .wall-height-control {
+    grid-template-columns: auto minmax(0, 1fr) 38px;
+    justify-content: stretch;
   }
 
   .interiors-room-stage {
