@@ -64,13 +64,15 @@
     if(!db || !userIds.length) return {};
     const snapshots = await Promise.all(userIds.map(userId => Promise.all([
       db.collection('users').doc(userId).get().catch(() => null),
-      db.collection('userTitleSummary').doc(userId).get().catch(() => null)
+      db.collection('userTitleSummary').doc(userId).get().catch(() => null),
+      db.collection('userLevelSummary').doc(userId).get().catch(() => null)
     ])));
     const profileMap = {};
-    snapshots.forEach(([userSnapshot, titleSummarySnapshot], index) => {
+    snapshots.forEach(([userSnapshot, titleSummarySnapshot, levelSummarySnapshot], index) => {
       if(!userSnapshot?.exists) return;
       const data = userSnapshot.data() || {};
       const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() || {} : {};
+      const levelSummary = levelSummarySnapshot?.exists ? levelSummarySnapshot.data() || {} : {};
       profileMap[userIds[index]] = {
         userId: userIds[index],
         nickname: data.nickname || data.name || '',
@@ -87,7 +89,13 @@
         profileImageOffsetY: data.profileImageOffsetY,
         rankingMessage: data.rankingMessage || '',
         selectedTitleId: data.selectedTitleId || '',
-        selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || ''
+        selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || '',
+        level: Number(levelSummary.level) || 0,
+        xp: Number(levelSummary.xp) || 0,
+        totalXp: Number(levelSummary.totalXp) || 0,
+        tier: levelSummary.tier || '',
+        medalId: levelSummary.medalId || '',
+        rankIconUrl: levelSummary.rankIconUrl || ''
       };
     });
     const missingTitleNameUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);

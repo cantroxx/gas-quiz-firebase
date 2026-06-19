@@ -56,7 +56,13 @@
       school: profile.school || row.school || '',
       grade: profile.grade || row.grade || '',
       classNo: profile.classNumber || row.classNo || '',
-      number: profile.studentNumber || row.number || ''
+      number: profile.studentNumber || row.number || '',
+      level: profile.level || row.level || 0,
+      xp: profile.xp ?? row.xp,
+      totalXp: profile.totalXp ?? row.totalXp,
+      tier: profile.tier || row.tier || '',
+      medalId: profile.medalId || row.medalId || '',
+      rankIconUrl: profile.rankIconUrl || row.rankIconUrl || ''
     };
   }
 

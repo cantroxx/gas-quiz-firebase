@@ -525,6 +525,30 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /userLevelSummary/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /levelXpLogs/{logId} {
+      allow read, write: if false;
+    }
+
+    match /levelXpCaps/{capId} {
+      allow read, write: if false;
+    }
+
+    match /rewardDailyCaps/{capId} {
+      allow read, write: if false;
+    }
+
+    match /eventQuestProgress/{progressId} {
+      allow read: if isSignedIn()
+        && progressId.matches('.*__.*')
+        && canAccessUserScopedData(progressId.split('__')[0]);
+      allow write: if false;
+    }
+
     match /userInventory/{userId}/{document=**} {
       allow read: if canAccessUserScopedData(userId);
       allow write: if isAdmin();

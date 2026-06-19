@@ -32,10 +32,34 @@
 
   function appendRankingDisplayName(root, row, deps = {}) {
     const normalizeDisplayName = deps.normalizeRankingDisplayName || normalizeRankingDisplayName;
+    const levelBadge = createRankingLevelBadge(row);
+    if(levelBadge) root.appendChild(levelBadge);
     const nameText = document.createElement('span');
     nameText.className = 'ranking-display-name';
     nameText.textContent = normalizeDisplayName(row);
     root.appendChild(nameText);
+  }
+
+  function createRankingLevelBadge(row) {
+    const level = Math.max(0, Math.round(Number(row?.level || row?.levelSummary?.level) || 0));
+    const iconUrl = String(row?.rankIconUrl || row?.levelSummary?.rankIconUrl || '').trim();
+    const medalId = String(row?.medalId || row?.levelSummary?.medalId || '').trim();
+    if(!level && !iconUrl && !medalId) return null;
+    const tier = (medalId.split('-')[0] || 'bronze').replace(/[^a-z]/g, '') || 'bronze';
+    const badge = document.createElement('span');
+    const image = document.createElement('img');
+    badge.className = 'ranking-level-badge';
+    badge.title = level ? `Lv.${level}` : '레벨 훈장';
+    image.src = iconUrl || `/images/level-ranks/${tier}-rank.png`;
+    image.alt = level ? `Lv.${level} 훈장` : '레벨 훈장';
+    image.loading = 'lazy';
+    badge.appendChild(image);
+    if(level) {
+      const label = document.createElement('span');
+      label.textContent = `Lv.${level}`;
+      badge.appendChild(label);
+    }
+    return badge;
   }
 
   function createRankingTitleChip(row, deps = {}) {
@@ -491,6 +515,7 @@
     normalizeRankingDisplayName,
     renderRankingCards,
     appendRankingDisplayName,
+    createRankingLevelBadge,
     createRankingTitleChip,
     renderRankingAvatar,
     createRankingMetaLine,

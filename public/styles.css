@@ -3761,6 +3761,31 @@ h2 {
   line-height: 1.28;
 }
 
+.ranking-level-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 3px;
+  min-width: 48px;
+  height: 22px;
+  padding: 2px 6px 2px 4px;
+  border: 1px solid rgba(29, 38, 48, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #263241;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ranking-level-badge img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
 .ranking-card-line {
   display: inline-flex;
   align-items: center;
@@ -4087,11 +4112,25 @@ h2 {
 .quest-card h4,
 .class-mission-card h4,
 .season-event-card h4 {
-  margin: 12px 0 8px;
+  margin: 12px 0 6px;
   color: var(--green-dark);
   font-size: 1.04rem;
   line-height: 1.28;
   word-break: keep-all;
+}
+
+.quest-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(25, 118, 91, 0.1);
+  color: #23644e;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .quest-progress,

@@ -15,12 +15,17 @@
       const reward = document.createElement('p');
       const status = document.createElement('span');
       const claimButton = document.createElement('button');
+      const meta = document.createElement('span');
 
       card.className = 'quest-card';
       card.dataset.questId = quest.questId || '';
       icon.className = 'event-card-icon';
       icon.textContent = quest.icon;
       title.textContent = quest.title;
+      meta.className = 'quest-scope-badge';
+      meta.textContent = quest.recommended
+        ? '권장'
+        : (quest.scope === 'weekly' ? `주간 반복 ${Number(quest.claimedCount) || 0}/${Number(quest.repeatLimit) || 1}` : '일일');
       progress.className = 'quest-progress';
       progress.textContent = `진행도 ${quest.progress || `${Number(quest.current) || 0}/${Number(quest.target) || 1}`}`;
       reward.className = 'quest-reward';
@@ -33,7 +38,7 @@
       claimButton.textContent = quest.claimed ? '수령 완료' : '보상 받기';
       claimButton.disabled = !quest.claimable;
 
-      card.append(icon, title, progress, reward, status, claimButton);
+      card.append(icon, title, meta, progress, reward, status, claimButton);
       grid.appendChild(card);
     });
   }

@@ -17,7 +17,6 @@
   }
 
   async function grantPracticeCorrectRewardForRepository(memberUserId, rewardCoin, context, deps = {}) {
-    if(!rewardCoin || rewardCoin <= 0) return null;
     const functions = getRequiredFirebaseFunctions(deps);
     const debugLog = deps.debugLog || (() => {});
 
@@ -38,10 +37,12 @@
       economyPath: result.economyPath || '',
       rewardLogPath: result.rewardLogPath || '',
       rewardCoin: result.rewardCoin || 0,
+      xpDelta: result.xpDelta || 0,
+      coinCapped: !!result.coinCapped,
       duplicate: !!result.duplicate,
       context
     });
-    return result.economyPath || null;
+    return result || null;
   }
 
   async function syncMemberTitlesAfterPracticeCompletionForRepository(memberUserId, context, deps = {}) {
@@ -156,18 +157,39 @@
     batch.set(userSummaryRef, userSummaryData, { merge: true });
     batch.set(quizKingSummaryRef, quizKingSummaryData, { merge: true });
     await batch.commit();
+    let levelXpResult = null;
+    try {
+      const functions = deps.getFirebaseFunctions?.();
+      if(functions) {
+        const grantRankingCompleteXp = functions.httpsCallable('grantRankingCompleteXp');
+        const response = await grantRankingCompleteXp({
+          memberUserId,
+          recordId,
+          quizId
+        });
+        const result = response?.data || null;
+        levelXpResult = result && (result.success || result.levelXp || Number(result.xpDelta) > 0) ? result : null;
+      }
+    } catch(error) {
+      console.warn('Ranking completion XP grant failed.', error);
+    }
 
     debugLog('Firestore ranking record save succeeded:', {
       recordId,
       score: correctCount,
       categoryKey: target.categoryKey,
-      elapsedSeconds
+      elapsedSeconds,
+      xpDelta: levelXpResult?.xpDelta || 0
     });
     return {
       recordId,
       score: correctCount,
       categoryKey: target.categoryKey,
-      elapsedText: record.elapsedText
+      elapsedText: record.elapsedText,
+      ...(levelXpResult ? {
+        xpDelta: levelXpResult.xpDelta || 0,
+        levelXp: levelXpResult.levelXp || null
+      } : {})
     };
   }
 
@@ -374,17 +396,20 @@
         console.warn('Firestore title sync after practice completion failed.', error);
       });
     }
-    if(saveResult && saveResult.rewardCoin > 0) {
-      await deps.grantPracticeCorrectReward?.(memberUserId, saveResult.rewardCoin, {
+    if(saveResult && !saveResult.duplicate) {
+      const rewardResult = await deps.grantPracticeCorrectReward?.(memberUserId, saveResult.rewardCoin, {
         recordId: saveResult.recordId,
         questionId: saveResult.questionId,
         quizId
       });
-    } else if(saveResult && saveResult.rewardDisabled && !saveResult.duplicate) {
-      debugLog('Practice reward skipped because reward feature is disabled:', {
-        recordId: saveResult.recordId,
-        questionId: saveResult.questionId
-      });
+      if(rewardResult) {
+        saveResult.rewardCoin = Number(rewardResult.rewardCoin) || 0;
+        saveResult.xpDelta = rewardResult.xpDelta || 0;
+        saveResult.levelXp = rewardResult.levelXp || null;
+        saveResult.coinCapped = !!rewardResult.coinCapped;
+        saveResult.dailyCoinLimit = Number(rewardResult.dailyCoinLimit) || 0;
+        saveResult.practiceCoinEnabled = rewardResult.practiceCoinEnabled !== false;
+      }
     }
     return saveResult || { recordId, questionId };
   }

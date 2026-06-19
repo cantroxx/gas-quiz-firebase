@@ -687,7 +687,7 @@
         ],
       noteText: isRanking
         ? (elapsedTooLong ? invalidRankingTimeMessage : '랭킹전 기록은 점수가 높을수록, 점수가 같으면 시간이 짧을수록 위에 표시됩니다.')
-        : '이미 맞힌 문제는 중복 보상이 없고, 새로 맞힌 문제만 기록과 DJ코인이 반영됩니다.',
+        : '이미 맞힌 문제는 중복 보상이 없고, 새로 맞힌 문제만 기록과 보상이 반영됩니다.',
       saveStatusText: isRanking
         ? (elapsedTooLong ? invalidRankingTimeMessage : '랭킹 기록 저장 중')
         : ''
@@ -758,15 +758,20 @@
     if(!result || result.error) return '기록 저장을 확인하지 못했어요.';
     if(result.duplicate) return '이미 맞힌 문제라 기록과 보상은 그대로예요.';
     const rewardText = result.rewardCoin > 0 ? ` · DJ코인 +${result.rewardCoin}` : '';
+    const coinCapText = result.coinCapped ? ' · 오늘 코인 한도 도달' : '';
+    const xpText = result.xpDelta > 0 ? ` · XP +${result.xpDelta}` : '';
+    const levelText = result.levelXp?.leveledUp ? ` · Lv.${result.levelXp.after?.level}` : '';
     const completeText = result.completed ? ` · 완주 ${result.nextStarCount}회` : '';
-    return `기록 저장 완료${rewardText}${completeText}`;
+    return `기록 저장 완료${rewardText}${coinCapText}${xpText}${levelText}${completeText}`;
   }
 
   function getRankingSaveStatusText(result, options = {}) {
     if(!result || result.error) return '랭킹 기록 저장을 확인하지 못했어요.';
     if(result.skipped && result.reason === 'zero-score') return '점수가 0점이라 랭킹 기록은 저장하지 않았어요.';
     if(result.skipped && result.reason === 'elapsed-too-long') return options.invalidRankingTimeMessage || '';
-    return `랭킹 기록 저장 완료 · ${result.score}점 · ${result.elapsedText}`;
+    const xpText = result.xpDelta > 0 ? ` · XP +${result.xpDelta}` : '';
+    const levelText = result.levelXp?.leveledUp ? ` · Lv.${result.levelXp.after?.level}` : '';
+    return `랭킹 기록 저장 완료 · ${result.score}점 · ${result.elapsedText}${xpText}${levelText}`;
   }
 
   function createQuizAnswerInput(onInput) {
