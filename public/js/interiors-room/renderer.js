@@ -1,6 +1,6 @@
 import { getItemDefinition } from './asset-manifest.js';
 
-const LAYER_NAMES = ['floor', 'walls', 'wallObjects', 'floorObjects', 'selection', 'debug'];
+const LAYER_NAMES = ['floor', 'walls', 'wallObjects', 'floorObjects', 'surfaceObjects', 'selection', 'debug'];
 
 export class InteriorsRoomRenderer {
   constructor(stage) {
@@ -132,9 +132,9 @@ export class InteriorsRoomRenderer {
       if(!definition) return;
 
       const sprite = this.resolveSprite(definition, item);
-      const point = item.anchor === 'wall' ? this.wallObjectPoint(item, definition) : this.floorObjectPoint(item, definition);
+      const point = this.objectPoint(item, definition, items);
       const image = this.createObjectImage(sprite, point.left, point.top, point.zIndex, item, definition);
-      const layer = item.anchor === 'wall' ? this.layers.get('wallObjects') : this.layers.get('floorObjects');
+      const layer = this.objectLayer(item);
       layer.append(image);
     });
   }
@@ -144,7 +144,7 @@ export class InteriorsRoomRenderer {
     if(!item) return;
     const definition = getItemDefinition(item.itemId);
     if(!definition) return;
-    const point = item.anchor === 'wall' ? this.wallAnchorPoint(item) : this.floorAnchorPoint(item);
+    const point = this.anchorPoint(item, definition, items);
     const anchor = document.createElement('div');
     anchor.className = 'interiors-room-anchor';
     this.setPosition(anchor, point.left, point.top, 1000);
@@ -193,6 +193,24 @@ export class InteriorsRoomRenderer {
     };
   }
 
+  anchorPoint(item, definition, items) {
+    if(item.anchor === 'wall') return this.wallAnchorPoint(item);
+    if(item.anchor === 'surface') return this.surfaceAnchorPoint(item, definition, items);
+    return this.floorAnchorPoint(item);
+  }
+
+  objectPoint(item, definition, items) {
+    if(item.anchor === 'wall') return this.wallObjectPoint(item, definition);
+    if(item.anchor === 'surface') return this.surfaceObjectPoint(item, definition, items);
+    return this.floorObjectPoint(item, definition);
+  }
+
+  objectLayer(item) {
+    if(item.anchor === 'wall') return this.layers.get('wallObjects');
+    if(item.anchor === 'surface') return this.layers.get('surfaceObjects');
+    return this.layers.get('floorObjects');
+  }
+
   floorObjectPoint(item, definition) {
     const anchor = this.floorAnchorPoint(item);
     const imageSize = definition.size || this.metrics.module;
@@ -239,6 +257,32 @@ export class InteriorsRoomRenderer {
       left: anchor.left - imageSize / 2,
       top: anchor.top - imageSize / 2,
       zIndex: 70 + item.segment * 8 + (item.height || 0)
+    };
+  }
+
+  surfaceAnchorPoint(item, definition, items) {
+    const host = items.find(candidate => candidate.id === item.hostId);
+    const hostDefinition = host ? getItemDefinition(host.itemId) : null;
+    if(!host || !hostDefinition) return this.floorAnchorPoint(item);
+    const hostPoint = this.floorObjectPoint(host, hostDefinition);
+    const slot = hostDefinition.surfaceSlots?.find(candidate => candidate.id === item.slotId) || hostDefinition.surfaceSlots?.[0];
+    if(!slot) return this.floorAnchorPoint(item);
+    return {
+      left: hostPoint.left + slot.x,
+      top: hostPoint.top + slot.y
+    };
+  }
+
+  surfaceObjectPoint(item, definition, items) {
+    const anchor = this.surfaceAnchorPoint(item, definition, items);
+    const imageSize = definition.size || this.metrics.module;
+    const host = items.find(candidate => candidate.id === item.hostId);
+    const hostDefinition = host ? getItemDefinition(host.itemId) : null;
+    const hostPoint = host && hostDefinition ? this.floorObjectPoint(host, hostDefinition) : { zIndex: 140 };
+    return {
+      left: anchor.left - imageSize / 2,
+      top: anchor.top - imageSize / 2,
+      zIndex: hostPoint.zIndex + 18 + (item.slotOrder || 0)
     };
   }
 

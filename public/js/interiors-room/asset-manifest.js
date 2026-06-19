@@ -38,11 +38,13 @@ function floorItems(items) {
     return [item.id, {
       id: item.id,
       name: item.name,
-      category: 'floor',
+      category: item.category || 'floor',
       type: item.type || 'floor.object',
-      anchor: 'floor',
+      anchor: item.anchor || 'floor',
       size: item.size || 128,
       footprint: item.footprint || { width: 1, depth: 1 },
+      surfaceTags: item.surfaceTags || [],
+      surfaceSlots: item.surfaceSlots || [],
       directions,
       sprites
     }];
@@ -114,6 +116,10 @@ export const ROOM_ITEMS = Object.freeze({
     anchor: 'floor',
     size: 128,
     footprint: { width: 2, depth: 1 },
+    surfaceSlots: [
+      { id: 'left', x: 48, y: 55, accepts: ['book', 'desk.small', 'computer.small', 'gift'] },
+      { id: 'right', x: 82, y: 58, accepts: ['book', 'desk.small', 'computer.small', 'dish', 'gift'] }
+    ],
     directions: ['a', 'b'],
     sprites: {
       a: `${INTERIORS_ROOT}/desks/desk_1_tile.png`,
@@ -224,13 +230,47 @@ export const ROOM_ITEMS = Object.freeze({
     { id: 'lampA', name: '스탠드', size: 128, path: 'lamp/lamp_8_a_tile.png' },
     { id: 'lampB', name: '긴 스탠드', size: 128, path: 'lamp/lamp_8_b_tile.png' },
     { id: 'lavaLampOff', name: '용암 램프', size: 32, path: 'lavalamp_ani/lavalamp_9_off_tile.png' },
-    { id: 'smallTable', name: '작은 탁자', size: 64, path: 'living_roon/smalltable_5.png' },
-    { id: 'livingTable', name: '거실 탁자', size: 128, path: 'living_roon/table_10.png', footprint: { width: 2, depth: 1 } },
-    { id: 'shelving6', name: '책장', size: 128, path: 'living_roon/shelving_6.png' },
-    { id: 'shelving7', name: '수납 선반', size: 128, path: 'living_roon/shelving_7.png' },
+    {
+      id: 'smallTable',
+      name: '작은 탁자',
+      size: 64,
+      path: 'living_roon/smalltable_5.png',
+      surfaceSlots: [
+        { id: 'top', x: 32, y: 31, accepts: ['book', 'desk.small', 'dish', 'gift'] }
+      ]
+    },
+    {
+      id: 'livingTable',
+      name: '거실 탁자',
+      size: 128,
+      path: 'living_roon/table_10.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'left', x: 47, y: 54, accepts: ['book', 'desk.small', 'dish', 'gift'] },
+        { id: 'right', x: 82, y: 57, accepts: ['book', 'desk.small', 'dish', 'gift'] }
+      ]
+    },
+    {
+      id: 'shelving6',
+      name: '책장',
+      size: 128,
+      path: 'living_roon/shelving_6.png',
+      surfaceSlots: [
+        { id: 'shelf', x: 68, y: 55, accepts: ['book', 'gift', 'desk.small'] }
+      ]
+    },
+    {
+      id: 'shelving7',
+      name: '수납 선반',
+      size: 128,
+      path: 'living_roon/shelving_7.png',
+      surfaceSlots: [
+        { id: 'top', x: 66, y: 46, accepts: ['book', 'gift', 'desk.small'] }
+      ]
+    },
     { id: 'speaker6', name: '스피커', size: 64, path: 'living_roon/speaker_6_tile.png' },
     { id: 'airConditionerFloor', name: '에어컨', size: 128, path: 'living_roon/aircc_tile.png' },
-    { id: 'book8', name: '큰 책', size: 32, path: 'living_roon/book_8.png' },
+    { id: 'book8', name: '큰 책', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 32, path: 'living_roon/book_8.png' },
     { id: 'plant2', name: '큰 화분', size: 64, path: 'plants/plant_2.png' },
     { id: 'plant5', name: '잎 화분', size: 64, path: 'plants/plant_5.png' },
     { id: 'plantSmall', name: '작은 화분', size: 32, path: 'plants/plant_small.png' },
@@ -256,8 +296,8 @@ export const ROOM_ITEMS = Object.freeze({
       }
     },
     { id: 'verticalScreen', name: '세로 모니터', size: 64, path: 'computer/vertical_screen.png' },
-    { id: 'keyboardNew', name: '키보드', size: 32, path: 'computer/newkeyboard_tile.png' },
-    { id: 'keyboardOld', name: '옛날 키보드', size: 32, path: 'computer/oldkeyboard_tile.png' },
+    { id: 'keyboardNew', name: '키보드', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'computer/newkeyboard_tile.png' },
+    { id: 'keyboardOld', name: '옛날 키보드', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'computer/oldkeyboard_tile.png' },
     { id: 'pcTower', name: '컴퓨터 본체', size: 64, path: 'computer/pctower_tile.png' },
     { id: 'wacomTablet', name: '태블릿', size: 32, path: 'computer/wacomtablet.png' },
     {
@@ -272,37 +312,75 @@ export const ROOM_ITEMS = Object.freeze({
         d: asset('microwave/microwave_5_tile_d.png')
       }
     },
-    { id: 'gameAtari', name: '게임기', size: 32, path: 'consoles/atari.png' },
-    { id: 'gameNes', name: '패미컴', size: 32, path: 'consoles/nes.png' },
-    { id: 'gameSnes', name: '슈퍼패미컴', size: 32, path: 'consoles/snes.png' },
-    { id: 'gameDreamcast', name: '드림캐스트', size: 32, path: 'consoles/dreamcast.png' },
-    { id: 'gameGamecube', name: '게임큐브', size: 32, path: 'consoles/gamecube.png' },
-    { id: 'gameSwitch', name: '스위치', size: 32, path: 'consoles/nintendo_switch.png' },
-    { id: 'gameBoy', name: '휴대 게임기', size: 32, path: 'consoles/gameboy.png' },
-    { id: 'gameBoyAdvance', name: '휴대 게임기 2', size: 32, path: 'consoles/gameboy_advance.png' },
-    { id: 'playstation', name: '플레이스테이션', size: 32, path: 'consoles/playstation.png' },
-    { id: 'playstation5', name: '새 게임기', size: 32, path: 'consoles/playstation_5.png' },
-    { id: 'xboxX', name: '검은 게임기', size: 32, path: 'consoles/xbox_x.png' },
-    { id: 'kitchenTable', name: '식탁', size: 128, path: 'kitchen/kitchen_table.png', footprint: { width: 2, depth: 1 } },
+    { id: 'gameAtari', name: '게임기', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/atari.png' },
+    { id: 'gameNes', name: '패미컴', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/nes.png' },
+    { id: 'gameSnes', name: '슈퍼패미컴', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/snes.png' },
+    { id: 'gameDreamcast', name: '드림캐스트', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/dreamcast.png' },
+    { id: 'gameGamecube', name: '게임큐브', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/gamecube.png' },
+    { id: 'gameSwitch', name: '스위치', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/nintendo_switch.png' },
+    { id: 'gameBoy', name: '휴대 게임기', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/gameboy.png' },
+    { id: 'gameBoyAdvance', name: '휴대 게임기 2', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/gameboy_advance.png' },
+    { id: 'playstation', name: '플레이스테이션', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/playstation.png' },
+    { id: 'playstation5', name: '새 게임기', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/playstation_5.png' },
+    { id: 'xboxX', name: '검은 게임기', category: 'surface', type: 'surface.object', surfaceTags: ['computer.small'], size: 32, path: 'consoles/xbox_x.png' },
+    {
+      id: 'kitchenTable',
+      name: '식탁',
+      size: 128,
+      path: 'kitchen/kitchen_table.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'left', x: 48, y: 55, accepts: ['dish', 'book', 'desk.small', 'gift'] },
+        { id: 'right', x: 83, y: 57, accepts: ['dish', 'book', 'desk.small', 'gift'] }
+      ]
+    },
     { id: 'kitchenStool', name: '주방 의자', type: 'seat.object', size: 64, path: 'kitchen/kitchen_stool.png' },
-    { id: 'kitchenCounter', name: '주방 가구', size: 128, path: 'kitchen/kitchen_a_tile.png', footprint: { width: 2, depth: 1 } },
-    { id: 'sink', name: '싱크대', size: 128, path: 'kitchen/sink.png', footprint: { width: 2, depth: 1 } },
+    {
+      id: 'kitchenCounter',
+      name: '주방 가구',
+      size: 128,
+      path: 'kitchen/kitchen_a_tile.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'counter', x: 74, y: 45, accepts: ['dish', 'desk.small'] }
+      ]
+    },
+    {
+      id: 'sink',
+      name: '싱크대',
+      size: 128,
+      path: 'kitchen/sink.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'rim', x: 74, y: 48, accepts: ['dish', 'desk.small'] }
+      ]
+    },
     { id: 'oven', name: '오븐', size: 128, path: 'kitchen/oven.png' },
     { id: 'stoves', name: '가스레인지', size: 64, path: 'kitchen/stoves.png' },
     { id: 'fridgeRed', name: '냉장고', size: 128, path: 'kitchen/fidge_red.png', footprint: { width: 1, depth: 2 } },
     { id: 'washingMachine', name: '세탁기', size: 128, path: 'kitchen/washingmachine_closed.png' },
-    { id: 'toaster', name: '토스터', size: 32, path: 'kitchen/toaster.png' },
-    { id: 'kettle', name: '주전자', size: 32, path: 'kitchen/ketel_7.png' },
-    { id: 'teapot', name: '찻주전자', size: 32, path: 'kitchen/teapot.png' },
-    { id: 'pot', name: '냄비', size: 32, path: 'kitchen/pot.png' },
-    { id: 'potFull', name: '가득 찬 냄비', size: 32, path: 'kitchen/pot_full.png' },
-    { id: 'fryingPan', name: '프라이팬', size: 32, path: 'kitchen/frying_pan.png' },
-    { id: 'dish', name: '접시', size: 32, path: 'kitchen/dish.png' },
-    { id: 'cola', name: '콜라', size: 16, path: 'kitchen/cola.png' },
-    { id: 'cereals', name: '시리얼', size: 32, path: 'kitchen/cereals.png' },
+    { id: 'toaster', name: '토스터', category: 'surface', type: 'surface.object', surfaceTags: ['desk.small'], size: 32, path: 'kitchen/toaster.png' },
+    { id: 'kettle', name: '주전자', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/ketel_7.png' },
+    { id: 'teapot', name: '찻주전자', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/teapot.png' },
+    { id: 'pot', name: '냄비', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/pot.png' },
+    { id: 'potFull', name: '가득 찬 냄비', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/pot_full.png' },
+    { id: 'fryingPan', name: '프라이팬', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/frying_pan.png' },
+    { id: 'dish', name: '접시', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/dish.png' },
+    { id: 'cola', name: '콜라', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 16, path: 'kitchen/cola.png' },
+    { id: 'cereals', name: '시리얼', category: 'surface', type: 'surface.object', surfaceTags: ['dish'], size: 32, path: 'kitchen/cereals.png' },
     { id: 'trashbinKitchen', name: '쓰레기통', size: 64, path: 'kitchen/trashbin_closed.png' },
     { id: 'kitchenRug', name: '주방 매트', size: 128, path: 'kitchen/kitchen_rug.png', footprint: { width: 2, depth: 1 } },
-    { id: 'japaneseTable', name: '좌식 탁자', size: 128, path: 'japanese_room/japanese_table.png', footprint: { width: 2, depth: 1 } },
+    {
+      id: 'japaneseTable',
+      name: '좌식 탁자',
+      size: 128,
+      path: 'japanese_room/japanese_table.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'tea-left', x: 50, y: 56, accepts: ['dish', 'book', 'desk.small'] },
+        { id: 'tea-right', x: 80, y: 56, accepts: ['dish', 'book', 'desk.small'] }
+      ]
+    },
     { id: 'japaneseSeat', name: '방석', type: 'seat.object', size: 64, path: 'japanese_room/japanese_seat.png' },
     { id: 'japaneseShelf', name: '일본식 선반', size: 128, path: 'japanese_room/japanese_shelf.png' },
     { id: 'japaneseCloset', name: '일본식 장롱', size: 128, path: 'japanese_room/japanese_closet.png', footprint: { width: 1, depth: 2 } },
@@ -312,30 +390,49 @@ export const ROOM_ITEMS = Object.freeze({
     { id: 'japaneseVase', name: '꽃병', size: 32, path: 'japanese_room/japanese_vase.png' },
     { id: 'japaneseToriGate', name: '작은 문 장식', size: 64, path: 'japanese_room/japanese_tori_gate.png' },
     { id: 'clothesCase', name: '옷 상자', size: 64, path: 'japanese_room/clothes_case.png' },
-    { id: 'officeDrawingTable', name: '작업 책상', size: 128, path: 'office/drawing_table.png', footprint: { width: 2, depth: 1 } },
-    { id: 'officeKitchenTable', name: '사무실 탁자', size: 128, path: 'office/office_kitchen_table.png', footprint: { width: 2, depth: 1 } },
+    {
+      id: 'officeDrawingTable',
+      name: '작업 책상',
+      size: 128,
+      path: 'office/drawing_table.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'work', x: 68, y: 52, accepts: ['book', 'desk.small', 'computer.small'] }
+      ]
+    },
+    {
+      id: 'officeKitchenTable',
+      name: '사무실 탁자',
+      size: 128,
+      path: 'office/office_kitchen_table.png',
+      footprint: { width: 2, depth: 1 },
+      surfaceSlots: [
+        { id: 'left', x: 50, y: 55, accepts: ['book', 'desk.small', 'dish'] },
+        { id: 'right', x: 82, y: 57, accepts: ['book', 'desk.small', 'dish'] }
+      ]
+    },
     { id: 'officePartition', name: '파티션', size: 128, path: 'office/office_partition.png' },
     { id: 'officeRack', name: '사무실 선반', size: 128, path: 'office/rack.png' },
     { id: 'officeLongRack', name: '긴 선반', size: 128, path: 'office/long_rack.png' },
-    { id: 'telephone', name: '전화기', size: 32, path: 'office/telephone.png' },
-    { id: 'calculator', name: '계산기', size: 32, path: 'office/calculator.png' },
-    { id: 'pencilHolder', name: '연필꽂이', size: 32, path: 'office/pencil_holder.png' },
-    { id: 'headset', name: '헤드셋', size: 32, path: 'office/headset.png' },
+    { id: 'telephone', name: '전화기', category: 'surface', type: 'surface.object', surfaceTags: ['desk.small'], size: 32, path: 'office/telephone.png' },
+    { id: 'calculator', name: '계산기', category: 'surface', type: 'surface.object', surfaceTags: ['desk.small'], size: 32, path: 'office/calculator.png' },
+    { id: 'pencilHolder', name: '연필꽂이', category: 'surface', type: 'surface.object', surfaceTags: ['desk.small'], size: 32, path: 'office/pencil_holder.png' },
+    { id: 'headset', name: '헤드셋', category: 'surface', type: 'surface.object', surfaceTags: ['desk.small'], size: 32, path: 'office/headset.png' },
     { id: 'trashEmpty', name: '빈 휴지통', size: 64, path: 'office/trash_empty.png' },
     { id: 'trashFull', name: '가득 찬 휴지통', size: 64, path: 'office/trash_full.png' },
-    { id: 'present2', name: '선물 상자', size: 32, path: 'present/present_2.png' },
-    { id: 'present3', name: '초록 선물', size: 32, path: 'present/present_3.png' },
-    { id: 'present4', name: '파란 선물', size: 32, path: 'present/present_4.png' },
-    { id: 'present5', name: '노란 선물', size: 32, path: 'present/present_5.png' },
-    { id: 'present6', name: '분홍 선물', size: 32, path: 'present/present_6.png' },
-    { id: 'present7', name: '하얀 선물', size: 32, path: 'present/present_7.png' },
-    { id: 'presentBig', name: '큰 선물', size: 64, path: 'present/present_100.png' },
-    { id: 'bookPile', name: '책 더미', size: 32, path: 'books/books_pile.png' },
-    { id: 'notebooks', name: '공책', size: 32, path: 'books/notebooks.png' },
-    { id: 'bookGreen', name: '초록 책', size: 16, path: 'books/book_green.png' },
-    { id: 'bookBigLightblue', name: '큰 파란 책', size: 32, path: 'books/book_big_lightblue.png' },
-    { id: 'ringBinderBlue', name: '파란 파일', size: 32, path: 'books/ring_binder_blue.png' },
-    { id: 'ringBinderRed', name: '빨간 파일', size: 32, path: 'books/ring_binder_red.png' }
+    { id: 'present2', name: '선물 상자', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 32, path: 'present/present_2.png' },
+    { id: 'present3', name: '초록 선물', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 32, path: 'present/present_3.png' },
+    { id: 'present4', name: '파란 선물', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 32, path: 'present/present_4.png' },
+    { id: 'present5', name: '노란 선물', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 32, path: 'present/present_5.png' },
+    { id: 'present6', name: '분홍 선물', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 32, path: 'present/present_6.png' },
+    { id: 'present7', name: '하얀 선물', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 32, path: 'present/present_7.png' },
+    { id: 'presentBig', name: '큰 선물', category: 'surface', type: 'surface.object', surfaceTags: ['gift'], size: 64, path: 'present/present_100.png' },
+    { id: 'bookPile', name: '책 더미', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 32, path: 'books/books_pile.png' },
+    { id: 'notebooks', name: '공책', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 32, path: 'books/notebooks.png' },
+    { id: 'bookGreen', name: '초록 책', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 16, path: 'books/book_green.png' },
+    { id: 'bookBigLightblue', name: '큰 파란 책', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 32, path: 'books/book_big_lightblue.png' },
+    { id: 'ringBinderBlue', name: '파란 파일', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 32, path: 'books/ring_binder_blue.png' },
+    { id: 'ringBinderRed', name: '빨간 파일', category: 'surface', type: 'surface.object', surfaceTags: ['book'], size: 32, path: 'books/ring_binder_red.png' }
   ]),
   ...wallItems([
     {

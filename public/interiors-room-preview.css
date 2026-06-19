@@ -279,7 +279,8 @@ button:disabled {
 
 .selected-card.has-selection .selected-actions--common,
 .selected-card.is-floor-selection .selected-actions--floor,
-.selected-card.is-wall-selection .selected-actions--wall {
+.selected-card.is-wall-selection .selected-actions--wall,
+.selected-card.is-surface-selection .selected-actions--surface {
   display: grid;
 }
 
@@ -290,6 +291,10 @@ button:disabled {
 }
 
 .selected-actions--common {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.selected-actions--surface {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 

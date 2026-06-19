@@ -145,6 +145,12 @@ export class InteriorsRoomInteractionController {
       this.moveWallItem(selected, Number(button.dataset.ds));
     } else if(command === 'wall-height') {
       this.changeWallHeight(selected, Number(button.dataset.dh));
+    } else if(command === 'place-surface') {
+      this.placeOnNearestSurface(selected);
+    } else if(command === 'detach-surface') {
+      this.detachFromSurface(selected);
+    } else if(command === 'next-surface-slot') {
+      this.moveToNextSurfaceSlot(selected);
     }
 
     this.isDirty = true;
@@ -176,6 +182,86 @@ export class InteriorsRoomInteractionController {
   changeWallHeight(item, dh) {
     if(item.anchor !== 'wall') return;
     item.height = clamp((item.height || 0) + dh, 0, 3);
+  }
+
+  placeOnNearestSurface(item) {
+    const definition = getItemDefinition(item.itemId);
+    if(!definition || definition.type !== 'surface.object') return;
+    const target = this.findNearestSurfaceSlot(item, definition);
+    if(!target) return;
+    item.anchor = 'surface';
+    item.hostId = target.host.id;
+    item.slotId = target.slot.id;
+    item.slotOrder = target.slotIndex;
+    delete item.x;
+    delete item.y;
+  }
+
+  detachFromSurface(item) {
+    if(item.anchor !== 'surface') return;
+    const host = this.state.items.find(candidate => candidate.id === item.hostId);
+    item.anchor = 'floor';
+    item.x = clamp(host?.x ?? Math.floor(this.state.preset.grid.width / 2), 0, this.state.preset.grid.width - 1);
+    item.y = clamp((host?.y ?? Math.floor(this.state.preset.grid.depth / 2)) + 1, 0, this.state.preset.grid.depth - 1);
+    delete item.hostId;
+    delete item.slotId;
+    delete item.slotOrder;
+  }
+
+  moveToNextSurfaceSlot(item) {
+    const definition = getItemDefinition(item.itemId);
+    if(!definition || definition.type !== 'surface.object') return;
+    if(item.anchor !== 'surface') {
+      this.placeOnNearestSurface(item);
+      return;
+    }
+
+    const host = this.state.items.find(candidate => candidate.id === item.hostId);
+    const hostDefinition = host ? getItemDefinition(host.itemId) : null;
+    const slots = hostDefinition ? this.getAcceptingSurfaceSlots(hostDefinition, definition) : [];
+    if(!host || !slots.length) {
+      this.detachFromSurface(item);
+      return;
+    }
+
+    const currentIndex = Math.max(0, slots.findIndex(slot => slot.id === item.slotId));
+    const orderedSlots = [...slots.slice(currentIndex + 1), ...slots.slice(0, currentIndex + 1)];
+    const nextSlot = orderedSlots.find(slot => !this.isSurfaceSlotOccupied(host.id, slot.id, item.id));
+    if(!nextSlot) return;
+    item.slotId = nextSlot.id;
+    item.slotOrder = slots.findIndex(slot => slot.id === nextSlot.id);
+  }
+
+  findNearestSurfaceSlot(item, definition) {
+    const sourceX = Number(item.x ?? 0);
+    const sourceY = Number(item.y ?? 0);
+    const candidates = [];
+
+    this.state.items.forEach(host => {
+      if(host.id === item.id || host.anchor !== 'floor') return;
+      const hostDefinition = getItemDefinition(host.itemId);
+      const slots = hostDefinition ? this.getAcceptingSurfaceSlots(hostDefinition, definition) : [];
+      slots.forEach((slot, slotIndex) => {
+        if(this.isSurfaceSlotOccupied(host.id, slot.id, item.id)) return;
+        const distance = Math.abs((host.x ?? 0) - sourceX) + Math.abs((host.y ?? 0) - sourceY);
+        candidates.push({ host, slot, slotIndex, distance });
+      });
+    });
+
+    return candidates.sort((a, b) => a.distance - b.distance || a.slotIndex - b.slotIndex)[0] || null;
+  }
+
+  getAcceptingSurfaceSlots(hostDefinition, itemDefinition) {
+    const tags = itemDefinition.surfaceTags || [];
+    return (hostDefinition.surfaceSlots || []).filter(slot => {
+      return !slot.accepts?.length || slot.accepts.some(tag => tags.includes(tag));
+    });
+  }
+
+  isSurfaceSlotOccupied(hostId, slotId, ignoreItemId = null) {
+    return this.state.items.some(item => {
+      return item.id !== ignoreItemId && item.anchor === 'surface' && item.hostId === hostId && item.slotId === slotId;
+    });
   }
 
   getSelectedItem() {
@@ -232,6 +318,7 @@ export class InteriorsRoomInteractionController {
     this.elements.selectedCard.classList.toggle('has-selection', Boolean(selected));
     this.elements.selectedCard.classList.toggle('is-floor-selection', selected?.anchor === 'floor');
     this.elements.selectedCard.classList.toggle('is-wall-selection', selected?.anchor === 'wall');
+    this.elements.selectedCard.classList.toggle('is-surface-selection', this.canUseSurfaceCommands(selected));
 
     if(!selected) {
       this.elements.selectedLabel.textContent = '물건을 골라보세요';
@@ -243,16 +330,40 @@ export class InteriorsRoomInteractionController {
 
     const definition = getItemDefinition(selected.itemId);
     this.elements.selectedLabel.textContent = definition ? `${definition.name} 선택됨` : '물건 선택됨';
-    this.elements.selectedDetail.textContent = selected.anchor === 'wall'
-      ? `${selected.wall === 'left' ? '왼쪽 벽' : '오른쪽 벽'}에 붙어 있어요.`
-      : '바닥에 놓여 있어요.';
+    if(selected.anchor === 'wall') {
+      this.elements.selectedDetail.textContent = `${selected.wall === 'left' ? '왼쪽 벽' : '오른쪽 벽'}에 붙어 있어요.`;
+    } else if(selected.anchor === 'surface') {
+      const host = this.state.items.find(item => item.id === selected.hostId);
+      const hostDefinition = host ? getItemDefinition(host.itemId) : null;
+      this.elements.selectedDetail.textContent = `${hostDefinition?.name || '가구'} 위에 올려져 있어요.`;
+    } else if(definition?.type === 'surface.object') {
+      this.elements.selectedDetail.textContent = '가까운 책상이나 탁자 위에 올릴 수 있어요.';
+    } else {
+      this.elements.selectedDetail.textContent = '바닥에 놓여 있어요.';
+    }
   }
 
   updateCommandState() {
     const selected = this.getSelectedItem();
     this.elements.commandButtons.forEach(button => {
-      button.disabled = button.dataset.command !== 'clear' && !selected;
+      const command = button.dataset.command;
+      const definition = selected ? getItemDefinition(selected.itemId) : null;
+      if(command === 'place-surface') {
+        button.disabled = !selected || definition?.type !== 'surface.object' || selected.anchor === 'surface';
+        return;
+      }
+      if(command === 'detach-surface' || command === 'next-surface-slot') {
+        button.disabled = !selected || definition?.type !== 'surface.object' || selected.anchor !== 'surface';
+        return;
+      }
+      button.disabled = command !== 'clear' && !selected;
     });
+  }
+
+  canUseSurfaceCommands(item) {
+    if(!item) return false;
+    const definition = getItemDefinition(item.itemId);
+    return definition?.type === 'surface.object';
   }
 }
 
