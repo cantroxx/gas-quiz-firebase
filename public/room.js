@@ -28,9 +28,9 @@ window.RoomDecor = (function () {
   const TILE_H = 32;
   const HALF_W = TILE_W / 2;
   const HALF_H = TILE_H / 2;
-  const WALL_H = 150;
+  const WALL_H = 184;
   const ROTATIONS = ['0', '90', '180', '270'];
-  const WALL_DRAW = { w: 128, h: 128, y: -112 };
+  const WALL_DRAW = { w: 128, h: 128, y: -116 };
 
   const FLOOR_STYLES = {
     woodbright: {
@@ -213,6 +213,16 @@ window.RoomDecor = (function () {
     }, {});
   }
 
+  function normalizeStateSprites(value = {}) {
+    const source = value && typeof value === 'object' ? value : {};
+    return Object.keys(source).reduce((next, key) => {
+      const id = String(key || '').trim();
+      const href = String(source[key] || '').trim();
+      if (id && href) next[id] = href;
+      return next;
+    }, {});
+  }
+
   function normalizePlacementOffsets(value = {}) {
     const source = value && typeof value === 'object' ? value : {};
     return ROTATIONS.reduce((next, key) => {
@@ -236,6 +246,28 @@ window.RoomDecor = (function () {
     return sprites[key] || sprites['0'] || String(item.assetUrl || '').trim();
   }
 
+  function stateKeys(item = {}) {
+    return Object.keys(normalizeStateSprites(item.stateSprites));
+  }
+
+  function canInteractItem(type) {
+    return stateKeys(catalog[type] || {}).length > 1;
+  }
+
+  function normalizeItemState(type, state) {
+    const keys = stateKeys(catalog[type] || {});
+    if (!keys.length) return '';
+    const value = String(state || '').trim();
+    return keys.includes(value) ? value : keys[0];
+  }
+
+  function imageUrlForItem(item = {}, rot = 0) {
+    const def = catalog[item.type] || {};
+    const states = normalizeStateSprites(def.stateSprites);
+    const state = normalizeItemState(item.type, item.state);
+    return state && states[state] ? states[state] : imageUrlForRotation(def, rot);
+  }
+
   function placementOffsetForRotation(item = {}, rot = 0) {
     const offsets = normalizePlacementOffsets(item.placementOffsets);
     return offsets[String(normalizeRotation(rot))] || offsets['0'] || { x: 0, y: 0 };
@@ -254,6 +286,7 @@ window.RoomDecor = (function () {
       assetUrl: String(data.assetUrl || '').trim(),
       thumbUrl: String(data.thumbUrl || '').trim(),
       rotationSprites: normalizeRotationSprites(data.rotationSprites),
+      stateSprites: normalizeStateSprites(data.stateSprites),
       placementOffsets: normalizePlacementOffsets(data.placementOffsets),
       w: Math.max(1, Number(data.w || 1) || 1),
       d: Math.max(1, Number(data.d || 1) || 1),
@@ -333,8 +366,9 @@ window.RoomDecor = (function () {
         surface: 'wall',
         wall: item.wall === 'left' ? 'left' : (catalogItem.wall || 'right'),
         wx: Number(item.wx ?? 2),
-        wz: Number(item.wz ?? 48),
-        rot: 0
+        wz: Number(item.wz ?? (Number(catalogItem.h || 0) > 60 ? 48 : 92)),
+        rot: 0,
+        state: normalizeItemState(item.type, item.state)
       };
     }
     return {
@@ -342,7 +376,8 @@ window.RoomDecor = (function () {
       type: item.type,
       gx: Number(item.gx || 0),
       gy: Number(item.gy || 0),
-      rot: normalizeRotation(item.rot)
+      rot: normalizeRotation(item.rot),
+      state: normalizeItemState(item.type, item.state)
     };
   }
 
@@ -516,11 +551,11 @@ window.RoomDecor = (function () {
 
   function wallSlots() {
     const slots = [];
+    const levels = [58, 96, 128];
     for (const wall of ['left', 'right']) {
       const length = getWallLength(wall);
       for (let u = 1; u < length; u += 1) {
-        slots.push({ surface: 'wall', wall, wx: u, wz: 44 });
-        slots.push({ surface: 'wall', wall, wx: u, wz: 72 });
+        levels.forEach(wz => slots.push({ surface: 'wall', wall, wx: u, wz }));
       }
     }
     return slots;
@@ -793,7 +828,7 @@ window.RoomDecor = (function () {
       y: sy - anchorY + Number(def.offsetY || 0) + placement.y,
       w: width,
       h: height,
-      href: imageUrlForRotation(def, canRotateItem(item.type) ? rot : 0)
+      href: imageUrlForItem(item, canRotateItem(item.type) ? rot : 0)
     };
   }
 
@@ -814,7 +849,7 @@ window.RoomDecor = (function () {
       y: sy - anchorY + Number(def.offsetY || 0),
       w: width,
       h: height,
-      href: imageUrlForRotation(def, normalizeRotation(item.rot || 0))
+      href: imageUrlForItem(item, normalizeRotation(item.rot || 0))
     };
   }
 
@@ -984,6 +1019,8 @@ window.RoomDecor = (function () {
     $view.querySelector('#rd-ab-name').textContent = catalog[item.type].name;
     const rotate = $view.querySelector('#rd-ab-rotate');
     if (rotate) rotate.disabled = !canRotateItem(item.type);
+    const interact = $view.querySelector('#rd-ab-interact');
+    if (interact) interact.disabled = !canInteractItem(item.type);
   }
 
   function clearModes() {
@@ -1225,6 +1262,22 @@ window.RoomDecor = (function () {
       }
       item.rot = nextRot;
       showToast('아이템을 회전했어요');
+      updateActionBar();
+      render();
+      scheduleSave();
+    };
+
+    $view.querySelector('#rd-ab-interact').onclick = () => {
+      const item = room.placed.find(p => p.id === selectedId);
+      if (!item || !canInteractItem(item.type)) {
+        showToast('이 아이템은 상호작용할 수 없어요.');
+        return;
+      }
+      const keys = stateKeys(catalog[item.type]);
+      const current = normalizeItemState(item.type, item.state);
+      const index = Math.max(0, keys.indexOf(current));
+      item.state = keys[(index + 1) % keys.length];
+      showToast(`${catalog[item.type].name} 상태를 바꿨어요`);
       updateActionBar();
       render();
       scheduleSave();

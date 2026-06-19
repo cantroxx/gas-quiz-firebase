@@ -85,6 +85,16 @@ function hasRotationSprites(rotationSprites = {}) {
   return ROTATION_KEYS.some(key => !!rotationSprites[key]);
 }
 
+function normalizeStateSprites(value = {}) {
+  const source = value && typeof value === 'object' ? value : {};
+  return Object.keys(source).reduce((next, key) => {
+    const id = normalizeText(key);
+    const href = normalizeUrl(source[key]);
+    if (id && href) next[id] = href;
+    return next;
+  }, {});
+}
+
 function normalizeItem(raw = {}) {
   const id = normalizeText(raw.id || raw.itemId || raw.assetId);
   if (!/^room_[a-z0-9_-]+$/i.test(id)) {
@@ -98,6 +108,7 @@ function normalizeItem(raw = {}) {
   const assetUrl = normalizeUrl(raw.assetUrl);
   const thumbUrl = normalizeUrl(raw.thumbUrl);
   const rotationSprites = normalizeRotationSprites(raw.rotationSprites);
+  const stateSprites = normalizeStateSprites(raw.stateSprites);
   const placementOffsets = normalizePlacementOffsets(raw.placementOffsets);
   if (renderType === 'image' && !assetUrl && !hasRotationSprites(rotationSprites)) {
     throw new Error(`Image room item requires assetUrl or rotationSprites: ${id}`);
@@ -116,6 +127,7 @@ function normalizeItem(raw = {}) {
     assetUrl,
     thumbUrl,
     rotationSprites,
+    stateSprites,
     placementOffsets,
     w: Math.max(1, Math.min(4, Math.round(Number(raw.w) || 1))),
     d: Math.max(1, Math.min(4, Math.round(Number(raw.d) || 1))),
@@ -160,6 +172,7 @@ function buildAssetPayload(item) {
     assetUrl: item.assetUrl,
     thumbUrl: item.thumbUrl,
     rotationSprites: item.rotationSprites,
+    stateSprites: item.stateSprites,
     placementOffsets: item.placementOffsets,
     w: item.w,
     d: item.d,

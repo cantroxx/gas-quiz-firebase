@@ -66,6 +66,7 @@
 }
 #room-view #rd-actionbar button.move{background:#cfe3f2;}
 #room-view #rd-actionbar button.rotate{background:#d9f0d0;}
+#room-view #rd-actionbar button.interact{background:#fff0a8;}
 #room-view #rd-actionbar button.del{background:#ffd2c9;}
 #room-view #rd-actionbar button:disabled{
   opacity:.45; cursor:not-allowed; filter:grayscale(.5);
