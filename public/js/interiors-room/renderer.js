@@ -1,6 +1,6 @@
 import { getItemDefinition } from './asset-manifest.js';
 
-const LAYER_NAMES = ['floor', 'walls', 'wallObjects', 'floorObjects', 'selection'];
+const LAYER_NAMES = ['floor', 'walls', 'wallObjects', 'floorObjects', 'selection', 'debug'];
 
 export class InteriorsRoomRenderer {
   constructor(stage) {
@@ -8,6 +8,7 @@ export class InteriorsRoomRenderer {
     this.layers = new Map();
     this.preset = null;
     this.scale = 1;
+    this.stageOffset = { x: 0, y: 0 };
     this.metrics = null;
     this.selectedId = null;
     this.onSelect = null;
@@ -23,11 +24,14 @@ export class InteriorsRoomRenderer {
     this.selectedId = roomState.selectedId;
     this.metrics = this.createMetrics(roomState.preset);
     this.scale = this.getStageScale(this.metrics);
+    this.stageOffset = this.getStageOffset(this.metrics);
     this.stage.style.setProperty('--interiors-room-scale', this.scale);
+    this.stage.classList.toggle('is-debugging', this.shouldShowDebug());
     this.clearLayers();
     this.renderShell(roomState.preset);
     this.renderPlacedItems(roomState.items);
     this.renderSelectionAnchor(roomState.items);
+    this.renderDebugOverlay(roomState.preset);
   }
 
   createLayers() {
@@ -75,6 +79,14 @@ export class InteriorsRoomRenderer {
     const availableWidth = rect.width - 36;
     const availableHeight = rect.height - 30;
     return Math.min(1.25, Math.max(0.36, Math.min(availableWidth / metrics.roomWidth, availableHeight / metrics.roomHeight)));
+  }
+
+  getStageOffset(metrics) {
+    const rect = this.stage.getBoundingClientRect();
+    return {
+      x: Math.max(0, (rect.width - metrics.roomWidth * this.scale) / 2),
+      y: Math.max(0, (rect.height - metrics.roomHeight * this.scale) / 2)
+    };
   }
 
   renderShell(preset) {
@@ -139,6 +151,33 @@ export class InteriorsRoomRenderer {
     this.layers.get('selection').append(anchor);
   }
 
+  renderDebugOverlay(preset) {
+    if(!this.shouldShowDebug()) return;
+    const debugLayer = this.layers.get('debug');
+
+    for(let segment = 0; segment < preset.grid.depth; segment += 1) {
+      this.appendDebugPoint(debugLayer, this.floorPoint(0, segment), `L${segment} floor`, 'floor');
+      this.appendDebugPoint(debugLayer, this.leftWallPoint(segment), `L${segment} wall`, 'wall');
+    }
+
+    for(let segment = 0; segment < preset.grid.width; segment += 1) {
+      this.appendDebugPoint(debugLayer, this.floorPoint(segment, 0), `R${segment} floor`, 'floor');
+      this.appendDebugPoint(debugLayer, this.rightWallPoint(segment), `R${segment} wall`, 'wall');
+    }
+  }
+
+  appendDebugPoint(layer, point, label, type) {
+    const marker = document.createElement('span');
+    marker.className = `interiors-room-debug-point interiors-room-debug-point--${type}`;
+    marker.textContent = label;
+    this.setPosition(marker, point.left, point.top, 2000);
+    layer.append(marker);
+  }
+
+  shouldShowDebug() {
+    return new URLSearchParams(window.location.search).has('debug');
+  }
+
   floorPoint(x, y) {
     return {
       left: this.metrics.originX + (x - y) * this.metrics.stepX,
@@ -182,11 +221,14 @@ export class InteriorsRoomRenderer {
   }
 
   wallAnchorPoint(item) {
+    const definition = getItemDefinition(item.itemId);
     const wallPoint = item.wall === 'left' ? this.leftWallPoint(item.segment) : this.rightWallPoint(item.segment);
-    const xOffset = item.wall === 'left' ? this.metrics.module * 0.44 : this.metrics.module * 0.62;
+    const offset = definition?.wallOffset?.[item.wall] || {};
+    const xOffset = Number(offset.x ?? (item.wall === 'left' ? this.metrics.module * 0.44 : this.metrics.module * 0.62));
+    const yOffset = Number(offset.y ?? this.metrics.module * 0.62);
     return {
       left: wallPoint.left + xOffset,
-      top: wallPoint.top + this.metrics.module * 0.62 - (item.height || 0) * 18
+      top: wallPoint.top + yOffset - (item.height || 0) * 18
     };
   }
 
@@ -231,7 +273,9 @@ export class InteriorsRoomRenderer {
   }
 
   setPosition(element, left, top, zIndex) {
-    element.style.transform = `translate(${Math.round(left * this.scale)}px, ${Math.round(top * this.scale)}px) scale(${this.scale})`;
+    const x = this.stageOffset.x + left * this.scale;
+    const y = this.stageOffset.y + top * this.scale;
+    element.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${this.scale})`;
     element.style.transformOrigin = 'left top';
     element.style.zIndex = String(zIndex);
   }

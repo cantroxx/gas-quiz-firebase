@@ -198,6 +198,49 @@ button:disabled {
   pointer-events: none;
 }
 
+.interiors-room-layer--debug {
+  display: none;
+  pointer-events: none;
+}
+
+.interiors-room-stage.is-debugging .interiors-room-layer--debug {
+  display: block;
+}
+
+.interiors-room-debug-point {
+  position: absolute;
+  min-width: 16px;
+  min-height: 16px;
+  padding: 1px 4px 2px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1f1a16;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px rgba(47, 38, 29, 0.34);
+}
+
+.interiors-room-debug-point::before {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  content: '';
+  transform: translateY(-50%);
+}
+
+.interiors-room-debug-point--floor::before {
+  background: #f3a43b;
+}
+
+.interiors-room-debug-point--wall::before {
+  background: #2d7dd2;
+}
+
 .selected-card {
   position: absolute;
   right: max(16px, calc((100% - 980px) / 2 + 18px));

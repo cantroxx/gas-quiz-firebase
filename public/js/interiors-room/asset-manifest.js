@@ -110,6 +110,10 @@ export const ROOM_ITEMS = {
     type: 'wall.object',
     anchor: 'wall',
     size: 128,
+    wallOffset: {
+      left: { x: 56, y: 78 },
+      right: { x: 79, y: 78 }
+    },
     directions: ['left', 'right'],
     sprites: {
       left: `${INTERIORS_ROOT}/windows/window_7_a_tile.png`,
@@ -123,6 +127,10 @@ export const ROOM_ITEMS = {
     type: 'wall.object',
     anchor: 'wall',
     size: 64,
+    wallOffset: {
+      left: { x: 58, y: 66 },
+      right: { x: 70, y: 66 }
+    },
     directions: ['left', 'right'],
     sprites: {
       left: `${INTERIORS_ROOT}/poster/poster_1.png`,
@@ -136,6 +144,10 @@ export const ROOM_ITEMS = {
     type: 'wall.object',
     anchor: 'wall',
     size: 128,
+    wallOffset: {
+      left: { x: 58, y: 74 },
+      right: { x: 76, y: 74 }
+    },
     directions: ['left', 'right'],
     sprites: {
       left: `${INTERIORS_ROOT}/office/board_empty.png`,

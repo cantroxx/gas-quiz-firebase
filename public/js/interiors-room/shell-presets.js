@@ -68,9 +68,7 @@ export const ROOM_SHELL_PRESETS = {
     grid: DEFAULT_GRID,
     assets: SHELL_ASSETS.japanese,
     defaultPlaced: [
-      { id: 'japanese-bed', itemId: 'bed4', anchor: 'floor', x: 2, y: 2, direction: 'd' },
-      { id: 'japanese-window-left', itemId: 'window7', anchor: 'wall', wall: 'left', segment: 2, height: 1, direction: 'left' },
-      { id: 'japanese-window-right', itemId: 'window7', anchor: 'wall', wall: 'right', segment: 2, height: 1, direction: 'right' }
+      { id: 'japanese-bed', itemId: 'bed4', anchor: 'floor', x: 2, y: 2, direction: 'd' }
     ],
     shellDecor: [
       { id: 'japanese-left-window-shell', src: SHELL_ASSETS.japanese.leftWindow, wall: 'left', segment: 3 },
