@@ -4584,7 +4584,7 @@ h2 {
 
 .classroom-today-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -4623,6 +4623,92 @@ h2 {
   font-size: 0.84rem;
   font-weight: 800;
   line-height: 1.4;
+}
+
+.classroom-activity-feed,
+.classroom-shop-history {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.classroom-activity-feed h4,
+.classroom-shop-history h4 {
+  margin: 0;
+  color: var(--green-dark);
+  font-size: 0.98rem;
+}
+
+.classroom-activity-feed ul {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.classroom-activity-feed li,
+.classroom-shop-history-row {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(47, 125, 68, 0.07);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.classroom-management-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.classroom-management-summary span {
+  padding: 7px 10px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.classroom-shop-history .event-section-heading.compact {
+  margin-bottom: 10px;
+}
+
+.classroom-shop-history .event-section-heading.compact p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.classroom-shop-history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.classroom-shop-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.classroom-shop-history-row strong,
+.classroom-shop-history-row p {
+  display: block;
+  margin: 0;
+}
+
+.classroom-shop-history-row p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .classroom-card-grid {
@@ -6215,6 +6301,11 @@ h2 {
 
   .classroom-today-grid {
     grid-template-columns: 1fr;
+  }
+
+  .classroom-shop-history-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .shop-wallet {

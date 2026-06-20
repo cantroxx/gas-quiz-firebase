@@ -602,6 +602,7 @@
             <h3 id="classroom-today-heading">오늘의 교실</h3>
           </div>
           <div id="classroom-today-grid" class="classroom-today-grid"></div>
+          <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="quests" aria-labelledby="classroom-quest-heading">
@@ -625,6 +626,7 @@
             <p class="eyebrow">Gemstones</p>
             <h3 id="classroom-gem-heading">젬스톤</h3>
           </div>
+          <div id="classroom-gem-summary" class="classroom-management-summary"></div>
           <div id="classroom-gem-grid" class="classroom-card-grid"></div>
         </section>
 
@@ -633,6 +635,7 @@
             <p class="eyebrow">Class Jobs</p>
             <h3 id="classroom-job-heading">직업</h3>
           </div>
+          <div id="classroom-job-summary" class="classroom-management-summary"></div>
           <div id="classroom-job-grid" class="classroom-card-grid"></div>
         </section>
 
@@ -642,6 +645,7 @@
             <h3 id="classroom-shop-heading">교실 상점</h3>
           </div>
           <div id="classroom-shop-grid" class="classroom-card-grid"></div>
+          <div id="classroom-shop-history" class="classroom-shop-history"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="routines" aria-labelledby="classroom-routine-heading">
@@ -4966,6 +4970,18 @@
       return runClassroomEconomyAction('purchaseClassroomShopItem', itemId, button);
     }
 
+    async function requestClassroomShopPurchaseUse(purchaseId, button) {
+      return runClassroomEconomyAction('requestClassroomShopPurchaseUse', purchaseId, button);
+    }
+
+    async function approveClassroomShopPurchaseUse(purchaseId, button) {
+      return runClassroomEconomyAction('approveClassroomShopPurchaseUse', purchaseId, button);
+    }
+
+    async function completeClassroomShopPurchaseUse(purchaseId, button) {
+      return runClassroomEconomyAction('completeClassroomShopPurchaseUse', purchaseId, button);
+    }
+
     function getClassroomRoutineFormValues() {
       return window.DJ48ClassroomForm.getClassroomRoutineFormValues();
     }
@@ -6465,6 +6481,9 @@
         releaseClassroomJob,
         claimClassroomJobSalary,
         purchaseClassroomShopItem,
+        requestClassroomShopPurchaseUse,
+        approveClassroomShopPurchaseUse,
+        completeClassroomShopPurchaseUse,
         checkClassroomRoutine,
         reviewClassroomQuestProgress
       };

@@ -61,9 +61,25 @@
     });
 
     document.getElementById('classroom-shop-grid')?.addEventListener('click', event => {
-      const button = event.target.closest('[data-classroom-shop-buy-id]');
-      if(!button || button.disabled) return;
-      deps.purchaseClassroomShopItem?.(button.dataset.classroomShopBuyId || '', button);
+      const buyButton = event.target.closest('[data-classroom-shop-buy-id]');
+      if(buyButton && !buyButton.disabled) {
+        deps.purchaseClassroomShopItem?.(buyButton.dataset.classroomShopBuyId || '', buyButton);
+        return;
+      }
+      const requestButton = event.target.closest('[data-classroom-shop-request-use-id]');
+      if(requestButton && !requestButton.disabled) {
+        deps.requestClassroomShopPurchaseUse?.(requestButton.dataset.classroomShopRequestUseId || '', requestButton);
+        return;
+      }
+      const approveButton = event.target.closest('[data-classroom-shop-approve-use-id]');
+      if(approveButton && !approveButton.disabled) {
+        deps.approveClassroomShopPurchaseUse?.(approveButton.dataset.classroomShopApproveUseId || '', approveButton);
+        return;
+      }
+      const completeButton = event.target.closest('[data-classroom-shop-complete-use-id]');
+      if(completeButton && !completeButton.disabled) {
+        deps.completeClassroomShopPurchaseUse?.(completeButton.dataset.classroomShopCompleteUseId || '', completeButton);
+      }
     });
 
     document.getElementById('classroom-routine-grid')?.addEventListener('click', event => {

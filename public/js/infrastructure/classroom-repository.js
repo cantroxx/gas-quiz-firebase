@@ -9,7 +9,9 @@
       shopItems: [],
       applications: [],
       assignments: [],
-      routines: []
+      routines: [],
+      purchases: [],
+      berryLogs: []
     };
   }
 
@@ -84,6 +86,8 @@
         applications: Array.isArray(data.applications) ? data.applications : [],
         assignments: Array.isArray(data.assignments) ? data.assignments : [],
         routines: Array.isArray(data.routines) ? data.routines : [],
+        purchases: Array.isArray(data.purchases) ? data.purchases : [],
+        berryLogs: Array.isArray(data.berryLogs) ? data.berryLogs : [],
         myAssignment: data.myAssignment || null
       };
     } catch(error) {

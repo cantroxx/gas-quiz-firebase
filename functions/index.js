@@ -4549,6 +4549,16 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     ? db.collection("classrooms").doc(classId).collection("jobApplications").where("status", "==", "pending").limit(200)
     : db.collection("classrooms").doc(classId).collection("jobApplications").where("memberUserId", "==", memberUserId).limit(50);
   const applicationSnapshot = await applicationQuery.get();
+  const purchaseQuery = authResult.canManage
+    ? db.collection("classrooms").doc(classId).collection("shopPurchases").limit(200)
+    : db.collection("classrooms").doc(classId).collection("shopPurchases").where("memberUserId", "==", memberUserId).limit(80);
+  const berryLogQuery = authResult.canManage
+    ? db.collection("classrooms").doc(classId).collection("berryLogs").limit(300)
+    : db.collection("classrooms").doc(classId).collection("berryLogs").where("memberUserId", "==", memberUserId).limit(100);
+  const [purchaseSnapshot, berryLogSnapshot] = await Promise.all([
+    purchaseQuery.get(),
+    berryLogQuery.get()
+  ]);
 
   const jobs = jobsSnapshot.docs
     .map(doc => ({ jobId: doc.id, ...(doc.data() || {}) }))
@@ -4602,6 +4612,46 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
       };
     })
     .filter(item => item.status !== "deleted");
+  const getTimestampMillis = value => {
+    if (!value) return 0;
+    if (typeof value.toMillis === "function") return value.toMillis();
+    if (typeof value.seconds === "number") return value.seconds * 1000;
+    return 0;
+  };
+  const purchases = purchaseSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      return {
+        purchaseId: doc.id,
+        itemId: String(data.itemId || ""),
+        itemTitle: String(data.itemTitle || ""),
+        memberUserId: String(data.memberUserId || data.userId || ""),
+        priceBerry: Number(data.priceBerry || 0),
+        status: String(data.status || "purchased"),
+        requestedAtMillis: getTimestampMillis(data.requestedAt),
+        approvedAtMillis: getTimestampMillis(data.approvedAt),
+        usedAtMillis: getTimestampMillis(data.usedAt),
+        createdAtMillis: getTimestampMillis(data.createdAt)
+      };
+    })
+    .sort((a, b) => (b.createdAtMillis || b.requestedAtMillis || 0) - (a.createdAtMillis || a.requestedAtMillis || 0))
+    .slice(0, authResult.canManage ? 80 : 30);
+  const berryLogs = berryLogSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      return {
+        logId: doc.id,
+        type: String(data.type || ""),
+        itemTitle: String(data.itemTitle || ""),
+        jobTitle: String(data.jobTitle || ""),
+        memberUserId: String(data.memberUserId || data.userId || ""),
+        rewardAmount: Number(data.rewardAmount || data.rewardBerry || 0),
+        rewardBerry: Number(data.rewardBerry || data.rewardAmount || 0),
+        createdAtMillis: getTimestampMillis(data.createdAt)
+      };
+    })
+    .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
+    .slice(0, authResult.canManage ? 120 : 30);
 
   return {
     success: true,
@@ -4612,8 +4662,95 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     assignments,
     applications,
     routines,
+    purchases,
+    berryLogs,
     myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
   };
+});
+
+exports.requestClassroomShopPurchaseUse = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
+    const purchaseSnapshot = await transaction.get(purchaseRef);
+    if (!purchaseSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom shop purchase not found.");
+    }
+    const purchase = purchaseSnapshot.data() || {};
+    if (purchase.memberUserId !== memberUserId) {
+      throw new HttpsError("permission-denied", "Cannot request another member purchase.");
+    }
+    if (purchase.status === "use_requested" || purchase.status === "use_approved") {
+      return { duplicate: true, status: purchase.status };
+    }
+    if (purchase.status === "used") {
+      throw new HttpsError("failed-precondition", "Classroom shop purchase is already used.");
+    }
+    transaction.set(purchaseRef, {
+      status: "use_requested",
+      requestedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { duplicate: false, status: "use_requested" };
+  });
+
+  return { success: true, classId, memberUserId, purchaseId, ...result };
+});
+
+async function reviewClassroomShopPurchaseUse(request, nextStatus) {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
+    const purchaseSnapshot = await transaction.get(purchaseRef);
+    if (!purchaseSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom shop purchase not found.");
+    }
+    const purchase = purchaseSnapshot.data() || {};
+    const currentStatus = String(purchase.status || "purchased");
+    if (nextStatus === "use_approved" && currentStatus !== "use_requested") {
+      return { duplicate: true, status: currentStatus };
+    }
+    if (nextStatus === "used" && !["use_requested", "use_approved"].includes(currentStatus)) {
+      return { duplicate: true, status: currentStatus };
+    }
+    transaction.set(purchaseRef, {
+      status: nextStatus,
+      approvedBy: nextStatus === "use_approved" ? adminMember.memberUserId : purchase.approvedBy || adminMember.memberUserId,
+      approvedAt: nextStatus === "use_approved" ? FieldValue.serverTimestamp() : purchase.approvedAt || null,
+      usedBy: nextStatus === "used" ? adminMember.memberUserId : purchase.usedBy || "",
+      usedAt: nextStatus === "used" ? FieldValue.serverTimestamp() : purchase.usedAt || null,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { duplicate: false, status: nextStatus };
+  });
+
+  return { success: true, classId, memberUserId, purchaseId, ...result };
+}
+
+exports.approveClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
+  return reviewClassroomShopPurchaseUse(request, "use_approved");
+});
+
+exports.completeClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
+  return reviewClassroomShopPurchaseUse(request, "used");
 });
 
 exports.saveClassroomJob = onCall({ region: REGION }, async request => {

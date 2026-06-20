@@ -203,6 +203,15 @@
       const amount = Number(result.priceBerry || 0);
       return `${amount} 베리로 구매했습니다.`;
     }
+    if(functionName === 'requestClassroomShopPurchaseUse') {
+      return result.duplicate ? '이미 사용 요청 중인 쿠폰입니다.' : '쿠폰 사용을 요청했습니다.';
+    }
+    if(functionName === 'approveClassroomShopPurchaseUse') {
+      return result.duplicate ? '이미 처리된 요청입니다.' : '쿠폰 사용을 승인했습니다.';
+    }
+    if(functionName === 'completeClassroomShopPurchaseUse') {
+      return result.duplicate ? '이미 처리된 쿠폰입니다.' : '쿠폰 사용을 완료했습니다.';
+    }
     if(functionName === 'checkClassroomRoutine') {
       if(result.duplicate) return '오늘 이미 체크한 루틴입니다.';
       if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 베리를 받았습니다.`;
@@ -217,6 +226,9 @@
     releaseClassroomJob: { payloadKey: 'assignmentId', progressText: '해제 중...' },
     claimClassroomJobSalary: { payloadKey: 'assignmentId', progressText: '지급 중...' },
     purchaseClassroomShopItem: { payloadKey: 'itemId', progressText: '구매 중...' },
+    requestClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '요청 중...' },
+    approveClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '승인 중...' },
+    completeClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '완료 중...' },
     checkClassroomRoutine: { payloadKey: 'routineId', progressText: '체크 중...' }
   };
 

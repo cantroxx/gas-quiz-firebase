@@ -95,6 +95,8 @@ const functions = {
           applications: [{ id: 'app-1' }],
           assignments: [{ id: 'assign-1' }],
           routines: [{ id: 'routine-1' }],
+          purchases: [{ id: 'purchase-1' }],
+          berryLogs: [{ id: 'berry-log-1' }],
           myAssignment: { id: 'mine' }
         }
       };
@@ -188,6 +190,8 @@ async function testClassroomRepositoryReadPaths() {
     applications: [{ id: 'app-1' }],
     assignments: [{ id: 'assign-1' }],
     routines: [{ id: 'routine-1' }],
+    purchases: [{ id: 'purchase-1' }],
+    berryLogs: [{ id: 'berry-log-1' }],
     myAssignment: { id: 'mine' }
   });
   assert.deepEqual(await repository.loadClassroomReviewItems({ settings, canReview: true }), [
