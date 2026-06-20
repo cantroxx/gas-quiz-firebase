@@ -6357,17 +6357,18 @@
 
     async function handleClassroomEntrySubmit(event) {
       event.preventDefault();
-      const value = window.DJ48ClassroomForm.getClassroomEntryCode();
-      const settings = await loadClassroomSettings(true);
-      if(!window.DJ48ClassroomForm.isClassroomEntryCodeValid(value, settings)) {
-        window.DJ48ClassroomForm.setClassroomEntryStatus('비밀번호가 맞지 않습니다. 1차 프로토타입 비밀번호를 확인해 주세요.', true);
-        return;
-      }
-      window.DJ48ClassroomForm.setClassroomEntryStatus(
-        window.DJ48ClassroomForm.getClassroomEntrySuccessMessage(settings, CLASSROOM_PROTOTYPE.name)
-      );
-      window.DJ48ClassroomForm.clearClassroomEntryCode();
-      setClassroomUnlocked(true);
+      await window.DJ48ClassroomUsecases.verifyClassroomEntryFlow({
+        entryCode: window.DJ48ClassroomForm.getClassroomEntryCode(),
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
+      }, {
+        loadClassroomSettings,
+        verifyEntryCode: options => getClassroomRepository().verifyClassroomEntryCode(options),
+        setStatus: window.DJ48ClassroomForm.setClassroomEntryStatus,
+        clearEntryCode: window.DJ48ClassroomForm.clearClassroomEntryCode,
+        setUnlocked: setClassroomUnlocked,
+        getSuccessMessage: settings => window.DJ48ClassroomForm.getClassroomEntrySuccessMessage(settings, CLASSROOM_PROTOTYPE.name),
+        warn: console.warn
+      });
     }
 
     function setActiveClassroomTab(tabName = 'quests') {

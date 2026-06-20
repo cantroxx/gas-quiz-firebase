@@ -271,6 +271,57 @@ async function testRoutineFlowValidatesMemberAndDates() {
   assert.deepEqual(calls, [['회원 연결 후 성장루틴을 만들 수 있습니다.', true]]);
 }
 
+async function testVerifyClassroomEntryFlow() {
+  const emptyCalls = [];
+  const emptyResult = await usecases.verifyClassroomEntryFlow({
+    entryCode: '',
+    memberUserId: 'member-1'
+  }, {
+    setStatus: (...args) => emptyCalls.push(args)
+  });
+  assert.deepEqual(emptyResult, { skipped: true, reason: 'entry-code-required' });
+  assert.deepEqual(emptyCalls, [['교실 비밀번호를 입력해 주세요.', true]]);
+
+  const memberCalls = [];
+  const memberResult = await usecases.verifyClassroomEntryFlow({
+    entryCode: '1234',
+    memberUserId: ''
+  }, {
+    setStatus: (...args) => memberCalls.push(args)
+  });
+  assert.deepEqual(memberResult, { skipped: true, reason: 'member-required' });
+  assert.deepEqual(memberCalls, [['회원 연결 후 교실에 입장할 수 있습니다.', true]]);
+
+  const calls = [];
+  const result = await usecases.verifyClassroomEntryFlow({
+    entryCode: '1234',
+    memberUserId: 'member-1'
+  }, {
+    loadClassroomSettings: async forceRefresh => {
+      calls.push(['settings', forceRefresh]);
+      return { classId: 'c1', name: '우리 교실' };
+    },
+    verifyEntryCode: async options => {
+      calls.push(['verify', options.classId, options.memberUserId, options.entryCode]);
+      return { success: true };
+    },
+    setStatus: (...args) => calls.push(['status', ...args]),
+    clearEntryCode: () => calls.push(['clear']),
+    setUnlocked: unlocked => calls.push(['unlocked', unlocked]),
+    getSuccessMessage: settings => `${settings.name} 입장`
+  });
+
+  assert.deepEqual(result.result, { success: true });
+  assert.deepEqual(calls, [
+    ['settings', true],
+    ['status', '교실 비밀번호를 확인하는 중입니다.'],
+    ['verify', 'c1', 'member-1', '1234'],
+    ['status', '우리 교실 입장'],
+    ['clear'],
+    ['unlocked', true]
+  ]);
+}
+
 async function testCompleteQuestAutoFlow() {
   const calls = [];
   const result = await usecases.completeClassroomCheckQuestFlow({
@@ -391,6 +442,7 @@ async function testReviewFlowRequiresTeacher() {
   await testEconomyActionFlow();
   await testRunClassroomEconomyAction();
   await testRoutineFlowValidatesMemberAndDates();
+  await testVerifyClassroomEntryFlow();
   await testCompleteQuestAutoFlow();
   await testCompleteCurrentMemberQuestControlsButton();
   await testReviewWithButtonsFlow();

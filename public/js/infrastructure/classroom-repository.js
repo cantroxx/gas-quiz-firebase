@@ -161,6 +161,18 @@
     return Object.fromEntries(entries.filter(([, data]) => !!data));
   }
 
+  async function verifyClassroomEntryCode(options = {}, deps = {}) {
+    if(!options.memberUserId) throw new Error('classroom-member-unavailable');
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-entry-functions-unavailable');
+    const callable = functions.httpsCallable('verifyClassroomEntryCode');
+    const response = await callable({
+      classId: options.classId,
+      memberUserId: options.memberUserId,
+      entryCode: options.entryCode
+    });
+    return response?.data || {};
+  }
+
   async function setClassroomSelectedBadge(options = {}, deps = {}) {
     if(!options.memberUserId) throw new Error('classroom-member-unavailable');
     const functions = getRequiredClassroomFunctions(deps, 'classroom-badge-select-functions-unavailable');
@@ -324,6 +336,7 @@
       loadClassroomStudentCards: options => loadClassroomStudentCards(options, callableDeps),
       loadClassroomEconomyBoard: options => loadClassroomEconomyBoard(options, callableDeps),
       loadClassroomReviewItems: options => loadClassroomReviewItems(options, firestoreDeps),
+      verifyClassroomEntryCode: options => verifyClassroomEntryCode(options, callableDeps),
       setClassroomSelectedBadge: options => setClassroomSelectedBadge(options, callableDeps),
       saveClassroomQuest: options => saveClassroomQuest(options, callableDeps),
       awardClassroomBadgeCampaign: options => awardClassroomBadgeCampaign(options, callableDeps),

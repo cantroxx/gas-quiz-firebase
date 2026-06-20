@@ -290,6 +290,43 @@
     }
   }
 
+  async function verifyClassroomEntryFlow(options = {}, deps = {}) {
+    const entryCode = String(options.entryCode || '').trim();
+    if(!entryCode) {
+      deps.setStatus?.('교실 비밀번호를 입력해 주세요.', true);
+      return { skipped: true, reason: 'entry-code-required' };
+    }
+    if(!options.memberUserId) {
+      deps.setStatus?.('회원 연결 후 교실에 입장할 수 있습니다.', true);
+      return { skipped: true, reason: 'member-required' };
+    }
+
+    const settings = await deps.loadClassroomSettings(true);
+    deps.setStatus?.('교실 비밀번호를 확인하는 중입니다.');
+    try {
+      const result = await deps.verifyEntryCode({
+        classId: settings.classId,
+        memberUserId: options.memberUserId,
+        entryCode
+      });
+      deps.setStatus?.(deps.getSuccessMessage?.(settings) || '교실에 입장했습니다.');
+      deps.clearEntryCode?.();
+      deps.setUnlocked?.(true);
+      return { result, settings, error: null };
+    } catch(error) {
+      deps.warn?.('Classroom entry verification failed.', error);
+      deps.setStatus?.(
+        error.message === 'classroom-entry-functions-unavailable'
+          ? '교실 입장 확인 기능을 불러오지 못했습니다.'
+          : error.message === 'classroom-member-unavailable'
+            ? '회원 연결 후 교실에 입장할 수 있습니다.'
+            : '비밀번호가 맞지 않거나 교실에 입장할 수 없습니다.',
+        true
+      );
+      return { settings, error };
+    }
+  }
+
   async function setClassroomSelectedBadgeFlow(options = {}, deps = {}) {
     if(!options.badgeId || !options.memberUserId) return { skipped: true };
     const settings = await deps.loadClassroomSettings();
@@ -447,6 +484,7 @@
     getClassroomEconomySuccessMessage,
     runClassroomEconomyAction,
     saveClassroomRoutineFlow,
+    verifyClassroomEntryFlow,
     setClassroomSelectedBadgeFlow,
     completeClassroomCheckQuestFlow,
     completeCurrentMemberClassroomQuestFlow,

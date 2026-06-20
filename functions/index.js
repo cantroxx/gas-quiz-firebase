@@ -1163,6 +1163,38 @@ function assertMemberCanEnterClassroom(memberData, settings) {
   }
 }
 
+exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const entryCode = String(payload.entryCode || "").trim();
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    const settings = classroomResult.settings;
+    assertMemberCanEnterClassroom(memberData, settings);
+    if (!entryCode || entryCode !== String(settings.entryCode || "").trim()) {
+      throw new HttpsError("permission-denied", "Classroom entry code is invalid.");
+    }
+    return {
+      className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
+      grade: settings.grade,
+      classNumber: settings.classNumber
+    };
+  });
+
+  return {
+    success: true,
+    classId,
+    memberUserId,
+    ...result
+  };
+});
+
 function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
   const data = doc.data() || {};
   const selectedBadge = profile.selectedBadge && typeof profile.selectedBadge === "object"

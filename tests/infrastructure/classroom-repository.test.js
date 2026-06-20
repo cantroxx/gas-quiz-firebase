@@ -215,6 +215,7 @@ async function testClassroomRepositoryFallbacksAndDelegates() {
   assert.equal(await repository.saveClassroomJob({ classId: 'c1', values: { title: 'Helper' } }), undefined);
   assert.equal(await repository.saveClassroomShopItem({ classId: 'c1', values: { title: 'Snack' } }), undefined);
   assert.deepEqual(await repository.callClassroomEconomyAction('purchaseClassroomShopItem', { itemId: 'item-1' }, { classId: 'c1', memberUserId: 'member-1' }), { success: true });
+  assert.deepEqual(await repository.verifyClassroomEntryCode({ classId: 'c1', memberUserId: 'member-1', entryCode: '1234' }), { success: true });
   assert.equal(await repository.saveClassroomRoutine({ classId: 'c1', memberUserId: 'member-1', values: { title: 'Read' } }), undefined);
   assert.deepEqual(await repository.completeClassroomAutoQuest({ classId: 'c1', memberUserId: 'member-1', questId: 'quest-1' }), { success: true });
   assert.deepEqual(await repository.saveClassroomManualQuestProgress({
@@ -233,6 +234,7 @@ async function testClassroomRepositoryFallbacksAndDelegates() {
   assert(calls.some(call => call[0] === 'saveClassroomJob' && call[1].job.title === 'Helper'));
   assert(calls.some(call => call[0] === 'saveClassroomShopItem' && call[1].item.title === 'Snack'));
   assert(calls.some(call => call[0] === 'purchaseClassroomShopItem' && call[1].itemId === 'item-1'));
+  assert(calls.some(call => call[0] === 'verifyClassroomEntryCode' && call[1].entryCode === '1234'));
   assert(calls.some(call => call[0] === 'saveClassroomRoutine' && call[1].routine.title === 'Read'));
   assert(calls.some(call => call[0] === 'completeClassroomAutoQuest' && call[1].questId === 'quest-1'));
   assert(calls.some(call => call[0] === 'set' && call[1] === 'classrooms/c1/questProgress/member-1__quest-1'));
@@ -258,6 +260,14 @@ async function testClassroomRepositoryCallableErrors() {
   await assert.rejects(
     () => repository.saveClassroomRoutine({ classId: 'c1', memberUserId: 'member-1' }),
     /classroom-routine-functions-unavailable/
+  );
+  await assert.rejects(
+    () => repository.verifyClassroomEntryCode({ classId: 'c1' }),
+    /classroom-member-unavailable/
+  );
+  await assert.rejects(
+    () => repository.verifyClassroomEntryCode({ classId: 'c1', memberUserId: 'member-1', entryCode: '1234' }),
+    /classroom-entry-functions-unavailable/
   );
   await assert.rejects(
     () => repository.saveClassroomQuest({ classId: 'c1' }),
