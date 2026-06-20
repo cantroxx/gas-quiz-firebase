@@ -165,7 +165,8 @@ function badgeMetaFromAreaKey(areaKey, area, detail) {
     '일상': 'daily',
     '국어': 'korean',
     '수학': 'math',
-    '사회': 'social'
+    '사회': 'social',
+    '과학': 'science'
   };
   const group = groupMap[groupRaw] || slug(groupRaw || area);
   const sourceId = `${group}_${slug(detailRaw || detail).replace(/-/g, '_')}`;

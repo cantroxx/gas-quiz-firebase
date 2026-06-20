@@ -169,10 +169,17 @@
       spelling: { area: '일상', detail: '맞춤법', areaKey: '일상/맞춤법', completionType: 'loop' },
       'dad-joke': { area: '일상', detail: '아재개그', areaKey: '일상/아재개그', completionType: completionType || 'loop' },
       'word-relation': { area: '국어', detail: '다의어·동형이의어', areaKey: '국어/word-relation', completionType: 'loop' },
+      spacing: { area: '국어', detail: '띄어쓰기', areaKey: '국어/spacing', completionType: completionType || 'loop' },
+      proverb: { area: '국어', detail: '속담', areaKey: '국어/proverb', completionType: completionType || 'loop' },
+      idiom: { area: '국어', detail: '사자성어', areaKey: '국어/idiom', completionType: completionType || 'loop' },
       gmo: { area: '국어', detail: '독서:지엠오 아이', areaKey: '국어/gmo', completionType: 'complete' },
       time_store: { area: '국어', detail: '독서:시간가게', areaKey: '국어/독서:시간가게', completionType: completionType || 'complete' },
+      'fraction-basic': { area: '수학', detail: '분수', areaKey: '수학/fraction-basic', completionType: completionType || 'loop' },
       samgukji: { area: '사회', detail: '삼국지', areaKey: '사회/three-kingdoms', completionType: completionType || 'loop' },
       'ancient-history': { area: '사회', detail: '고대사~삼국시대', areaKey: '사회/ancient-three-kingdoms', completionType: completionType || 'loop' },
+      'unified-silla-balhae': { area: '사회', detail: '통일신라~발해', areaKey: '사회/unified-silla-balhae', completionType: completionType || 'loop' },
+      'regional-specialties': { area: '사회', detail: '지역 특산물·행정구역', areaKey: '사회/regional-specialties', completionType: completionType || 'loop' },
+      'science-grade4': { area: '과학', detail: '초4 과학 개념', areaKey: '과학/science-grade4', completionType: completionType || 'loop' },
       'history-people': { area: '인물', detail: '역사인물', areaKey: '인물/역사인물', completionType: completionType || 'loop' },
       idol: { area: '인물', detail: '아이돌', areaKey: '인물/아이돌', completionType: completionType || 'loop' },
       anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' },
@@ -222,10 +229,17 @@
       spelling: { category: '맞춤법', subFilter: '' },
       'dad-joke': { category: '아재개그', subFilter: '' },
       'word-relation': { category: '단어(다의어·동형이의어)', subFilter: '다의어·동형이의어' },
+      spacing: { category: '국어(띄어쓰기)', subFilter: '띄어쓰기' },
+      proverb: { category: '국어(속담)', subFilter: '속담' },
+      idiom: { category: '국어(사자성어)', subFilter: '사자성어' },
       gmo: { category: '독서(지엠오 아이)', subFilter: '지엠오 아이' },
       time_store: { category: '독서(시간가게)', subFilter: '시간가게' },
+      'fraction-basic': { category: '수학(분수)', subFilter: '분수' },
       samgukji: { category: '사회(삼국지)', subFilter: '삼국지' },
       'ancient-history': { category: '사회(고대사~삼국시대)', subFilter: '고대사~삼국시대' },
+      'unified-silla-balhae': { category: '사회(통일신라~발해)', subFilter: '통일신라~발해' },
+      'regional-specialties': { category: '사회(지역 특산물·행정구역)', subFilter: '지역 특산물·행정구역' },
+      'science-grade4': { category: '과학(초4 과학 개념)', subFilter: '초4 과학 개념' },
       'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
       idol: { category: '인물(아이돌)', subFilter: '아이돌' },
       anime: { category: '인물(애니)', subFilter: '애니' },
@@ -349,7 +363,8 @@
       '일상': 'daily',
       '국어': 'korean',
       '수학': 'math',
-      '사회': 'social'
+      '사회': 'social',
+      '과학': 'science'
     };
     const group = groupMap[groupRaw] || slugKey(groupRaw || area);
     const badgeId = `${group}_${slugKey(detailRaw || detail).replace(/-/g, '_')}`;
@@ -806,8 +821,36 @@
     button.className = 'quiz-choice';
     button.type = 'button';
     button.dataset.choiceIndex = String(index);
-    button.textContent = `${choiceMarks[index] || `${index + 1}.`} ${choice}`;
+    appendQuestionTextWithFractions(button, `${choiceMarks[index] || `${index + 1}.`} ${String(choice || '').replace(/\b(\d+)\/(\d+)\b/g, '{{frac:$1/$2}}')}`);
     return button;
+  }
+
+  function appendQuestionTextWithFractions(target, text) {
+    const source = String(text || '');
+    const fractionPattern = /\{\{frac:(\d+)\/(\d+)\}\}/g;
+    let cursor = 0;
+    let match = fractionPattern.exec(source);
+    while(match) {
+      if(match.index > cursor) {
+        target.appendChild(document.createTextNode(source.slice(cursor, match.index)));
+      }
+      const fraction = document.createElement('span');
+      const numerator = document.createElement('span');
+      const denominator = document.createElement('span');
+      fraction.className = 'inline-fraction';
+      fraction.setAttribute('aria-label', `${match[2]}분의 ${match[1]}`);
+      numerator.className = 'inline-fraction-numerator';
+      numerator.textContent = match[1];
+      denominator.className = 'inline-fraction-denominator';
+      denominator.textContent = match[2];
+      fraction.append(numerator, denominator);
+      target.appendChild(fraction);
+      cursor = match.index + match[0].length;
+      match = fractionPattern.exec(source);
+    }
+    if(cursor < source.length) {
+      target.appendChild(document.createTextNode(source.slice(cursor)));
+    }
   }
 
   function createQuizHintToggle(hintText) {
@@ -840,7 +883,7 @@
     progress.className = 'quiz-progress';
     progress.textContent = options.progressText || '';
     title.className = 'quiz-question-title';
-    title.textContent = question.question || '';
+    appendQuestionTextWithFractions(title, question.question || '');
     titleRow.className = 'quiz-question-title-row';
     choices.className = 'quiz-choice-list';
     submit.className = 'quiz-submit-button';

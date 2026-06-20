@@ -36,11 +36,18 @@ function practiceTitleBadgeId(title = {}) {
   if (/^pokemon_gen[1-9]_/.test(id)) return id.replace(/_trainer$/, '');
   if (id.startsWith('spelling_')) return 'daily_맞춤법';
   if (id.startsWith('word_relation_')) return 'korean_word_relation';
+  if (id.startsWith('korean_proverb_')) return 'korean_proverb';
+  if (id.startsWith('korean_spacing_')) return 'korean_spacing';
+  if (id.startsWith('korean_idiom_')) return 'korean_idiom';
   if (id === 'reading_gmo_complete') return 'korean_gmo';
   if (id.startsWith('math_muldiv_')) return 'math_random_basic';
+  if (id.startsWith('math_fraction_basic_')) return 'math_분수';
   if (id.startsWith('people_') || id === 'history_god') return 'people_역사인물';
   if (id.startsWith('three_kingdoms_')) return 'social_three_kingdoms';
   if (id.startsWith('ancient_three_kingdoms_')) return 'social_ancient_three_kingdoms';
+  if (id.startsWith('social_regional_specialties_')) return 'social_regional_specialties';
+  if (id.startsWith('social_unified_silla_balhae_')) return 'social_unified_silla_balhae';
+  if (id.startsWith('science_grade4_')) return 'science_science_grade4';
   if (id.startsWith('idol_')) return 'people_아이돌';
   if (id.startsWith('anime_')) return 'people_애니';
   if (id.startsWith('dad_joke_') || id === 'ten_million_youtuber') return 'daily_아재개그';

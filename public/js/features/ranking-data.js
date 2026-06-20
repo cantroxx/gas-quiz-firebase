@@ -101,16 +101,21 @@
     const koreanDefinitions = getEnabledRankingGroupDefinitions([
       { id: 'spelling', label: '맞춤법', keys: ['맞춤법'] },
       { id: 'wordRelation', label: '다의어·동형이의어', keys: ['단어다의어-동형이의어'] },
+      { id: 'spacing', label: '띄어쓰기', keys: ['국어띄어쓰기'] },
+      { id: 'proverb', label: '속담', keys: ['국어속담'] },
+      { id: 'idiom', label: '사자성어', keys: ['국어사자성어'] },
       { id: 'readingGmo', label: '지엠오 아이', keys: ['독서지엠오-아이'] },
       { id: 'timeStore', label: '시간가게', keys: ['독서시간가게'] }
     ], deps);
     const socialDefinitions = getEnabledRankingGroupDefinitions([
       { id: 'samgukji', label: '삼국지', keys: ['사회삼국지'] },
       { id: 'ancientHistory', label: '고대사~삼국시대', keys: ['사회고대사-삼국시대'] },
+      { id: 'unifiedSillaBalhae', label: '통일신라~발해', keys: ['사회통일신라-발해'] },
       { id: 'historyPeople', label: '역사 인물', keys: ['인물역사-인물'] }
     ], deps);
     const mathDefinitions = getEnabledRankingGroupDefinitions([
-      { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] }
+      { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] },
+      { id: 'fractionBasic', label: '분수', keys: ['수학분수', '수학분수-기초'] }
     ], deps);
     const koreanKeys = koreanDefinitions.flatMap(definition => definition.keys);
     const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
@@ -159,7 +164,7 @@
         id: 'math',
         label: '수학',
         title: '수학 랭킹',
-        desc: '곱셈과 나눗셈 랭킹전 기록입니다.',
+        desc: '곱셈과 나눗셈, 분수 랭킹전 기록입니다.',
         rows: getTopRankingRecordsByCategoryKeys(rankingRecords, mathKeys),
         groups: mathGroups,
         meta: row => getRankingCategoryLabel(row) || '수학',

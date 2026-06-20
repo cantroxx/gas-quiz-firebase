@@ -1,6 +1,20 @@
 (function (root) {
+  const HIDDEN_PUBLIC_RANKING_MEMBER_USER_IDS = new Set(['G4-C8-N23']);
+
   function getDocs(snapshot) {
     return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+  }
+
+  function getRankingRowMemberUserId(row = {}) {
+    return String(row.memberUserId || row.userId || '').trim();
+  }
+
+  function isPublicRankingRowVisible(row = {}) {
+    return !HIDDEN_PUBLIC_RANKING_MEMBER_USER_IDS.has(getRankingRowMemberUserId(row));
+  }
+
+  function getPublicRankingQueryLimit(limit) {
+    return Math.max(0, Number(limit) || 0) + HIDDEN_PUBLIC_RANKING_MEMBER_USER_IDS.size;
   }
 
   async function loadProfileRankingRankContextForDb(db, bestRows = [], deps = {}) {
@@ -13,13 +27,13 @@
       );
       const baseQuery = db.collection('rankingRecords')
         .where('categoryKey', '==', categoryKey)
-        .limit(limit);
+        .limit(getPublicRankingQueryLimit(limit));
       try {
         return await db.collection('rankingRecords')
           .where('categoryKey', '==', categoryKey)
           .orderBy('score', 'desc')
           .orderBy('elapsedSeconds', 'asc')
-          .limit(limit)
+          .limit(getPublicRankingQueryLimit(limit))
           .get();
       } catch(error) {
         deps.warn?.('Firestore profile ranking ordered rank read failed. Falling back to limited category query.', { categoryKey, error });
@@ -38,7 +52,9 @@
         deps.getRankingPlazaCategoryRecordLimit?.(categoryKey) || 0
       );
       const topRows = deps.getTopRankingRecordsByCategoryKeys(
-        getDocs(snapshot).map(doc => ({ recordId: doc.id, ...(doc.data?.() || {}) })),
+        getDocs(snapshot)
+          .map(doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }))
+          .filter(isPublicRankingRowVisible),
         [categoryKey],
         limit
       );
@@ -149,13 +165,13 @@
       const limit = getRankingPlazaCategoryRecordLimit(categoryKey);
       const baseQuery = db.collection('rankingRecords')
         .where('categoryKey', '==', categoryKey)
-        .limit(limit);
+        .limit(getPublicRankingQueryLimit(limit));
       try {
         return await db.collection('rankingRecords')
           .where('categoryKey', '==', categoryKey)
           .orderBy('score', 'desc')
           .orderBy('elapsedSeconds', 'asc')
-          .limit(limit)
+          .limit(getPublicRankingQueryLimit(limit))
           .get();
       } catch(error) {
         deps.warn?.('Firestore ranking ordered query failed. Falling back to limited category query.', { categoryKey, error });
@@ -167,7 +183,8 @@
     snapshots.forEach(snapshot => {
       getDocs(snapshot).map(normalizeRecord).filter(record => {
         const mode = String(record.rankingMode || '').trim();
-        return !mode || mode === 'normal' || mode === 'speed' || mode === 'onechance' || mode === 'legacy' || mode === 'nohint';
+        return isPublicRankingRowVisible(record)
+          && (!mode || mode === 'normal' || mode === 'speed' || mode === 'onechance' || mode === 'legacy' || mode === 'nohint');
       }).forEach(record => {
         byRecordId.set(record.recordId, record);
       });
@@ -183,12 +200,12 @@
       async loadQuizKingSummaries(limit = 10) {
         const snapshot = await db.collection('quizKingSummary')
           .orderBy('totalScore', 'desc')
-          .limit(limit)
+          .limit(getPublicRankingQueryLimit(limit))
           .get();
         return getDocs(snapshot).map(doc => ({
           memberUserId: doc.id,
           ...(doc.data?.() || {})
-        }));
+        })).filter(isPublicRankingRowVisible);
       },
 
       loadLimitedRankingRecordsForPlaza() {
@@ -221,7 +238,8 @@
     createRankingRepository,
     loadLimitedRankingRecordsForPlazaForDb,
     loadMemberProfilesForRankingRowsForDb,
-    loadProfileRankingRankContextForDb
+    loadProfileRankingRankContextForDb,
+    isPublicRankingRowVisible
   };
 
   root.DJ48RankingRepository = api;

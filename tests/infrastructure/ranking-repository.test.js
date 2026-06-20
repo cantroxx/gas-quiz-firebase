@@ -62,8 +62,14 @@ function makeDb(collections, documents = {}) {
 
 async function testRepositoryReadsRankingCollections() {
   const db = makeDb({
-    quizKingSummary: [makeDoc('u1', { totalScore: 120 })],
-    rankingRecords: [makeDoc('r1', { memberUserId: 'u1', score: 90 })]
+    quizKingSummary: [
+      makeDoc('u1', { totalScore: 120 }),
+      makeDoc('G4-C8-N23', { totalScore: 999 })
+    ],
+    rankingRecords: [
+      makeDoc('r1', { memberUserId: 'u1', score: 90 }),
+      makeDoc('hidden-r1', { memberUserId: 'G4-C8-N23', score: 999 })
+    ]
   }, {
     'users/u1': {
       nickname: 'Student',
@@ -107,7 +113,10 @@ async function testRepositoryReadsRankingCollections() {
   const rankContext = await repository.loadProfileRankingRankContext(records);
 
   assert.deepEqual(summaries, [{ memberUserId: 'u1', totalScore: 120 }]);
-  assert.deepEqual(records, [{ recordId: 'r1', memberUserId: 'u1', score: 90 }]);
+  assert.deepEqual(records, [
+    { recordId: 'r1', memberUserId: 'u1', score: 90 },
+    { recordId: 'hidden-r1', memberUserId: 'G4-C8-N23', score: 999 }
+  ]);
   assert.deepEqual(plazaRecords, [{ recordId: 'r1', memberUserId: 'u1', score: 90 }]);
   assert.deepEqual(profileMap.u1.nickname, 'Student');
   assert.deepEqual(profileMap.u1.selectedTitleName, 'Quiz Master');
@@ -115,7 +124,7 @@ async function testRepositoryReadsRankingCollections() {
   assert.deepEqual(profileMap.u1.profileImageUrl, 'https://cdn.test/profiles/u1.png');
   assert.deepEqual(storageCalls, ['profiles/u1.png']);
   assert.equal(rankContextDb, db);
-  assert.deepEqual(rankContext, { count: 1 });
+  assert.deepEqual(rankContext, { count: 2 });
   assert.ok(db.calls.some(call => call[0] === 'collection' && call[1] === 'quizKingSummary'));
   assert.ok(db.calls.some(call => call[0] === 'where' && call[1] === 'memberUserId'));
   assert.ok(db.calls.some(call => call[0] === 'docGet' && call[1] === 'users/u1'));
@@ -124,6 +133,7 @@ async function testRepositoryReadsRankingCollections() {
 async function testRepositoryBuildsProfileRankContext() {
   const db = makeDb({
     rankingRecords: [
+      makeDoc('hidden-r0', { memberUserId: 'G4-C8-N23', categoryKey: 'math', score: 999, elapsedSeconds: 1 }),
       makeDoc('r1', { memberUserId: 'u1', categoryKey: 'math', score: 90, elapsedSeconds: 20 }),
       makeDoc('r2', { memberUserId: 'u2', categoryKey: 'math', score: 80, elapsedSeconds: 10 })
     ]

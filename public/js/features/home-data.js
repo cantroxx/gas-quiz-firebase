@@ -4,6 +4,7 @@
       korean: '📚',
       social: '🏛️',
       math: '➗',
+      science: '🔬',
       people: '🖼️',
       daily: '✅',
       pokemon: '⭐'

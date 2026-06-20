@@ -113,7 +113,8 @@
     subject.quizzes.forEach(quizId => {
       const quiz = quizCatalog[quizId];
       if(!quiz || !deps.isQuizEnabledByFlags?.(quizId)) return;
-      const isPlayable = quiz.enabled !== false && deps.firebasePlayableQuizIds?.has(deps.normalizeFirebaseQuizId?.(quizId));
+      const isHub = Array.isArray(quiz.modes) && quiz.modes.includes('readingHub');
+      const isPlayable = quiz.enabled !== false && (isHub || deps.firebasePlayableQuizIds?.has(deps.normalizeFirebaseQuizId?.(quizId)));
       const item = document.createElement('article');
       const icon = document.createElement('span');
       const title = document.createElement('h3');
@@ -177,6 +178,10 @@
       renderPokemonHubCards(grid, deps);
       return;
     }
+    if(deps.normalizeFirebaseQuizId?.(lastQuizId) === 'reading') {
+      renderReadingHubCards(grid, deps);
+      return;
+    }
     const flags = deps.featureFlags || deps.defaultFeatureFlags || {};
     if(!deps.isQuizEnabledByFlags?.(lastQuizId, flags)) {
       const disabled = document.createElement('p');
@@ -236,6 +241,40 @@
       } else {
         item.appendChild(button);
       }
+      grid.appendChild(item);
+    });
+  }
+
+  function renderReadingHubCards(grid, deps = {}) {
+    const quizCatalog = deps.quizCatalog || {};
+    const flags = deps.featureFlags || deps.defaultFeatureFlags || {};
+    ['gmo', 'time_store'].forEach(quizId => {
+      const quiz = quizCatalog[quizId];
+      if(!quiz) return;
+      const enabled = deps.isQuizEnabledByFlags?.(quizId, flags) !== false;
+      const item = document.createElement('article');
+      const icon = document.createElement('span');
+      const title = document.createElement('h3');
+      const desc = document.createElement('p');
+      const button = document.createElement('button');
+
+      item.className = 'quiz-mode-card';
+      if(enabled) {
+        item.dataset.quizId = quizId;
+        item.tabIndex = 0;
+        item.setAttribute('role', 'button');
+      }
+      icon.className = 'quiz-mode-icon';
+      icon.textContent = quiz.icon || '📖';
+      title.textContent = quiz.title;
+      desc.textContent = quiz.desc || '';
+      button.className = enabled ? 'quiz-mode-ready-button' : 'quiz-mode-disabled-button';
+      button.type = 'button';
+      button.disabled = !enabled;
+      button.textContent = enabled ? '입장하기' : '준비 중';
+      button.dataset.quizId = quizId;
+
+      item.append(icon, title, desc, button);
       grid.appendChild(item);
     });
   }

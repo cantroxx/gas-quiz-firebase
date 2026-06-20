@@ -211,7 +211,7 @@
   }
 
   function isEducationUnlockQuiz(quizId, deps = {}) {
-    return ['korean', 'social', 'math'].includes(getQuizCatalogEntry(quizId, deps).subjectId);
+    return ['korean', 'social', 'math', 'science'].includes(getQuizCatalogEntry(quizId, deps).subjectId);
   }
 
   function buildDailyUsageRecordId(memberUserId, dateKey = getKstDateKey()) {

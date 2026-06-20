@@ -31,6 +31,11 @@
     });
 
     document.getElementById('quiz-mode-grid')?.addEventListener('click', event => {
+      const quizCard = event.target.closest('[data-quiz-id]:not([data-mode-id])');
+      if(quizCard) {
+        deps.showQuizSelectView?.(quizCard.dataset.quizId);
+        return;
+      }
       const card = event.target.closest('[data-mode-id]');
       const modeId = card?.dataset.modeId;
       const quizId = card?.dataset.quizId || deps.getLastQuizId?.();

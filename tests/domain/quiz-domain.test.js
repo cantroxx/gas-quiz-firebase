@@ -93,7 +93,7 @@ function testPopularQuizPolicy() {
   };
   assert.equal(isPopularQuiz('dad-joke', { quizCatalog }), true);
   assert.equal(isEducationUnlockQuiz('spelling', { quizCatalog }), true);
-  assert.equal(isEducationUnlockQuiz('gmo', { quizCatalog }), false);
+  assert.equal(isEducationUnlockQuiz('gmo', { quizCatalog }), true);
 }
 
 function testDailyUsagePolicy() {

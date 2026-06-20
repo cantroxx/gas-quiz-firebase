@@ -31,10 +31,12 @@ const QUIZ_XP_QUESTION_BLOCK = 5;
 const QUIZ_XP_PER_BLOCK = 3;
 const QUIZ_DAILY_XP_LIMIT = 45;
 const RANKING_COMPLETE_XP = 5;
+const HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
 const db = getFirestore();
 
 const DEFAULT_FEATURE_FLAGS = {
   practiceRewardEnabled: true,
+  practiceXpEnabled: true,
   shopEnabled: true,
   externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
@@ -205,6 +207,7 @@ function publicFeatureFlags(data = {}) {
     : [];
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
+    practiceXpEnabled: data.practiceXpEnabled !== false,
     shopEnabled: data.shopEnabled !== false,
     externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
@@ -909,11 +912,12 @@ function getPracticeQuestKindsForQuiz(quizId) {
   const id = String(quizId || "").trim();
   const kinds = new Set();
   if (id === "spelling") kinds.add("spellingCorrect");
-  if (id === "random-basic") kinds.add("mathCorrect");
-  if (id === "word-relation") kinds.add("vocabCorrect");
+  if (id === "random-basic" || id === "fraction-basic") kinds.add("mathCorrect");
+  if (["word-relation", "proverb", "spacing", "idiom"].includes(id)) kinds.add("vocabCorrect");
   if (id === "gmo" || id === "time_store") kinds.add("readingCorrect");
-  if (id === "samgukji" || id === "ancient-history") kinds.add("socialCorrect");
-  if (["spelling", "word-relation", "gmo", "time_store", "random-basic", "samgukji", "ancient-history"].includes(id)) {
+  if (id === "samgukji" || id === "ancient-history" || id === "regional-specialties" || id === "unified-silla-balhae") kinds.add("socialCorrect");
+  if (id === "science-grade4") kinds.add("scienceCorrect");
+  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "science-grade4"].includes(id)) {
     kinds.add("studyCorrect");
   }
   return kinds;
@@ -1222,6 +1226,10 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
       color: String(profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
     }
   };
+}
+
+function isClassroomStudentCardVisible(memberUserId) {
+  return !HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS.has(String(memberUserId || "").trim());
 }
 
 function getKstDateKey(date = new Date()) {
@@ -4294,6 +4302,7 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
       return data.role === "student"
         && data.status === "active"
         && data.active === true
+        && isClassroomStudentCardVisible(doc.id)
         && String(data.grade || "") === String(settings.grade || "")
         && String(data.classNumber || "") === String(settings.classNumber || "");
     })
@@ -5729,6 +5738,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
     const practiceCoinEnabled = flags.practiceRewardEnabled !== false;
+    const practiceXpEnabled = flags.practiceXpEnabled !== false;
     await assertLinkedMemberAuth(transaction, memberUserId, authUid);
 
     const recordRef = db.collection("practiceRecords").doc(recordId);
@@ -5770,6 +5780,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
         xpDelta: 0,
         coinCapped: false,
         practiceCoinEnabled,
+        practiceXpEnabled,
         economyPath: economyRef.path,
         rewardLogPath: logRef.path
       };
@@ -5778,7 +5789,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     const summarySnapshot = await transaction.get(db.collection("userLevelSummary").doc(memberUserId));
     const previousQuizCorrectCount = Math.max(0, Math.round(Number(summarySnapshot.exists ? summarySnapshot.data()?.quizCorrectRewardCount : 0) || 0));
     const nextQuizCorrectCount = previousQuizCorrectCount + 1;
-    const quizXpDelta = nextQuizCorrectCount % QUIZ_XP_QUESTION_BLOCK === 0 ? QUIZ_XP_PER_BLOCK : 0;
+    const quizXpDelta = practiceXpEnabled && nextQuizCorrectCount % QUIZ_XP_QUESTION_BLOCK === 0 ? QUIZ_XP_PER_BLOCK : 0;
     const weekKey = getKstWeekKey();
     const usedCoinToday = Math.max(0, Math.round(Number(coinCapSnapshot.exists ? coinCapSnapshot.data()?.usedCoin : 0) || 0));
     const remainingCoinToday = Math.max(0, PRACTICE_DAILY_COIN_LIMIT - usedCoinToday);
@@ -5852,6 +5863,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       xpDelta: levelXp.xpDelta || 0,
       coinCapped,
       practiceCoinEnabled,
+      practiceXpEnabled,
       dailyCoinLimit: PRACTICE_DAILY_COIN_LIMIT,
       usedCoinBefore: usedCoinToday,
       source: "firebase_function",
@@ -5865,6 +5877,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       levelXp,
       coinCapped,
       practiceCoinEnabled,
+      practiceXpEnabled,
       dailyCoinLimit: PRACTICE_DAILY_COIN_LIMIT,
       usedCoinToday: usedCoinToday + rewardCoin,
       economyPath: economyRef.path,
@@ -5969,11 +5982,18 @@ function practiceTitleBadgeId(title = {}) {
   if (/^pokemon_gen[1-9]_/.test(id)) return id.replace(/_trainer$/, "");
   if (id.startsWith("spelling_")) return "daily_맞춤법";
   if (id.startsWith("word_relation_")) return "korean_word_relation";
+  if (id.startsWith("korean_proverb_")) return "korean_proverb";
+  if (id.startsWith("korean_spacing_")) return "korean_spacing";
+  if (id.startsWith("korean_idiom_")) return "korean_idiom";
   if (id === "reading_gmo_complete") return "korean_gmo";
   if (id.startsWith("math_muldiv_")) return "math_random_basic";
+  if (id.startsWith("math_fraction_basic_")) return "math_분수";
   if (id.startsWith("people_") || id === "history_god") return "people_역사인물";
   if (id.startsWith("three_kingdoms_")) return "social_three_kingdoms";
   if (id.startsWith("ancient_three_kingdoms_")) return "social_ancient_three_kingdoms";
+  if (id.startsWith("social_regional_specialties_")) return "social_regional_specialties";
+  if (id.startsWith("social_unified_silla_balhae_")) return "social_unified_silla_balhae";
+  if (id.startsWith("science_grade4_")) return "science_science_grade4";
   if (id.startsWith("idol_")) return "people_아이돌";
   if (id.startsWith("anime_")) return "people_애니";
   if (id.startsWith("dad_joke_") || id === "ten_million_youtuber") return "daily_아재개그";

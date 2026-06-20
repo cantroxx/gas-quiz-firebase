@@ -1005,6 +1005,13 @@
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
+              <input id="admin-feature-practice-xp" type="checkbox">
+              <span>
+                <strong>연습전 경험치 지급</strong>
+                <small>끄면 연습전 정답 경험치가 쌓이지 않습니다.</small>
+              </span>
+            </label>
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-shop" type="checkbox">
               <span>
                 <strong>상점 열기</strong>
@@ -1647,6 +1654,7 @@
     const SERVER_FRESHNESS_SIGNATURE_KEY = 'dj48ServerFreshnessSignature';
     const DEFAULT_FEATURE_FLAGS = {
       practiceRewardEnabled: true,
+      practiceXpEnabled: true,
       shopEnabled: true,
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
@@ -1788,10 +1796,15 @@
       'random-basic',
       'spelling',
       'word-relation',
+      'spacing',
+      'proverb',
+      'idiom',
       'gmo',
       'time_store',
+      'fraction-basic',
       'samgukji',
       'ancient-history',
+      'unified-silla-balhae',
       'history-people',
       'idol',
       'anime',
@@ -3325,8 +3338,8 @@
 
     function getSupportedRankingModeIdsForKeys(keys = []) {
       const safeKeys = (keys || []).map(key => String(key || '').trim()).filter(Boolean);
-      const speedDisabledKeys = new Set(['독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈']);
-      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈']);
+      const speedDisabledKeys = new Set(['독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '수학분수', '수학분수-기초']);
+      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '국어속담', '수학분수', '수학분수-기초']);
       const modes = ['all', 'normal', 'onechance'];
       if(safeKeys.some(key => !speedDisabledKeys.has(key))) modes.push('speed');
       if(safeKeys.some(key => !noHintDisabledKeys.has(key))) modes.push('nohint');
@@ -3508,9 +3521,9 @@
     async function loadRankingPlazaCardsFromFirestore() {
       return window.DJ48RankingUsecases.loadRankingPlazaData({
         rowLimit: RANKING_PLAZA_ROW_LIMIT,
-        koreanCategoryKeys: ['맞춤법', '단어다의어-동형이의어', '독서지엠오-아이', '독서시간가게'],
-        socialCategoryKeys: ['사회삼국지', '사회고대사-삼국시대'],
-        mathCategoryKeys: ['수학곱셈과-나눗셈'],
+        koreanCategoryKeys: ['맞춤법', '단어다의어-동형이의어', '국어띄어쓰기', '국어속담', '국어사자성어', '독서지엠오-아이', '독서시간가게'],
+        socialCategoryKeys: ['사회삼국지', '사회고대사-삼국시대', '사회통일신라-발해'],
+        mathCategoryKeys: ['수학곱셈과-나눗셈', '수학분수', '수학분수-기초'],
         popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]
       }, {
         getRankingRepository: createRankingRepository,
@@ -3544,6 +3557,7 @@
         : [];
       return {
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
+        practiceXpEnabled: data.practiceXpEnabled !== false,
         shopEnabled: data.shopEnabled !== false,
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
@@ -3577,10 +3591,14 @@
       const categoryHints = {
         spelling: ['맞춤법'],
         'word-relation': ['단어', '다의어', '동형이의어'],
+        spacing: ['띄어쓰기'],
+        proverb: ['속담'],
+        idiom: ['사자성어'],
         gmo: ['gmo', '지엠오', '지앰오'],
         time_store: ['time-store', 'time_store', '시간가게'],
         samgukji: ['삼국지', 'three-kingdoms'],
         'ancient-history': ['고대사', 'ancient-three-kingdoms'],
+        'unified-silla-balhae': ['통일신라', '발해', 'unified-silla-balhae'],
         'history-people': ['역사 인물', '역사인물'],
         idol: ['아이돌'],
         anime: ['애니'],
@@ -3612,11 +3630,17 @@
         '일상/맞춤법': 'spelling',
         '일상/아재개그': 'dad-joke',
         '국어/word-relation': 'word-relation',
+        '국어/spacing': 'spacing',
+        '국어/proverb': 'proverb',
+        '국어/idiom': 'idiom',
         '국어/gmo': 'gmo',
         '국어/독서:시간가게': 'time_store',
         '수학/random-basic': 'random-basic',
+        '수학/fraction-basic': 'fraction-basic',
         '사회/three-kingdoms': 'samgukji',
         '사회/ancient-three-kingdoms': 'ancient-history',
+        '사회/unified-silla-balhae': 'unified-silla-balhae',
+        '사회/regional-specialties': 'regional-specialties',
         '인물/역사인물': 'history-people',
         '인물/아이돌': 'idol',
         '인물/애니': 'anime',
@@ -3734,10 +3758,18 @@
       const limitedToNormalAndOneChance = new Set([
         'random-basic',
         'gmo',
-        'time_store'
+        'time_store',
+        'spacing',
+        'fraction-basic'
       ]);
       if(limitedToNormalAndOneChance.has(id)) {
         return base.filter(item => item.value === 'normal' || item.value === 'onechance');
+      }
+      const noHintDisabled = new Set([
+        'proverb'
+      ]);
+      if(noHintDisabled.has(id)) {
+        return base.filter(item => item.value !== 'nohint');
       }
       return base;
     }

@@ -272,6 +272,7 @@
       korean: '국어',
       social: '사회',
       math: '수학',
+      science: '과학',
       people: '인기·인물',
       pokemon: '포켓몬',
       other: '기타'

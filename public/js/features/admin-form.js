@@ -187,6 +187,7 @@
     const renderAdminQuizToggleGrid = deps.renderAdminQuizToggleGrid || (() => {});
     const data = normalizeFeatureFlags(flags);
     document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
+    document.getElementById('admin-feature-practice-xp').checked = data.practiceXpEnabled;
     document.getElementById('admin-feature-shop').checked = data.shopEnabled;
     document.getElementById('admin-feature-external-quizzes').checked = data.externalQuizzesEnabled;
     document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
@@ -203,6 +204,7 @@
       .filter(Boolean);
     return normalizeFeatureFlags({
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
+      practiceXpEnabled: document.getElementById('admin-feature-practice-xp')?.checked === true,
       shopEnabled: document.getElementById('admin-feature-shop')?.checked === true,
       externalQuizzesEnabled: document.getElementById('admin-feature-external-quizzes')?.checked === true,
       eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,

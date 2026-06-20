@@ -5709,6 +5709,29 @@ h2 {
   min-width: 0;
 }
 
+.inline-fraction {
+  display: inline-grid;
+  grid-template-rows: auto auto;
+  min-width: 1.25em;
+  margin: 0 0.12em;
+  vertical-align: -0.28em;
+  color: #244735;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
+.inline-fraction-numerator {
+  display: block;
+  padding: 0 0.12em 0.08em;
+  border-bottom: 2px solid currentColor;
+}
+
+.inline-fraction-denominator {
+  display: block;
+  padding: 0.08em 0.12em 0;
+}
+
 .quiz-hint-button {
   position: relative;
   flex: 0 0 auto;

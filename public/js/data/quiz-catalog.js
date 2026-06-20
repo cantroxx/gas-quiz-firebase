@@ -35,7 +35,7 @@
       desc: '맞춤법, 낱말, 독서 퀴즈를 과목관에서 선택합니다.',
       board: '낱말과 문장을 탐험해요',
       cardDesc: '맞춤법, 독서, 속담, 사자성어 문제를 고르는 화면입니다.',
-      quizzes: ['spelling', 'word-relation', 'gmo', 'time_store', 'proverb', 'idiom'],
+      quizzes: ['spelling', 'word-relation', 'spacing', 'reading', 'proverb', 'idiom'],
       enabled: true
     },
     social: {
@@ -46,7 +46,7 @@
       desc: '역사와 사회 퀴즈를 골라 연습전과 랭킹전에 도전합니다.',
       board: '역사와 사회를 살펴봐요',
       cardDesc: '삼국시대, 역사 인물, 문화유산, 사회 개념 퀴즈를 고르는 화면입니다.',
-      quizzes: ['samgukji', 'ancient-history', 'history-people', 'cultural_heritage', 'social_concepts'],
+      quizzes: ['samgukji', 'ancient-history', 'history-people', 'unified-silla-balhae', 'cultural_heritage', 'social_concepts'],
       enabled: true
     },
     popular: {
@@ -68,7 +68,7 @@
       desc: '곱셈과 나눗셈을 차근차근 풀며 계산 감각을 키웁니다.',
       board: '차근차근 계산해요',
       cardDesc: '곱셈과 나눗셈, 계산 연습 퀴즈를 고르는 화면입니다.',
-      quizzes: ['random-basic', 'calculation_practice'],
+      quizzes: ['random-basic', 'fraction-basic', 'calculation_practice'],
       enabled: true
     }
   };
@@ -106,6 +106,15 @@
       subjectId: 'korean',
       modes: ['practice', 'ranking', 'oneChance', 'records']
     },
+    spacing: {
+      title: '띄어쓰기 퀴즈',
+      kicker: 'Korean Hall',
+      icon: '⌨️',
+      desc: '헷갈리기 쉬운 띄어쓰기를 직접 입력하며 확인합니다.',
+      summary: '붙어 있는 표현을 바르게 띄어 쓰며 문장 감각을 기릅니다.',
+      subjectId: 'korean',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
     gmo: {
       title: '지엠오 아이 퀴즈',
       kicker: 'Korean Hall',
@@ -114,17 +123,16 @@
       summary: '작품 내용을 바탕으로 한 4지선다 문제에 도전합니다.',
       subjectId: 'korean',
       parentQuizId: 'reading',
-      groupLabel: '독서 하위',
       modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     reading: {
       title: '독서 퀴즈',
       kicker: 'Korean Hall',
       icon: '📖',
-      desc: '작품의 내용과 인물을 떠올리는 독서 퀴즈입니다.',
-      summary: '독서 하위 퀴즈와 같은 문제 풀이 엔진을 사용합니다.',
+      desc: '작품별 독서 퀴즈를 모아 둔 국어 영역입니다.',
+      summary: '읽은 책을 고른 뒤 연습전과 랭킹전에 도전합니다.',
       subjectId: 'korean',
-      modes: ['practice', 'ranking', 'oneChance', 'records']
+      modes: ['readingHub']
     },
     time_store: {
       title: '시간가게 퀴즈',
@@ -134,7 +142,6 @@
       summary: '독서 하위의 작품별 퀴즈로 표시하되, 선택 화면과 문제 풀이 엔진은 그대로 재사용합니다.',
       subjectId: 'korean',
       parentQuizId: 'reading',
-      groupLabel: '독서 하위',
       modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     proverb: {
@@ -142,20 +149,18 @@
       kicker: 'Korean Hall',
       icon: '💬',
       desc: '속담의 뜻과 쓰임을 맞히는 퀴즈입니다.',
-      summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
+      summary: '속담의 뜻과 알맞은 상황을 4지선다로 확인합니다.',
       subjectId: 'korean',
-      modes: ['records'],
-      enabled: false
+      modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     idiom: {
       title: '사자성어 퀴즈',
       kicker: 'Korean Hall',
-      icon: '🐉',
+      icon: '🖌️',
       desc: '사자성어의 뜻과 쓰임을 확인하는 퀴즈입니다.',
-      summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
+      summary: '사자성어와 뜻을 연결하며 어휘력을 넓힙니다.',
       subjectId: 'korean',
-      modes: ['records'],
-      enabled: false
+      modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     samgukji: {
       title: '삼국지 퀴즈',
@@ -393,6 +398,15 @@
       modes: ['records'],
       enabled: false
     },
+    'unified-silla-balhae': {
+      title: '통일신라~발해 역사 퀴즈',
+      kicker: 'Social Studies Hall',
+      icon: '🏛️',
+      desc: '통일신라와 발해의 역사 흐름을 4지선다로 확인합니다.',
+      summary: '통일신라의 제도와 문화, 발해의 건국과 발전을 함께 복습합니다.',
+      subjectId: 'social',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
     multiplication_division: {
       title: '곱셈과 나눗셈 퀴즈',
       kicker: 'Math Hall',
@@ -410,6 +424,15 @@
       summary: '100문항 단위로 연습하고, 랭킹전에서는 하트를 지키며 도전합니다.',
       subjectId: 'math',
       modes: ['practice', 'ranking', 'oneChance']
+    },
+    'fraction-basic': {
+      title: '분수 퀴즈',
+      kicker: 'Math Hall',
+      icon: '½',
+      desc: '초등학교 4학년 수준의 분수 개념을 이야기 문제로 연습합니다.',
+      summary: '분자와 분모, 분수로 나타내기, 같은 크기의 분수를 4지선다로 확인합니다.',
+      subjectId: 'math',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     calculation_practice: {
       title: '계산 연습 퀴즈',
