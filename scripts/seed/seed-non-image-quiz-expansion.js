@@ -442,33 +442,33 @@ const QUIZ_DEFINITIONS = [
 ];
 
 const TITLE_BASES = [
-  ['korean_proverb', '속담 탐험가', 'korean'],
-  ['korean_spacing', '띄어쓰기 지킴이', 'korean'],
-  ['korean_idiom', '사자성어 수집가', 'korean'],
-  ['math_fraction_basic', '분수 달인', 'math'],
-  ['social_unified_silla_balhae', '남북국 역사 탐험가', 'social']
+  ['korean_proverb', '속담', 'korean', 'title-theme-spelling', ['속담 탐험가', '속담 박사', '속담 마스터']],
+  ['korean_spacing', '띄어쓰기', 'korean', 'title-theme-spelling', ['띄어쓰기 지킴이', '띄어쓰기 박사', '띄어쓰기 마스터']],
+  ['korean_idiom', '사자성어', 'korean', 'title-theme-spelling', ['사자성어 수집가', '사자성어 학자', '사자성어 마스터']],
+  ['math_fraction_basic', '분수', 'math', 'title-theme-school', ['분수 탐험가', '분수 박사', '분수 마스터']],
+  ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']]
 ];
 
 function buildTitleCatalog() {
   const tiers = [
-    [1, 'starter', '첫 별을 획득'],
-    [3, 'adept', '별 3개 획득'],
-    [5, 'master', '별 5개 획득']
+    [1, 'title-tier-1', '', '1회 완주'],
+    [3, 'title-tier-3', 'title-effect-marquee', '3회 완주'],
+    [5, 'title-tier-5', 'title-effect-neon', '5회 완주']
   ];
-  return TITLE_BASES.flatMap(([prefix, label, subjectGroup], baseIndex) => tiers.map(([stars, tierClass, condition], tierIndex) => ({
+  return TITLE_BASES.flatMap(([prefix, label, subjectGroup, themeClass, names], baseIndex) => tiers.map(([stars, tierClass, effectClass, condition], tierIndex) => ({
     titleId: `${prefix}_${stars}`,
-    titleName: `${label} ${stars}`,
+    titleName: names[tierIndex],
     category: '연습',
     theme: label,
-    themeClass: subjectGroup,
+    themeClass,
     tier: tierIndex + 1,
     tierClass,
-    effectClass: stars >= 5 ? 'glow' : '',
+    effectClass,
     source: SEED_SOURCE,
     sourceType: 'practiceStars',
     subjectGroup,
     conditionText: `${label} ${condition}`,
-    description: `${label} 뱃지에서 별 ${stars}개를 모으면 획득합니다.`,
+    description: `${label} 연습 뱃지 ${condition} 시 획득합니다.`,
     requiredBadgeCount: stars,
     order: 700 + baseIndex * 10 + tierIndex,
     active: true,

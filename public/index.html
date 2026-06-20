@@ -2329,8 +2329,9 @@
     function getTitleCatalogGroupLabel(title) {
       const subjectGroup = String(title?.subjectGroup || '').toLowerCase();
       if(subjectGroup === 'korean' || subjectGroup === 'reading' || subjectGroup === 'spelling') return '국어';
-      if(subjectGroup === 'social' || subjectGroup === 'society' || subjectGroup === 'history') return '사회';
       if(subjectGroup === 'math') return '수학';
+      if(subjectGroup === 'social' || subjectGroup === 'society' || subjectGroup === 'history') return '사회';
+      if(subjectGroup === 'science') return '과학';
       if(subjectGroup === 'popular') {
         if(title?.category === '포켓몬') return '포켓몬';
         return '인기';
@@ -2340,7 +2341,7 @@
     }
 
     function getTitleCatalogGroupOrder(label) {
-      const order = ['일반', '국어', '사회', '수학', '인기', '포켓몬', '기타'];
+      const order = ['일반', '국어', '수학', '사회', '과학', '인기', '포켓몬', '기타'];
       const index = order.indexOf(label);
       return index === -1 ? order.length : index;
     }

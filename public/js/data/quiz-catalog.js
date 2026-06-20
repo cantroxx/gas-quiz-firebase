@@ -35,7 +35,7 @@
       desc: '맞춤법, 낱말, 독서 퀴즈를 과목관에서 선택합니다.',
       board: '낱말과 문장을 탐험해요',
       cardDesc: '맞춤법, 독서, 속담, 사자성어 문제를 고르는 화면입니다.',
-      quizzes: ['spelling', 'word-relation', 'spacing', 'reading', 'proverb', 'idiom'],
+      quizzes: ['reading', 'spelling', 'word-relation', 'spacing', 'proverb', 'idiom'],
       enabled: true
     },
     social: {
