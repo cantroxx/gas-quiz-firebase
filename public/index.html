@@ -587,7 +587,8 @@
         </section>
 
         <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
-          <button class="classroom-tab is-active" type="button" data-classroom-tab="quests" role="tab" aria-selected="true">퀘스트</button>
+          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">오늘</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="quests" role="tab" aria-selected="false">퀘스트</button>
           <button class="classroom-tab" type="button" data-classroom-tab="students" role="tab" aria-selected="false">학생카드</button>
           <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
           <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
@@ -595,7 +596,15 @@
           <button class="classroom-tab" type="button" data-classroom-tab="routines" role="tab" aria-selected="false">성장루틴</button>
         </div>
 
-        <section class="classroom-panel is-active" data-classroom-panel="quests" aria-labelledby="classroom-quest-heading">
+        <section class="classroom-panel is-active" data-classroom-panel="today" aria-labelledby="classroom-today-heading">
+          <div class="event-section-heading">
+            <p class="eyebrow">Today</p>
+            <h3 id="classroom-today-heading">오늘의 교실</h3>
+          </div>
+          <div id="classroom-today-grid" class="classroom-today-grid"></div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="quests" aria-labelledby="classroom-quest-heading">
           <div class="event-section-heading">
             <p class="eyebrow">Classroom Quests</p>
             <h3 id="classroom-quest-heading">교실 퀘스트</h3>

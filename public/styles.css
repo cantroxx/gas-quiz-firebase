@@ -4582,6 +4582,49 @@ h2 {
   display: block;
 }
 
+.classroom-today-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.classroom-today-card {
+  min-height: 132px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+}
+
+.classroom-today-card span,
+.classroom-today-card strong,
+.classroom-today-card p {
+  display: block;
+  margin: 0;
+}
+
+.classroom-today-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.classroom-today-card strong {
+  margin-top: 6px;
+  color: var(--green-dark);
+  font-size: 1.08rem;
+}
+
+.classroom-today-card p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .classroom-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5933,6 +5976,10 @@ h2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .classroom-today-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .classroom-review-grid {
     grid-template-columns: 1fr;
   }
@@ -6163,6 +6210,10 @@ h2 {
   }
 
   .classroom-teacher-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-today-grid {
     grid-template-columns: 1fr;
   }
 

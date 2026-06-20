@@ -139,6 +139,57 @@
     });
   }
 
+  function renderClassroomTodayHome(data = {}, deps = {}) {
+    const grid = document.getElementById('classroom-today-grid');
+    if(!grid) return;
+    const settings = data.settings || {};
+    const economyBoard = data.economyBoard || {};
+    const progressMap = data.progressMap || {};
+    const wallet = data.wallet || {};
+    const currentMemberUserId = deps.currentMemberUserId || '';
+    const quests = (settings.quests || []).filter(quest => quest.active !== false && quest.saveEnabled !== false);
+    const pendingQuests = quests.filter(quest => !progressMap[quest.id]);
+    const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
+    const todayRoutines = routines.filter(routine => (
+      routine.status !== 'completed'
+      && routine.checkedToday !== true
+      && routine.canCheckToday !== false
+    ));
+    const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
+    const myAssignment = economyBoard.myAssignment
+      || assignments.find(item => item.memberUserId === currentMemberUserId && item.status === 'active')
+      || null;
+    const gemProgress = Array.isArray(data.gemProgress) ? data.gemProgress : [];
+    const completedGems = gemProgress.filter(gem => gem.completed === true);
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const myStudentCard = studentCards.find(student => student.memberUserId === currentMemberUserId) || {};
+    const selectedBadgeLabel = myStudentCard.selectedBadge?.label || '';
+    const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
+    const berry = Number(wallet.berry || 0);
+    const affordableItems = shopItems.filter(item => berry >= Number(item.priceBerry || 0)).length;
+    const cards = [
+      ['내 베리', `${berry.toLocaleString('ko-KR')}개`, affordableItems ? `구매 가능한 상품 ${affordableItems}개` : '퀘스트와 루틴으로 베리를 모아 보세요'],
+      ['오늘 퀘스트', `${pendingQuests.length}개`, pendingQuests[0]?.title || (quests.length ? '오늘 가능한 퀘스트를 모두 처리했습니다' : '담임이 퀘스트를 만들면 표시됩니다')],
+      ['성장루틴', `${todayRoutines.length}개`, todayRoutines[0]?.title || (routines.length ? '오늘 체크할 루틴이 없습니다' : '나만의 반복 목표를 만들어 보세요')],
+      ['내 직업', myAssignment?.jobTitle || myAssignment?.jobId || '미배정', myAssignment ? '맡은 역할을 꾸준히 수행해 보세요' : '직업 탭에서 지원할 수 있습니다'],
+      ['젬·뱃지', selectedBadgeLabel || `${completedGems.length}개 획득`, selectedBadgeLabel ? '대표 뱃지가 학생카드에 표시됩니다' : '젬 목표를 달성하면 대표 뱃지로 설정할 수 있습니다']
+    ];
+
+    grid.innerHTML = '';
+    cards.forEach(([label, value, detail]) => {
+      const card = document.createElement('article');
+      const labelEl = document.createElement('span');
+      const valueEl = document.createElement('strong');
+      const detailEl = document.createElement('p');
+      card.className = 'classroom-today-card';
+      labelEl.textContent = label;
+      valueEl.textContent = value;
+      detailEl.textContent = detail;
+      card.append(labelEl, valueEl, detailEl);
+      grid.appendChild(card);
+    });
+  }
+
   function renderClassroomQuestCards(settings = {}, progressMap = {}, deps = {}) {
     const grid = document.getElementById('classroom-quest-grid');
     if(!grid) return;
@@ -456,6 +507,7 @@
     const economyBoard = data.economyBoard || {};
     renderClassroomRoleState(settings, data.wallet || {}, deps);
     renderClassroomTeacherDashboard(data, deps);
+    renderClassroomTodayHome(data, deps);
     renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
     renderClassroomQuestCards(settings, data.progressMap || {}, deps);
     renderClassroomStudentCards(data.studentCards || [], deps);
@@ -474,6 +526,7 @@
     renderClassroomReviewPanel,
     renderClassroomRoleState,
     renderClassroomTeacherDashboard,
+    renderClassroomTodayHome,
     renderClassroomQuestCards,
     renderClassroomGemCards,
     renderClassroomStudentCards,
