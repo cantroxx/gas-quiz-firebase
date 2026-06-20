@@ -128,15 +128,15 @@
 
   async function loadClassroomReviewItems(options = {}, deps = {}) {
     const { settings = {}, canReview = false } = options;
-    const db = getClassroomDb(deps);
-    if(!canReview || !db) return [];
+    if(!canReview) return [];
+    const functions = getClassroomFunctions(deps);
+    if(!functions) return [];
     try {
-      const snapshot = await db.collection('classrooms')
-        .doc(settings.classId)
-        .collection('questProgress')
-        .where('rewardStatus', '==', 'pending_teacher_review')
-        .get();
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const callable = functions.httpsCallable('getClassroomReviewItems');
+      const response = await callable({
+        classId: settings.classId
+      });
+      return Array.isArray(response?.data?.reviewItems) ? response.data.reviewItems : [];
     } catch(error) {
       deps.warn?.('Classroom review items load failed.', error);
       return [];
@@ -335,7 +335,7 @@
       loadClassroomGemProgress: options => loadClassroomGemProgress(options, firestoreDeps),
       loadClassroomStudentCards: options => loadClassroomStudentCards(options, callableDeps),
       loadClassroomEconomyBoard: options => loadClassroomEconomyBoard(options, callableDeps),
-      loadClassroomReviewItems: options => loadClassroomReviewItems(options, firestoreDeps),
+      loadClassroomReviewItems: options => loadClassroomReviewItems(options, callableDeps),
       verifyClassroomEntryCode: options => verifyClassroomEntryCode(options, callableDeps),
       setClassroomSelectedBadge: options => setClassroomSelectedBadge(options, callableDeps),
       saveClassroomQuest: options => saveClassroomQuest(options, callableDeps),

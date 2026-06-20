@@ -99,6 +99,9 @@ const functions = {
         }
       };
     }
+    if(name === 'getClassroomReviewItems') {
+      return { data: { reviewItems: [{ id: 'review-1', rewardStatus: 'pending_teacher_review' }] } };
+    }
     return { data: { success: true } };
   }
 };
@@ -193,7 +196,7 @@ async function testClassroomRepositoryReadPaths() {
 
   assert(calls.some(call => call[0] === 'getClassroomStudentCards' && call[1].classId === 'c1'));
   assert(calls.some(call => call[0] === 'getClassroomEconomyBoard' && call[1].memberUserId === 'member-1'));
-  assert(calls.some(call => call[0] === 'where' && call[2] === 'rewardStatus' && call[4] === 'pending_teacher_review'));
+  assert(calls.some(call => call[0] === 'getClassroomReviewItems' && call[1].classId === 'c1'));
 }
 
 async function testClassroomRepositoryFallbacksAndDelegates() {

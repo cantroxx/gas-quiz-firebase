@@ -4223,6 +4223,41 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+
+  const settings = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    return classroomResult.settings;
+  });
+
+  const snapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("questProgress")
+    .where("rewardStatus", "==", "pending_teacher_review")
+    .limit(200)
+    .get();
+  const reviewItems = snapshot.docs
+    .map(doc => ({ id: doc.id, ...(doc.data() || {}) }))
+    .filter(item => item.classId === classId)
+    .sort((a, b) => {
+      const aCreated = Number(a.createdAt?._seconds || a.createdAt?.seconds || 0);
+      const bCreated = Number(b.createdAt?._seconds || b.createdAt?.seconds || 0);
+      return bCreated - aCreated || String(a.recordId || a.id).localeCompare(String(b.recordId || b.id), "ko");
+    });
+
+  return {
+    success: true,
+    classId,
+    className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
+    reviewItems
+  };
+});
+
 exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
