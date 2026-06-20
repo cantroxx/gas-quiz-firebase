@@ -48,6 +48,10 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith('social_regional_specialties_')) return 'social_regional_specialties';
   if (id.startsWith('social_unified_silla_balhae_')) return 'social_unified_silla_balhae';
   if (id.startsWith('science_grade4_')) return 'science_science_grade4';
+  if (id.startsWith('science_general_')) return 'science_science_general';
+  if (id.startsWith('popular_emoji_kpop_')) return 'popular_emoji_kpop';
+  if (id.startsWith('popular_emoji_anime_')) return 'popular_emoji_anime';
+  if (id.startsWith('popular_emoji_tiniping_')) return 'popular_emoji_tiniping';
   if (id.startsWith('idol_')) return 'people_아이돌';
   if (id.startsWith('anime_')) return 'people_애니';
   if (id.startsWith('dad_joke_') || id === 'ten_million_youtuber') return 'daily_아재개그';

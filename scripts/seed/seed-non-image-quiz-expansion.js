@@ -213,6 +213,208 @@ const UNIFIED_SILLA_BALHAE = [
   { answer: '고구려 계승 의식', type: 'concept', clue: '발해가 고구려의 역사와 문화를 이어받았다는 생각', hint: '발해의 건국 세력과 문화에서 확인할 수 있는 역사 인식입니다.' }
 ];
 
+const SCIENCE_GENERAL = [
+  ['얼음이 물로 변하는 현상은 무엇인가요?', '융해', ['융해', '응고', '증발', '응결'], '고체가 액체로 변하는 현상입니다.'],
+  ['물이 수증기로 변하는 현상은 무엇인가요?', '증발', ['증발', '응결', '응고', '침식'], '액체가 기체로 변하는 현상입니다.'],
+  ['수증기가 물방울로 변하는 현상은 무엇인가요?', '응결', ['응결', '증발', '퇴적', '자화'], '기체가 액체로 변하는 현상입니다.'],
+  ['물이 얼음으로 변하는 현상은 무엇인가요?', '응고', ['응고', '융해', '증발', '용해'], '액체가 고체로 변하는 현상입니다.'],
+  ['강물이 땅이나 바위를 깎는 작용은 무엇인가요?', '침식', ['침식', '퇴적', '응결', '반사'], '흐르는 물이 지표를 깎는 작용입니다.'],
+  ['흙이나 모래가 쌓이는 작용은 무엇인가요?', '퇴적', ['퇴적', '침식', '증발', '마찰'], '운반된 물질이 쌓이는 작용입니다.'],
+  ['자석에 잘 붙는 물질은 무엇인가요?', '철', ['철', '나무', '고무', '유리'], '철로 된 물체는 자석에 잘 붙습니다.'],
+  ['자석의 같은 극끼리는 어떻게 되나요?', '서로 밀어냅니다', ['서로 밀어냅니다', '반드시 붙습니다', '녹습니다', '빛을 냅니다'], '같은 극끼리는 밀어내고 다른 극끼리는 끌어당깁니다.'],
+  ['빛이 거울에 부딪혀 되돌아가는 현상은 무엇인가요?', '반사', ['반사', '증발', '응고', '퇴적'], '거울은 빛을 잘 반사합니다.'],
+  ['소리가 전달되려면 필요한 것은 무엇인가요?', '매질', ['매질', '햇빛', '자석', '전지'], '공기나 물처럼 소리를 전하는 물질이 필요합니다.'],
+  ['식물이 햇빛을 이용해 양분을 만드는 과정은 무엇인가요?', '광합성', ['광합성', '증발', '침식', '응결'], '식물은 빛을 이용해 양분을 만듭니다.'],
+  ['식물이 물을 주로 흡수하는 부분은 어디인가요?', '뿌리', ['뿌리', '꽃잎', '열매', '씨'], '뿌리는 물과 양분을 흡수합니다.'],
+  ['식물의 잎에서 주로 일어나는 작용은 무엇인가요?', '광합성', ['광합성', '퇴적', '자화', '응고'], '잎은 햇빛을 받아 양분을 만드는 데 중요합니다.'],
+  ['동물이 숨을 쉴 때 주로 필요한 기체는 무엇인가요?', '산소', ['산소', '수소', '질소만', '헬륨'], '사람과 동물은 산소를 이용해 숨을 쉽니다.'],
+  ['사람의 피를 온몸으로 보내는 기관은 무엇인가요?', '심장', ['심장', '위', '폐', '간'], '심장은 피를 온몸으로 보내는 펌프 역할을 합니다.'],
+  ['사람이 숨을 쉬는 데 중요한 기관은 무엇인가요?', '폐', ['폐', '위', '심장', '뼈'], '폐는 공기 중 산소를 받아들이는 데 중요합니다.'],
+  ['음식물을 잘게 부수기 시작하는 곳은 어디인가요?', '입', ['입', '심장', '폐', '손'], '소화는 입에서 씹는 과정부터 시작됩니다.'],
+  ['전구에 불이 켜지려면 전기 회로가 어떻게 되어야 하나요?', '끊어지지 않고 이어져야 합니다', ['끊어지지 않고 이어져야 합니다', '항상 끊어져야 합니다', '물속에 있어야 합니다', '종이로만 만들어야 합니다'], '전기가 흐르려면 회로가 닫혀 있어야 합니다.'],
+  ['전기가 잘 흐르는 물질을 무엇이라고 하나요?', '도체', ['도체', '절연체', '퇴적물', '침식물'], '금속처럼 전기가 잘 흐르는 물질입니다.'],
+  ['전기가 잘 흐르지 않는 물질을 무엇이라고 하나요?', '절연체', ['절연체', '도체', '자석', '화석'], '고무나 플라스틱은 전기가 잘 흐르지 않습니다.'],
+  ['지구가 하루에 한 바퀴 도는 운동은 무엇인가요?', '자전', ['자전', '공전', '증발', '반사'], '지구의 자전 때문에 낮과 밤이 생깁니다.'],
+  ['지구가 태양 주위를 도는 운동은 무엇인가요?', '공전', ['공전', '자전', '응고', '퇴적'], '지구의 공전은 계절 변화와 관련이 있습니다.'],
+  ['달의 모양이 날마다 달라 보이는 까닭과 가장 관련 있는 것은 무엇인가요?', '달이 지구 주위를 돌기 때문', ['달이 지구 주위를 돌기 때문', '달이 사라지기 때문', '달이 녹기 때문', '달이 소리를 내기 때문'], '달의 위치가 바뀌며 밝게 보이는 부분이 달라집니다.'],
+  ['비가 내린 뒤 하늘에 무지개가 보이는 것과 관련 있는 것은 무엇인가요?', '빛의 굴절과 반사', ['빛의 굴절과 반사', '자석의 힘', '전기의 흐름', '흙의 퇴적'], '물방울이 빛을 나누고 되돌려 보냅니다.'],
+  ['공기가 차가워지면 수증기가 물방울로 변해 생기는 것은 무엇인가요?', '이슬', ['이슬', '용암', '자석', '모래'], '밤이나 새벽에 풀잎에 맺히기도 합니다.'],
+  ['바람은 주로 무엇의 움직임인가요?', '공기', ['공기', '빛', '전기', '자석'], '움직이는 공기를 바람이라고 합니다.'],
+  ['온도를 재는 도구는 무엇인가요?', '온도계', ['온도계', '자', '나침반', '저울'], '온도계로 물체나 공기의 온도를 잽니다.'],
+  ['물체의 무게를 재는 데 쓰는 도구는 무엇인가요?', '저울', ['저울', '온도계', '거울', '나침반'], '저울은 무게를 재는 도구입니다.'],
+  ['방향을 찾을 때 쓰는 도구는 무엇인가요?', '나침반', ['나침반', '온도계', '저울', '돋보기'], '나침반의 바늘은 방향을 가리킵니다.'],
+  ['작은 물체를 크게 보기 위해 쓰는 도구는 무엇인가요?', '돋보기', ['돋보기', '저울', '전지', '나침반'], '돋보기는 물체를 확대해 보여 줍니다.'],
+  ['물에 소금을 넣으면 보이지 않게 섞이는 현상은 무엇인가요?', '용해', ['용해', '응고', '침식', '반사'], '어떤 물질이 액체에 녹는 현상입니다.'],
+  ['소금이 물에 녹아 만들어진 물은 무엇인가요?', '소금물', ['소금물', '얼음', '수증기', '자석'], '소금이 물에 녹은 용액입니다.'],
+  ['공기 중 물이 차가운 컵 겉면에 맺히는 현상은 무엇인가요?', '응결', ['응결', '융해', '침식', '자전'], '수증기가 차가워져 물방울이 됩니다.'],
+  ['화산 활동으로 생긴 암석 중 구멍이 많은 검은 암석은 무엇인가요?', '현무암', ['현무암', '화강암', '석회암', '자갈'], '현무암은 용암이 식어 만들어질 수 있습니다.'],
+  ['알갱이가 비교적 크고 밝은 색을 띠는 암석은 무엇인가요?', '화강암', ['화강암', '현무암', '석탄', '모래'], '화강암은 여러 광물 알갱이가 보입니다.'],
+  ['흙이 만들어지는 데 큰 영향을 주는 것은 무엇인가요?', '바위가 잘게 부서지는 과정', ['바위가 잘게 부서지는 과정', '전구가 켜지는 과정', '자석이 붙는 과정', '종이가 접히는 과정'], '오랜 시간 바위가 부서지고 생물의 흔적이 섞입니다.'],
+  ['물체가 빛을 가리면 생기는 어두운 부분은 무엇인가요?', '그림자', ['그림자', '이슬', '용액', '화석'], '빛이 곧게 나아가다 막히면 그림자가 생깁니다.'],
+  ['소리의 세기는 무엇과 관련 있나요?', '진동의 크기', ['진동의 크기', '물의 색', '자석의 모양', '흙의 양'], '크게 진동할수록 큰 소리가 납니다.'],
+  ['열은 보통 어느 쪽에서 어느 쪽으로 이동하나요?', '따뜻한 곳에서 차가운 곳으로', ['따뜻한 곳에서 차가운 곳으로', '차가운 곳에서만 멈춤', '항상 아래에서 위로만', '소리가 나는 쪽으로'], '열은 온도가 높은 곳에서 낮은 곳으로 이동합니다.'],
+  ['동물이 겨울을 나기 위해 긴 잠을 자는 것을 무엇이라고 하나요?', '겨울잠', ['겨울잠', '광합성', '응결', '자전'], '일부 동물은 겨울에 활동을 줄이고 잠을 잡니다.']
+];
+
+const EMOJI_KPOP = [
+  ['아파트', [], '🏢🍻👏🎉'],
+  ['홈 스위트 홈', [], '🏠🍯💛🎤'],
+  ['레블 하트', [], '🏴‍☠️❤️⚡'],
+  ['투 배드', [], '😬🚫💔'],
+  ['라이크 제니', [], '👑💃✨'],
+  ['골든', [], '🏆✨🌟'],
+  ['블루 발렌타인', [], '💙💌🌙'],
+  ['썬더', [], '🌩️⚡🥁'],
+  ['페이머스', [], '🌟📸🎤'],
+  ['굿 굿바이', [], '👋😊💧'],
+  ['슈퍼노바', [], '🌟💥🚀'],
+  ['마그네틱', [], '🧲❤️✨'],
+  ['하우 스위트', [], '🍯😊🎶'],
+  ['해야', [], '👋🌞💃'],
+  ['아마겟돈', [], '☄️🌍🔥'],
+  ['위플래시', [], '🚗💥⚡'],
+  ['클락션', [], '🚗📣💃'],
+  ['첫 만남은 계획대로 되지 않아', [], '1️⃣🤝📋❌'],
+  ['나는 아픈 건 딱 질색이니까', [], '🤒🚫🙅‍♀️'],
+  ['러브 윈즈 올', [], '❤️🏆🌍'],
+  ['밤양갱', [], '🌙🍡💜'],
+  ['소나기', [], '🌦️💧🎤'],
+  ['천상연', [], '☁️❤️🎶'],
+  ['스몰 걸', [], '👧🤏💗'],
+  ['내 이름 맑음', [], '🙋‍♀️📝☀️'],
+  ['슬로우 모션', [], '🐢🎥💫'],
+  ['스티키', [], '🍯🤝💃'],
+  ['마이다스 터치', [], '👑✋🥇'],
+  ['버추얼 엔젤', [], '💻👼✨'],
+  ['걸스 네버 다이', [], '👧♾️🖤'],
+  ['슈퍼내추럴', [], '👻✨🌙'],
+  ['버블검', [], '🫧🍬💗'],
+  ['스팟', [], '📍🎤🔥'],
+  ['오늘만 I LOVE YOU', [], '📅❤️💬'],
+  ['이지', [], '😌👌🎧'],
+  ['스마트', [], '🧠📱✨'],
+  ['크레이지', [], '🤪🔥🎶'],
+  ['핫', [], '🔥🌡️💃'],
+  ['컴 오버', [], '👉🏠✨'],
+  ['러브 랭귀지', [], '❤️💬🌍'],
+  ['프라이스리스', [], '💎🚫💰'],
+  ['메시', [], '🌀🧹💔'],
+  ['스트래티지', [], '♟️📋✨'],
+  ['두 더 댄스', [], '💃🕺🎵'],
+  ['돈 세이 유 러브 미', [], '🤫❤️🚫'],
+  ['스윔', [], '🏊‍♂️🌊✨'],
+  ['점프', [], '⬆️🦘💗'],
+  ['고', [], '🏃‍♀️💨🖤'],
+  ['셀러브레이션', [], '🎉🥳✨'],
+  ['아드레날린', [], '⚡💓🚀']
+];
+
+const EMOJI_ANIME = [
+  ['귀멸의 칼날', [], '🗡️👹🔥'],
+  ['원피스', [], '🏴‍☠️🌊👒'],
+  ['나루토', [], '🥷🍥🦊'],
+  ['포켓몬스터', [], '⚡🌲🔴'],
+  ['명탐정 코난', [], '🕵️‍♂️👓⚽'],
+  ['짱구는 못말려', [], '👦🖍️🏠'],
+  ['도라에몽', [], '🤖🐱🚪'],
+  ['하이큐', [], '🏐🦅🔥'],
+  ['슬램덩크', [], '🏀🔥⛹️'],
+  ['진격의 거인', [], '🧱🧍⚔️'],
+  ['스파이 패밀리', [], '🕵️‍♂️👨‍👩‍👧🥜'],
+  ['주술회전', [], '🧿🤞👻'],
+  ['너의 이름은', [], '🌠🔁🏙️'],
+  ['센과 치히로의 행방불명', [], '♨️👧🐉'],
+  ['이웃집 토토로', [], '🌳☂️🚌'],
+  ['마녀 배달부 키키', [], '🧹🐈‍⬛📦'],
+  ['날씨의 아이', [], '☔☀️👧'],
+  ['체인소 맨', [], '🪚👨‍🦱👿'],
+  ['드래곤볼', [], '🐉🔴💥'],
+  ['헌터x헌터', [], '🏹🃏🟢'],
+  ['은혼', [], '🍬⚔️👘'],
+  ['강철의 연금술사', [], '⚙️🦾🔮'],
+  ['데스노트', [], '📓💀✍️'],
+  ['원펀맨', [], '👊💥🦸‍♂️'],
+  ['나의 히어로 아카데미아', [], '🦸‍♂️🏫⚡'],
+  ['도쿄 구울', [], '🗼👹☕'],
+  ['소드 아트 온라인', [], '⚔️💻🌐'],
+  ['블랙 클로버', [], '🍀⚔️📖'],
+  ['닥터 스톤', [], '🧪🪨🌍'],
+  ['최애의 아이', [], '⭐🎤👶'],
+  ['장송의 프리렌', [], '🧝‍♀️⏳🪄'],
+  ['블루 록', [], '⚽🔵🔒'],
+  ['도쿄 리벤저스', [], '🗼⏪🏍️'],
+  ['괴수 8호', [], '🦖8️⃣🛡️'],
+  ['스즈메의 문단속', [], '🚪🗝️🪑'],
+  ['던전밥', [], '🍲🐉🗡️'],
+  ['나 혼자만 레벨업', [], '🧍‍♂️⬆️⚔️'],
+  ['약사의 혼잣말', [], '💊👧🔍'],
+  ['봇치 더 록', [], '🎸😳🎤'],
+  ['카드캡터 체리', [], '🃏🌸🪄'],
+  ['디지몬 어드벤처', [], '💻🐲🌈'],
+  ['유희왕', [], '🃏👑⚡'],
+  ['이누야샤', [], '🐕⚔️🌙'],
+  ['바이올렛 에버가든', [], '💌✍️🌸'],
+  ['4월은 너의 거짓말', [], '🎻🌸💧'],
+  ['케이온', [], '🎸🍰🎶'],
+  ['사이키 쿠스오의 재난', [], '🧠👓💥'],
+  ['암살교실', [], '🎯🏫🐙'],
+  ['모브 사이코 100', [], '🧠💯💥'],
+  ['리제로', [], '🔁💀🕰️']
+];
+
+const EMOJI_TINIPING = [
+  ['하츄핑', [], '💗💕👑'],
+  ['바로핑', [], '➡️✅⏰'],
+  ['아자핑', [], '💪📣🔥'],
+  ['차차핑', [], '🚗💃🎶'],
+  ['라라핑', [], '🎵🎤💜'],
+  ['해핑', [], '☀️😊✨'],
+  ['조아핑', [], '👍💗😊'],
+  ['방글핑', [], '😄🌼✨'],
+  ['믿어핑', [], '🤝💙🔒'],
+  ['까르핑', [], '😂🎭✨'],
+  ['아잉핑', [], '🥰👀💗'],
+  ['주르핑', [], '😢💧🌧️'],
+  ['부끄핑', [], '😳🙈💗'],
+  ['부투핑', [], '🥊🔥💪'],
+  ['깜빡핑', [], '💡😵‍💫❓'],
+  ['띠용핑', [], '😲💥❗'],
+  ['나르핑', [], '🪞👑✨'],
+  ['무셔핑', [], '😱👻🌙'],
+  ['투투핑', [], '2️⃣2️⃣💫'],
+  ['차나핑', [], '🍵😌🌿'],
+  ['따라핑', [], '👣🔁👀'],
+  ['쪼꼼핑', [], '🤏🐣💛'],
+  ['싹싹핑', [], '🧹✨😊'],
+  ['토닥핑', [], '🤲💗😌'],
+  ['원더핑', [], '✨❓🌈'],
+  ['솔찌핑', [], '💬✅🤍'],
+  ['발레핑', [], '🩰💃🌸'],
+  ['원더하트핑', [], '✨💗👑'],
+  ['꾸래핑', [], '🎨🖍️🌈'],
+  ['나나핑', [], '🍌💛🎶'],
+  ['솔솔핑', [], '🌬️🍃✨'],
+  ['행운핑', [], '🍀✨😊'],
+  ['하트로즈핑', [], '💗🌹👑'],
+  ['샤샤핑', [], '✨💃💎'],
+  ['포실핑', [], '☁️🐑💗'],
+  ['말랑핑', [], '🧸🍡💛'],
+  ['캔디핑', [], '🍬🍭💗'],
+  ['머핑', [], '🤔❓💭'],
+  ['커핑', [], '☕💗😊'],
+  ['머랭핑', [], '🍰☁️🍬'],
+  ['샌드핑', [], '🥪🏖️💛'],
+  ['또너핑', [], '🍩🔁💗'],
+  ['핫케핑', [], '🥞🔥🍯'],
+  ['마카핑', [], '🍪🌈💗'],
+  ['아라핑', [], '🌊🐚💙'],
+  ['다해핑', [], '✅💪🌟'],
+  ['루루핑', [], '🌙🎶💜'],
+  ['뿌뿌핑', [], '📯💨🎵'],
+  ['코자핑', [], '😴🌙💤'],
+  ['빙글핑', [], '🌀😵‍💫✨']
+];
+
 function buildTermQuestions(quizId, entries, subjectLabel, options = {}) {
   const questionCount = Number(options.questionCount) || DEFAULT_QUESTIONS_PER_QUIZ;
   const variantsPerEntry = Number(options.variantsPerEntry) || Math.ceil(questionCount / Math.max(1, entries.length));
@@ -412,6 +614,60 @@ function buildHistoryQuestions() {
   return questions.slice(0, 200);
 }
 
+function buildDirectSciencePrompt(prompt, variant) {
+  const text = String(prompt || '').trim();
+  const match = text.match(/^(.+?)(은|는) 무엇인가요\?$/);
+  if (match) {
+    const stem = match[1];
+    const object = objectParticle(stem);
+    const subject = subjectParticle(stem);
+    const variants = [
+      text,
+      `${stem}${object} 고르세요.`,
+      `${stem}${object} 무엇이라고 하나요?`,
+      `${stem}의 이름은 무엇인가요?`,
+      `${stem}${object} 나타내는 말은 무엇인가요?`
+    ];
+    return variants[variant % variants.length];
+  }
+  const variants = [
+    text,
+    text.replace(/\?$/, ' 알맞은 답을 고르세요.'),
+    text.replace(/\?$/, ' 가장 알맞은 것은 무엇인가요?'),
+    text.replace(/\?$/, ' 맞는 답은 무엇인가요?'),
+    text.replace(/\?$/, ' 답을 고르세요.')
+  ];
+  return variants[variant % variants.length];
+}
+
+function buildScienceGeneralQuestions() {
+  const questions = [];
+  const variantsPerEntry = Math.ceil(DEFAULT_QUESTIONS_PER_QUIZ / SCIENCE_GENERAL.length);
+  SCIENCE_GENERAL.forEach(([prompt, correct, choices]) => {
+    for (let variant = 0; variant < variantsPerEntry; variant += 1) {
+      const order = questions.length + 1;
+      questions.push(makeChoiceQuestion('science-general', order, buildDirectSciencePrompt(prompt, variant), correct, choices, '', ''));
+    }
+  });
+  return questions.slice(0, DEFAULT_QUESTIONS_PER_QUIZ);
+}
+
+function buildEmojiQuestions(quizId, entries, label) {
+  const answers = entries.map(([answer]) => answer);
+  return entries.slice(0, 50).map(([answer, aliases, emojis], index) => {
+    const order = index + 1;
+    return makeChoiceQuestion(
+      quizId,
+      order,
+      emojis,
+      answer,
+      answers,
+      '',
+      ''
+    );
+  });
+}
+
 function quizMeta(definition, questionCount = DEFAULT_QUESTIONS_PER_QUIZ) {
   const cycleQuestionCount = Number(definition.cycleQuestionCount) || questionCount;
   return {
@@ -438,7 +694,11 @@ const QUIZ_DEFINITIONS = [
   { quizId: 'spacing', title: '띄어쓰기 퀴즈', subject: '국어', subjectGroup: 'korean', order: 31, expectedQuestionCount: 200, cycleQuestionCount: 100, uiType: 'textInput', description: '올바른 띄어쓰기를 직접 입력합니다.', questions: buildSpacingQuestions },
   { quizId: 'idiom', title: '사자성어 퀴즈', subject: '국어', subjectGroup: 'korean', order: 32, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '사자성어의 뜻과 쓰임을 확인합니다.', questions: () => buildTermQuestions('idiom', IDIOMS, '사자성어', { getHint: term => IDIOM_HINTS[term] || '', includeExplanation: true }) },
   { quizId: 'fraction-basic', title: '분수 퀴즈', subject: '수학', subjectGroup: 'math', order: 40, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학교 4학년 수준의 분수 개념을 이야기 문제로 확인합니다.', questions: buildFractionQuestions },
-  { quizId: 'unified-silla-balhae', title: '통일신라~발해 역사 퀴즈', subject: '사회', subjectGroup: 'social', order: 50, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '통일신라와 발해의 주요 개념을 확인합니다.', questions: buildHistoryQuestions }
+  { quizId: 'unified-silla-balhae', title: '통일신라~발해 역사 퀴즈', subject: '사회', subjectGroup: 'social', order: 50, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '통일신라와 발해의 주요 개념을 확인합니다.', questions: buildHistoryQuestions },
+  { quizId: 'science-general', title: '과학 상식 퀴즈', subject: '과학', subjectGroup: 'science', order: 60, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학생이 알아두면 좋은 생활 과학 상식을 확인합니다.', questions: buildScienceGeneralQuestions },
+  { quizId: 'emoji-kpop', title: 'K-POP 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-kpop', EMOJI_KPOP, 'K-POP 노래') },
+  { quizId: 'emoji-anime', title: '애니 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 71, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-anime', EMOJI_ANIME, '애니') },
+  { quizId: 'emoji-tiniping', title: '티니핑 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 72, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 티니핑 이름을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-tiniping', EMOJI_TINIPING, '티니핑') }
 ];
 
 const TITLE_BASES = [
@@ -446,7 +706,11 @@ const TITLE_BASES = [
   ['korean_spacing', '띄어쓰기', 'korean', 'title-theme-spelling', ['띄어쓰기 지킴이', '띄어쓰기 박사', '띄어쓰기 마스터']],
   ['korean_idiom', '사자성어', 'korean', 'title-theme-spelling', ['사자성어 수집가', '사자성어 학자', '사자성어 마스터']],
   ['math_fraction_basic', '분수', 'math', 'title-theme-school', ['분수 탐험가', '분수 박사', '분수 마스터']],
-  ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']]
+  ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']],
+  ['science_general', '과학 상식', 'science', 'title-theme-school', ['과학 호기심 탐험가', '과학 상식 박사', '과학 상식 마스터']],
+  ['popular_emoji_kpop', 'K-POP 이모지', 'popular', 'title-theme-idol', ['K-POP 이모지 팬', 'K-POP 이모지 DJ', 'K-POP 이모지 마스터']],
+  ['popular_emoji_anime', '애니 이모지', 'popular', 'title-theme-anime', ['애니 이모지 팬', '애니 이모지 해석가', '애니 이모지 마스터']],
+  ['popular_emoji_tiniping', '티니핑 이모지', 'popular', 'title-theme-tiniping', ['티니핑 이모지 팬', '티니핑 이모지 요정', '티니핑 이모지 마스터']]
 ];
 
 function buildTitleCatalog() {
@@ -520,6 +784,7 @@ async function commitModel(model) {
   const db = initializeAdmin();
   const now = FieldValue.serverTimestamp();
   const writes = [];
+  const deletes = [];
   model.quizzes.forEach(quiz => {
     writes.push({
       ref: db.collection(QUIZZES_COLLECTION).doc(quiz.quizId),
@@ -532,6 +797,13 @@ async function commitModel(model) {
       });
     });
   });
+  for (const quiz of model.quizzes) {
+    const expectedIds = new Set((model.questionsByQuiz[quiz.quizId] || []).map(question => question.questionId));
+    const snapshot = await db.collection(QUIZ_QUESTIONS_ROOT).doc(quiz.quizId).collection('questions').get();
+    snapshot.docs.forEach(doc => {
+      if (!expectedIds.has(doc.id)) deletes.push(doc.ref);
+    });
+  }
   model.titles.forEach(title => {
     writes.push({
       ref: db.collection(TITLE_CATALOG_COLLECTION).doc(title.titleId),
@@ -540,15 +812,23 @@ async function commitModel(model) {
   });
 
   let committed = 0;
-  for (let index = 0; index < writes.length; index += 450) {
+  const operations = [
+    ...writes.map(write => ({ type: 'set', ...write })),
+    ...deletes.map(ref => ({ type: 'delete', ref }))
+  ];
+  for (let index = 0; index < operations.length; index += 450) {
     const batch = db.batch();
-    writes.slice(index, index + 450).forEach(write => {
-      batch.set(write.ref, write.data, { merge: true });
+    operations.slice(index, index + 450).forEach(operation => {
+      if (operation.type === 'delete') {
+        batch.delete(operation.ref);
+      } else {
+        batch.set(operation.ref, operation.data, { merge: true });
+      }
     });
     await batch.commit();
-    committed += Math.min(450, writes.length - index);
+    committed += Math.min(450, operations.length - index);
   }
-  console.log(`Committed ${committed} Firestore documents.`);
+  console.log(`Committed ${committed} Firestore operations (${writes.length} writes, ${deletes.length} deletes).`);
 }
 
 async function main() {

@@ -117,10 +117,14 @@
       { id: 'randomBasic', label: '곱셈과 나눗셈', keys: ['수학곱셈과-나눗셈'] },
       { id: 'fractionBasic', label: '분수', keys: ['수학분수', '수학분수-기초'] }
     ], deps);
+    const scienceDefinitions = getEnabledRankingGroupDefinitions([
+      { id: 'scienceGeneral', label: '과학 상식', keys: ['과학과학-상식'] }
+    ], deps);
     const koreanKeys = koreanDefinitions.flatMap(definition => definition.keys);
     const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
     const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
-    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', ...tinipingRankingCategoryKeys, ...pokemonRankingCategoryKeys], deps);
+    const scienceKeys = scienceDefinitions.flatMap(definition => definition.keys);
+    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...tinipingRankingCategoryKeys, ...pokemonRankingCategoryKeys], deps);
     const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
       ...koreanDefinitions
     ], groupDeps);
@@ -129,6 +133,9 @@
     ], groupDeps);
     const mathGroups = buildSubjectRankingGroups(rankingRecords, mathKeys, [
       ...mathDefinitions
+    ], groupDeps);
+    const scienceGroups = buildSubjectRankingGroups(rankingRecords, scienceKeys, [
+      ...scienceDefinitions
     ], groupDeps);
     return [
       {
@@ -171,10 +178,20 @@
         score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
       },
       {
+        id: 'science',
+        label: '과학',
+        title: '과학 랭킹',
+        desc: '과학 상식 퀴즈의 랭킹전 기록입니다.',
+        rows: getTopRankingRecordsByCategoryKeys(rankingRecords, scienceKeys),
+        groups: scienceGroups,
+        meta: row => getRankingCategoryLabel(row) || '과학',
+        score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+      },
+      {
         id: 'popular',
         label: '인기',
         title: '인기 퀴즈 랭킹',
-        desc: '아재개그, 아이돌, 애니, 포켓몬 퀴즈의 랭킹 기록입니다.',
+        desc: '아재개그, 아이돌, 애니, 이모지, 포켓몬 퀴즈의 랭킹 기록입니다.',
         rows: getTopRankingRecordsByCategoryKeys(rankingRecords, popularKeys),
         sourceRows: rankingRecords,
         meta: row => `[${getPopularAreaForRecord(row).label}] ${getPopularRankingDetailLabel(row)}`,

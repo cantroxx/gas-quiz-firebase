@@ -916,8 +916,9 @@ function getPracticeQuestKindsForQuiz(quizId) {
   if (["word-relation", "proverb", "spacing", "idiom"].includes(id)) kinds.add("vocabCorrect");
   if (id === "gmo" || id === "time_store") kinds.add("readingCorrect");
   if (id === "samgukji" || id === "ancient-history" || id === "regional-specialties" || id === "unified-silla-balhae") kinds.add("socialCorrect");
-  if (id === "science-grade4") kinds.add("scienceCorrect");
-  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "science-grade4"].includes(id)) {
+  if (id === "science-grade4" || id === "science-general") kinds.add("scienceCorrect");
+  if (id === "emoji-kpop" || id === "emoji-anime" || id === "emoji-tiniping") kinds.add("popularCorrect");
+  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "science-grade4", "science-general", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
     kinds.add("studyCorrect");
   }
   return kinds;
@@ -5994,6 +5995,10 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith("social_regional_specialties_")) return "social_regional_specialties";
   if (id.startsWith("social_unified_silla_balhae_")) return "social_unified_silla_balhae";
   if (id.startsWith("science_grade4_")) return "science_science_grade4";
+  if (id.startsWith("science_general_")) return "science_science_general";
+  if (id.startsWith("popular_emoji_kpop_")) return "popular_emoji_kpop";
+  if (id.startsWith("popular_emoji_anime_")) return "popular_emoji_anime";
+  if (id.startsWith("popular_emoji_tiniping_")) return "popular_emoji_tiniping";
   if (id.startsWith("idol_")) return "people_아이돌";
   if (id.startsWith("anime_")) return "people_애니";
   if (id.startsWith("dad_joke_") || id === "ten_million_youtuber") return "daily_아재개그";

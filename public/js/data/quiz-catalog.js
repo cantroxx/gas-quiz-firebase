@@ -56,8 +56,19 @@
       kicker: 'Popular Quiz Hall',
       desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
       board: '사진과 문장을 보고 정답을 맞혀요',
-      cardDesc: '아이돌, 애니, 아재개그, 티니핑, 포켓몬 퀴즈를 고르는 화면입니다.',
-      quizzes: ['idol', 'anime', 'dad-joke', 'tiniping', 'pokemon'],
+      cardDesc: '아이돌, 애니, 이모지, 아재개그, 티니핑, 포켓몬 퀴즈를 고르는 화면입니다.',
+      quizzes: ['emoji', 'idol', 'anime', 'dad-joke', 'tiniping', 'pokemon'],
+      enabled: true
+    },
+    science: {
+      icon: '🔬',
+      title: '과학 퀴즈',
+      hallTitle: '과학관',
+      kicker: 'Science Hall',
+      desc: '생활 속 과학 상식을 4지선다로 확인합니다.',
+      board: '궁금한 과학을 풀어봐요',
+      cardDesc: '간단한 과학 상식 문제를 고르는 화면입니다.',
+      quizzes: ['science-general'],
       enabled: true
     },
     math: {
@@ -77,6 +88,7 @@
     { subjectId: 'korean' },
     { subjectId: 'social' },
     { subjectId: 'math' },
+    { subjectId: 'science' },
     { subjectId: 'popular' },
     {
       externalQuizHub: true,
@@ -215,6 +227,48 @@
       summary: '문장을 보고 웃긴 정답을 떠올려 입력합니다.',
       subjectId: 'popular',
       modes: ['practice', 'ranking', 'oneChance']
+    },
+    emoji: {
+      title: '이모지 퀴즈',
+      kicker: 'Popular Quiz Hall',
+      icon: '🧩',
+      desc: '이모지 조합을 보고 분야별 정답을 맞히는 인기 퀴즈입니다.',
+      summary: 'K-POP, 애니, 티니핑 분야를 고른 뒤 이모지만 보고 정답을 고릅니다.',
+      subjectId: 'popular',
+      modes: ['emojiHub']
+    },
+    'emoji-kpop': {
+      title: 'K-POP 이모지 퀴즈',
+      kicker: 'Popular Quiz Hall',
+      icon: '🎧',
+      desc: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.',
+      summary: '가사나 음원 없이 이모지 단서만 보고 알맞은 제목을 고릅니다.',
+      subjectId: 'popular',
+      parentQuizId: 'emoji',
+      groupLabel: '이모지',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
+    'emoji-anime': {
+      title: '애니 이모지 퀴즈',
+      kicker: 'Popular Quiz Hall',
+      icon: '🎞️',
+      desc: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.',
+      summary: '작품의 핵심 소재를 나타낸 이모지 단서를 보고 알맞은 제목을 고릅니다.',
+      subjectId: 'popular',
+      parentQuizId: 'emoji',
+      groupLabel: '이모지',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
+    'emoji-tiniping': {
+      title: '티니핑 이모지 퀴즈',
+      kicker: 'Popular Quiz Hall',
+      icon: '💗',
+      desc: '이모지 조합을 보고 티니핑 이름을 객관식으로 맞힙니다.',
+      summary: '이모지만 보고 알맞은 티니핑 이름을 고릅니다.',
+      subjectId: 'popular',
+      parentQuizId: 'emoji',
+      groupLabel: '이모지',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     tiniping: {
       title: '티니핑 퀴즈',
@@ -432,6 +486,15 @@
       desc: '초등학교 4학년 수준의 분수 개념을 이야기 문제로 연습합니다.',
       summary: '분자와 분모, 분수로 나타내기, 같은 크기의 분수를 4지선다로 확인합니다.',
       subjectId: 'math',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
+    'science-general': {
+      title: '과학 상식 퀴즈',
+      kicker: 'Science Hall',
+      icon: '🔬',
+      desc: '초등학생이 알아두면 좋은 생활 과학 상식을 확인합니다.',
+      summary: '물질, 생명, 지구, 에너지 영역의 기본 과학 상식을 4지선다로 풉니다.',
+      subjectId: 'science',
       modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     calculation_practice: {

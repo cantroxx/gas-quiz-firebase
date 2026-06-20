@@ -180,9 +180,13 @@
       'unified-silla-balhae': { area: '사회', detail: '통일신라~발해', areaKey: '사회/unified-silla-balhae', completionType: completionType || 'loop' },
       'regional-specialties': { area: '사회', detail: '지역 특산물·행정구역', areaKey: '사회/regional-specialties', completionType: completionType || 'loop' },
       'science-grade4': { area: '과학', detail: '초4 과학 개념', areaKey: '과학/science-grade4', completionType: completionType || 'loop' },
+      'science-general': { area: '과학', detail: '과학 상식', areaKey: '과학/science-general', completionType: completionType || 'loop' },
       'history-people': { area: '인물', detail: '역사인물', areaKey: '인물/역사인물', completionType: completionType || 'loop' },
       idol: { area: '인물', detail: '아이돌', areaKey: '인물/아이돌', completionType: completionType || 'loop' },
       anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' },
+      'emoji-kpop': { area: '인기', detail: '이모지:K-POP', areaKey: '인기/emoji-kpop', completionType: completionType || 'loop' },
+      'emoji-anime': { area: '인기', detail: '이모지:애니', areaKey: '인기/emoji-anime', completionType: completionType || 'loop' },
+      'emoji-tiniping': { area: '인기', detail: '이모지:티니핑', areaKey: '인기/emoji-tiniping', completionType: completionType || 'loop' },
       tiniping: { area: '인물', detail: '티니핑', areaKey: '인물/티니핑', completionType: completionType || 'loop' }
     };
     return targets[id] || null;
@@ -240,9 +244,13 @@
       'unified-silla-balhae': { category: '사회(통일신라~발해)', subFilter: '통일신라~발해' },
       'regional-specialties': { category: '사회(지역 특산물·행정구역)', subFilter: '지역 특산물·행정구역' },
       'science-grade4': { category: '과학(초4 과학 개념)', subFilter: '초4 과학 개념' },
+      'science-general': { category: '과학(과학 상식)', subFilter: '과학 상식' },
       'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
       idol: { category: '인물(아이돌)', subFilter: '아이돌' },
       anime: { category: '인물(애니)', subFilter: '애니' },
+      'emoji-kpop': { category: '인기(이모지 K-POP)', subFilter: '이모지 K-POP' },
+      'emoji-anime': { category: '인기(이모지 애니)', subFilter: '이모지 애니' },
+      'emoji-tiniping': { category: '인기(이모지 티니핑)', subFilter: '이모지 티니핑' },
       tiniping: { category: '티니핑', subFilter: '티니핑' }
     };
     const target = targets[id];

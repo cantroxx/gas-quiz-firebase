@@ -1802,12 +1802,16 @@
       'gmo',
       'time_store',
       'fraction-basic',
+      'science-general',
       'samgukji',
       'ancient-history',
       'unified-silla-balhae',
       'history-people',
       'idol',
       'anime',
+      'emoji-kpop',
+      'emoji-anime',
+      'emoji-tiniping',
       'dad-joke',
       'tiniping',
       'pokemon',
@@ -3169,8 +3173,13 @@
       '사회고대사-삼국시대',
       '인물역사-인물',
       '수학곱셈과-나눗셈',
+      '수학분수',
+      '과학과학-상식',
       '인물아이돌',
       '인물애니',
+      '인기이모지-k-pop',
+      '인기이모지-애니',
+      '인기이모지-티니핑',
       ...TINIPING_RANKING_CATEGORY_KEYS,
       ...POKEMON_RANKING_CATEGORY_KEYS
     ];
@@ -3184,8 +3193,13 @@
       '사회고대사-삼국시대': 'ancient-history',
       '인물역사-인물': 'history-people',
       '수학곱셈과-나눗셈': 'random-basic',
+      '수학분수': 'fraction-basic',
+      '과학과학-상식': 'science-general',
       '인물아이돌': 'idol',
       '인물애니': 'anime',
+      '인기이모지-k-pop': 'emoji-kpop',
+      '인기이모지-애니': 'emoji-anime',
+      '인기이모지-티니핑': 'emoji-tiniping',
       '티니핑': 'tiniping',
       '인물티니핑': 'tiniping',
       '포켓몬1세대': 'pokemon-gen1',
@@ -3340,7 +3354,7 @@
     function getSupportedRankingModeIdsForKeys(keys = []) {
       const safeKeys = (keys || []).map(key => String(key || '').trim()).filter(Boolean);
       const speedDisabledKeys = new Set(['독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '수학분수', '수학분수-기초']);
-      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '국어속담', '수학분수', '수학분수-기초']);
+      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '국어속담', '수학분수', '수학분수-기초', '과학과학-상식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑']);
       const modes = ['all', 'normal', 'onechance'];
       if(safeKeys.some(key => !speedDisabledKeys.has(key))) modes.push('speed');
       if(safeKeys.some(key => !noHintDisabledKeys.has(key))) modes.push('nohint');
@@ -3349,10 +3363,11 @@
 
     function getPopularRankingAreas() {
       const areas = [
-        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS] },
+        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
         { id: 'anime', label: '애니', keys: ['인물애니'] },
+        { id: 'emoji', label: '이모지', keys: ['인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑'] },
         { id: 'tiniping', label: '티니핑', keys: TINIPING_RANKING_CATEGORY_KEYS },
         { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
       ];
@@ -3603,9 +3618,14 @@
         'history-people': ['역사 인물', '역사인물'],
         idol: ['아이돌'],
         anime: ['애니'],
+        'emoji-kpop': ['이모지 K-POP', '이모지-k-pop', 'emoji-kpop'],
+        'emoji-anime': ['이모지 애니', '이모지-애니', 'emoji-anime'],
+        'emoji-tiniping': ['이모지 티니핑', '이모지-티니핑', 'emoji-tiniping'],
         tiniping: ['티니핑'],
         'dad-joke': ['아재개그'],
         'random-basic': ['곱셈과 나눗셈', 'random-basic'],
+        'fraction-basic': ['분수', 'fraction-basic'],
+        'science-general': ['과학 상식', 'science-general'],
         'pokemon-gen1': ['포켓몬(1세대)', 'pokemon-gen1'],
         'pokemon-gen2': ['포켓몬(2세대)', 'pokemon-gen2'],
         'pokemon-gen3': ['포켓몬(3세대)', 'pokemon-gen3'],
@@ -3767,7 +3787,11 @@
         return base.filter(item => item.value === 'normal' || item.value === 'onechance');
       }
       const noHintDisabled = new Set([
-        'proverb'
+        'proverb',
+        'science-general',
+        'emoji-kpop',
+        'emoji-anime',
+        'emoji-tiniping'
       ]);
       if(noHintDisabled.has(id)) {
         return base.filter(item => item.value !== 'nohint');
@@ -5808,6 +5832,7 @@
         korean: '국어',
         social: '사회',
         math: '수학',
+        science: '과학',
         popular: '인기'
       };
       return subjectLabels[quiz.subjectId] || '기타';

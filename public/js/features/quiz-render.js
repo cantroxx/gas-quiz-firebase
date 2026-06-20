@@ -113,7 +113,7 @@
     subject.quizzes.forEach(quizId => {
       const quiz = quizCatalog[quizId];
       if(!quiz || !deps.isQuizEnabledByFlags?.(quizId)) return;
-      const isHub = Array.isArray(quiz.modes) && quiz.modes.includes('readingHub');
+      const isHub = Array.isArray(quiz.modes) && (quiz.modes.includes('readingHub') || quiz.modes.includes('emojiHub'));
       const isPlayable = quiz.enabled !== false && (isHub || deps.firebasePlayableQuizIds?.has(deps.normalizeFirebaseQuizId?.(quizId)));
       const item = document.createElement('article');
       const icon = document.createElement('span');
@@ -182,6 +182,10 @@
       renderReadingHubCards(grid, deps);
       return;
     }
+    if(deps.normalizeFirebaseQuizId?.(lastQuizId) === 'emoji') {
+      renderChildQuizHubCards(grid, 'emoji', deps);
+      return;
+    }
     const flags = deps.featureFlags || deps.defaultFeatureFlags || {};
     if(!deps.isQuizEnabledByFlags?.(lastQuizId, flags)) {
       const disabled = document.createElement('p');
@@ -246,9 +250,15 @@
   }
 
   function renderReadingHubCards(grid, deps = {}) {
+    renderChildQuizHubCards(grid, 'reading', deps, ['gmo', 'time_store']);
+  }
+
+  function renderChildQuizHubCards(grid, parentQuizId, deps = {}, explicitQuizIds = null) {
     const quizCatalog = deps.quizCatalog || {};
     const flags = deps.featureFlags || deps.defaultFeatureFlags || {};
-    ['gmo', 'time_store'].forEach(quizId => {
+    const quizIds = explicitQuizIds || Object.keys(quizCatalog)
+      .filter(quizId => quizCatalog[quizId]?.parentQuizId === parentQuizId);
+    quizIds.forEach(quizId => {
       const quiz = quizCatalog[quizId];
       if(!quiz) return;
       const enabled = deps.isQuizEnabledByFlags?.(quizId, flags) !== false;
