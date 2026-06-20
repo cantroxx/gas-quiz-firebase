@@ -95,6 +95,50 @@
     }
   }
 
+  function renderClassroomTeacherDashboard(data = {}, deps = {}) {
+    const panel = document.getElementById('classroom-teacher-dashboard');
+    const grid = document.getElementById('classroom-teacher-dashboard-grid');
+    if(!panel || !grid) return;
+
+    const settings = data.settings || {};
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    panel.hidden = !canManage;
+    grid.innerHTML = '';
+    if(!canManage) return;
+
+    const economyBoard = data.economyBoard || {};
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
+    const applications = Array.isArray(economyBoard.applications) ? economyBoard.applications : [];
+    const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
+    const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
+    const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
+    const totalBerry = studentCards.reduce((sum, student) => sum + Number(student.berry || 0), 0);
+    const pendingApplications = applications.filter(item => item.status === 'pending').length;
+    const activeAssignments = assignments.filter(item => item.status === 'active').length;
+    const activeRoutines = routines.filter(item => item.status !== 'deleted').length;
+    const items = [
+      ['확인 대기', `${reviewItems.length}건`, '퀘스트 승인/반려가 필요한 기록'],
+      ['직업 지원', `${pendingApplications}건`, `${activeAssignments}명이 현재 직업을 맡고 있습니다`],
+      ['학생 현황', `${studentCards.length}명`, `전체 보유 베리 ${totalBerry.toLocaleString('ko-KR')}`],
+      ['상점 상품', `${shopItems.length}개`, '학생이 베리로 구매할 수 있는 상품'],
+      ['성장루틴', `${activeRoutines}개`, '현재 학생 계정에서 확인되는 루틴']
+    ];
+
+    items.forEach(([label, value, detail]) => {
+      const card = document.createElement('article');
+      const labelEl = document.createElement('span');
+      const valueEl = document.createElement('strong');
+      const detailEl = document.createElement('p');
+      card.className = 'classroom-teacher-dashboard-card';
+      labelEl.textContent = label;
+      valueEl.textContent = value;
+      detailEl.textContent = detail;
+      card.append(labelEl, valueEl, detailEl);
+      grid.appendChild(card);
+    });
+  }
+
   function renderClassroomQuestCards(settings = {}, progressMap = {}, deps = {}) {
     const grid = document.getElementById('classroom-quest-grid');
     if(!grid) return;
@@ -411,6 +455,7 @@
     const settings = data.settings || {};
     const economyBoard = data.economyBoard || {};
     renderClassroomRoleState(settings, data.wallet || {}, deps);
+    renderClassroomTeacherDashboard(data, deps);
     renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
     renderClassroomQuestCards(settings, data.progressMap || {}, deps);
     renderClassroomStudentCards(data.studentCards || [], deps);
@@ -428,6 +473,7 @@
     renderClassroomReviewList,
     renderClassroomReviewPanel,
     renderClassroomRoleState,
+    renderClassroomTeacherDashboard,
     renderClassroomQuestCards,
     renderClassroomGemCards,
     renderClassroomStudentCards,
