@@ -455,6 +455,7 @@
               <h3>퀘스트 만들기</h3>
             </div>
             <form id="classroom-quest-form" class="classroom-quest-form">
+              <input id="classroom-quest-id-input" type="hidden">
               <label>
                 퀘스트 이름
                 <input id="classroom-quest-title-input" type="text" maxlength="60" placeholder="예: 책상 정리 1회">
@@ -4800,6 +4801,54 @@
       return window.DJ48ClassroomForm.resetClassroomQuestForm();
     }
 
+    async function editClassroomQuest(questId) {
+      const settings = await loadClassroomSettings(true);
+      const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
+      if(!quest) {
+        setClassroomQuestEditorStatus('수정할 퀘스트를 찾지 못했습니다.', true);
+        return;
+      }
+      window.DJ48ClassroomForm.setClassroomQuestFormValues(quest);
+      setClassroomQuestEditorStatus('퀘스트 내용을 불러왔습니다. 수정 후 저장해 주세요.');
+      document.getElementById('classroom-quest-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function deactivateClassroomQuest(questId, button) {
+      const settings = await loadClassroomSettings(true);
+      const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
+      if(!quest) {
+        setClassroomQuestEditorStatus('비활성화할 퀘스트를 찾지 못했습니다.', true);
+        return;
+      }
+      if(!window.confirm(`"${quest.title || '교실 퀘스트'}" 퀘스트를 비활성화할까요?`)) return;
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '처리 중...';
+      }
+      try {
+        await getClassroomRepository().saveClassroomQuest({
+          classId: settings.classId,
+          values: {
+            ...quest,
+            id: quest.id || quest.questId,
+            active: false
+          }
+        });
+        resetClassroomDataCaches({ settings: true, progress: true, review: true, wallet: true, gems: true });
+        setClassroomQuestEditorStatus('퀘스트를 비활성화했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest deactivate failed.', error);
+        setClassroomQuestEditorStatus('퀘스트 비활성화 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
     async function saveClassroomQuestFromForm(event) {
       event?.preventDefault();
       await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
@@ -6469,6 +6518,8 @@
       return {
         handleClassroomEntrySubmit,
         saveClassroomQuestFromForm,
+        editClassroomQuest,
+        deactivateClassroomQuest,
         awardClassroomBadgeCampaignFromForm,
         saveClassroomJobFromForm,
         saveClassroomShopItemFromForm,

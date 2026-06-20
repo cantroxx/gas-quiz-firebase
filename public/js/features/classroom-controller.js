@@ -27,6 +27,16 @@
     });
 
     document.getElementById('classroom-quest-grid')?.addEventListener('click', event => {
+      const editButton = event.target.closest('[data-classroom-quest-edit-id]');
+      if(editButton && !editButton.disabled) {
+        deps.editClassroomQuest?.(editButton.dataset.classroomQuestEditId || '');
+        return;
+      }
+      const deactivateButton = event.target.closest('[data-classroom-quest-deactivate-id]');
+      if(deactivateButton && !deactivateButton.disabled) {
+        deps.deactivateClassroomQuest?.(deactivateButton.dataset.classroomQuestDeactivateId || '', deactivateButton);
+        return;
+      }
       const button = event.target.closest('[data-classroom-quest-action]');
       if(!button || button.disabled) return;
       deps.completeClassroomCheckQuest?.(button.dataset.classroomQuestAction || '');

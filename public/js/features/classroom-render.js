@@ -252,6 +252,7 @@
   function renderClassroomQuestCards(settings = {}, progressMap = {}, deps = {}) {
     const grid = document.getElementById('classroom-quest-grid');
     if(!grid) return;
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     grid.innerHTML = '';
     (settings.quests || []).filter(quest => quest.active !== false).forEach(quest => {
       const progress = progressMap[quest.id] || null;
@@ -262,6 +263,7 @@
       const reward = document.createElement('p');
       const status = document.createElement('span');
       const button = document.createElement('button');
+      const actions = document.createElement('div');
       const rewardCurrencyLabel = deps.getClassroomRewardCurrencyLabel?.(quest.rewardCurrency) || '베리';
       card.className = 'classroom-card';
       card.dataset.classroomQuestId = quest.id;
@@ -280,7 +282,22 @@
       button.dataset.classroomQuestAction = quest.id;
       button.disabled = !quest.saveEnabled || !!progress;
       button.textContent = progress ? getClassroomProgressButtonLabel(progress) : (quest.studentAction || '저장 연결 예정');
-      card.append(badge, title, desc, reward, status, button);
+      actions.className = 'classroom-review-actions';
+      actions.appendChild(button);
+      if(canManage) {
+        const editButton = document.createElement('button');
+        const deactivateButton = document.createElement('button');
+        editButton.className = 'quest-claim-button';
+        editButton.type = 'button';
+        editButton.dataset.classroomQuestEditId = quest.id || '';
+        editButton.textContent = '수정';
+        deactivateButton.className = 'quest-claim-button danger';
+        deactivateButton.type = 'button';
+        deactivateButton.dataset.classroomQuestDeactivateId = quest.id || '';
+        deactivateButton.textContent = '비활성화';
+        actions.append(editButton, deactivateButton);
+      }
+      card.append(badge, title, desc, reward, status, actions);
       grid.appendChild(card);
     });
   }

@@ -196,6 +196,7 @@
     await callable({
       classId: options.classId,
       quest: {
+        id: values.id,
         title: values.title,
         desc: values.desc,
         rewardCoin: values.rewardCoin,
@@ -206,6 +207,7 @@
         gemXp: values.gemXp,
         gemTargetXp: values.gemTargetXp,
         gemRewardBerry: values.gemRewardBerry,
+        active: values.active !== false,
         type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
       }
     });
