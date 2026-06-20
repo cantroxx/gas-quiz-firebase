@@ -8,6 +8,7 @@ const QUIZ_QUESTIONS_ROOT = 'quizQuestions';
 const TITLE_CATALOG_COLLECTION = 'titleCatalog';
 const DEFAULT_QUESTIONS_PER_QUIZ = 200;
 const SEED_SOURCE = 'seed-non-image-quiz-expansion';
+const REMOVED_TITLE_IDS = ['science_grade4_1', 'science_grade4_3', 'science_grade4_5'];
 
 function parseArgs(argv) {
   const args = {
@@ -257,56 +258,56 @@ const SCIENCE_GENERAL = [
 ];
 
 const EMOJI_KPOP = [
-  ['아파트', [], '🏢🍻👏🎉'],
-  ['홈 스위트 홈', [], '🏠🍯💛🎤'],
-  ['레블 하트', [], '🏴‍☠️❤️⚡'],
-  ['투 배드', [], '😬🚫💔'],
-  ['라이크 제니', [], '👑💃✨'],
-  ['골든', [], '🏆✨🌟'],
-  ['블루 발렌타인', [], '💙💌🌙'],
-  ['썬더', [], '🌩️⚡🥁'],
-  ['페이머스', [], '🌟📸🎤'],
-  ['굿 굿바이', [], '👋😊💧'],
-  ['슈퍼노바', [], '🌟💥🚀'],
-  ['마그네틱', [], '🧲❤️✨'],
-  ['하우 스위트', [], '🍯😊🎶'],
+  ['APT.', [], '🏢🍻👏🎉'],
+  ['HOME SWEET HOME', [], '🏠🍯💛🎤'],
+  ['REBEL HEART', [], '🏴‍☠️❤️⚡'],
+  ['TOO BAD', [], '😬🚫💔'],
+  ['like JENNIE', [], '👑💃✨'],
+  ['Golden', [], '🏆✨🌟'],
+  ['Blue Valentine', [], '💙💌🌙'],
+  ['Thunder', [], '🌩️⚡🥁'],
+  ['Famous', [], '🌟📸🎤'],
+  ['GOOD GOODBYE', [], '👋😊💧'],
+  ['Supernova', [], '🌟💥🚀'],
+  ['Magnetic', [], '🧲❤️✨'],
+  ['How Sweet', [], '🍯😊🎶'],
   ['해야', [], '👋🌞💃'],
-  ['아마겟돈', [], '☄️🌍🔥'],
-  ['위플래시', [], '🚗💥⚡'],
-  ['클락션', [], '🚗📣💃'],
+  ['Armageddon', [], '☄️🌍🔥'],
+  ['Whiplash', [], '🚗💥⚡'],
+  ['Klaxon', [], '🚗📣💃'],
   ['첫 만남은 계획대로 되지 않아', [], '1️⃣🤝📋❌'],
   ['나는 아픈 건 딱 질색이니까', [], '🤒🚫🙅‍♀️'],
-  ['러브 윈즈 올', [], '❤️🏆🌍'],
+  ['Love wins all', [], '❤️🏆🌍'],
   ['밤양갱', [], '🌙🍡💜'],
   ['소나기', [], '🌦️💧🎤'],
   ['천상연', [], '☁️❤️🎶'],
-  ['스몰 걸', [], '👧🤏💗'],
+  ['Small girl', [], '👧🤏💗'],
   ['내 이름 맑음', [], '🙋‍♀️📝☀️'],
-  ['슬로우 모션', [], '🐢🎥💫'],
-  ['스티키', [], '🍯🤝💃'],
-  ['마이다스 터치', [], '👑✋🥇'],
-  ['버추얼 엔젤', [], '💻👼✨'],
-  ['걸스 네버 다이', [], '👧♾️🖤'],
-  ['슈퍼내추럴', [], '👻✨🌙'],
-  ['버블검', [], '🫧🍬💗'],
-  ['스팟', [], '📍🎤🔥'],
+  ['Slow Motion', [], '🐢🎥💫'],
+  ['Sticky', [], '🍯🤝💃'],
+  ['Midas Touch', [], '👑✋🥇'],
+  ['Virtual Angel', [], '💻👼✨'],
+  ['Girls Never Die', [], '👧♾️🖤'],
+  ['Supernatural', [], '👻✨🌙'],
+  ['Bubble Gum', [], '🫧🍬💗'],
+  ['SPOT!', [], '📍🎤🔥'],
   ['오늘만 I LOVE YOU', [], '📅❤️💬'],
-  ['이지', [], '😌👌🎧'],
-  ['스마트', [], '🧠📱✨'],
-  ['크레이지', [], '🤪🔥🎶'],
-  ['핫', [], '🔥🌡️💃'],
-  ['컴 오버', [], '👉🏠✨'],
-  ['러브 랭귀지', [], '❤️💬🌍'],
-  ['프라이스리스', [], '💎🚫💰'],
-  ['메시', [], '🌀🧹💔'],
-  ['스트래티지', [], '♟️📋✨'],
-  ['두 더 댄스', [], '💃🕺🎵'],
-  ['돈 세이 유 러브 미', [], '🤫❤️🚫'],
-  ['스윔', [], '🏊‍♂️🌊✨'],
-  ['점프', [], '⬆️🦘💗'],
-  ['고', [], '🏃‍♀️💨🖤'],
-  ['셀러브레이션', [], '🎉🥳✨'],
-  ['아드레날린', [], '⚡💓🚀']
+  ['EASY', [], '😌👌🎧'],
+  ['Smart', [], '🧠📱✨'],
+  ['CRAZY', [], '🤪🔥🎶'],
+  ['HOT', [], '🔥🌡️💃'],
+  ['Come Over', [], '👉🏠✨'],
+  ['Love Language', [], '❤️💬🌍'],
+  ['Priceless', [], '💎🚫💰'],
+  ['Messy', [], '🌀🧹💔'],
+  ['Strategy', [], '♟️📋✨'],
+  ['Do the Dance', [], '💃🕺🎵'],
+  ["Don't Say You Love Me", [], '🤫❤️🚫'],
+  ['SWIM', [], '🏊‍♂️🌊✨'],
+  ['JUMP', [], '⬆️🦘💗'],
+  ['GO!', [], '🏃‍♀️💨🖤'],
+  ['Celebration', [], '🎉🥳✨'],
+  ['ADRENALINE', [], '⚡💓🚀']
 ];
 
 const EMOJI_ANIME = [
@@ -708,9 +709,15 @@ const TITLE_BASES = [
   ['math_fraction_basic', '분수', 'math', 'title-theme-school', ['분수 탐험가', '분수 박사', '분수 마스터']],
   ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']],
   ['science_general', '과학 상식', 'science', 'title-theme-school', ['과학 호기심 탐험가', '과학 상식 박사', '과학 상식 마스터']],
-  ['popular_emoji_kpop', 'K-POP 이모지', 'popular', 'title-theme-idol', ['K-POP 이모지 팬', 'K-POP 이모지 DJ', 'K-POP 이모지 마스터']],
-  ['popular_emoji_anime', '애니 이모지', 'popular', 'title-theme-anime', ['애니 이모지 팬', '애니 이모지 해석가', '애니 이모지 마스터']],
-  ['popular_emoji_tiniping', '티니핑 이모지', 'popular', 'title-theme-tiniping', ['티니핑 이모지 팬', '티니핑 이모지 요정', '티니핑 이모지 마스터']]
+  ['popular_emoji_kpop', 'K-POP 이모지', 'popular', 'title-theme-idol', ['K-POP 팬', 'K-POP DJ', 'K-POP 마스터']],
+  ['popular_emoji_anime', '애니 이모지', 'popular', 'title-theme-anime', ['애니 팬', '애니 해석가', '애니 마스터']],
+  ['popular_emoji_tiniping', '티니핑 이모지', 'popular', 'title-theme-tiniping', ['티니핑 팬', '티니핑 요정', '티니핑 마스터']]
+];
+
+const EMOJI_TOTAL_TITLE_BASES = [
+  ['popular_emoji_kpop_total', 'K-POP 종합', 'kpop', 'title-theme-kpop-legend', ['케이팝 문화 선구자', '케이팝 문화 리더', '케이팝 사업가']],
+  ['popular_emoji_anime_total', '애니 종합', 'anime', 'title-theme-anime-legend', ['애니 탐구자', '애니 제작가', '애니메이션 기업가']],
+  ['popular_emoji_tiniping_total', '티니핑 종합', 'tiniping', 'title-theme-tiniping-legend', ['티니핑 마니아', '티니핑 제작자', '티니핑 후원자']]
 ];
 
 function buildTitleCatalog() {
@@ -719,7 +726,7 @@ function buildTitleCatalog() {
     [3, 'title-tier-3', 'title-effect-marquee', '3회 완주'],
     [5, 'title-tier-5', 'title-effect-neon', '5회 완주']
   ];
-  return TITLE_BASES.flatMap(([prefix, label, subjectGroup, themeClass, names], baseIndex) => tiers.map(([stars, tierClass, effectClass, condition], tierIndex) => ({
+  const practiceTitles = TITLE_BASES.flatMap(([prefix, label, subjectGroup, themeClass, names], baseIndex) => tiers.map(([stars, tierClass, effectClass, condition], tierIndex) => ({
     titleId: `${prefix}_${stars}`,
     titleName: names[tierIndex],
     category: '연습',
@@ -738,6 +745,32 @@ function buildTitleCatalog() {
     active: true,
     migrationSource: SEED_SOURCE
   })));
+  const totalTiers = [
+    [3, 'title-tier-3', 'title-effect-marquee', '3회 완주'],
+    [6, 'title-tier-5', 'title-effect-neon', '6회 완주'],
+    [9, 'title-tier-5', 'title-effect-neon title-effect-marquee', '9회 완주']
+  ];
+  const totalTitles = EMOJI_TOTAL_TITLE_BASES.flatMap(([prefix, label, sourceCategory, themeClass, names], baseIndex) => totalTiers.map(([count, tierClass, effectClass, condition], tierIndex) => ({
+    titleId: `${prefix}_${count}`,
+    titleName: names[tierIndex],
+    category: '종합',
+    theme: label,
+    themeClass,
+    tier: tierIndex + 1,
+    tierClass,
+    effectClass,
+    source: SEED_SOURCE,
+    sourceType: 'emojiCombinedCompletions',
+    sourceCategory,
+    subjectGroup: 'popular',
+    conditionText: `${label} 연습+랭킹 ${condition}`,
+    description: `${label} 연습 완주와 랭킹전 완주 합계 ${count}회 시 획득합니다.`,
+    requiredCompletionCount: count,
+    order: 820 + baseIndex * 10 + tierIndex,
+    active: true,
+    migrationSource: SEED_SOURCE
+  })));
+  return [...practiceTitles, ...totalTitles];
 }
 
 function buildModel(quizIds = []) {
@@ -809,6 +842,9 @@ async function commitModel(model) {
       ref: db.collection(TITLE_CATALOG_COLLECTION).doc(title.titleId),
       data: { ...title, updatedAt: now }
     });
+  });
+  REMOVED_TITLE_IDS.forEach(titleId => {
+    deletes.push(db.collection(TITLE_CATALOG_COLLECTION).doc(titleId));
   });
 
   let committed = 0;

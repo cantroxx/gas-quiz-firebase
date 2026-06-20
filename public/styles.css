@@ -3107,6 +3107,9 @@ h2 {
 .title-theme-dadjoke { background: linear-gradient(135deg, #ffd33f, #ff914d); color: #653100; border-color: rgba(255, 145, 77, 0.42); }
 .title-theme-school { background: linear-gradient(135deg, #e8f8ec, #fffdf2); color: #2f7764; border-color: rgba(76, 175, 80, 0.28); }
 .title-theme-perfect { background: linear-gradient(135deg, #fff2a8, #fff, #ffd36e); color: #8a5300; border-color: rgba(255, 203, 5, 0.55); }
+.title-theme-kpop-legend { background: linear-gradient(135deg, #111827 0%, #d946ef 46%, #fef08a 100%); color: #fff; border-color: rgba(250, 204, 21, 0.68); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.24), 0 8px 20px rgba(217, 70, 239, 0.28); }
+.title-theme-anime-legend { background: linear-gradient(135deg, #172554 0%, #22d3ee 48%, #f8fafc 100%); color: #fff; border-color: rgba(34, 211, 238, 0.72); text-shadow: 0 1px 4px rgba(15, 23, 42, 0.5); box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.24), 0 8px 20px rgba(37, 99, 235, 0.25); }
+.title-theme-tiniping-legend { background: linear-gradient(135deg, #831843 0%, #fb7185 48%, #fff1f2 100%); color: #fff; border-color: rgba(251, 113, 133, 0.72); text-shadow: 0 1px 4px rgba(80, 7, 36, 0.48); box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.24), 0 8px 20px rgba(244, 114, 182, 0.26); }
 .title-tier-3,
 .title-tier-5 { border-width: 2px; }
 .title-effect-marquee::before {

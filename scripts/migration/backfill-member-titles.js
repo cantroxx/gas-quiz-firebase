@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 'use strict';
 
-const admin = require('firebase-admin');
+const { initializeApp, applicationDefault, getApps } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
-admin.initializeApp({
-  credential: admin.credential.applicationDefault()
-});
+if (!getApps().length) {
+  initializeApp({ credential: applicationDefault() });
+}
 
-const db = admin.firestore();
+const db = getFirestore();
 
 function parseArgs(argv) {
   const args = { commit: false, sample: 10, user: '' };
@@ -75,6 +76,44 @@ function bestRankingScoreTotal(records) {
   return Array.from(bestByCategory.values()).reduce((sum, item) => sum + item.score, 0);
 }
 
+function emojiCategoryMatchesRecord(record = {}, sourceCategory = '') {
+  const category = String(sourceCategory || '').trim();
+  const quizId = String(record.quizId || '').trim();
+  const text = [
+    record.category,
+    record.categoryKey,
+    record.rawCategory,
+    record.subFilter
+  ].map(value => String(value || '').toLowerCase()).join(' ');
+  if (category === 'kpop') {
+    return quizId === 'emoji-kpop' || (text.includes('이모지') && (text.includes('k-pop') || text.includes('kpop') || text.includes('케이팝')));
+  }
+  if (category === 'anime') {
+    return quizId === 'emoji-anime' || (text.includes('이모지') && (text.includes('애니') || text.includes('anime')));
+  }
+  if (category === 'tiniping') {
+    return quizId === 'emoji-tiniping' || (text.includes('이모지') && (text.includes('티니핑') || text.includes('tiniping')));
+  }
+  return false;
+}
+
+function emojiPracticeBadgeId(sourceCategory = '') {
+  const category = String(sourceCategory || '').trim();
+  if (category === 'kpop') return 'popular_emoji_kpop';
+  if (category === 'anime') return 'popular_emoji_anime';
+  if (category === 'tiniping') return 'popular_emoji_tiniping';
+  return '';
+}
+
+function emojiCombinedCompletionCount(title, badges, rankingRecords) {
+  const sourceCategory = String(title.sourceCategory || '').trim();
+  const badgeId = emojiPracticeBadgeId(sourceCategory);
+  const badge = badgeId ? badges.find(item => item.badgeId === badgeId) : null;
+  const practiceCount = Math.max(0, Math.round(Number(badge?.starCount || 0) || 0));
+  const rankingCount = rankingRecords.filter(record => emojiCategoryMatchesRecord(record, sourceCategory)).length;
+  return practiceCount + rankingCount;
+}
+
 function evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTitleIds) {
   const eligible = new Map();
   const earnedBadges = badges.filter(isEarnedBadge);
@@ -109,6 +148,8 @@ function evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTi
       if (normal50Count >= required) add(title);
     } else if (sourceType === 'rankingBestScoreTotal300') {
       if (rankingBestTotal >= 300) add(title);
+    } else if (sourceType === 'emojiCombinedCompletions') {
+      if (emojiCombinedCompletionCount(title, badges, rankingRecords) >= required) add(title);
     }
   });
 
@@ -154,8 +195,8 @@ function ownedTitleDoc(title, memberUserId) {
     effectClass: title.effectClass || '',
     selected: false,
     migrationSource: 'firebase_title_backfill',
-    awardedAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    awardedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
   };
 }
 
@@ -221,7 +262,7 @@ async function syncOneUser(memberUserId, titleCatalog, commit) {
       selectedTitleName,
       missingSelectedTitle: !!selectedTitleId && !allTitleIds.has(selectedTitleId),
       migrationSource: 'firebase_title_backfill',
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
     await batch.commit();
   }
