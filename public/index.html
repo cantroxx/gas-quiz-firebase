@@ -6370,10 +6370,14 @@
         viewId: 'classroom-view',
         placeKey: 'classroom'
       });
+      initializeAuthUser().catch(error => {
+        console.warn('Classroom auth restore failed.', error);
+      });
     }
 
     async function handleClassroomEntrySubmit(event) {
       event.preventDefault();
+      await initializeAuthUser();
       await window.DJ48ClassroomUsecases.verifyClassroomEntryFlow({
         entryCode: window.DJ48ClassroomForm.getClassroomEntryCode(),
         memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
