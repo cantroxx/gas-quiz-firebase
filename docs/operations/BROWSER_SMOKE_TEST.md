@@ -79,3 +79,4 @@ Preferred first candidates are reversible setting writes such as notice board dr
 - Shop entry
 - Event plaza entry
 - Classroom entry with unlocked gate
+- Classroom today-card shortcuts and classroom tabs for quests, gemstones, jobs, and shop history

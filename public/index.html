@@ -553,6 +553,10 @@
                 월급
                 <input id="classroom-job-pay-input" type="number" min="1" max="1000" inputmode="numeric" value="20">
               </label>
+              <label>
+                정원
+                <input id="classroom-job-capacity-input" type="number" min="1" max="10" inputmode="numeric" value="1">
+              </label>
               <button class="button primary" type="submit">직업 저장</button>
             </form>
             <p id="classroom-job-editor-status" class="classroom-review-status" aria-live="polite"></p>
@@ -4849,6 +4853,71 @@
       }
     }
 
+    async function duplicateClassroomQuest(questId, button) {
+      const settings = await loadClassroomSettings(true);
+      const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
+      if(!quest) {
+        setClassroomQuestEditorStatus('복제할 퀘스트를 찾지 못했습니다.', true);
+        return;
+      }
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '복제 중...';
+      }
+      try {
+        await getClassroomRepository().saveClassroomQuest({
+          classId: settings.classId,
+          values: {
+            ...quest,
+            id: '',
+            title: `${quest.title || '교실 퀘스트'} 복사본`,
+            active: true
+          }
+        });
+        resetClassroomDataCaches({ settings: true, progress: true, review: true, wallet: true, gems: true });
+        setClassroomQuestEditorStatus('퀘스트를 복제했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest duplicate failed.', error);
+        setClassroomQuestEditorStatus('퀘스트 복제 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
+    async function reorderClassroomQuest(questId, direction, button) {
+      const settings = await loadClassroomSettings(true);
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '이동 중...';
+      }
+      try {
+        const result = await getClassroomRepository().callClassroomEconomyAction('reorderClassroomQuest', {
+          questId,
+          direction
+        }, {
+          classId: settings.classId,
+          memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
+        });
+        resetClassroomDataCaches({ settings: true, progress: true, review: true });
+        setClassroomQuestEditorStatus(result?.duplicate ? '더 이상 이동할 수 없습니다.' : '퀘스트 순서를 변경했습니다.', !!result?.duplicate);
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest reorder failed.', error);
+        setClassroomQuestEditorStatus('퀘스트 순서 변경 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
     async function saveClassroomQuestFromForm(event) {
       event?.preventDefault();
       await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
@@ -5029,6 +5098,14 @@
 
     async function completeClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('completeClassroomShopPurchaseUse', purchaseId, button);
+    }
+
+    async function rejectClassroomShopPurchaseUse(purchaseId, button) {
+      return runClassroomEconomyAction('rejectClassroomShopPurchaseUse', purchaseId, button);
+    }
+
+    async function refundClassroomShopPurchase(purchaseId, button) {
+      return runClassroomEconomyAction('refundClassroomShopPurchase', purchaseId, button);
     }
 
     function getClassroomRoutineFormValues() {
@@ -6519,6 +6596,8 @@
         handleClassroomEntrySubmit,
         saveClassroomQuestFromForm,
         editClassroomQuest,
+        duplicateClassroomQuest,
+        reorderClassroomQuest,
         deactivateClassroomQuest,
         awardClassroomBadgeCampaignFromForm,
         saveClassroomJobFromForm,
@@ -6535,6 +6614,8 @@
         requestClassroomShopPurchaseUse,
         approveClassroomShopPurchaseUse,
         completeClassroomShopPurchaseUse,
+        rejectClassroomShopPurchaseUse,
+        refundClassroomShopPurchase,
         checkClassroomRoutine,
         reviewClassroomQuestProgress
       };

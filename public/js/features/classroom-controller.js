@@ -26,10 +26,30 @@
       button.addEventListener('click', () => deps.setActiveClassroomTab?.(button.dataset.classroomTab || 'quests'));
     });
 
+    document.getElementById('classroom-today-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-today-tab]');
+      if(!button || button.disabled) return;
+      deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
+    });
+
     document.getElementById('classroom-quest-grid')?.addEventListener('click', event => {
       const editButton = event.target.closest('[data-classroom-quest-edit-id]');
       if(editButton && !editButton.disabled) {
         deps.editClassroomQuest?.(editButton.dataset.classroomQuestEditId || '');
+        return;
+      }
+      const duplicateButton = event.target.closest('[data-classroom-quest-duplicate-id]');
+      if(duplicateButton && !duplicateButton.disabled) {
+        deps.duplicateClassroomQuest?.(duplicateButton.dataset.classroomQuestDuplicateId || '', duplicateButton);
+        return;
+      }
+      const moveButton = event.target.closest('[data-classroom-quest-move-id]');
+      if(moveButton && !moveButton.disabled) {
+        deps.reorderClassroomQuest?.(
+          moveButton.dataset.classroomQuestMoveId || '',
+          moveButton.dataset.classroomQuestMoveDirection || 'up',
+          moveButton
+        );
         return;
       }
       const deactivateButton = event.target.closest('[data-classroom-quest-deactivate-id]');
@@ -86,9 +106,19 @@
         deps.approveClassroomShopPurchaseUse?.(approveButton.dataset.classroomShopApproveUseId || '', approveButton);
         return;
       }
+      const rejectButton = event.target.closest('[data-classroom-shop-reject-use-id]');
+      if(rejectButton && !rejectButton.disabled) {
+        deps.rejectClassroomShopPurchaseUse?.(rejectButton.dataset.classroomShopRejectUseId || '', rejectButton);
+        return;
+      }
       const completeButton = event.target.closest('[data-classroom-shop-complete-use-id]');
       if(completeButton && !completeButton.disabled) {
         deps.completeClassroomShopPurchaseUse?.(completeButton.dataset.classroomShopCompleteUseId || '', completeButton);
+        return;
+      }
+      const refundButton = event.target.closest('[data-classroom-shop-refund-id]');
+      if(refundButton && !refundButton.disabled) {
+        deps.refundClassroomShopPurchase?.(refundButton.dataset.classroomShopRefundId || '', refundButton);
       }
     });
 

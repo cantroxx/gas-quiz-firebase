@@ -121,7 +121,8 @@
     return {
       title: String(document.getElementById('classroom-job-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-job-desc-input')?.value || '').trim(),
-      weeklyPayBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0))
+      weeklyPayBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0)),
+      maxAssignees: Math.max(1, Math.min(10, Math.round(Number(document.getElementById('classroom-job-capacity-input')?.value) || 1)))
     };
   }
 
@@ -129,9 +130,11 @@
     const title = document.getElementById('classroom-job-title-input');
     const desc = document.getElementById('classroom-job-desc-input');
     const pay = document.getElementById('classroom-job-pay-input');
+    const capacity = document.getElementById('classroom-job-capacity-input');
     if(title) title.value = '';
     if(desc) desc.value = '';
     if(pay) pay.value = '20';
+    if(capacity) capacity.value = '1';
   }
 
   function getClassroomShopItemFormValues() {

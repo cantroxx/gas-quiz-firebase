@@ -504,11 +504,21 @@ async function runFeatureEntryChecks(page) {
   await page.evaluate(() => window.showClassroomView?.(true));
   await waitForVisible(page, '#classroom-view');
   await page.locator('#classroom-main-panel').waitFor({ state: 'visible', timeout: 15000 });
+  await page.locator('#classroom-today-grid').waitFor({ state: 'visible', timeout: 15000 });
+  assert.ok(await page.locator('#classroom-today-grid .classroom-today-card').count() >= 5, 'classroom today cards should render');
+  assert.ok(await page.locator('#classroom-today-grid [data-classroom-today-tab]').count() >= 3, 'classroom today shortcuts should render');
   await page.locator('#classroom-quest-grid').waitFor({ state: 'visible', timeout: 15000 });
+  await page.click('[data-classroom-tab="gems"]');
+  await page.locator('#classroom-gem-summary').waitFor({ state: 'visible', timeout: 15000 });
   if(await page.locator('[data-classroom-tab="jobs"]').count()) {
     await page.click('[data-classroom-tab="jobs"]');
     const isActive = await page.locator('[data-classroom-tab="jobs"]').evaluate(element => element.classList.contains('is-active'));
     assert.equal(isActive, true);
+    await page.locator('#classroom-job-summary').waitFor({ state: 'visible', timeout: 15000 });
+  }
+  if(await page.locator('[data-classroom-tab="shop"]').count()) {
+    await page.click('[data-classroom-tab="shop"]');
+    await page.locator('#classroom-shop-history').waitFor({ state: 'visible', timeout: 15000 });
   }
 }
 

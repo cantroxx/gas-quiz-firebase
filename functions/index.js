@@ -1277,6 +1277,7 @@ function normalizeClassroomJob(rawJob = {}) {
     title,
     desc: String(rawJob.desc || "").trim().slice(0, 160),
     weeklyPayBerry: Math.max(1, Math.min(1000, Math.round(Number(rawJob.weeklyPayBerry || rawJob.payBerry) || 1))),
+    maxAssignees: Math.max(1, Math.min(10, Math.round(Number(rawJob.maxAssignees) || 1))),
     active: rawJob.active !== false
   };
 }
@@ -4731,10 +4732,15 @@ async function reviewClassroomShopPurchaseUse(request, nextStatus) {
     if (nextStatus === "used" && !["use_requested", "use_approved"].includes(currentStatus)) {
       return { duplicate: true, status: currentStatus };
     }
+    if (nextStatus === "use_rejected" && !["use_requested", "use_approved"].includes(currentStatus)) {
+      return { duplicate: true, status: currentStatus };
+    }
     transaction.set(purchaseRef, {
       status: nextStatus,
-      approvedBy: nextStatus === "use_approved" ? adminMember.memberUserId : purchase.approvedBy || adminMember.memberUserId,
+      approvedBy: nextStatus === "use_approved" ? adminMember.memberUserId : purchase.approvedBy || "",
       approvedAt: nextStatus === "use_approved" ? FieldValue.serverTimestamp() : purchase.approvedAt || null,
+      rejectedBy: nextStatus === "use_rejected" ? adminMember.memberUserId : purchase.rejectedBy || "",
+      rejectedAt: nextStatus === "use_rejected" ? FieldValue.serverTimestamp() : purchase.rejectedAt || null,
       usedBy: nextStatus === "used" ? adminMember.memberUserId : purchase.usedBy || "",
       usedAt: nextStatus === "used" ? FieldValue.serverTimestamp() : purchase.usedAt || null,
       updatedAt: FieldValue.serverTimestamp()
@@ -4751,6 +4757,112 @@ exports.approveClassroomShopPurchaseUse = onCall({ region: REGION }, request => 
 
 exports.completeClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
   return reviewClassroomShopPurchaseUse(request, "used");
+});
+
+exports.rejectClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
+  return reviewClassroomShopPurchaseUse(request, "use_rejected");
+});
+
+exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
+    const purchaseSnapshot = await transaction.get(purchaseRef);
+    if (!purchaseSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom shop purchase not found.");
+    }
+    const purchase = purchaseSnapshot.data() || {};
+    const currentStatus = String(purchase.status || "purchased");
+    if (currentStatus === "refunded") {
+      return { duplicate: true, status: currentStatus, refundBerry: 0 };
+    }
+    if (currentStatus === "used") {
+      throw new HttpsError("failed-precondition", "Used classroom shop purchase cannot be refunded.");
+    }
+    const memberUserId = normalizeId(purchase.memberUserId || purchase.userId, "memberUserId");
+    const refundBerry = Math.max(1, Math.min(10000, Math.round(Number(purchase.priceBerry) || 0)));
+    const logId = rewardLogId(["classroom_shop_refund", classId, purchaseId]);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId);
+    transaction.set(walletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId,
+      berry: FieldValue.increment(refundBerry),
+      totalEarnedBerry: FieldValue.increment(refundBerry),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomShopRefundAt: FieldValue.serverTimestamp(),
+      source: "refund_classroom_shop_purchase_function"
+    }, { merge: true });
+    transaction.set(purchaseRef, {
+      status: "refunded",
+      refundedBy: adminMember.memberUserId,
+      refundedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(berryLogRef, {
+      type: "classroom_shop_refund",
+      classId,
+      purchaseId,
+      itemId: purchase.itemId || "",
+      itemTitle: purchase.itemTitle || "",
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      refundedBy: adminMember.memberUserId,
+      rewardCurrency: "berry",
+      rewardBerry: refundBerry,
+      rewardAmount: refundBerry,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { duplicate: false, status: "refunded", memberUserId, refundBerry };
+  });
+
+  return { success: true, classId, purchaseId, ...result };
+});
+
+exports.reorderClassroomQuest = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const questId = normalizeId(payload.questId, "questId");
+  const direction = String(payload.direction || "").trim() === "down" ? "down" : "up";
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    const settings = classroomResult.settings;
+    assertAdminCanManageClassroom(adminMember, settings);
+    const quests = Array.isArray(settings.quests) ? [...settings.quests] : [];
+    const index = quests.findIndex(item => item.id === questId || item.questId === questId);
+    if (index < 0) {
+      throw new HttpsError("not-found", "Classroom quest not found.");
+    }
+    const nextIndex = direction === "down" ? index + 1 : index - 1;
+    if (nextIndex < 0 || nextIndex >= quests.length) {
+      return { duplicate: true, questId, direction };
+    }
+    const temp = quests[index];
+    quests[index] = quests[nextIndex];
+    quests[nextIndex] = temp;
+    transaction.set(classroomResult.ref, {
+      quests,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "reorder_classroom_quest_function"
+    }, { merge: true });
+    return { duplicate: false, questId, direction };
+  });
+
+  return { success: true, classId, ...result };
 });
 
 exports.saveClassroomJob = onCall({ region: REGION }, async request => {
@@ -4855,9 +4967,15 @@ exports.assignClassroomJob = onCall({ region: REGION }, async request => {
     const memberUserId = normalizeId(application.memberUserId, "memberUserId");
     const jobRef = db.collection("classrooms").doc(classId).collection("jobs").doc(jobId);
     const assignmentRef = db.collection("classrooms").doc(classId).collection("jobAssignments").doc(memberUserId);
-    const [jobSnapshot, assignmentSnapshot] = await Promise.all([
+    const activeAssignmentsQuery = db.collection("classrooms")
+      .doc(classId)
+      .collection("jobAssignments")
+      .where("status", "==", "active")
+      .limit(200);
+    const [jobSnapshot, assignmentSnapshot, activeAssignmentsSnapshot] = await Promise.all([
       transaction.get(jobRef),
-      transaction.get(assignmentRef)
+      transaction.get(assignmentRef),
+      transaction.get(activeAssignmentsQuery)
     ]);
     if (!jobSnapshot.exists || jobSnapshot.data()?.active === false) {
       throw new HttpsError("not-found", "Classroom job not found.");
@@ -4866,6 +4984,13 @@ exports.assignClassroomJob = onCall({ region: REGION }, async request => {
       throw new HttpsError("failed-precondition", "Student already has a classroom job.");
     }
     const job = jobSnapshot.data() || {};
+    const maxAssignees = Math.max(1, Math.min(10, Math.round(Number(job.maxAssignees) || 1)));
+    const assignedCountForJob = activeAssignmentsSnapshot.docs
+      .filter(doc => String(doc.data()?.jobId || "") === jobId)
+      .length;
+    if (assignedCountForJob >= maxAssignees) {
+      throw new HttpsError("failed-precondition", "Classroom job capacity is full.");
+    }
     transaction.set(applicationRef, {
       status: "assigned",
       assignedBy: adminMember.memberUserId,
@@ -4880,6 +5005,7 @@ exports.assignClassroomJob = onCall({ region: REGION }, async request => {
       memberUserId,
       userId: memberUserId,
       weeklyPayBerry: Number(job.weeklyPayBerry || 0),
+      maxAssignees,
       status: "active",
       assignedBy: adminMember.memberUserId,
       assignedAt: FieldValue.serverTimestamp(),

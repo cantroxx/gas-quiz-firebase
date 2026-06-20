@@ -4625,6 +4625,22 @@ h2 {
   line-height: 1.4;
 }
 
+.classroom-today-link {
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 8px;
+  background: rgba(47, 125, 68, 0.08);
+  color: var(--green-dark);
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.classroom-today-link:hover {
+  background: rgba(47, 125, 68, 0.14);
+}
+
 .classroom-activity-feed,
 .classroom-shop-history {
   margin-top: 14px;

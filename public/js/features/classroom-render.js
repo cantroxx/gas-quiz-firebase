@@ -182,25 +182,30 @@
     const affordableItems = shopItems.filter(item => berry >= Number(item.priceBerry || 0)).length;
     const usableCoupons = purchases.filter(item => !['used'].includes(item.status)).length;
     const cards = [
-      ['내 베리', `${berry.toLocaleString('ko-KR')}개`, affordableItems ? `구매 가능한 상품 ${affordableItems}개` : '퀘스트와 루틴으로 베리를 모아 보세요'],
-      ['오늘 퀘스트', `${pendingQuests.length}개`, pendingQuests[0]?.title || (quests.length ? '오늘 가능한 퀘스트를 모두 처리했습니다' : '담임이 퀘스트를 만들면 표시됩니다')],
-      ['성장루틴', `${todayRoutines.length}개`, todayRoutines[0]?.title || (routines.length ? '오늘 체크할 루틴이 없습니다' : '나만의 반복 목표를 만들어 보세요')],
-      ['내 직업', myAssignment?.jobTitle || myAssignment?.jobId || '미배정', myAssignment ? '맡은 역할을 꾸준히 수행해 보세요' : '직업 탭에서 지원할 수 있습니다'],
-      ['내 쿠폰', `${usableCoupons}개`, usableCoupons ? '상점 탭에서 사용 요청할 수 있습니다' : '상점에서 베리로 쿠폰을 구매해 보세요'],
-      ['젬·뱃지', selectedBadgeLabel || `${completedGems.length}개 획득`, selectedBadgeLabel ? '대표 뱃지가 학생카드에 표시됩니다' : '젬 목표를 달성하면 대표 뱃지로 설정할 수 있습니다']
+      ['내 베리', `${berry.toLocaleString('ko-KR')}개`, affordableItems ? `구매 가능한 상품 ${affordableItems}개` : '퀘스트와 루틴으로 베리를 모아 보세요', 'shop'],
+      ['오늘 퀘스트', `${pendingQuests.length}개`, pendingQuests[0]?.title || (quests.length ? '오늘 가능한 퀘스트를 모두 처리했습니다' : '담임이 퀘스트를 만들면 표시됩니다'), 'quests'],
+      ['성장루틴', `${todayRoutines.length}개`, todayRoutines[0]?.title || (routines.length ? '오늘 체크할 루틴이 없습니다' : '나만의 반복 목표를 만들어 보세요'), 'routines'],
+      ['내 직업', myAssignment?.jobTitle || myAssignment?.jobId || '미배정', myAssignment ? '맡은 역할을 꾸준히 수행해 보세요' : '직업 탭에서 지원할 수 있습니다', 'jobs'],
+      ['내 쿠폰', `${usableCoupons}개`, usableCoupons ? '상점 탭에서 사용 요청할 수 있습니다' : '상점에서 베리로 쿠폰을 구매해 보세요', 'shop'],
+      ['젬·뱃지', selectedBadgeLabel || `${completedGems.length}개 획득`, selectedBadgeLabel ? '대표 뱃지가 학생카드에 표시됩니다' : '젬 목표를 달성하면 대표 뱃지로 설정할 수 있습니다', 'gems']
     ];
 
     grid.innerHTML = '';
-    cards.forEach(([label, value, detail]) => {
+    cards.forEach(([label, value, detail, tabName]) => {
       const card = document.createElement('article');
       const labelEl = document.createElement('span');
       const valueEl = document.createElement('strong');
       const detailEl = document.createElement('p');
+      const button = document.createElement('button');
       card.className = 'classroom-today-card';
       labelEl.textContent = label;
       valueEl.textContent = value;
       detailEl.textContent = detail;
-      card.append(labelEl, valueEl, detailEl);
+      button.className = 'classroom-today-link';
+      button.type = 'button';
+      button.dataset.classroomTodayTab = tabName;
+      button.textContent = '열기';
+      card.append(labelEl, valueEl, detailEl, button);
       grid.appendChild(card);
     });
   }
@@ -208,7 +213,9 @@
   function getClassroomPurchaseStatusLabel(status = '') {
     if(status === 'use_requested') return '사용 요청';
     if(status === 'use_approved') return '사용 승인';
+    if(status === 'use_rejected') return '요청 반려';
     if(status === 'used') return '사용 완료';
+    if(status === 'refunded') return '환불 완료';
     return '보유 중';
   }
 
@@ -286,16 +293,33 @@
       actions.appendChild(button);
       if(canManage) {
         const editButton = document.createElement('button');
+        const duplicateButton = document.createElement('button');
+        const upButton = document.createElement('button');
+        const downButton = document.createElement('button');
         const deactivateButton = document.createElement('button');
         editButton.className = 'quest-claim-button';
         editButton.type = 'button';
         editButton.dataset.classroomQuestEditId = quest.id || '';
         editButton.textContent = '수정';
+        duplicateButton.className = 'quest-claim-button';
+        duplicateButton.type = 'button';
+        duplicateButton.dataset.classroomQuestDuplicateId = quest.id || '';
+        duplicateButton.textContent = '복제';
+        upButton.className = 'quest-claim-button';
+        upButton.type = 'button';
+        upButton.dataset.classroomQuestMoveId = quest.id || '';
+        upButton.dataset.classroomQuestMoveDirection = 'up';
+        upButton.textContent = '위로';
+        downButton.className = 'quest-claim-button';
+        downButton.type = 'button';
+        downButton.dataset.classroomQuestMoveId = quest.id || '';
+        downButton.dataset.classroomQuestMoveDirection = 'down';
+        downButton.textContent = '아래로';
         deactivateButton.className = 'quest-claim-button danger';
         deactivateButton.type = 'button';
         deactivateButton.dataset.classroomQuestDeactivateId = quest.id || '';
         deactivateButton.textContent = '비활성화';
-        actions.append(editButton, deactivateButton);
+        actions.append(editButton, duplicateButton, upButton, downButton, deactivateButton);
       }
       card.append(badge, title, desc, reward, status, actions);
       grid.appendChild(card);
@@ -355,13 +379,17 @@
     });
   }
 
-  function renderClassroomGemSummary(gemProgress = []) {
+  function renderClassroomGemSummary(gemProgress = [], settings = {}) {
     const summary = document.getElementById('classroom-gem-summary');
     if(!summary) return;
     const completed = gemProgress.filter(gem => gem.completed === true).length;
     const active = gemProgress.filter(gem => gem.completed !== true).length;
     const totalXp = gemProgress.reduce((sum, gem) => sum + Number(gem.currentXp || 0), 0);
+    const linkedQuests = (settings.quests || []).filter(quest => quest.active !== false && quest.linkedGemId);
+    const linkedGemIds = new Set(linkedQuests.map(quest => quest.linkedGemId));
     const items = [
+      ['연결 젬', `${linkedGemIds.size}개`],
+      ['연결 퀘스트', `${linkedQuests.length}개`],
       ['진행 젬', `${active}개`],
       ['획득 젬', `${completed}개`],
       ['누적 XP', `${totalXp.toLocaleString('ko-KR')}xp`]
@@ -437,22 +465,27 @@
       const status = document.createElement('span');
       const actions = document.createElement('div');
       const ownApplication = applications.find(item => item.jobId === job.jobId && item.memberUserId === currentMemberUserId);
-      const assignedHere = assignments.find(item => item.jobId === job.jobId && item.status === 'active');
+      const assignedList = assignments.filter(item => item.jobId === job.jobId && item.status === 'active');
+      const assignedHere = assignedList[0] || null;
+      const maxAssignees = Math.max(1, Number(job.maxAssignees || 1));
+      const isFull = assignedList.length >= maxAssignees;
       card.className = 'classroom-card';
       badge.className = 'classroom-card-badge';
-      badge.textContent = assignedHere ? '배정됨' : '모집 중';
+      badge.textContent = isFull ? '정원 마감' : assignedHere ? '배정 중' : '모집 중';
       title.textContent = job.title || '교실 직업';
       desc.textContent = job.desc || '직업 설명이 없습니다.';
       reward.className = 'classroom-card-reward';
-      reward.textContent = `월급: ${Number(job.weeklyPayBerry || 0).toLocaleString('ko-KR')} 베리`;
+      reward.textContent = `월급: ${Number(job.weeklyPayBerry || 0).toLocaleString('ko-KR')} 베리 · 정원 ${assignedList.length}/${maxAssignees}`;
       status.className = `quest-status ${assignedHere ? 'quest-status-claimed' : ownApplication ? 'quest-status-ready' : 'quest-status-active'}`;
       status.textContent = assignedHere
-        ? `담당: ${assignedHere.memberUserId || '-'}`
+        ? `담당: ${assignedList.map(item => item.memberUserId || '-').join(', ')}`
         : ownApplication
           ? '지원 완료'
           : myAssignment
             ? '이미 맡은 직업이 있습니다'
-            : '지원 가능';
+            : isFull
+              ? '정원이 찼습니다'
+              : '지원 가능';
       actions.className = 'classroom-review-actions';
       if(canManage) {
         if(assignedHere) {
@@ -488,12 +521,12 @@
         button.className = 'quest-claim-button';
         button.type = 'button';
         button.dataset.classroomJobApplyId = job.jobId || '';
-        button.disabled = !!myAssignment || !!ownApplication || !!assignedHere;
+        button.disabled = !!myAssignment || !!ownApplication || isFull;
         button.textContent = myAssignment
           ? '이미 직업 배정됨'
           : ownApplication
             ? '지원 완료'
-            : assignedHere
+            : isFull
               ? '모집 마감'
               : '지원하기';
         actions.appendChild(button);
@@ -599,11 +632,16 @@
       if(canManage) {
         if(status === 'use_requested') {
           const approveButton = document.createElement('button');
+          const rejectButton = document.createElement('button');
           approveButton.className = 'quest-claim-button';
           approveButton.type = 'button';
           approveButton.dataset.classroomShopApproveUseId = purchase.purchaseId || '';
           approveButton.textContent = '사용 승인';
-          actions.appendChild(approveButton);
+          rejectButton.className = 'quest-claim-button danger';
+          rejectButton.type = 'button';
+          rejectButton.dataset.classroomShopRejectUseId = purchase.purchaseId || '';
+          rejectButton.textContent = '반려';
+          actions.append(approveButton, rejectButton);
         }
         if(status === 'use_requested' || status === 'use_approved') {
           const completeButton = document.createElement('button');
@@ -612,6 +650,14 @@
           completeButton.dataset.classroomShopCompleteUseId = purchase.purchaseId || '';
           completeButton.textContent = '사용 완료';
           actions.appendChild(completeButton);
+        }
+        if(!['used', 'refunded'].includes(status)) {
+          const refundButton = document.createElement('button');
+          refundButton.className = 'quest-claim-button danger';
+          refundButton.type = 'button';
+          refundButton.dataset.classroomShopRefundId = purchase.purchaseId || '';
+          refundButton.textContent = '환불';
+          actions.appendChild(refundButton);
         }
       } else if(status === 'purchased') {
         const requestButton = document.createElement('button');
@@ -699,7 +745,7 @@
     renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
     renderClassroomQuestCards(settings, data.progressMap || {}, deps);
     renderClassroomStudentCards(data.studentCards || [], deps);
-    renderClassroomGemSummary(data.gemProgress || []);
+    renderClassroomGemSummary(data.gemProgress || [], settings);
     renderClassroomGemCards(data.gemProgress || []);
     renderClassroomJobSummary(settings, economyBoard, deps);
     renderClassroomJobCards(settings, economyBoard, deps);
