@@ -446,6 +446,7 @@
             <h3 id="classroom-teacher-dashboard-heading">교실 운영 요약</h3>
           </div>
           <div id="classroom-teacher-dashboard-grid" class="classroom-teacher-dashboard-grid"></div>
+          <div id="classroom-teacher-report" class="classroom-teacher-report"></div>
         </section>
 
         <section id="classroom-teacher-review-panel" class="classroom-teacher-review-panel" aria-labelledby="classroom-review-heading" hidden>
@@ -474,6 +475,18 @@
                   <option value="auto">학생 완료 즉시 지급</option>
                   <option value="teacherReview">담임 확인 후 지급</option>
                   <option value="quizAchieved">퀴즈 달성형</option>
+                </select>
+              </label>
+              <label>
+                대상 학생
+                <input id="classroom-quest-targets-input" type="text" maxlength="160" placeholder="예: G4-C8-N1, G4-C8-N2 / 비우면 전체">
+              </label>
+              <label>
+                반복 설정
+                <select id="classroom-quest-repeat-input">
+                  <option value="once">한 번만</option>
+                  <option value="daily">매일</option>
+                  <option value="weekly">매주</option>
                 </select>
               </label>
               <label>
@@ -616,6 +629,7 @@
             <h3 id="classroom-quest-heading">교실 퀘스트</h3>
           </div>
           <div id="classroom-quest-grid" class="classroom-card-grid"></div>
+          <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="students" aria-labelledby="classroom-student-card-heading">
@@ -4853,6 +4867,41 @@
       }
     }
 
+    async function restoreClassroomQuest(questId, button) {
+      const settings = await loadClassroomSettings(true);
+      const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
+      if(!quest) {
+        setClassroomQuestEditorStatus('복구할 퀘스트를 찾지 못했습니다.', true);
+        return;
+      }
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '복구 중...';
+      }
+      try {
+        await getClassroomRepository().saveClassroomQuest({
+          classId: settings.classId,
+          values: {
+            ...quest,
+            id: quest.id || quest.questId,
+            active: true
+          }
+        });
+        resetClassroomDataCaches({ settings: true, progress: true, review: true, wallet: true, gems: true });
+        setClassroomQuestEditorStatus('퀘스트를 복구했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest restore failed.', error);
+        setClassroomQuestEditorStatus('퀘스트 복구 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
     async function duplicateClassroomQuest(questId, button) {
       const settings = await loadClassroomSettings(true);
       const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
@@ -5061,11 +5110,16 @@
       };
     }
 
-    async function runClassroomEconomyAction(actionName, value, button) {
+    async function runClassroomEconomyAction(actionName, value, button, payload = {}) {
       return window.DJ48ClassroomUsecases.runClassroomEconomyAction(actionName, {
         value,
-        button
+        button,
+        payload
       }, getClassroomEconomyActionDeps());
+    }
+
+    function askClassroomActionMemo(message) {
+      return String(window.prompt(message, '') || '').trim().slice(0, 160);
     }
 
     async function applyClassroomJob(jobId, button) {
@@ -5089,23 +5143,33 @@
     }
 
     async function requestClassroomShopPurchaseUse(purchaseId, button) {
-      return runClassroomEconomyAction('requestClassroomShopPurchaseUse', purchaseId, button);
+      return runClassroomEconomyAction('requestClassroomShopPurchaseUse', purchaseId, button, {
+        memo: askClassroomActionMemo('쿠폰 사용 요청 메모를 입력하세요. 비워도 됩니다.')
+      });
     }
 
     async function approveClassroomShopPurchaseUse(purchaseId, button) {
-      return runClassroomEconomyAction('approveClassroomShopPurchaseUse', purchaseId, button);
+      return runClassroomEconomyAction('approveClassroomShopPurchaseUse', purchaseId, button, {
+        memo: askClassroomActionMemo('사용 승인 메모를 입력하세요. 비워도 됩니다.')
+      });
     }
 
     async function completeClassroomShopPurchaseUse(purchaseId, button) {
-      return runClassroomEconomyAction('completeClassroomShopPurchaseUse', purchaseId, button);
+      return runClassroomEconomyAction('completeClassroomShopPurchaseUse', purchaseId, button, {
+        memo: askClassroomActionMemo('사용 완료 메모를 입력하세요. 비워도 됩니다.')
+      });
     }
 
     async function rejectClassroomShopPurchaseUse(purchaseId, button) {
-      return runClassroomEconomyAction('rejectClassroomShopPurchaseUse', purchaseId, button);
+      return runClassroomEconomyAction('rejectClassroomShopPurchaseUse', purchaseId, button, {
+        reason: askClassroomActionMemo('반려 사유를 입력하세요. 비워도 됩니다.')
+      });
     }
 
     async function refundClassroomShopPurchase(purchaseId, button) {
-      return runClassroomEconomyAction('refundClassroomShopPurchase', purchaseId, button);
+      return runClassroomEconomyAction('refundClassroomShopPurchase', purchaseId, button, {
+        reason: askClassroomActionMemo('환불 사유를 입력하세요. 비워도 됩니다.')
+      });
     }
 
     function getClassroomRoutineFormValues() {
@@ -6599,6 +6663,7 @@
         duplicateClassroomQuest,
         reorderClassroomQuest,
         deactivateClassroomQuest,
+        restoreClassroomQuest,
         awardClassroomBadgeCampaignFromForm,
         saveClassroomJobFromForm,
         saveClassroomShopItemFromForm,

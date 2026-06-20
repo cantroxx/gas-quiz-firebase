@@ -252,7 +252,7 @@
     try {
       const result = await callClassroomEconomyActionFlow({
         functionName: actionName,
-        payload: { [action.payloadKey]: options.value },
+        payload: { [action.payloadKey]: options.value, ...(options.payload || {}) },
         memberUserId: deps.getCurrentMemberUserId?.()
       }, deps);
       if(result?.success) deps.alert?.(getClassroomEconomySuccessMessage(actionName, result));

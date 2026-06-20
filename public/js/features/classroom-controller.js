@@ -62,6 +62,12 @@
       deps.completeClassroomCheckQuest?.(button.dataset.classroomQuestAction || '');
     });
 
+    document.getElementById('classroom-inactive-quest-grid')?.addEventListener('click', event => {
+      const restoreButton = event.target.closest('[data-classroom-quest-restore-id]');
+      if(!restoreButton || restoreButton.disabled) return;
+      deps.restoreClassroomQuest?.(restoreButton.dataset.classroomQuestRestoreId || '', restoreButton);
+    });
+
     document.getElementById('classroom-gem-grid')?.addEventListener('click', event => {
       const button = event.target.closest('[data-classroom-badge-gem-id]');
       if(!button || button.disabled) return;

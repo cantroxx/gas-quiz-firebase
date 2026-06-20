@@ -202,6 +202,8 @@
         rewardCoin: values.rewardCoin,
         rewardCurrency: values.rewardCurrency,
         rewardMode: values.rewardMode,
+        targetStudentIds: values.targetStudentIds,
+        repeatRule: values.repeatRule,
         linkedGemId: values.linkedGemId,
         linkedGemName: values.linkedGemName,
         gemXp: values.gemXp,

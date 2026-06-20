@@ -975,6 +975,10 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const linkedGemName = String(rawQuest.linkedGemName || "").trim().slice(0, 40);
   const linkedGemId = slugifyClassroomGemId(rawQuest.linkedGemId || linkedGemName);
   const gemXp = linkedGemId ? Math.max(0, Math.min(100, Math.round(Number(rawQuest.gemXp) || 0))) : 0;
+  const repeatRule = ["once", "daily", "weekly"].includes(rawQuest.repeatRule) ? rawQuest.repeatRule : "once";
+  const targetStudentIds = Array.isArray(rawQuest.targetStudentIds)
+    ? rawQuest.targetStudentIds.map(value => String(value || "").trim().slice(0, 80)).filter(Boolean).slice(0, 80)
+    : [];
   return {
     id,
     questId: id,
@@ -985,6 +989,8 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     rewardMode,
     rewardCoin,
     rewardCurrency,
+    targetStudentIds,
+    repeatRule,
     saveEnabled: rawQuest.saveEnabled !== false,
     active: rawQuest.active !== false,
     linkedGemId,
@@ -4190,6 +4196,8 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       rewardMode,
       rewardCurrency,
       rewardCoin,
+      targetStudentIds: rawQuest.targetStudentIds || [],
+      repeatRule: rawQuest.repeatRule || "once",
       linkedGemId: rawQuest.linkedGemId || "",
       linkedGemName: rawQuest.linkedGemName || "",
       gemXp: rawQuest.gemXp || 0,
@@ -4572,6 +4580,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     return {
       assignmentId: doc.id,
       jobId: String(data.jobId || ""),
+      jobTitle: String(data.jobTitle || ""),
       memberUserId: String(data.memberUserId || ""),
       status: String(data.status || "")
     };
@@ -4581,6 +4590,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     return {
       applicationId: doc.id,
       jobId: String(data.jobId || ""),
+      jobTitle: String(data.jobTitle || ""),
       memberUserId: String(data.memberUserId || ""),
       status: String(data.status || "pending")
     };
@@ -4632,6 +4642,12 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         requestedAtMillis: getTimestampMillis(data.requestedAt),
         approvedAtMillis: getTimestampMillis(data.approvedAt),
         usedAtMillis: getTimestampMillis(data.usedAt),
+        refundedAtMillis: getTimestampMillis(data.refundedAt),
+        requestMemo: String(data.requestMemo || "").slice(0, 160),
+        approvalMemo: String(data.approvalMemo || "").slice(0, 160),
+        rejectReason: String(data.rejectReason || "").slice(0, 160),
+        refundReason: String(data.refundReason || "").slice(0, 160),
+        useMemo: String(data.useMemo || "").slice(0, 160),
         createdAtMillis: getTimestampMillis(data.createdAt)
       };
     })
@@ -4675,6 +4691,7 @@ exports.requestClassroomShopPurchaseUse = onCall({ region: REGION }, async reque
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
   const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+  const requestMemo = String(payload.memo || payload.reason || "").trim().slice(0, 160);
 
   const result = await db.runTransaction(async transaction => {
     const [memberData, classroomResult] = await Promise.all([
@@ -4699,6 +4716,7 @@ exports.requestClassroomShopPurchaseUse = onCall({ region: REGION }, async reque
     }
     transaction.set(purchaseRef, {
       status: "use_requested",
+      requestMemo,
       requestedAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
@@ -4715,6 +4733,7 @@ async function reviewClassroomShopPurchaseUse(request, nextStatus) {
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
   const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+  const reviewMemo = String(payload.memo || payload.reason || "").trim().slice(0, 160);
 
   const result = await db.runTransaction(async transaction => {
     const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
@@ -4739,10 +4758,13 @@ async function reviewClassroomShopPurchaseUse(request, nextStatus) {
       status: nextStatus,
       approvedBy: nextStatus === "use_approved" ? adminMember.memberUserId : purchase.approvedBy || "",
       approvedAt: nextStatus === "use_approved" ? FieldValue.serverTimestamp() : purchase.approvedAt || null,
+      approvalMemo: nextStatus === "use_approved" ? reviewMemo : purchase.approvalMemo || "",
       rejectedBy: nextStatus === "use_rejected" ? adminMember.memberUserId : purchase.rejectedBy || "",
       rejectedAt: nextStatus === "use_rejected" ? FieldValue.serverTimestamp() : purchase.rejectedAt || null,
+      rejectReason: nextStatus === "use_rejected" ? reviewMemo : purchase.rejectReason || "",
       usedBy: nextStatus === "used" ? adminMember.memberUserId : purchase.usedBy || "",
       usedAt: nextStatus === "used" ? FieldValue.serverTimestamp() : purchase.usedAt || null,
+      useMemo: nextStatus === "used" ? reviewMemo : purchase.useMemo || "",
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
     return { duplicate: false, status: nextStatus };
@@ -4769,6 +4791,7 @@ exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request =
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+  const refundReason = String(payload.memo || payload.reason || "").trim().slice(0, 160);
 
   const result = await db.runTransaction(async transaction => {
     const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
@@ -4803,6 +4826,7 @@ exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request =
     }, { merge: true });
     transaction.set(purchaseRef, {
       status: "refunded",
+      refundReason,
       refundedBy: adminMember.memberUserId,
       refundedAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()

@@ -4727,6 +4727,46 @@ h2 {
   font-size: 0.8rem;
 }
 
+.classroom-teacher-report {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.classroom-report-section {
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.classroom-report-section h4 {
+  margin: 0 0 8px;
+  color: var(--green-dark);
+  font-size: 0.92rem;
+}
+
+.classroom-report-section ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.classroom-report-section li {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.classroom-card-muted {
+  border-style: dashed;
+  background: rgba(241, 246, 238, 0.72);
+}
+
 .classroom-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -6082,6 +6122,10 @@ h2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .classroom-teacher-report {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .classroom-review-grid {
     grid-template-columns: 1fr;
   }
@@ -6316,6 +6360,10 @@ h2 {
   }
 
   .classroom-today-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-teacher-report {
     grid-template-columns: 1fr;
   }
 
