@@ -882,6 +882,7 @@
 
   function createQuizQuestionCard(options = {}) {
     const question = options.question || {};
+    const questionText = String(question.question || '').trim();
     const card = document.createElement('article');
     const progress = document.createElement('p');
     const title = document.createElement('h3');
@@ -893,7 +894,7 @@
     progress.className = 'quiz-progress';
     progress.textContent = options.progressText || '';
     title.className = 'quiz-question-title';
-    appendQuestionTextWithFractions(title, question.question || '');
+    appendQuestionTextWithFractions(title, questionText);
     titleRow.className = 'quiz-question-title-row';
     choices.className = 'quiz-choice-list';
     submit.className = 'quiz-submit-button';
@@ -922,13 +923,15 @@
       });
     }
 
-    titleRow.appendChild(title);
+    if(questionText) titleRow.appendChild(title);
     if(options.shouldRenderHint) {
       const { hintButton, hintDisplay } = createQuizHintToggle(options.hintText || '');
       titleRow.appendChild(hintButton);
       card.append(progress, titleRow, hintDisplay);
-    } else {
+    } else if(questionText) {
       card.append(progress, titleRow);
+    } else {
+      card.append(progress);
     }
     card.append(choices, submit);
     return card;

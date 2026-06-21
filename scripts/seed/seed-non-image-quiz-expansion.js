@@ -1053,24 +1053,15 @@ function buildEmojiQuestions(quizId, entries, label) {
 function buildCulturalHeritageQuestions() {
   const images = CULTURAL_HERITAGE_IMAGES.map(normalizeCulturalHeritageImageEntry);
   const answers = images.map(item => item.answer);
-  const promptVariants = [
-    '사진 속 문화유산의 이름은 무엇인가요?',
-    '이미지를 보고 알맞은 문화유산 이름을 고르세요.',
-    '사진에 보이는 우리 문화유산은 무엇인가요?',
-    '다음 사진과 관련 있는 문화유산을 고르세요.',
-    '{focus} 알맞은 문화유산 이름을 고르세요.'
-  ];
   const questions = [];
   for (let index = 0; questions.length < 100; index += 1) {
     const imageMeta = images[index % images.length];
     const answer = imageMeta.answer;
     const order = questions.length + 1;
-    const focusHint = CULTURAL_HERITAGE_FOCUS_HINTS[answer] || '사진의 건물, 탑, 유물 모양을 살펴보세요.';
-    const prompt = promptVariants[index % promptVariants.length].replace('{focus}', focusHint);
     questions.push(makeImageChoiceQuestion(
       'cultural_heritage',
       order,
-      prompt,
+      '',
       answer,
       answers,
       imageMeta,

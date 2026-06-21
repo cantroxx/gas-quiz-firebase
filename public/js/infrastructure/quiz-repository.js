@@ -572,7 +572,9 @@
       type: 'imageChoice',
       questionId: String(question.questionId || '').trim(),
       practiceQuestionId: String(question.practiceQuestionId || question.questionId || '').trim(),
-      question: String(question.prompt || question.question || '이미지를 보고 알맞은 이름을 고르세요.').trim(),
+      question: String(Object.prototype.hasOwnProperty.call(question, 'prompt')
+        ? question.prompt
+        : (question.question || '이미지를 보고 알맞은 이름을 고르세요.')).trim(),
       imageUrl: String(question.imageUrl || '').trim(),
       imageSourceUrl: String(question.imageSourceUrl || '').trim(),
       imageProvider: String(question.imageProvider || '').trim(),
@@ -605,9 +607,10 @@
   }
 
   function isPlayableQuestion(question) {
-    if(!question || !question.question) return false;
+    if(!question) return false;
     if(question.type === 'imageInput') return !!question.imageUrl && !!question.answerText;
     if(question.type === 'imageChoice') return !!question.imageUrl && Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
+    if(!question.question) return false;
     if(question.type === 'textInput') return !!question.answerText;
     return Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
   }
