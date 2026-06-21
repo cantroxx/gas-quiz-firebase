@@ -46,7 +46,9 @@
   }
 
   function getMappedErrorMessage(error, messages = {}, fallback = '') {
-    return messages[error?.message] || fallback;
+    const code = error?.code || '';
+    const normalizedCode = code && !String(code).startsWith('functions/') ? `functions/${code}` : code;
+    return messages[error?.message] || messages[normalizedCode] || messages[code] || fallback;
   }
 
   function getAdminMemberActionErrorMessage(error) {
@@ -82,7 +84,8 @@
     if(error instanceof SyntaxError) return 'JSON 형식을 확인해 주세요.';
     return getMappedErrorMessage(error, {
       'functions/permission-denied': '전체 관리자만 시즌 이벤트를 바꿀 수 있습니다.',
-      'functions/invalid-argument': '시즌 이벤트 값을 확인해 주세요.'
+      'functions/invalid-argument': '시즌 이벤트 값을 확인해 주세요.',
+      'functions/failed-precondition': '시즌 이벤트는 저장 후 최소 1시간 동안 수정할 수 없습니다.'
     }, '시즌 이벤트 저장 중 문제가 생겼습니다.');
   }
 
@@ -183,10 +186,16 @@
       const periodType = row.querySelector('[data-season-event-field="periodType"]')?.value === 'weekly' ? 'weekly' : 'monthly';
       const title = row.querySelector('[data-season-event-field="title"]')?.value || '';
       const icon = row.querySelector('[data-season-event-field="icon"]:checked')?.value || '✨';
+      const targetMonth = row.querySelector('[data-season-event-field="targetMonth"]')?.value || '';
+      const startDate = row.querySelector('[data-season-event-field="startDate"]')?.value || '';
+      const endDate = row.querySelector('[data-season-event-field="endDate"]')?.value || '';
       const quizIds = String(row.querySelector('[data-season-event-field="quizIds"]')?.value || '')
         .split(/[\s,]+/)
         .map(id => id.trim())
         .filter(Boolean);
+      const period = periodType === 'weekly'
+        ? [startDate, endDate].filter(Boolean).join(' ~ ')
+        : targetMonth;
       return {
         eventId: `season-${periodType}-${index + 1}`,
         icon,
@@ -194,7 +203,10 @@
         desc: row.querySelector('[data-season-event-field="desc"]')?.value || '',
         quizIds,
         periodType,
-        period: periodType === 'weekly' ? '이번 주' : '이번 달',
+        period,
+        targetMonth,
+        startDate,
+        endDate,
         active: row.querySelector('[data-season-event-field="active"]')?.checked === true,
         sortOrder: index + 1
       };

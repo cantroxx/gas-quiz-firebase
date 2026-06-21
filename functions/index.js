@@ -82,6 +82,7 @@ const DEFAULT_SEASON_EVENTS = {
       title: "독서왕 시즌",
       desc: "독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.",
       periodType: "monthly",
+      targetMonth: "",
       quizIds: ["gmo", "time_store"],
       active: true
     },
@@ -91,11 +92,15 @@ const DEFAULT_SEASON_EVENTS = {
       title: "삼국시대 탐험 주간",
       desc: "삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.",
       periodType: "weekly",
+      startDate: "",
+      endDate: "",
       quizIds: ["samgukji", "ancient-history"],
       active: true
     }
   ]
 };
+
+const SEASON_EVENTS_UPDATE_LOCK_MS = 60 * 60 * 1000;
 
 const EVENT_DAILY_QUEST_POOL = [
   { questId: "daily_spelling_10", icon: "✏️", title: "맞춤법 10문제 해결", target: 10, xpReward: 20, rewardCoin: 10, kind: "spellingCorrect", scope: "daily" },
@@ -331,11 +336,43 @@ function publicExternalQuizzes(data = {}) {
   return { items };
 }
 
+function isIsoMonthKey(value) {
+  return /^\d{4}-\d{2}$/.test(String(value || ""));
+}
+
+function addIsoDateDays(dateKey, days) {
+  if (!isIsoDateKey(dateKey)) return "";
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().slice(0, 10);
+}
+
+function getKstWeekStartDateKey(dateKey = getKstDateKey()) {
+  const [year, month, day] = String(dateKey || getKstDateKey()).split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const weekday = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() - weekday + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function getMonthEndDateKey(monthKey) {
+  if (!isIsoMonthKey(monthKey)) return "";
+  const [year, month] = monthKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+}
+
+function formatSeasonMonthPeriod(monthKey) {
+  if (!isIsoMonthKey(monthKey)) return "이번 달";
+  const [year, month] = monthKey.split("-").map(Number);
+  return `${year}년 ${month}월`;
+}
+
 function publicSeasonEvents(data = {}, context = {}) {
   const rawItems = Array.isArray(data.items) ? data.items : [];
   const dateKey = String(context.dateKey || getKstDateKey());
-  const weekKey = String(context.weekKey || getKstWeekKey());
   const monthKey = dateKey.slice(0, 7);
+  const currentWeekStartDate = getKstWeekStartDateKey(dateKey);
+  const currentWeekEndDate = addIsoDateDays(currentWeekStartDate, 6);
   const sanitizeQuizIds = value => Array.isArray(value)
     ? Array.from(new Set(value
       .map(id => String(id || "").trim())
@@ -345,8 +382,28 @@ function publicSeasonEvents(data = {}, context = {}) {
   const items = rawItems.slice(0, MAX_SEASON_EVENT_ITEMS)
     .map((item, index) => {
       const periodType = item?.periodType === "weekly" ? "weekly" : "monthly";
-      const periodKey = periodType === "weekly" ? weekKey : monthKey;
+      const targetMonth = isIsoMonthKey(item?.targetMonth || item?.month)
+        ? String(item.targetMonth || item.month)
+        : monthKey;
+      let startDate = isIsoDateKey(item?.startDate || item?.periodStartDate)
+        ? String(item.startDate || item.periodStartDate)
+        : currentWeekStartDate;
+      let endDate = isIsoDateKey(item?.endDate || item?.periodEndDate)
+        ? String(item.endDate || item.periodEndDate)
+        : currentWeekEndDate;
+      if (startDate > endDate) {
+        startDate = currentWeekStartDate;
+        endDate = currentWeekEndDate;
+      }
+      const periodStartDate = periodType === "weekly" ? startDate : `${targetMonth}-01`;
+      const periodEndDate = periodType === "weekly" ? endDate : getMonthEndDateKey(targetMonth);
+      const periodKey = periodType === "weekly"
+        ? `${periodStartDate}:${periodEndDate}`
+        : targetMonth;
       const quizIds = sanitizeQuizIds(item?.quizIds);
+      const period = periodType === "weekly"
+        ? `${periodStartDate} ~ ${periodEndDate}`
+        : formatSeasonMonthPeriod(targetMonth);
       return {
         eventId: String(item?.eventId || `season-${index + 1}`).trim().replace(/[^0-9A-Za-z_-]+/g, "-").slice(0, 60) || `season-${index + 1}`,
         icon: String(item?.icon || "✨").trim().slice(0, 8) || "✨",
@@ -354,8 +411,13 @@ function publicSeasonEvents(data = {}, context = {}) {
         desc: String(item?.desc || item?.description || "").trim().slice(0, 180),
         quizIds,
         periodType,
-        period: String(item?.period || (periodType === "weekly" ? "이번 주" : "이번 달")).trim().slice(0, 40),
+        period: String(period).trim().slice(0, 40),
         periodKey,
+        targetMonth: periodType === "monthly" ? targetMonth : "",
+        startDate: periodType === "weekly" ? periodStartDate : "",
+        endDate: periodType === "weekly" ? periodEndDate : "",
+        periodStartDate,
+        periodEndDate,
         active: item?.active !== false,
         sortOrder: Number(item?.sortOrder) || index + 1
       };
@@ -364,6 +426,18 @@ function publicSeasonEvents(data = {}, context = {}) {
     .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 
   return { items };
+}
+
+function getSeasonEventsUpdateLock(snapshot) {
+  if (!snapshot?.exists) return { locked: false, lockedUntilIso: "" };
+  const updatedAtMillis = timestampToMillis(snapshot.data()?.updatedAt);
+  if (!updatedAtMillis) return { locked: false, lockedUntilIso: "" };
+  const lockedUntilMillis = updatedAtMillis + SEASON_EVENTS_UPDATE_LOCK_MS;
+  const locked = lockedUntilMillis > Date.now();
+  return {
+    locked,
+    lockedUntilIso: locked ? new Date(lockedUntilMillis).toISOString() : ""
+  };
 }
 
 function getKstDateKey(date = new Date()) {
@@ -4049,9 +4123,12 @@ exports.adminGetSeasonEvents = onCall({ region: REGION }, async request => {
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
   const snapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
+  const lock = getSeasonEventsUpdateLock(snapshot);
   return {
     success: true,
-    seasonEvents: publicSeasonEvents(snapshot.exists ? snapshot.data() || {} : DEFAULT_SEASON_EVENTS)
+    seasonEvents: publicSeasonEvents(snapshot.exists ? snapshot.data() || {} : DEFAULT_SEASON_EVENTS),
+    canUpdate: !lock.locked,
+    lockedUntilIso: lock.lockedUntilIso
   };
 });
 
@@ -4061,6 +4138,10 @@ exports.adminUpdateSeasonEvents = onCall({ region: REGION }, async request => {
   assertSuperAdmin(adminMember);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const beforeSnapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
+  const lock = getSeasonEventsUpdateLock(beforeSnapshot);
+  if (lock.locked) {
+    throw new HttpsError("failed-precondition", `Season events can be updated after ${lock.lockedUntilIso}.`);
+  }
   const before = beforeSnapshot.exists ? publicSeasonEvents(beforeSnapshot.data() || {}) : DEFAULT_SEASON_EVENTS;
   const next = publicSeasonEvents(payload.seasonEvents || payload);
 
@@ -4081,7 +4162,9 @@ exports.adminUpdateSeasonEvents = onCall({ region: REGION }, async request => {
 
   return {
     success: true,
-    seasonEvents: next
+    seasonEvents: next,
+    canUpdate: false,
+    lockedUntilIso: new Date(Date.now() + SEASON_EVENTS_UPDATE_LOCK_MS).toISOString()
   };
 });
 

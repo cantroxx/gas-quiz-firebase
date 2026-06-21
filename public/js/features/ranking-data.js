@@ -110,6 +110,22 @@
     };
   }
 
+  function getKstDateBoundaryMillis(dateKey, endOfDay = false) {
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return 0;
+    const [year, month, day] = String(dateKey).split('-').map(Number);
+    const startMillis = Date.UTC(year, month - 1, day) - (9 * 60 * 60 * 1000);
+    return endOfDay ? startMillis + (24 * 60 * 60 * 1000) - 1 : startMillis;
+  }
+
+  function getSeasonEventRange(eventItem = {}, periodType) {
+    const startMillis = getKstDateBoundaryMillis(eventItem.periodStartDate || eventItem.startDate);
+    const endMillis = getKstDateBoundaryMillis(eventItem.periodEndDate || eventItem.endDate, true);
+    if(startMillis && endMillis && startMillis <= endMillis) {
+      return { startMillis, endMillis };
+    }
+    return getKstPeriodRange(periodType);
+  }
+
   function getSeasonRankingEvents(seasonEvents = [], periodType) {
     return (seasonEvents || [])
       .filter(eventItem => eventItem?.active !== false && eventItem?.periodType === periodType)
@@ -128,7 +144,7 @@
     const getRankingRecordTimeValue = deps.getRankingRecordTimeValue || (() => 0);
     const getTopRankingRecordsByCategoryKeys = deps.getTopRankingRecordsByCategoryKeys || (() => []);
     const rowLimit = Number(deps.rankingPlazaRowLimit) || 10;
-    const range = getKstPeriodRange(periodType);
+    const range = getSeasonEventRange(events[0] || {}, periodType);
     const keys = getSeasonRankingCategoryKeys(events, deps);
     const periodRecords = records.filter(record => {
       const time = getRankingRecordTimeValue(record);
@@ -154,9 +170,7 @@
       .map(eventItem => ({
       id: `season-${eventItem.periodType || 'monthly'}-${eventItem.eventId || getSeasonQuizAreaLabel(eventItem, deps)}`,
       label: getSeasonQuizAreaLabel(eventItem, deps),
-      desc: eventItem.periodType === 'weekly'
-        ? '이번주 전용 시즌 랭킹탭입니다.'
-        : '이번달 전용 시즌 랭킹탭입니다.',
+      desc: `${eventItem.period || (eventItem.periodType === 'weekly' ? '이번주' : '이번달')} 전용 시즌 랭킹탭입니다.`,
       keys: getSeasonRankingCategoryKeys([eventItem], deps),
       rows: getSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
       sourceRows: records,

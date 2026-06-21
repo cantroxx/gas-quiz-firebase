@@ -403,11 +403,23 @@
           <input data-season-event-field="desc" data-season-event-index="${index}" type="text" maxlength="180" value="">
         </label>
         <label>
-          기간
+          기간 유형
           <select data-season-event-field="periodType" data-season-event-index="${index}">
-            <option value="monthly">이번달</option>
-            <option value="weekly">이번주</option>
+            <option value="monthly">월간</option>
+            <option value="weekly">주간</option>
           </select>
+        </label>
+        <label>
+          월간 대상 월
+          <input data-season-event-field="targetMonth" data-season-event-index="${index}" type="month" value="">
+        </label>
+        <label>
+          주간 시작일
+          <input data-season-event-field="startDate" data-season-event-index="${index}" type="date" value="">
+        </label>
+        <label>
+          주간 종료일
+          <input data-season-event-field="endDate" data-season-event-index="${index}" type="date" value="">
         </label>
         <label>
           지정 퀴즈 ID
@@ -425,6 +437,9 @@
       row.querySelector('[data-season-event-field="title"]').value = item.title || '';
       row.querySelector('[data-season-event-field="desc"]').value = item.desc || '';
       row.querySelector('[data-season-event-field="periodType"]').value = item.periodType === 'weekly' ? 'weekly' : 'monthly';
+      row.querySelector('[data-season-event-field="targetMonth"]').value = item.targetMonth || '';
+      row.querySelector('[data-season-event-field="startDate"]').value = item.startDate || item.periodStartDate || '';
+      row.querySelector('[data-season-event-field="endDate"]').value = item.endDate || item.periodEndDate || '';
       row.querySelector('[data-season-event-field="quizIds"]').value = (item.quizIds || []).join(', ');
       const iconList = row.querySelector('.admin-season-icon-toggle-list');
       iconOptions.forEach(iconValue => {

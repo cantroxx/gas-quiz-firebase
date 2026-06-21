@@ -5922,6 +5922,12 @@
             : [],
           periodType: item.periodType === 'weekly' ? 'weekly' : 'monthly',
           period: String(item.period || (item.periodType === 'weekly' ? '이번 주' : '이번 달')).trim(),
+          periodKey: String(item.periodKey || '').trim(),
+          targetMonth: String(item.targetMonth || item.month || '').trim(),
+          startDate: String(item.startDate || item.periodStartDate || '').trim(),
+          endDate: String(item.endDate || item.periodEndDate || '').trim(),
+          periodStartDate: String(item.periodStartDate || item.startDate || '').trim(),
+          periodEndDate: String(item.periodEndDate || item.endDate || '').trim(),
           active: item.active !== false,
           sortOrder: Number(item.sortOrder) || index + 1
         })).filter(item => item.eventId && item.title)
@@ -5956,7 +5962,10 @@
       const result = await getAdminRepository().loadAdminSeasonEvents();
       const seasonEvents = window.DJ48AdminState.setSeasonEventsCache(normalizeSeasonEvents(result.seasonEvents));
       renderAdminSeasonEventRows(seasonEvents);
-      setAdminSeasonEventsStatus('시즌 이벤트를 불러왔습니다.');
+      const lockText = result.lockedUntilIso
+        ? ` ${new Date(result.lockedUntilIso).toLocaleString('ko-KR')}까지 수정할 수 없습니다.`
+        : '';
+      setAdminSeasonEventsStatus(`시즌 이벤트를 불러왔습니다.${lockText}`);
       return seasonEvents;
     }
 
@@ -5968,7 +5977,10 @@
       renderAdminSeasonEventRows(savedSeasonEvents);
       resetEventProgressCache();
       await renderEventProgressFromFunctions(true).catch(error => console.warn('Event progress refresh after season save failed.', error));
-      setAdminSeasonEventsStatus('시즌 이벤트를 저장했습니다.');
+      const lockText = result.lockedUntilIso
+        ? ` ${new Date(result.lockedUntilIso).toLocaleString('ko-KR')}까지 수정할 수 없습니다.`
+        : '';
+      setAdminSeasonEventsStatus(`시즌 이벤트를 저장했습니다.${lockText}`);
       return savedSeasonEvents;
     }
 
