@@ -40,6 +40,12 @@
     root.appendChild(nameText);
   }
 
+  function getRankingBoardScoreText(board = {}, row = {}) {
+    if(typeof board.score === 'function') return board.score(row);
+    if(Number.isFinite(Number(row.totalScore))) return `총 ${Number(row.totalScore) || 0}점`;
+    return `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`;
+  }
+
   function createRankingLevelBadge(row, deps = {}) {
     const level = Math.max(0, Math.round(Number(row?.level || row?.levelSummary?.level) || 0));
     const iconUrl = String(row?.rankIconUrl || row?.levelSummary?.rankIconUrl || '').trim();
@@ -172,7 +178,7 @@
       if(titleChip) name.appendChild(titleChip);
       appendRankingDisplayName(name, row, deps);
       const meta = createRankingMetaLine(row, board);
-      score.textContent = board.score(row);
+      score.textContent = getRankingBoardScoreText(board, row);
 
       body.appendChild(name);
       if(meta) body.appendChild(meta);
@@ -203,7 +209,7 @@
     if(titleChip) name.appendChild(titleChip);
     appendRankingDisplayName(name, row, deps);
     const meta = createRankingMetaLine(row, board);
-    score.textContent = board.score(row);
+    score.textContent = getRankingBoardScoreText(board, row);
 
     card.append(badge, avatar, name);
     if(meta) card.appendChild(meta);

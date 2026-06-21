@@ -11,7 +11,8 @@
     try {
       firestoreDbInstance.settings({
         ignoreUndefinedProperties: true,
-        merge: true
+        experimentalAutoDetectLongPolling: true,
+        useFetchStreams: false
       });
     } catch(error) {
       console.warn('Firestore settings could not be applied after initialization.', error);

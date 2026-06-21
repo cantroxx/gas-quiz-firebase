@@ -187,7 +187,9 @@
       title: '시즌 랭킹',
       desc: '이번달/이번주로 설정된 시즌 퀴즈 랭킹입니다.',
       rows: groups.flatMap(group => group.rows || []),
-      groups: groups.length ? groups : [{ id: 'season-empty', label: '시즌', desc: '시즌 이벤트에 지정된 퀴즈가 없습니다.', rows: [] }]
+      groups: groups.length ? groups : [{ id: 'season-empty', label: '시즌', desc: '시즌 이벤트에 지정된 퀴즈가 없습니다.', rows: [] }],
+      meta: row => getRankingCategoryLabel(row) || '시즌',
+      score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
     };
   }
 
