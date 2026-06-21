@@ -67,6 +67,7 @@ const DEFAULT_FEATURE_FLAGS = {
   todayQuizRandomPoolIds: [],
   todayQuizDailyCount: 1,
   todayQuizShuffleSeed: "",
+  todayQuizShuffledAtIso: "",
   disabledQuizIds: []
 };
 
@@ -245,6 +246,7 @@ function publicFeatureFlags(data = {}) {
   const todayQuizMode = data.todayQuizMode === "dailyRandom" ? "dailyRandom" : "manual";
   const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
   const todayQuizShuffleSeed = String(data.todayQuizShuffleSeed || "").trim().slice(0, 80);
+  const todayQuizShuffledAtIso = String(data.todayQuizShuffledAtIso || "").trim().slice(0, 40);
   const activeTodayQuizIds = todayQuizMode === "dailyRandom"
     ? getDailyShuffledQuizIds(todayQuizRandomPoolIds, `${getKstDateKey()}:${todayQuizShuffleSeed || ""}`).slice(0, todayQuizDailyCount)
     : todayQuizIds;
@@ -261,6 +263,7 @@ function publicFeatureFlags(data = {}) {
     todayQuizRandomPoolIds,
     todayQuizDailyCount,
     todayQuizShuffleSeed,
+    todayQuizShuffledAtIso,
     disabledQuizIds
   };
 }

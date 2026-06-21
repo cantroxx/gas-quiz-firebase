@@ -290,6 +290,7 @@
       todayQuizRandomPoolIds: todayQuizRandomPoolToggleIds.length ? todayQuizRandomPoolToggleIds : todayQuizRandomPoolIds,
       todayQuizDailyCount: Number(document.getElementById('admin-feature-today-quiz-count')?.value || 1),
       todayQuizShuffleSeed: deps.todayQuizShuffleSeed || '',
+      todayQuizShuffledAtIso: deps.todayQuizShuffledAtIso || '',
       disabledQuizIds
     });
   }
