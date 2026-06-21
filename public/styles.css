@@ -4798,14 +4798,221 @@ h2 {
 }
 
 .classroom-today-grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
+  display: block;
   margin-bottom: 14px;
 }
 
+.classroom-visual-map {
+  overflow: hidden;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(238, 249, 241, 0.92), rgba(255, 255, 255, 0.96) 42%),
+    repeating-linear-gradient(90deg, rgba(47, 125, 68, 0.05) 0 1px, transparent 1px 38px);
+  box-shadow: 0 18px 36px rgba(47, 125, 68, 0.1);
+}
+
+.classroom-visual-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(360px, 1.2fr);
+  gap: 16px;
+  align-items: stretch;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(47, 125, 68, 0.12), rgba(255, 214, 102, 0.18));
+}
+
+.classroom-visual-hero-copy {
+  min-width: 0;
+}
+
+.classroom-visual-hero-copy span,
+.classroom-visual-metric span,
+.classroom-today-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.classroom-visual-hero-copy strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--green-dark);
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.classroom-visual-hero-copy p {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.classroom-visual-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.classroom-visual-metric {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(47, 125, 68, 0.15);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+  text-align: left;
+  cursor: pointer;
+}
+
+.classroom-visual-metric strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--green-dark);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.classroom-visual-metric small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.classroom-visual-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 16px;
+  padding: 16px 18px 18px;
+}
+
+.classroom-visual-room {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 245, 224, 0.72)),
+    linear-gradient(90deg, rgba(255, 214, 102, 0.18), rgba(95, 174, 120, 0.12));
+}
+
+.classroom-visual-board {
+  padding: 14px;
+  border: 4px solid #7a5535;
+  border-radius: 8px;
+  background: #2f6f56;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 10px 18px rgba(47, 125, 68, 0.16);
+  color: #fff;
+}
+
+.classroom-visual-board strong {
+  display: block;
+  font-size: 1.06rem;
+  line-height: 1.25;
+}
+
+.classroom-visual-board p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.classroom-visual-desks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.classroom-visual-seat,
+.classroom-visual-product {
+  min-width: 0;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 16px rgba(47, 125, 68, 0.08);
+  cursor: pointer;
+}
+
+.classroom-visual-seat {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-height: 118px;
+  padding: 10px 8px;
+}
+
+.classroom-visual-seat-portrait {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 2px solid rgba(47, 125, 68, 0.16);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff4b8, #d8f5e1);
+  color: var(--green-dark);
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.classroom-visual-seat-portrait > img:not(.classroom-visual-seat-medal) {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.classroom-visual-seat-medal {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+}
+
+.classroom-visual-seat strong,
+.classroom-visual-product strong {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classroom-visual-seat small,
+.classroom-visual-product small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.classroom-visual-side {
+  min-width: 0;
+}
+
+.classroom-visual-side-list {
+  display: grid;
+  gap: 10px;
+}
+
 .classroom-today-card {
-  min-height: 132px;
+  min-height: 0;
   padding: 14px;
   border: 1px solid rgba(47, 125, 68, 0.14);
   border-radius: 8px;
@@ -4813,20 +5020,13 @@ h2 {
   box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
 }
 
-.classroom-today-card span,
-.classroom-today-card strong,
 .classroom-today-card p {
   display: block;
   margin: 0;
 }
 
-.classroom-today-card span {
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
 .classroom-today-card strong {
+  display: block;
   margin-top: 6px;
   color: var(--green-dark);
   font-size: 1.08rem;
@@ -4854,6 +5054,95 @@ h2 {
 
 .classroom-today-link:hover {
   background: rgba(47, 125, 68, 0.14);
+}
+
+.classroom-visual-shop-shelf {
+  margin: 0 18px 18px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.classroom-visual-shelf-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+}
+
+.classroom-visual-shelf-header strong {
+  color: var(--green-dark);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.classroom-visual-shelf-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.classroom-visual-shelf-header .classroom-today-link {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.classroom-visual-shelf-items {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.classroom-visual-product {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-height: 118px;
+  padding: 12px 8px;
+  opacity: 0.72;
+}
+
+.classroom-visual-product.is-affordable {
+  opacity: 1;
+  border-color: rgba(236, 168, 46, 0.44);
+  background: linear-gradient(180deg, #fff9de, #fff);
+}
+
+.classroom-visual-product-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffe47a, #8ed7a6);
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.classroom-visual-product-icon img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.classroom-visual-empty {
+  display: grid;
+  place-items: center;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px dashed rgba(47, 125, 68, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-align: center;
 }
 
 .classroom-activity-feed,
@@ -6378,8 +6667,18 @@ h2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .classroom-today-grid {
+  .classroom-visual-hero,
+  .classroom-visual-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-visual-metrics,
+  .classroom-visual-shelf-items {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .classroom-visual-desks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .classroom-teacher-report {
@@ -6774,6 +7073,31 @@ h2 {
   .pokemon-hub-practice-grid,
   .pokemon-hub-ranking-mode-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .classroom-visual-hero,
+  .classroom-visual-stage {
+    padding: 12px;
+  }
+
+  .classroom-visual-metrics,
+  .classroom-visual-desks,
+  .classroom-visual-shelf-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .classroom-visual-shop-shelf {
+    margin: 0 12px 12px;
+  }
+
+  .classroom-visual-shelf-header {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-visual-shelf-header .classroom-today-link {
+    grid-row: auto;
+    grid-column: auto;
+    width: fit-content;
   }
 
   .quiz-question-title-row {

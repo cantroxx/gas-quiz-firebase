@@ -224,34 +224,182 @@
     const berry = Number(wallet.berry || 0);
     const affordableItems = shopItems.filter(item => berry >= Number(item.priceBerry || 0)).length;
     const usableCoupons = purchases.filter(item => !['used'].includes(item.status)).length;
-    const cards = [
-      ['오늘 완료율', `${todayPercent}%`, todayTodoTotal ? `${todayDoneTotal}/${todayTodoTotal}개 완료` : '오늘 표시할 활동이 생기면 계산됩니다', 'quests'],
-      ['내 베리', `${berry.toLocaleString('ko-KR')}개`, affordableItems ? `구매 가능한 상품 ${affordableItems}개` : '퀘스트와 루틴으로 베리를 모아 보세요', 'shop'],
+    grid.innerHTML = '';
+    const map = document.createElement('article');
+    const hero = document.createElement('section');
+    const heroCopy = document.createElement('div');
+    const eyebrow = document.createElement('span');
+    const title = document.createElement('strong');
+    const heroDesc = document.createElement('p');
+    const metrics = document.createElement('div');
+    const stage = document.createElement('section');
+    const room = document.createElement('div');
+    const board = document.createElement('div');
+    const boardTitle = document.createElement('strong');
+    const boardDesc = document.createElement('p');
+    const desks = document.createElement('div');
+    const side = document.createElement('aside');
+    const questList = document.createElement('div');
+    const shopShelf = document.createElement('section');
+    const shelfHeader = document.createElement('div');
+    const shelfTitle = document.createElement('strong');
+    const shelfDesc = document.createElement('p');
+    const shelfItems = document.createElement('div');
+    const metricItems = [
+      ['오늘 완료율', `${todayPercent}%`, todayTodoTotal ? `${todayDoneTotal}/${todayTodoTotal}개 완료` : '활동 대기 중', 'quests'],
+      ['내 베리', `${berry.toLocaleString('ko-KR')}개`, affordableItems ? `구매 가능 ${affordableItems}개` : '상점 확인', 'shop'],
+      ['성장루틴', `${todayRoutines.length}개`, todayRoutines[0]?.title || (routines.length ? '오늘 체크 완료' : '루틴 만들기'), 'routines']
+    ];
+    const sideItems = [
       ['오늘 퀘스트', `${pendingQuests.length}개`, pendingQuests[0]?.title || (quests.length ? '오늘 가능한 퀘스트를 모두 처리했습니다' : '담임이 퀘스트를 만들면 표시됩니다'), 'quests'],
-      ['성장루틴', `${todayRoutines.length}개`, todayRoutines[0]?.title || (routines.length ? '오늘 체크할 루틴이 없습니다' : '나만의 반복 목표를 만들어 보세요'), 'routines'],
       ['내 직업', myAssignment?.jobTitle || myAssignment?.jobId || '미배정', myAssignment ? '맡은 역할을 꾸준히 수행해 보세요' : '직업 탭에서 지원할 수 있습니다', 'jobs'],
-      ['내 쿠폰', `${usableCoupons}개`, usableCoupons ? '상점 탭에서 사용 요청할 수 있습니다' : '상점에서 베리로 쿠폰을 구매해 보세요', 'shop'],
-      ['젬·뱃지', selectedBadgeLabel || `${completedGems.length}개 획득`, selectedBadgeLabel ? '대표 뱃지가 학생카드에 표시됩니다' : '젬 목표를 달성하면 대표 뱃지로 설정할 수 있습니다', 'gems']
+      ['젬·뱃지', selectedBadgeLabel || `${completedGems.length}개 획득`, selectedBadgeLabel ? '대표 뱃지가 학생카드에 표시됩니다' : '젬 목표를 달성하면 대표 뱃지로 설정할 수 있습니다', 'gems'],
+      ['내 쿠폰', `${usableCoupons}개`, usableCoupons ? '상점 탭에서 사용 요청할 수 있습니다' : '상점에서 베리로 쿠폰을 구매해 보세요', 'shop']
     ];
 
-    grid.innerHTML = '';
-    cards.forEach(([label, value, detail, tabName]) => {
-      const card = document.createElement('article');
-      const labelEl = document.createElement('span');
-      const valueEl = document.createElement('strong');
-      const detailEl = document.createElement('p');
+    const createNavButton = tabName => {
       const button = document.createElement('button');
-      card.className = 'classroom-today-card';
-      labelEl.textContent = label;
-      valueEl.textContent = value;
-      detailEl.textContent = detail;
       button.className = 'classroom-today-link';
       button.type = 'button';
       button.dataset.classroomTodayTab = tabName;
       button.textContent = '열기';
-      card.append(labelEl, valueEl, detailEl, button);
-      grid.appendChild(card);
+      return button;
+    };
+
+    map.className = 'classroom-visual-map';
+    hero.className = 'classroom-visual-hero';
+    heroCopy.className = 'classroom-visual-hero-copy';
+    eyebrow.textContent = 'Today';
+    title.textContent = '오늘의 교실';
+    heroDesc.textContent = todayTodoTotal
+      ? `퀘스트와 루틴 ${todayTodoTotal}개 중 ${todayDoneTotal}개를 완료했습니다.`
+      : '담임이 퀘스트와 루틴을 만들면 이곳에 교실 현황이 모입니다.';
+    heroCopy.append(eyebrow, title, heroDesc);
+    metrics.className = 'classroom-visual-metrics';
+    metricItems.forEach(([label, value, detail, tabName]) => {
+      const card = document.createElement('button');
+      const labelEl = document.createElement('span');
+      const valueEl = document.createElement('strong');
+      const detailEl = document.createElement('small');
+      card.className = 'classroom-visual-metric';
+      card.type = 'button';
+      card.dataset.classroomTodayTab = tabName;
+      labelEl.textContent = label;
+      valueEl.textContent = value;
+      detailEl.textContent = detail;
+      card.append(labelEl, valueEl, detailEl);
+      metrics.appendChild(card);
     });
+    hero.append(heroCopy, metrics);
+
+    stage.className = 'classroom-visual-stage';
+    room.className = 'classroom-visual-room';
+    board.className = 'classroom-visual-board';
+    boardTitle.textContent = pendingQuests[0]?.title || '오늘의 미션 보드';
+    boardDesc.textContent = pendingQuests[0]?.desc || (quests.length ? '완료하지 않은 퀘스트가 보이면 퀘스트 탭에서 저장할 수 있습니다.' : '새 퀘스트가 등록되면 칠판에 먼저 표시됩니다.');
+    board.append(boardTitle, boardDesc);
+    desks.className = 'classroom-visual-desks';
+    studentCards.slice(0, 8).forEach(student => {
+      const seat = document.createElement('button');
+      const portrait = document.createElement('span');
+      const name = document.createElement('strong');
+      const meta = document.createElement('small');
+      const imageUrl = deps.normalizeDisplayImageUrl?.(student.profileImageUrl || '') || '';
+      const levelSummary = student.levelSummary || {};
+      const level = Math.max(0, Math.round(Number(student.level || levelSummary.level) || 0));
+      const medalAsset = level ? deps.getLevelMedalAsset?.(level) : null;
+      seat.className = 'classroom-visual-seat';
+      seat.type = 'button';
+      seat.dataset.classroomTodayTab = 'students';
+      portrait.className = 'classroom-visual-seat-portrait';
+      if(imageUrl) {
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.alt = `${student.nickname || student.name || '학생'} 프로필`;
+        image.loading = 'lazy';
+        portrait.appendChild(image);
+      } else {
+        portrait.textContent = String(student.nickname || student.name || '학').slice(0, 1);
+      }
+      if(medalAsset?.path) {
+        const medal = document.createElement('img');
+        medal.className = 'classroom-visual-seat-medal';
+        medal.src = medalAsset.path;
+        medal.alt = `Lv.${level} 훈장`;
+        medal.loading = 'lazy';
+        portrait.appendChild(medal);
+      }
+      name.textContent = student.nickname || student.name || student.memberUserId || '학생';
+      meta.textContent = level ? `Lv.${level} · ${Number(student.berry || 0).toLocaleString('ko-KR')} 베리` : `${Number(student.berry || 0).toLocaleString('ko-KR')} 베리`;
+      seat.append(portrait, name, meta);
+      desks.appendChild(seat);
+    });
+    if(!studentCards.length) {
+      const emptySeat = document.createElement('div');
+      emptySeat.className = 'classroom-visual-empty';
+      emptySeat.textContent = '학생카드를 불러오면 좌석이 채워집니다.';
+      desks.appendChild(emptySeat);
+    }
+    room.append(board, desks);
+
+    side.className = 'classroom-visual-side';
+    questList.className = 'classroom-visual-side-list';
+    sideItems.forEach(([label, value, detail, tabName]) => {
+      const card = document.createElement('article');
+      const labelEl = document.createElement('span');
+      const valueEl = document.createElement('strong');
+      const detailEl = document.createElement('p');
+      card.className = 'classroom-today-card';
+      labelEl.textContent = label;
+      valueEl.textContent = value;
+      detailEl.textContent = detail;
+      card.append(labelEl, valueEl, detailEl, createNavButton(tabName));
+      questList.appendChild(card);
+    });
+    side.appendChild(questList);
+    stage.append(room, side);
+
+    shopShelf.className = 'classroom-visual-shop-shelf';
+    shelfHeader.className = 'classroom-visual-shelf-header';
+    shelfTitle.textContent = '상점 선반';
+    shelfDesc.textContent = shopItems.length ? '베리로 살 수 있는 상품을 미리 확인하세요.' : '상품이 등록되면 이곳에 이미지 카드처럼 보입니다.';
+    shelfHeader.append(shelfTitle, shelfDesc, createNavButton('shop'));
+    shelfItems.className = 'classroom-visual-shelf-items';
+    shopItems.slice(0, 4).forEach(item => {
+      const product = document.createElement('button');
+      const icon = document.createElement('span');
+      const productTitle = document.createElement('strong');
+      const productPrice = document.createElement('small');
+      const imageUrl = deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '';
+      const price = Number(item.priceBerry || 0);
+      product.className = `classroom-visual-product${berry >= price ? ' is-affordable' : ''}`;
+      product.type = 'button';
+      product.dataset.classroomTodayTab = 'shop';
+      icon.className = 'classroom-visual-product-icon';
+      if(imageUrl) {
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.alt = `${item.title || '교실 상품'} 이미지`;
+        image.loading = 'lazy';
+        icon.appendChild(image);
+      } else {
+        icon.textContent = '선물';
+      }
+      productTitle.textContent = item.title || '교실 상품';
+      productPrice.textContent = `${price.toLocaleString('ko-KR')} 베리`;
+      product.append(icon, productTitle, productPrice);
+      shelfItems.appendChild(product);
+    });
+    if(!shopItems.length) {
+      const emptyProduct = document.createElement('div');
+      emptyProduct.className = 'classroom-visual-empty';
+      emptyProduct.textContent = '교실 상품을 준비 중입니다.';
+      shelfItems.appendChild(emptyProduct);
+    }
+    shopShelf.append(shelfHeader, shelfItems);
+
+    map.append(hero, stage, shopShelf);
+    grid.appendChild(map);
   }
 
   function getClassroomPurchaseStatusLabel(status = '') {
