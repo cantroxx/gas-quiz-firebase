@@ -78,8 +78,11 @@
   function renderSeasonEvents(events = []) {
     const grid = document.getElementById('season-event-grid');
     if(!grid) return;
+    const eventItems = Array.isArray(events)
+      ? events
+      : (Array.isArray(events?.items) ? events.items : []);
     grid.innerHTML = '';
-    events.forEach(eventItem => {
+    eventItems.forEach(eventItem => {
       const card = document.createElement('article');
       const icon = document.createElement('span');
       const title = document.createElement('h4');

@@ -165,7 +165,10 @@
 
   function buildSeasonRankingGroups(records = [], seasonEvents = [], deps = {}) {
     const getRankingCategoryLabel = deps.getRankingCategoryLabel || (() => '');
-    return (seasonEvents || [])
+    const eventItems = Array.isArray(seasonEvents)
+      ? seasonEvents
+      : (Array.isArray(seasonEvents?.items) ? seasonEvents.items : []);
+    return eventItems
       .filter(eventItem => eventItem?.active !== false && Array.isArray(eventItem.quizIds) && eventItem.quizIds.length)
       .map(eventItem => ({
       id: `season-${eventItem.periodType || 'monthly'}-${eventItem.eventId || getSeasonQuizAreaLabel(eventItem, deps)}`,
@@ -245,7 +248,6 @@
       ...scienceDefinitions
     ], groupDeps);
     return [
-      buildSeasonRankingBoard(rankingRecords, seasonEvents, groupDeps),
       {
         id: 'quizKing',
         label: '퀴즈왕',
@@ -255,6 +257,7 @@
         meta: row => `${Number(row.categoryCount) || 0}영역 반영`,
         score: row => `총 ${Number(row.totalScore) || 0}점`
       },
+      buildSeasonRankingBoard(rankingRecords, seasonEvents, groupDeps),
       {
         id: 'korean',
         label: '국어',

@@ -3636,7 +3636,10 @@
         buildRankingRecordCard,
         loadSeasonEventsForRanking: async () => {
           const cached = window.DJ48EventState.getEventProgress();
-          if(cached?.seasonEvents) return cached.seasonEvents;
+          if(cached?.seasonEvents) {
+            const cachedSeasonEvents = normalizeSeasonEvents(cached.seasonEvents);
+            if(cachedSeasonEvents.items.length) return cachedSeasonEvents.items;
+          }
           const seasonEvents = normalizeSeasonEvents(await getAdminRepository().loadPublicSeasonEvents());
           return seasonEvents.items.length ? seasonEvents.items : SEASON_EVENT_DATA;
         },
