@@ -21,7 +21,9 @@ const DEFAULT_PASSWORD_SETUP_EXPIRES_AT = "2026-06-17T23:59:59+09:00";
 const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
 const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
+const SEASON_EVENTS_DOC_PATH = "appSettings/seasonEvents";
 const MAX_EXTERNAL_QUIZ_ITEMS = 12;
+const MAX_SEASON_EVENT_ITEMS = 12;
 const POPULAR_USAGE_SOFT_LIMIT_SECONDS = 10 * 60;
 const POPULAR_USAGE_AFTER4_HARD_LIMIT_SECONDS = 30 * 60;
 const POPULAR_USAGE_UNLOCK_CORRECT_COUNT = 15;
@@ -66,6 +68,27 @@ const DEFAULT_FEATURE_FLAGS = {
 
 const DEFAULT_EXTERNAL_QUIZZES = {
   items: []
+};
+
+const DEFAULT_SEASON_EVENTS = {
+  items: [
+    {
+      eventId: "reading_king_season",
+      icon: "📖",
+      title: "독서왕 시즌",
+      desc: "독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.",
+      periodType: "monthly",
+      active: true
+    },
+    {
+      eventId: "three_kingdoms_week",
+      icon: "🏯",
+      title: "삼국시대 탐험 주간",
+      desc: "삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.",
+      periodType: "weekly",
+      active: true
+    }
+  ]
 };
 
 const EVENT_DAILY_QUEST_POOL = [
@@ -291,6 +314,33 @@ function publicExternalQuizzes(data = {}) {
       };
     })
     .filter(item => item.title && item.url)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+
+  return { items };
+}
+
+function publicSeasonEvents(data = {}, context = {}) {
+  const rawItems = Array.isArray(data.items) ? data.items : [];
+  const dateKey = String(context.dateKey || getKstDateKey());
+  const weekKey = String(context.weekKey || getKstWeekKey());
+  const monthKey = dateKey.slice(0, 7);
+  const items = rawItems.slice(0, MAX_SEASON_EVENT_ITEMS)
+    .map((item, index) => {
+      const periodType = item?.periodType === "weekly" ? "weekly" : "monthly";
+      const periodKey = periodType === "weekly" ? weekKey : monthKey;
+      return {
+        eventId: String(item?.eventId || `season-${index + 1}`).trim().replace(/[^0-9A-Za-z_-]+/g, "-").slice(0, 60) || `season-${index + 1}`,
+        icon: String(item?.icon || "✨").trim().slice(0, 8) || "✨",
+        title: String(item?.title || "").trim().slice(0, 60),
+        desc: String(item?.desc || item?.description || "").trim().slice(0, 180),
+        periodType,
+        period: String(item?.period || (periodType === "weekly" ? "이번 주" : "이번 달")).trim().slice(0, 40),
+        periodKey,
+        active: item?.active !== false,
+        sortOrder: Number(item?.sortOrder) || index + 1
+      };
+    })
+    .filter(item => item.eventId && item.title)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 
   return { items };
@@ -3892,6 +3942,47 @@ exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request =>
   };
 });
 
+exports.adminGetSeasonEvents = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const snapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
+  return {
+    success: true,
+    seasonEvents: publicSeasonEvents(snapshot.exists ? snapshot.data() || {} : DEFAULT_SEASON_EVENTS)
+  };
+});
+
+exports.adminUpdateSeasonEvents = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  assertSuperAdmin(adminMember);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const beforeSnapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
+  const before = beforeSnapshot.exists ? publicSeasonEvents(beforeSnapshot.data() || {}) : DEFAULT_SEASON_EVENTS;
+  const next = publicSeasonEvents(payload.seasonEvents || payload);
+
+  await db.doc(SEASON_EVENTS_DOC_PATH).set({
+    ...next,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByAdminUserId: adminMember.memberUserId
+  }, { merge: true });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdateSeasonEvents",
+    targetUserId: SEASON_EVENTS_DOC_PATH,
+    before,
+    after: next,
+    reason: "season events update"
+  });
+
+  return {
+    success: true,
+    seasonEvents: next
+  };
+});
+
 exports.getEventProgress = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -3903,11 +3994,16 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
   const dateKey = getKstDateKey();
   const weekKey = getKstWeekKey();
   const activeQuests = getActiveEventQuests(dateKey);
-  const [progressMap, claimMap] = await Promise.all([
+  const [progressMap, claimMap, seasonEventsSnapshot] = await Promise.all([
     loadEventProgressMap(memberUserId, activeQuests, dateKey, weekKey),
-    loadEventClaimMap(memberUserId, activeQuests, dateKey, weekKey)
+    loadEventClaimMap(memberUserId, activeQuests, dateKey, weekKey),
+    db.doc(SEASON_EVENTS_DOC_PATH).get()
   ]);
   const monthKey = dateKey.slice(0, 7);
+  const seasonEvents = publicSeasonEvents(
+    seasonEventsSnapshot.exists ? seasonEventsSnapshot.data() || {} : DEFAULT_SEASON_EVENTS,
+    { dateKey, weekKey }
+  ).items.filter(eventItem => eventItem.active !== false);
 
   return {
     success: true,
@@ -3916,35 +4012,8 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
     weekKey,
     quests: buildEventQuestRows(activeQuests, progressMap, claimMap),
     classMissions: [],
-    seasonEvents: [
-      {
-        eventId: "reading_king_season",
-        icon: "📖",
-        title: "독서왕 시즌",
-        desc: "독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.",
-        period: "이번 달",
-        periodType: "monthly",
-        periodKey: monthKey
-      },
-      {
-        eventId: "three_kingdoms_week",
-        icon: "🏯",
-        title: "삼국시대 탐험 주간",
-        desc: "삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.",
-        period: "이번 주",
-        periodType: "weekly",
-        periodKey: weekKey
-      },
-      {
-        eventId: "calculation_challenge",
-        icon: "🧮",
-        title: "계산왕 챌린지",
-        desc: "수학 계산 연습을 반복하며 도전 기록을 확인하는 이벤트입니다.",
-        period: "이번 달",
-        periodType: "monthly",
-        periodKey: monthKey
-      }
-    ]
+    monthKey,
+    seasonEvents
   };
 });
 

@@ -734,6 +734,7 @@
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="season-events" data-super-admin-only>시즌 이벤트</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="login" data-super-admin-only>로그인 설정</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="features" data-super-admin-only>기능 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="permissions" data-super-admin-only>권한 관리</button>
@@ -955,6 +956,29 @@
         </div>
       </section>
 
+      <section id="admin-section-season-events" class="admin-section" aria-labelledby="admin-season-events-heading" data-super-admin-only>
+        <button class="admin-section-toggle" type="button" data-admin-section-target="season-events" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Season</span>
+            <strong id="admin-season-events-heading">시즌 이벤트 설계</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-settings-form">
+            <label>
+              이벤트 JSON
+              <textarea id="admin-season-events-json" rows="12" spellcheck="false"></textarea>
+            </label>
+          </div>
+          <div class="admin-notice-actions">
+            <button id="admin-season-events-load" class="button secondary" type="button">불러오기</button>
+            <button id="admin-season-events-save" class="button primary" type="button">저장</button>
+          </div>
+          <p id="admin-season-events-status" class="admin-status" aria-live="polite"></p>
+        </div>
+      </section>
+
       <section id="admin-section-login" class="admin-section" aria-labelledby="admin-login-heading" data-super-admin-only>
         <button class="admin-section-toggle" type="button" data-admin-section-target="login" aria-expanded="false">
           <span>
@@ -1119,6 +1143,7 @@
                 <option value="adminUnlinkMemberAuth">연결 해제</option>
                 <option value="adminUpdateNoticeBoard">알림판 수정</option>
                 <option value="adminUpdateExternalQuizzes">외부 퀴즈 수정</option>
+                <option value="adminUpdateSeasonEvents">시즌 이벤트 수정</option>
                 <option value="adminUpdatePasswordSetupSettings">로그인 설정 변경</option>
                 <option value="adminUpdateFeatureFlags">기능 설정 변경</option>
                 <option value="adminGrantClassAdmin">반 관리자 지정</option>
@@ -5830,6 +5855,22 @@
       return window.DJ48AdminForm.getAdminExternalQuizzesFormValues();
     }
 
+    function normalizeSeasonEvents(data = {}) {
+      const items = Array.isArray(data.items) ? data.items : [];
+      return {
+        items: items.map((item, index) => ({
+          eventId: String(item.eventId || `season-${index + 1}`).trim(),
+          icon: String(item.icon || '✨').trim() || '✨',
+          title: String(item.title || '').trim(),
+          desc: String(item.desc || item.description || '').trim(),
+          periodType: item.periodType === 'weekly' ? 'weekly' : 'monthly',
+          period: String(item.period || (item.periodType === 'weekly' ? '이번 주' : '이번 달')).trim(),
+          active: item.active !== false,
+          sortOrder: Number(item.sortOrder) || index + 1
+        })).filter(item => item.eventId && item.title)
+      };
+    }
+
     async function loadAdminExternalQuizzes() {
       setAdminExternalQuizzesStatus('외부 퀴즈를 불러오는 중입니다...');
       const result = await getAdminRepository().loadAdminExternalQuizzes();
@@ -5847,6 +5888,31 @@
       renderAdminExternalQuizRows(savedExternalQuizzes);
       setAdminExternalQuizzesStatus('외부 퀴즈를 저장했습니다.');
       return savedExternalQuizzes;
+    }
+
+    function setAdminSeasonEventsStatus(message, isError = false) {
+      return window.DJ48AdminForm.setAdminStatusElement('admin-season-events-status', message, isError);
+    }
+
+    async function loadAdminSeasonEvents() {
+      setAdminSeasonEventsStatus('시즌 이벤트를 불러오는 중입니다...');
+      const result = await getAdminRepository().loadAdminSeasonEvents();
+      const seasonEvents = window.DJ48AdminState.setSeasonEventsCache(normalizeSeasonEvents(result.seasonEvents));
+      window.DJ48AdminForm.setAdminSeasonEventsForm(seasonEvents);
+      setAdminSeasonEventsStatus('시즌 이벤트를 불러왔습니다.');
+      return seasonEvents;
+    }
+
+    async function saveAdminSeasonEvents() {
+      const seasonEvents = normalizeSeasonEvents(window.DJ48AdminForm.getAdminSeasonEventsFormValues());
+      setAdminSeasonEventsStatus('시즌 이벤트를 저장하는 중입니다...');
+      const result = await getAdminRepository().saveAdminSeasonEvents(seasonEvents);
+      const savedSeasonEvents = window.DJ48AdminState.setSeasonEventsCache(normalizeSeasonEvents(result.seasonEvents));
+      window.DJ48AdminForm.setAdminSeasonEventsForm(savedSeasonEvents);
+      resetEventProgressCache();
+      await renderEventProgressFromFunctions(true).catch(error => console.warn('Event progress refresh after season save failed.', error));
+      setAdminSeasonEventsStatus('시즌 이벤트를 저장했습니다.');
+      return savedSeasonEvents;
     }
 
     function setAdminLoginSettingsStatus(message, isError = false) {
@@ -5986,6 +6052,7 @@
         adminUnlinkMemberAuth: '연결 해제',
         adminUpdateNoticeBoard: '알림판 수정',
         adminUpdateExternalQuizzes: '외부 퀴즈 수정',
+        adminUpdateSeasonEvents: '시즌 이벤트 수정',
         adminUpdatePasswordSetupSettings: '로그인 설정 변경',
         adminUpdateFeatureFlags: '기능 설정 변경',
         adminGrantClassAdmin: '반 관리자 지정',
@@ -6897,6 +6964,9 @@
         loadAdminExternalQuizzes,
         setAdminExternalQuizzesStatus,
         saveAdminExternalQuizzes,
+        loadAdminSeasonEvents,
+        setAdminSeasonEventsStatus,
+        saveAdminSeasonEvents,
         loadAdminLoginSettings,
         setAdminLoginSettingsStatus,
         saveAdminLoginSettings,

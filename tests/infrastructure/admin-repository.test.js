@@ -54,7 +54,7 @@ async function testAdminRepositoryCallsAdminFunctions() {
   });
   assert.equal(await repository.loadServerFreshnessSignature({
     getTimestampMillis: value => value.millis
-  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|noticeBoard:noticeBoard-current');
+  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|seasonEvents:appSettings-seasonEvents|noticeBoard:noticeBoard-current');
   await assertAdminCall(await repository.loadAdminDashboard(), 'adminGetDashboard', {});
   await assertAdminCall(await repository.loadAdminOperationalAudit(), 'adminGetOperationalAudit', {});
   await assertAdminCall(await repository.loadAdminQuizQualityAudit(), 'adminGetQuizQualityAudit', {});
@@ -70,6 +70,8 @@ async function testAdminRepositoryCallsAdminFunctions() {
   await assertAdminCall(await repository.saveAdminNoticeBoard({ title: 'notice' }), 'adminUpdateNoticeBoard', { notice: { title: 'notice' } });
   await assertAdminCall(await repository.loadAdminExternalQuizzes(), 'adminGetExternalQuizzes', {});
   await assertAdminCall(await repository.saveAdminExternalQuizzes([{ id: 'q1' }]), 'adminUpdateExternalQuizzes', { externalQuizzes: [{ id: 'q1' }] });
+  await assertAdminCall(await repository.loadAdminSeasonEvents(), 'adminGetSeasonEvents', {});
+  await assertAdminCall(await repository.saveAdminSeasonEvents({ items: [{ eventId: 'season-1' }] }), 'adminUpdateSeasonEvents', { seasonEvents: { items: [{ eventId: 'season-1' }] } });
   await assertAdminCall(await repository.loadAdminLoginSettings(), 'adminGetPasswordSetupSettings', {});
   await assertAdminCall(await repository.saveAdminLoginSettings({ enabled: false }), 'adminUpdatePasswordSetupSettings', { settings: { enabled: false } });
   await assertAdminCall(await repository.loadAdminFeatureFlags(), 'adminGetFeatureFlags', {});
@@ -93,6 +95,8 @@ async function testAdminRepositoryCallsAdminFunctions() {
     'adminUpdateNoticeBoard',
     'adminGetExternalQuizzes',
     'adminUpdateExternalQuizzes',
+    'adminGetSeasonEvents',
+    'adminUpdateSeasonEvents',
     'adminGetPasswordSetupSettings',
     'adminUpdatePasswordSetupSettings',
     'adminGetFeatureFlags',

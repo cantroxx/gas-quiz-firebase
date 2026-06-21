@@ -78,6 +78,14 @@
     }, '기능 설정 저장 중 문제가 생겼습니다.');
   }
 
+  function getAdminSeasonEventsSaveErrorMessage(error) {
+    if(error instanceof SyntaxError) return 'JSON 형식을 확인해 주세요.';
+    return getMappedErrorMessage(error, {
+      'functions/permission-denied': '전체 관리자만 시즌 이벤트를 바꿀 수 있습니다.',
+      'functions/invalid-argument': '시즌 이벤트 값을 확인해 주세요.'
+    }, '시즌 이벤트 저장 중 문제가 생겼습니다.');
+  }
+
   function getAdminPermissionGrantErrorMessage(error) {
     return getMappedErrorMessage(error, {
       'admin-permission-member-required': '대상 userId를 입력해 주세요.',
@@ -160,6 +168,30 @@
     return { items };
   }
 
+  function setAdminSeasonEventsForm(seasonEvents = {}) {
+    const input = document.getElementById('admin-season-events-json');
+    if(!input) return;
+    const items = Array.isArray(seasonEvents.items) ? seasonEvents.items : [];
+    input.value = JSON.stringify(items.map((item, index) => ({
+      eventId: item.eventId || `season-${index + 1}`,
+      icon: item.icon || '✨',
+      title: item.title || '',
+      desc: item.desc || '',
+      periodType: item.periodType === 'weekly' ? 'weekly' : 'monthly',
+      period: item.period || (item.periodType === 'weekly' ? '이번 주' : '이번 달'),
+      active: item.active !== false,
+      sortOrder: Number(item.sortOrder) || index + 1
+    })), null, 2);
+  }
+
+  function getAdminSeasonEventsFormValues() {
+    const raw = String(document.getElementById('admin-season-events-json')?.value || '').trim();
+    if(!raw) return { items: [] };
+    const parsed = JSON.parse(raw);
+    const items = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []);
+    return { items };
+  }
+
   function setAdminLoginSettingsForm(settings) {
     const data = settings || {};
     document.getElementById('admin-signup-enabled').checked = data.signupEnabled !== false;
@@ -229,6 +261,7 @@
     setAdminStatusElement,
     getAdminMemberActionErrorMessage,
     getAdminExternalQuizzesSaveErrorMessage,
+    getAdminSeasonEventsSaveErrorMessage,
     getAdminLoginSettingsSaveErrorMessage,
     getAdminFeatureFlagsSaveErrorMessage,
     getAdminPermissionGrantErrorMessage,
@@ -238,6 +271,8 @@
     setAdminNoticeForm,
     getAdminNoticeFormValues,
     getAdminExternalQuizzesFormValues,
+    setAdminSeasonEventsForm,
+    getAdminSeasonEventsFormValues,
     setAdminLoginSettingsForm,
     getAdminLoginSettingsFormValues,
     setAdminFeatureFlagsForm,

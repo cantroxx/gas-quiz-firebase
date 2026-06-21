@@ -119,6 +119,20 @@
       });
     });
 
+    document.getElementById('admin-season-events-load')?.addEventListener('click', () => {
+      deps.loadAdminSeasonEvents?.().catch(error => {
+        console.warn('Admin season events load failed.', error);
+        deps.setAdminSeasonEventsStatus?.('시즌 이벤트를 불러오지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-season-events-save')?.addEventListener('click', () => {
+      deps.saveAdminSeasonEvents?.().catch(error => {
+        console.warn('Admin season events save failed.', error);
+        deps.setAdminSeasonEventsStatus?.(window.DJ48AdminForm.getAdminSeasonEventsSaveErrorMessage(error), true);
+      });
+    });
+
     document.getElementById('admin-login-settings-load')?.addEventListener('click', () => {
       deps.loadAdminLoginSettings?.().catch(error => {
         console.warn('Admin login settings load failed.', error);

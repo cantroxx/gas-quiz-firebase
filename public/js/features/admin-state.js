@@ -5,6 +5,7 @@
   let featureFlagsLoadPromise = null;
   let externalQuizzes = null;
   let externalQuizzesLoadPromise = null;
+  let seasonEvents = null;
 
   function getDashboard() {
     return dashboard;
@@ -60,6 +61,15 @@
     return externalQuizzesLoadPromise;
   }
 
+  function getSeasonEventsCache() {
+    return seasonEvents;
+  }
+
+  function setSeasonEventsCache(value) {
+    seasonEvents = value || null;
+    return seasonEvents;
+  }
+
   function resetAdminState() {
     dashboard = null;
     noticeBoard = null;
@@ -67,6 +77,7 @@
     featureFlagsLoadPromise = null;
     externalQuizzes = null;
     externalQuizzesLoadPromise = null;
+    seasonEvents = null;
   }
 
   window.DJ48AdminState = {
@@ -82,6 +93,8 @@
     setExternalQuizzesCache,
     getExternalQuizzesLoadPromise,
     setExternalQuizzesLoadPromise,
+    getSeasonEventsCache,
+    setSeasonEventsCache,
     resetAdminState
   };
 })();

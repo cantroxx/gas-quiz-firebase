@@ -58,6 +58,7 @@
         const watchedDocs = [
           ['featureFlags', db.collection('appSettings').doc('featureFlags')],
           ['externalQuizzes', db.collection('appSettings').doc('externalQuizzes')],
+          ['seasonEvents', db.collection('appSettings').doc('seasonEvents')],
           ['noticeBoard', db.collection('noticeBoard').doc('current')]
         ];
         const snapshots = await Promise.all(watchedDocs.map(([key, ref]) =>
@@ -126,6 +127,15 @@
         callableName: 'adminUpdateExternalQuizzes',
         payload: { externalQuizzes },
         errorCode: 'admin-external-quizzes-save-failed'
+      }, deps),
+      loadAdminSeasonEvents: () => callAdminCallable({
+        callableName: 'adminGetSeasonEvents',
+        errorCode: 'admin-season-events-load-failed'
+      }, deps),
+      saveAdminSeasonEvents: (seasonEvents = {}) => callAdminCallable({
+        callableName: 'adminUpdateSeasonEvents',
+        payload: { seasonEvents },
+        errorCode: 'admin-season-events-save-failed'
       }, deps),
       loadAdminLoginSettings: () => callAdminCallable({
         callableName: 'adminGetPasswordSetupSettings',
