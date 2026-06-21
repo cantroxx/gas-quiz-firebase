@@ -2,6 +2,46 @@
 
 작성일: 2026-06-20
 
+## 0. 2026-06-21 Recraft 반영 상태
+
+현재 Recraft 생성 배경 2장과 UI 패널 4장, Stitch 월간 뱃지 시트를 교실 에셋 폴더에 반영했다.
+
+| 파일 | 상태 | 용도 |
+| --- | --- | --- |
+| `public/images/classroom-assets/backgrounds/classroom-bg-main-v1.png` | selected | `오늘의 교실` 기본 배경 |
+| `public/images/classroom-assets/backgrounds/classroom-bg-gem-v1.png` | candidate | 젬스톤/월간 뱃지/보상 화면 후보 |
+| `public/images/classroom-assets/panels/board-mission-v1.png` | selected | 오늘 할 일 칠판 패널 |
+| `public/images/classroom-assets/panels/shop-shelf-v1.png` | selected | 교실 상점 선반 장식 |
+| `public/images/classroom-assets/panels/info-panel-v1.png` | selected | 포인트 요약 카드 장식 |
+| `public/images/classroom-assets/panels/alert-frame-v1.png` | candidate | 알림 버튼/프레임 후보 |
+| `public/images/classroom-assets/badges/source/stitch-monthly-badge-sheet-v1.png` | candidate | 월간 뱃지 원본 시트 |
+| `public/images/classroom-assets/badges/monthly/*.png` | candidate | 월간 뱃지 crop 후보 |
+
+1차 적용 기준:
+
+- `classroom-bg-main-v1.png`는 Today 화면의 큰 교실 장면 배경으로 사용한다.
+- `board-mission-v1.png`, `shop-shelf-v1.png`, `info-panel-v1.png`, `point-token-v1.png`는 운영 교실 UI에 연결한다.
+- `classroom-bg-gem-v1.png`는 바로 적용하지 않고 젬/뱃지 화면 재편 시 후보로 둔다.
+- 월간 뱃지 crop은 일부 아이콘 간격이 좁아 수동 검수가 필요하므로, 교사 지급 폼에는 아직 강제 연결하지 않는다.
+
+다음에 사용자가 Recraft에서 뽑아주면 좋은 에셋:
+
+| 우선순위 | 에셋 | 권장 파일명 | 제작 조건 |
+| --- | --- | --- | --- |
+| 1 | 알림/퀘스트 버튼 세트 | `button-alert-v1.png`, `button-alert-active-v1.png` | 투명 배경, 텍스트 없음, 눌린 상태/켜진 상태 |
+| 2 | 월간 뱃지 12~20종 | `monthly-badge-*.png` | 아이콘 1개당 단일 PNG, 넉넉한 간격, 투명 배경 |
+| 3 | 젬스톤 8~12종 | `gem-*.png` | 같은 형태의 색상/상징 변형, 투명 배경 |
+| 4 | 학생 카드/직업 게시판 패널 | `student-card-frame-v1.png`, `job-board-v1.png` | 글자 없음, HTML 텍스트가 올라갈 빈 공간 |
+
+Recraft 후속 프롬프트 기본형:
+
+```text
+Create a clean reusable game UI asset for a Korean elementary classroom web app.
+Style: bright blue classroom mood, soft hand-painted 2D casual game, thick clean outline, polished but friendly.
+Asset: [asset name]
+Requirements: transparent background, no text, no logo, no characters, empty inner space for HTML overlay, high resolution PNG, consistent with a cozy classroom learning game.
+```
+
 ## 1. 목적
 
 이 문서는 `우리 교실`을 이미지 중심 UI로 개편할 때 필요한 시각 에셋을 분류하고, 훈장/아이콘/뱃지/상점 상품/교실 화면을 어떤 AI 도구와 유틸리티로 제작할지 결정하기 위한 기준점이다.

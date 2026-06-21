@@ -2,8 +2,96 @@
   "version": 1,
   "updatedAt": "2026-06-21",
   "scope": "classroom-visual-assets-preview",
-  "notes": "Preview-only classroom visual assets. These files are not wired into the production classroom UI yet.",
+  "notes": "Classroom visual assets managed separately from UI code. Selected background and panel assets are wired into the production classroom UI.",
   "assets": [
+    {
+      "assetId": "classroom_background_main_v1",
+      "type": "classroomBackground",
+      "name": "교실 메인 배경",
+      "category": "background",
+      "path": "/images/classroom-assets/backgrounds/classroom-bg-main-v1.png",
+      "fallbackIcon": "🏫",
+      "status": "selected",
+      "source": "Recraft generated classroom background, user supplied 2026-06-21",
+      "usage": ["classroomToday", "classroomMap"]
+    },
+    {
+      "assetId": "classroom_background_gem_v1",
+      "type": "classroomBackground",
+      "name": "교실 젬/뱃지 배경",
+      "category": "background",
+      "path": "/images/classroom-assets/backgrounds/classroom-bg-gem-v1.png",
+      "fallbackIcon": "💎",
+      "status": "candidate",
+      "source": "Recraft generated classroom background, user supplied 2026-06-21",
+      "usage": ["classroomGem", "classroomBadge", "classroomReward"]
+    },
+    {
+      "assetId": "classroom_panel_mission_board_v1",
+      "type": "classroomPanel",
+      "name": "오늘 할 일 칠판 패널",
+      "category": "panel",
+      "path": "/images/classroom-assets/panels/board-mission-v1.png",
+      "fallbackIcon": "🧑‍🏫",
+      "status": "selected",
+      "source": "Recraft generated reusable classroom UI panel, user supplied 2026-06-21",
+      "usage": ["classroomTodayBoard"]
+    },
+    {
+      "assetId": "classroom_panel_shop_shelf_v1",
+      "type": "classroomPanel",
+      "name": "교실 상점 선반 패널",
+      "category": "panel",
+      "path": "/images/classroom-assets/panels/shop-shelf-v1.png",
+      "fallbackIcon": "🛒",
+      "status": "selected",
+      "source": "Recraft generated reusable classroom UI panel, user supplied 2026-06-21",
+      "usage": ["classroomShopShelf"]
+    },
+    {
+      "assetId": "classroom_panel_alert_frame_v1",
+      "type": "classroomPanel",
+      "name": "알림 프레임",
+      "category": "panel",
+      "path": "/images/classroom-assets/panels/alert-frame-v1.png",
+      "fallbackIcon": "🔔",
+      "status": "candidate",
+      "source": "Recraft generated reusable classroom UI panel, user supplied 2026-06-21",
+      "usage": ["classroomAlerts"]
+    },
+    {
+      "assetId": "classroom_panel_info_v1",
+      "type": "classroomPanel",
+      "name": "정보 패널",
+      "category": "panel",
+      "path": "/images/classroom-assets/panels/info-panel-v1.png",
+      "fallbackIcon": "ℹ️",
+      "status": "selected",
+      "source": "Recraft generated reusable classroom UI panel, user supplied 2026-06-21",
+      "usage": ["classroomPointSummary", "classroomInfoCard"]
+    },
+    {
+      "assetId": "classroom_point_token_v1",
+      "type": "classroomBadge",
+      "name": "포인트 토큰",
+      "category": "currency",
+      "path": "/images/classroom-assets/badges/monthly/point-token-v1.png",
+      "fallbackIcon": "🪙",
+      "status": "selected",
+      "source": "Stitch generated badge sheet crop, user supplied 2026-06-21",
+      "usage": ["classroomPointSummary", "wallet"]
+    },
+    {
+      "assetId": "classroom_monthly_badge_sheet_v1",
+      "type": "classroomBadgeSheet",
+      "name": "월간 뱃지 후보 시트",
+      "category": "monthlyBadge",
+      "path": "/images/classroom-assets/badges/source/stitch-monthly-badge-sheet-v1.png",
+      "fallbackIcon": "🏅",
+      "status": "candidate",
+      "source": "Stitch generated badge sheet, user supplied 2026-06-21",
+      "usage": ["teacherMonthlyBadgeSelection", "assetReview"]
+    },
     {
       "assetId": "classroom_icon_berry",
       "type": "classroomIcon",
