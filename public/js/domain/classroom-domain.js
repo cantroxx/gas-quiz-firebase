@@ -4,7 +4,7 @@
   root.DJ48ClassroomDomain = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function () {
   function getClassroomRewardCurrencyLabel(currency) {
-    return currency === 'djCoin' ? 'DJ코인' : '베리';
+    return currency === 'djCoin' ? 'DJ코인' : '포인트';
   }
 
   function slugifyClassroomGemId(name) {
@@ -37,7 +37,7 @@
       rewardCoin,
       rewardCurrency,
       status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
-      studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim().replace(/코인/g, '베리'),
+      studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim().replace(/코인/g, '포인트').replace(/베리/g, '포인트'),
       linkedGemId,
       linkedGemName,
       gemXp,

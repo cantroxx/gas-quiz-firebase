@@ -382,8 +382,7 @@
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
         <div>
           <p class="eyebrow">Our Classroom</p>
-          <h2 id="classroom-title">4학년 8반 우리 교실</h2>
-          <p>퀘스트와 성장루틴을 통해 교실 활동을 베리와 연결하는 실험 공간입니다.</p>
+          <h2 id="classroom-title">4학년 8반 교실</h2>
         </div>
       </div>
 
@@ -405,38 +404,16 @@
 
       <section id="classroom-main-panel" class="classroom-main-panel" hidden>
         <div class="classroom-summary-grid" aria-label="교실 요약">
-          <article>
-            <span>교실</span>
-            <strong>4학년 8반</strong>
+          <article class="classroom-summary-alert-card">
+            <span>알림</span>
+            <div class="classroom-alert-chip-row" aria-label="교실 알림">
+              <button id="classroom-alert-quest" class="classroom-alert-chip" type="button" data-classroom-today-tab="quests">퀘스트</button>
+              <button id="classroom-alert-routine" class="classroom-alert-chip" type="button" data-classroom-today-tab="routines">성장루틴</button>
+            </div>
           </article>
           <article>
-            <span>오늘 퀘스트</span>
-            <strong id="classroom-summary-quest-count">3개</strong>
-          </article>
-          <article>
-            <span>성장루틴</span>
-            <strong>2개</strong>
-          </article>
-          <article>
-            <span>보상</span>
-            <strong id="classroom-summary-reward-currency">베리</strong>
-          </article>
-          <article>
-            <span>내 베리</span>
+            <span>내 포인트</span>
             <strong id="classroom-summary-berry-count">0</strong>
-          </article>
-        </div>
-
-        <div class="classroom-role-grid" aria-label="교실 운영 상태">
-          <article class="classroom-role-card teacher">
-            <p class="eyebrow">Teacher</p>
-            <h3>담임 관리 영역</h3>
-            <p id="classroom-teacher-state">4학년 8반 담임 권한과 퀘스트 설정 UI를 연결할 예정입니다.</p>
-          </article>
-          <article class="classroom-role-card student">
-            <p class="eyebrow">Student</p>
-            <h3>학생 수행 영역</h3>
-            <p id="classroom-student-state">학생은 체크형 퀘스트를 완료 후보로 저장할 수 있습니다. 보상 지급은 아직 대기 상태입니다.</p>
           </article>
         </div>
 
@@ -450,11 +427,19 @@
         </section>
 
         <section id="classroom-teacher-review-panel" class="classroom-teacher-review-panel" aria-labelledby="classroom-review-heading" hidden>
-          <div class="classroom-quest-editor">
-            <div class="event-section-heading">
-              <p class="eyebrow">Quest Builder</p>
-              <h3>퀘스트 만들기</h3>
-            </div>
+          <div class="event-section-heading classroom-teacher-workbench-heading">
+            <p class="eyebrow">Teacher Workbench</p>
+            <h3>교사 관리 작업대</h3>
+            <p>퀘스트, 월간 뱃지, 직업, 상점 상품은 필요한 항목만 열어서 관리합니다.</p>
+          </div>
+          <div class="classroom-teacher-workbench">
+            <details class="classroom-quest-editor" id="classroom-quest-editor-panel">
+              <summary>
+                <span>
+                  <strong>퀘스트 만들기</strong>
+                  <small>학생 활동과 포인트·젬 보상을 설정합니다.</small>
+                </span>
+              </summary>
             <form id="classroom-quest-form" class="classroom-quest-form">
               <input id="classroom-quest-id-input" type="hidden">
               <label>
@@ -508,11 +493,17 @@
               <button class="button primary" type="submit">퀘스트 저장</button>
             </form>
             <p id="classroom-quest-editor-status" class="classroom-review-status" aria-live="polite"></p>
-          </div>
-          <div class="classroom-quest-editor">
-            <div class="event-section-heading">
-              <p class="eyebrow">Badge Campaign</p>
-              <h3>월간 뱃지 지급</h3>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-badge-campaign-panel">
+              <summary>
+                <span>
+                  <strong>월간 뱃지 지급</strong>
+                  <small>젬 순위를 기준으로 대표 뱃지를 지급합니다.</small>
+                </span>
+              </summary>
+            <div class="classroom-badge-asset-note" aria-label="월간 뱃지 이미지 제작 안내">
+              <strong>아이콘 에셋 방향</strong>
+              <p>현재 선택값은 임시 표시용입니다. 월간 뱃지는 Recraft 등에서 제작한 메달·왕관·트로피·젬 아이콘으로 교체하는 방향이 좋습니다.</p>
             </div>
             <form id="classroom-badge-campaign-form" class="classroom-quest-form">
               <label>
@@ -547,12 +538,14 @@
               <button class="button primary" type="submit">뱃지 스캔 후 지급</button>
             </form>
             <p id="classroom-badge-campaign-status" class="classroom-review-status" aria-live="polite"></p>
-          </div>
-          <div class="classroom-quest-editor">
-            <div class="event-section-heading">
-              <p class="eyebrow">Class Jobs</p>
-              <h3>직업 만들기</h3>
-            </div>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-job-editor-panel">
+              <summary>
+                <span>
+                  <strong>직업 만들기</strong>
+                  <small>역할, 월급, 정원을 관리합니다.</small>
+                </span>
+              </summary>
             <form id="classroom-job-form" class="classroom-quest-form">
               <label>
                 직업 이름
@@ -573,12 +566,14 @@
               <button class="button primary" type="submit">직업 저장</button>
             </form>
             <p id="classroom-job-editor-status" class="classroom-review-status" aria-live="polite"></p>
-          </div>
-          <div class="classroom-quest-editor">
-            <div class="event-section-heading">
-              <p class="eyebrow">Class Shop</p>
-              <h3>교실 상점 상품 만들기</h3>
-            </div>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-shop-editor-panel">
+              <summary>
+                <span>
+                  <strong>교실 상점 상품 만들기</strong>
+                  <small>포인트로 살 수 있는 쿠폰 상품을 등록합니다.</small>
+                </span>
+              </summary>
             <form id="classroom-shop-item-form" class="classroom-quest-form">
               <label>
                 상품 이름
@@ -595,6 +590,7 @@
               <button class="button primary" type="submit">상품 저장</button>
             </form>
             <p id="classroom-shop-editor-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
           </div>
           <div class="event-section-heading">
             <p class="eyebrow">Teacher Review</p>
@@ -1399,7 +1395,7 @@
           rewardMode: 'auto',
           rewardCoin: 5,
           status: '완료 체크 시 즉시 지급',
-          studentAction: '완료하고 5 베리 받기',
+          studentAction: '완료하고 5 포인트 받기',
           saveEnabled: true
         },
         {
@@ -4913,6 +4909,8 @@
       }
       window.DJ48ClassroomForm.setClassroomQuestFormValues(quest);
       setClassroomQuestEditorStatus('퀘스트 내용을 불러왔습니다. 수정 후 저장해 주세요.');
+      const editorPanel = document.getElementById('classroom-quest-editor-panel');
+      if(editorPanel) editorPanel.open = true;
       document.getElementById('classroom-quest-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -5078,7 +5076,7 @@
         getValues: getClassroomQuestFormValues,
         validateValues: values => {
           if(!values.title) return '퀘스트 이름을 입력해 주세요.';
-          if(values.rewardCoin <= 0) return '지급 베리는 1 이상이어야 합니다.';
+          if(values.rewardCoin <= 0) return '지급 포인트는 1 이상이어야 합니다.';
           return '';
         },
         save: options => getClassroomRepository().saveClassroomQuest(options),

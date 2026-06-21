@@ -32,6 +32,12 @@
       deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
     });
 
+    document.querySelector('.classroom-summary-grid')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-classroom-today-tab]');
+      if(!button || button.disabled) return;
+      deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
+    });
+
     document.getElementById('classroom-quest-grid')?.addEventListener('click', event => {
       const editButton = event.target.closest('[data-classroom-quest-edit-id]');
       if(editButton && !editButton.disabled) {

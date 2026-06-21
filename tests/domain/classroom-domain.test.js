@@ -14,7 +14,7 @@ const quest = domain.normalizeClassroomQuestConfig({
 assert.equal(quest.rewardCoin, 13);
 assert.equal(quest.rewardCurrency, 'berry');
 assert.equal(quest.linkedGemId, '성실-보석');
-assert.equal(quest.studentAction, '완료하고 13 베리 받기');
+assert.equal(quest.studentAction, '완료하고 13 포인트 받기');
 
 assert.equal(
   domain.buildClassroomQuestProgressId('u', 'q', '2026-06-16'),
@@ -36,4 +36,3 @@ assert.equal(
 
 assert.equal(domain.getClassroomProgressStatusLabel({ rewardStatus: 'approved' }), '담임 승인됨');
 assert.equal(domain.getClassroomProgressStatusClass({ rewardStatus: 'approved' }), 'quest-status-claimed');
-
