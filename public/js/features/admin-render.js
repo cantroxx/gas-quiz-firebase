@@ -384,6 +384,7 @@
     const root = document.getElementById('admin-season-event-list');
     const normalizeSeasonEvents = deps.normalizeSeasonEvents;
     const defaultSeasonEvents = deps.defaultSeasonEvents || {};
+    const iconOptions = deps.iconOptions || ['📖', '🏯', '🧮', '⭐', '🔥', '🎯', '🏆', '✨'];
     const maxRows = Number(deps.maxRows || 0);
     if(!root || typeof normalizeSeasonEvents !== 'function' || !maxRows) return;
     const items = normalizeSeasonEvents(seasonEvents || defaultSeasonEvents).items;
@@ -414,7 +415,7 @@
         </label>
         <label>
           아이콘
-          <input data-season-event-field="icon" data-season-event-index="${index}" type="text" maxlength="8" value="">
+          <span class="admin-season-icon-toggle-list"></span>
         </label>
         <label class="admin-checkbox-label">
           <input data-season-event-field="active" data-season-event-index="${index}" type="checkbox">
@@ -425,10 +426,62 @@
       row.querySelector('[data-season-event-field="desc"]').value = item.desc || '';
       row.querySelector('[data-season-event-field="periodType"]').value = item.periodType === 'weekly' ? 'weekly' : 'monthly';
       row.querySelector('[data-season-event-field="quizIds"]').value = (item.quizIds || []).join(', ');
-      row.querySelector('[data-season-event-field="icon"]').value = item.icon || '✨';
+      const iconList = row.querySelector('.admin-season-icon-toggle-list');
+      iconOptions.forEach(iconValue => {
+        const iconLabel = document.createElement('span');
+        const iconInput = document.createElement('input');
+        const iconText = document.createElement('span');
+        iconLabel.className = 'admin-season-icon-toggle';
+        iconInput.type = 'radio';
+        iconInput.name = `season-event-icon-${index}`;
+        iconInput.value = iconValue;
+        iconInput.dataset.seasonEventField = 'icon';
+        iconInput.dataset.seasonEventIndex = String(index);
+        iconInput.checked = (item.icon || '✨') === iconValue;
+        iconText.textContent = iconValue;
+        iconLabel.append(iconInput, iconText);
+        iconList.appendChild(iconLabel);
+      });
+      if(!iconList.querySelector('input:checked')) {
+        const firstInput = iconList.querySelector('input');
+        if(firstInput) firstInput.checked = true;
+      }
       row.querySelector('[data-season-event-field="active"]').checked = item.active !== false;
       root.appendChild(row);
     }
+  }
+
+  function renderAdminTodayQuizPoolGrid(flags, deps = {}) {
+    const root = document.getElementById('admin-today-quiz-pool-grid');
+    const getAdminQuizToggleGroups = deps.getAdminQuizToggleGroups;
+    const quizCatalog = deps.quizCatalog || {};
+    if(!root || typeof getAdminQuizToggleGroups !== 'function') return;
+    const selected = new Set(flags?.todayQuizRandomPoolIds || []);
+    root.innerHTML = '';
+    getAdminQuizToggleGroups().forEach(group => {
+      const section = document.createElement('section');
+      const heading = document.createElement('h4');
+      const list = document.createElement('div');
+      section.className = 'admin-quiz-toggle-group';
+      heading.textContent = group.label;
+      list.className = 'admin-quiz-toggle-list';
+      group.quizIds.forEach(quizId => {
+        const quiz = quizCatalog[quizId];
+        if(!quiz) return;
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        const text = document.createElement('span');
+        label.className = 'admin-quiz-toggle';
+        input.type = 'checkbox';
+        input.checked = selected.has(quizId);
+        input.dataset.adminTodayQuizPoolToggle = quizId;
+        text.textContent = String(quiz.title || quizId).replace(' 퀴즈', '');
+        label.append(input, text);
+        list.appendChild(label);
+      });
+      section.append(heading, list);
+      root.appendChild(section);
+    });
   }
 
   function renderAdminQuizToggleGrid(flags, deps = {}) {
@@ -509,6 +562,7 @@
     renderAdminMemberDetail,
     renderAdminExternalQuizRows,
     renderAdminSeasonEventRows,
+    renderAdminTodayQuizPoolGrid,
     renderAdminQuizToggleGrid,
     renderAdminDashboard,
     renderAdminLogs

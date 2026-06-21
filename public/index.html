@@ -898,24 +898,8 @@
               <textarea id="admin-notice-announcement-input" maxlength="160"></textarea>
             </label>
             <label>
-              오늘의 퀘스트
+              오늘의 퀴즈
               <textarea id="admin-notice-quest-input" maxlength="160"></textarea>
-            </label>
-            <label>
-              추천 퀴즈 문구
-              <input id="admin-notice-recommended-label-input" type="text" maxlength="80">
-            </label>
-            <label>
-              추천 quizId
-              <input id="admin-notice-recommended-quiz-input" type="text" maxlength="80" placeholder="예: gmo">
-            </label>
-            <label>
-              추천 퀴즈 2 문구
-              <input id="admin-notice-recommended2-label-input" type="text" maxlength="80">
-            </label>
-            <label>
-              추천 quizId 2
-              <input id="admin-notice-recommended2-quiz-input" type="text" maxlength="80" placeholder="예: samgukji">
             </label>
             <label class="admin-checkbox-label">
               <input id="admin-notice-active-input" type="checkbox">
@@ -1079,14 +1063,18 @@
               오늘의 퀴즈 ID
               <input id="admin-feature-today-quiz-ids" type="text" placeholder="예: gmo, unified-silla-balhae">
             </label>
-            <label>
-              랜덤 후보 퀴즈 ID
-              <input id="admin-feature-today-quiz-pool-ids" type="text" placeholder="예: spelling, gmo, samgukji">
-            </label>
+            <input id="admin-feature-today-quiz-pool-ids" type="hidden">
             <label>
               하루 선택 수
               <input id="admin-feature-today-quiz-count" type="number" min="1" max="10" inputmode="numeric" value="1">
             </label>
+          </div>
+          <div class="admin-quiz-toggle-panel">
+            <div class="admin-panel-subhead">
+              <strong>오늘의 퀴즈 랜덤 후보</strong>
+              <span>영어 ID 입력 대신 후보 퀴즈를 체크해서 고릅니다.</span>
+            </div>
+            <div id="admin-today-quiz-pool-grid" class="admin-quiz-toggle-grid"></div>
           </div>
           <div class="admin-quiz-toggle-panel">
             <div class="admin-panel-subhead">
@@ -1720,6 +1708,7 @@
     };
     const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 12;
     const MAX_SEASON_EVENT_ADMIN_ROWS = 6;
+    const SEASON_EVENT_ICON_OPTIONS = ['📖', '🏯', '🧮', '⭐', '🔥', '🎯', '🏆', '✨', '🚀', '💎'];
 
     let lastResolvedUserId = null;
     let userDataMigrationPromise = null;
@@ -2227,9 +2216,9 @@
       return {
         title: PLACE_DETAILS.notice.title,
         desc: PLACE_DETAILS.notice.desc,
-        summary: PLACE_DETAILS.notice.summary,
+        summary: '',
         announcement: PLACE_DETAILS.notice.features[0]?.value || '',
-        quest: PLACE_DETAILS.notice.features[1]?.value || '',
+        quest: '오늘의 퀴즈를 풀면 정답마다 XP +2와 DJ코인을 받을 수 있어요.',
         recommendedQuizLabel: PLACE_DETAILS.notice.features[2]?.value || '',
         recommendedQuizId: '',
         recommendedQuiz2Label: '',
@@ -2276,25 +2265,21 @@
         { label: '이벤트 보기', enabled: true, action: 'openEvent' },
         { label: '랭킹 보기', enabled: true, action: 'openRanking' }
       ];
-      if(data.recommendedQuiz2Id && QUIZ_CATALOG[data.recommendedQuiz2Id]) {
-        const label = data.recommendedQuiz2Label || `${QUIZ_CATALOG[data.recommendedQuiz2Id].title.replace(' 퀴즈', '')} 바로가기`;
-        actions.unshift({ label, enabled: true, action: 'openRecommendedQuiz', quizId: data.recommendedQuiz2Id });
-      }
-      if(data.recommendedQuizId && QUIZ_CATALOG[data.recommendedQuizId]) {
-        const label = data.recommendedQuizLabel || `${QUIZ_CATALOG[data.recommendedQuizId].title.replace(' 퀴즈', '')} 바로가기`;
-        actions.unshift({ label, enabled: true, action: 'openRecommendedQuiz', quizId: data.recommendedQuizId });
-      }
+      const todayQuizText = data.quest
+        ? `${data.quest} 정답 보상: XP +2, DJ코인 지급.`
+        : '오늘의 퀴즈를 풀면 정답마다 XP +2와 DJ코인을 받을 수 있어요.';
       return {
         icon: PLACE_DETAILS.notice.icon,
         kicker: PLACE_DETAILS.notice.kicker,
         title: data.title,
         desc: data.desc,
-        summary: data.summary,
+        summary: '',
         features: [
           { label: '공지', value: data.announcement },
-          { label: '오늘의 퀘스트', value: data.quest },
-          { label: '추천 퀴즈', value: data.recommendedQuizLabel }
+          { label: '오늘의 퀴즈', value: todayQuizText }
         ],
+        hideSummary: true,
+        hideStatus: true,
         actions
       };
     }
@@ -2336,10 +2321,14 @@
       document.getElementById('modal-kicker').textContent = place.kicker;
       document.getElementById('modal-title').textContent = place.title;
       document.getElementById('modal-desc').textContent = place.desc;
-      document.getElementById('modal-summary').textContent = place.summary;
+      const summaryEl = document.getElementById('modal-summary');
+      summaryEl.textContent = place.summary || '';
+      summaryEl.hidden = !!place.hideSummary || !place.summary;
       renderPanelFeatures(place.features);
       renderPanelActions(place.actions);
-      document.getElementById('modal-status').textContent = '각 장소에서 현재 연결된 기능을 확인할 수 있습니다.';
+      const statusEl = document.getElementById('modal-status');
+      statusEl.textContent = place.statusText || '각 장소에서 현재 연결된 기능을 확인할 수 있습니다.';
+      statusEl.hidden = !!place.hideStatus;
     }
 
     function openTitleCatalogModal() {
@@ -5894,6 +5883,7 @@
       return window.DJ48AdminRender.renderAdminSeasonEventRows(seasonEvents, {
         normalizeSeasonEvents,
         defaultSeasonEvents: { items: SEASON_EVENT_DATA },
+        iconOptions: SEASON_EVENT_ICON_OPTIONS,
         maxRows: MAX_SEASON_EVENT_ADMIN_ROWS
       });
     }
@@ -6005,7 +5995,8 @@
     function setAdminFeatureFlagsForm(flags) {
       return window.DJ48AdminForm.setAdminFeatureFlagsForm(flags, {
         normalizeFeatureFlags,
-        renderAdminQuizToggleGrid
+        renderAdminQuizToggleGrid,
+        renderAdminTodayQuizPoolGrid
       });
     }
 
@@ -6056,6 +6047,13 @@
     function renderAdminQuizToggleGrid(flags) {
       return window.DJ48AdminRender.renderAdminQuizToggleGrid(flags, {
         getDisabledQuizIdSet,
+        getAdminQuizToggleGroups,
+        quizCatalog: QUIZ_CATALOG
+      });
+    }
+
+    function renderAdminTodayQuizPoolGrid(flags) {
+      return window.DJ48AdminRender.renderAdminTodayQuizPoolGrid(flags, {
         getAdminQuizToggleGroups,
         quizCatalog: QUIZ_CATALOG
       });

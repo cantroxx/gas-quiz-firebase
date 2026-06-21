@@ -3330,6 +3330,8 @@ h2 {
 .title-theme-idol { background: linear-gradient(135deg, #18151f, #ff4eb8 58%, #ffe1f3); color: #fff; border-color: rgba(255, 78, 184, 0.44); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28); }
 .title-theme-dadjoke { background: linear-gradient(135deg, #ffd33f, #ff914d); color: #653100; border-color: rgba(255, 145, 77, 0.42); }
 .title-theme-school { background: linear-gradient(135deg, #e8f8ec, #fffdf2); color: #2f7764; border-color: rgba(76, 175, 80, 0.28); }
+.title-theme-flag { background: linear-gradient(135deg, #0f4c81 0%, #f8fafc 45%, #e11d48 100%); color: #102a43; border-color: rgba(15, 76, 129, 0.42); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.52); box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.12), 0 8px 18px rgba(15, 76, 129, 0.18); }
+.title-theme-snack { background: linear-gradient(135deg, #ffcf33 0%, #fff7c2 42%, #ff5a3d 100%); color: #6b2f00; border-color: rgba(255, 122, 24, 0.46); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.46); box-shadow: 0 0 0 1px rgba(255, 207, 51, 0.2), 0 8px 18px rgba(255, 90, 61, 0.18); }
 .title-theme-perfect { background: linear-gradient(135deg, #fff2a8, #fff, #ffd36e); color: #8a5300; border-color: rgba(255, 203, 5, 0.55); }
 .title-theme-kpop-legend { background: linear-gradient(135deg, #111827 0%, #d946ef 46%, #fef08a 100%); color: #fff; border-color: rgba(250, 204, 21, 0.68); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.24), 0 8px 20px rgba(217, 70, 239, 0.28); }
 .title-theme-anime-legend { background: linear-gradient(135deg, #172554 0%, #22d3ee 48%, #f8fafc 100%); color: #fff; border-color: rgba(34, 211, 238, 0.72); text-shadow: 0 1px 4px rgba(15, 23, 42, 0.5); box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.24), 0 8px 20px rgba(37, 99, 235, 0.25); }
@@ -6095,6 +6097,41 @@ h2 {
   border-style: dashed;
   background: #fff7f3;
   color: #9a4a35;
+}
+
+.admin-season-icon-toggle-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-season-icon-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(47, 125, 68, 0.18);
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.admin-season-icon-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-season-icon-toggle span {
+  font-size: 1.24rem;
+  line-height: 1;
+}
+
+.admin-season-icon-toggle:has(input:checked) {
+  border-color: var(--green);
+  background: #e9f8ef;
+  box-shadow: 0 0 0 3px rgba(47, 125, 68, 0.12);
 }
 
 .subject-scene {

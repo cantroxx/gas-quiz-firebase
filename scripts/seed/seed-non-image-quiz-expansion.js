@@ -1277,8 +1277,8 @@ const TITLE_BASES = [
   ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']],
   ['social_cultural_heritage', '문화유산', 'social', 'title-theme-people', ['문화유산 탐험가', '문화유산 해설가', '문화유산 지킴이']],
   ['science_general', '과학 상식', 'science', 'title-theme-school', ['과학 호기심 탐험가', '과학 상식 박사', '과학 상식 마스터']],
-  ['popular_flag_country', '국기', 'popular', 'title-theme-school', ['국기 탐험가', '국기 박사', '세계 지도자']],
-  ['popular_snack_food', '간식', 'popular', 'title-theme-school', ['간식 탐험가', '간식 감별사', '간식 마스터']],
+  ['popular_flag_country', '국기', 'popular', 'title-theme-flag', ['국기 탐험가', '국기 박사', '세계 지도자']],
+  ['popular_snack_food', '간식', 'popular', 'title-theme-snack', ['간식 탐험가', '간식 감별사', '간식 마스터']],
   ['popular_emoji_kpop', 'K-POP 이모지', 'popular', 'title-theme-idol', ['K-POP 팬', 'K-POP DJ', 'K-POP 마스터']],
   ['popular_emoji_anime', '애니 이모지', 'popular', 'title-theme-anime', ['애니 팬', '애니 해석가', '애니 마스터']],
   ['popular_emoji_tiniping', '티니핑 이모지', 'popular', 'title-theme-tiniping', ['티니핑 팬', '티니핑 요정', '티니핑 마스터']]

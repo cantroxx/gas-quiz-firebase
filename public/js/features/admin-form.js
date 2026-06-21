@@ -123,17 +123,22 @@
   function setAdminNoticeForm(notice, deps = {}) {
     const normalizeNoticeBoardData = deps.normalizeNoticeBoardData || (value => value || {});
     const data = normalizeNoticeBoardData(notice);
-    document.getElementById('admin-notice-title-input').value = data.title;
-    document.getElementById('admin-notice-desc-input').value = data.desc;
-    document.getElementById('admin-notice-announcement-input').value = data.announcement;
-    document.getElementById('admin-notice-quest-input').value = data.quest;
-    document.getElementById('admin-notice-recommended-label-input').value = data.recommendedQuizLabel;
-    document.getElementById('admin-notice-recommended-quiz-input').value = data.recommendedQuizId;
-    document.getElementById('admin-notice-recommended2-label-input').value = data.recommendedQuiz2Label;
-    document.getElementById('admin-notice-recommended2-quiz-input').value = data.recommendedQuiz2Id;
-    document.getElementById('admin-notice-active-input').checked = data.active !== false;
-    document.getElementById('admin-notice-starts-input').value = toDateTimeLocalInputValue(data.startsAtIso);
-    document.getElementById('admin-notice-ends-input').value = toDateTimeLocalInputValue(data.endsAtIso);
+    const setValue = (id, value) => {
+      const input = document.getElementById(id);
+      if(input) input.value = value;
+    };
+    setValue('admin-notice-title-input', data.title);
+    setValue('admin-notice-desc-input', data.desc);
+    setValue('admin-notice-announcement-input', data.announcement);
+    setValue('admin-notice-quest-input', data.quest);
+    setValue('admin-notice-recommended-label-input', data.recommendedQuizLabel);
+    setValue('admin-notice-recommended-quiz-input', data.recommendedQuizId);
+    setValue('admin-notice-recommended2-label-input', data.recommendedQuiz2Label);
+    setValue('admin-notice-recommended2-quiz-input', data.recommendedQuiz2Id);
+    const activeInput = document.getElementById('admin-notice-active-input');
+    if(activeInput) activeInput.checked = data.active !== false;
+    setValue('admin-notice-starts-input', toDateTimeLocalInputValue(data.startsAtIso));
+    setValue('admin-notice-ends-input', toDateTimeLocalInputValue(data.endsAtIso));
   }
 
   function getAdminNoticeFormValues(deps = {}) {
@@ -177,13 +182,14 @@
     const items = rows.map((row, index) => {
       const periodType = row.querySelector('[data-season-event-field="periodType"]')?.value === 'weekly' ? 'weekly' : 'monthly';
       const title = row.querySelector('[data-season-event-field="title"]')?.value || '';
+      const icon = row.querySelector('[data-season-event-field="icon"]:checked')?.value || '✨';
       const quizIds = String(row.querySelector('[data-season-event-field="quizIds"]')?.value || '')
         .split(/[\s,]+/)
         .map(id => id.trim())
         .filter(Boolean);
       return {
         eventId: `season-${periodType}-${index + 1}`,
-        icon: row.querySelector('[data-season-event-field="icon"]')?.value || '✨',
+        icon,
         title,
         desc: row.querySelector('[data-season-event-field="desc"]')?.value || '',
         quizIds,
@@ -221,6 +227,7 @@
   function setAdminFeatureFlagsForm(flags, deps = {}) {
     const normalizeFeatureFlags = deps.normalizeFeatureFlags || (value => value || {});
     const renderAdminQuizToggleGrid = deps.renderAdminQuizToggleGrid || (() => {});
+    const renderAdminTodayQuizPoolGrid = deps.renderAdminTodayQuizPoolGrid || (() => {});
     const data = normalizeFeatureFlags(flags);
     document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
     document.getElementById('admin-feature-practice-xp').checked = data.practiceXpEnabled;
@@ -236,6 +243,7 @@
     if(todayQuizPoolInput) todayQuizPoolInput.value = (data.todayQuizRandomPoolIds || []).join(', ');
     const todayQuizCountInput = document.getElementById('admin-feature-today-quiz-count');
     if(todayQuizCountInput) todayQuizCountInput.value = data.todayQuizDailyCount || 1;
+    renderAdminTodayQuizPoolGrid(data);
     renderAdminQuizToggleGrid(data);
   }
 
@@ -254,6 +262,10 @@
       .split(/[\s,]+/)
       .map(id => normalizeFirebaseQuizId(id.trim()))
       .filter(Boolean);
+    const todayQuizRandomPoolToggleIds = Array.from(document.querySelectorAll('[data-admin-today-quiz-pool-toggle]'))
+      .filter(input => input.checked === true)
+      .map(input => normalizeFirebaseQuizId(input.dataset.adminTodayQuizPoolToggle || ''))
+      .filter(Boolean);
     return normalizeFeatureFlags({
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
       practiceXpEnabled: document.getElementById('admin-feature-practice-xp')?.checked === true,
@@ -263,7 +275,7 @@
       rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,
       todayQuizMode: document.getElementById('admin-feature-today-quiz-mode')?.value === 'dailyRandom' ? 'dailyRandom' : 'manual',
       todayQuizIds,
-      todayQuizRandomPoolIds,
+      todayQuizRandomPoolIds: todayQuizRandomPoolToggleIds.length ? todayQuizRandomPoolToggleIds : todayQuizRandomPoolIds,
       todayQuizDailyCount: Number(document.getElementById('admin-feature-today-quiz-count')?.value || 1),
       disabledQuizIds
     });

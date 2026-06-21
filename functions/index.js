@@ -3806,8 +3806,8 @@ function publicNoticeBoard(data) {
   const endsAtIso = String(data?.endsAtIso || data?.endsAt || "").trim();
   return {
     title: String(data?.title || "알림판").trim().slice(0, 40),
-    desc: String(data?.desc || "공지와 오늘 추천 활동을 확인하고 바로 이동할 수 있습니다.").trim().slice(0, 120),
-    summary: String(data?.summary || "관리자 공지, 오늘의 퀘스트, 이벤트 추천 퀴즈를 보여주는 타운 알림판입니다.").trim().slice(0, 180),
+    desc: String(data?.desc || "공지와 오늘의 퀴즈를 확인하고 바로 이동할 수 있습니다.").trim().slice(0, 120),
+    summary: String(data?.summary || "").trim().slice(0, 180),
     announcement: String(data?.announcement || "오늘도 연습전과 랭킹전을 자유롭게 이용할 수 있어요.").trim().slice(0, 160),
     quest: String(data?.quest || "이벤트 광장에서 개인 미션을 확인하세요.").trim().slice(0, 160),
     recommendedQuizLabel: String(data?.recommendedQuizLabel || "학교에서 과목관을 골라 바로 시작하세요.").trim().slice(0, 80),
