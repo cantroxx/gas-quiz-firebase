@@ -1763,15 +1763,6 @@
         period: '이번 주',
         periodType: 'weekly',
         quizIds: ['samgukji', 'ancient-history']
-      },
-      {
-        eventId: 'calculation_challenge',
-        icon: '🧮',
-        title: '계산왕 챌린지',
-        desc: '수학 계산 연습을 반복하며 도전 기록을 확인하는 이벤트입니다.',
-        period: '이번 달',
-        periodType: 'monthly',
-        quizIds: ['random-basic', 'fraction-basic']
       }
     ];
 
@@ -3636,17 +3627,12 @@
         buildQuizKingCard: buildQuizKingRankingCard,
         buildRankingRecordCard,
         loadSeasonEventsForRanking: async () => {
-          const cached = window.DJ48EventState.getEventProgress();
-          if(cached?.seasonEvents) {
-            const cachedSeasonEvents = normalizeSeasonEvents(cached.seasonEvents);
-            if(cachedSeasonEvents.items.length) return cachedSeasonEvents.items;
-          }
           try {
             const seasonEvents = normalizeSeasonEvents(await getAdminRepository().loadPublicSeasonEvents());
-            return seasonEvents.items.length ? seasonEvents.items : SEASON_EVENT_DATA;
+            return seasonEvents.items;
           } catch(error) {
-            console.warn('Public season events read failed. Using default season events.', error);
-            return SEASON_EVENT_DATA;
+            console.warn('Public season events read failed. Season rankings will stay empty.', error);
+            return [];
           }
         },
         getSeasonRankingCategoryKeys: seasonEvents => window.DJ48RankingData.getSeasonRankingCategoryKeys(seasonEvents, getRankingDataDeps()),
