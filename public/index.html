@@ -3316,6 +3316,7 @@
         normalizeDisplayImageUrl,
         normalizeRankingDisplayName,
         applyProfileImageTransform,
+        getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
         getActiveRankingBoardId: () => window.DJ48RankingState.getActiveBoardId(),
         getRankingRowsForGroup,
         getRankingModeFilterOptions,
@@ -4832,7 +4833,8 @@
         isCurrentClassroomTeacher,
         currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         getClassroomRewardCurrencyLabel,
-        normalizeDisplayImageUrl
+        normalizeDisplayImageUrl,
+        getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level)
       };
     }
 
@@ -6170,6 +6172,7 @@
         ...getQuizRankingDeps(),
         ...getQuizPracticeDeps(),
         debugLog,
+        getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
         normalizeFirebaseQuizId
       };
     }

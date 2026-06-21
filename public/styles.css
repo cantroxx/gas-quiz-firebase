@@ -2726,11 +2726,11 @@ h2 {
 
 .profile-level-panel {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
-  margin-top: 14px;
-  padding: 12px;
+  margin-top: 10px;
+  padding: 10px;
   border: 1px solid rgba(47, 125, 68, 0.14);
   border-radius: 18px;
   background: #fffaf0;
@@ -2739,19 +2739,19 @@ h2 {
 .profile-level-medal {
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
+  width: 50px;
+  height: 50px;
   border: 1px solid rgba(38, 48, 40, 0.12);
   border-radius: 14px;
   background: #fff;
   color: #7b5a17;
-  font-size: 1.8rem;
+  font-size: 1.55rem;
   overflow: hidden;
 }
 
 .profile-level-medal img {
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   object-fit: contain;
   display: block;
 }
@@ -2790,7 +2790,7 @@ h2 {
 }
 
 .profile-level-track {
-  height: 12px;
+  height: 10px;
   border: 1px solid rgba(36, 91, 135, 0.14);
   border-radius: 999px;
   background: #e8eef2;
@@ -2932,6 +2932,32 @@ h2 {
   padding: 2px;
 }
 
+.profile-level-medal-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.profile-level-medal-filter-button {
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--green-dark);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.profile-level-medal-filter-button.is-active {
+  background: #e8f3ff;
+  border-color: rgba(36, 91, 135, 0.32);
+  color: #245b87;
+}
+
 .profile-level-medal-option {
   display: grid;
   justify-items: center;
@@ -2966,6 +2992,58 @@ h2 {
   height: 44px;
   object-fit: contain;
   display: block;
+}
+
+.quiz-level-up-reward {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(240, 182, 66, 0.32);
+  border-radius: 14px;
+  background: #fff8df;
+  text-align: left;
+}
+
+.quiz-level-up-reward[hidden] {
+  display: none;
+}
+
+.quiz-level-up-medal {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: #fff;
+  color: #7b5a17;
+  font-size: 1.7rem;
+}
+
+.quiz-level-up-medal img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  display: block;
+}
+
+.quiz-level-up-reward strong,
+.quiz-level-up-reward small {
+  display: block;
+}
+
+.quiz-level-up-reward strong {
+  color: #7b5a17;
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.quiz-level-up-reward small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 850;
 }
 
 .profile-image-url-row {
@@ -3904,9 +3982,9 @@ h2 {
   align-items: center;
   flex: 0 0 auto;
   gap: 3px;
-  min-width: 48px;
-  height: 22px;
-  padding: 2px 6px 2px 4px;
+  min-width: 46px;
+  height: 24px;
+  padding: 2px 6px 2px 3px;
   border: 1px solid rgba(29, 38, 48, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.9);
@@ -3918,10 +3996,9 @@ h2 {
 }
 
 .ranking-level-badge img {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
-  image-rendering: pixelated;
 }
 
 .ranking-card-line {
@@ -4986,6 +5063,28 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+.classroom-student-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 2px 7px 2px 3px;
+  border: 1px solid rgba(29, 38, 48, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #245b87;
+  font-size: 0.74rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.classroom-student-level-badge img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
   display: block;
 }
 

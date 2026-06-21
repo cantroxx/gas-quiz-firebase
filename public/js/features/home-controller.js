@@ -87,6 +87,21 @@
         deps.showAdminView?.();
         return;
       }
+      const levelMedalRange = event.target.closest('[data-profile-level-medal-range]');
+      if(levelMedalRange) {
+        const range = levelMedalRange.dataset.profileLevelMedalRange || 'all';
+        const root = document.getElementById('profile-card-root');
+        root?.querySelectorAll('[data-profile-level-medal-range]').forEach(button => {
+          const isActive = button === levelMedalRange;
+          button.classList.toggle('is-active', isActive);
+          button.setAttribute('aria-pressed', String(isActive));
+        });
+        root?.querySelectorAll('[data-profile-level-medal-preview-level]').forEach(button => {
+          const visible = range === 'all' || button.dataset.profileLevelMedalGroup === range;
+          button.hidden = !visible;
+        });
+        return;
+      }
       const levelMedalOption = event.target.closest('[data-profile-level-medal-preview-level]');
       if(levelMedalOption) {
         deps.saveProfileLevelMedalPreviewLevel?.(levelMedalOption.dataset.profileLevelMedalPreviewLevel);

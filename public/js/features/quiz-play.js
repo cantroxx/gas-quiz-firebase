@@ -77,9 +77,13 @@
   function attachRankingSaveStatus(rankingSavePromise, deps = {}) {
     if(!rankingSavePromise) return null;
     const renderRankingSaveStatus = deps.renderRankingSaveStatus || (() => {});
+    const renderLevelUpReward = deps.renderLevelUpReward || (() => {});
     const warn = deps.warn || console.warn;
     return rankingSavePromise
-      .then(result => renderRankingSaveStatus(result))
+      .then(result => {
+        renderRankingSaveStatus(result);
+        renderLevelUpReward(result);
+      })
       .catch(error => {
         warn('Firestore ranking record save failed.', error);
         renderRankingSaveStatus({ error: true });
@@ -607,6 +611,7 @@
     } else if(rankingSaveAction === 'save-record') {
       attachRankingSaveStatus(deps.saveRankingRecordOnQuizComplete?.(), {
         renderRankingSaveStatus: deps.renderRankingSaveStatus,
+        renderLevelUpReward: result => renderQuizLevelUpReward(result, deps),
         warn: console.warn
       });
     }
@@ -749,6 +754,7 @@
     const rewardGrid = document.createElement('div');
     const note = document.createElement('p');
     const saveStatus = document.createElement('p');
+    const levelReward = document.createElement('div');
     const back = document.createElement('button');
 
     card.className = 'quiz-complete-card';
@@ -770,13 +776,45 @@
     saveStatus.id = 'ranking-save-status';
     saveStatus.className = 'quiz-progress';
     saveStatus.textContent = viewModel.saveStatusText;
+    levelReward.id = 'quiz-level-up-reward';
+    levelReward.className = 'quiz-level-up-reward';
+    levelReward.hidden = true;
     back.className = 'button primary';
     back.type = 'button';
     back.dataset.backToQuizSelect = 'true';
     back.textContent = '모드 선택으로 돌아가기';
 
-    card.append(title, score, rewardGrid, note, saveStatus, back);
+    card.append(title, score, rewardGrid, note, saveStatus, levelReward, back);
     return card;
+  }
+
+  function renderQuizLevelUpReward(result, deps = {}) {
+    const rewardRoot = document.getElementById('quiz-level-up-reward');
+    const levelXp = result?.levelXp || null;
+    if(!rewardRoot || !levelXp?.leveledUp) return;
+    const level = Math.max(1, Math.round(Number(levelXp.after?.level) || 1));
+    const medalAsset = deps.getLevelMedalAsset?.(level);
+    const medal = document.createElement('span');
+    const image = document.createElement('img');
+    const text = document.createElement('span');
+    const title = document.createElement('strong');
+    const desc = document.createElement('small');
+
+    rewardRoot.innerHTML = '';
+    rewardRoot.hidden = false;
+    medal.className = 'quiz-level-up-medal';
+    if(medalAsset?.path) {
+      image.src = medalAsset.path;
+      image.alt = `Lv.${level} 훈장`;
+      image.loading = 'lazy';
+      medal.appendChild(image);
+    } else {
+      medal.textContent = '🏅';
+    }
+    title.textContent = `Lv.${level} 달성`;
+    desc.textContent = '새 레벨 훈장을 획득했어요.';
+    text.append(title, desc);
+    rewardRoot.append(medal, text);
   }
 
   function getPracticeSaveStatusText(result) {

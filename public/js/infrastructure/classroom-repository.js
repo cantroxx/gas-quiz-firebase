@@ -61,10 +61,31 @@
         classId: settings.classId,
         memberUserId
       });
-      return Array.isArray(response?.data?.students) ? response.data.students : getEmptyClassroomStudentCards();
+      const students = Array.isArray(response?.data?.students) ? response.data.students : getEmptyClassroomStudentCards();
+      return mergeClassroomStudentLevelSummaries(students, deps);
     } catch(error) {
       deps.warn?.('Classroom student cards load failed.', error);
       return getEmptyClassroomStudentCards();
+    }
+  }
+
+  async function mergeClassroomStudentLevelSummaries(students = [], deps = {}) {
+    const db = getClassroomDb(deps);
+    const memberIds = Array.from(new Set(students.map(student => String(student.memberUserId || student.userId || '').trim()).filter(Boolean)));
+    if(!db || !memberIds.length) return students;
+    try {
+      const snapshots = await Promise.all(memberIds.map(id => db.collection('userLevelSummary').doc(id).get().catch(() => null)));
+      const levelMap = {};
+      snapshots.forEach((snapshot, index) => {
+        if(snapshot?.exists) levelMap[memberIds[index]] = snapshot.data() || {};
+      });
+      return students.map(student => {
+        const id = String(student.memberUserId || student.userId || '').trim();
+        return levelMap[id] ? { ...student, levelSummary: levelMap[id] } : student;
+      });
+    } catch(error) {
+      deps.warn?.('Classroom student level summaries load failed.', error);
+      return students;
     }
   }
 
@@ -332,6 +353,7 @@
       warn: deps.warn
     };
     const callableDeps = {
+      getFirestoreDb: deps.getFirestoreDb,
       getFirebaseFunctions: deps.getFirebaseFunctions,
       warn: deps.warn
     };

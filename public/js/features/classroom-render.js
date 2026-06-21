@@ -498,8 +498,12 @@
       const title = document.createElement('h4');
       const portrait = document.createElement('div');
       const imageUrl = deps.normalizeDisplayImageUrl?.(student.profileImageUrl || '') || '';
+      const levelSummary = student.levelSummary || {};
+      const level = Math.max(0, Math.round(Number(student.level || levelSummary.level) || 0));
+      const medalAsset = level ? deps.getLevelMedalAsset?.(level) : null;
       const desc = document.createElement('p');
       const status = document.createElement('span');
+      const levelBadge = document.createElement('span');
       card.className = 'classroom-card classroom-student-card';
       badge.className = 'classroom-card-badge';
       badge.textContent = `${student.studentNumber || '-'}번`;
@@ -514,7 +518,22 @@
       } else {
         portrait.textContent = '🙂';
       }
+      if(level) {
+        const levelImage = document.createElement('img');
+        levelBadge.className = 'classroom-student-level-badge';
+        levelBadge.title = `Lv.${level}`;
+        if(medalAsset?.path) {
+          levelImage.src = medalAsset.path;
+          levelImage.alt = `Lv.${level} 훈장`;
+          levelImage.loading = 'lazy';
+          levelBadge.appendChild(levelImage);
+        }
+        const levelText = document.createElement('span');
+        levelText.textContent = `Lv.${level}`;
+        levelBadge.appendChild(levelText);
+      }
       identity.append(title, portrait);
+      if(level) identity.appendChild(levelBadge);
       desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · 베리 ${Number(student.berry || 0).toLocaleString('ko-KR')}`;
       status.className = `quest-status ${student.selectedBadge?.label ? 'quest-status-claimed' : 'quest-status-ready'}`;
       status.textContent = student.selectedBadge?.label ? `대표 뱃지: ${student.selectedBadge.label}` : '대표 뱃지 미설정';

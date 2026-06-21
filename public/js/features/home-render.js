@@ -85,13 +85,32 @@
     const assets = deps.levelMedalAssets || [];
     const panel = document.createElement('div');
     const label = document.createElement('p');
+    const filters = document.createElement('div');
     const grid = document.createElement('div');
 
     panel.className = 'profile-ranking-message-panel profile-level-medal-picker-panel profile-detail-panel';
     panel.dataset.profileDetailPanel = 'level-medal';
     label.className = 'profile-ranking-message-label profile-level-medal-picker-label';
     label.textContent = '훈장 미리보기';
+    filters.className = 'profile-level-medal-filter';
     grid.className = 'profile-level-medal-picker-grid';
+
+    [
+      ['all', '전체'],
+      ['1-10', '1-10'],
+      ['11-20', '11-20'],
+      ['21-30', '21-30'],
+      ['31-40', '31-40'],
+      ['41-50', '41-50']
+    ].forEach(([range, text], index) => {
+      const button = document.createElement('button');
+      button.className = `profile-level-medal-filter-button${index === 0 ? ' is-active' : ''}`;
+      button.type = 'button';
+      button.dataset.profileLevelMedalRange = range;
+      button.setAttribute('aria-pressed', String(index === 0));
+      button.textContent = text;
+      filters.appendChild(button);
+    });
 
     assets.forEach(asset => {
       const button = document.createElement('button');
@@ -102,6 +121,7 @@
       button.className = `profile-level-medal-option${level === previewLevel ? ' is-active' : ''}`;
       button.type = 'button';
       button.dataset.profileLevelMedalPreviewLevel = String(level);
+      button.dataset.profileLevelMedalGroup = `${Math.floor((level - 1) / 10) * 10 + 1}-${Math.floor((level - 1) / 10) * 10 + 10}`;
       button.setAttribute('aria-pressed', String(level === previewLevel));
       image.src = asset.path;
       image.alt = asset.name;
@@ -111,7 +131,7 @@
       grid.appendChild(button);
     });
 
-    panel.append(label, grid);
+    panel.append(label, filters, grid);
     return panel;
   }
 
