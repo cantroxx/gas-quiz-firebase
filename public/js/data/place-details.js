@@ -56,7 +56,7 @@
       features: [
         { label: '퀘스트', value: '수락형/달성형 교실 미션' },
         { label: '성장루틴', value: '학생 목표 달성 보상' },
-        { label: '학급화폐', value: '베리와 교실 활동 연결' }
+        { label: '학급 포인트', value: '포인트와 교실 활동 연결' }
       ],
       actions: [
         { label: '우리 교실 입장하기', enabled: true, action: 'openClassroom' }

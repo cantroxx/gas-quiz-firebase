@@ -22,12 +22,12 @@
   function normalizeAdminWalletCurrency(value) {
     const text = String(value || '').trim().toLowerCase();
     if(['coin', 'coins', 'dj', 'djcoin', 'djcoins', 'dj코인', '코인'].includes(text)) return 'djCoin';
-    if(['berry', 'berries', '베리'].includes(text)) return 'berry';
+    if(['berry', 'berries', '베리', 'point', 'points', '포인트'].includes(text)) return 'berry';
     return '';
   }
 
   function getAdminWalletCurrencyLabel(currency) {
-    return currency === 'berry' ? '베리' : 'DJ코인';
+    return currency === 'berry' ? '포인트' : 'DJ코인';
   }
 
   function getAdminPermissionFormValues() {

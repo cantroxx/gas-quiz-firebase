@@ -97,18 +97,18 @@ const DEFAULT_SEASON_EVENTS = {
 };
 
 const EVENT_DAILY_QUEST_POOL = [
-  { questId: "daily_spelling_10", icon: "✏️", title: "맞춤법 10문제 해결", target: 10, xpReward: 20, kind: "spellingCorrect", scope: "daily" },
-  { questId: "daily_vocab_8", icon: "🔤", title: "다의어·동형이의어 8문제 해결", target: 8, xpReward: 20, kind: "vocabCorrect", scope: "daily" },
-  { questId: "daily_reading_6", icon: "📖", title: "독서 퀴즈 6문제 해결", target: 6, xpReward: 22, kind: "readingCorrect", scope: "daily", recommended: true },
-  { questId: "daily_social_10", icon: "🏛️", title: "사회·역사 퀴즈 10문제 해결", target: 10, xpReward: 20, kind: "socialCorrect", scope: "daily" },
-  { questId: "daily_math_10", icon: "➗", title: "수학 연습 10문제 해결", target: 10, xpReward: 20, kind: "mathCorrect", scope: "daily" },
-  { questId: "daily_study_mix_15", icon: "🎯", title: "학습 퀴즈 15문제 해결", target: 15, xpReward: 18, kind: "studyCorrect", scope: "daily" }
+  { questId: "daily_spelling_10", icon: "✏️", title: "맞춤법 10문제 해결", target: 10, xpReward: 20, rewardCoin: 10, kind: "spellingCorrect", scope: "daily" },
+  { questId: "daily_vocab_8", icon: "🔤", title: "다의어·동형이의어 8문제 해결", target: 8, xpReward: 20, rewardCoin: 10, kind: "vocabCorrect", scope: "daily" },
+  { questId: "daily_reading_6", icon: "📖", title: "독서 퀴즈 6문제 해결", target: 6, xpReward: 22, rewardCoin: 10, kind: "readingCorrect", scope: "daily", recommended: true },
+  { questId: "daily_social_10", icon: "🏛️", title: "사회·역사 퀴즈 10문제 해결", target: 10, xpReward: 20, rewardCoin: 10, kind: "socialCorrect", scope: "daily" },
+  { questId: "daily_math_10", icon: "➗", title: "수학 연습 10문제 해결", target: 10, xpReward: 20, rewardCoin: 10, kind: "mathCorrect", scope: "daily" },
+  { questId: "daily_study_mix_15", icon: "🎯", title: "학습 퀴즈 15문제 해결", target: 15, xpReward: 18, rewardCoin: 10, kind: "studyCorrect", scope: "daily" }
 ];
 
 const EVENT_WEEKLY_QUESTS = [
-  { questId: "weekly_study_20", icon: "📚", title: "주간 반복: 학습 퀴즈 20문제 해결", target: 20, xpReward: 8, kind: "studyCorrect", scope: "weekly", repeatLimit: 5 },
-  { questId: "weekly_reading_12", icon: "📘", title: "주간 반복: 독서 퀴즈 12문제 해결", target: 12, xpReward: 8, kind: "readingCorrect", scope: "weekly", repeatLimit: 3 },
-  { questId: "weekly_social_15", icon: "🧭", title: "주간 반복: 사회·역사 15문제 해결", target: 15, xpReward: 8, kind: "socialCorrect", scope: "weekly", repeatLimit: 3 }
+  { questId: "weekly_study_20", icon: "📚", title: "주간 반복: 학습 퀴즈 20문제 해결", target: 20, xpReward: 8, rewardCoin: 10, kind: "studyCorrect", scope: "weekly", repeatLimit: 5 },
+  { questId: "weekly_reading_12", icon: "📘", title: "주간 반복: 독서 퀴즈 12문제 해결", target: 12, xpReward: 8, rewardCoin: 10, kind: "readingCorrect", scope: "weekly", repeatLimit: 3 },
+  { questId: "weekly_social_15", icon: "🧭", title: "주간 반복: 사회·역사 15문제 해결", target: 15, xpReward: 8, rewardCoin: 10, kind: "socialCorrect", scope: "weekly", repeatLimit: 3 }
 ];
 
 const DEFAULT_CLASSROOM_SETTINGS = {
@@ -129,7 +129,7 @@ const DEFAULT_CLASSROOM_SETTINGS = {
         rewardCoin: 5,
         saveEnabled: true,
         active: true,
-        studentAction: "완료하고 5 베리 받기"
+        studentAction: "완료하고 5 포인트 받기"
       }
     ]
   }
@@ -1102,7 +1102,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
-  const rewardLabel = "베리";
+  const rewardLabel = "포인트";
   const linkedGemName = String(rawQuest.linkedGemName || "").trim().slice(0, 40);
   const linkedGemId = slugifyClassroomGemId(rawQuest.linkedGemId || linkedGemName);
   const gemXp = linkedGemId ? Math.max(0, Math.min(100, Math.round(Number(rawQuest.gemXp) || 0))) : 0;
@@ -1129,7 +1129,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     gemXp,
     gemTargetXp: linkedGemId ? Math.max(1, Math.min(1000, Math.round(Number(rawQuest.gemTargetXp) || 10))) : 10,
     gemRewardBerry: linkedGemId ? Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardBerry) || 0))) : 0,
-    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().replace(/코인/g, "베리").slice(0, 60)
+    studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().replace(/코인/g, "포인트").replace(/베리/g, "포인트").slice(0, 60)
   };
 }
 
@@ -1245,6 +1245,65 @@ async function applyClassroomGemProgress(transaction, {
     completed: isCompleted,
     newlyCompleted,
     rewardBerry: canAward ? rewardBerry : 0
+  };
+}
+
+function getClassIdForMember(memberData = {}) {
+  const grade = String(memberData.grade || "").trim();
+  const classNumber = String(memberData.classNumber || "").trim();
+  if (!grade || !classNumber || memberData.role === "admin") return "";
+  return `G${grade}-C${classNumber}`;
+}
+
+function mirrorDjCoinRewardToClassroomPoint(transaction, {
+  memberUserId,
+  memberData,
+  authUid,
+  rewardAmount,
+  sourceType,
+  sourceId
+}) {
+  const amount = Math.max(0, Math.round(Number(rewardAmount) || 0));
+  const classId = getClassIdForMember(memberData);
+  if (!classId || amount <= 0) return null;
+  const logId = rewardLogId([
+    "dj_coin_mirror_point",
+    classId,
+    memberUserId,
+    sourceType || "dj_coin_reward",
+    sourceId || Date.now()
+  ]);
+  const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+  const pointLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId);
+  transaction.set(walletRef, {
+    memberUserId,
+    userId: memberUserId,
+    classId,
+    berry: FieldValue.increment(amount),
+    totalEarnedBerry: FieldValue.increment(amount),
+    updatedAt: FieldValue.serverTimestamp(),
+    lastDjCoinMirrorPointAt: FieldValue.serverTimestamp(),
+    source: sourceType || "dj_coin_mirror_point"
+  }, { merge: true });
+  transaction.set(pointLogRef, {
+    type: "dj_coin_mirror_point",
+    classId,
+    userId: memberUserId,
+    memberUserId,
+    authUid,
+    rewardCurrency: "berry",
+    rewardBerry: amount,
+    rewardAmount: amount,
+    sourceType: sourceType || "dj_coin_reward",
+    sourceId: sourceId || "",
+    source: "firebase_function",
+    createdAt: FieldValue.serverTimestamp()
+  }, { merge: false });
+  return {
+    classId,
+    rewardPoint: amount,
+    walletPath: walletRef.path,
+    pointLogPath: pointLogRef.path
   };
 }
 
@@ -4128,6 +4187,14 @@ exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
         lastEventQuestRewardAt: FieldValue.serverTimestamp(),
         source: "event_quest_reward_function"
       }, { merge: true });
+      mirrorDjCoinRewardToClassroomPoint(transaction, {
+        memberUserId,
+        memberData,
+        authUid,
+        rewardAmount: quest.rewardCoin,
+        sourceType: `event_${quest.scope || "daily"}_quest`,
+        sourceId: `${getEventQuestPeriodKey(quest, dateKey, weekKey)}__${questId}__${attempt}`
+      });
     }
     transaction.set(logRef, {
       type: "event_quest",
@@ -6039,7 +6106,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     const flags = await getFeatureFlags(transaction);
     const practiceCoinEnabled = flags.practiceRewardEnabled !== false;
     const practiceXpEnabled = flags.practiceXpEnabled !== false;
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    const memberData = await assertLinkedMemberAuth(transaction, memberUserId, authUid);
 
     const recordRef = db.collection("practiceRecords").doc(recordId);
     const logRef = db.collection("rewardLogs").doc(rewardLogId([
@@ -6141,6 +6208,14 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
         updatedAt: FieldValue.serverTimestamp(),
         createdAt: coinCapSnapshot.exists ? coinCapSnapshot.data()?.createdAt || FieldValue.serverTimestamp() : FieldValue.serverTimestamp()
       }, { merge: true });
+      mirrorDjCoinRewardToClassroomPoint(transaction, {
+        memberUserId,
+        memberData,
+        authUid,
+        rewardAmount: rewardCoin,
+        sourceType: "practice_correct",
+        sourceId: `${recordId}__${questionId}`
+      });
     }
     transaction.set(db.collection("userLevelSummary").doc(memberUserId), {
       memberUserId,

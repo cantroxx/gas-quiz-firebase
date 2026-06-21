@@ -197,11 +197,11 @@
     if(functionName === 'releaseClassroomJob') return '직업 배정을 해제했습니다.';
     if(functionName === 'claimClassroomJobSalary') {
       const amount = Number(result.rewardAmount || 0);
-      return result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 베리를 지급했습니다.`;
+      return result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 포인트를 지급했습니다.`;
     }
     if(functionName === 'purchaseClassroomShopItem') {
       const amount = Number(result.priceBerry || 0);
-      return `${amount} 베리로 구매했습니다.`;
+      return `${amount} 포인트로 구매했습니다.`;
     }
     if(functionName === 'requestClassroomShopPurchaseUse') {
       return result.duplicate ? '이미 사용 요청 중인 쿠폰입니다.' : '쿠폰 사용을 요청했습니다.';
@@ -216,14 +216,14 @@
       return result.duplicate ? '이미 처리된 요청입니다.' : '쿠폰 사용 요청을 반려했습니다.';
     }
     if(functionName === 'refundClassroomShopPurchase') {
-      return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${Number(result.refundBerry || 0)} 베리를 환불했습니다.`;
+      return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${Number(result.refundBerry || 0)} 포인트를 환불했습니다.`;
     }
     if(functionName === 'useClassroomBillboardTicket') {
       return '전광판에 한마디를 올렸습니다.';
     }
     if(functionName === 'checkClassroomRoutine') {
       if(result.duplicate) return '오늘 이미 체크한 루틴입니다.';
-      if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 베리를 받았습니다.`;
+      if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 포인트를 받았습니다.`;
       return '오늘 체크했습니다.';
     }
     return '';

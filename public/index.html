@@ -1719,7 +1719,7 @@
         icon: '✏️',
         title: '맞춤법 연습전 1회 완료',
         progress: '0/1',
-        reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.easy}`,
+        reward: 'XP +20 · DJ코인 +10',
         status: '진행 중'
       },
       {
@@ -1727,7 +1727,7 @@
         icon: '🏛️',
         title: '사회 퀴즈 3문제 풀기',
         progress: '0/3',
-        reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.normal}`,
+        reward: 'XP +20 · DJ코인 +10',
         status: '진행 중'
       },
       {
@@ -1735,7 +1735,7 @@
         icon: '➗',
         title: '수학 연습전 도전하기',
         progress: '0/1',
-        reward: `DJ코인 +${ECONOMY_CONSTANTS.questRewardTable.hard}`,
+        reward: 'XP +20 · DJ코인 +10',
         status: '준비 중'
       }
     ];
@@ -2265,21 +2265,20 @@
         { label: '이벤트 보기', enabled: true, action: 'openEvent' },
         { label: '랭킹 보기', enabled: true, action: 'openRanking' }
       ];
-      const todayQuizText = data.quest
-        ? `${data.quest} 정답 보상: XP +2, DJ코인 지급.`
-        : '오늘의 퀴즈를 풀면 정답마다 XP +2와 DJ코인을 받을 수 있어요.';
+      const todayQuizText = data.quest || '오늘의 퀴즈를 풀고 보상을 받아요.';
       return {
         icon: PLACE_DETAILS.notice.icon,
         kicker: PLACE_DETAILS.notice.kicker,
         title: data.title,
-        desc: data.desc,
+        desc: '공지와 오늘의 퀴즈를 확인하세요.',
         summary: '',
         features: [
           { label: '공지', value: data.announcement },
-          { label: '오늘의 퀴즈', value: todayQuizText }
+          { label: '오늘의 퀴즈', value: todayQuizText, note: '정답 보상: XP +2 · DJ코인 지급' }
         ],
         hideSummary: true,
         hideStatus: true,
+        featureLayout: 'notice',
         actions
       };
     }
@@ -2324,7 +2323,7 @@
       const summaryEl = document.getElementById('modal-summary');
       summaryEl.textContent = place.summary || '';
       summaryEl.hidden = !!place.hideSummary || !place.summary;
-      renderPanelFeatures(place.features);
+      renderPanelFeatures(place.features, { layout: place.featureLayout || '' });
       renderPanelActions(place.actions);
       const statusEl = document.getElementById('modal-status');
       statusEl.textContent = place.statusText || '각 장소에서 현재 연결된 기능을 확인할 수 있습니다.';
@@ -2429,18 +2428,24 @@
         });
     }
 
-    function renderPanelFeatures(features) {
+    function renderPanelFeatures(features, options = {}) {
       const featureRoot = document.getElementById('modal-features');
       featureRoot.innerHTML = '';
-      featureRoot.classList.remove('title-catalog-groups');
+      featureRoot.classList.remove('title-catalog-groups', 'notice-board-features');
+      if(options.layout === 'notice') featureRoot.classList.add('notice-board-features');
       features.forEach(feature => {
         const item = document.createElement('article');
         const label = document.createElement('span');
         const value = document.createElement('strong');
+        const note = document.createElement('small');
         item.className = 'modal-feature';
         label.textContent = feature.label;
         value.textContent = feature.value;
         item.append(label, value);
+        if(feature.note) {
+          note.textContent = feature.note;
+          item.appendChild(note);
+        }
         featureRoot.appendChild(item);
       });
     }
@@ -5741,7 +5746,7 @@
     }
 
     async function runAdminWalletAdjustAction(memberUserId) {
-      const currencyInput = window.prompt(`${memberUserId}\n조정할 재화를 입력하세요.\nDJ코인: coin 또는 dj\n베리: berry 또는 베리`, 'coin');
+      const currencyInput = window.prompt(`${memberUserId}\n조정할 재화를 입력하세요.\nDJ코인: coin 또는 dj\n포인트: point 또는 berry`, 'coin');
       if(currencyInput === null) return;
       const currency = normalizeAdminWalletCurrency(currencyInput);
       if(!currency) {

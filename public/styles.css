@@ -1768,6 +1768,24 @@ h2 {
   line-height: 1.45;
 }
 
+.modal-feature small {
+  display: block;
+  margin-top: 10px;
+  color: #6c7a62;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.modal-features.notice-board-features {
+  grid-template-columns: 1fr;
+}
+
+.modal-features.notice-board-features .modal-feature {
+  min-height: 0;
+  width: 100%;
+}
+
 .modal-actions {
   display: flex;
   flex-wrap: wrap;
