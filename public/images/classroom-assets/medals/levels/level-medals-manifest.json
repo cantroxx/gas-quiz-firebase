@@ -1,0 +1,758 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-21",
+  "scope": "classroom-level-medal-selected",
+  "notes": "Selected 50 level medal assets cropped from Recraft output #1. Production UI can reference these files through /js/data/level-medal-assets.js.",
+  "assets": [
+    {
+      "assetId": "classroom_level_medal_01",
+      "type": "classroomLevelMedal",
+      "name": "레벨 1 훈장",
+      "level": 1,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-01-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_02",
+      "type": "classroomLevelMedal",
+      "name": "레벨 2 훈장",
+      "level": 2,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-02-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_03",
+      "type": "classroomLevelMedal",
+      "name": "레벨 3 훈장",
+      "level": 3,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-03-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_04",
+      "type": "classroomLevelMedal",
+      "name": "레벨 4 훈장",
+      "level": 4,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-04-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_05",
+      "type": "classroomLevelMedal",
+      "name": "레벨 5 훈장",
+      "level": 5,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-05-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_06",
+      "type": "classroomLevelMedal",
+      "name": "레벨 6 훈장",
+      "level": 6,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-06-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_07",
+      "type": "classroomLevelMedal",
+      "name": "레벨 7 훈장",
+      "level": 7,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-07-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_08",
+      "type": "classroomLevelMedal",
+      "name": "레벨 8 훈장",
+      "level": 8,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-08-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_09",
+      "type": "classroomLevelMedal",
+      "name": "레벨 9 훈장",
+      "level": 9,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-09-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_10",
+      "type": "classroomLevelMedal",
+      "name": "레벨 10 훈장",
+      "level": 10,
+      "category": "bronze-basic",
+      "path": "/images/classroom-assets/medals/levels/level-10-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_11",
+      "type": "classroomLevelMedal",
+      "name": "레벨 11 훈장",
+      "level": 11,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-11-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_12",
+      "type": "classroomLevelMedal",
+      "name": "레벨 12 훈장",
+      "level": 12,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-12-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_13",
+      "type": "classroomLevelMedal",
+      "name": "레벨 13 훈장",
+      "level": 13,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-13-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_14",
+      "type": "classroomLevelMedal",
+      "name": "레벨 14 훈장",
+      "level": 14,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-14-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_15",
+      "type": "classroomLevelMedal",
+      "name": "레벨 15 훈장",
+      "level": 15,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-15-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_16",
+      "type": "classroomLevelMedal",
+      "name": "레벨 16 훈장",
+      "level": 16,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-16-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_17",
+      "type": "classroomLevelMedal",
+      "name": "레벨 17 훈장",
+      "level": 17,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-17-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_18",
+      "type": "classroomLevelMedal",
+      "name": "레벨 18 훈장",
+      "level": 18,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-18-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_19",
+      "type": "classroomLevelMedal",
+      "name": "레벨 19 훈장",
+      "level": 19,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-19-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_20",
+      "type": "classroomLevelMedal",
+      "name": "레벨 20 훈장",
+      "level": 20,
+      "category": "silver-gold-medal",
+      "path": "/images/classroom-assets/medals/levels/level-20-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_21",
+      "type": "classroomLevelMedal",
+      "name": "레벨 21 훈장",
+      "level": 21,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-21-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_22",
+      "type": "classroomLevelMedal",
+      "name": "레벨 22 훈장",
+      "level": 22,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-22-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_23",
+      "type": "classroomLevelMedal",
+      "name": "레벨 23 훈장",
+      "level": 23,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-23-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_24",
+      "type": "classroomLevelMedal",
+      "name": "레벨 24 훈장",
+      "level": 24,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-24-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_25",
+      "type": "classroomLevelMedal",
+      "name": "레벨 25 훈장",
+      "level": 25,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-25-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_26",
+      "type": "classroomLevelMedal",
+      "name": "레벨 26 훈장",
+      "level": 26,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-26-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_27",
+      "type": "classroomLevelMedal",
+      "name": "레벨 27 훈장",
+      "level": 27,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-27-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_28",
+      "type": "classroomLevelMedal",
+      "name": "레벨 28 훈장",
+      "level": 28,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-28-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_29",
+      "type": "classroomLevelMedal",
+      "name": "레벨 29 훈장",
+      "level": 29,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-29-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_30",
+      "type": "classroomLevelMedal",
+      "name": "레벨 30 훈장",
+      "level": 30,
+      "category": "trophy-shield",
+      "path": "/images/classroom-assets/medals/levels/level-30-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_31",
+      "type": "classroomLevelMedal",
+      "name": "레벨 31 훈장",
+      "level": 31,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-31-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_32",
+      "type": "classroomLevelMedal",
+      "name": "레벨 32 훈장",
+      "level": 32,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-32-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_33",
+      "type": "classroomLevelMedal",
+      "name": "레벨 33 훈장",
+      "level": 33,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-33-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_34",
+      "type": "classroomLevelMedal",
+      "name": "레벨 34 훈장",
+      "level": 34,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-34-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_35",
+      "type": "classroomLevelMedal",
+      "name": "레벨 35 훈장",
+      "level": 35,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-35-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_36",
+      "type": "classroomLevelMedal",
+      "name": "레벨 36 훈장",
+      "level": 36,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-36-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_37",
+      "type": "classroomLevelMedal",
+      "name": "레벨 37 훈장",
+      "level": 37,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-37-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_38",
+      "type": "classroomLevelMedal",
+      "name": "레벨 38 훈장",
+      "level": 38,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-38-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_39",
+      "type": "classroomLevelMedal",
+      "name": "레벨 39 훈장",
+      "level": 39,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-39-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_40",
+      "type": "classroomLevelMedal",
+      "name": "레벨 40 훈장",
+      "level": 40,
+      "category": "gem-crystal",
+      "path": "/images/classroom-assets/medals/levels/level-40-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_41",
+      "type": "classroomLevelMedal",
+      "name": "레벨 41 훈장",
+      "level": 41,
+      "category": "legend-crown",
+      "path": "/images/classroom-assets/medals/levels/level-41-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_42",
+      "type": "classroomLevelMedal",
+      "name": "레벨 42 훈장",
+      "level": 42,
+      "category": "legend-crown",
+      "path": "/images/classroom-assets/medals/levels/level-42-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_43",
+      "type": "classroomLevelMedal",
+      "name": "레벨 43 훈장",
+      "level": 43,
+      "category": "legend-crown",
+      "path": "/images/classroom-assets/medals/levels/level-43-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_44",
+      "type": "classroomLevelMedal",
+      "name": "레벨 44 훈장",
+      "level": 44,
+      "category": "legend-crown",
+      "path": "/images/classroom-assets/medals/levels/level-44-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_45",
+      "type": "classroomLevelMedal",
+      "name": "레벨 45 훈장",
+      "level": 45,
+      "category": "legend-crown",
+      "path": "/images/classroom-assets/medals/levels/level-45-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_46",
+      "type": "classroomLevelMedal",
+      "name": "레벨 46 훈장",
+      "level": 46,
+      "category": "master-champion",
+      "path": "/images/classroom-assets/medals/levels/level-46-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_47",
+      "type": "classroomLevelMedal",
+      "name": "레벨 47 훈장",
+      "level": 47,
+      "category": "master-champion",
+      "path": "/images/classroom-assets/medals/levels/level-47-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_48",
+      "type": "classroomLevelMedal",
+      "name": "레벨 48 훈장",
+      "level": 48,
+      "category": "master-champion",
+      "path": "/images/classroom-assets/medals/levels/level-48-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_49",
+      "type": "classroomLevelMedal",
+      "name": "레벨 49 훈장",
+      "level": 49,
+      "category": "master-champion",
+      "path": "/images/classroom-assets/medals/levels/level-49-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    },
+    {
+      "assetId": "classroom_level_medal_50",
+      "type": "classroomLevelMedal",
+      "name": "레벨 50 훈장",
+      "level": 50,
+      "category": "master-champion",
+      "path": "/images/classroom-assets/medals/levels/level-50-v1.png",
+      "status": "selected",
+      "source": "Recraft grid #1 crop, original unmodified",
+      "usage": [
+        "homeProfile",
+        "levelReward",
+        "studentProfile"
+      ]
+    }
+  ]
+}

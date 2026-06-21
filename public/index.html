@@ -1309,6 +1309,7 @@
   <script src="/js/app/bootstrap.js"></script>
   <script src="/js/features/home-state.js"></script>
   <script src="/js/features/home-data.js"></script>
+  <script src="/js/data/level-medal-assets.js"></script>
   <script src="/js/infrastructure/home-repository.js"></script>
   <script src="/js/application/home-usecases.js"></script>
   <script src="/js/application/profile-usecases.js"></script>
@@ -2517,8 +2518,23 @@
         titleName: mainTitle.name,
         badgeName: mainBadge.name,
         coinText: `${USER_REWARD_DATA.coin} DJ코인`,
-        rankingMessage: ''
+        rankingMessage: '',
+        levelSummary: window.DJ48HomeData.computeHomeLevelSummary(USER_REWARD_DATA.exp)
       };
+    }
+
+    const PROFILE_LEVEL_MEDAL_PREVIEW_STORAGE_KEY = 'dj48.profileLevelMedalPreviewLevel';
+
+    function getProfileLevelMedalPreviewLevel() {
+      if(!isCurrentAdminMember()) return 0;
+      const value = Math.round(Number(window.localStorage?.getItem(PROFILE_LEVEL_MEDAL_PREVIEW_STORAGE_KEY)) || 0);
+      return Math.max(0, Math.min(window.DJ48LevelMedalAssets?.LEVEL_MEDAL_MAX || 50, value));
+    }
+
+    function saveProfileLevelMedalPreviewLevel(level) {
+      if(!isCurrentAdminMember()) return;
+      const safeLevel = Math.max(1, Math.min(window.DJ48LevelMedalAssets?.LEVEL_MEDAL_MAX || 50, Math.round(Number(level) || 1)));
+      window.localStorage?.setItem(PROFILE_LEVEL_MEDAL_PREVIEW_STORAGE_KEY, String(safeLevel));
     }
 
     function normalizeDisplayImageUrl(value) {
@@ -2554,6 +2570,9 @@
       return window.DJ48HomeRender.renderProfileCard('profile-card-root', profile, {
         normalizeDisplayImageUrl,
         applyProfileImageTransform,
+        levelMedalAssets: window.DJ48LevelMedalAssets?.LEVEL_MEDAL_ASSETS || [],
+        getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
+        getProfileLevelMedalPreviewLevel,
         isAdminProfile: profileData => profileData?.role === 'admin' || String(profileData?.adminLevel || '').trim() !== ''
       });
     }
@@ -2602,6 +2621,7 @@
         warn: console.warn,
         buildHomeMemberModel: data => window.DJ48HomeData.buildHomeMemberModel(data, {
           isPracticeBadgeVisibleByFlags,
+          getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
           getKnownTitleName,
           fallbackTitleName: findTitle(PROFILE_DATA.mainTitleId).name,
           fallbackBadgeName: findBadge(PROFILE_DATA.mainBadgeId).name
@@ -6780,6 +6800,7 @@
         openTitleCatalogModal,
         renderProfileRankingRecordsFromFirestore,
         saveProfileSelectedTitleFromHome,
+        saveProfileLevelMedalPreviewLevel,
         renderHomeMemberDataFromFirestore
       };
     }

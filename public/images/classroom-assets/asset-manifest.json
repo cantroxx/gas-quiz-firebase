@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-21",
+  "scope": "classroom-visual-assets-preview",
+  "notes": "Preview-only classroom visual assets. These files are not wired into the production classroom UI yet.",
+  "assets": [
+    {
+      "assetId": "classroom_icon_berry",
+      "type": "classroomIcon",
+      "name": "베리",
+      "category": "currency",
+      "path": "/images/classroom-assets/icons/berry.svg",
+      "fallbackIcon": "🫐",
+      "status": "sample",
+      "source": "Codex generated pixel SVG baseline",
+      "usage": ["classroomHud", "reward", "wallet"]
+    },
+    {
+      "assetId": "classroom_icon_coupon",
+      "type": "classroomIcon",
+      "name": "쿠폰",
+      "category": "shop",
+      "path": "/images/classroom-assets/icons/coupon.svg",
+      "fallbackIcon": "🎟️",
+      "status": "sample",
+      "source": "Codex generated pixel SVG baseline",
+      "usage": ["classroomShop", "purchaseHistory", "useRequest"]
+    },
+    {
+      "assetId": "classroom_icon_chalkboard",
+      "type": "classroomIcon",
+      "name": "칠판",
+      "category": "navigation",
+      "path": "/images/classroom-assets/icons/chalkboard.svg",
+      "fallbackIcon": "⬛",
+      "status": "sample",
+      "source": "Codex generated pixel SVG baseline",
+      "usage": ["questEntry", "classroomMapHotspot"]
+    },
+    {
+      "assetId": "classroom_medal_clean_desk",
+      "type": "classroomMedal",
+      "name": "정리왕 훈장",
+      "category": "honor",
+      "path": "/images/classroom-assets/medals/clean-desk.svg",
+      "fallbackIcon": "🏅",
+      "status": "sample",
+      "source": "Codex generated pixel SVG baseline",
+      "usage": ["questReward", "studentCard", "teacherAward"]
+    },
+    {
+      "assetId": "classroom_shop_homework_hint",
+      "type": "classroomShopItem",
+      "name": "숙제 힌트권",
+      "category": "coupon",
+      "path": "/images/classroom-assets/shop/homework-hint.svg",
+      "fallbackIcon": "🎫",
+      "status": "sample",
+      "source": "Codex generated pixel SVG baseline",
+      "usage": ["classroomShop", "couponInventory"]
+    }
+  ]
+}

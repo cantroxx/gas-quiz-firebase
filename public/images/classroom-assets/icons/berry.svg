@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+  <title id="title">Berry icon</title>
+  <desc id="desc">Pixel style blue berry currency icon.</desc>
+  <rect width="64" height="64" fill="none"/>
+  <rect x="24" y="8" width="16" height="8" fill="#2f7d44"/>
+  <rect x="16" y="16" width="32" height="8" fill="#2f7d44"/>
+  <rect x="16" y="24" width="8" height="8" fill="#1f5fcb"/>
+  <rect x="24" y="24" width="24" height="8" fill="#2f7ff0"/>
+  <rect x="48" y="24" width="8" height="8" fill="#164ea8"/>
+  <rect x="8" y="32" width="8" height="16" fill="#163f8c"/>
+  <rect x="16" y="32" width="8" height="8" fill="#2f7ff0"/>
+  <rect x="24" y="32" width="24" height="8" fill="#4ba3ff"/>
+  <rect x="48" y="32" width="8" height="16" fill="#164ea8"/>
+  <rect x="16" y="40" width="8" height="8" fill="#2f7ff0"/>
+  <rect x="24" y="40" width="16" height="8" fill="#2f7ff0"/>
+  <rect x="40" y="40" width="8" height="8" fill="#1f5fcb"/>
+  <rect x="16" y="48" width="32" height="8" fill="#163f8c"/>
+  <rect x="24" y="24" width="8" height="8" fill="#b8e7ff"/>
+  <rect x="40" y="16" width="8" height="8" fill="#5fbf6a"/>
+</svg>

@@ -81,6 +81,60 @@
     return options.hasMemberUserId ? '취득한 뱃지 없음' : options.fallbackBadgeName || '';
   }
 
+  const HOME_LEVEL_MAX = 50;
+
+  function xpRequiredForNextHomeLevel(level) {
+    const safeLevel = Math.max(1, Math.min(HOME_LEVEL_MAX, Math.round(Number(level) || 1)));
+    if(safeLevel >= HOME_LEVEL_MAX) return 0;
+    return 60 + ((safeLevel - 1) * 4);
+  }
+
+  function computeHomeLevelSummary(totalXpInput) {
+    const totalXp = Math.max(0, Math.round(Number(totalXpInput) || 0));
+    let level = 1;
+    let spent = 0;
+    while(level < HOME_LEVEL_MAX) {
+      const required = xpRequiredForNextHomeLevel(level);
+      if(totalXp - spent < required) break;
+      spent += required;
+      level += 1;
+    }
+    const xp = totalXp - spent;
+    const nextLevelXp = xpRequiredForNextHomeLevel(level);
+    return {
+      level,
+      xp,
+      totalXp,
+      nextLevelXp,
+      maxLevel: HOME_LEVEL_MAX,
+      progressPercent: nextLevelXp > 0 ? Math.round((xp / nextLevelXp) * 100) : 100
+    };
+  }
+
+  function normalizeHomeLevelSummary(levelSummarySnapshot, userRewardData = {}, deps = {}) {
+    const raw = levelSummarySnapshot?.exists ? levelSummarySnapshot.data() || {} : null;
+    const fallback = computeHomeLevelSummary(userRewardData.exp || userRewardData.totalXp || 0);
+    const level = Math.max(1, Math.min(HOME_LEVEL_MAX, Math.round(Number(raw?.level || fallback.level) || 1)));
+    const maxLevel = Math.max(level, Math.round(Number(raw?.maxLevel || fallback.maxLevel) || HOME_LEVEL_MAX));
+    const nextLevelXp = Math.max(0, Math.round(Number(raw?.nextLevelXp ?? fallback.nextLevelXp) || 0));
+    const xp = Math.max(0, Math.round(Number(raw?.xp ?? fallback.xp) || 0));
+    const totalXp = Math.max(0, Math.round(Number(raw?.totalXp ?? fallback.totalXp) || 0));
+    const progressPercent = nextLevelXp > 0 ? Math.max(0, Math.min(100, Math.round((xp / nextLevelXp) * 100))) : 100;
+    const medalAsset = deps.getLevelMedalAsset?.(level) || null;
+    return {
+      level,
+      xp,
+      totalXp,
+      nextLevelXp,
+      maxLevel,
+      progressPercent,
+      tier: raw?.tier || medalAsset?.tier || '',
+      medalId: raw?.medalId || medalAsset?.medalId || '',
+      rankIconUrl: medalAsset?.path || raw?.rankIconUrl || '',
+      medalAsset
+    };
+  }
+
   function buildHomeMemberModel(data = {}, deps = {}) {
     const {
       profile,
@@ -88,6 +142,7 @@
       userRewardData = {},
       economy,
       titleSummarySnapshot,
+      levelSummarySnapshot,
       titlesSnapshot,
       badgesSnapshot,
       dataOwnerId,
@@ -97,6 +152,7 @@
     const badgeCards = (badgesSnapshot?.docs?.map(normalizeBadgeCardFromFirestore) || [])
       .filter(badge => deps.isPracticeBadgeVisibleByFlags?.(badge) !== false);
     const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() : null;
+    const levelSummary = normalizeHomeLevelSummary(levelSummarySnapshot, userRewardData, deps);
     const hasMemberUserId = !!memberUserId;
     const schoolText = profile
       ? `${profile.school || ''} ${profile.grade || ''}학년 ${profile.classNumber || ''}반 ${profile.studentNumber || ''}번`.trim()
@@ -126,7 +182,8 @@
           fallbackBadgeName: deps.fallbackBadgeName
         }),
         coinText: economy ? `${Number(economy.djCoin) || 0} DJ코인` : `${userRewardData.coin} DJ코인`,
-        rankingMessage: profile?.rankingMessage || ''
+        rankingMessage: profile?.rankingMessage || '',
+        levelSummary
       },
       titleCards,
       badgeCards,
@@ -166,6 +223,8 @@
     normalizeBadgeCardFromFirestore,
     getSelectedTitleNameFromHomeData,
     getRepresentativeBadgeName,
+    computeHomeLevelSummary,
+    normalizeHomeLevelSummary,
     buildHomeMemberModel,
     buildTitleCardsForRender,
     getDefaultTitleCards,

@@ -21,6 +21,100 @@
     root.textContent = profile.avatar || '🙂';
   }
 
+  function renderLevelMedalImage(root, asset, altText) {
+    root.innerHTML = '';
+    if(asset?.path) {
+      const image = document.createElement('img');
+      image.src = asset.path;
+      image.alt = altText;
+      image.loading = 'lazy';
+      image.addEventListener('error', () => {
+        root.textContent = '🏅';
+      }, { once: true });
+      root.appendChild(image);
+      return;
+    }
+    root.textContent = '🏅';
+  }
+
+  function renderProfileLevelPanel(profile, deps = {}) {
+    const levelSummary = profile.levelSummary || {};
+    const actualLevel = Math.max(1, Math.round(Number(levelSummary.level) || 1));
+    const previewLevel = deps.isAdminProfile?.(profile) ? deps.getProfileLevelMedalPreviewLevel?.() : 0;
+    const displayLevel = previewLevel || actualLevel;
+    const displayAsset = deps.getLevelMedalAsset?.(displayLevel) || levelSummary.medalAsset || null;
+    const xp = Math.max(0, Math.round(Number(levelSummary.xp) || 0));
+    const nextLevelXp = Math.max(0, Math.round(Number(levelSummary.nextLevelXp) || 0));
+    const totalXp = Math.max(0, Math.round(Number(levelSummary.totalXp) || 0));
+    const progressPercent = nextLevelXp > 0
+      ? Math.max(0, Math.min(100, Math.round((xp / nextLevelXp) * 100)))
+      : 100;
+    const panel = document.createElement('section');
+    const medal = document.createElement('div');
+    const content = document.createElement('div');
+    const head = document.createElement('div');
+    const levelText = document.createElement('strong');
+    const xpText = document.createElement('span');
+    const track = document.createElement('div');
+    const bar = document.createElement('span');
+    const foot = document.createElement('p');
+
+    panel.className = 'profile-level-panel';
+    medal.className = 'profile-level-medal';
+    content.className = 'profile-level-content';
+    head.className = 'profile-level-head';
+    track.className = 'profile-level-track';
+    foot.className = 'profile-level-foot';
+    bar.style.width = `${progressPercent}%`;
+    levelText.textContent = `Lv.${actualLevel}`;
+    xpText.textContent = nextLevelXp > 0 ? `${xp}/${nextLevelXp} XP` : '최고 레벨';
+    foot.textContent = `누적 ${totalXp.toLocaleString('ko-KR')} XP${previewLevel ? ` · 훈장 미리보기 Lv.${displayLevel}` : ''}`;
+
+    renderLevelMedalImage(medal, displayAsset, `Lv.${displayLevel} 훈장`);
+    track.appendChild(bar);
+    head.append(levelText, xpText);
+    content.append(head, track, foot);
+    panel.append(medal, content);
+    return panel;
+  }
+
+  function renderProfileLevelMedalPicker(profile, deps = {}) {
+    const levelSummary = profile.levelSummary || {};
+    const actualLevel = Math.max(1, Math.round(Number(levelSummary.level) || 1));
+    const previewLevel = deps.getProfileLevelMedalPreviewLevel?.() || actualLevel;
+    const assets = deps.levelMedalAssets || [];
+    const panel = document.createElement('div');
+    const label = document.createElement('p');
+    const grid = document.createElement('div');
+
+    panel.className = 'profile-ranking-message-panel profile-level-medal-picker-panel profile-detail-panel';
+    panel.dataset.profileDetailPanel = 'level-medal';
+    label.className = 'profile-ranking-message-label profile-level-medal-picker-label';
+    label.textContent = '훈장 미리보기';
+    grid.className = 'profile-level-medal-picker-grid';
+
+    assets.forEach(asset => {
+      const button = document.createElement('button');
+      const image = document.createElement('img');
+      const text = document.createElement('span');
+      const level = Math.max(1, Math.round(Number(asset.level) || 1));
+
+      button.className = `profile-level-medal-option${level === previewLevel ? ' is-active' : ''}`;
+      button.type = 'button';
+      button.dataset.profileLevelMedalPreviewLevel = String(level);
+      button.setAttribute('aria-pressed', String(level === previewLevel));
+      image.src = asset.path;
+      image.alt = asset.name;
+      image.loading = 'lazy';
+      text.textContent = `Lv.${String(level).padStart(2, '0')}`;
+      button.append(image, text);
+      grid.appendChild(button);
+    });
+
+    panel.append(label, grid);
+    return panel;
+  }
+
   function renderProfileCard(rootId, profile, deps = {}) {
     const root = document.getElementById(rootId);
     if(!root) return;
@@ -43,6 +137,7 @@
     const coin = document.createElement('p');
     const coinLabel = document.createElement('span');
     const coinValue = document.createElement('strong');
+    const levelPanel = renderProfileLevelPanel(profile, deps);
     const nicknamePanel = document.createElement('div');
     const nicknameLabel = document.createElement('label');
     const nicknameRow = document.createElement('div');
@@ -73,6 +168,7 @@
     const messageHelp = document.createElement('p');
     const toggleGrid = document.createElement('div');
     const detailRoot = document.createElement('div');
+    const isAdmin = deps.isAdminProfile?.(profile) === true;
 
     root.innerHTML = '';
     card.className = 'profile-card';
@@ -211,7 +307,8 @@
       ['nickname', '닉네임'],
       ['password', '비밀번호 변경'],
       ['image', '프로필 이미지'],
-      ['message', '나의 한마디']
+      ['message', '나의 한마디'],
+      ...(isAdmin ? [['level-medal', '훈장 미리보기']] : [])
     ].forEach(([key, label]) => {
       const button = document.createElement('button');
       button.className = 'profile-detail-toggle';
@@ -223,9 +320,12 @@
     });
     detailRoot.className = 'profile-detail-root';
     detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
-    if(deps.isAdminProfile?.(profile)) actionRow.appendChild(adminButton);
+    if(isAdmin) {
+      detailRoot.appendChild(renderProfileLevelMedalPicker(profile, deps));
+      actionRow.appendChild(adminButton);
+    }
     nameRow.append(name, actionRow);
-    body.append(nameRow, school, meta, toggleGrid, detailRoot);
+    body.append(nameRow, school, levelPanel, meta, toggleGrid, detailRoot);
     card.append(avatar, body);
     root.appendChild(card);
   }

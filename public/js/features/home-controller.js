@@ -87,6 +87,12 @@
         deps.showAdminView?.();
         return;
       }
+      const levelMedalOption = event.target.closest('[data-profile-level-medal-preview-level]');
+      if(levelMedalOption) {
+        deps.saveProfileLevelMedalPreviewLevel?.(levelMedalOption.dataset.profileLevelMedalPreviewLevel);
+        deps.renderHomeMemberDataFromFirestore?.();
+        return;
+      }
       if(event.target.closest('#profile-nickname-save-button')) {
         deps.saveProfileNicknameFromHome?.();
         return;

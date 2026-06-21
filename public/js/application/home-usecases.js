@@ -20,6 +20,9 @@
     const titleSummaryPromise = memberUserId
       ? repository.getUserTitleSummary(memberUserId)
       : Promise.resolve(null);
+    const levelSummaryPromise = memberUserId
+      ? repository.getUserLevelSummary?.(memberUserId) || Promise.resolve(null)
+      : Promise.resolve(null);
     const titlesPromise = memberUserId
       ? repository.getUserTitles(memberUserId)
       : Promise.resolve(null);
@@ -27,9 +30,10 @@
       ? repository.getUserBadges(memberUserId)
       : Promise.resolve(null);
 
-    const [economy, titleSummarySnapshot, titlesSnapshot, badgesSnapshot] = await Promise.all([
+    const [economy, titleSummarySnapshot, levelSummarySnapshot, titlesSnapshot, badgesSnapshot] = await Promise.all([
       economyPromise,
       titleSummaryPromise,
+      levelSummaryPromise,
       titlesPromise,
       badgesPromise
     ]);
@@ -40,6 +44,7 @@
       userRewardData: options.userRewardData,
       economy,
       titleSummarySnapshot,
+      levelSummarySnapshot,
       titlesSnapshot,
       badgesSnapshot,
       dataOwnerId,

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" role="img" aria-labelledby="title desc">
+  <title id="title">Coupon icon</title>
+  <desc id="desc">Pixel style classroom coupon ticket icon.</desc>
+  <rect width="64" height="64" fill="none"/>
+  <rect x="8" y="16" width="48" height="8" fill="#8c4a20"/>
+  <rect x="8" y="24" width="8" height="24" fill="#8c4a20"/>
+  <rect x="16" y="24" width="32" height="24" fill="#ffe08a"/>
+  <rect x="48" y="24" width="8" height="24" fill="#8c4a20"/>
+  <rect x="8" y="48" width="48" height="8" fill="#8c4a20"/>
+  <rect x="16" y="24" width="32" height="8" fill="#fff1b5"/>
+  <rect x="24" y="32" width="16" height="4" fill="#d49a39"/>
+  <rect x="24" y="40" width="16" height="4" fill="#d49a39"/>
+  <rect x="8" y="28" width="8" height="8" fill="#fff6cc"/>
+  <rect x="48" y="36" width="8" height="8" fill="#fff6cc"/>
+  <rect x="40" y="24" width="8" height="8" fill="#ffcf5a"/>
+</svg>

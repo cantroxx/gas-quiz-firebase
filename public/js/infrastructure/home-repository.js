@@ -13,6 +13,11 @@
         if(!db || !memberUserId) return null;
         return db.collection('userTitleSummary').doc(memberUserId).get().catch(() => null);
       },
+      async getUserLevelSummary(memberUserId) {
+        const db = getFirestoreDb();
+        if(!db || !memberUserId) return null;
+        return db.collection('userLevelSummary').doc(memberUserId).get().catch(() => null);
+      },
       async getUserTitles(memberUserId) {
         const db = getFirestoreDb();
         if(!db || !memberUserId) return null;
