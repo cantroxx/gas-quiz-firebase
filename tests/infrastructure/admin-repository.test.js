@@ -5,6 +5,9 @@ let authCalls = 0;
 const functions = {
   httpsCallable: name => async payload => {
     calls.push([name, payload]);
+    if(name === 'getPublicSeasonEvents') {
+      return { data: { success: true, seasonEvents: { items: [{ eventId: 'season-1' }] } } };
+    }
     return { data: { success: true, name, payload } };
   }
 };
@@ -52,12 +55,7 @@ async function testAdminRepositoryCallsAdminFunctions() {
     title: 'Notice',
     updatedAt: { millis: 'appSettings-externalQuizzes' }
   });
-  assert.deepEqual(await repository.loadPublicSeasonEvents(), {
-    name: 'appSettings',
-    id: 'seasonEvents',
-    title: 'Notice',
-    updatedAt: { millis: 'appSettings-seasonEvents' }
-  });
+  assert.deepEqual(await repository.loadPublicSeasonEvents(), { items: [{ eventId: 'season-1' }] });
   assert.equal(await repository.loadServerFreshnessSignature({
     getTimestampMillis: value => value.millis
   }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|seasonEvents:appSettings-seasonEvents|noticeBoard:noticeBoard-current');
@@ -86,6 +84,7 @@ async function testAdminRepositoryCallsAdminFunctions() {
 
   assert.equal(authCalls, calls.length);
   assert.deepEqual(calls.map(call => call[0]), [
+    'getPublicSeasonEvents',
     'adminGetDashboard',
     'adminGetOperationalAudit',
     'adminGetQuizQualityAudit',

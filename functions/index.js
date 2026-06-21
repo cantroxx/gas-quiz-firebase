@@ -4125,6 +4125,15 @@ exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request =>
   };
 });
 
+exports.getPublicSeasonEvents = onCall({ region: REGION }, async request => {
+  requireAuth(request);
+  const snapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
+  return {
+    success: true,
+    seasonEvents: publicSeasonEvents(snapshot.exists ? snapshot.data() || {} : DEFAULT_SEASON_EVENTS)
+  };
+});
+
 exports.adminGetSeasonEvents = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);

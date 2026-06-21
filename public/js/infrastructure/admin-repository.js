@@ -53,10 +53,11 @@
         return snapshot.exists ? snapshot.data() || {} : {};
       },
       async loadPublicSeasonEvents() {
-        const db = deps.getFirestoreDb?.();
-        if(!db) throw new Error('firestore-unavailable');
-        const snapshot = await db.collection('appSettings').doc('seasonEvents').get();
-        return snapshot.exists ? snapshot.data() || {} : {};
+        const result = await callAdminCallable({
+          callableName: 'getPublicSeasonEvents',
+          errorCode: 'public-season-events-load-failed'
+        }, deps);
+        return result.seasonEvents || {};
       },
       async loadServerFreshnessSignature(options = {}) {
         const db = deps.getFirestoreDb?.();
