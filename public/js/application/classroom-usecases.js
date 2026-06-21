@@ -218,6 +218,9 @@
     if(functionName === 'refundClassroomShopPurchase') {
       return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${Number(result.refundBerry || 0)} 베리를 환불했습니다.`;
     }
+    if(functionName === 'useClassroomBillboardTicket') {
+      return '전광판에 한마디를 올렸습니다.';
+    }
     if(functionName === 'checkClassroomRoutine') {
       if(result.duplicate) return '오늘 이미 체크한 루틴입니다.';
       if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 베리를 받았습니다.`;
@@ -237,6 +240,7 @@
     completeClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '완료 중...' },
     rejectClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '반려 중...' },
     refundClassroomShopPurchase: { payloadKey: 'purchaseId', progressText: '환불 중...' },
+    useClassroomBillboardTicket: { payloadKey: 'purchaseId', progressText: '게시 중...' },
     checkClassroomRoutine: { payloadKey: 'routineId', progressText: '체크 중...' }
   };
 

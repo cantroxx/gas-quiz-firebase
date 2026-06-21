@@ -419,7 +419,6 @@
 
         <section id="classroom-teacher-dashboard" class="classroom-teacher-dashboard" aria-labelledby="classroom-teacher-dashboard-heading" hidden>
           <div class="event-section-heading">
-            <p class="eyebrow">Teacher Dashboard</p>
             <h3 id="classroom-teacher-dashboard-heading">교실 운영 요약</h3>
           </div>
           <div id="classroom-teacher-dashboard-grid" class="classroom-teacher-dashboard-grid"></div>
@@ -428,7 +427,6 @@
 
         <section id="classroom-teacher-review-panel" class="classroom-teacher-review-panel" aria-labelledby="classroom-review-heading" hidden>
           <div class="event-section-heading classroom-teacher-workbench-heading">
-            <p class="eyebrow">Teacher Workbench</p>
             <h3>교사 관리 작업대</h3>
             <p>퀘스트, 월간 뱃지, 직업, 상점 상품은 필요한 항목만 열어서 관리합니다.</p>
           </div>
@@ -591,9 +589,40 @@
             </form>
             <p id="classroom-shop-editor-status" class="classroom-review-status" aria-live="polite"></p>
             </details>
+            <details class="classroom-quest-editor" id="classroom-notice-editor-panel">
+              <summary>
+                <span>
+                  <strong>학급 알림</strong>
+                  <small>게시판 확성기와 5개 알림 슬롯을 관리합니다.</small>
+                </span>
+              </summary>
+            <form id="classroom-notice-form" class="classroom-notice-form">
+              <label>
+                주요 링크
+                <textarea data-classroom-notice-slot="links" maxlength="240" placeholder="예: 이번 주 참고 링크와 안내"></textarea>
+              </label>
+              <label>
+                패치노트
+                <textarea data-classroom-notice-slot="patch" maxlength="240" placeholder="예: 새로 바뀐 교실 기능"></textarea>
+              </label>
+              <label>
+                이달의 왕
+                <textarea data-classroom-notice-slot="monthlyKing" maxlength="240" placeholder="예: 이달의 독서왕 안내"></textarea>
+              </label>
+              <label>
+                행사판
+                <textarea data-classroom-notice-slot="events" maxlength="240" placeholder="예: 체험학습, 준비물, 일정"></textarea>
+              </label>
+              <label>
+                개인적인
+                <textarea data-classroom-notice-slot="personal" maxlength="240" placeholder="예: 담임 선생님의 짧은 한마디"></textarea>
+              </label>
+              <button class="button primary" type="submit">학급 알림 저장</button>
+            </form>
+            <p id="classroom-notice-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
           </div>
           <div class="event-section-heading">
-            <p class="eyebrow">Teacher Review</p>
             <h3 id="classroom-review-heading">담임 확인 대기</h3>
           </div>
           <p id="classroom-review-status" class="classroom-review-status" aria-live="polite"></p>
@@ -611,17 +640,13 @@
         </div>
 
         <section class="classroom-panel is-active" data-classroom-panel="today" aria-labelledby="classroom-today-heading">
-          <div class="event-section-heading">
-            <p class="eyebrow">Today</p>
-            <h3 id="classroom-today-heading">오늘의 교실</h3>
-          </div>
+          <h3 id="classroom-today-heading" class="sr-only">오늘</h3>
           <div id="classroom-today-grid" class="classroom-today-grid"></div>
           <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="quests" aria-labelledby="classroom-quest-heading">
           <div class="event-section-heading">
-            <p class="eyebrow">Classroom Quests</p>
             <h3 id="classroom-quest-heading">교실 퀘스트</h3>
           </div>
           <div id="classroom-quest-grid" class="classroom-card-grid"></div>
@@ -630,7 +655,6 @@
 
         <section class="classroom-panel" data-classroom-panel="students" aria-labelledby="classroom-student-card-heading">
           <div class="event-section-heading">
-            <p class="eyebrow">Student Cards</p>
             <h3 id="classroom-student-card-heading">학생카드</h3>
           </div>
           <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
@@ -638,7 +662,6 @@
 
         <section class="classroom-panel" data-classroom-panel="gems" aria-labelledby="classroom-gem-heading">
           <div class="event-section-heading">
-            <p class="eyebrow">Gemstones</p>
             <h3 id="classroom-gem-heading">젬스톤</h3>
           </div>
           <div id="classroom-gem-summary" class="classroom-management-summary"></div>
@@ -647,7 +670,6 @@
 
         <section class="classroom-panel" data-classroom-panel="jobs" aria-labelledby="classroom-job-heading">
           <div class="event-section-heading">
-            <p class="eyebrow">Class Jobs</p>
             <h3 id="classroom-job-heading">직업</h3>
           </div>
           <div id="classroom-job-summary" class="classroom-management-summary"></div>
@@ -656,7 +678,6 @@
 
         <section class="classroom-panel" data-classroom-panel="shop" aria-labelledby="classroom-shop-heading">
           <div class="event-section-heading">
-            <p class="eyebrow">Class Shop</p>
             <h3 id="classroom-shop-heading">교실 상점</h3>
           </div>
           <div id="classroom-shop-grid" class="classroom-card-grid"></div>
@@ -665,7 +686,6 @@
 
         <section class="classroom-panel" data-classroom-panel="routines" aria-labelledby="classroom-routine-heading">
           <div class="event-section-heading">
-            <p class="eyebrow">Growth Routines</p>
             <h3 id="classroom-routine-heading">성장루틴</h3>
           </div>
           <form id="classroom-routine-form" class="classroom-quest-form">
@@ -4830,7 +4850,8 @@
         currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
         getClassroomRewardCurrencyLabel,
         normalizeDisplayImageUrl,
-        getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level)
+        getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
+        setClassroomNoticeForm: slots => window.DJ48ClassroomForm.setClassroomNoticeForm(slots)
       };
     }
 
@@ -4884,6 +4905,10 @@
 
     function setClassroomShopEditorStatus(message, isError = false) {
       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-shop-editor-status', message, isError);
+    }
+
+    function setClassroomNoticeStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-notice-status', message, isError);
     }
 
     function setClassroomRoutineStatus(message, isError = false) {
@@ -5180,6 +5205,40 @@
       });
     }
 
+    function getClassroomNoticeFormValues() {
+      return window.DJ48ClassroomForm.getClassroomNoticeFormValues();
+    }
+
+    async function saveClassroomNoticesFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 학급 알림을 저장할 수 있습니다.',
+          pending: '학급 알림을 저장하는 중입니다.',
+          success: '학급 알림을 저장했습니다.',
+          warn: 'Classroom notices save failed.',
+          error: '학급 알림 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-notice-functions-unavailable': '학급 알림 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomNoticeFormValues,
+        validateValues: slots => slots.some(slot => slot.text) ? '' : '최소 한 개의 알림 내용을 입력해 주세요.',
+        save: options => getClassroomRepository().saveClassroomNotices({
+          classId: options.classId,
+          slots: options.values || []
+        }),
+        resetCaches: resetClassroomDataCaches,
+        setStatus: setClassroomNoticeStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
     function getClassroomEconomyActionDeps() {
       return {
         getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
@@ -5228,6 +5287,14 @@
     async function requestClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('requestClassroomShopPurchaseUse', purchaseId, button, {
         memo: askClassroomActionMemo('쿠폰 사용 요청 메모를 입력하세요. 비워도 됩니다.')
+      });
+    }
+
+    async function useClassroomBillboardTicket(purchaseId, button) {
+      const text = askClassroomActionMemo('전광판에 올릴 한마디를 입력하세요. 80자까지 가능합니다.').slice(0, 80);
+      if(!text) return null;
+      return runClassroomEconomyAction('useClassroomBillboardTicket', purchaseId, button, {
+        text
       });
     }
 
@@ -6652,10 +6719,14 @@
 
     function setClassroomUnlocked(unlocked) {
       window.DJ48ClassroomForm.setClassroomUnlocked(unlocked);
-      if(unlocked) renderClassroomPrototype();
+      if(unlocked) {
+        setActiveClassroomTab('today');
+        renderClassroomPrototype();
+      }
     }
 
     function showClassroomView(unlocked = false) {
+      setActiveClassroomTab('today');
       setClassroomUnlocked(unlocked);
       enterAppView({
         viewId: 'classroom-view',
@@ -6752,6 +6823,7 @@
         awardClassroomBadgeCampaignFromForm,
         saveClassroomJobFromForm,
         saveClassroomShopItemFromForm,
+        saveClassroomNoticesFromForm,
         saveClassroomRoutineFromForm,
         setActiveClassroomTab,
         completeClassroomCheckQuest,
@@ -6762,6 +6834,7 @@
         claimClassroomJobSalary,
         purchaseClassroomShopItem,
         requestClassroomShopPurchaseUse,
+        useClassroomBillboardTicket,
         approveClassroomShopPurchaseUse,
         completeClassroomShopPurchaseUse,
         rejectClassroomShopPurchaseUse,

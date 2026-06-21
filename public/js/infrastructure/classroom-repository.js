@@ -11,7 +11,9 @@
       assignments: [],
       routines: [],
       purchases: [],
-      berryLogs: []
+      berryLogs: [],
+      classNotices: { slots: [] },
+      billboardMessages: []
     };
   }
 
@@ -109,6 +111,8 @@
         routines: Array.isArray(data.routines) ? data.routines : [],
         purchases: Array.isArray(data.purchases) ? data.purchases : [],
         berryLogs: Array.isArray(data.berryLogs) ? data.berryLogs : [],
+        classNotices: data.classNotices || { slots: [] },
+        billboardMessages: Array.isArray(data.billboardMessages) ? data.billboardMessages : [],
         myAssignment: data.myAssignment || null
       };
     } catch(error) {
@@ -264,6 +268,15 @@
     });
   }
 
+  async function saveClassroomNotices(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-notice-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomNotices');
+    await callable({
+      classId: options.classId,
+      slots: options.slots || []
+    });
+  }
+
   async function callClassroomEconomyAction(functionName, payload = {}, options = {}, deps = {}) {
     if(!options.memberUserId) throw new Error('classroom-member-unavailable');
     const functions = getRequiredClassroomFunctions(deps, 'classroom-economy-functions-unavailable');
@@ -372,6 +385,7 @@
       awardClassroomBadgeCampaign: options => awardClassroomBadgeCampaign(options, callableDeps),
       saveClassroomJob: options => saveClassroomJob(options, callableDeps),
       saveClassroomShopItem: options => saveClassroomShopItem(options, callableDeps),
+      saveClassroomNotices: options => saveClassroomNotices(options, callableDeps),
       callClassroomEconomyAction: (functionName, payload, options) => callClassroomEconomyAction(
         functionName,
         payload,

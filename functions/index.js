@@ -32,6 +32,25 @@ const QUIZ_XP_PER_BLOCK = 3;
 const QUIZ_DAILY_XP_LIMIT = 45;
 const RANKING_COMPLETE_XP = 5;
 const HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
+const CLASSROOM_BILLBOARD_TICKET_ITEM_ID = "billboard-ticket";
+const CLASSROOM_NOTICE_SLOT_KEYS = ["links", "patch", "monthlyKing", "events", "personal"];
+const DEFAULT_CLASSROOM_NOTICE_SLOTS = [
+  { key: "links", label: "주요 링크", color: "#3b82f6", text: "" },
+  { key: "patch", label: "패치노트", color: "#f7b7d9", text: "" },
+  { key: "monthlyKing", label: "이달의 왕", color: "#bdecc9", text: "" },
+  { key: "events", label: "행사판", color: "#d9b8ff", text: "" },
+  { key: "personal", label: "개인적인", color: "#ffd1b8", text: "" }
+];
+const DEFAULT_CLASSROOM_BILLBOARD_ITEM = {
+  itemId: CLASSROOM_BILLBOARD_TICKET_ITEM_ID,
+  title: "전광판 이용권",
+  desc: "우리반 게시판 전광판에 한마디를 올릴 수 있는 쿠폰",
+  priceBerry: 30,
+  itemType: "billboardTicket",
+  icon: "📣",
+  active: true,
+  isDefault: true
+};
 const db = getFirestore();
 
 const DEFAULT_FEATURE_FLAGS = {
@@ -1315,8 +1334,36 @@ function normalizeClassroomShopItem(rawItem = {}) {
     title,
     desc: String(rawItem.desc || "").trim().slice(0, 160),
     priceBerry: Math.max(1, Math.min(10000, Math.round(Number(rawItem.priceBerry || rawItem.price) || 1))),
+    itemType: String(rawItem.itemType || rawItem.type || "coupon").trim().slice(0, 40) || "coupon",
+    icon: String(rawItem.icon || "").trim().slice(0, 12),
     active: rawItem.active !== false
   };
+}
+
+function normalizeClassroomNoticeSlots(rawSlots = []) {
+  const source = Array.isArray(rawSlots) ? rawSlots : [];
+  return DEFAULT_CLASSROOM_NOTICE_SLOTS.map(defaultSlot => {
+    const found = source.find(slot => String(slot?.key || "") === defaultSlot.key) || {};
+    return {
+      ...defaultSlot,
+      text: String(found.text || "").trim().slice(0, 240)
+    };
+  });
+}
+
+function getKstEndOfDayDateAfter(days = 3) {
+  const now = new Date();
+  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const endKstUtcMillis = Date.UTC(
+    kstNow.getUTCFullYear(),
+    kstNow.getUTCMonth(),
+    kstNow.getUTCDate() + Math.max(0, Math.round(Number(days) || 0)),
+    14,
+    59,
+    59,
+    999
+  );
+  return new Date(endKstUtcMillis);
 }
 
 function normalizeClassroomRoutine(rawRoutine = {}) {
@@ -4578,6 +4625,10 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     purchaseQuery.get(),
     berryLogQuery.get()
   ]);
+  const [noticeSnapshot, billboardSnapshot] = await Promise.all([
+    db.collection("classrooms").doc(classId).collection("classNotices").doc("current").get(),
+    db.collection("classrooms").doc(classId).collection("billboardMessages").limit(50).get()
+  ]);
 
   const jobs = jobsSnapshot.docs
     .map(doc => ({ jobId: doc.id, ...(doc.data() || {}) }))
@@ -4585,6 +4636,9 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const shopItems = shopSnapshot.docs
     .map(doc => ({ itemId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.title || a.itemId).localeCompare(String(b.title || b.itemId), "ko"));
+  if (!shopItems.some(item => item.itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID)) {
+    shopItems.push(DEFAULT_CLASSROOM_BILLBOARD_ITEM);
+  }
   const assignments = assignmentSnapshot.docs.map(doc => {
     const data = doc.data() || {};
     return {
@@ -4646,6 +4700,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         purchaseId: doc.id,
         itemId: String(data.itemId || ""),
         itemTitle: String(data.itemTitle || ""),
+        itemType: String(data.itemType || ""),
         memberUserId: String(data.memberUserId || data.userId || ""),
         priceBerry: Number(data.priceBerry || 0),
         status: String(data.status || "purchased"),
@@ -4658,11 +4713,33 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         rejectReason: String(data.rejectReason || "").slice(0, 160),
         refundReason: String(data.refundReason || "").slice(0, 160),
         useMemo: String(data.useMemo || "").slice(0, 160),
+        billboardMessage: String(data.billboardMessage || "").slice(0, 80),
         createdAtMillis: getTimestampMillis(data.createdAt)
       };
     })
     .sort((a, b) => (b.createdAtMillis || b.requestedAtMillis || 0) - (a.createdAtMillis || a.requestedAtMillis || 0))
     .slice(0, authResult.canManage ? 80 : 30);
+  const nowMillis = Date.now();
+  const noticeData = noticeSnapshot.exists ? noticeSnapshot.data() || {} : {};
+  const classNotices = {
+    slots: normalizeClassroomNoticeSlots(noticeData.slots || []),
+    updatedAtMillis: getTimestampMillis(noticeData.updatedAt)
+  };
+  const billboardMessages = billboardSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      return {
+        messageId: doc.id,
+        memberUserId: String(data.memberUserId || data.userId || ""),
+        text: String(data.text || "").slice(0, 80),
+        purchaseId: String(data.purchaseId || ""),
+        createdAtMillis: getTimestampMillis(data.createdAt),
+        expiresAtMillis: getTimestampMillis(data.expiresAt)
+      };
+    })
+    .filter(item => item.text && (!item.expiresAtMillis || item.expiresAtMillis >= nowMillis))
+    .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
+    .slice(0, 12);
   const berryLogs = berryLogSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
@@ -4691,6 +4768,8 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     routines,
     purchases,
     berryLogs,
+    classNotices,
+    billboardMessages,
     myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
   };
 });
@@ -5216,10 +5295,12 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
       transaction.get(itemRef),
       transaction.get(walletRef)
     ]);
-    if (!itemSnapshot.exists || itemSnapshot.data()?.active === false) {
+    const item = itemSnapshot.exists
+      ? itemSnapshot.data() || {}
+      : (itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID ? DEFAULT_CLASSROOM_BILLBOARD_ITEM : null);
+    if (!item || item.active === false) {
       throw new HttpsError("not-found", "Classroom shop item not found.");
     }
-    const item = itemSnapshot.data() || {};
     const priceBerry = Math.max(1, Math.min(10000, Math.round(Number(item.priceBerry) || 0)));
     const currentBerry = Math.max(0, Math.round(Number(walletSnapshot.exists ? walletSnapshot.data()?.berry : 0) || 0));
     if (currentBerry < priceBerry) {
@@ -5243,6 +5324,7 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
       classId,
       itemId,
       itemTitle: item.title || "",
+      itemType: item.itemType || "",
       userId: memberUserId,
       memberUserId,
       authUid,
@@ -5269,6 +5351,90 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
   });
 
   return { success: true, classId, memberUserId, ...result };
+});
+
+exports.saveClassroomNotices = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const slots = normalizeClassroomNoticeSlots(payload.slots || []);
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const noticeRef = db.collection("classrooms").doc(classId).collection("classNotices").doc("current");
+    transaction.set(noticeRef, {
+      classId,
+      slots,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_notices_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, slots };
+});
+
+exports.useClassroomBillboardTicket = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+  const text = String(payload.text || payload.message || "").trim().replace(/\s+/g, " ").slice(0, 80);
+  if (!text) {
+    throw new HttpsError("invalid-argument", "Billboard message is required.");
+  }
+  const expiresAt = Timestamp.fromDate(getKstEndOfDayDateAfter(3));
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
+    const purchaseSnapshot = await transaction.get(purchaseRef);
+    if (!purchaseSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom shop purchase not found.");
+    }
+    const purchase = purchaseSnapshot.data() || {};
+    if (purchase.memberUserId !== memberUserId) {
+      throw new HttpsError("permission-denied", "Cannot use another member purchase.");
+    }
+    if (String(purchase.itemId || "") !== CLASSROOM_BILLBOARD_TICKET_ITEM_ID && String(purchase.itemType || "") !== "billboardTicket") {
+      throw new HttpsError("failed-precondition", "This purchase is not a billboard ticket.");
+    }
+    if (String(purchase.status || "purchased") !== "purchased") {
+      throw new HttpsError("failed-precondition", "This billboard ticket is already used or pending.");
+    }
+    const messageRef = db.collection("classrooms").doc(classId).collection("billboardMessages").doc();
+    transaction.set(messageRef, {
+      messageId: messageRef.id,
+      classId,
+      purchaseId,
+      memberUserId,
+      userId: memberUserId,
+      text,
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt,
+      source: "use_classroom_billboard_ticket_function"
+    }, { merge: false });
+    transaction.set(purchaseRef, {
+      status: "used",
+      usedBy: memberUserId,
+      usedAt: FieldValue.serverTimestamp(),
+      useMemo: "전광판 게시",
+      billboardMessage: text,
+      billboardMessageId: messageRef.id,
+      billboardExpiresAt: expiresAt,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { messageId: messageRef.id, expiresAtMillis: expiresAt.toMillis() };
+  });
+
+  return { success: true, classId, memberUserId, purchaseId, text, ...result };
 });
 
 exports.saveClassroomRoutine = onCall({ region: REGION }, async request => {

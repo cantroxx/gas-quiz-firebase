@@ -165,6 +165,23 @@
     if(price) price.value = '50';
   }
 
+  function getClassroomNoticeFormValues() {
+    return Array.from(document.querySelectorAll('[data-classroom-notice-slot]')).map(input => ({
+      key: String(input.dataset.classroomNoticeSlot || '').trim(),
+      text: String(input.value || '').trim().slice(0, 240)
+    })).filter(slot => slot.key);
+  }
+
+  function setClassroomNoticeForm(slots = []) {
+    const slotMap = {};
+    (Array.isArray(slots) ? slots : []).forEach(slot => {
+      slotMap[String(slot.key || '')] = String(slot.text || '');
+    });
+    document.querySelectorAll('[data-classroom-notice-slot]').forEach(input => {
+      input.value = slotMap[String(input.dataset.classroomNoticeSlot || '')] || '';
+    });
+  }
+
   function getClassroomRoutineFormValues() {
     const weekdays = Array.from(document.querySelectorAll('input[name="classroom-routine-weekday"]:checked'))
       .map(input => Number(input.value))
@@ -209,6 +226,8 @@
     resetClassroomJobForm,
     getClassroomShopItemFormValues,
     resetClassroomShopItemForm,
+    getClassroomNoticeFormValues,
+    setClassroomNoticeForm,
     getClassroomRoutineFormValues,
     resetClassroomRoutineForm
   };

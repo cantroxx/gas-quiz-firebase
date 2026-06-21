@@ -18,6 +18,10 @@
       deps.saveClassroomShopItemFromForm?.(event);
     });
 
+    document.getElementById('classroom-notice-form')?.addEventListener('submit', event => {
+      deps.saveClassroomNoticesFromForm?.(event);
+    });
+
     document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
       deps.saveClassroomRoutineFromForm?.(event);
     });
@@ -30,6 +34,12 @@
       const button = event.target.closest('[data-classroom-today-tab]');
       if(!button || button.disabled) return;
       deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
+      if(button.dataset.classroomTeacherTarget) {
+        document.getElementById(button.dataset.classroomTeacherTarget)?.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth'
+        });
+      }
     });
 
     document.querySelector('.classroom-summary-grid')?.addEventListener('click', event => {
@@ -111,6 +121,11 @@
       const requestButton = event.target.closest('[data-classroom-shop-request-use-id]');
       if(requestButton && !requestButton.disabled) {
         deps.requestClassroomShopPurchaseUse?.(requestButton.dataset.classroomShopRequestUseId || '', requestButton);
+        return;
+      }
+      const billboardButton = event.target.closest('[data-classroom-billboard-use-id]');
+      if(billboardButton && !billboardButton.disabled) {
+        deps.useClassroomBillboardTicket?.(billboardButton.dataset.classroomBillboardUseId || '', billboardButton);
         return;
       }
       const approveButton = event.target.closest('[data-classroom-shop-approve-use-id]');
