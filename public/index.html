@@ -3664,6 +3664,9 @@
       const todayQuizIds = Array.isArray(data.todayQuizIds)
         ? Array.from(new Set(data.todayQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
         : [];
+      const activeTodayQuizIds = Array.isArray(data.activeTodayQuizIds)
+        ? Array.from(new Set(data.activeTodayQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
+        : todayQuizIds;
       const todayQuizRandomPoolIds = Array.isArray(data.todayQuizRandomPoolIds)
         ? Array.from(new Set(data.todayQuizRandomPoolIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
         : [];
@@ -3676,6 +3679,7 @@
         rankingEnabled: data.rankingEnabled !== false,
         todayQuizMode: data.todayQuizMode === 'dailyRandom' ? 'dailyRandom' : 'manual',
         todayQuizIds,
+        activeTodayQuizIds,
         todayQuizRandomPoolIds,
         todayQuizDailyCount: Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1))),
         todayQuizShuffleSeed: String(data.todayQuizShuffleSeed || '').trim(),
@@ -6089,6 +6093,43 @@
       });
     }
 
+    function getActiveTodayQuizIdsForNotice(flags = {}) {
+      const ids = Array.isArray(flags.activeTodayQuizIds) && flags.activeTodayQuizIds.length
+        ? flags.activeTodayQuizIds
+        : flags.todayQuizIds;
+      return Array.from(new Set((ids || []).map(id => normalizeFirebaseQuizId(id)).filter(Boolean))).slice(0, 2);
+    }
+
+    function getTodayQuizNoticeText(quizIds = []) {
+      const titles = quizIds
+        .map(quizId => QUIZ_CATALOG[quizId]?.title || quizId)
+        .filter(Boolean);
+      const titleText = titles.length ? titles.join(', ') : '오늘의 퀴즈';
+      return `오늘의 퀴즈: ${titleText}. 연습전에서 풀면 정답마다 XP +2와 DJ코인을 받을 수 있어요.`;
+    }
+
+    async function syncNoticeBoardWithTodayQuiz(featureFlags = {}) {
+      const quizIds = getActiveTodayQuizIdsForNotice(featureFlags);
+      if(!quizIds.length) return null;
+      let notice = window.DJ48AdminState.getNoticeBoardCache();
+      if(!notice) {
+        const result = await getAdminRepository().loadAdminNoticeBoard();
+        notice = normalizeNoticeBoardData(result.notice);
+      }
+      const nextNotice = normalizeNoticeBoardData({
+        ...notice,
+        quest: getTodayQuizNoticeText(quizIds),
+        recommendedQuizLabel: QUIZ_CATALOG[quizIds[0]]?.title || quizIds[0] || '',
+        recommendedQuizId: quizIds[0] || '',
+        recommendedQuiz2Label: QUIZ_CATALOG[quizIds[1]]?.title || quizIds[1] || '',
+        recommendedQuiz2Id: quizIds[1] || ''
+      });
+      const result = await getAdminRepository().saveAdminNoticeBoard(nextNotice);
+      const savedNotice = window.DJ48AdminState.setNoticeBoardCache(normalizeNoticeBoardData(result.notice));
+      setAdminNoticeForm(savedNotice);
+      return savedNotice;
+    }
+
     async function loadAdminFeatureFlags() {
       setAdminFeatureFlagsStatus('기능 설정을 불러오는 중입니다...');
       const result = await getAdminRepository().loadAdminFeatureFlags();
@@ -6109,9 +6150,16 @@
           console.warn('Admin external quizzes refresh after feature flag save failed.', error);
         });
       }
+      let noticeSynced = false;
+      await syncNoticeBoardWithTodayQuiz(featureFlags).then(result => {
+        noticeSynced = !!result;
+      }).catch(error => {
+        console.warn('Today quiz notice sync after feature flag save failed.', error);
+      });
+      const noticeText = noticeSynced ? ' 알림판 오늘의 퀴즈도 갱신했습니다.' : '';
       setAdminFeatureFlagsStatus(featureFlags.externalQuizzesEnabled === false
-        ? '기능 설정을 저장했고 외부 퀴즈 활성 체크를 모두 해제했습니다.'
-        : '기능 설정을 저장했습니다.');
+        ? `기능 설정을 저장했고 외부 퀴즈 활성 체크를 모두 해제했습니다.${noticeText}`
+        : `기능 설정을 저장했습니다.${noticeText}`);
       return featureFlags;
     }
 
@@ -6130,7 +6178,11 @@
       const result = await getAdminRepository().saveAdminFeatureFlags(flags);
       const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
       setAdminFeatureFlagsForm(featureFlags);
-      setAdminFeatureFlagsStatus('오늘의 퀴즈를 즉시 셔플했습니다.');
+      await syncNoticeBoardWithTodayQuiz(featureFlags);
+      const selectedTitles = getActiveTodayQuizIdsForNotice(featureFlags)
+        .map(quizId => QUIZ_CATALOG[quizId]?.title || quizId)
+        .join(', ');
+      setAdminFeatureFlagsStatus(`오늘의 퀴즈를 즉시 셔플했고 알림판에 반영했습니다.${selectedTitles ? ` (${selectedTitles})` : ''}`);
       return featureFlags;
     }
 

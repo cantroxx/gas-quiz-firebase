@@ -250,7 +250,7 @@
     const todayQuizModeInput = document.getElementById('admin-feature-today-quiz-mode');
     if(todayQuizModeInput) todayQuizModeInput.value = data.todayQuizMode === 'dailyRandom' ? 'dailyRandom' : 'manual';
     const todayQuizInput = document.getElementById('admin-feature-today-quiz-ids');
-    if(todayQuizInput) todayQuizInput.value = (data.todayQuizIds || []).join(', ');
+    if(todayQuizInput) todayQuizInput.value = (data.activeTodayQuizIds || data.todayQuizIds || []).join(', ');
     const todayQuizPoolInput = document.getElementById('admin-feature-today-quiz-pool-ids');
     if(todayQuizPoolInput) todayQuizPoolInput.value = (data.todayQuizRandomPoolIds || []).join(', ');
     const todayQuizCountInput = document.getElementById('admin-feature-today-quiz-count');

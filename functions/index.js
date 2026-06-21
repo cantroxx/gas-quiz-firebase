@@ -245,6 +245,9 @@ function publicFeatureFlags(data = {}) {
   const todayQuizMode = data.todayQuizMode === "dailyRandom" ? "dailyRandom" : "manual";
   const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
   const todayQuizShuffleSeed = String(data.todayQuizShuffleSeed || "").trim().slice(0, 80);
+  const activeTodayQuizIds = todayQuizMode === "dailyRandom"
+    ? getDailyShuffledQuizIds(todayQuizRandomPoolIds, `${getKstDateKey()}:${todayQuizShuffleSeed || ""}`).slice(0, todayQuizDailyCount)
+    : todayQuizIds;
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -254,6 +257,7 @@ function publicFeatureFlags(data = {}) {
     rankingEnabled: data.rankingEnabled !== false,
     todayQuizMode,
     todayQuizIds,
+    activeTodayQuizIds,
     todayQuizRandomPoolIds,
     todayQuizDailyCount,
     todayQuizShuffleSeed,
