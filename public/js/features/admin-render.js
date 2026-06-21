@@ -326,7 +326,7 @@
       createAdminDetailMetric('연결', profile.authLinked ? '연결됨' : '연결 없음'),
       createAdminDetailMetric('비밀번호', getAdminPasswordStateLabel({ passwordState: data.passwordState })),
       createAdminDetailMetric('DJ코인', Number(data.economy?.djCoin || 0)),
-      createAdminDetailMetric('포인트', Number(data.classroomWallet?.berry || 0)),
+      createAdminDetailMetric('포인트', Number(data.classroomWallet?.point || 0)),
       createAdminDetailMetric('연습 기록', Number(data.practiceSummary?.recordCount || 0)),
       createAdminDetailMetric('완주 별', Number(data.practiceSummary?.totalStars || 0)),
       createAdminDetailMetric('칭호', Number(data.titleSummary?.ownedCount || data.counts?.titles || 0)),

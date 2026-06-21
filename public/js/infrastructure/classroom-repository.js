@@ -11,9 +11,16 @@
       assignments: [],
       routines: [],
       purchases: [],
-      berryLogs: [],
+      pointLogs: [],
       classNotices: { slots: [] },
       billboardMessages: []
+    };
+  }
+
+  function normalizeClassroomWallet(data = {}) {
+    return {
+      ...data,
+      point: Number(data.point ?? data.berry ?? 0) || 0
     };
   }
 
@@ -121,7 +128,7 @@
         assignments: Array.isArray(data.assignments) ? data.assignments : [],
         routines: Array.isArray(data.routines) ? data.routines : [],
         purchases: Array.isArray(data.purchases) ? data.purchases : [],
-        berryLogs: Array.isArray(data.berryLogs) ? data.berryLogs : [],
+        pointLogs: Array.isArray(data.pointLogs) ? data.pointLogs : [],
         classNotices: data.classNotices || { slots: [] },
         billboardMessages: Array.isArray(data.billboardMessages) ? data.billboardMessages : [],
         myAssignment: data.myAssignment || null
@@ -135,17 +142,17 @@
   async function loadClassroomWallet(options = {}, deps = {}) {
     const { settings = {}, memberUserId = '' } = options;
     const db = getClassroomDb(deps);
-    if(!memberUserId || !db) return { berry: 0 };
+    if(!memberUserId || !db) return { point: 0 };
     try {
       const snapshot = await db.collection('classrooms')
         .doc(settings.classId)
         .collection('studentWallets')
         .doc(memberUserId)
         .get();
-      return snapshot.exists ? snapshot.data() : { berry: 0 };
+      return snapshot.exists ? normalizeClassroomWallet(snapshot.data() || {}) : { point: 0 };
     } catch(error) {
       deps.warn?.('Classroom wallet load failed.', error);
-      return { berry: 0 };
+      return { point: 0 };
     }
   }
 
@@ -244,7 +251,7 @@
         linkedGemName: values.linkedGemName,
         gemXp: values.gemXp,
         gemTargetXp: values.gemTargetXp,
-        gemRewardBerry: values.gemRewardBerry,
+        gemRewardPoint: values.gemRewardPoint,
         active: values.active !== false,
         type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
       }
@@ -349,7 +356,7 @@
         checked: true,
         status: 'student_checked',
         rewardCoin: Number(quest.rewardCoin) || 0,
-        rewardCurrency: 'berry',
+        rewardCurrency: 'point',
         rewardStatus: 'pending_teacher_review',
         source: 'firebase-app',
         version: 1,

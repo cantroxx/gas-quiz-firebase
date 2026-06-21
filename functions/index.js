@@ -47,7 +47,7 @@ const DEFAULT_CLASSROOM_BILLBOARD_ITEM = {
   itemId: CLASSROOM_BILLBOARD_TICKET_ITEM_ID,
   title: "전광판 이용권",
   desc: "우리반 게시판 전광판에 한마디를 올릴 수 있는 쿠폰",
-  priceBerry: 30,
+  pricePoint: 30,
   itemType: "billboardTicket",
   icon: "📣",
   active: true,
@@ -66,6 +66,7 @@ const DEFAULT_FEATURE_FLAGS = {
   todayQuizIds: [],
   todayQuizRandomPoolIds: [],
   todayQuizDailyCount: 1,
+  todayQuizShuffleSeed: "",
   disabledQuizIds: []
 };
 
@@ -238,6 +239,7 @@ function publicFeatureFlags(data = {}) {
   const todayQuizRandomPoolIds = sanitizeQuizIds(data.todayQuizRandomPoolIds, 80);
   const todayQuizMode = data.todayQuizMode === "dailyRandom" ? "dailyRandom" : "manual";
   const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
+  const todayQuizShuffleSeed = String(data.todayQuizShuffleSeed || "").trim().slice(0, 80);
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -249,6 +251,7 @@ function publicFeatureFlags(data = {}) {
     todayQuizIds,
     todayQuizRandomPoolIds,
     todayQuizDailyCount,
+    todayQuizShuffleSeed,
     disabledQuizIds
   };
 }
@@ -1027,7 +1030,7 @@ function getTodayQuizIds(flags = {}) {
   const manualIds = Array.isArray(flags.todayQuizIds) ? flags.todayQuizIds : [];
   const poolIds = Array.isArray(flags.todayQuizRandomPoolIds) ? flags.todayQuizRandomPoolIds : [];
   const ids = flags.todayQuizMode === "dailyRandom"
-    ? getDailyShuffledQuizIds(poolIds, getKstDateKey()).slice(0, Math.max(1, Number(flags.todayQuizDailyCount) || 1))
+    ? getDailyShuffledQuizIds(poolIds, `${getKstDateKey()}:${flags.todayQuizShuffleSeed || ""}`).slice(0, Math.max(1, Number(flags.todayQuizDailyCount) || 1))
     : manualIds;
   return new Set(ids
     .map(id => String(id || "").trim())
@@ -1098,7 +1101,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rawId = String(rawQuest.id || rawQuest.questId || "").trim();
   const id = rawId || `quest-${index + 1}`;
   const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(rawQuest.rewardCoin) || 0)));
-  const rewardCurrency = "berry";
+  const rewardCurrency = "point";
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
@@ -1128,7 +1131,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     linkedGemName,
     gemXp,
     gemTargetXp: linkedGemId ? Math.max(1, Math.min(1000, Math.round(Number(rawQuest.gemTargetXp) || 10))) : 10,
-    gemRewardBerry: linkedGemId ? Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardBerry) || 0))) : 0,
+    gemRewardPoint: linkedGemId ? Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardPoint) || 0))) : 0,
     studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().replace(/코인/g, "포인트").replace(/베리/g, "포인트").slice(0, 60)
   };
 }
@@ -1147,7 +1150,7 @@ async function applyClassroomGemProgress(transaction, {
 
   const gemName = String(quest?.linkedGemName || gemId).trim().slice(0, 40);
   const targetXp = Math.max(1, Math.min(1000, Math.round(Number(quest?.gemTargetXp) || 10)));
-  const rewardBerry = Math.max(0, Math.min(1000, Math.round(Number(quest?.gemRewardBerry) || 0)));
+  const rewardPoint = Math.max(0, Math.min(1000, Math.round(Number(quest?.gemRewardPoint) || 0)));
   const progressId = `${memberUserId}__${gemId}`;
   const gemRef = db.collection("classrooms")
     .doc(classId)
@@ -1167,8 +1170,8 @@ async function applyClassroomGemProgress(transaction, {
     gemId
   ]);
   const awardLogRef = db.collection("rewardLogs").doc(awardLogId);
-  const awardLogSnapshot = newlyCompleted && rewardBerry > 0 ? await transaction.get(awardLogRef) : null;
-  const canAward = newlyCompleted && rewardBerry > 0 && !awardLogSnapshot?.exists;
+  const awardLogSnapshot = newlyCompleted && rewardPoint > 0 ? await transaction.get(awardLogRef) : null;
+  const canAward = newlyCompleted && rewardPoint > 0 && !awardLogSnapshot?.exists;
 
   transaction.set(gemRef, {
     progressId,
@@ -1180,7 +1183,7 @@ async function applyClassroomGemProgress(transaction, {
     currentXp: nextXp,
     totalXp: FieldValue.increment(gemXp),
     targetXp,
-    rewardBerry,
+    rewardPoint,
     completed: isCompleted,
     status: isCompleted ? "completed" : "in_progress",
     lastQuestId: quest?.id || quest?.questId || "",
@@ -1192,18 +1195,18 @@ async function applyClassroomGemProgress(transaction, {
 
   if (canAward) {
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(awardLogId);
+    const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(awardLogId);
     transaction.set(walletRef, {
       memberUserId,
       userId: memberUserId,
       classId,
-      berry: FieldValue.increment(rewardBerry),
-      totalEarnedBerry: FieldValue.increment(rewardBerry),
+      point: FieldValue.increment(rewardPoint),
+      totalEarnedPoint: FieldValue.increment(rewardPoint),
       updatedAt: FieldValue.serverTimestamp(),
       lastClassroomGemRewardAt: FieldValue.serverTimestamp(),
       source: source || "classroom_gem_progress_function"
     }, { merge: true });
-    transaction.set(berryLogRef, {
+    transaction.set(pointLogRef, {
       type: "classroom_gem_award",
       classId,
       gemId,
@@ -1211,9 +1214,9 @@ async function applyClassroomGemProgress(transaction, {
       userId: memberUserId,
       memberUserId,
       authUid,
-      rewardCurrency: "berry",
-      rewardBerry,
-      rewardAmount: rewardBerry,
+      rewardCurrency: "point",
+      rewardPoint,
+      rewardAmount: rewardPoint,
       progressPath: progressPath || "",
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -1226,10 +1229,10 @@ async function applyClassroomGemProgress(transaction, {
       userId: memberUserId,
       memberUserId,
       authUid,
-      rewardCurrency: "berry",
+      rewardCurrency: "point",
       rewardCoin: 0,
-      rewardBerry,
-      rewardAmount: rewardBerry,
+      rewardPoint,
+      rewardAmount: rewardPoint,
       progressPath: progressPath || "",
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -1244,7 +1247,7 @@ async function applyClassroomGemProgress(transaction, {
     targetXp,
     completed: isCompleted,
     newlyCompleted,
-    rewardBerry: canAward ? rewardBerry : 0
+    rewardPoint: canAward ? rewardPoint : 0
   };
 }
 
@@ -1253,6 +1256,10 @@ function getClassIdForMember(memberData = {}) {
   const classNumber = String(memberData.classNumber || "").trim();
   if (!grade || !classNumber || memberData.role === "admin") return "";
   return `G${grade}-C${classNumber}`;
+}
+
+function getClassroomPointAmount(wallet = {}) {
+  return Number(wallet.point ?? wallet.berry ?? 0) || 0;
 }
 
 function mirrorDjCoinRewardToClassroomPoint(transaction, {
@@ -1274,13 +1281,13 @@ function mirrorDjCoinRewardToClassroomPoint(transaction, {
     sourceId || Date.now()
   ]);
   const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-  const pointLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId);
+  const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
   transaction.set(walletRef, {
     memberUserId,
     userId: memberUserId,
     classId,
-    berry: FieldValue.increment(amount),
-    totalEarnedBerry: FieldValue.increment(amount),
+    point: FieldValue.increment(amount),
+    totalEarnedPoint: FieldValue.increment(amount),
     updatedAt: FieldValue.serverTimestamp(),
     lastDjCoinMirrorPointAt: FieldValue.serverTimestamp(),
     source: sourceType || "dj_coin_mirror_point"
@@ -1291,8 +1298,8 @@ function mirrorDjCoinRewardToClassroomPoint(transaction, {
     userId: memberUserId,
     memberUserId,
     authUid,
-    rewardCurrency: "berry",
-    rewardBerry: amount,
+    rewardCurrency: "point",
+    rewardPoint: amount,
     rewardAmount: amount,
     sourceType: sourceType || "dj_coin_reward",
     sourceId: sourceId || "",
@@ -1404,7 +1411,7 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
     nickname: String(data.nickname || data.name || "").slice(0, 24),
     name: String(data.name || data.nickname || "").slice(0, 24),
     profileImageUrl: String(data.profileImageUrl || "").slice(0, 1200),
-    berry: Number(wallet.berry || 0),
+    point: getClassroomPointAmount(wallet),
     selectedBadge: {
       badgeId: String(profile.selectedBadgeId || selectedBadge.badgeId || "").slice(0, 80),
       label: String(profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
@@ -1476,7 +1483,7 @@ function normalizeClassroomJob(rawJob = {}) {
     jobId,
     title,
     desc: String(rawJob.desc || "").trim().slice(0, 160),
-    weeklyPayBerry: Math.max(1, Math.min(1000, Math.round(Number(rawJob.weeklyPayBerry || rawJob.payBerry) || 1))),
+    weeklyPayPoint: Math.max(1, Math.min(1000, Math.round(Number(rawJob.weeklyPayPoint || rawJob.payPoint || rawJob.payBerry) || 1))),
     maxAssignees: Math.max(1, Math.min(10, Math.round(Number(rawJob.maxAssignees) || 1))),
     active: rawJob.active !== false
   };
@@ -1499,7 +1506,7 @@ function normalizeClassroomShopItem(rawItem = {}) {
     itemId,
     title,
     desc: String(rawItem.desc || "").trim().slice(0, 160),
-    priceBerry: Math.max(1, Math.min(10000, Math.round(Number(rawItem.priceBerry || rawItem.price) || 1))),
+    pricePoint: Math.max(1, Math.min(10000, Math.round(Number(rawItem.pricePoint || rawItem.priceBerry || rawItem.price) || 1))),
     itemType: String(rawItem.itemType || rawItem.type || "coupon").trim().slice(0, 40) || "coupon",
     icon: String(rawItem.icon || "").trim().slice(0, 12),
     active: rawItem.active !== false
@@ -1566,7 +1573,7 @@ function normalizeClassroomRoutine(rawRoutine = {}) {
     startDate,
     endDate,
     weekdays,
-    rewardBerry: Math.max(5, Math.min(100, targetCount * 5)),
+    rewardPoint: Math.max(5, Math.min(100, targetCount * 5)),
     active: rawRoutine.active !== false
   };
 }
@@ -3427,7 +3434,7 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
     },
     classroomWallet: {
       classId: classroomId,
-      berry: Number(classroomWallet.berry || 0),
+      point: getClassroomPointAmount(classroomWallet),
       updatedAt: classroomWallet.updatedAt || null
     },
     practiceSummary: {
@@ -3463,8 +3470,8 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
   const currency = String(payload.currency || "").trim();
   const delta = Math.round(Number(payload.delta));
   const reason = String(payload.reason || "").trim().slice(0, 200);
-  if (!["djCoin", "berry"].includes(currency)) {
-    throw new HttpsError("invalid-argument", "currency must be djCoin or berry.");
+  if (!["djCoin", "point"].includes(currency)) {
+    throw new HttpsError("invalid-argument", "currency must be djCoin or point.");
   }
   if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 100000) {
     throw new HttpsError("invalid-argument", "delta must be between -100000 and 100000, excluding zero.");
@@ -3480,7 +3487,7 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
     }
     assertActiveStudent(memberData);
 
-    const classId = currency === "berry"
+    const classId = currency === "point"
       ? normalizeId(payload.classId || `G${memberData.grade}-C${memberData.classNumber}`, "classId")
       : "";
     const walletRef = currency === "djCoin"
@@ -3488,7 +3495,7 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
       : db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
     const walletSnapshot = await transaction.get(walletRef);
     const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
-    const currentAmount = Number(currency === "djCoin" ? (wallet.djCoin ?? wallet.coin ?? 0) : wallet.berry || 0) || 0;
+    const currentAmount = Number(currency === "djCoin" ? (wallet.djCoin ?? wallet.coin ?? 0) : getClassroomPointAmount(wallet)) || 0;
     const nextAmount = currentAmount + delta;
     if (nextAmount < 0) {
       throw new HttpsError("failed-precondition", "Wallet balance cannot become negative.");
@@ -3509,8 +3516,8 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
           memberUserId,
           userId: memberUserId,
           classId,
-          berry: nextAmount,
-          adminAdjustedBerry: FieldValue.increment(delta),
+          point: nextAmount,
+          adminAdjustedPoint: FieldValue.increment(delta),
           lastAdminAdjustmentDelta: delta,
           lastAdminAdjustedBy: adminMember.memberUserId,
           lastAdminAdjustmentReason: reason,
@@ -4265,7 +4272,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       .doc(classId)
       .collection("questProgress")
       .doc(recordId);
-    const rewardCurrency = "berry";
+    const rewardCurrency = "point";
     const rewardAmount = Number(quest.rewardCoin) || 0;
     const logId = rewardLogId([
       "classroom_auto_quest",
@@ -4276,11 +4283,11 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       attemptKey
     ]);
     const logRef = db.collection("rewardLogs").doc(logId);
-    const economyRef = rewardCurrency === "berry"
+    const economyRef = rewardCurrency === "point"
       ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
       : db.collection("userEconomy").doc(memberUserId);
-    const berryLogRef = rewardCurrency === "berry"
-      ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId)
+    const pointLogRef = rewardCurrency === "point"
+      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
       : null;
 
     const [progressSnapshot, logSnapshot] = await Promise.all([
@@ -4331,18 +4338,18 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       updatedAt: FieldValue.serverTimestamp(),
       rewardedAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    if (rewardCurrency === "berry") {
+    if (rewardCurrency === "point") {
       transaction.set(economyRef, {
         memberUserId,
         userId: memberUserId,
         classId,
-        berry: FieldValue.increment(rewardAmount),
-        totalEarnedBerry: FieldValue.increment(rewardAmount),
+        point: FieldValue.increment(rewardAmount),
+        totalEarnedPoint: FieldValue.increment(rewardAmount),
         updatedAt: FieldValue.serverTimestamp(),
         lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
         source: "classroom_auto_quest_function"
       }, { merge: true });
-      transaction.set(berryLogRef, {
+      transaction.set(pointLogRef, {
         type: "classroom_auto_quest",
         classId,
         questId,
@@ -4353,7 +4360,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
         memberUserId,
         authUid,
         rewardCurrency,
-        rewardBerry: rewardAmount,
+        rewardPoint: rewardAmount,
         rewardAmount,
         progressPath: progressRef.path,
         source: "firebase_function",
@@ -4381,7 +4388,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       authUid,
       rewardCurrency,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
       rewardAmount,
       progressPath: progressRef.path,
       source: "firebase_function",
@@ -4391,7 +4398,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
     return {
       duplicate: false,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
       rewardCurrency,
       rewardAmount,
       dateKey,
@@ -4429,7 +4436,7 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   const rewardMode = ["auto", "teacherReview", "quizAchieved"].includes(rawQuest.rewardMode)
     ? rawQuest.rewardMode
     : "auto";
-  const rewardCurrency = "berry";
+  const rewardCurrency = "point";
   const questId = String(rawQuest.id || rawQuest.questId || `class-quest-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`)
     .trim()
     .replace(/[^0-9A-Za-z_-]+/g, "-")
@@ -4458,7 +4465,7 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       linkedGemName: rawQuest.linkedGemName || "",
       gemXp: rawQuest.gemXp || 0,
       gemTargetXp: rawQuest.gemTargetXp || 10,
-      gemRewardBerry: rawQuest.gemRewardBerry || 0,
+      gemRewardPoint: rawQuest.gemRewardPoint || 0,
       saveEnabled: rawQuest.saveEnabled !== false,
       active: rawQuest.active !== false,
       studentAction: rawQuest.studentAction || ""
@@ -4818,12 +4825,12 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const purchaseQuery = authResult.canManage
     ? db.collection("classrooms").doc(classId).collection("shopPurchases").limit(200)
     : db.collection("classrooms").doc(classId).collection("shopPurchases").where("memberUserId", "==", memberUserId).limit(80);
-  const berryLogQuery = authResult.canManage
-    ? db.collection("classrooms").doc(classId).collection("berryLogs").limit(300)
-    : db.collection("classrooms").doc(classId).collection("berryLogs").where("memberUserId", "==", memberUserId).limit(100);
-  const [purchaseSnapshot, berryLogSnapshot] = await Promise.all([
+  const pointLogQuery = authResult.canManage
+    ? db.collection("classrooms").doc(classId).collection("pointLogs").limit(300)
+    : db.collection("classrooms").doc(classId).collection("pointLogs").where("memberUserId", "==", memberUserId).limit(100);
+  const [purchaseSnapshot, pointLogSnapshot] = await Promise.all([
     purchaseQuery.get(),
-    berryLogQuery.get()
+    pointLogQuery.get()
   ]);
   const [noticeSnapshot, billboardSnapshot] = await Promise.all([
     db.collection("classrooms").doc(classId).collection("classNotices").doc("current").get(),
@@ -4877,7 +4884,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         desc: String(data.desc || ""),
         targetCount: Number(data.targetCount || 0),
         currentCount: Number(data.currentCount || 0),
-        rewardBerry: Number(data.rewardBerry || 0),
+        rewardPoint: Number(data.rewardPoint || 0),
         startDate,
         endDate,
         weekdays,
@@ -4902,7 +4909,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         itemTitle: String(data.itemTitle || ""),
         itemType: String(data.itemType || ""),
         memberUserId: String(data.memberUserId || data.userId || ""),
-        priceBerry: Number(data.priceBerry || 0),
+        pricePoint: Number(data.pricePoint || 0),
         status: String(data.status || "purchased"),
         requestedAtMillis: getTimestampMillis(data.requestedAt),
         approvedAtMillis: getTimestampMillis(data.approvedAt),
@@ -4940,7 +4947,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     .filter(item => item.text && (!item.expiresAtMillis || item.expiresAtMillis >= nowMillis))
     .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
     .slice(0, 12);
-  const berryLogs = berryLogSnapshot.docs
+  const pointLogs = pointLogSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
       return {
@@ -4949,8 +4956,8 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         itemTitle: String(data.itemTitle || ""),
         jobTitle: String(data.jobTitle || ""),
         memberUserId: String(data.memberUserId || data.userId || ""),
-        rewardAmount: Number(data.rewardAmount || data.rewardBerry || 0),
-        rewardBerry: Number(data.rewardBerry || data.rewardAmount || 0),
+        rewardAmount: Number(data.rewardAmount || data.rewardPoint || 0),
+        rewardPoint: Number(data.rewardPoint || data.rewardAmount || 0),
         createdAtMillis: getTimestampMillis(data.createdAt)
       };
     })
@@ -4967,7 +4974,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     applications,
     routines,
     purchases,
-    berryLogs,
+    pointLogs,
     classNotices,
     billboardMessages,
     myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
@@ -5093,22 +5100,22 @@ exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request =
     const purchase = purchaseSnapshot.data() || {};
     const currentStatus = String(purchase.status || "purchased");
     if (currentStatus === "refunded") {
-      return { duplicate: true, status: currentStatus, refundBerry: 0 };
+      return { duplicate: true, status: currentStatus, refundPoint: 0 };
     }
     if (currentStatus === "used") {
       throw new HttpsError("failed-precondition", "Used classroom shop purchase cannot be refunded.");
     }
     const memberUserId = normalizeId(purchase.memberUserId || purchase.userId, "memberUserId");
-    const refundBerry = Math.max(1, Math.min(10000, Math.round(Number(purchase.priceBerry) || 0)));
+    const refundPoint = Math.max(1, Math.min(10000, Math.round(Number(purchase.pricePoint) || 0)));
     const logId = rewardLogId(["classroom_shop_refund", classId, purchaseId]);
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId);
+    const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
     transaction.set(walletRef, {
       memberUserId,
       userId: memberUserId,
       classId,
-      berry: FieldValue.increment(refundBerry),
-      totalEarnedBerry: FieldValue.increment(refundBerry),
+      point: FieldValue.increment(refundPoint),
+      totalEarnedPoint: FieldValue.increment(refundPoint),
       updatedAt: FieldValue.serverTimestamp(),
       lastClassroomShopRefundAt: FieldValue.serverTimestamp(),
       source: "refund_classroom_shop_purchase_function"
@@ -5120,7 +5127,7 @@ exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request =
       refundedAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
-    transaction.set(berryLogRef, {
+    transaction.set(pointLogRef, {
       type: "classroom_shop_refund",
       classId,
       purchaseId,
@@ -5130,13 +5137,13 @@ exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request =
       memberUserId,
       authUid,
       refundedBy: adminMember.memberUserId,
-      rewardCurrency: "berry",
-      rewardBerry: refundBerry,
-      rewardAmount: refundBerry,
+      rewardCurrency: "point",
+      rewardPoint: refundPoint,
+      rewardAmount: refundPoint,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    return { duplicate: false, status: "refunded", memberUserId, refundBerry };
+    return { duplicate: false, status: "refunded", memberUserId, refundPoint };
   });
 
   return { success: true, classId, purchaseId, ...result };
@@ -5317,7 +5324,7 @@ exports.assignClassroomJob = onCall({ region: REGION }, async request => {
       jobTitle: job.title || "",
       memberUserId,
       userId: memberUserId,
-      weeklyPayBerry: Number(job.weeklyPayBerry || 0),
+      weeklyPayPoint: Number(job.weeklyPayPoint || 0),
       maxAssignees,
       status: "active",
       assignedBy: adminMember.memberUserId,
@@ -5389,11 +5396,11 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
     const memberUserId = normalizeId(assignment.memberUserId || assignmentId, "memberUserId");
     const jobId = normalizeId(assignment.jobId, "jobId");
     const monthKey = getKstMonthKey();
-    const rewardAmount = Math.max(1, Math.min(1000, Math.round(Number(assignment.weeklyPayBerry) || 0)));
+    const rewardAmount = Math.max(1, Math.min(1000, Math.round(Number(assignment.weeklyPayPoint) || 0)));
     const logId = rewardLogId(["classroom_job_salary", classId, monthKey, memberUserId, jobId]);
     const logRef = db.collection("rewardLogs").doc(logId);
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId);
+    const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
     const logSnapshot = await transaction.get(logRef);
     if (logSnapshot.exists) {
       return { duplicate: true, rewardAmount: 0, monthKey };
@@ -5402,13 +5409,13 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
       memberUserId,
       userId: memberUserId,
       classId,
-      berry: FieldValue.increment(rewardAmount),
-      totalEarnedBerry: FieldValue.increment(rewardAmount),
+      point: FieldValue.increment(rewardAmount),
+      totalEarnedPoint: FieldValue.increment(rewardAmount),
       updatedAt: FieldValue.serverTimestamp(),
       lastClassroomJobSalaryAt: FieldValue.serverTimestamp(),
       source: "claim_classroom_job_salary_function"
     }, { merge: true });
-    transaction.set(berryLogRef, {
+    transaction.set(pointLogRef, {
       type: "classroom_job_salary",
       classId,
       jobId,
@@ -5418,8 +5425,8 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
       memberUserId,
       authUid,
       paidBy: adminMember.memberUserId,
-      rewardCurrency: "berry",
-      rewardBerry: rewardAmount,
+      rewardCurrency: "point",
+      rewardPoint: rewardAmount,
       rewardAmount,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -5434,9 +5441,9 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
       memberUserId,
       authUid,
       paidBy: adminMember.memberUserId,
-      rewardCurrency: "berry",
+      rewardCurrency: "point",
       rewardCoin: 0,
-      rewardBerry: rewardAmount,
+      rewardPoint: rewardAmount,
       rewardAmount,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -5501,20 +5508,20 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
     if (!item || item.active === false) {
       throw new HttpsError("not-found", "Classroom shop item not found.");
     }
-    const priceBerry = Math.max(1, Math.min(10000, Math.round(Number(item.priceBerry) || 0)));
-    const currentBerry = Math.max(0, Math.round(Number(walletSnapshot.exists ? walletSnapshot.data()?.berry : 0) || 0));
-    if (currentBerry < priceBerry) {
-      throw new HttpsError("failed-precondition", "Not enough classroom berry.");
+    const pricePoint = Math.max(1, Math.min(10000, Math.round(Number(item.pricePoint) || 0)));
+    const currentPoint = Math.max(0, Math.round(getClassroomPointAmount(walletSnapshot.exists ? walletSnapshot.data() || {} : {})));
+    if (currentPoint < pricePoint) {
+      throw new HttpsError("failed-precondition", "Not enough classroom point.");
     }
     const purchaseId = rewardLogId(["classroom_shop_purchase", classId, Date.now(), memberUserId, itemId]).slice(0, 180);
     const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
-    const berryLogRef = db.collection("classrooms").doc(classId).collection("berryLogs").doc(purchaseId);
+    const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(purchaseId);
     transaction.set(walletRef, {
       memberUserId,
       userId: memberUserId,
       classId,
-      berry: FieldValue.increment(-priceBerry),
-      totalSpentBerry: FieldValue.increment(priceBerry),
+      point: FieldValue.increment(-pricePoint),
+      totalSpentPoint: FieldValue.increment(pricePoint),
       updatedAt: FieldValue.serverTimestamp(),
       lastClassroomShopPurchaseAt: FieldValue.serverTimestamp(),
       source: "purchase_classroom_shop_item_function"
@@ -5528,12 +5535,12 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
       userId: memberUserId,
       memberUserId,
       authUid,
-      priceBerry,
+      pricePoint,
       status: "purchased",
       source: "purchase_classroom_shop_item_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    transaction.set(berryLogRef, {
+    transaction.set(pointLogRef, {
       type: "classroom_shop_purchase",
       classId,
       itemId,
@@ -5541,13 +5548,13 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
       userId: memberUserId,
       memberUserId,
       authUid,
-      rewardCurrency: "berry",
-      rewardBerry: -priceBerry,
-      rewardAmount: -priceBerry,
+      rewardCurrency: "point",
+      rewardPoint: -pricePoint,
+      rewardAmount: -pricePoint,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    return { purchaseId, itemId, priceBerry, remainingBerry: currentBerry - priceBerry };
+    return { purchaseId, itemId, pricePoint, remainingPoint: currentPoint - pricePoint };
   });
 
   return { success: true, classId, memberUserId, ...result };
@@ -5722,13 +5729,13 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
     const targetCount = Math.max(1, Math.round(Number(routine.targetCount) || 1));
     const nextCount = currentCount + 1;
     const completed = nextCount >= targetCount;
-    const rewardAmount = completed ? Math.max(0, Math.min(100, Math.round(Number(routine.rewardBerry) || 0))) : 0;
+    const rewardAmount = completed ? Math.max(0, Math.min(100, Math.round(Number(routine.rewardPoint) || 0))) : 0;
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
     const rewardLogRef = completed && rewardAmount > 0
       ? db.collection("rewardLogs").doc(rewardLogId(["classroom_routine_reward", classId, memberUserId, routineId]))
       : null;
-    const berryLogRef = completed && rewardAmount > 0
-      ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(rewardLogRef.id)
+    const pointLogRef = completed && rewardAmount > 0
+      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(rewardLogRef.id)
       : null;
     const rewardLogSnapshot = rewardLogRef ? await transaction.get(rewardLogRef) : null;
     const canReward = completed && rewardAmount > 0 && !rewardLogSnapshot?.exists;
@@ -5757,13 +5764,13 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
         memberUserId,
         userId: memberUserId,
         classId,
-        berry: FieldValue.increment(rewardAmount),
-        totalEarnedBerry: FieldValue.increment(rewardAmount),
+        point: FieldValue.increment(rewardAmount),
+        totalEarnedPoint: FieldValue.increment(rewardAmount),
         updatedAt: FieldValue.serverTimestamp(),
         lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
         source: "check_classroom_routine_function"
       }, { merge: true });
-      transaction.set(berryLogRef, {
+      transaction.set(pointLogRef, {
         type: "classroom_routine_reward",
         classId,
         routineId,
@@ -5771,8 +5778,8 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
         userId: memberUserId,
         memberUserId,
         authUid,
-        rewardCurrency: "berry",
-        rewardBerry: rewardAmount,
+        rewardCurrency: "point",
+        rewardPoint: rewardAmount,
         rewardAmount,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
@@ -5785,9 +5792,9 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
         userId: memberUserId,
         memberUserId,
         authUid,
-        rewardCurrency: "berry",
+        rewardCurrency: "point",
         rewardCoin: 0,
-        rewardBerry: rewardAmount,
+        rewardPoint: rewardAmount,
         rewardAmount,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
@@ -5838,7 +5845,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         duplicate: true,
         rewardStatus: progress.rewardStatus || "",
         rewardAmount: 0,
-        rewardCurrency: "berry"
+        rewardCurrency: "point"
       };
     }
 
@@ -5853,12 +5860,12 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         duplicate: false,
         rewardStatus: "rejected",
         rewardAmount: 0,
-        rewardCurrency: "berry"
+        rewardCurrency: "point"
       };
     }
 
     const quest = settings.quests.find(item => item.id === progress.questId || item.questId === progress.questId) || {};
-    const rewardCurrency = "berry";
+    const rewardCurrency = "point";
     const rewardAmount = Math.max(0, Math.min(1000, Math.round(Number(progress.rewardCoin || quest.rewardCoin) || 0)));
     if (rewardAmount <= 0) {
       throw new HttpsError("failed-precondition", "Classroom quest reward is invalid.");
@@ -5889,11 +5896,11 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       };
     }
 
-    const walletRef = rewardCurrency === "berry"
+    const walletRef = rewardCurrency === "point"
       ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
       : db.collection("userEconomy").doc(memberUserId);
-    const berryLogRef = rewardCurrency === "berry"
-      ? db.collection("classrooms").doc(classId).collection("berryLogs").doc(logId)
+    const pointLogRef = rewardCurrency === "point"
+      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
       : null;
     const gemResult = await applyClassroomGemProgress(transaction, {
       classId,
@@ -5915,18 +5922,18 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
 
-    if (rewardCurrency === "berry") {
+    if (rewardCurrency === "point") {
       transaction.set(walletRef, {
         memberUserId,
         userId: memberUserId,
         classId,
-        berry: FieldValue.increment(rewardAmount),
-        totalEarnedBerry: FieldValue.increment(rewardAmount),
+        point: FieldValue.increment(rewardAmount),
+        totalEarnedPoint: FieldValue.increment(rewardAmount),
         updatedAt: FieldValue.serverTimestamp(),
         lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
         source: "classroom_review_quest_function"
       }, { merge: true });
-      transaction.set(berryLogRef, {
+      transaction.set(pointLogRef, {
         type: "classroom_review_quest",
         classId,
         questId: progress.questId || "",
@@ -5937,7 +5944,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         authUid,
         reviewedBy: adminMember.memberUserId,
         rewardCurrency,
-        rewardBerry: rewardAmount,
+        rewardPoint: rewardAmount,
         rewardAmount,
         progressPath: progressRef.path,
         source: "firebase_function",
@@ -5966,7 +5973,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       reviewedBy: adminMember.memberUserId,
       rewardCurrency,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
       rewardAmount,
       progressPath: progressRef.path,
       source: "firebase_function",
@@ -5979,7 +5986,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       rewardCurrency,
       rewardAmount,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardBerry: rewardCurrency === "berry" ? rewardAmount : 0,
+      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
       gem: gemResult
     };
   });

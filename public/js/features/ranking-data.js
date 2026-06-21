@@ -137,26 +137,44 @@
     return getTopRankingRecordsByCategoryKeys(periodRecords, keys, rowLimit);
   }
 
-  function buildSeasonRankingBoards(records = [], seasonEvents = [], deps = {}) {
-    const monthlyEvents = getSeasonRankingEvents(seasonEvents, 'monthly');
-    const weeklyEvents = getSeasonRankingEvents(seasonEvents, 'weekly');
+  function getSeasonQuizAreaLabel(eventItem = {}, deps = {}) {
+    const quizCatalog = deps.quizCatalog || {};
+    const subjectLabels = deps.subjectLabels || {};
+    const quizIds = Array.isArray(eventItem.quizIds) ? eventItem.quizIds : [];
+    const subjectIds = Array.from(new Set(quizIds.map(quizId => quizCatalog[quizId]?.subjectId).filter(Boolean)));
+    if(subjectIds.length === 1) return subjectLabels[subjectIds[0]] || quizCatalog[quizIds[0]]?.title?.replace(' 퀴즈', '') || eventItem.title || '시즌';
+    if(quizIds.length === 1) return quizCatalog[quizIds[0]]?.title?.replace(' 퀴즈', '') || eventItem.title || '시즌';
+    return eventItem.title || '시즌';
+  }
+
+  function buildSeasonRankingGroups(records = [], seasonEvents = [], deps = {}) {
     const getRankingCategoryLabel = deps.getRankingCategoryLabel || (() => '');
-    const makeBoard = (id, label, title, periodType, events) => ({
-      id,
-      label,
-      title,
-      desc: events.length
-        ? events.map(eventItem => eventItem.title).join(', ')
-        : '시즌 이벤트에 지정된 퀴즈 랭킹입니다.',
-      rows: getSeasonRankingRecords(records, events, periodType, deps),
+    return (seasonEvents || [])
+      .filter(eventItem => eventItem?.active !== false && Array.isArray(eventItem.quizIds) && eventItem.quizIds.length)
+      .map(eventItem => ({
+      id: `season-${eventItem.periodType || 'monthly'}-${eventItem.eventId || getSeasonQuizAreaLabel(eventItem, deps)}`,
+      label: getSeasonQuizAreaLabel(eventItem, deps),
+      desc: eventItem.periodType === 'weekly'
+        ? '이번주 전용 시즌 랭킹탭입니다.'
+        : '이번달 전용 시즌 랭킹탭입니다.',
+      keys: getSeasonRankingCategoryKeys([eventItem], deps),
+      rows: getSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
       sourceRows: records,
       meta: row => getRankingCategoryLabel(row) || '시즌',
       score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
-    });
-    return [
-      makeBoard('seasonMonth', '이번달', '이번달 시즌 랭킹', 'monthly', monthlyEvents),
-      makeBoard('seasonWeek', '이번주', '이번주 시즌 랭킹', 'weekly', weeklyEvents)
-    ];
+    }));
+  }
+
+  function buildSeasonRankingBoard(records = [], seasonEvents = [], deps = {}) {
+    const groups = buildSeasonRankingGroups(records, seasonEvents, deps);
+    return {
+      id: 'season',
+      label: '시즌',
+      title: '시즌 랭킹',
+      desc: '이번달/이번주로 설정된 시즌 퀴즈 랭킹입니다.',
+      rows: groups.flatMap(group => group.rows || []),
+      groups: groups.length ? groups : [{ id: 'season-empty', label: '시즌', desc: '시즌 이벤트에 지정된 퀴즈가 없습니다.', rows: [] }]
+    };
   }
 
   function getRankingBoardModels(quizKingSummaries, rankingRecords, seasonEvents = [], deps = {}) {
@@ -211,7 +229,7 @@
       ...scienceDefinitions
     ], groupDeps);
     return [
-      ...buildSeasonRankingBoards(rankingRecords, seasonEvents, groupDeps),
+      buildSeasonRankingBoard(rankingRecords, seasonEvents, groupDeps),
       {
         id: 'quizKing',
         label: '퀴즈왕',
@@ -285,7 +303,8 @@
     buildRankingGroups,
     buildSubjectRankingGroups,
     getSeasonRankingCategoryKeys,
-    buildSeasonRankingBoards,
+    buildSeasonRankingGroups,
+    buildSeasonRankingBoard,
     getRankingBoardModels
   };
 })();

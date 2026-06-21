@@ -19,7 +19,7 @@
   function normalizeClassroomQuestConfig(rawQuest = {}, index = 0) {
     const id = String(rawQuest.id || rawQuest.questId || `quest-${index + 1}`).trim();
     const rewardCoin = Math.max(0, Math.round(Number(rawQuest.rewardCoin) || 0));
-    const rewardCurrency = 'berry';
+    const rewardCurrency = 'point';
     const rewardMode = ['auto', 'teacherReview', 'quizAchieved'].includes(rawQuest.rewardMode)
       ? rawQuest.rewardMode
       : 'auto';
@@ -42,7 +42,7 @@
       linkedGemName,
       gemXp,
       gemTargetXp: Math.max(1, Math.round(Number(rawQuest.gemTargetXp) || 10)),
-      gemRewardBerry: Math.max(0, Math.round(Number(rawQuest.gemRewardBerry) || 0)),
+      gemRewardPoint: Math.max(0, Math.round(Number(rawQuest.gemRewardPoint) || 0)),
       saveEnabled: rawQuest.saveEnabled !== false,
       active: rawQuest.active !== false
     };

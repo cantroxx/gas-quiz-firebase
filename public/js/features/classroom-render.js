@@ -77,7 +77,7 @@
   function renderClassroomRoleState(settings, wallet = {}, deps = {}, data = {}) {
     const questAlert = document.getElementById('classroom-alert-quest');
     const routineAlert = document.getElementById('classroom-alert-routine');
-    const berryCount = document.getElementById('classroom-summary-berry-count');
+    const pointCount = document.getElementById('classroom-summary-point-count');
     const progressMap = data.progressMap || {};
     const quests = (settings.quests || []).filter(quest => quest.active !== false && quest.saveEnabled !== false);
     const pendingQuestCount = quests.filter(quest => !progressMap[quest.id]).length;
@@ -87,7 +87,7 @@
       && routine.checkedToday !== true
       && routine.canCheckToday !== false
     )).length;
-    if(berryCount) berryCount.textContent = `${Number(wallet.berry || 0).toLocaleString('ko-KR')}점`;
+    if(pointCount) pointCount.textContent = `${Number(wallet.point || 0).toLocaleString('ko-KR')}점`;
     if(questAlert) {
       questAlert.classList.toggle('is-active', pendingQuestCount > 0);
       questAlert.textContent = pendingQuestCount > 0 ? `퀘스트 ${pendingQuestCount}` : '퀘스트';
@@ -119,25 +119,25 @@
     const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
     const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
-    const berryLogs = Array.isArray(economyBoard.berryLogs) ? economyBoard.berryLogs : [];
-    const totalBerry = studentCards.reduce((sum, student) => sum + Number(student.berry || 0), 0);
+    const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
+    const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
     const pendingApplications = applications.filter(item => item.status === 'pending').length;
     const activeAssignments = assignments.filter(item => item.status === 'active').length;
     const activeRoutines = routines.filter(item => item.status !== 'deleted').length;
     const pendingUseRequests = purchases.filter(item => item.status === 'use_requested').length;
     const unassignedStudents = studentCards.filter(student => !assignments.some(item => item.memberUserId === student.memberUserId && item.status === 'active')).length;
-    const earnedBerry = berryLogs.filter(item => Number(item.rewardAmount || item.rewardBerry || 0) > 0)
-      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardBerry || 0), 0);
-    const spentBerry = Math.abs(berryLogs.filter(item => Number(item.rewardAmount || item.rewardBerry || 0) < 0)
-      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardBerry || 0), 0));
+    const earnedPoint = pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) > 0)
+      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0);
+    const spentPoint = Math.abs(pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) < 0)
+      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0));
     const items = [
       ['확인 대기', `${reviewItems.length}건`, '퀘스트 승인/반려가 필요한 기록', 'review'],
       ['쿠폰 요청', `${pendingUseRequests}건`, '학생이 사용 승인을 기다리는 상점 쿠폰', 'shop'],
       ['직업 지원', `${pendingApplications}건`, `${activeAssignments}명이 현재 직업을 맡고 있습니다`, 'job'],
       ['미배정 학생', `${unassignedStudents}명`, `전체 학생 ${studentCards.length}명 중 직업 미배정`, 'student'],
-      ['포인트 지급', `${earnedBerry.toLocaleString('ko-KR')}`, '최근 교실 활동으로 지급된 포인트', 'reward'],
-      ['포인트 사용', `${spentBerry.toLocaleString('ko-KR')}`, '최근 상점 구매로 사용된 포인트', 'shop'],
-      ['학생 현황', `${studentCards.length}명`, `전체 보유 포인트 ${totalBerry.toLocaleString('ko-KR')}`, 'student'],
+      ['포인트 지급', `${earnedPoint.toLocaleString('ko-KR')}`, '최근 교실 활동으로 지급된 포인트', 'reward'],
+      ['포인트 사용', `${spentPoint.toLocaleString('ko-KR')}`, '최근 상점 구매로 사용된 포인트', 'shop'],
+      ['학생 현황', `${studentCards.length}명`, `전체 보유 포인트 ${totalPoint.toLocaleString('ko-KR')}`, 'student'],
       ['상점 상품', `${shopItems.length}개`, '학생이 포인트로 구매할 수 있는 상품', 'shop'],
       ['성장루틴', `${activeRoutines}개`, '현재 학생 계정에서 확인되는 루틴', 'routine']
     ];
@@ -169,14 +169,14 @@
     const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
     const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
     const applications = Array.isArray(economyBoard.applications) ? economyBoard.applications : [];
-    const berryLogs = Array.isArray(economyBoard.berryLogs) ? economyBoard.berryLogs : [];
+    const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
     const sections = [
-      ['포인트 상위 학생', studentCards.slice().sort((a, b) => Number(b.berry || 0) - Number(a.berry || 0)).slice(0, 5).map(item => `${item.nickname || item.memberUserId}: ${Number(item.berry || 0).toLocaleString('ko-KR')}점`)],
+      ['포인트 상위 학생', studentCards.slice().sort((a, b) => Number(b.point || 0) - Number(a.point || 0)).slice(0, 5).map(item => `${item.nickname || item.memberUserId}: ${Number(item.point || 0).toLocaleString('ko-KR')}점`)],
       ['퀘스트 대기', reviewItems.slice(0, 5).map(item => `${item.memberUserId || '-'} · ${getClassroomQuestTitle(settings, item.questId)} · ${getClassroomProgressStatusLabel(item)}`)],
       ['쿠폰 현황', purchases.slice(0, 5).map(item => `${item.memberUserId || '-'} · ${item.itemTitle || '쿠폰'} · ${getClassroomPurchaseStatusLabel(item.status)}`)],
       ['직업 현황', assignments.slice(0, 5).map(item => `${item.memberUserId || '-'} · ${item.jobTitle || item.jobId || '직업'} · ${item.status || '-'}`)],
       ['지원 대기', applications.filter(item => item.status === 'pending').slice(0, 5).map(item => `${item.memberUserId || '-'} · ${item.jobTitle || item.jobId || '직업'}`)],
-      ['최근 포인트 로그', berryLogs.slice(0, 5).map(getClassroomActivityLabel)]
+      ['최근 포인트 로그', pointLogs.slice(0, 5).map(getClassroomActivityLabel)]
     ];
     sections.forEach(([titleText, rows], index) => {
       const section = document.createElement('article');
@@ -361,13 +361,13 @@
     if(item.itemTitle) return `${item.memberUserId || '학생'} · ${item.itemTitle} 구매`;
     if(item.jobTitle) return `${item.memberUserId || '학생'} · ${item.jobTitle} 월급`;
     if(item.type === 'classroom_routine_reward') return `${item.memberUserId || '학생'} · 루틴 보상`;
-    return `${item.memberUserId || '학생'} · 포인트 ${Number(item.rewardAmount || item.rewardBerry || 0).toLocaleString('ko-KR')}`;
+    return `${item.memberUserId || '학생'} · 포인트 ${Number(item.rewardAmount || item.rewardPoint || 0).toLocaleString('ko-KR')}`;
   }
 
   function renderClassroomActivityFeed(economyBoard = {}) {
     const feed = document.getElementById('classroom-activity-feed');
     if(!feed) return;
-    const berryLogs = Array.isArray(economyBoard.berryLogs) ? economyBoard.berryLogs : [];
+    const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
     const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
     const useRequests = purchases.filter(item => ['use_requested', 'use_approved', 'used'].includes(item.status))
       .map(item => ({
@@ -376,7 +376,7 @@
       }));
     const activities = [
       ...useRequests,
-      ...berryLogs.map(item => ({
+      ...pointLogs.map(item => ({
         label: getClassroomActivityLabel(item),
         createdAtMillis: item.createdAtMillis || 0
       }))
@@ -560,7 +560,7 @@
       progress.className = 'classroom-card-progress';
       progress.textContent = `진행도 ${currentXp}/${targetXp}xp (${percent}%)`;
       reward.className = 'classroom-card-reward';
-      reward.textContent = `획득 보상: ${Number(gem.rewardBerry || 0)} 포인트`;
+      reward.textContent = `획득 보상: ${Number(gem.rewardPoint || 0)} 포인트`;
       status.className = `quest-status ${gem.completed ? 'quest-status-claimed' : 'quest-status-active'}`;
       status.textContent = gem.completed ? '젬을 획득했습니다' : '연결 퀘스트를 완료해 경험치를 모으세요';
       button.className = 'quest-claim-button';
@@ -647,7 +647,7 @@
       }
       identity.append(title, portrait);
       if(level) identity.appendChild(levelBadge);
-      desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · 포인트 ${Number(student.berry || 0).toLocaleString('ko-KR')}`;
+      desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · 포인트 ${Number(student.point || 0).toLocaleString('ko-KR')}`;
       status.className = `quest-status ${student.selectedBadge?.label ? 'quest-status-claimed' : 'quest-status-ready'}`;
       status.textContent = student.selectedBadge?.label ? `대표 뱃지: ${student.selectedBadge.label}` : '대표 뱃지 미설정';
       card.append(badge, identity, desc, status);
@@ -689,7 +689,7 @@
       title.textContent = job.title || '교실 직업';
       desc.textContent = job.desc || '직업 설명이 없습니다.';
       reward.className = 'classroom-card-reward';
-      reward.textContent = `월급: ${Number(job.weeklyPayBerry || 0).toLocaleString('ko-KR')} 포인트 · 정원 ${assignedList.length}/${maxAssignees}`;
+      reward.textContent = `월급: ${Number(job.weeklyPayPoint || 0).toLocaleString('ko-KR')} 포인트 · 정원 ${assignedList.length}/${maxAssignees}`;
       status.className = `quest-status ${assignedHere ? 'quest-status-claimed' : ownApplication ? 'quest-status-ready' : 'quest-status-active'}`;
       status.textContent = assignedHere
         ? `담당: ${assignedList.map(item => item.memberUserId || '-').join(', ')}`
@@ -775,14 +775,14 @@
     const grid = document.getElementById('classroom-shop-grid');
     if(!grid) return;
     const items = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
-    const berry = Number(wallet.berry || 0);
+    const point = Number(wallet.point || 0);
     grid.innerHTML = '';
     if(!items.length) {
       renderEmptyClassroomCard(grid, '준비 중', '아직 등록된 교실 상품이 없습니다', deps.isCurrentClassroomTeacher?.(settings) ? '담임 관리 영역에서 교실 상품을 만들어 주세요.' : '담임이 상품을 만들면 포인트로 구매할 수 있습니다.');
       return;
     }
     items.forEach(item => {
-      const price = Number(item.priceBerry || 0);
+      const price = Number(item.pricePoint || 0);
       const card = document.createElement('article');
       const visual = document.createElement('div');
       const imageUrl = deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '';
@@ -792,7 +792,7 @@
       const reward = document.createElement('p');
       const status = document.createElement('span');
       const button = document.createElement('button');
-      card.className = `classroom-card classroom-card--shop${berry >= price ? ' is-affordable' : ''}`;
+      card.className = `classroom-card classroom-card--shop${point >= price ? ' is-affordable' : ''}`;
       visual.className = 'classroom-shop-card-visual';
       if(imageUrl) {
         const image = document.createElement('img');
@@ -809,12 +809,12 @@
       desc.textContent = item.desc || '상품 설명이 없습니다.';
       reward.className = 'classroom-card-reward';
       reward.textContent = `가격: ${price.toLocaleString('ko-KR')} 포인트`;
-      status.className = `quest-status ${berry >= price ? 'quest-status-active' : 'quest-status-ready'}`;
-      status.textContent = berry >= price ? '구매 가능' : '포인트가 부족합니다';
+      status.className = `quest-status ${point >= price ? 'quest-status-active' : 'quest-status-ready'}`;
+      status.textContent = point >= price ? '구매 가능' : '포인트가 부족합니다';
       button.className = 'quest-claim-button';
       button.type = 'button';
       button.dataset.classroomShopBuyId = item.itemId || '';
-      button.disabled = price <= 0 || berry < price;
+      button.disabled = price <= 0 || point < price;
       button.textContent = '구매하기';
       card.append(visual, badge, title, desc, reward, status, button);
       grid.appendChild(card);
@@ -855,7 +855,7 @@
       const isBillboardTicket = purchase.itemId === 'billboard-ticket' || purchase.itemType === 'billboardTicket';
       titleEl.textContent = purchase.itemTitle || (isBillboardTicket ? '전광판 이용권' : '교실 쿠폰');
       const memoText = purchase.rejectReason || purchase.refundReason || purchase.useMemo || purchase.approvalMemo || purchase.requestMemo || '';
-      meta.textContent = `${canManage ? `${purchase.memberUserId || '학생'} · ` : ''}${Number(purchase.priceBerry || 0).toLocaleString('ko-KR')} 포인트 · ${getClassroomPurchaseStatusLabel(status)}${memoText ? ` · ${memoText}` : ''}`;
+      meta.textContent = `${canManage ? `${purchase.memberUserId || '학생'} · ` : ''}${Number(purchase.pricePoint || 0).toLocaleString('ko-KR')} 포인트 · ${getClassroomPurchaseStatusLabel(status)}${memoText ? ` · ${memoText}` : ''}`;
       actions.className = 'classroom-review-actions';
       if(canManage) {
         if(status === 'use_requested') {
@@ -955,7 +955,7 @@
       progress.className = 'classroom-card-progress';
       progress.textContent = `진행도 ${currentCount}/${targetCount}회 · ${getClassroomRoutineScheduleLabel(routine)}`;
       reward.className = 'classroom-card-reward';
-      reward.textContent = `달성 보상: ${Number(routine.rewardBerry || 0).toLocaleString('ko-KR')} 포인트`;
+      reward.textContent = `달성 보상: ${Number(routine.rewardPoint || 0).toLocaleString('ko-KR')} 포인트`;
       button.className = 'quest-claim-button';
       button.type = 'button';
       button.dataset.classroomRoutineCheckId = routine.routineId || '';

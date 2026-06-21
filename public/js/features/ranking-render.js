@@ -307,6 +307,16 @@
       renderRankingRows(panel, group.rows || [], board, deps);
       return;
     }
+    if(board.id === 'season') {
+      if(group.desc) {
+        const desc = document.createElement('p');
+        desc.className = 'ranking-board-empty';
+        desc.textContent = group.desc;
+        panel.appendChild(desc);
+      }
+      renderRankingRows(panel, group.rows || [], board, deps);
+      return;
+    }
     const filters = document.createElement('div');
     const filterRow = document.createElement('div');
     const rowsWrap = document.createElement('div');

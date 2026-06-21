@@ -405,7 +405,7 @@
           </article>
           <article>
             <span>내 포인트</span>
-            <strong id="classroom-summary-berry-count">0</strong>
+            <strong id="classroom-summary-point-count">0</strong>
           </article>
         </div>
 
@@ -1085,6 +1085,7 @@
           </div>
           <div class="admin-notice-actions">
             <button id="admin-feature-flags-load" class="button secondary" type="button">불러오기</button>
+            <button id="admin-today-quiz-shuffle-now" class="button secondary" type="button">오늘의 퀴즈 즉시 셔플</button>
             <button id="admin-feature-flags-save" class="button primary" type="button">저장</button>
           </div>
           <p id="admin-feature-flags-status" class="admin-status" aria-live="polite"></p>
@@ -1701,6 +1702,7 @@
       todayQuizIds: [],
       todayQuizRandomPoolIds: [],
       todayQuizDailyCount: 1,
+      todayQuizShuffleSeed: '',
       disabledQuizIds: []
     };
     const DEFAULT_EXTERNAL_QUIZZES = {
@@ -3286,6 +3288,15 @@
       return {
         rankingCategoryQuizIdMap: RANKING_CATEGORY_QUIZ_ID_MAP,
         rankingQuizIdCategoryMap: RANKING_QUIZ_ID_CATEGORY_MAP,
+        quizCatalog: QUIZ_CATALOG,
+        subjectLabels: {
+          reading: '독서',
+          korean: '국어',
+          social: '사회',
+          math: '수학',
+          science: '과학',
+          popular: '인기'
+        },
         rankingPlazaCategoryKeys: RANKING_PLAZA_CATEGORY_KEYS,
         rankingPlazaCategoryRecordLimit: RANKING_PLAZA_CATEGORY_RECORD_LIMIT,
         rankingProfileLookupLimit: RANKING_PROFILE_LOOKUP_LIMIT,
@@ -3667,6 +3678,7 @@
         todayQuizIds,
         todayQuizRandomPoolIds,
         todayQuizDailyCount: Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1))),
+        todayQuizShuffleSeed: String(data.todayQuizShuffleSeed || '').trim(),
         disabledQuizIds
       };
     }
@@ -5746,11 +5758,11 @@
     }
 
     async function runAdminWalletAdjustAction(memberUserId) {
-      const currencyInput = window.prompt(`${memberUserId}\n조정할 재화를 입력하세요.\nDJ코인: coin 또는 dj\n포인트: point 또는 berry`, 'coin');
+      const currencyInput = window.prompt(`${memberUserId}\n조정할 재화를 입력하세요.\nDJ코인: coin 또는 dj\n포인트: point`, 'coin');
       if(currencyInput === null) return;
       const currency = normalizeAdminWalletCurrency(currencyInput);
       if(!currency) {
-        setAdminStatus('재화 종류는 coin 또는 berry로 입력해 주세요.', true);
+        setAdminStatus('재화 종류는 coin 또는 point로 입력해 주세요.', true);
         return;
       }
       const amountInput = window.prompt(`${getAdminWalletCurrencyLabel(currency)} 증감 수량을 입력하세요.\n예: 100, -50`, '100');
@@ -6005,10 +6017,11 @@
       });
     }
 
-    function getAdminFeatureFlagsFormValues() {
+    function getAdminFeatureFlagsFormValues(options = {}) {
       return window.DJ48AdminForm.getAdminFeatureFlagsFormValues({
         normalizeFeatureFlags,
-        normalizeFirebaseQuizId
+        normalizeFirebaseQuizId,
+        todayQuizShuffleSeed: options.todayQuizShuffleSeed
       });
     }
 
@@ -6087,6 +6100,25 @@
       setAdminFeatureFlagsStatus(featureFlags.externalQuizzesEnabled === false
         ? '기능 설정을 저장했고 외부 퀴즈 활성 체크를 모두 해제했습니다.'
         : '기능 설정을 저장했습니다.');
+      return featureFlags;
+    }
+
+    async function shuffleTodayQuizNow() {
+      const seed = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const flags = {
+        ...getAdminFeatureFlagsFormValues({ todayQuizShuffleSeed: seed }),
+        todayQuizMode: 'dailyRandom',
+        todayQuizShuffleSeed: seed
+      };
+      if(!flags.todayQuizRandomPoolIds.length) {
+        setAdminFeatureFlagsStatus('랜덤 후보 퀴즈를 먼저 선택해 주세요.', true);
+        return null;
+      }
+      setAdminFeatureFlagsStatus('오늘의 퀴즈를 즉시 셔플하는 중입니다...');
+      const result = await getAdminRepository().saveAdminFeatureFlags(flags);
+      const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
+      setAdminFeatureFlagsForm(featureFlags);
+      setAdminFeatureFlagsStatus('오늘의 퀴즈를 즉시 셔플했습니다.');
       return featureFlags;
     }
 
@@ -7034,6 +7066,7 @@
         loadAdminFeatureFlags,
         setAdminFeatureFlagsStatus,
         saveAdminFeatureFlags,
+        shuffleTodayQuizNow,
         setClassAdminPermission,
         setAdminPermissionStatus,
         loadAdminLogs,

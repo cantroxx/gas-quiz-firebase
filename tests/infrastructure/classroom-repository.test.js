@@ -71,7 +71,7 @@ function makeDocument(path) {
     async get() {
       calls.push(['doc-get', path.join('/')]);
       if(path.at(-2) === 'classrooms') return makeDocSnapshot(true, { title: 'Classroom' });
-      if(path.includes('studentWallets')) return makeDocSnapshot(true, { berry: 10 });
+      if(path.includes('studentWallets')) return makeDocSnapshot(true, { point: 10 });
       if(path.includes('questProgress') && path.at(-1) === 'member-1__quest-1') return makeDocSnapshot(true, { checked: true });
       return makeDocSnapshot(false, {});
     },
@@ -96,7 +96,7 @@ const functions = {
           assignments: [{ id: 'assign-1' }],
           routines: [{ id: 'routine-1' }],
           purchases: [{ id: 'purchase-1' }],
-          berryLogs: [{ id: 'berry-log-1' }],
+          pointLogs: [{ id: 'point-log-1' }],
           myAssignment: { id: 'mine' }
         }
       };
@@ -177,7 +177,7 @@ async function testClassroomRepositoryReadPaths() {
   assert.deepEqual(await repository.loadClassroomQuestProgress({ settings, memberUserId: 'member-1' }), {
     'quest-1': { checked: true }
   });
-  assert.deepEqual(await repository.loadClassroomWallet({ settings, memberUserId: 'member-1' }), { berry: 10 });
+  assert.deepEqual(await repository.loadClassroomWallet({ settings, memberUserId: 'member-1' }), { point: 10 });
   assert.deepEqual(await repository.loadClassroomGemProgress({ settings, memberUserId: 'member-1' }), [
     { id: 'gem-1', memberUserId: 'member-1', xp: 12 }
   ]);
@@ -191,7 +191,7 @@ async function testClassroomRepositoryReadPaths() {
     assignments: [{ id: 'assign-1' }],
     routines: [{ id: 'routine-1' }],
     purchases: [{ id: 'purchase-1' }],
-    berryLogs: [{ id: 'berry-log-1' }],
+    pointLogs: [{ id: 'point-log-1' }],
     classNotices: { slots: [] },
     billboardMessages: [],
     myAssignment: { id: 'mine' }

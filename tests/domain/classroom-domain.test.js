@@ -12,7 +12,7 @@ const quest = domain.normalizeClassroomQuestConfig({
 });
 
 assert.equal(quest.rewardCoin, 13);
-assert.equal(quest.rewardCurrency, 'berry');
+assert.equal(quest.rewardCurrency, 'point');
 assert.equal(quest.linkedGemId, '성실-보석');
 assert.equal(quest.studentAction, '완료하고 13 포인트 받기');
 

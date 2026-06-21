@@ -53,7 +53,7 @@
       title: String(document.getElementById('classroom-quest-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-quest-desc-input')?.value || '').trim(),
       rewardCoin: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-coin-input')?.value) || 0)),
-      rewardCurrency: 'berry',
+      rewardCurrency: 'point',
       rewardMode: String(document.getElementById('classroom-quest-mode-input')?.value || 'auto').trim(),
       targetStudentIds: targetText.split(',').map(value => value.trim()).filter(Boolean),
       repeatRule: String(document.getElementById('classroom-quest-repeat-input')?.value || 'once').trim(),
@@ -61,7 +61,7 @@
       linkedGemId: deps.slugifyClassroomGemId?.(linkedGemName) || '',
       gemXp: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-xp-input')?.value) || 0)),
       gemTargetXp: Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10)),
-      gemRewardBerry: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0)),
+      gemRewardPoint: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0)),
       active: true
     };
   }
@@ -113,7 +113,7 @@
     if(gemName) gemName.value = quest.linkedGemName || '';
     if(gemXp) gemXp.value = String(Number(quest.gemXp || 0));
     if(gemTarget) gemTarget.value = String(Number(quest.gemTargetXp || 10));
-    if(gemReward) gemReward.value = String(Number(quest.gemRewardBerry || 0));
+    if(gemReward) gemReward.value = String(Number(quest.gemRewardPoint || 0));
   }
 
   function getClassroomBadgeCampaignFormValues(deps = {}) {
@@ -132,7 +132,7 @@
     return {
       title: String(document.getElementById('classroom-job-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-job-desc-input')?.value || '').trim(),
-      weeklyPayBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0)),
+      weeklyPayPoint: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0)),
       maxAssignees: Math.max(1, Math.min(10, Math.round(Number(document.getElementById('classroom-job-capacity-input')?.value) || 1)))
     };
   }
@@ -152,7 +152,7 @@
     return {
       title: String(document.getElementById('classroom-shop-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-shop-desc-input')?.value || '').trim(),
-      priceBerry: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0))
+      pricePoint: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0))
     };
   }
 

@@ -60,10 +60,10 @@ async function testCachedValueLoadsAndClearsPromise() {
     setLoadPromise: (key, nextValue) => {
       promiseStates.push([key, nextValue]);
     },
-    loadValue: async options => ({ berry: 7, memberUserId: options.memberUserId })
+    loadValue: async options => ({ point: 7, memberUserId: options.memberUserId })
   });
 
-  assert.deepEqual(value, { key: 'wallet', nextValue: { berry: 7, memberUserId: 'member-a' } });
+  assert.deepEqual(value, { key: 'wallet', nextValue: { point: 7, memberUserId: 'member-a' } });
   assert.equal(promiseStates[0][0], 'wallet');
   assert.equal(typeof promiseStates[0][1]?.then, 'function');
   assert.deepEqual(promiseStates[1], ['wallet', null]);
@@ -127,7 +127,7 @@ async function testPrototypeViewDataComposesLoaders() {
     },
     loadClassroomWallet: async (settings, forceRefresh) => {
       calls.push(['wallet', settings.classId, forceRefresh]);
-      return { berry: 5 };
+      return { point: 5 };
     },
     loadClassroomGemProgress: async (settings, forceRefresh) => {
       calls.push(['gems', settings.classId, forceRefresh]);
@@ -147,7 +147,7 @@ async function testPrototypeViewDataComposesLoaders() {
     settings: { classId: 'c1' },
     progressMap: { q1: { rewardStatus: 'approved' } },
     reviewItems: [{ recordId: 'r1' }],
-    wallet: { berry: 5 },
+    wallet: { point: 5 },
     gemProgress: [{ gemId: 'g1' }],
     studentCards: [{ memberUserId: 'member-a' }],
     economyBoard: { jobs: [] }
@@ -329,10 +329,10 @@ async function testCompleteQuestAutoFlow() {
     memberUserId: 'member-a'
   }, {
     loadClassroomSettings: async () => ({ classId: 'c1', quests: [] }),
-    findClassroomQuest: () => ({ id: 'q1', saveEnabled: true, rewardMode: 'auto', rewardCoin: 3, rewardCurrency: 'berry' }),
+    findClassroomQuest: () => ({ id: 'q1', saveEnabled: true, rewardMode: 'auto', rewardCoin: 3, rewardCurrency: 'point' }),
     completeAutoQuest: async options => {
       calls.push(['complete', options]);
-      return { rewardAmount: 3, rewardCurrency: 'berry' };
+      return { rewardAmount: 3, rewardCurrency: 'point' };
     },
     resetClassroomCaches: options => calls.push(['reset-classroom', options]),
     resetUserEconomyCache: () => calls.push(['reset-economy']),
@@ -398,7 +398,7 @@ async function testReviewWithButtonsFlow() {
     isCurrentClassroomTeacher: () => true,
     reviewProgress: async options => {
       calls.push(['review', options.recordId, options.nextStatus, buttons[0].disabled, buttons[0].textContent]);
-      return { duplicate: false, rewardAmount: 2, rewardCurrency: 'berry' };
+      return { duplicate: false, rewardAmount: 2, rewardCurrency: 'point' };
     },
     resetClassroomCaches: options => calls.push(['reset', options]),
     resetUserEconomyCache: () => calls.push(['reset-economy']),

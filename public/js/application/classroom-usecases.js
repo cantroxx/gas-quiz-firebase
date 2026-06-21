@@ -200,7 +200,7 @@
       return result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 포인트를 지급했습니다.`;
     }
     if(functionName === 'purchaseClassroomShopItem') {
-      const amount = Number(result.priceBerry || 0);
+      const amount = Number(result.pricePoint || 0);
       return `${amount} 포인트로 구매했습니다.`;
     }
     if(functionName === 'requestClassroomShopPurchaseUse') {
@@ -216,7 +216,7 @@
       return result.duplicate ? '이미 처리된 요청입니다.' : '쿠폰 사용 요청을 반려했습니다.';
     }
     if(functionName === 'refundClassroomShopPurchase') {
-      return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${Number(result.refundBerry || 0)} 포인트를 환불했습니다.`;
+      return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${Number(result.refundPoint || 0)} 포인트를 환불했습니다.`;
     }
     if(functionName === 'useClassroomBillboardTicket') {
       return '전광판에 한마디를 올렸습니다.';
@@ -397,7 +397,7 @@
         if(result.duplicate) {
           deps.alert?.('오늘 이미 완료한 퀘스트예요.');
         } else {
-          const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardBerry || quest.rewardCoin || 0);
+          const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardPoint || quest.rewardCoin || 0);
           deps.alert?.(`${amount} ${deps.getClassroomRewardCurrencyLabel(result.rewardCurrency || quest.rewardCurrency)}를 받았어요.`);
         }
         return { result, error: null };
@@ -472,7 +472,7 @@
         await deps.renderAdminClassroomReview?.(true);
       }
       if(options.nextStatus === 'approved' && !result.duplicate) {
-        const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardBerry || 0);
+        const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardPoint || 0);
         deps.alert?.(`${amount} ${deps.getClassroomRewardCurrencyLabel(result.rewardCurrency)}를 지급했습니다.`);
       }
       return { result, error: null };
