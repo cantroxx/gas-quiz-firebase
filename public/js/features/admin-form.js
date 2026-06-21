@@ -169,26 +169,30 @@
   }
 
   function setAdminSeasonEventsForm(seasonEvents = {}) {
-    const input = document.getElementById('admin-season-events-json');
-    if(!input) return;
-    const items = Array.isArray(seasonEvents.items) ? seasonEvents.items : [];
-    input.value = JSON.stringify(items.map((item, index) => ({
-      eventId: item.eventId || `season-${index + 1}`,
-      icon: item.icon || '✨',
-      title: item.title || '',
-      desc: item.desc || '',
-      periodType: item.periodType === 'weekly' ? 'weekly' : 'monthly',
-      period: item.period || (item.periodType === 'weekly' ? '이번 주' : '이번 달'),
-      active: item.active !== false,
-      sortOrder: Number(item.sortOrder) || index + 1
-    })), null, 2);
+    return seasonEvents;
   }
 
   function getAdminSeasonEventsFormValues() {
-    const raw = String(document.getElementById('admin-season-events-json')?.value || '').trim();
-    if(!raw) return { items: [] };
-    const parsed = JSON.parse(raw);
-    const items = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []);
+    const rows = Array.from(document.querySelectorAll('#admin-season-event-list .admin-external-quiz-row'));
+    const items = rows.map((row, index) => {
+      const periodType = row.querySelector('[data-season-event-field="periodType"]')?.value === 'weekly' ? 'weekly' : 'monthly';
+      const title = row.querySelector('[data-season-event-field="title"]')?.value || '';
+      const quizIds = String(row.querySelector('[data-season-event-field="quizIds"]')?.value || '')
+        .split(/[\s,]+/)
+        .map(id => id.trim())
+        .filter(Boolean);
+      return {
+        eventId: `season-${periodType}-${index + 1}`,
+        icon: row.querySelector('[data-season-event-field="icon"]')?.value || '✨',
+        title,
+        desc: row.querySelector('[data-season-event-field="desc"]')?.value || '',
+        quizIds,
+        periodType,
+        period: periodType === 'weekly' ? '이번 주' : '이번 달',
+        active: row.querySelector('[data-season-event-field="active"]')?.checked === true,
+        sortOrder: index + 1
+      };
+    }).filter(item => item.title.trim() || item.desc.trim() || item.quizIds.length);
     return { items };
   }
 
@@ -224,8 +228,14 @@
     document.getElementById('admin-feature-external-quizzes').checked = data.externalQuizzesEnabled;
     document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
     document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
+    const todayQuizModeInput = document.getElementById('admin-feature-today-quiz-mode');
+    if(todayQuizModeInput) todayQuizModeInput.value = data.todayQuizMode === 'dailyRandom' ? 'dailyRandom' : 'manual';
     const todayQuizInput = document.getElementById('admin-feature-today-quiz-ids');
     if(todayQuizInput) todayQuizInput.value = (data.todayQuizIds || []).join(', ');
+    const todayQuizPoolInput = document.getElementById('admin-feature-today-quiz-pool-ids');
+    if(todayQuizPoolInput) todayQuizPoolInput.value = (data.todayQuizRandomPoolIds || []).join(', ');
+    const todayQuizCountInput = document.getElementById('admin-feature-today-quiz-count');
+    if(todayQuizCountInput) todayQuizCountInput.value = data.todayQuizDailyCount || 1;
     renderAdminQuizToggleGrid(data);
   }
 
@@ -240,6 +250,10 @@
       .split(/[\s,]+/)
       .map(id => normalizeFirebaseQuizId(id.trim()))
       .filter(Boolean);
+    const todayQuizRandomPoolIds = String(document.getElementById('admin-feature-today-quiz-pool-ids')?.value || '')
+      .split(/[\s,]+/)
+      .map(id => normalizeFirebaseQuizId(id.trim()))
+      .filter(Boolean);
     return normalizeFeatureFlags({
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
       practiceXpEnabled: document.getElementById('admin-feature-practice-xp')?.checked === true,
@@ -247,7 +261,10 @@
       externalQuizzesEnabled: document.getElementById('admin-feature-external-quizzes')?.checked === true,
       eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
       rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,
+      todayQuizMode: document.getElementById('admin-feature-today-quiz-mode')?.value === 'dailyRandom' ? 'dailyRandom' : 'manual',
       todayQuizIds,
+      todayQuizRandomPoolIds,
+      todayQuizDailyCount: Number(document.getElementById('admin-feature-today-quiz-count')?.value || 1),
       disabledQuizIds
     });
   }

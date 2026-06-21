@@ -52,6 +52,12 @@ async function testAdminRepositoryCallsAdminFunctions() {
     title: 'Notice',
     updatedAt: { millis: 'appSettings-externalQuizzes' }
   });
+  assert.deepEqual(await repository.loadPublicSeasonEvents(), {
+    name: 'appSettings',
+    id: 'seasonEvents',
+    title: 'Notice',
+    updatedAt: { millis: 'appSettings-seasonEvents' }
+  });
   assert.equal(await repository.loadServerFreshnessSignature({
     getTimestampMillis: value => value.millis
   }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|seasonEvents:appSettings-seasonEvents|noticeBoard:noticeBoard-current');

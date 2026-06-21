@@ -62,7 +62,10 @@ const DEFAULT_FEATURE_FLAGS = {
   externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true,
+  todayQuizMode: "manual",
   todayQuizIds: [],
+  todayQuizRandomPoolIds: [],
+  todayQuizDailyCount: 1,
   disabledQuizIds: []
 };
 
@@ -78,6 +81,7 @@ const DEFAULT_SEASON_EVENTS = {
       title: "독서왕 시즌",
       desc: "독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.",
       periodType: "monthly",
+      quizIds: ["gmo", "time_store"],
       active: true
     },
     {
@@ -86,6 +90,7 @@ const DEFAULT_SEASON_EVENTS = {
       title: "삼국시대 탐험 주간",
       desc: "삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.",
       periodType: "weekly",
+      quizIds: ["samgukji", "ancient-history"],
       active: true
     }
   ]
@@ -220,18 +225,19 @@ function assertNicknameAllowed(nickname) {
 }
 
 function publicFeatureFlags(data = {}) {
+  const sanitizeQuizIds = (value, limit) => Array.isArray(value)
+    ? Array.from(new Set(value
+      .map(id => String(id || "").trim())
+      .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
+      .slice(0, limit)
+    : [];
   const disabledQuizIds = Array.isArray(data.disabledQuizIds)
-    ? Array.from(new Set(data.disabledQuizIds
-      .map(id => String(id || "").trim())
-      .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
-      .slice(0, 120)
+    ? sanitizeQuizIds(data.disabledQuizIds, 120)
     : [];
-  const todayQuizIds = Array.isArray(data.todayQuizIds)
-    ? Array.from(new Set(data.todayQuizIds
-      .map(id => String(id || "").trim())
-      .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
-      .slice(0, 20)
-    : [];
+  const todayQuizIds = sanitizeQuizIds(data.todayQuizIds, 20);
+  const todayQuizRandomPoolIds = sanitizeQuizIds(data.todayQuizRandomPoolIds, 80);
+  const todayQuizMode = data.todayQuizMode === "dailyRandom" ? "dailyRandom" : "manual";
+  const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -239,7 +245,10 @@ function publicFeatureFlags(data = {}) {
     externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
     rankingEnabled: data.rankingEnabled !== false,
+    todayQuizMode,
     todayQuizIds,
+    todayQuizRandomPoolIds,
+    todayQuizDailyCount,
     disabledQuizIds
   };
 }
@@ -324,15 +333,23 @@ function publicSeasonEvents(data = {}, context = {}) {
   const dateKey = String(context.dateKey || getKstDateKey());
   const weekKey = String(context.weekKey || getKstWeekKey());
   const monthKey = dateKey.slice(0, 7);
+  const sanitizeQuizIds = value => Array.isArray(value)
+    ? Array.from(new Set(value
+      .map(id => String(id || "").trim())
+      .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
+      .slice(0, 20)
+    : [];
   const items = rawItems.slice(0, MAX_SEASON_EVENT_ITEMS)
     .map((item, index) => {
       const periodType = item?.periodType === "weekly" ? "weekly" : "monthly";
       const periodKey = periodType === "weekly" ? weekKey : monthKey;
+      const quizIds = sanitizeQuizIds(item?.quizIds);
       return {
         eventId: String(item?.eventId || `season-${index + 1}`).trim().replace(/[^0-9A-Za-z_-]+/g, "-").slice(0, 60) || `season-${index + 1}`,
         icon: String(item?.icon || "✨").trim().slice(0, 8) || "✨",
         title: String(item?.title || "").trim().slice(0, 60),
         desc: String(item?.desc || item?.description || "").trim().slice(0, 180),
+        quizIds,
         periodType,
         period: String(item?.period || (periodType === "weekly" ? "이번 주" : "이번 달")).trim().slice(0, 40),
         periodKey,
@@ -992,8 +1009,27 @@ function getTodayQuizDailyLevelXpCap(memberUserId, dateKey = getKstDateKey()) {
   };
 }
 
+function getStableHash(text) {
+  return String(text || "").split("").reduce((hash, char) => {
+    return ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+  }, 0);
+}
+
+function getDailyShuffledQuizIds(ids = [], dateKey = getKstDateKey()) {
+  return ids.slice().sort((a, b) => {
+    const left = getStableHash(`${dateKey}:${a}`);
+    const right = getStableHash(`${dateKey}:${b}`);
+    return left - right || String(a).localeCompare(String(b));
+  });
+}
+
 function getTodayQuizIds(flags = {}) {
-  return new Set((Array.isArray(flags.todayQuizIds) ? flags.todayQuizIds : [])
+  const manualIds = Array.isArray(flags.todayQuizIds) ? flags.todayQuizIds : [];
+  const poolIds = Array.isArray(flags.todayQuizRandomPoolIds) ? flags.todayQuizRandomPoolIds : [];
+  const ids = flags.todayQuizMode === "dailyRandom"
+    ? getDailyShuffledQuizIds(poolIds, getKstDateKey()).slice(0, Math.max(1, Number(flags.todayQuizDailyCount) || 1))
+    : manualIds;
+  return new Set(ids
     .map(id => String(id || "").trim())
     .filter(Boolean));
 }

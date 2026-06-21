@@ -87,7 +87,79 @@
     ];
   }
 
-  function getRankingBoardModels(quizKingSummaries, rankingRecords, deps = {}) {
+  function getKstPeriodRange(periodType) {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(now);
+    const lookup = Object.fromEntries(parts.map(part => [part.type, part.value]));
+    const kstDate = new Date(Date.UTC(Number(lookup.year), Number(lookup.month) - 1, Number(lookup.day)));
+    const startKstDate = new Date(kstDate);
+    if(periodType === 'weekly') {
+      const day = startKstDate.getUTCDay() || 7;
+      startKstDate.setUTCDate(startKstDate.getUTCDate() - day + 1);
+    } else {
+      startKstDate.setUTCDate(1);
+    }
+    return {
+      startMillis: startKstDate.getTime() - (9 * 60 * 60 * 1000),
+      endMillis: now.getTime()
+    };
+  }
+
+  function getSeasonRankingEvents(seasonEvents = [], periodType) {
+    return (seasonEvents || [])
+      .filter(eventItem => eventItem?.active !== false && eventItem?.periodType === periodType)
+      .filter(eventItem => Array.isArray(eventItem.quizIds) && eventItem.quizIds.length);
+  }
+
+  function getSeasonRankingCategoryKeys(events = [], deps = {}) {
+    const quizCategoryMap = deps.rankingQuizIdCategoryMap || {};
+    return Array.from(new Set(events
+      .flatMap(eventItem => eventItem.quizIds || [])
+      .map(quizId => quizCategoryMap[quizId])
+      .filter(Boolean)));
+  }
+
+  function getSeasonRankingRecords(records = [], events = [], periodType, deps = {}) {
+    const getRankingRecordTimeValue = deps.getRankingRecordTimeValue || (() => 0);
+    const getTopRankingRecordsByCategoryKeys = deps.getTopRankingRecordsByCategoryKeys || (() => []);
+    const rowLimit = Number(deps.rankingPlazaRowLimit) || 10;
+    const range = getKstPeriodRange(periodType);
+    const keys = getSeasonRankingCategoryKeys(events, deps);
+    const periodRecords = records.filter(record => {
+      const time = getRankingRecordTimeValue(record);
+      return time >= range.startMillis && time <= range.endMillis;
+    });
+    return getTopRankingRecordsByCategoryKeys(periodRecords, keys, rowLimit);
+  }
+
+  function buildSeasonRankingBoards(records = [], seasonEvents = [], deps = {}) {
+    const monthlyEvents = getSeasonRankingEvents(seasonEvents, 'monthly');
+    const weeklyEvents = getSeasonRankingEvents(seasonEvents, 'weekly');
+    const getRankingCategoryLabel = deps.getRankingCategoryLabel || (() => '');
+    const makeBoard = (id, label, title, periodType, events) => ({
+      id,
+      label,
+      title,
+      desc: events.length
+        ? events.map(eventItem => eventItem.title).join(', ')
+        : '시즌 이벤트에 지정된 퀴즈 랭킹입니다.',
+      rows: getSeasonRankingRecords(records, events, periodType, deps),
+      sourceRows: records,
+      meta: row => getRankingCategoryLabel(row) || '시즌',
+      score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+    });
+    return [
+      makeBoard('seasonMonth', '이번달', '이번달 시즌 랭킹', 'monthly', monthlyEvents),
+      makeBoard('seasonWeek', '이번주', '이번주 시즌 랭킹', 'weekly', weeklyEvents)
+    ];
+  }
+
+  function getRankingBoardModels(quizKingSummaries, rankingRecords, seasonEvents = [], deps = {}) {
     const getTopQuizKingSummaries = deps.getTopQuizKingSummaries || (() => []);
     const getTopRankingRecordsByCategoryKeys = deps.getTopRankingRecordsByCategoryKeys || (() => []);
     const getRankingCategoryLabel = deps.getRankingCategoryLabel || (() => '');
@@ -139,6 +211,7 @@
       ...scienceDefinitions
     ], groupDeps);
     return [
+      ...buildSeasonRankingBoards(rankingRecords, seasonEvents, groupDeps),
       {
         id: 'quizKing',
         label: '퀴즈왕',
@@ -211,6 +284,8 @@
     mergeRankingRowWithMemberProfile,
     buildRankingGroups,
     buildSubjectRankingGroups,
+    getSeasonRankingCategoryKeys,
+    buildSeasonRankingBoards,
     getRankingBoardModels
   };
 })();

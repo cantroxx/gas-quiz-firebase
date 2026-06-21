@@ -202,6 +202,38 @@
     return Array.from(byRecordId.values());
   }
 
+  async function loadSeasonRankingRecordsForPlazaForDb(db, categoryKeys = [], deps = {}) {
+    const getEnabledRankingCategoryKeys = deps.getEnabledRankingCategoryKeys || (keys => keys || []);
+    const getRankingPlazaCategoryRecordLimit = deps.getRankingPlazaCategoryRecordLimit || (() => Number(deps.rankingPlazaCategoryRecordLimit) || 40);
+    const normalizeRecord = deps.normalizeRankingRecordFromFirestore || (doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }));
+    const enabledCategoryKeys = getEnabledRankingCategoryKeys(Array.from(new Set(categoryKeys || [])));
+    if(!db || !enabledCategoryKeys.length) return [];
+    const loadCategoryRecords = async categoryKey => {
+      const limit = Math.max(80, getRankingPlazaCategoryRecordLimit(categoryKey));
+      const baseQuery = db.collection('rankingRecords')
+        .where('categoryKey', '==', categoryKey)
+        .limit(getPublicRankingQueryLimit(limit));
+      try {
+        return await db.collection('rankingRecords')
+          .where('categoryKey', '==', categoryKey)
+          .orderBy('createdAt', 'desc')
+          .limit(getPublicRankingQueryLimit(limit))
+          .get();
+      } catch(error) {
+        deps.warn?.('Firestore season ranking query failed. Falling back to limited category query.', { categoryKey, error });
+        return baseQuery.get();
+      }
+    };
+    const snapshots = await Promise.all(enabledCategoryKeys.map(loadCategoryRecords));
+    const byRecordId = new Map();
+    snapshots.forEach(snapshot => {
+      getDocs(snapshot).map(normalizeRecord).filter(isPublicRankingRowVisible).forEach(record => {
+        byRecordId.set(record.recordId, record);
+      });
+    });
+    return Array.from(byRecordId.values());
+  }
+
   function createRankingRepository(options = {}, deps = {}) {
     const db = options.db;
     if(!db) throw new Error('firestore-unavailable');
@@ -221,6 +253,11 @@
       loadLimitedRankingRecordsForPlaza() {
         if(deps.loadLimitedRankingRecordsForPlaza) return deps.loadLimitedRankingRecordsForPlaza(db);
         return loadLimitedRankingRecordsForPlazaForDb(db, deps);
+      },
+
+      loadSeasonRankingRecordsForPlaza(categoryKeys) {
+        if(deps.loadSeasonRankingRecordsForPlaza) return deps.loadSeasonRankingRecordsForPlaza(db, categoryKeys);
+        return loadSeasonRankingRecordsForPlazaForDb(db, categoryKeys, deps);
       },
 
       loadMemberProfilesForRankingRows(rows) {
@@ -247,6 +284,7 @@
   const api = {
     createRankingRepository,
     loadLimitedRankingRecordsForPlazaForDb,
+    loadSeasonRankingRecordsForPlazaForDb,
     loadMemberProfilesForRankingRowsForDb,
     loadProfileRankingRankContextForDb,
     isPublicRankingRowVisible

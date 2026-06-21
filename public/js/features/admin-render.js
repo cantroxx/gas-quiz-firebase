@@ -380,6 +380,57 @@
     }
   }
 
+  function renderAdminSeasonEventRows(seasonEvents, deps = {}) {
+    const root = document.getElementById('admin-season-event-list');
+    const normalizeSeasonEvents = deps.normalizeSeasonEvents;
+    const defaultSeasonEvents = deps.defaultSeasonEvents || {};
+    const maxRows = Number(deps.maxRows || 0);
+    if(!root || typeof normalizeSeasonEvents !== 'function' || !maxRows) return;
+    const items = normalizeSeasonEvents(seasonEvents || defaultSeasonEvents).items;
+    root.innerHTML = '';
+    for(let index = 0; index < maxRows; index += 1) {
+      const item = items[index] || {};
+      const row = document.createElement('article');
+      row.className = 'admin-external-quiz-row';
+      row.innerHTML = `
+        <label>
+          시즌 타이틀
+          <input data-season-event-field="title" data-season-event-index="${index}" type="text" maxlength="60" value="">
+        </label>
+        <label>
+          설명
+          <input data-season-event-field="desc" data-season-event-index="${index}" type="text" maxlength="180" value="">
+        </label>
+        <label>
+          기간
+          <select data-season-event-field="periodType" data-season-event-index="${index}">
+            <option value="monthly">이번달</option>
+            <option value="weekly">이번주</option>
+          </select>
+        </label>
+        <label>
+          지정 퀴즈 ID
+          <input data-season-event-field="quizIds" data-season-event-index="${index}" type="text" maxlength="500" placeholder="예: gmo, time_store" value="">
+        </label>
+        <label>
+          아이콘
+          <input data-season-event-field="icon" data-season-event-index="${index}" type="text" maxlength="8" value="">
+        </label>
+        <label class="admin-checkbox-label">
+          <input data-season-event-field="active" data-season-event-index="${index}" type="checkbox">
+          활성
+        </label>
+      `;
+      row.querySelector('[data-season-event-field="title"]').value = item.title || '';
+      row.querySelector('[data-season-event-field="desc"]').value = item.desc || '';
+      row.querySelector('[data-season-event-field="periodType"]').value = item.periodType === 'weekly' ? 'weekly' : 'monthly';
+      row.querySelector('[data-season-event-field="quizIds"]').value = (item.quizIds || []).join(', ');
+      row.querySelector('[data-season-event-field="icon"]').value = item.icon || '✨';
+      row.querySelector('[data-season-event-field="active"]').checked = item.active !== false;
+      root.appendChild(row);
+    }
+  }
+
   function renderAdminQuizToggleGrid(flags, deps = {}) {
     const root = document.getElementById('admin-quiz-toggle-grid');
     const getDisabledQuizIdSet = deps.getDisabledQuizIdSet;
@@ -457,6 +508,7 @@
     renderAdminMemberList,
     renderAdminMemberDetail,
     renderAdminExternalQuizRows,
+    renderAdminSeasonEventRows,
     renderAdminQuizToggleGrid,
     renderAdminDashboard,
     renderAdminLogs

@@ -85,6 +85,7 @@
       const title = document.createElement('h4');
       const desc = document.createElement('p');
       const period = document.createElement('span');
+      const quizMeta = document.createElement('span');
 
       card.className = 'season-event-card';
       icon.className = 'event-card-icon';
@@ -93,8 +94,12 @@
       desc.textContent = eventItem.desc;
       period.className = 'season-event-period';
       period.textContent = eventItem.period;
+      quizMeta.className = 'season-event-period';
+      quizMeta.textContent = Array.isArray(eventItem.quizIds) && eventItem.quizIds.length
+        ? `지정 퀴즈 ${eventItem.quizIds.length}개`
+        : '지정 퀴즈 없음';
 
-      card.append(icon, title, desc, period);
+      card.append(icon, title, desc, period, quizMeta);
       grid.appendChild(card);
     });
   }

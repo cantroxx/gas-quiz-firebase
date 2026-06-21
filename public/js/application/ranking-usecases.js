@@ -5,12 +5,25 @@
     await deps.initializeAuthUser?.();
 
     const rowLimit = Number(options.rowLimit) || 10;
-    const [rawQuizKingSummaries, rankingRecords] = await Promise.all([
+    const seasonEvents = await deps.loadSeasonEventsForRanking?.().catch(error => {
+      deps.warn?.('Season events for ranking load failed.', error);
+      return [];
+    }) || [];
+    const seasonRankingCategoryKeys = deps.getSeasonRankingCategoryKeys?.(seasonEvents) || [];
+    const [rawQuizKingSummaries, rankingRecords, seasonRankingRecords] = await Promise.all([
       repository.loadQuizKingSummaries(rowLimit),
-      repository.loadLimitedRankingRecordsForPlaza()
+      repository.loadLimitedRankingRecordsForPlaza(),
+      seasonRankingCategoryKeys.length
+        ? repository.loadSeasonRankingRecordsForPlaza?.(seasonRankingCategoryKeys)
+        : []
     ]);
 
-    const filteredRankingRecords = (rankingRecords || []).filter(row => deps.isRankingRowEnabledByFlags?.(row) !== false);
+    const byRecordId = new Map();
+    [...(rankingRecords || []), ...(seasonRankingRecords || [])].forEach(row => {
+      const key = row?.recordId || `${row?.memberUserId || row?.userId || ''}::${row?.categoryKey || row?.category || ''}::${row?.createdAt || ''}`;
+      if(key) byRecordId.set(key, row);
+    });
+    const filteredRankingRecords = Array.from(byRecordId.values()).filter(row => deps.isRankingRowEnabledByFlags?.(row) !== false);
     const profileMap = await repository.loadMemberProfilesForRankingRows(
       rawQuizKingSummaries.concat(filteredRankingRecords)
     );
@@ -32,7 +45,7 @@
         deps.buildRankingRecordCard('math_king', '➗', '수학왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.mathCategoryKeys || [])),
         deps.buildRankingRecordCard('popular_king', '⭐', '인기왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, popularCategoryKeys))
       ],
-      boards: deps.getRankingBoardModels(quizKingSummaries, enrichedRankingRecords)
+      boards: deps.getRankingBoardModels(quizKingSummaries, enrichedRankingRecords, seasonEvents)
     };
   }
 

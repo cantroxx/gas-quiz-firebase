@@ -52,6 +52,12 @@
         const snapshot = await db.collection('appSettings').doc('externalQuizzes').get();
         return snapshot.exists ? snapshot.data() || {} : {};
       },
+      async loadPublicSeasonEvents() {
+        const db = deps.getFirestoreDb?.();
+        if(!db) throw new Error('firestore-unavailable');
+        const snapshot = await db.collection('appSettings').doc('seasonEvents').get();
+        return snapshot.exists ? snapshot.data() || {} : {};
+      },
       async loadServerFreshnessSignature(options = {}) {
         const db = deps.getFirestoreDb?.();
         if(!db) return '';

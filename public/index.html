@@ -965,12 +965,7 @@
           <span aria-hidden="true">⌄</span>
         </button>
         <div class="admin-section-body">
-          <div class="admin-settings-form">
-            <label>
-              이벤트 JSON
-              <textarea id="admin-season-events-json" rows="12" spellcheck="false"></textarea>
-            </label>
-          </div>
+          <div id="admin-season-event-list" class="admin-external-quiz-list" aria-label="시즌 이벤트 입력 목록"></div>
           <div class="admin-notice-actions">
             <button id="admin-season-events-load" class="button secondary" type="button">불러오기</button>
             <button id="admin-season-events-save" class="button primary" type="button">저장</button>
@@ -1074,8 +1069,23 @@
           </div>
           <div class="admin-settings-form">
             <label>
+              오늘의 퀴즈 방식
+              <select id="admin-feature-today-quiz-mode">
+                <option value="manual">지정 퀴즈</option>
+                <option value="dailyRandom">매일 자정 랜덤 셔플</option>
+              </select>
+            </label>
+            <label>
               오늘의 퀴즈 ID
               <input id="admin-feature-today-quiz-ids" type="text" placeholder="예: gmo, unified-silla-balhae">
+            </label>
+            <label>
+              랜덤 후보 퀴즈 ID
+              <input id="admin-feature-today-quiz-pool-ids" type="text" placeholder="예: spelling, gmo, samgukji">
+            </label>
+            <label>
+              하루 선택 수
+              <input id="admin-feature-today-quiz-count" type="number" min="1" max="10" inputmode="numeric" value="1">
             </label>
           </div>
           <div class="admin-quiz-toggle-panel">
@@ -1699,13 +1709,17 @@
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
+      todayQuizMode: 'manual',
       todayQuizIds: [],
+      todayQuizRandomPoolIds: [],
+      todayQuizDailyCount: 1,
       disabledQuizIds: []
     };
     const DEFAULT_EXTERNAL_QUIZZES = {
       items: []
     };
     const MAX_EXTERNAL_QUIZ_ADMIN_ROWS = 12;
+    const MAX_SEASON_EVENT_ADMIN_ROWS = 6;
 
     let lastResolvedUserId = null;
     let userDataMigrationPromise = null;
@@ -1746,7 +1760,8 @@
         title: '독서왕 시즌',
         desc: '독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.',
         period: '이번 달',
-        periodType: 'monthly'
+        periodType: 'monthly',
+        quizIds: ['gmo', 'time_store']
       },
       {
         eventId: 'three_kingdoms_week',
@@ -1754,7 +1769,8 @@
         title: '삼국시대 탐험 주간',
         desc: '삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.',
         period: '이번 주',
-        periodType: 'weekly'
+        periodType: 'weekly',
+        quizIds: ['samgukji', 'ancient-history']
       },
       {
         eventId: 'calculation_challenge',
@@ -1762,7 +1778,8 @@
         title: '계산왕 챌린지',
         desc: '수학 계산 연습을 반복하며 도전 기록을 확인하는 이벤트입니다.',
         period: '이번 달',
-        periodType: 'monthly'
+        periodType: 'monthly',
+        quizIds: ['random-basic', 'fraction-basic']
       }
     ];
 
@@ -3212,6 +3229,7 @@
       '독서시간가게',
       '사회삼국지',
       '사회고대사-삼국시대',
+      '사회통일신라-발해',
       '사회문화유산',
       '인물역사-인물',
       '수학곱셈과-나눗셈',
@@ -3235,6 +3253,7 @@
       '독서시간가게': 'time_store',
       '사회삼국지': 'samgukji',
       '사회고대사-삼국시대': 'ancient-history',
+      '사회통일신라-발해': 'unified-silla-balhae',
       '사회문화유산': 'cultural_heritage',
       '인물역사-인물': 'history-people',
       '수학곱셈과-나눗셈': 'random-basic',
@@ -3263,10 +3282,16 @@
       '포켓몬어려움': 'pokemon-hard',
       '포켓몬헬': 'pokemon-very-hard'
     };
+    const RANKING_QUIZ_ID_CATEGORY_MAP = Object.entries(RANKING_CATEGORY_QUIZ_ID_MAP)
+      .reduce((map, [categoryKey, quizId]) => {
+        if(!map[quizId]) map[quizId] = categoryKey;
+        return map;
+      }, {});
 
     function getRankingDataDeps() {
       return {
         rankingCategoryQuizIdMap: RANKING_CATEGORY_QUIZ_ID_MAP,
+        rankingQuizIdCategoryMap: RANKING_QUIZ_ID_CATEGORY_MAP,
         rankingPlazaCategoryKeys: RANKING_PLAZA_CATEGORY_KEYS,
         rankingPlazaCategoryRecordLimit: RANKING_PLAZA_CATEGORY_RECORD_LIMIT,
         rankingProfileLookupLimit: RANKING_PROFILE_LOOKUP_LIMIT,
@@ -3280,6 +3305,7 @@
         getFirebaseStorage,
         getTopQuizKingSummaries,
         getTopRankingRecordsByCategoryKeys,
+        getRankingRecordTimeValue,
         getRankingCategoryLabel,
         getPopularAreaForRecord,
         getPopularRankingDetailLabel,
@@ -3582,8 +3608,8 @@
       return window.DJ48RankingData.buildSubjectRankingGroups(records, allKeys, definitions, getRankingDataDeps());
     }
 
-    function getRankingBoardModels(quizKingSummaries, rankingRecords) {
-      return window.DJ48RankingData.getRankingBoardModels(quizKingSummaries, rankingRecords, getRankingDataDeps());
+    function getRankingBoardModels(quizKingSummaries, rankingRecords, seasonEvents = []) {
+      return window.DJ48RankingData.getRankingBoardModels(quizKingSummaries, rankingRecords, seasonEvents, getRankingDataDeps());
     }
 
     async function loadRankingPlazaCardsFromFirestore() {
@@ -3603,6 +3629,13 @@
         getBestRankingRecordByCategoryKeys,
         buildQuizKingCard: buildQuizKingRankingCard,
         buildRankingRecordCard,
+        loadSeasonEventsForRanking: async () => {
+          const cached = window.DJ48EventState.getEventProgress();
+          if(cached?.seasonEvents) return cached.seasonEvents;
+          const seasonEvents = normalizeSeasonEvents(await getAdminRepository().loadPublicSeasonEvents());
+          return seasonEvents.items.length ? seasonEvents.items : SEASON_EVENT_DATA;
+        },
+        getSeasonRankingCategoryKeys: seasonEvents => window.DJ48RankingData.getSeasonRankingCategoryKeys(seasonEvents, getRankingDataDeps()),
         getRankingBoardModels
       });
     }
@@ -3626,6 +3659,9 @@
       const todayQuizIds = Array.isArray(data.todayQuizIds)
         ? Array.from(new Set(data.todayQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
         : [];
+      const todayQuizRandomPoolIds = Array.isArray(data.todayQuizRandomPoolIds)
+        ? Array.from(new Set(data.todayQuizRandomPoolIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
+        : [];
       return {
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -3633,7 +3669,10 @@
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
+        todayQuizMode: data.todayQuizMode === 'dailyRandom' ? 'dailyRandom' : 'manual',
         todayQuizIds,
+        todayQuizRandomPoolIds,
+        todayQuizDailyCount: Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1))),
         disabledQuizIds
       };
     }
@@ -5851,6 +5890,14 @@
       });
     }
 
+    function renderAdminSeasonEventRows(seasonEvents = { items: SEASON_EVENT_DATA }) {
+      return window.DJ48AdminRender.renderAdminSeasonEventRows(seasonEvents, {
+        normalizeSeasonEvents,
+        defaultSeasonEvents: { items: SEASON_EVENT_DATA },
+        maxRows: MAX_SEASON_EVENT_ADMIN_ROWS
+      });
+    }
+
     function getAdminExternalQuizzesFormValues() {
       return window.DJ48AdminForm.getAdminExternalQuizzesFormValues();
     }
@@ -5863,6 +5910,9 @@
           icon: String(item.icon || '✨').trim() || '✨',
           title: String(item.title || '').trim(),
           desc: String(item.desc || item.description || '').trim(),
+          quizIds: Array.isArray(item.quizIds)
+            ? Array.from(new Set(item.quizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean))).slice(0, 20)
+            : [],
           periodType: item.periodType === 'weekly' ? 'weekly' : 'monthly',
           period: String(item.period || (item.periodType === 'weekly' ? '이번 주' : '이번 달')).trim(),
           active: item.active !== false,
@@ -5898,7 +5948,7 @@
       setAdminSeasonEventsStatus('시즌 이벤트를 불러오는 중입니다...');
       const result = await getAdminRepository().loadAdminSeasonEvents();
       const seasonEvents = window.DJ48AdminState.setSeasonEventsCache(normalizeSeasonEvents(result.seasonEvents));
-      window.DJ48AdminForm.setAdminSeasonEventsForm(seasonEvents);
+      renderAdminSeasonEventRows(seasonEvents);
       setAdminSeasonEventsStatus('시즌 이벤트를 불러왔습니다.');
       return seasonEvents;
     }
@@ -5908,7 +5958,7 @@
       setAdminSeasonEventsStatus('시즌 이벤트를 저장하는 중입니다...');
       const result = await getAdminRepository().saveAdminSeasonEvents(seasonEvents);
       const savedSeasonEvents = window.DJ48AdminState.setSeasonEventsCache(normalizeSeasonEvents(result.seasonEvents));
-      window.DJ48AdminForm.setAdminSeasonEventsForm(savedSeasonEvents);
+      renderAdminSeasonEventRows(savedSeasonEvents);
       resetEventProgressCache();
       await renderEventProgressFromFunctions(true).catch(error => console.warn('Event progress refresh after season save failed.', error));
       setAdminSeasonEventsStatus('시즌 이벤트를 저장했습니다.');
@@ -6671,6 +6721,14 @@
             onError: () => {
               setAdminExternalQuizzesStatus('외부 퀴즈를 불러오지 못했습니다.', true);
               renderAdminExternalQuizRows(DEFAULT_EXTERNAL_QUIZZES);
+            }
+          },
+          {
+            load: loadAdminSeasonEvents,
+            warnMessage: 'Admin season events load failed.',
+            onError: () => {
+              setAdminSeasonEventsStatus('시즌 이벤트를 불러오지 못했습니다.', true);
+              renderAdminSeasonEventRows({ items: SEASON_EVENT_DATA });
             }
           },
           {
