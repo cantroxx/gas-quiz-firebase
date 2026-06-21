@@ -27,10 +27,10 @@ const POPULAR_USAGE_AFTER4_HARD_LIMIT_SECONDS = 30 * 60;
 const POPULAR_USAGE_UNLOCK_CORRECT_COUNT = 15;
 const POPULAR_USAGE_MAX_HEARTBEAT_SECONDS = 60;
 const LEVEL_MAX = 50;
-const QUIZ_XP_QUESTION_BLOCK = 5;
-const QUIZ_XP_PER_BLOCK = 3;
-const QUIZ_DAILY_XP_LIMIT = 45;
-const RANKING_COMPLETE_XP = 5;
+const LEVEL_XP_PER_LEVEL = 50;
+const WEEKLY_XP_LIMIT = 500;
+const TODAY_QUIZ_XP_PER_QUESTION = 2;
+const TODAY_QUIZ_DAILY_XP_LIMIT = 20;
 const HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
 const CLASSROOM_BILLBOARD_TICKET_ITEM_ID = "billboard-ticket";
 const CLASSROOM_NOTICE_SLOT_KEYS = ["links", "patch", "monthlyKing", "events", "personal"];
@@ -60,6 +60,7 @@ const DEFAULT_FEATURE_FLAGS = {
   externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true,
+  todayQuizIds: [],
   disabledQuizIds: []
 };
 
@@ -106,29 +107,7 @@ const DEFAULT_CLASSROOM_SETTINGS = {
   }
 };
 
-const CLASS_MISSION_DEFINITIONS = [
-  {
-    missionId: "class_quiz_100",
-    icon: "🏫",
-    title: "우리 반 누적 퀴즈 100문제 도전",
-    target: 100,
-    reward: "학급 공동 보상 예고"
-  },
-  {
-    missionId: "class_coin_2000",
-    icon: "🪙",
-    title: "학급 누적 DJ코인 2000개 모으기",
-    target: 2000,
-    reward: "학급 공동 보상 예고"
-  },
-  {
-    missionId: "ranking_30",
-    icon: "🏆",
-    title: "학급 랭킹전 참여 30회",
-    target: 30,
-    reward: "학급 공동 보상 예고"
-  }
-];
+const CLASS_MISSION_DEFINITIONS = [];
 
 function requireAuth(request) {
   if (!request.auth || !request.auth.uid) {
@@ -224,6 +203,12 @@ function publicFeatureFlags(data = {}) {
       .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
       .slice(0, 120)
     : [];
+  const todayQuizIds = Array.isArray(data.todayQuizIds)
+    ? Array.from(new Set(data.todayQuizIds
+      .map(id => String(id || "").trim())
+      .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
+      .slice(0, 20)
+    : [];
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -231,6 +216,7 @@ function publicFeatureFlags(data = {}) {
     externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
     rankingEnabled: data.rankingEnabled !== false,
+    todayQuizIds,
     disabledQuizIds
   };
 }
@@ -710,7 +696,7 @@ function rewardLogId(parts) {
 function xpRequiredForNextLevel(level) {
   const safeLevel = Math.max(1, Math.min(LEVEL_MAX, Math.round(Number(level) || 1)));
   if (safeLevel >= LEVEL_MAX) return 0;
-  return 60 + ((safeLevel - 1) * 4);
+  return LEVEL_XP_PER_LEVEL;
 }
 
 function getLevelTier(level) {
@@ -763,6 +749,7 @@ async function applyLevelXp(transaction, {
   dateKey = getKstDateKey(),
   capKey = "",
   capLimit = 0,
+  caps = [],
   extra = {}
 }) {
   const safeXpDelta = Math.max(0, Math.round(Number(xpDelta) || 0));
@@ -773,11 +760,18 @@ async function applyLevelXp(transaction, {
     memberUserId,
     sourceId
   ]));
-  const capRef = capKey ? db.collection("levelXpCaps").doc(capKey) : null;
-  const [summarySnapshot, logSnapshot, capSnapshot] = await Promise.all([
+  const capSpecs = (Array.isArray(caps) && caps.length ? caps : (capKey ? [{ capKey, capLimit, dateKey }] : []))
+    .map(cap => ({
+      capKey: String(cap?.capKey || "").trim(),
+      capLimit: Math.max(0, Math.round(Number(cap?.capLimit) || 0)),
+      dateKey: String(cap?.dateKey || dateKey || "").trim()
+    }))
+    .filter(cap => cap.capKey);
+  const capRefs = capSpecs.map(cap => db.collection("levelXpCaps").doc(cap.capKey));
+  const [summarySnapshot, logSnapshot, ...capSnapshots] = await Promise.all([
     transaction.get(summaryRef),
     transaction.get(logRef),
-    capRef ? transaction.get(capRef) : Promise.resolve(null)
+    ...capRefs.map(ref => transaction.get(ref))
   ]);
 
   const before = computeLevelSummary(summarySnapshot.exists ? summarySnapshot.data()?.totalXp : 0);
@@ -793,9 +787,12 @@ async function applyLevelXp(transaction, {
     };
   }
 
-  const capData = capSnapshot?.exists ? capSnapshot.data() || {} : {};
-  const usedXp = Math.max(0, Math.round(Number(capData.xp) || 0));
-  const allowedXp = capLimit > 0 ? Math.max(0, capLimit - usedXp) : safeXpDelta;
+  const allowedXp = capSpecs.reduce((allowed, cap, index) => {
+    if (cap.capLimit <= 0) return allowed;
+    const capData = capSnapshots[index]?.exists ? capSnapshots[index].data() || {} : {};
+    const usedXp = Math.max(0, Math.round(Number(capData.xp) || 0));
+    return Math.min(allowed, Math.max(0, cap.capLimit - usedXp));
+  }, safeXpDelta);
   const appliedXp = Math.min(safeXpDelta, allowedXp);
   if (appliedXp <= 0) {
     transaction.set(logRef, {
@@ -809,6 +806,7 @@ async function applyLevelXp(transaction, {
       requestedXp: safeXpDelta,
       xpDelta: 0,
       skipReason: "cap-reached",
+      capKeys: capSpecs.map(cap => cap.capKey),
       createdAt: FieldValue.serverTimestamp(),
       ...extra
     }, { merge: false });
@@ -857,24 +855,25 @@ async function applyLevelXp(transaction, {
     createdAt: FieldValue.serverTimestamp(),
     ...extra
   }, { merge: false });
-  if (capRef) {
+  capRefs.forEach((capRef, index) => {
+    const cap = capSpecs[index];
     transaction.set(capRef, {
       memberUserId,
       userId: memberUserId,
-      dateKey,
-      capKey,
+      dateKey: cap.dateKey,
+      capKey: cap.capKey,
       xp: FieldValue.increment(appliedXp),
-      capLimit,
+      capLimit: cap.capLimit,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
-  }
+  });
   return {
     duplicate: false,
     xpDelta: appliedXp,
     before,
     after,
     leveledUp: after.level > before.level,
-    capped: capLimit > 0 && appliedXp < safeXpDelta,
+    capped: capSpecs.some(cap => cap.capLimit > 0) && appliedXp < safeXpDelta,
     levelSummaryPath: summaryRef.path,
     levelXpLogPath: logRef.path
   };
@@ -927,6 +926,28 @@ function getEventRewardLogId(memberUserId, quest, dateKey = getKstDateKey(), wee
   ]);
 }
 
+function getWeeklyLevelXpCap(memberUserId, weekKey = getKstWeekKey()) {
+  return {
+    capKey: rewardLogId(["level_xp_weekly", weekKey, memberUserId]),
+    capLimit: WEEKLY_XP_LIMIT,
+    dateKey: weekKey
+  };
+}
+
+function getTodayQuizDailyLevelXpCap(memberUserId, dateKey = getKstDateKey()) {
+  return {
+    capKey: rewardLogId(["today_quiz_xp_daily", dateKey, memberUserId]),
+    capLimit: TODAY_QUIZ_DAILY_XP_LIMIT,
+    dateKey
+  };
+}
+
+function getTodayQuizIds(flags = {}) {
+  return new Set((Array.isArray(flags.todayQuizIds) ? flags.todayQuizIds : [])
+    .map(id => String(id || "").trim())
+    .filter(Boolean));
+}
+
 function getPracticeQuestKindsForQuiz(quizId) {
   const id = String(quizId || "").trim();
   const kinds = new Set();
@@ -936,8 +957,8 @@ function getPracticeQuestKindsForQuiz(quizId) {
   if (id === "gmo" || id === "time_store") kinds.add("readingCorrect");
   if (id === "samgukji" || id === "ancient-history" || id === "regional-specialties" || id === "unified-silla-balhae" || id === "cultural_heritage") kinds.add("socialCorrect");
   if (id === "science-grade4" || id === "science-general") kinds.add("scienceCorrect");
-  if (id === "emoji-kpop" || id === "emoji-anime" || id === "emoji-tiniping") kinds.add("popularCorrect");
-  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "cultural_heritage", "science-grade4", "science-general", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
+  if (["flag-country", "snack-food", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) kinds.add("popularCorrect");
+  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "cultural_heritage", "science-grade4", "science-general", "flag-country", "snack-food", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
     kinds.add("studyCorrect");
   }
   return kinds;
@@ -3882,11 +3903,11 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
   const dateKey = getKstDateKey();
   const weekKey = getKstWeekKey();
   const activeQuests = getActiveEventQuests(dateKey);
-  const [progressMap, claimMap, classMissions] = await Promise.all([
+  const [progressMap, claimMap] = await Promise.all([
     loadEventProgressMap(memberUserId, activeQuests, dateKey, weekKey),
-    loadEventClaimMap(memberUserId, activeQuests, dateKey, weekKey),
-    loadClassEventProgress(memberData)
+    loadEventClaimMap(memberUserId, activeQuests, dateKey, weekKey)
   ]);
+  const monthKey = dateKey.slice(0, 7);
 
   return {
     success: true,
@@ -3894,28 +3915,34 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
     dateKey,
     weekKey,
     quests: buildEventQuestRows(activeQuests, progressMap, claimMap),
-    classMissions,
+    classMissions: [],
     seasonEvents: [
       {
         eventId: "reading_king_season",
         icon: "📖",
         title: "독서왕 시즌",
         desc: "독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.",
-        period: "이번 달"
+        period: "이번 달",
+        periodType: "monthly",
+        periodKey: monthKey
       },
       {
         eventId: "three_kingdoms_week",
         icon: "🏯",
         title: "삼국시대 탐험 주간",
         desc: "삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.",
-        period: "이번 주"
+        period: "이번 주",
+        periodType: "weekly",
+        periodKey: weekKey
       },
       {
         eventId: "calculation_challenge",
         icon: "🧮",
         title: "계산왕 챌린지",
         desc: "수학 계산 연습을 반복하며 도전 기록을 확인하는 이벤트입니다.",
-        period: "준비 중"
+        period: "이번 달",
+        periodType: "monthly",
+        periodKey: monthKey
       }
     ]
   };
@@ -3978,6 +4005,7 @@ exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
       sourceId: `${getEventQuestPeriodKey(quest, dateKey, weekKey)}__${questId}__${attempt}`,
       sourceLabel: quest.title,
       dateKey,
+      caps: [getWeeklyLevelXpCap(memberUserId, weekKey)],
       extra: {
         questId,
         questScope: quest.scope || "daily",
@@ -5956,7 +5984,8 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     const summarySnapshot = await transaction.get(db.collection("userLevelSummary").doc(memberUserId));
     const previousQuizCorrectCount = Math.max(0, Math.round(Number(summarySnapshot.exists ? summarySnapshot.data()?.quizCorrectRewardCount : 0) || 0));
     const nextQuizCorrectCount = previousQuizCorrectCount + 1;
-    const quizXpDelta = practiceXpEnabled && nextQuizCorrectCount % QUIZ_XP_QUESTION_BLOCK === 0 ? QUIZ_XP_PER_BLOCK : 0;
+    const isTodayQuiz = getTodayQuizIds(flags).has(quizId);
+    const quizXpDelta = practiceXpEnabled && isTodayQuiz ? TODAY_QUIZ_XP_PER_QUESTION : 0;
     const weekKey = getKstWeekKey();
     const usedCoinToday = Math.max(0, Math.round(Number(coinCapSnapshot.exists ? coinCapSnapshot.data()?.usedCoin : 0) || 0));
     const remainingCoinToday = Math.max(0, PRACTICE_DAILY_COIN_LIMIT - usedCoinToday);
@@ -5968,17 +5997,22 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       memberUserId,
       authUid,
       xpDelta: quizXpDelta,
-      sourceType: "quiz_practice_block",
+      sourceType: isTodayQuiz ? "today_quiz_practice" : "quiz_practice",
       sourceId: `${recordId}__${questionId}`,
-      sourceLabel: "퀴즈 정답 경험치",
+      sourceLabel: isTodayQuiz ? "오늘의 퀴즈 정답 경험치" : "퀴즈 정답",
       dateKey,
-      capKey: rewardLogId(["quiz_xp_daily", dateKey, memberUserId]),
-      capLimit: QUIZ_DAILY_XP_LIMIT,
+      caps: isTodayQuiz
+        ? [
+          getTodayQuizDailyLevelXpCap(memberUserId, dateKey),
+          getWeeklyLevelXpCap(memberUserId, weekKey)
+        ]
+        : [],
       extra: {
         recordId,
         questionId,
         quizId,
-        quizCorrectRewardCount: nextQuizCorrectCount
+        quizCorrectRewardCount: nextQuizCorrectCount,
+        todayQuiz: isTodayQuiz
       }
     });
 
@@ -6083,23 +6117,6 @@ exports.grantRankingCompleteXp = onCall({ region: REGION }, async request => {
 
     const dateKey = getKstDateKey();
     const weekKey = getKstWeekKey();
-    const levelXp = await applyLevelXp(transaction, {
-      memberUserId,
-      authUid,
-      xpDelta: RANKING_COMPLETE_XP,
-      sourceType: "quiz_ranking_complete",
-      sourceId: recordId,
-      sourceLabel: "랭킹전 완주 경험치",
-      dateKey,
-      capKey: rewardLogId(["quiz_xp_daily", dateKey, memberUserId]),
-      capLimit: QUIZ_DAILY_XP_LIMIT,
-      extra: {
-        recordId,
-        quizId,
-        score: Math.max(0, Math.round(Number(record.score) || 0)),
-        categoryKey: String(record.categoryKey || "")
-      }
-    });
     updateEventQuestProgressForKinds(transaction, {
       memberUserId,
       dateKey,
@@ -6110,15 +6127,15 @@ exports.grantRankingCompleteXp = onCall({ region: REGION }, async request => {
       sourceId: recordId
     });
     transaction.set(recordRef, {
-      levelXpDelta: levelXp.xpDelta || 0,
-      levelAfter: levelXp.after?.level || null,
-      levelMedalId: levelXp.after?.medalId || "",
+      levelXpDelta: 0,
+      levelAfter: null,
+      levelMedalId: "",
       levelUpdatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
     return {
-      duplicate: !!levelXp.duplicate,
-      xpDelta: levelXp.xpDelta || 0,
-      levelXp,
+      duplicate: false,
+      xpDelta: 0,
+      levelXp: null,
       recordPath: recordRef.path
     };
   });

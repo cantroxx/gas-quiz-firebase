@@ -85,11 +85,21 @@
       db.collection('userRoomSettings').doc(userId).get().catch(() => null)
     ])));
     const profileMap = {};
+    const computeLevelSummary = deps.computeLevelSummary || (totalXpInput => {
+      const totalXp = Math.max(0, Math.round(Number(totalXpInput) || 0));
+      const level = Math.min(50, Math.floor(totalXp / 50) + 1);
+      return {
+        level,
+        xp: level >= 50 ? 0 : totalXp % 50,
+        totalXp
+      };
+    });
     snapshots.forEach(([userSnapshot, titleSummarySnapshot, levelSummarySnapshot, roomSettingsSnapshot], index) => {
       if(!userSnapshot?.exists) return;
       const data = userSnapshot.data() || {};
       const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() || {} : {};
       const levelSummary = levelSummarySnapshot?.exists ? levelSummarySnapshot.data() || {} : {};
+      const computedLevelSummary = levelSummarySnapshot?.exists ? computeLevelSummary(levelSummary.totalXp || 0) : { level: 0, xp: 0, totalXp: 0 };
       const roomSettings = roomSettingsSnapshot?.exists ? roomSettingsSnapshot.data() || {} : {};
       profileMap[userIds[index]] = {
         userId: userIds[index],
@@ -108,9 +118,9 @@
         rankingMessage: data.rankingMessage || '',
         selectedTitleId: data.selectedTitleId || '',
         selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || '',
-        level: Number(levelSummary.level) || 0,
-        xp: Number(levelSummary.xp) || 0,
-        totalXp: Number(levelSummary.totalXp) || 0,
+        level: Number(computedLevelSummary.level) || 0,
+        xp: Number(computedLevelSummary.xp) || 0,
+        totalXp: Number(computedLevelSummary.totalXp) || 0,
         tier: levelSummary.tier || '',
         medalId: levelSummary.medalId || '',
         rankIconUrl: levelSummary.rankIconUrl || '',

@@ -360,14 +360,6 @@
         <div id="quest-card-grid" class="quest-card-grid"></div>
       </section>
 
-      <section class="event-section" aria-labelledby="class-mission-heading">
-        <div class="event-section-heading">
-          <p class="eyebrow">Class Missions</p>
-          <h3 id="class-mission-heading">주간 학급 미션</h3>
-        </div>
-        <div id="class-mission-grid" class="class-mission-grid"></div>
-      </section>
-
       <section class="event-section" aria-labelledby="season-event-heading">
         <div class="event-section-heading">
           <p class="eyebrow">Season Events</p>
@@ -1056,6 +1048,12 @@
               </span>
             </label>
           </div>
+          <div class="admin-settings-form">
+            <label>
+              오늘의 퀴즈 ID
+              <input id="admin-feature-today-quiz-ids" type="text" placeholder="예: gmo, unified-silla-balhae">
+            </label>
+          </div>
           <div class="admin-quiz-toggle-panel">
             <div class="admin-panel-subhead">
               <strong>퀴즈별 열기/닫기</strong>
@@ -1676,6 +1674,7 @@
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
+      todayQuizIds: [],
       disabledQuizIds: []
     };
     const DEFAULT_EXTERNAL_QUIZZES = {
@@ -1713,32 +1712,7 @@
       }
     ];
 
-    const CLASS_MISSION_DATA = [
-      {
-        missionId: 'class_quiz_100',
-        icon: '🏫',
-        title: '우리 반 누적 퀴즈 100회 도전',
-        current: 64,
-        target: 100,
-        reward: `학급 공동 보상 ${ECONOMY_CONSTANTS.questRewardTable.classMissionMin} DJ코인 예고`
-      },
-      {
-        missionId: 'class_coin_2000',
-        icon: '🪙',
-        title: '학급 누적 DJ코인 2000개 모으기',
-        current: 1280,
-        target: 2000,
-        reward: `학급 공동 보상 ${ECONOMY_CONSTANTS.questRewardTable.classMissionMax} DJ코인 예고`
-      },
-      {
-        missionId: 'ranking_30',
-        icon: '🏆',
-        title: '이번 주 랭킹전 참여 30회',
-        current: 18,
-        target: 30,
-        reward: `학급 공동 보상 ${ECONOMY_CONSTANTS.questRewardTable.classMissionMin} DJ코인 + 뱃지 예고`
-      }
-    ];
+    const CLASS_MISSION_DATA = [];
 
     const SEASON_EVENT_DATA = [
       {
@@ -1746,21 +1720,24 @@
         icon: '📖',
         title: '독서왕 시즌',
         desc: '독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.',
-        period: '이번 달'
+        period: '이번 달',
+        periodType: 'monthly'
       },
       {
         eventId: 'three_kingdoms_week',
         icon: '🏯',
         title: '삼국시대 탐험 주간',
         desc: '삼국시대 사회 퀴즈를 많이 풀어보는 주간 이벤트입니다.',
-        period: '이번 주'
+        period: '이번 주',
+        periodType: 'weekly'
       },
       {
         eventId: 'calculation_challenge',
         icon: '🧮',
         title: '계산왕 챌린지',
         desc: '수학 계산 연습을 반복하며 도전 기록을 확인하는 이벤트입니다.',
-        period: '준비 중'
+        period: '이번 달',
+        periodType: 'monthly'
       }
     ];
 
@@ -1827,6 +1804,8 @@
       'history-people',
       'idol',
       'anime',
+      'flag-country',
+      'snack-food',
       'emoji-kpop',
       'emoji-anime',
       'emoji-tiniping',
@@ -3215,6 +3194,8 @@
       '과학과학-상식',
       '인물아이돌',
       '인물애니',
+      '인기국기',
+      '인기간식',
       '인기이모지-k-pop',
       '인기이모지-애니',
       '인기이모지-티니핑',
@@ -3236,6 +3217,8 @@
       '과학과학-상식': 'science-general',
       '인물아이돌': 'idol',
       '인물애니': 'anime',
+      '인기국기': 'flag-country',
+      '인기간식': 'snack-food',
       '인기이모지-k-pop': 'emoji-kpop',
       '인기이모지-애니': 'emoji-anime',
       '인기이모지-티니핑': 'emoji-tiniping',
@@ -3394,7 +3377,7 @@
     function getSupportedRankingModeIdsForKeys(keys = []) {
       const safeKeys = (keys || []).map(key => String(key || '').trim()).filter(Boolean);
       const speedDisabledKeys = new Set(['독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '수학분수', '수학분수-기초']);
-      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '국어속담', '수학분수', '수학분수-기초', '과학과학-상식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑']);
+      const noHintDisabledKeys = new Set(['맞춤법', '독서지엠오-아이', '독서시간가게', '수학곱셈과-나눗셈', '국어띄어쓰기', '국어속담', '수학분수', '수학분수-기초', '과학과학-상식', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑']);
       const modes = ['all', 'normal', 'onechance'];
       if(safeKeys.some(key => !speedDisabledKeys.has(key))) modes.push('speed');
       if(safeKeys.some(key => !noHintDisabledKeys.has(key))) modes.push('nohint');
@@ -3403,10 +3386,12 @@
 
     function getPopularRankingAreas() {
       const areas = [
-        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS] },
+        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
         { id: 'anime', label: '애니', keys: ['인물애니'] },
+        { id: 'flag', label: '국기', keys: ['인기국기'] },
+        { id: 'snack', label: '간식', keys: ['인기간식'] },
         { id: 'emoji', label: '이모지', keys: ['인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑'] },
         { id: 'tiniping', label: '티니핑', keys: TINIPING_RANKING_CATEGORY_KEYS },
         { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
@@ -3450,6 +3435,8 @@
       if(key === '아재개그') return { id: 'dadJoke', label: '아재개그' };
       if(key === '인물아이돌') return { id: 'idol', label: '아이돌' };
       if(key === '인물애니') return { id: 'anime', label: '애니' };
+      if(key === '인기국기') return { id: 'flag', label: '국기' };
+      if(key === '인기간식') return { id: 'snack', label: '간식' };
       if(key === '티니핑') return { id: 'tiniping', label: '티니핑' };
       if(isPokemonRankingCategoryKey(key)) return { id: 'pokemon', label: '포켓몬' };
       return { id: 'popular', label: getRankingCategoryLabel(record) || '인기' };
@@ -3580,7 +3567,7 @@
         koreanCategoryKeys: ['맞춤법', '단어다의어-동형이의어', '국어띄어쓰기', '국어속담', '국어사자성어', '독서지엠오-아이', '독서시간가게'],
         socialCategoryKeys: ['사회삼국지', '사회고대사-삼국시대', '사회통일신라-발해'],
         mathCategoryKeys: ['수학곱셈과-나눗셈', '수학분수', '수학분수-기초'],
-        popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]
+        popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]
       }, {
         getRankingRepository: createRankingRepository,
         initializeAuthUser,
@@ -3611,6 +3598,9 @@
       const disabledQuizIds = Array.isArray(data.disabledQuizIds)
         ? Array.from(new Set(data.disabledQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
         : [];
+      const todayQuizIds = Array.isArray(data.todayQuizIds)
+        ? Array.from(new Set(data.todayQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
+        : [];
       return {
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -3618,6 +3608,7 @@
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
+        todayQuizIds,
         disabledQuizIds
       };
     }
@@ -3832,6 +3823,8 @@
         'proverb',
         'cultural_heritage',
         'science-general',
+        'flag-country',
+        'snack-food',
         'emoji-kpop',
         'emoji-anime',
         'emoji-tiniping'

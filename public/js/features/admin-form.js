@@ -192,6 +192,8 @@
     document.getElementById('admin-feature-external-quizzes').checked = data.externalQuizzesEnabled;
     document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
     document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
+    const todayQuizInput = document.getElementById('admin-feature-today-quiz-ids');
+    if(todayQuizInput) todayQuizInput.value = (data.todayQuizIds || []).join(', ');
     renderAdminQuizToggleGrid(data);
   }
 
@@ -202,6 +204,10 @@
       .filter(input => input.checked !== true)
       .map(input => normalizeFirebaseQuizId(input.dataset.adminQuizToggle || ''))
       .filter(Boolean);
+    const todayQuizIds = String(document.getElementById('admin-feature-today-quiz-ids')?.value || '')
+      .split(/[\s,]+/)
+      .map(id => normalizeFirebaseQuizId(id.trim()))
+      .filter(Boolean);
     return normalizeFeatureFlags({
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
       practiceXpEnabled: document.getElementById('admin-feature-practice-xp')?.checked === true,
@@ -209,6 +215,7 @@
       externalQuizzesEnabled: document.getElementById('admin-feature-external-quizzes')?.checked === true,
       eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
       rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,
+      todayQuizIds,
       disabledQuizIds
     });
   }

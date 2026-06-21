@@ -564,6 +564,14 @@
     const choices = Array.isArray(question.choices)
       ? question.choices.map(choice => String(choice || '').trim()).filter(Boolean)
       : [];
+    const imageMaskAreas = Array.isArray(question.imageMaskAreas)
+      ? question.imageMaskAreas.map(area => ({
+        x: Number(area?.x) || 0,
+        y: Number(area?.y) || 0,
+        width: Number(area?.width) || 0,
+        height: Number(area?.height) || 0
+      })).filter(area => area.width > 0 && area.height > 0)
+      : [];
     const explicitAnswer = Number(question.answerIndex);
     const answerIndex = Number.isInteger(explicitAnswer) && explicitAnswer >= 0 && explicitAnswer < choices.length
       ? explicitAnswer
@@ -581,6 +589,7 @@
       imageLicense: String(question.imageLicense || '').trim(),
       imageCredit: String(question.imageCredit || '').trim(),
       imageAttributionText: String(question.imageAttributionText || '').trim(),
+      imageMaskAreas,
       choices,
       answer: answerIndex >= 0 ? answerIndex : 0,
       hint: String(question.hint || '').trim()

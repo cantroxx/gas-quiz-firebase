@@ -189,6 +189,8 @@
       'history-people': { area: '인물', detail: '역사인물', areaKey: '인물/역사인물', completionType: completionType || 'loop' },
       idol: { area: '인물', detail: '아이돌', areaKey: '인물/아이돌', completionType: completionType || 'loop' },
       anime: { area: '인물', detail: '애니', areaKey: '인물/애니', completionType: completionType || 'loop' },
+      'flag-country': { area: '인기', detail: '국기', areaKey: '인기/flag-country', completionType: completionType || 'loop' },
+      'snack-food': { area: '인기', detail: '간식', areaKey: '인기/snack-food', completionType: completionType || 'loop' },
       'emoji-kpop': { area: '인기', detail: '이모지:K-POP', areaKey: '인기/emoji-kpop', completionType: completionType || 'loop' },
       'emoji-anime': { area: '인기', detail: '이모지:애니', areaKey: '인기/emoji-anime', completionType: completionType || 'loop' },
       'emoji-tiniping': { area: '인기', detail: '이모지:티니핑', areaKey: '인기/emoji-tiniping', completionType: completionType || 'loop' },
@@ -254,6 +256,8 @@
       'history-people': { category: '인물(역사 인물)', subFilter: '역사 인물' },
       idol: { category: '인물(아이돌)', subFilter: '아이돌' },
       anime: { category: '인물(애니)', subFilter: '애니' },
+      'flag-country': { category: '인기(국기)', subFilter: '국기' },
+      'snack-food': { category: '인기(간식)', subFilter: '간식' },
       'emoji-kpop': { category: '인기(이모지 K-POP)', subFilter: '이모지 K-POP' },
       'emoji-anime': { category: '인기(이모지 애니)', subFilter: '이모지 애니' },
       'emoji-tiniping': { category: '인기(이모지 티니핑)', subFilter: '이모지 티니핑' },
@@ -850,16 +854,30 @@
 
   function createQuizImageAnswerField(question, onInput) {
     const imageWrap = document.createElement('div');
+    const imageFrame = document.createElement('div');
     const image = document.createElement('img');
     const input = createQuizAnswerInput(onInput);
+    const maskAreas = Array.isArray(question?.imageMaskAreas) ? question.imageMaskAreas : [];
     imageWrap.className = 'quiz-image-question';
+    imageFrame.className = 'quiz-image-frame';
+    if(maskAreas.length) imageWrap.classList.add('quiz-image-question-has-masks');
     image.src = question?.imageUrl || '';
     image.alt = '퀴즈 이미지';
     image.loading = 'lazy';
     image.addEventListener('error', () => {
       imageWrap.classList.add('is-image-error');
     });
-    imageWrap.appendChild(image);
+    imageFrame.appendChild(image);
+    maskAreas.forEach(area => {
+      const mask = document.createElement('span');
+      mask.className = 'quiz-image-mask-area';
+      mask.style.setProperty('--mask-x', `${Math.max(0, Math.min(100, Number(area.x) || 0))}%`);
+      mask.style.setProperty('--mask-y', `${Math.max(0, Math.min(100, Number(area.y) || 0))}%`);
+      mask.style.setProperty('--mask-width', `${Math.max(1, Math.min(100, Number(area.width) || 1))}%`);
+      mask.style.setProperty('--mask-height', `${Math.max(1, Math.min(100, Number(area.height) || 1))}%`);
+      imageFrame.appendChild(mask);
+    });
+    imageWrap.appendChild(imageFrame);
     return { imageWrap, input };
   }
 

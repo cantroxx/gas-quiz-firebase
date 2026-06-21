@@ -86,7 +86,7 @@
   function xpRequiredForNextHomeLevel(level) {
     const safeLevel = Math.max(1, Math.min(HOME_LEVEL_MAX, Math.round(Number(level) || 1)));
     if(safeLevel >= HOME_LEVEL_MAX) return 0;
-    return 60 + ((safeLevel - 1) * 4);
+    return 50;
   }
 
   function computeHomeLevelSummary(totalXpInput) {
@@ -114,11 +114,12 @@
   function normalizeHomeLevelSummary(levelSummarySnapshot, userRewardData = {}, deps = {}) {
     const raw = levelSummarySnapshot?.exists ? levelSummarySnapshot.data() || {} : null;
     const fallback = computeHomeLevelSummary(userRewardData.exp || userRewardData.totalXp || 0);
-    const level = Math.max(1, Math.min(HOME_LEVEL_MAX, Math.round(Number(raw?.level || fallback.level) || 1)));
-    const maxLevel = Math.max(level, Math.round(Number(raw?.maxLevel || fallback.maxLevel) || HOME_LEVEL_MAX));
-    const nextLevelXp = Math.max(0, Math.round(Number(raw?.nextLevelXp ?? fallback.nextLevelXp) || 0));
-    const xp = Math.max(0, Math.round(Number(raw?.xp ?? fallback.xp) || 0));
     const totalXp = Math.max(0, Math.round(Number(raw?.totalXp ?? fallback.totalXp) || 0));
+    const computed = raw ? computeHomeLevelSummary(totalXp) : fallback;
+    const level = Math.max(1, Math.min(HOME_LEVEL_MAX, Math.round(Number(computed.level) || 1)));
+    const maxLevel = Math.max(level, Math.round(Number(raw?.maxLevel || computed.maxLevel) || HOME_LEVEL_MAX));
+    const nextLevelXp = Math.max(0, Math.round(Number(computed.nextLevelXp) || 0));
+    const xp = Math.max(0, Math.round(Number(computed.xp) || 0));
     const progressPercent = nextLevelXp > 0 ? Math.max(0, Math.min(100, Math.round((xp / nextLevelXp) * 100))) : 100;
     const medalAsset = deps.getLevelMedalAsset?.(level) || null;
     return {

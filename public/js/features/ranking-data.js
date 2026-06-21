@@ -125,7 +125,7 @@
     const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
     const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
     const scienceKeys = scienceDefinitions.flatMap(definition => definition.keys);
-    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...tinipingRankingCategoryKeys, ...pokemonRankingCategoryKeys], deps);
+    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...tinipingRankingCategoryKeys, ...pokemonRankingCategoryKeys], deps);
     const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
       ...koreanDefinitions
     ], groupDeps);

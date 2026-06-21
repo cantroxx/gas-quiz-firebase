@@ -6662,6 +6662,31 @@ h2 {
   overflow: hidden;
 }
 
+.quiz-image-frame {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  max-width: 100%;
+  max-height: 336px;
+}
+
+.quiz-image-mask-area {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: var(--mask-x, 22%);
+  top: var(--mask-y, 34%);
+  width: var(--mask-width, 56%);
+  height: var(--mask-height, 20%);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(0.68);
+  backdrop-filter: blur(16px) saturate(0.68);
+  box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.08), 0 8px 18px rgba(43, 63, 49, 0.1);
+  pointer-events: none;
+}
+
 .quiz-image-question img {
   max-width: 100%;
   max-height: 336px;

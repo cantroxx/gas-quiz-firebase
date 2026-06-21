@@ -56,8 +56,8 @@
       kicker: 'Popular Quiz Hall',
       desc: '이미지와 문장을 보고 정답을 맞히는 인기 퀴즈를 모았습니다.',
       board: '사진과 문장을 보고 정답을 맞혀요',
-      cardDesc: '아이돌, 애니, 이모지, 아재개그, 티니핑, 포켓몬 퀴즈를 고르는 화면입니다.',
-      quizzes: ['emoji', 'idol', 'anime', 'dad-joke', 'tiniping', 'pokemon'],
+      cardDesc: '이모지, 국기, 간식, 아이돌, 애니, 아재개그, 티니핑, 포켓몬 퀴즈를 고르는 화면입니다.',
+      quizzes: ['emoji', 'flag-country', 'snack-food', 'idol', 'anime', 'dad-joke', 'tiniping', 'pokemon'],
       enabled: true
     },
     science: {
@@ -268,6 +268,24 @@
       subjectId: 'popular',
       parentQuizId: 'emoji',
       groupLabel: '이모지',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
+    'flag-country': {
+      title: '국기 퀴즈',
+      kicker: 'Popular Quiz Hall',
+      icon: '🏳️',
+      desc: '국기를 보고 알맞은 나라 이름을 맞히는 퀴즈입니다.',
+      summary: '국기 이미지만 보고 나라 이름을 4지선다로 고릅니다.',
+      subjectId: 'popular',
+      modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
+    'snack-food': {
+      title: '간식 퀴즈',
+      kicker: 'Popular Quiz Hall',
+      icon: '🍜',
+      desc: '라면, 과자, 아이스크림 이미지를 보고 이름을 맞히는 퀴즈입니다.',
+      summary: '간식 이미지만 보고 알맞은 이름을 4지선다로 고릅니다.',
+      subjectId: 'popular',
       modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     tiniping: {

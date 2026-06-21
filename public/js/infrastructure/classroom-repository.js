@@ -79,7 +79,18 @@
       const snapshots = await Promise.all(memberIds.map(id => db.collection('userLevelSummary').doc(id).get().catch(() => null)));
       const levelMap = {};
       snapshots.forEach((snapshot, index) => {
-        if(snapshot?.exists) levelMap[memberIds[index]] = snapshot.data() || {};
+        if(snapshot?.exists) {
+          const summary = snapshot.data() || {};
+          const totalXp = Math.max(0, Math.round(Number(summary.totalXp) || 0));
+          const level = Math.min(50, Math.floor(totalXp / 50) + 1);
+          levelMap[memberIds[index]] = {
+            ...summary,
+            level,
+            xp: level >= 50 ? 0 : totalXp % 50,
+            totalXp,
+            nextLevelXp: level >= 50 ? 0 : 50
+          };
+        }
       });
       return students.map(student => {
         const id = String(student.memberUserId || student.userId || '').trim();

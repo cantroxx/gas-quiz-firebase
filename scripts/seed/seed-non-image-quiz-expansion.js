@@ -16,6 +16,8 @@ const QUIZ_TITLE_PREFIXES = {
   'fraction-basic': ['math_fraction_basic_'],
   'unified-silla-balhae': ['social_unified_silla_balhae_'],
   cultural_heritage: ['social_cultural_heritage_'],
+  'flag-country': ['popular_flag_country_'],
+  'snack-food': ['popular_snack_food_'],
   'science-general': ['science_general_'],
   'emoji-kpop': ['popular_emoji_kpop_', 'popular_emoji_kpop_total_'],
   'emoji-anime': ['popular_emoji_anime_', 'popular_emoji_anime_total_'],
@@ -107,13 +109,21 @@ function makeChoiceQuestion(quizId, order, prompt, correct, pool, hint, explanat
   };
 }
 
-function makeImageChoiceQuestion(quizId, order, prompt, correct, pool, imageMeta = {}, hint = '') {
+function makeImageChoiceQuestion(quizId, order, prompt, correct, pool, imageMeta = {}, hint = '', explanation = '') {
   const choices = rotateChoices(correct, pool, order);
   const imageUrl = String(imageMeta.imageUrl || '').trim();
   const imageSourceUrl = String(imageMeta.imageSourceUrl || '').trim();
   const imageProvider = String(imageMeta.imageProvider || '').trim();
   const imageLicense = String(imageMeta.imageLicense || '').trim();
   const imageCredit = String(imageMeta.imageCredit || '').trim();
+  const imageMaskAreas = Array.isArray(imageMeta.imageMaskAreas)
+    ? imageMeta.imageMaskAreas.map(area => ({
+      x: Number(area.x) || 0,
+      y: Number(area.y) || 0,
+      width: Number(area.width) || 0,
+      height: Number(area.height) || 0
+    })).filter(area => area.width > 0 && area.height > 0)
+    : [];
   return {
     quizId,
     questionId: `${quizId}-${String(order).padStart(3, '0')}`,
@@ -126,11 +136,12 @@ function makeImageChoiceQuestion(quizId, order, prompt, correct, pool, imageMeta
     imageLicense,
     imageCredit,
     imageAttributionText: buildImageAttributionText({ imageProvider, imageLicense, imageCredit, imageSourceUrl }),
+    imageMaskAreas,
     choices,
     answer: correct,
     answerIndex: choices.indexOf(correct),
     hint,
-    explanation: `${correct}의 모습을 보고 이름을 고르는 이미지형 문화유산 문제입니다.`,
+    explanation: explanation || `${correct}의 이미지를 보고 이름을 고르는 이미지형 문제입니다.`,
     sourceSheet: SEED_SOURCE,
     sourceRowNumber: order,
     migrationSource: SEED_SOURCE
@@ -574,6 +585,126 @@ const CULTURAL_HERITAGE_IMAGE_SOURCE_DEFAULTS = {
   imageLicense: '원본 파일 페이지의 라이선스 확인 필요',
   imageCredit: '원본 파일 페이지 참조'
 };
+
+const FLAG_COUNTRIES = [
+  ['kr', '대한민국'], ['jp', '일본'], ['cn', '중국'], ['us', '미국'], ['gb', '영국'],
+  ['fr', '프랑스'], ['de', '독일'], ['it', '이탈리아'], ['es', '스페인'], ['ca', '캐나다'],
+  ['br', '브라질'], ['ar', '아르헨티나'], ['mx', '멕시코'], ['au', '호주'], ['nz', '뉴질랜드'],
+  ['in', '인도'], ['id', '인도네시아'], ['vn', '베트남'], ['th', '태국'], ['ph', '필리핀'],
+  ['sg', '싱가포르'], ['my', '말레이시아'], ['tr', '튀르키예'], ['sa', '사우디아라비아'], ['eg', '이집트'],
+  ['za', '남아프리카공화국'], ['ng', '나이지리아'], ['ke', '케냐'], ['ru', '러시아'], ['ua', '우크라이나'],
+  ['pl', '폴란드'], ['nl', '네덜란드'], ['be', '벨기에'], ['ch', '스위스'], ['se', '스웨덴'],
+  ['no', '노르웨이'], ['fi', '핀란드'], ['dk', '덴마크'], ['gr', '그리스'], ['pt', '포르투갈'],
+  ['ie', '아일랜드'], ['at', '오스트리아'], ['cz', '체코'], ['hu', '헝가리'], ['ro', '루마니아'],
+  ['il', '이스라엘'], ['ae', '아랍에미리트'], ['qa', '카타르'], ['ir', '이란'], ['iq', '이라크'],
+  ['pk', '파키스탄'], ['bd', '방글라데시'], ['lk', '스리랑카'], ['np', '네팔'], ['mn', '몽골'],
+  ['kz', '카자흐스탄'], ['uz', '우즈베키스탄'], ['kh', '캄보디아'], ['la', '라오스'], ['mm', '미얀마'],
+  ['tw', '대만'], ['hk', '홍콩'], ['ma', '모로코'], ['tn', '튀니지'], ['et', '에티오피아'],
+  ['gh', '가나'], ['tz', '탄자니아'], ['ug', '우간다'], ['cm', '카메룬'], ['sn', '세네갈'],
+  ['cl', '칠레'], ['pe', '페루'], ['co', '콜롬비아'], ['ve', '베네수엘라'], ['uy', '우루과이'],
+  ['py', '파라과이'], ['bo', '볼리비아'], ['ec', '에콰도르'], ['cu', '쿠바'], ['jm', '자메이카'],
+  ['do', '도미니카공화국'], ['cr', '코스타리카'], ['pa', '파나마'], ['gt', '과테말라'], ['is', '아이슬란드'],
+  ['lu', '룩셈부르크'], ['hr', '크로아티아'], ['rs', '세르비아'], ['bg', '불가리아'], ['sk', '슬로바키아'],
+  ['si', '슬로베니아'], ['lt', '리투아니아'], ['lv', '라트비아'], ['ee', '에스토니아'], ['jo', '요르단'],
+  ['kw', '쿠웨이트'], ['om', '오만'], ['ge', '조지아'], ['az', '아제르바이잔'], ['am', '아르메니아']
+];
+
+function flagImageMeta(code) {
+  const safeCode = String(code || '').trim().toLowerCase();
+  return {
+    imageUrl: `https://flagcdn.com/w640/${safeCode}.png`,
+    imageSourceUrl: `https://flagcdn.com/${safeCode}.svg`,
+    imageProvider: 'FlagCDN',
+    imageCredit: 'flagcdn.com'
+  };
+}
+
+const SNACK_FOOD_ITEMS = [
+  ['신라면', 'https://nongshimusa.com/html5/imgs/products/imgs/shin_ramyun.png', 'https://nongshimusa.com/product-detail?pid=1', 'Nongshim USA'],
+  ['신라면 블랙', 'https://nongshimusa.com/html5/imgs/products/imgs/shin_ramyun_black.png', 'https://nongshimusa.com/product-detail?pid=2', 'Nongshim USA'],
+  ['짜파게티', 'https://nongshimusa.com/html5/imgs/products/imgs/chapagetti.png', 'https://nongshimusa.com/product-detail?pid=4', 'Nongshim USA'],
+  ['너구리', 'https://nongshimusa.com/html5/imgs/products/imgs/neoguri_spicy.jpg', 'https://nongshimusa.com/product-detail?pid=5', 'Nongshim USA'],
+  ['안성탕면', 'https://nongshimusa.com/html5/imgs/products/imgs/c658eee6889cd319e2a02fcb296aeff4013dca9b6807a6a75cae25d9a6722b1d.png', 'https://nongshimusa.com/product-detail?pid=8', 'Nongshim USA'],
+  ['김치라면', 'https://nongshimusa.com/html5/imgs/products/imgs/kimchi_ramyun.jpg', 'https://nongshimusa.com/product-detail?pid=9', 'Nongshim USA'],
+  ['불닭볶음면', 'https://www.samyangfoods.com/upload/product/20231117/20231117142511656473.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['까르보불닭볶음면', 'https://www.samyangfoods.com/upload/product/20250312/20250312174532041195.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['로제불닭볶음면', 'https://www.samyangfoods.com/upload/product/20250520/20250520092351672183.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['삼양라면', 'https://www.samyangfoods.com/upload/product/20230912/20230912173938561416.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['짜짜로니', 'https://www.samyangfoods.com/upload/product/20231117/20231117143446802501.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['간짬뽕', 'https://www.samyangfoods.com/upload/product/20240105/20240105135812942004.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['나가사끼짬뽕', 'https://www.samyangfoods.com/upload/product/20250110/20250110104438613123.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['맵탱 마늘조개라면', 'https://www.samyangfoods.com/upload/product/20250404/20250404142535191229.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['육개장', 'https://www.samyangfoods.com/upload/product/20250110/20250110104404198119.jpg', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['삼양1963', 'https://www.samyangfoods.com/upload/product/20251028/20251028144634493287.png', 'https://www.samyangfoods.com/kor/brand/list.do?searchCateCd1=45', 'Samyang Foods'],
+  ['꼬깔콘', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/11/12/20241112c8a1df1b15ab442.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['치토스', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/2020121617c35659852b48c.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['오잉', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/20201216a0c7e9aae38a49a.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['쌀로별', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/23/20220623d0246741a0e54b1.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['도리토스', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/2020121657553cce81df426.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['빼빼로', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/23/2022062373d4c0ce28a84c2.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['빈츠', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/202012168143b05391414b3.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['칙촉', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/09/15/2022091559ca4852cadf45e.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['마가렛트', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/09/16/20220916dd7e3a80d5f2427.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['가나', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/20/202206207bc3d7511aaf402.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['ABC 초콜릿', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/20201216c6b6fa6cf21e49f.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['크런키', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/202405303a5131db04fc403.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['말랑카우', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/12/2024061260bcb4db9480425.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['자일리톨', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/20240610cb54386b266441f.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['메로나', 'https://www.bing.co.kr/upload/product/taste_melona_original.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['투게더', 'https://www.bing.co.kr/upload/product/taste_together_original.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['붕어싸만코', 'https://www.bing.co.kr/upload/brand/2024/05/e78ba32c-594a-4530-884e-ab62402fd6cf.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['비비빅', 'https://www.bing.co.kr/upload/product/taste_bibibig_original.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['빵또아', 'https://www.bing.co.kr/upload/brand/2024/05/e8efd75a-9524-4c03-8928-84155e8d9302.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['더위사냥', 'https://www.bing.co.kr/upload/brand/2026/05/172c4ad2-0bea-41d5-b008-690ce019bcac.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['엑설런트', 'https://www.bing.co.kr/upload/product/taste_excellent_original.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['쿠앤크', 'https://www.bing.co.kr/upload/product/taste_cookiecream_original.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['엔초', 'https://www.bing.co.kr/upload/product/taste_encho_original.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['바밤바', 'https://www.bing.co.kr/upload/brand/2026/03/caac679b-536c-4d9e-91a6-11955f81cefe.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['월드콘', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/26/20251126818c6758179b48c.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['돼지바', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/07/05/20220705529535040d564bf.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['빠삐코', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/07/05/20220705c12c19560fdf493.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['설레임', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/30/2022063094c02ddad2f74bf.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['찰떡아이스', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/30/202206308fb81403a5924dc.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['티코', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/26/2025112616d998f2f0d64f0.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['죠크박바', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/202408088141d33615884e7.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['메가톤', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/2024080854a37348fa7c4e3.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['빵빠레', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/07/05/20220705502633d1e1ed465.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['누가바', 'https://www.bing.co.kr/upload/brand/2026/04/e2b19b47-f595-4946-a32f-1ab21a48ce69.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae']
+];
+
+const SNACK_FOOD_MASK_GROUPS = [
+  {
+    names: ['신라면', '신라면 블랙', '짜파게티', '너구리', '안성탕면', '김치라면', '불닭볶음면', '까르보불닭볶음면', '로제불닭볶음면', '삼양라면', '짜짜로니', '간짬뽕', '나가사끼짬뽕', '맵탱 마늘조개라면', '육개장', '삼양1963'],
+    areas: [{ x: 26, y: 36, width: 48, height: 15 }]
+  },
+  {
+    names: ['꼬깔콘', '치토스', '오잉', '쌀로별', '도리토스', '빼빼로', '빈츠', '칙촉', '마가렛트', '가나', 'ABC 초콜릿', '크런키', '말랑카우', '자일리톨'],
+    areas: [{ x: 29, y: 38, width: 42, height: 13 }]
+  },
+  {
+    names: ['메로나', '비비빅', '빵또아', '더위사냥', '쿠앤크', '엔초', '바밤바', '돼지바', '빠삐코', '설레임', '찰떡아이스', '죠크박바', '메가톤', '빵빠레', '누가바'],
+    areas: [{ x: 30, y: 38, width: 40, height: 13 }]
+  },
+  {
+    names: ['투게더', '붕어싸만코', '엑설런트', '월드콘', '티코'],
+    areas: [{ x: 31, y: 32, width: 38, height: 12 }]
+  }
+];
+
+function getSnackFoodMaskAreas(answer) {
+  const group = SNACK_FOOD_MASK_GROUPS.find(item => item.names.includes(answer));
+  return group ? group.areas : [{ x: 22, y: 34, width: 56, height: 20 }];
+}
+
+function snackFoodImageMeta([answer, imageUrl, imageSourceUrl, imageProvider]) {
+  return {
+    imageUrl,
+    imageSourceUrl,
+    imageProvider,
+    imageCredit: `${imageProvider} official product image`,
+    imageMaskAreas: getSnackFoodMaskAreas(answer)
+  };
+}
 
 const CULTURAL_HERITAGE_HINTS = {
   경복궁: '조선 시대의 대표 궁궐로 서울 광화문 뒤에 있습니다.',
@@ -1071,6 +1202,37 @@ function buildCulturalHeritageQuestions() {
   return questions;
 }
 
+function buildFlagCountryQuestions() {
+  const answers = FLAG_COUNTRIES.map(([, country]) => country);
+  return FLAG_COUNTRIES.map(([code, country], index) => makeImageChoiceQuestion(
+    'flag-country',
+    index + 1,
+    '',
+    country,
+    answers,
+    flagImageMeta(code),
+    '',
+    `${country}의 국기를 보고 나라 이름을 고르는 이미지형 문제입니다.`
+  ));
+}
+
+function buildSnackFoodQuestions() {
+  const answers = SNACK_FOOD_ITEMS.map(([answer]) => answer);
+  return SNACK_FOOD_ITEMS.map((item, index) => {
+    const [answer] = item;
+    return makeImageChoiceQuestion(
+      'snack-food',
+      index + 1,
+      '',
+      answer,
+      answers,
+      snackFoodImageMeta(item),
+      '',
+      `${answer}의 제품 이미지를 보고 이름을 고르는 간식 이미지형 문제입니다.`
+    );
+  });
+}
+
 function quizMeta(definition, questionCount = DEFAULT_QUESTIONS_PER_QUIZ) {
   const cycleQuestionCount = Number(definition.cycleQuestionCount) || questionCount;
   return {
@@ -1100,9 +1262,11 @@ const QUIZ_DEFINITIONS = [
   { quizId: 'unified-silla-balhae', title: '통일신라~발해 역사 퀴즈', subject: '사회', subjectGroup: 'social', order: 50, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '통일신라와 발해의 주요 개념을 확인합니다.', questions: buildHistoryQuestions },
   { quizId: 'cultural_heritage', title: '문화유산 이미지 퀴즈', subject: '사회', subjectGroup: 'social', order: 51, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '사진을 보고 우리 문화유산의 이름을 4지선다로 맞힙니다.', questions: buildCulturalHeritageQuestions },
   { quizId: 'science-general', title: '과학 상식 퀴즈', subject: '과학', subjectGroup: 'science', order: 60, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학생이 알아두면 좋은 생활 과학 상식을 확인합니다.', questions: buildScienceGeneralQuestions },
-  { quizId: 'emoji-kpop', title: 'K-POP 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-kpop', EMOJI_KPOP, 'K-POP 노래') },
-  { quizId: 'emoji-anime', title: '애니 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 71, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-anime', EMOJI_ANIME, '애니') },
-  { quizId: 'emoji-tiniping', title: '티니핑 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 72, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 티니핑 이름을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-tiniping', EMOJI_TINIPING, '티니핑') }
+  { quizId: 'flag-country', title: '국기 퀴즈', subject: '인기', subjectGroup: 'popular', order: 69, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '국기를 보고 알맞은 나라 이름을 4지선다로 맞힙니다.', questions: buildFlagCountryQuestions },
+  { quizId: 'snack-food', title: '간식 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 50, cycleQuestionCount: 50, uiType: 'imageChoice', description: '라면, 과자, 아이스크림 이미지를 보고 알맞은 간식 이름을 4지선다로 맞힙니다.', questions: buildSnackFoodQuestions },
+  { quizId: 'emoji-kpop', title: 'K-POP 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 71, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-kpop', EMOJI_KPOP, 'K-POP 노래') },
+  { quizId: 'emoji-anime', title: '애니 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 72, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-anime', EMOJI_ANIME, '애니') },
+  { quizId: 'emoji-tiniping', title: '티니핑 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 73, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 티니핑 이름을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-tiniping', EMOJI_TINIPING, '티니핑') }
 ];
 
 const TITLE_BASES = [
@@ -1113,6 +1277,8 @@ const TITLE_BASES = [
   ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']],
   ['social_cultural_heritage', '문화유산', 'social', 'title-theme-people', ['문화유산 탐험가', '문화유산 해설가', '문화유산 지킴이']],
   ['science_general', '과학 상식', 'science', 'title-theme-school', ['과학 호기심 탐험가', '과학 상식 박사', '과학 상식 마스터']],
+  ['popular_flag_country', '국기', 'popular', 'title-theme-school', ['국기 탐험가', '국기 박사', '세계 지도자']],
+  ['popular_snack_food', '간식', 'popular', 'title-theme-school', ['간식 탐험가', '간식 감별사', '간식 마스터']],
   ['popular_emoji_kpop', 'K-POP 이모지', 'popular', 'title-theme-idol', ['K-POP 팬', 'K-POP DJ', 'K-POP 마스터']],
   ['popular_emoji_anime', '애니 이모지', 'popular', 'title-theme-anime', ['애니 팬', '애니 해석가', '애니 마스터']],
   ['popular_emoji_tiniping', '티니핑 이모지', 'popular', 'title-theme-tiniping', ['티니핑 팬', '티니핑 요정', '티니핑 마스터']]
