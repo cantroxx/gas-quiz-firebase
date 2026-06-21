@@ -560,6 +560,31 @@
     };
   }
 
+  function buildImageChoiceQuestion(question) {
+    const choices = Array.isArray(question.choices)
+      ? question.choices.map(choice => String(choice || '').trim()).filter(Boolean)
+      : [];
+    const explicitAnswer = Number(question.answerIndex);
+    const answerIndex = Number.isInteger(explicitAnswer) && explicitAnswer >= 0 && explicitAnswer < choices.length
+      ? explicitAnswer
+      : choices.findIndex(choice => choice === String(question.answer || '').trim());
+    return {
+      type: 'imageChoice',
+      questionId: String(question.questionId || '').trim(),
+      practiceQuestionId: String(question.practiceQuestionId || question.questionId || '').trim(),
+      question: String(question.prompt || question.question || '이미지를 보고 알맞은 이름을 고르세요.').trim(),
+      imageUrl: String(question.imageUrl || '').trim(),
+      imageSourceUrl: String(question.imageSourceUrl || '').trim(),
+      imageProvider: String(question.imageProvider || '').trim(),
+      imageLicense: String(question.imageLicense || '').trim(),
+      imageCredit: String(question.imageCredit || '').trim(),
+      imageAttributionText: String(question.imageAttributionText || '').trim(),
+      choices,
+      answer: answerIndex >= 0 ? answerIndex : 0,
+      hint: String(question.hint || '').trim()
+    };
+  }
+
   function isImagePromptQuestion(question) {
     const category = String(question.category || '').trim();
     const prompt = String(question.prompt || question.question || '').trim();
@@ -569,6 +594,7 @@
   function buildFirestoreQuestion(question) {
     const questionType = String(question.questionType || '').trim();
     if(questionType === 'imageInput') return buildImageInputQuestion(question);
+    if(questionType === 'imageChoice' || questionType === 'image-choice') return buildImageChoiceQuestion(question);
     if(isImagePromptQuestion(question) && question.answer) return buildImageInputQuestion(question);
     if(questionType === 'input' || questionType === 'textInput') return buildInputQuestion(question);
     if(questionType === 'readingMultipleChoice' || questionType === 'sheetMultipleChoice4') return buildChoiceQuestion(question);
@@ -581,6 +607,7 @@
   function isPlayableQuestion(question) {
     if(!question || !question.question) return false;
     if(question.type === 'imageInput') return !!question.imageUrl && !!question.answerText;
+    if(question.type === 'imageChoice') return !!question.imageUrl && Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
     if(question.type === 'textInput') return !!question.answerText;
     return Array.isArray(question.choices) && question.choices.length >= 2 && Number.isInteger(question.answer);
   }

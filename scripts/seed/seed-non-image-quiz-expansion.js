@@ -9,6 +9,18 @@ const TITLE_CATALOG_COLLECTION = 'titleCatalog';
 const DEFAULT_QUESTIONS_PER_QUIZ = 200;
 const SEED_SOURCE = 'seed-non-image-quiz-expansion';
 const REMOVED_TITLE_IDS = ['science_grade4_1', 'science_grade4_3', 'science_grade4_5'];
+const QUIZ_TITLE_PREFIXES = {
+  proverb: ['korean_proverb_'],
+  spacing: ['korean_spacing_'],
+  idiom: ['korean_idiom_'],
+  'fraction-basic': ['math_fraction_basic_'],
+  'unified-silla-balhae': ['social_unified_silla_balhae_'],
+  cultural_heritage: ['social_cultural_heritage_'],
+  'science-general': ['science_general_'],
+  'emoji-kpop': ['popular_emoji_kpop_', 'popular_emoji_kpop_total_'],
+  'emoji-anime': ['popular_emoji_anime_', 'popular_emoji_anime_total_'],
+  'emoji-tiniping': ['popular_emoji_tiniping_', 'popular_emoji_tiniping_total_']
+};
 
 function parseArgs(argv) {
   const args = {
@@ -93,6 +105,44 @@ function makeChoiceQuestion(quizId, order, prompt, correct, pool, hint, explanat
     sourceRowNumber: order,
     migrationSource: SEED_SOURCE
   };
+}
+
+function makeImageChoiceQuestion(quizId, order, prompt, correct, pool, imageMeta = {}, hint = '') {
+  const choices = rotateChoices(correct, pool, order);
+  const imageUrl = String(imageMeta.imageUrl || '').trim();
+  const imageSourceUrl = String(imageMeta.imageSourceUrl || '').trim();
+  const imageProvider = String(imageMeta.imageProvider || '').trim();
+  const imageLicense = String(imageMeta.imageLicense || '').trim();
+  const imageCredit = String(imageMeta.imageCredit || '').trim();
+  return {
+    quizId,
+    questionId: `${quizId}-${String(order).padStart(3, '0')}`,
+    order,
+    questionType: 'imageChoice',
+    prompt,
+    imageUrl,
+    imageSourceUrl,
+    imageProvider,
+    imageLicense,
+    imageCredit,
+    imageAttributionText: buildImageAttributionText({ imageProvider, imageLicense, imageCredit, imageSourceUrl }),
+    choices,
+    answer: correct,
+    answerIndex: choices.indexOf(correct),
+    hint,
+    explanation: `${correct}의 모습을 보고 이름을 고르는 이미지형 문화유산 문제입니다.`,
+    sourceSheet: SEED_SOURCE,
+    sourceRowNumber: order,
+    migrationSource: SEED_SOURCE
+  };
+}
+
+function buildImageAttributionText(meta = {}) {
+  const provider = String(meta.imageProvider || '').trim();
+  const license = String(meta.imageLicense || '').trim();
+  const credit = String(meta.imageCredit || '').trim();
+  if(!provider && !license && !credit) return '';
+  return [provider, license, credit].filter(Boolean).join(' · ');
 }
 
 function makeInputQuestion(quizId, order, prompt, correct, aliases = [], hint = '', explanation = '') {
@@ -416,6 +466,187 @@ const EMOJI_TINIPING = [
   ['빙글핑', [], '🌀😵‍💫✨']
 ];
 
+const CULTURAL_HERITAGE_IMAGES = [
+  ['경복궁', 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/%EA%B2%BD%EB%B3%B5%EA%B6%811.jpg/960px-%EA%B2%BD%EB%B3%B5%EA%B6%811.jpg', 'https://commons.wikimedia.org/wiki/File:%EA%B2%BD%EB%B3%B5%EA%B6%811.jpg'],
+  ['창덕궁', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%9D%B8%EC%A0%95%EC%A0%84.jpg/960px-%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%9D%B8%EC%A0%95%EC%A0%84.jpg', 'https://commons.wikimedia.org/wiki/File:%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%9D%B8%EC%A0%95%EC%A0%84.jpg'],
+  ['창경궁', 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/%EC%B0%BD%EA%B2%BD%EA%B6%812.jpg/960px-%EC%B0%BD%EA%B2%BD%EA%B6%812.jpg', 'https://commons.wikimedia.org/wiki/File:%EC%B0%BD%EA%B2%BD%EA%B6%812.jpg'],
+  ['덕수궁', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/%EC%95%84%EB%A6%84%EB%8B%A4%EC%9A%B4_%EB%8D%95%EC%88%98%EA%B6%81.jpg/960px-%EC%95%84%EB%A6%84%EB%8B%A4%EC%9A%B4_%EB%8D%95%EC%88%98%EA%B6%81.jpg', 'https://commons.wikimedia.org/wiki/File:%EC%95%84%EB%A6%84%EB%8B%A4%EC%9A%B4_%EB%8D%95%EC%88%98%EA%B6%81.jpg'],
+  ['종묘', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/%EC%A2%85%EB%AC%98_%EC%98%81%EB%85%95%EC%A0%84.jpg/960px-%EC%A2%85%EB%AC%98_%EC%98%81%EB%85%95%EC%A0%84.jpg', 'https://commons.wikimedia.org/wiki/File:%EC%A2%85%EB%AC%98_%EC%98%81%EB%85%95%EC%A0%84.jpg'],
+  ['숭례문', 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/%ED%95%B4_%EC%A7%88_%EB%85%98%EC%9D%98_%EC%88%AD%EB%A1%80%EB%AC%B81.jpg/960px-%ED%95%B4_%EC%A7%88_%EB%85%98%EC%9D%98_%EC%88%AD%EB%A1%80%EB%AC%B81.jpg', 'https://commons.wikimedia.org/wiki/File:%ED%95%B4_%EC%A7%88_%EB%85%98%EC%9D%98_%EC%88%AD%EB%A1%80%EB%AC%B81.jpg'],
+  ['흥인지문', 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_%28Heunginjimun_Gate%29.jpg/960px-%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_%28Heunginjimun_Gate%29.jpg', 'https://commons.wikimedia.org/wiki/File:%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_(Heunginjimun_Gate).jpg'],
+  ['수원 화성', 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/%EB%B4%84%EC%9D%B4_%EC%98%A8_%EC%88%98%EC%9B%90_%ED%99%94%EC%84%B1.jpg/960px-%EB%B4%84%EC%9D%B4_%EC%98%A8_%EC%88%98%EC%9B%90_%ED%99%94%EC%84%B1.jpg', 'https://commons.wikimedia.org/wiki/File:%EB%B4%84%EC%9D%B4_%EC%98%A8_%EC%88%98%EC%9B%90_%ED%99%94%EC%84%B1.jpg'],
+  ['불국사', 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/%EA%B2%BD%EC%A3%BC_%EB%B6%88%EA%B5%AD%EC%82%AC_%EB%8B%A4%EB%B3%B4%ED%83%91.jpg/960px-%EA%B2%BD%EC%A3%BC_%EB%B6%88%EA%B5%AD%EC%82%AC_%EB%8B%A4%EB%B3%B4%ED%83%91.jpg', 'https://commons.wikimedia.org/wiki/File:%EA%B2%BD%EC%A3%BC_%EB%B6%88%EA%B5%AD%EC%82%AC_%EB%8B%A4%EB%B3%B4%ED%83%91.jpg'],
+  ['석굴암', 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/54-%E3%85%82-_1954%EB%85%84_%EA%B2%BD%EC%A3%BC_%EC%84%9D%EA%B5%B4%EC%95%941.jpg/960px-54-%E3%85%82-_1954%EB%85%84_%EA%B2%BD%EC%A3%BC_%EC%84%9D%EA%B5%B4%EC%95%941.jpg', 'https://commons.wikimedia.org/wiki/File:54-%E3%85%82-_1954%EB%85%84_%EA%B2%BD%EC%A3%BC_%EC%84%9D%EA%B5%B4%EC%95%941.jpg'],
+  ['문무대왕릉', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/%EC%A0%95%EC%9B%94%EB%8C%80%EB%B3%B4%EB%A6%84%EC%9D%98_%EB%AC%B8%EB%AC%B4%EB%8C%80%EC%99%95%EB%A6%89.jpg/960px-%EC%A0%95%EC%9B%94%EB%8C%80%EB%B3%B4%EB%A6%84%EC%9D%98_%EB%AC%B8%EB%AC%B4%EB%8C%80%EC%99%95%EB%A6%89.jpg', 'https://commons.wikimedia.org/wiki/File:%EC%A0%95%EC%9B%94%EB%8C%80%EB%B3%B4%EB%A6%84%EC%9D%98_%EB%AC%B8%EB%AC%B4%EB%8C%80%EC%99%95%EB%A6%89.jpg'],
+  ['관촉사 석조미륵보살입상', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Statue_of_Mireuk_Budda.jpg/960px-Statue_of_Mireuk_Budda.jpg', 'https://commons.wikimedia.org/wiki/File:Statue_of_Mireuk_Budda.jpg'],
+  ['돈암서원', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Donam_Seowon_3.jpg/960px-Donam_Seowon_3.jpg', 'https://commons.wikimedia.org/wiki/File:Donam_Seowon_3.jpg'],
+  ['근정전', 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/%EA%B7%BC%EC%A0%95%EC%A0%84.jpg/960px-%EA%B7%BC%EC%A0%95%EC%A0%84.jpg', 'https://commons.wikimedia.org/wiki/File:%EA%B7%BC%EC%A0%95%EC%A0%84.jpg'],
+  ['창덕궁 후원', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Changdeokgung.jpg/960px-Changdeokgung.jpg', 'https://commons.wikimedia.org/wiki/File:Changdeokgung.jpg'],
+  ['덕수궁 석조전', 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/20131215_%EB%8D%95%EC%88%98%EA%B6%81_%EC%84%9D%EC%A1%B0%EC%A0%84.jpg/960px-20131215_%EB%8D%95%EC%88%98%EA%B6%81_%EC%84%9D%EC%A1%B0%EC%A0%84.jpg', 'https://commons.wikimedia.org/wiki/File:20131215_%EB%8D%95%EC%88%98%EA%B6%81_%EC%84%9D%EC%A1%B0%EC%A0%84.jpg'],
+  ['원각사지 십층석탑', 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/201609_%EC%9B%90%EA%B0%81%EC%82%AC%EC%A7%80_%EC%8B%AD%EC%B8%B5%EC%84%9D%ED%83%91.jpg/960px-201609_%EC%9B%90%EA%B0%81%EC%82%AC%EC%A7%80_%EC%8B%AD%EC%B8%B5%EC%84%9D%ED%83%91.jpg', 'https://commons.wikimedia.org/wiki/File:201609_%EC%9B%90%EA%B0%81%EC%82%AC%EC%A7%80_%EC%8B%AD%EC%B8%B5%EC%84%9D%ED%83%91.jpg'],
+  ['첨성대', 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Cheomseongdae_Observatory_under_blue_sky_in_Gyeongju_South_Korea.jpg/960px-Cheomseongdae_Observatory_under_blue_sky_in_Gyeongju_South_Korea.jpg', 'https://en.wikipedia.org/wiki/Cheomseongdae'],
+  ['다보탑', 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Dabotap_Pagoda_01.jpg/960px-Dabotap_Pagoda_01.jpg', 'https://en.wikipedia.org/wiki/Dabotap'],
+  ['석가탑', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Seokgatap_Pagoda.jpg/960px-Seokgatap_Pagoda.jpg', 'https://en.wikipedia.org/wiki/Seokgatap'],
+  ['성덕대왕신종', 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/National_Museum-Emile_Bell_-_Gyeongju_3781-06.JPG/960px-National_Museum-Emile_Bell_-_Gyeongju_3781-06.JPG', 'https://en.wikipedia.org/wiki/Bell_of_King_Seongdeok'],
+  ['팔만대장경', 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Tripitaka_Koreana_02.jpg/960px-Tripitaka_Koreana_02.jpg', 'https://en.wikipedia.org/wiki/Tripitaka_Koreana'],
+  ['직지심체요절', 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Jikji_pages.jpg/960px-Jikji_pages.jpg', 'https://en.wikipedia.org/wiki/Jikji'],
+  ['공주 공산성', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/%EA%B3%B5%EC%82%B0%EC%84%B1%EC%9D%98_%EA%B0%80%EC%9D%84_%ED%95%98%EB%8A%98.jpg/960px-%EA%B3%B5%EC%82%B0%EC%84%B1%EC%9D%98_%EA%B0%80%EC%9D%84_%ED%95%98%EB%8A%98.jpg', 'https://en.wikipedia.org/wiki/Gongsanseong'],
+  ['미륵사지 석탑', 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/%EC%9D%B5%EC%82%B0_%EB%AF%B8%EB%A5%B5%EC%82%AC%EC%A7%80_%EC%84%9D%ED%83%91%282019%EB%85%84%29_%EC%95%BC%EA%B2%BD.jpg/960px-%EC%9D%B5%EC%82%B0_%EB%AF%B8%EB%A5%B5%EC%82%AC%EC%A7%80_%EC%84%9D%ED%83%91%282019%EB%85%84%29_%EC%95%BC%EA%B2%BD.jpg', 'https://en.wikipedia.org/wiki/Mireuksa'],
+  ['동궁과 월지', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Water_reflection_of_Donggung_Palace_in_Wolji_Pond_at_blue_hour_in_Gyeongju_South_Korea.jpg/960px-Water_reflection_of_Donggung_Palace_in_Wolji_Pond_at_blue_hour_in_Gyeongju_South_Korea.jpg', 'https://en.wikipedia.org/wiki/Donggung_Palace_and_Wolji_Pond'],
+  ['청자 상감운학문 매병', 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Goryeo_Celadon.jpg', 'https://en.wikipedia.org/wiki/Maebyeong'],
+  ['백자 달항아리', 'https://upload.wikimedia.org/wikipedia/commons/1/19/%EB%B0%B1%EC%9E%90_%EB%8B%AC%ED%95%AD%EC%95%84%EB%A6%AC%28309%ED%98%B8%29.jpg', 'https://en.wikipedia.org/wiki/Moon_jar'],
+  ['신라 금관', 'https://upload.wikimedia.org/wikipedia/commons/a/a9/%EC%84%9C%EB%B4%89%EC%B4%9D_%EA%B8%88%EA%B4%80_%EA%B8%88%EC%A0%9C%EB%93%9C%EB%A6%AC%EA%B0%9C.jpg', 'https://ko.wikipedia.org/wiki/%EC%8B%A0%EB%9D%BC_%EA%B8%88%EA%B4%80'],
+  ['천마도', 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Korea-Silla-Cheonmado-02.jpg', 'https://ko.wikipedia.org/wiki/%EA%B2%BD%EC%A3%BC_%EC%B2%9C%EB%A7%88%EC%B4%9D_%EC%9E%A5%EB%8B%88_%EC%B2%9C%EB%A7%88%EB%8F%84'],
+  ['무령왕릉', 'https://upload.wikimedia.org/wikipedia/commons/8/84/Tomb_of_Muryeong_of_Baekje.JPG', 'https://ko.wikipedia.org/wiki/%EB%AC%B4%EB%A0%B9%EC%99%95%EB%A6%89'],
+  ['백제금동대향로', 'https://upload.wikimedia.org/wikipedia/commons/b/b7/%EB%B0%B1%EC%A0%9C_%EA%B8%88%EB%8F%99%EB%8C%80%ED%96%A5%EB%A1%9C.jpg', 'https://ko.wikipedia.org/wiki/%EB%B0%B1%EC%A0%9C_%EA%B8%88%EB%8F%99%EB%8C%80%ED%96%A5%EB%A1%9C'],
+  ['훈민정음 해례본', 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Hunminjeongum.jpg', 'https://ko.wikipedia.org/wiki/%ED%9B%88%EB%AF%BC%EC%A0%95%EC%9D%8C'],
+  ['난중일기', 'https://upload.wikimedia.org/wikipedia/commons/5/55/%EC%9D%B4%EC%88%9C%EC%8B%A0_%EB%82%9C%EC%A4%91%EC%9D%BC%EA%B8%B0_%EB%B0%8F_%EC%84%9C%EA%B0%84%EC%B2%A9_%EC%9E%84%EC%A7%84%EC%9E%A5%EC%B4%88.jpg', 'https://ko.wikipedia.org/wiki/%EB%82%9C%EC%A4%91%EC%9D%BC%EA%B8%B0'],
+  ['동의보감', 'https://upload.wikimedia.org/wikipedia/commons/7/77/Dongibogam.jpg', 'https://ko.wikipedia.org/wiki/%EB%8F%99%EC%9D%98%EB%B3%B4%EA%B0%90'],
+  ['인왕제색도', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Inwangjesaekdo.jpg/3840px-Inwangjesaekdo.jpg', 'https://ko.wikipedia.org/wiki/%EC%A0%95%EC%84%A0_%ED%95%84_%EC%9D%B8%EC%99%95%EC%A0%9C%EC%83%89%EB%8F%84'],
+  ['분청사기', 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Korean_punch%27ong_ware_wine_bottle%2C_Choson_dynasty%2C_15th_century%2C_stoneware_with_celadon_glaze_and_white_slip%2C_HAA.JPG/960px-Korean_punch%27ong_ware_wine_bottle%2C_Choson_dynasty%2C_15th_century%2C_stoneware_with_celadon_glaze_and_white_slip%2C_HAA.JPG', 'https://ko.wikipedia.org/wiki/%EB%B6%84%EC%B2%AD%EC%82%AC%EA%B8%B0'],
+  ['익산 왕궁리 오층석탑', 'https://upload.wikimedia.org/wikipedia/commons/a/ac/Amlou2518_%EC%99%95%EA%B6%81%EB%A6%AC_%EC%98%A4%EC%B8%B5%EC%84%9D%ED%83%91.jpg', 'https://ko.wikipedia.org/wiki/%EC%9D%B5%EC%82%B0_%EC%99%95%EA%B6%81%EB%A6%AC_%EC%98%A4%EC%B8%B5%EC%84%9D%ED%83%91'],
+  ['법주사 팔상전', 'https://upload.wikimedia.org/wikipedia/commons/7/77/Beopjusa_Temple_Stay_in_Korea._Palsangjeon_%28five-story_wooden_pagoda%29.jpg', 'https://ko.wikipedia.org/wiki/%EB%B3%B4%EC%9D%80_%EB%B2%95%EC%A3%BC%EC%82%AC_%ED%8C%94%EC%83%81%EC%A0%84'],
+  ['부석사 무량수전', 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Muryangsujeon2.jpg', 'https://ko.wikipedia.org/wiki/%EC%98%81%EC%A3%BC_%EB%B6%80%EC%84%9D%EC%82%AC_%EB%AC%B4%EB%9F%89%EC%88%98%EC%A0%84'],
+  ['하회탈', 'https://upload.wikimedia.org/wikipedia/commons/0/08/%EC%95%88%EB%8F%99_%ED%95%98%ED%9A%8C%ED%83%88_%EB%B0%8F_%EB%B3%91%EC%82%B0%ED%83%88.jpg', 'https://ko.wikipedia.org/wiki/%ED%95%98%ED%9A%8C%ED%83%88'],
+  ['고려청자', 'https://upload.wikimedia.org/wikipedia/commons/7/74/Korea_-_Seoul_-_National_Museum_-_Incense_Burner_0252-06a_%28cropped%29.jpg', 'https://en.wikipedia.org/wiki/Korean_pottery_and_porcelain'],
+  ['대동여지도', 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Daedongyeojido-full.jpg/3840px-Daedongyeojido-full.jpg', 'https://en.wikipedia.org/wiki/Daedongyeojido'],
+  ['측우기', 'https://upload.wikimedia.org/wikipedia/commons/c/c5/Jang_Yeong-sil_Science_Garden-Rain_Gauges_13-11789_Busan%2C_South_Korea_03.JPG', 'https://en.wikipedia.org/wiki/Ch%27%C5%ADgugi'],
+  ['칠지도', 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Chiljido.jpg', 'https://en.wikipedia.org/wiki/Seven-Branched_Sword'],
+  ['금동미륵보살반가사유상', 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Korea-Gilt-bronze_pensive_Maitreya-National_Treasure_No._78-01.jpg/960px-Korea-Gilt-bronze_pensive_Maitreya-National_Treasure_No._78-01.jpg', 'https://commons.wikimedia.org/wiki/File:Korea-Gilt-bronze_pensive_Maitreya-National_Treasure_No._78-01.jpg'],
+  ['앙부일구', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Seoul-Gyeongbokgung-Sundial-02.jpg/960px-Seoul-Gyeongbokgung-Sundial-02.jpg', 'https://commons.wikimedia.org/wiki/File:Seoul-Gyeongbokgung-Sundial-02.jpg'],
+  ['고구려 고분 벽화', 'https://upload.wikimedia.org/wikipedia/commons/5/54/Goguryeo_tomb_mural.jpg', 'https://commons.wikimedia.org/wiki/File:Goguryeo_tomb_mural.jpg'],
+  ['김홍도 풍속화', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Kim_Hong-do._The_watched._Screen._Genre_painting%2C_detail._Mus%C3%A9e_Guimet_MA_2544.jpg/960px-Kim_Hong-do._The_watched._Screen._Genre_painting%2C_detail._Mus%C3%A9e_Guimet_MA_2544.jpg', 'https://commons.wikimedia.org/wiki/File:Kim_Hong-do._The_watched._Screen._Genre_painting,_detail._Mus%C3%A9e_Guimet_MA_2544.jpg'],
+  ['용비어천가', 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Yongbieocheonga.jpg/960px-Yongbieocheonga.jpg', 'https://commons.wikimedia.org/wiki/File:Yongbieocheonga.jpg']
+];
+
+const CULTURAL_HERITAGE_IMAGE_SOURCE_DEFAULTS = {
+  imageProvider: 'Wikimedia Commons',
+  imageLicense: '원본 파일 페이지의 라이선스 확인 필요',
+  imageCredit: '원본 파일 페이지 참조'
+};
+
+const CULTURAL_HERITAGE_HINTS = {
+  경복궁: '조선 시대의 대표 궁궐로 서울 광화문 뒤에 있습니다.',
+  창덕궁: '조선 궁궐 중 자연과 어우러진 후원으로 유명합니다.',
+  창경궁: '서울 종로에 있는 조선 궁궐로 창덕궁과 이웃해 있습니다.',
+  덕수궁: '서울 시청 근처에 있으며 석조전 같은 근대식 건물이 함께 있습니다.',
+  종묘: '조선 왕과 왕비의 신주를 모신 제사를 지내던 곳입니다.',
+  숭례문: '서울 도성의 남쪽 큰 문으로 남대문이라고도 불립니다.',
+  흥인지문: '서울 도성의 동쪽 문으로 동대문이라고도 불립니다.',
+  '수원 화성': '정조와 관련 깊은 성곽으로 경기도 수원에 있습니다.',
+  불국사: '경주에 있는 신라 불교 문화유산으로 다보탑과 석가탑이 유명합니다.',
+  석굴암: '경주 토함산에 있는 석굴 사원으로 본존불이 유명합니다.',
+  문무대왕릉: '삼국 통일 뒤 바다에 묻혔다고 전해지는 신라 왕의 능입니다.',
+  '관촉사 석조미륵보살입상': '충남 논산 관촉사에 있는 큰 석조 불상입니다.',
+  돈암서원: '충남 논산에 있는 조선 시대 서원입니다.',
+  근정전: '경복궁의 중심 건물로 왕의 공식 행사가 열리던 곳입니다.',
+  '창덕궁 후원': '창덕궁 안쪽의 정원으로 자연 지형을 살린 궁궐 정원입니다.',
+  '덕수궁 석조전': '덕수궁 안에 있는 서양식 석조 건물입니다.',
+  '원각사지 십층석탑': '서울 탑골공원에 있는 고려 시대 석탑입니다.',
+  첨성대: '경주에 있는 신라 시대 천문 관측 시설입니다.',
+  다보탑: '경주 불국사에 있는 독특한 모양의 석탑입니다.',
+  석가탑: '경주 불국사에 있는 삼층석탑으로 무구정광대다라니경과 관련이 있습니다.',
+  성덕대왕신종: '에밀레종이라고도 불리는 신라 시대의 큰 종입니다.',
+  팔만대장경: '고려 시대에 만든 불교 경전 목판으로 해인사에 보관되어 있습니다.',
+  직지심체요절: '현존하는 세계에서 가장 오래된 금속 활자 인쇄본으로 알려져 있습니다.',
+  '공주 공산성': '백제 웅진 시기와 관련 깊은 공주의 산성입니다.',
+  '미륵사지 석탑': '전북 익산 미륵사지에 있는 백제 계열의 석탑입니다.',
+  '동궁과 월지': '경주에 있는 신라 왕궁의 별궁 터와 연못입니다.',
+  '청자 상감운학문 매병': '고려청자의 대표 작품으로 구름과 학 무늬가 새겨져 있습니다.',
+  '백자 달항아리': '조선 시대 흰 백자로 둥근 달처럼 생긴 항아리입니다.',
+  '신라 금관': '신라 왕족의 무덤에서 나온 금으로 만든 관입니다.',
+  천마도: '신라 천마총에서 나온 말 그림 장식입니다.',
+  무령왕릉: '백제 무령왕과 왕비의 무덤으로 공주에 있습니다.',
+  백제금동대향로: '백제의 섬세한 금속 공예를 보여 주는 향로입니다.',
+  '훈민정음 해례본': '한글을 만든 원리와 사용법을 설명한 책입니다.',
+  난중일기: '이순신 장군이 임진왜란 중에 쓴 일기입니다.',
+  동의보감: '허준이 편찬한 조선 시대 의학서입니다.',
+  인왕제색도: '정선이 비 온 뒤 인왕산의 모습을 그린 그림입니다.',
+  분청사기: '조선 전기에 많이 만들어진 자유로운 무늬의 도자기입니다.',
+  '익산 왕궁리 오층석탑': '전북 익산 왕궁리 유적에 있는 오층석탑입니다.',
+  '법주사 팔상전': '충북 보은 법주사에 있는 목조 탑 형식의 건물입니다.',
+  '부석사 무량수전': '경북 영주 부석사에 있는 오래된 목조 건물입니다.',
+  하회탈: '안동 하회마을의 탈놀이에 쓰인 전통 탈입니다.',
+  고려청자: '고려 시대의 대표 도자기로 푸른빛 유약이 특징입니다.',
+  대동여지도: '김정호가 만든 조선 시대의 자세한 지도입니다.',
+  측우기: '비가 내린 양을 재기 위해 만든 조선 시대 과학 기구입니다.',
+  칠지도: '가지가 일곱 개인 칼 모양의 백제 관련 유물입니다.',
+  금동미륵보살반가사유상: '한쪽 다리를 올리고 생각하는 자세의 불상입니다.',
+  앙부일구: '해의 그림자로 시간을 재던 조선 시대 해시계입니다.',
+  '고구려 고분 벽화': '고구려 무덤 안에 그려진 생활과 신앙을 보여 주는 그림입니다.',
+  '김홍도 풍속화': '조선 후기 사람들의 생활 모습을 담은 그림입니다.',
+  용비어천가: '조선 왕조의 시작을 노래한 한글 문학 작품입니다.'
+};
+
+const CULTURAL_HERITAGE_FOCUS_HINTS = {
+  경복궁: '궁궐의 큰 문과 전각 배치를 살펴보세요.',
+  창덕궁: '자연 지형과 어우러진 궁궐 모습을 살펴보세요.',
+  창경궁: '서울의 조선 궁궐 중 하나라는 점을 떠올려 보세요.',
+  덕수궁: '근대식 건물과 전통 궁궐이 함께 있는 곳입니다.',
+  종묘: '왕실 제사를 지내던 긴 건물 배치를 살펴보세요.',
+  숭례문: '서울 도성의 남쪽 문이라는 점을 떠올려 보세요.',
+  흥인지문: '서울 도성의 동쪽 문이라는 점을 떠올려 보세요.',
+  '수원 화성': '성곽과 누각이 이어진 모습을 살펴보세요.',
+  불국사: '사찰과 탑이 함께 보이는 경주의 대표 유산입니다.',
+  석굴암: '석굴 안 불상의 모습이 핵심 단서입니다.',
+  문무대왕릉: '바다 가운데 있는 왕릉이라는 점을 떠올려 보세요.',
+  '관촉사 석조미륵보살입상': '아주 큰 석조 불상의 모습을 살펴보세요.',
+  돈암서원: '조선 시대 학문 공간인 서원의 건물을 떠올려 보세요.',
+  근정전: '경복궁의 중심 전각이라는 점을 떠올려 보세요.',
+  '창덕궁 후원': '궁궐 안 정원과 연못의 조화를 살펴보세요.',
+  '덕수궁 석조전': '서양식 석조 건물의 모습이 단서입니다.',
+  '원각사지 십층석탑': '도심 공원 안의 높은 석탑을 살펴보세요.',
+  첨성대: '병 모양에 가까운 신라 시대 관측 시설입니다.',
+  다보탑: '불국사에 있는 독특한 모양의 석탑입니다.',
+  석가탑: '불국사에 있는 균형 잡힌 삼층석탑입니다.',
+  성덕대왕신종: '큰 종의 형태와 장식을 살펴보세요.',
+  팔만대장경: '나무판에 새긴 불교 경전이라는 점을 떠올려 보세요.',
+  직지심체요절: '금속 활자 인쇄본의 책장을 살펴보세요.',
+  '공주 공산성': '백제와 관련 깊은 산성의 모습을 살펴보세요.',
+  '미륵사지 석탑': '익산의 큰 석탑이라는 점을 떠올려 보세요.',
+  '동궁과 월지': '밤에 비친 연못과 궁궐 터의 모습이 단서입니다.',
+  '청자 상감운학문 매병': '푸른 도자기와 구름, 학 무늬를 살펴보세요.',
+  '백자 달항아리': '둥글고 흰 항아리 모양이 핵심 단서입니다.',
+  '신라 금관': '나뭇가지 모양 장식이 달린 금관을 살펴보세요.',
+  천마도: '하늘을 달리는 말 그림을 떠올려 보세요.',
+  무령왕릉: '백제 왕릉의 벽돌무덤 구조를 살펴보세요.',
+  백제금동대향로: '봉황과 산 모양 장식이 있는 금속 향로입니다.',
+  '훈민정음 해례본': '한글 창제 원리를 설명한 옛 책의 글자를 살펴보세요.',
+  난중일기: '이순신 장군의 기록이라는 점을 떠올려 보세요.',
+  동의보감: '조선 시대 의학서의 책 모습을 살펴보세요.',
+  인왕제색도: '먹으로 그린 산의 묵직한 모습을 살펴보세요.',
+  분청사기: '흰 무늬가 자유롭게 들어간 도자기입니다.',
+  '익산 왕궁리 오층석탑': '다섯 층으로 올라간 석탑 모양을 살펴보세요.',
+  '법주사 팔상전': '나무로 만든 여러 층의 탑 같은 건물입니다.',
+  '부석사 무량수전': '오래된 목조 건물의 지붕과 기둥을 살펴보세요.',
+  하회탈: '사람 얼굴 모양의 전통 탈을 살펴보세요.',
+  고려청자: '맑은 푸른빛 도자기 색을 살펴보세요.',
+  대동여지도: '접었다 펼 수 있는 큰 지도 모양이 단서입니다.',
+  측우기: '비의 양을 재는 그릇 모양 장치를 살펴보세요.',
+  칠지도: '가지가 여러 갈래로 뻗은 칼 모양입니다.',
+  금동미륵보살반가사유상: '한쪽 다리를 올리고 생각하는 자세를 살펴보세요.',
+  앙부일구: '그릇처럼 오목한 해시계 모양이 단서입니다.',
+  '고구려 고분 벽화': '무덤 벽에 그려진 옛 그림을 살펴보세요.',
+  '김홍도 풍속화': '조선 시대 사람들의 생활 장면을 살펴보세요.',
+  용비어천가: '한글로 적힌 오래된 책장을 살펴보세요.'
+};
+
+function normalizeCulturalHeritageImageEntry(entry) {
+  if(Array.isArray(entry)) {
+    const [answer, imageUrl, imageSourceUrl] = entry;
+    return {
+      answer,
+      imageUrl,
+      imageSourceUrl,
+      ...CULTURAL_HERITAGE_IMAGE_SOURCE_DEFAULTS
+    };
+  }
+  return {
+    ...CULTURAL_HERITAGE_IMAGE_SOURCE_DEFAULTS,
+    ...entry
+  };
+}
+
 function buildTermQuestions(quizId, entries, subjectLabel, options = {}) {
   const questionCount = Number(options.questionCount) || DEFAULT_QUESTIONS_PER_QUIZ;
   const variantsPerEntry = Number(options.variantsPerEntry) || Math.ceil(questionCount / Math.max(1, entries.length));
@@ -669,6 +900,36 @@ function buildEmojiQuestions(quizId, entries, label) {
   });
 }
 
+function buildCulturalHeritageQuestions() {
+  const images = CULTURAL_HERITAGE_IMAGES.map(normalizeCulturalHeritageImageEntry);
+  const answers = images.map(item => item.answer);
+  const promptVariants = [
+    '사진 속 문화유산의 이름은 무엇인가요?',
+    '이미지를 보고 알맞은 문화유산 이름을 고르세요.',
+    '사진에 보이는 우리 문화유산은 무엇인가요?',
+    '다음 사진과 관련 있는 문화유산을 고르세요.',
+    '{focus} 알맞은 문화유산 이름을 고르세요.'
+  ];
+  const questions = [];
+  for (let index = 0; questions.length < 100; index += 1) {
+    const imageMeta = images[index % images.length];
+    const answer = imageMeta.answer;
+    const order = questions.length + 1;
+    const focusHint = CULTURAL_HERITAGE_FOCUS_HINTS[answer] || '사진의 건물, 탑, 유물 모양을 살펴보세요.';
+    const prompt = promptVariants[index % promptVariants.length].replace('{focus}', focusHint);
+    questions.push(makeImageChoiceQuestion(
+      'cultural_heritage',
+      order,
+      prompt,
+      answer,
+      answers,
+      imageMeta,
+      CULTURAL_HERITAGE_HINTS[answer] || ''
+    ));
+  }
+  return questions;
+}
+
 function quizMeta(definition, questionCount = DEFAULT_QUESTIONS_PER_QUIZ) {
   const cycleQuestionCount = Number(definition.cycleQuestionCount) || questionCount;
   return {
@@ -696,6 +957,7 @@ const QUIZ_DEFINITIONS = [
   { quizId: 'idiom', title: '사자성어 퀴즈', subject: '국어', subjectGroup: 'korean', order: 32, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '사자성어의 뜻과 쓰임을 확인합니다.', questions: () => buildTermQuestions('idiom', IDIOMS, '사자성어', { getHint: term => IDIOM_HINTS[term] || '', includeExplanation: true }) },
   { quizId: 'fraction-basic', title: '분수 퀴즈', subject: '수학', subjectGroup: 'math', order: 40, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학교 4학년 수준의 분수 개념을 이야기 문제로 확인합니다.', questions: buildFractionQuestions },
   { quizId: 'unified-silla-balhae', title: '통일신라~발해 역사 퀴즈', subject: '사회', subjectGroup: 'social', order: 50, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '통일신라와 발해의 주요 개념을 확인합니다.', questions: buildHistoryQuestions },
+  { quizId: 'cultural_heritage', title: '문화유산 이미지 퀴즈', subject: '사회', subjectGroup: 'social', order: 51, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '사진을 보고 우리 문화유산의 이름을 4지선다로 맞힙니다.', questions: buildCulturalHeritageQuestions },
   { quizId: 'science-general', title: '과학 상식 퀴즈', subject: '과학', subjectGroup: 'science', order: 60, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학생이 알아두면 좋은 생활 과학 상식을 확인합니다.', questions: buildScienceGeneralQuestions },
   { quizId: 'emoji-kpop', title: 'K-POP 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-kpop', EMOJI_KPOP, 'K-POP 노래') },
   { quizId: 'emoji-anime', title: '애니 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 71, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-anime', EMOJI_ANIME, '애니') },
@@ -708,6 +970,7 @@ const TITLE_BASES = [
   ['korean_idiom', '사자성어', 'korean', 'title-theme-spelling', ['사자성어 수집가', '사자성어 학자', '사자성어 마스터']],
   ['math_fraction_basic', '분수', 'math', 'title-theme-school', ['분수 탐험가', '분수 박사', '분수 마스터']],
   ['social_unified_silla_balhae', '남북국 역사', 'social', 'title-theme-people', ['남북국 탐험가', '남북국 학자', '남북국 역사의 신']],
+  ['social_cultural_heritage', '문화유산', 'social', 'title-theme-people', ['문화유산 탐험가', '문화유산 해설가', '문화유산 지킴이']],
   ['science_general', '과학 상식', 'science', 'title-theme-school', ['과학 호기심 탐험가', '과학 상식 박사', '과학 상식 마스터']],
   ['popular_emoji_kpop', 'K-POP 이모지', 'popular', 'title-theme-idol', ['K-POP 팬', 'K-POP DJ', 'K-POP 마스터']],
   ['popular_emoji_anime', '애니 이모지', 'popular', 'title-theme-anime', ['애니 팬', '애니 해석가', '애니 마스터']],
@@ -776,6 +1039,9 @@ function buildTitleCatalog() {
 function buildModel(quizIds = []) {
   const allow = new Set(quizIds);
   const selected = QUIZ_DEFINITIONS.filter(definition => !allow.size || allow.has(definition.quizId));
+  const titlePrefixes = new Set(
+    quizIds.flatMap(quizId => QUIZ_TITLE_PREFIXES[quizId] || [])
+  );
   const quizzes = [];
   const questionsByQuiz = {};
   selected.forEach(definition => {
@@ -790,7 +1056,8 @@ function buildModel(quizIds = []) {
   return {
     quizzes,
     questionsByQuiz,
-    titles: buildTitleCatalog()
+    titles: buildTitleCatalog().filter(title => !titlePrefixes.size || Array.from(titlePrefixes).some(prefix => title.titleId.startsWith(prefix))),
+    removedTitleIds: titlePrefixes.size ? [] : REMOVED_TITLE_IDS
   };
 }
 
@@ -843,7 +1110,7 @@ async function commitModel(model) {
       data: { ...title, updatedAt: now }
     });
   });
-  REMOVED_TITLE_IDS.forEach(titleId => {
+  (model.removedTitleIds || []).forEach(titleId => {
     deletes.push(db.collection(TITLE_CATALOG_COLLECTION).doc(titleId));
   });
 

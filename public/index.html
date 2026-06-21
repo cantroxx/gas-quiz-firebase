@@ -1806,6 +1806,7 @@
       'samgukji',
       'ancient-history',
       'unified-silla-balhae',
+      'cultural_heritage',
       'history-people',
       'idol',
       'anime',
@@ -3171,6 +3172,7 @@
       '독서시간가게',
       '사회삼국지',
       '사회고대사-삼국시대',
+      '사회문화유산',
       '인물역사-인물',
       '수학곱셈과-나눗셈',
       '수학분수',
@@ -3191,6 +3193,7 @@
       '독서시간가게': 'time_store',
       '사회삼국지': 'samgukji',
       '사회고대사-삼국시대': 'ancient-history',
+      '사회문화유산': 'cultural_heritage',
       '인물역사-인물': 'history-people',
       '수학곱셈과-나눗셈': 'random-basic',
       '수학분수': 'fraction-basic',
@@ -3615,6 +3618,7 @@
         samgukji: ['삼국지', 'three-kingdoms'],
         'ancient-history': ['고대사', 'ancient-three-kingdoms'],
         'unified-silla-balhae': ['통일신라', '발해', 'unified-silla-balhae'],
+        cultural_heritage: ['문화유산', '문화유산 이미지', 'cultural_heritage'],
         'history-people': ['역사 인물', '역사인물'],
         idol: ['아이돌'],
         anime: ['애니'],
@@ -3781,13 +3785,15 @@
         'gmo',
         'time_store',
         'spacing',
-        'fraction-basic'
+        'fraction-basic',
+        'cultural_heritage'
       ]);
       if(limitedToNormalAndOneChance.has(id)) {
         return base.filter(item => item.value === 'normal' || item.value === 'onechance');
       }
       const noHintDisabled = new Set([
         'proverb',
+        'cultural_heritage',
         'science-general',
         'emoji-kpop',
         'emoji-anime',

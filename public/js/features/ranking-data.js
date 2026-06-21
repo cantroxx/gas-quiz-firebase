@@ -111,6 +111,7 @@
       { id: 'samgukji', label: '삼국지', keys: ['사회삼국지'] },
       { id: 'ancientHistory', label: '고대사~삼국시대', keys: ['사회고대사-삼국시대'] },
       { id: 'unifiedSillaBalhae', label: '통일신라~발해', keys: ['사회통일신라-발해'] },
+      { id: 'culturalHeritage', label: '문화유산', keys: ['사회문화유산'] },
       { id: 'historyPeople', label: '역사 인물', keys: ['인물역사-인물'] }
     ], deps);
     const mathDefinitions = getEnabledRankingGroupDefinitions([

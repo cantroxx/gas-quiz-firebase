@@ -178,6 +178,7 @@
       samgukji: { area: '사회', detail: '삼국지', areaKey: '사회/three-kingdoms', completionType: completionType || 'loop' },
       'ancient-history': { area: '사회', detail: '고대사~삼국시대', areaKey: '사회/ancient-three-kingdoms', completionType: completionType || 'loop' },
       'unified-silla-balhae': { area: '사회', detail: '통일신라~발해', areaKey: '사회/unified-silla-balhae', completionType: completionType || 'loop' },
+      cultural_heritage: { area: '사회', detail: '문화유산', areaKey: '사회/cultural_heritage', completionType: completionType || 'loop' },
       'regional-specialties': { area: '사회', detail: '지역 특산물·행정구역', areaKey: '사회/regional-specialties', completionType: completionType || 'loop' },
       'science-grade4': { area: '과학', detail: '초4 과학 개념', areaKey: '과학/science-grade4', completionType: completionType || 'loop' },
       'science-general': { area: '과학', detail: '과학 상식', areaKey: '과학/science-general', completionType: completionType || 'loop' },
@@ -242,6 +243,7 @@
       samgukji: { category: '사회(삼국지)', subFilter: '삼국지' },
       'ancient-history': { category: '사회(고대사~삼국시대)', subFilter: '고대사~삼국시대' },
       'unified-silla-balhae': { category: '사회(통일신라~발해)', subFilter: '통일신라~발해' },
+      cultural_heritage: { category: '사회(문화유산)', subFilter: '문화유산' },
       'regional-specialties': { category: '사회(지역 특산물·행정구역)', subFilter: '지역 특산물·행정구역' },
       'science-grade4': { category: '과학(초4 과학 개념)', subFilter: '초4 과학 개념' },
       'science-general': { category: '과학(과학 상식)', subFilter: '과학 상식' },
@@ -906,6 +908,12 @@
     if(question.type === 'imageInput') {
       const { imageWrap, input } = createQuizImageAnswerField(question, syncSubmitState);
       choices.append(imageWrap, input);
+    } else if(question.type === 'imageChoice') {
+      const { imageWrap } = createQuizImageAnswerField(question, syncSubmitState);
+      choices.appendChild(imageWrap);
+      (Array.isArray(question.choices) ? question.choices : []).forEach((choice, index) => {
+        choices.appendChild(createQuizChoiceButton(choice, index));
+      });
     } else if(question.type === 'textInput') {
       choices.appendChild(createQuizAnswerInput(syncSubmitState));
     } else {

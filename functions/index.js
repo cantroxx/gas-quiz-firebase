@@ -915,10 +915,10 @@ function getPracticeQuestKindsForQuiz(quizId) {
   if (id === "random-basic" || id === "fraction-basic") kinds.add("mathCorrect");
   if (["word-relation", "proverb", "spacing", "idiom"].includes(id)) kinds.add("vocabCorrect");
   if (id === "gmo" || id === "time_store") kinds.add("readingCorrect");
-  if (id === "samgukji" || id === "ancient-history" || id === "regional-specialties" || id === "unified-silla-balhae") kinds.add("socialCorrect");
+  if (id === "samgukji" || id === "ancient-history" || id === "regional-specialties" || id === "unified-silla-balhae" || id === "cultural_heritage") kinds.add("socialCorrect");
   if (id === "science-grade4" || id === "science-general") kinds.add("scienceCorrect");
   if (id === "emoji-kpop" || id === "emoji-anime" || id === "emoji-tiniping") kinds.add("popularCorrect");
-  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "science-grade4", "science-general", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
+  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "cultural_heritage", "science-grade4", "science-general", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
     kinds.add("studyCorrect");
   }
   return kinds;
@@ -5994,6 +5994,7 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith("ancient_three_kingdoms_")) return "social_ancient_three_kingdoms";
   if (id.startsWith("social_regional_specialties_")) return "social_regional_specialties";
   if (id.startsWith("social_unified_silla_balhae_")) return "social_unified_silla_balhae";
+  if (id.startsWith("social_cultural_heritage_")) return "social_cultural_heritage";
   if (id.startsWith("science_grade4_")) return "science_science_grade4";
   if (id.startsWith("science_general_")) return "science_science_general";
   if (id.startsWith("popular_emoji_kpop_")) return "popular_emoji_kpop";

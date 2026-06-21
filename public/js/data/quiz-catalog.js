@@ -433,14 +433,13 @@
       modes: ['ranking']
     },
     cultural_heritage: {
-      title: '문화유산 퀴즈',
+      title: '문화유산 이미지 퀴즈',
       kicker: 'Social Studies Hall',
       icon: '🏺',
-      desc: '우리 문화유산의 이름과 특징을 확인하는 사회 퀴즈입니다.',
-      summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
+      desc: '사진을 보고 우리 문화유산의 이름을 맞히는 사회 퀴즈입니다.',
+      summary: '궁궐, 탑, 사찰, 서원 등 대표 문화유산 이미지를 보고 4지선다로 풉니다.',
       subjectId: 'social',
-      modes: ['records'],
-      enabled: false
+      modes: ['practice', 'ranking', 'oneChance', 'records']
     },
     social_concepts: {
       title: '사회 개념 퀴즈',

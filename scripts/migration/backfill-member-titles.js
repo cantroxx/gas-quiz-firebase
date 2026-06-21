@@ -48,6 +48,7 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith('ancient_three_kingdoms_')) return 'social_ancient_three_kingdoms';
   if (id.startsWith('social_regional_specialties_')) return 'social_regional_specialties';
   if (id.startsWith('social_unified_silla_balhae_')) return 'social_unified_silla_balhae';
+  if (id.startsWith('social_cultural_heritage_')) return 'social_cultural_heritage';
   if (id.startsWith('science_grade4_')) return 'science_science_grade4';
   if (id.startsWith('science_general_')) return 'science_science_general';
   if (id.startsWith('popular_emoji_kpop_')) return 'popular_emoji_kpop';
