@@ -170,16 +170,19 @@
       : (Array.isArray(seasonEvents?.items) ? seasonEvents.items : []);
     return eventItems
       .filter(eventItem => eventItem?.active !== false && Array.isArray(eventItem.quizIds) && eventItem.quizIds.length)
-      .map(eventItem => ({
-      id: `season-${eventItem.periodType || 'monthly'}-${eventItem.eventId || getSeasonQuizAreaLabel(eventItem, deps)}`,
-      label: getSeasonQuizAreaLabel(eventItem, deps),
-      desc: `${eventItem.period || (eventItem.periodType === 'weekly' ? '이번주' : '이번달')} 전용 시즌 랭킹탭입니다.`,
-      keys: getSeasonRankingCategoryKeys([eventItem], deps),
-      rows: getSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
-      sourceRows: records,
-      meta: row => getRankingCategoryLabel(row) || '시즌',
-      score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
-    }));
+      .map(eventItem => {
+        const areaLabel = getSeasonQuizAreaLabel(eventItem, deps);
+        return {
+          id: `season-${eventItem.periodType || 'monthly'}-${eventItem.eventId || areaLabel}`,
+          label: areaLabel,
+          desc: `${eventItem.period || (eventItem.periodType === 'weekly' ? '이번주' : '이번달')} 전용 시즌 랭킹탭입니다. ${areaLabel} 퀴즈가 해당됩니다.`,
+          keys: getSeasonRankingCategoryKeys([eventItem], deps),
+          rows: getSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
+          sourceRows: records,
+          meta: row => getRankingCategoryLabel(row) || '시즌',
+          score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+        };
+      });
   }
 
   function buildSeasonRankingBoard(records = [], seasonEvents = [], deps = {}) {
