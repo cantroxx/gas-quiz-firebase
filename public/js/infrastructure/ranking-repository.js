@@ -210,19 +210,10 @@
     if(!db || !enabledCategoryKeys.length) return [];
     const loadCategoryRecords = async categoryKey => {
       const limit = Math.max(80, getRankingPlazaCategoryRecordLimit(categoryKey));
-      const baseQuery = db.collection('rankingRecords')
+      return db.collection('rankingRecords')
         .where('categoryKey', '==', categoryKey)
-        .limit(getPublicRankingQueryLimit(limit));
-      try {
-        return await db.collection('rankingRecords')
-          .where('categoryKey', '==', categoryKey)
-          .orderBy('createdAt', 'desc')
-          .limit(getPublicRankingQueryLimit(limit))
-          .get();
-      } catch(error) {
-        deps.warn?.('Firestore season ranking query failed. Falling back to limited category query.', { categoryKey, error });
-        return baseQuery.get();
-      }
+        .limit(getPublicRankingQueryLimit(limit))
+        .get();
     };
     const snapshots = await Promise.all(enabledCategoryKeys.map(loadCategoryRecords));
     const byRecordId = new Map();
