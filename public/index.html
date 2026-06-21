@@ -3640,8 +3640,13 @@
             const cachedSeasonEvents = normalizeSeasonEvents(cached.seasonEvents);
             if(cachedSeasonEvents.items.length) return cachedSeasonEvents.items;
           }
-          const seasonEvents = normalizeSeasonEvents(await getAdminRepository().loadPublicSeasonEvents());
-          return seasonEvents.items.length ? seasonEvents.items : SEASON_EVENT_DATA;
+          try {
+            const seasonEvents = normalizeSeasonEvents(await getAdminRepository().loadPublicSeasonEvents());
+            return seasonEvents.items.length ? seasonEvents.items : SEASON_EVENT_DATA;
+          } catch(error) {
+            console.warn('Public season events read failed. Using default season events.', error);
+            return SEASON_EVENT_DATA;
+          }
         },
         getSeasonRankingCategoryKeys: seasonEvents => window.DJ48RankingData.getSeasonRankingCategoryKeys(seasonEvents, getRankingDataDeps()),
         getRankingBoardModels
@@ -5917,7 +5922,9 @@
     }
 
     function normalizeSeasonEvents(data = {}) {
-      const items = Array.isArray(data.items) ? data.items : [];
+      const items = Array.isArray(data)
+        ? data
+        : (Array.isArray(data.items) ? data.items : []);
       return {
         items: items.map((item, index) => ({
           eventId: String(item.eventId || `season-${index + 1}`).trim(),
