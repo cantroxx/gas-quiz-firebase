@@ -168,6 +168,21 @@
     return eventItem.title || '시즌';
   }
 
+  function getSeasonQuizScopeText(eventItem = {}, deps = {}) {
+    const quizCatalog = deps.quizCatalog || {};
+    const quizIds = Array.isArray(eventItem.quizIds) ? eventItem.quizIds : [];
+    const parentQuizIds = Array.from(new Set(quizIds.map(quizId => quizCatalog[quizId]?.parentQuizId).filter(Boolean)));
+    if(parentQuizIds.length === 1) {
+      const parentTitle = String(quizCatalog[parentQuizIds[0]]?.title || '').trim();
+      if(parentTitle) return parentTitle;
+    }
+    const quizLabels = Array.from(new Set(quizIds
+      .map(quizId => String(quizCatalog[quizId]?.title || quizId || '').trim().replace(/\s*퀴즈$/, ''))
+      .filter(Boolean)));
+    if(quizLabels.length) return `${quizLabels.join(', ')} 퀴즈`;
+    return `${getSeasonQuizAreaLabel(eventItem, deps)} 퀴즈`;
+  }
+
   function buildSeasonRankingGroups(records = [], seasonEvents = [], deps = {}) {
     const getRankingCategoryLabel = deps.getRankingCategoryLabel || (() => '');
     const eventItems = Array.isArray(seasonEvents)
@@ -177,10 +192,11 @@
       .filter(eventItem => eventItem?.active !== false && Array.isArray(eventItem.quizIds) && eventItem.quizIds.length)
       .map(eventItem => {
         const areaLabel = getSeasonQuizAreaLabel(eventItem, deps);
+        const scopeText = getSeasonQuizScopeText(eventItem, deps);
         return {
           id: `season-${eventItem.periodType || 'monthly'}-${eventItem.eventId || areaLabel}`,
           label: areaLabel,
-          desc: `${eventItem.period || (eventItem.periodType === 'weekly' ? '이번주' : '이번달')} 전용 시즌 랭킹탭입니다. ${areaLabel} 퀴즈가 해당됩니다.`,
+          desc: `${eventItem.period || (eventItem.periodType === 'weekly' ? '이번주' : '이번달')} 전용 시즌 랭킹탭입니다. ${scopeText}가 해당됩니다.`,
           keys: getSeasonRankingCategoryKeys([eventItem], deps),
           rows: getSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
           sourceRows: records,
