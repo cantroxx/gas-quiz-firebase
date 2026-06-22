@@ -16,6 +16,45 @@
     keyringStar: `${CLASSROOM_ICON_BASE}keyring-star.svg`,
     keyringGem: `${CLASSROOM_ICON_BASE}keyring-gem.svg`,
     keyringHeart: `${CLASSROOM_ICON_BASE}keyring-heart.svg`,
+    keyringBook: `${CLASSROOM_ICON_BASE}keyring-book.svg`,
+    keyringPencil: `${CLASSROOM_ICON_BASE}keyring-pencil.svg`,
+    keyringCrown: `${CLASSROOM_ICON_BASE}keyring-crown.svg`,
+    keyringMedal: `${CLASSROOM_ICON_BASE}keyring-medal.svg`,
+    keyringTrophy: `${CLASSROOM_ICON_BASE}keyring-trophy.svg`,
+    keyringSprout: `${CLASSROOM_ICON_BASE}keyring-sprout.svg`,
+    keyringLightning: `${CLASSROOM_ICON_BASE}keyring-lightning.svg`,
+    keyringRibbon: `${CLASSROOM_ICON_BASE}keyring-ribbon.svg`,
+    keyringShield: `${CLASSROOM_ICON_BASE}keyring-shield.svg`,
+    gemReading: `${CLASSROOM_ICON_BASE}gem-reading.svg`,
+    gemMath: `${CLASSROOM_ICON_BASE}gem-math.svg`,
+    gemHistory: `${CLASSROOM_ICON_BASE}gem-history.svg`,
+    gemScience: `${CLASSROOM_ICON_BASE}gem-science.svg`,
+    gemWriting: `${CLASSROOM_ICON_BASE}gem-writing.svg`,
+    gemSpeech: `${CLASSROOM_ICON_BASE}gem-speech.svg`,
+    gemTeamwork: `${CLASSROOM_ICON_BASE}gem-teamwork.svg`,
+    gemDiligence: `${CLASSROOM_ICON_BASE}gem-diligence.svg`,
+    gemChallenge: `${CLASSROOM_ICON_BASE}gem-challenge.svg`,
+    gemKindness: `${CLASSROOM_ICON_BASE}gem-kindness.svg`,
+    gemCreativity: `${CLASSROOM_ICON_BASE}gem-creativity.svg`,
+    gemFocus: `${CLASSROOM_ICON_BASE}gem-focus.svg`,
+    shopHomeworkPass: `${CLASSROOM_ICON_BASE}shop-homework-pass.svg`,
+    shopSeatChoice: `${CLASSROOM_ICON_BASE}shop-seat-choice.svg`,
+    shopPraiseCard: `${CLASSROOM_ICON_BASE}shop-praise-card.svg`,
+    shopPresentationPass: `${CLASSROOM_ICON_BASE}shop-presentation-pass.svg`,
+    shopMiniBadge: `${CLASSROOM_ICON_BASE}shop-mini-badge.svg`,
+    shopHelperTicket: `${CLASSROOM_ICON_BASE}shop-helper-ticket.svg`,
+    shopMusicCoupon: `${CLASSROOM_ICON_BASE}shop-music-coupon.svg`,
+    shopFreeTime: `${CLASSROOM_ICON_BASE}shop-free-time.svg`,
+    boostGreenhouse: `${CLASSROOM_ICON_BASE}boost-greenhouse.svg`,
+    boostSprinkler: `${CLASSROOM_ICON_BASE}boost-sprinkler.svg`,
+    boostSunLamp: `${CLASSROOM_ICON_BASE}boost-sun-lamp.svg`,
+    effectGoldenGarden: `${CLASSROOM_ICON_BASE}effect-golden-garden.svg`,
+    effectStarClassroom: `${CLASSROOM_ICON_BASE}effect-star-classroom.svg`,
+    'boost-greenhouse': `${CLASSROOM_ICON_BASE}boost-greenhouse.svg`,
+    'boost-sprinkler': `${CLASSROOM_ICON_BASE}boost-sprinkler.svg`,
+    'boost-sun-lamp': `${CLASSROOM_ICON_BASE}boost-sun-lamp.svg`,
+    'effect-golden-garden': `${CLASSROOM_ICON_BASE}effect-golden-garden.svg`,
+    'effect-star-classroom': `${CLASSROOM_ICON_BASE}effect-star-classroom.svg`,
     billboard: `${CLASSROOM_ICON_BASE}billboard.svg`,
     'boost-farmer-friend': `${CLASSROOM_ICON_BASE}boost-scarecrow.svg`,
     'boost-big-tree': `${CLASSROOM_ICON_BASE}boost-tree.svg`,
@@ -56,7 +95,18 @@
   function getClassroomKeyringIconKey(student = {}) {
     const keyring = student.selectedKeyring || {};
     const badge = student.selectedBadge || {};
+    if(getClassroomIconAssetUrl(keyring.icon)) return keyring.icon;
+    if(getClassroomIconAssetUrl(badge.icon)) return badge.icon;
     const haystack = `${keyring.keyringId || ''} ${keyring.label || ''} ${keyring.icon || ''} ${badge.badgeId || ''} ${badge.label || ''} ${badge.icon || ''}`.toLowerCase();
+    if(haystack.includes('book') || haystack.includes('책')) return 'keyringBook';
+    if(haystack.includes('pencil') || haystack.includes('연필')) return 'keyringPencil';
+    if(haystack.includes('crown') || haystack.includes('왕관')) return 'keyringCrown';
+    if(haystack.includes('medal') || haystack.includes('메달')) return 'keyringMedal';
+    if(haystack.includes('trophy') || haystack.includes('트로피')) return 'keyringTrophy';
+    if(haystack.includes('sprout') || haystack.includes('새싹')) return 'keyringSprout';
+    if(haystack.includes('lightning') || haystack.includes('번개')) return 'keyringLightning';
+    if(haystack.includes('ribbon') || haystack.includes('리본')) return 'keyringRibbon';
+    if(haystack.includes('shield') || haystack.includes('방패')) return 'keyringShield';
     if(haystack.includes('keyringgem') || haystack.includes('gem') || haystack.includes('젬') || haystack.includes('◇') || haystack.includes('◆')) return 'keyringGem';
     if(haystack.includes('keyringheart') || haystack.includes('heart') || haystack.includes('하트') || haystack.includes('♥')) return 'keyringHeart';
     return 'keyringStar';
@@ -666,7 +716,8 @@
       const targetXp = Math.max(1, Number(gem.targetXp || 1));
       const percent = Math.min(100, Math.round((currentXp / targetXp) * 100));
       const card = document.createElement('article');
-      const icon = createClassroomCardIcon('gem', gem.completed ? '◆' : '◇');
+      const icon = createClassroomIconImage(gem.icon, gem.gemName || '교실 젬', 'classroom-card-icon-image')
+        || createClassroomCardIcon('gem', gem.completed ? '◆' : '◇');
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const progress = document.createElement('p');
@@ -738,6 +789,7 @@
       const pointBadge = document.createElement('span');
       const coinBadge = document.createElement('span');
       const levelBadge = document.createElement('span');
+      const levelRow = document.createElement('div');
       const metaGrid = document.createElement('div');
       const boostGrid = document.createElement('div');
       const titleChip = document.createElement('span');
@@ -745,12 +797,16 @@
       const selectedTitleName = student.selectedTitle?.titleName || '';
       const selectedKeyringLabel = student.selectedKeyring?.label || student.selectedBadge?.label || '';
       const boostItems = Array.isArray(student.boostItems) ? student.boostItems : [];
+      const equippedItems = Array.isArray(student.equippedItems) ? student.equippedItems : [];
+      const effectItemIds = boostItems.map(item => String(item.itemId || ''));
       card.className = [
         'classroom-card',
         'classroom-card--student',
         'classroom-student-card',
         selectedTitleName ? 'has-title' : '',
-        selectedKeyringLabel ? 'has-keyring' : ''
+        selectedKeyringLabel ? 'has-keyring' : '',
+        effectItemIds.includes('effect-golden-garden') ? 'has-effect-golden-garden' : '',
+        effectItemIds.includes('effect-star-classroom') ? 'has-effect-star-classroom' : ''
       ].filter(Boolean).join(' ');
       badge.className = 'classroom-card-badge';
       badge.textContent = `${student.studentNumber || '-'}번`;
@@ -788,13 +844,15 @@
         levelBadge.appendChild(levelText);
       }
       identity.append(title, portrait);
-      if(level) identity.appendChild(levelBadge);
-      metaGrid.className = 'classroom-student-card-meta';
+      levelRow.className = 'classroom-student-level-row';
+      if(level) levelRow.appendChild(levelBadge);
       if(selectedTitleName) {
-        titleChip.className = 'quest-status quest-status-active';
+        titleChip.className = 'quest-status quest-status-active classroom-student-title-chip';
         titleChip.textContent = selectedTitleName;
-        metaGrid.appendChild(titleChip);
+        levelRow.appendChild(titleChip);
       }
+      if(levelRow.children.length) identity.appendChild(levelRow);
+      metaGrid.className = 'classroom-student-card-meta';
       if(selectedKeyringLabel) {
         const keyringIcon = createClassroomIconImage(getClassroomKeyringIconKey(student), selectedKeyringLabel, 'classroom-chip-icon');
         keyringChip.className = 'quest-status quest-status-claimed';
@@ -803,6 +861,18 @@
         metaGrid.appendChild(keyringChip);
       }
       boostGrid.className = 'classroom-student-boost-grid';
+      equippedItems.forEach(item => {
+        const equipped = document.createElement('span');
+        const equippedIcon = createClassroomIconImage(item.icon || item.itemId, item.title || '장착 상품', 'classroom-student-equipped-image');
+        equipped.className = 'classroom-student-equipped-icon';
+        equipped.title = item.title || '장착 상품';
+        if(equippedIcon) {
+          equipped.appendChild(equippedIcon);
+        } else {
+          equipped.textContent = item.icon || 'ITEM';
+        }
+        boostGrid.appendChild(equipped);
+      });
       boostItems.forEach(item => {
         const boost = document.createElement('span');
         const boostIcon = createClassroomIconImage(item.itemId, item.title || '부스터', 'classroom-student-boost-image');
@@ -984,7 +1054,8 @@
       const priceType = item.priceType === 'djCoin' ? 'djCoin' : 'point';
       const price = priceType === 'djCoin' ? Number(item.priceCoin || 0) : Number(item.pricePoint || 0);
       const canAfford = priceType === 'djCoin' ? djCoin >= price : point >= price;
-      const isOwned = item.itemType === 'pointBoost' && ownedItemIds.has(String(item.itemId || ''));
+      const isBoostItem = item.itemType === 'pointBoost' || item.itemType === 'pointBoostEffect';
+      const isOwned = isBoostItem && ownedItemIds.has(String(item.itemId || ''));
       const card = document.createElement('article');
       const visual = document.createElement('div');
       const imageUrl = deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '';
@@ -1009,11 +1080,11 @@
         visual.textContent = item.icon || (item.itemType === 'billboardTicket' ? '📣' : '선물');
       }
       badge.className = 'classroom-card-badge';
-      badge.textContent = isOwned ? '보유중' : item.itemType === 'pointBoost' ? '포인트 부스터' : item.itemType === 'billboardTicket' ? '전광판' : '쿠폰';
+      badge.textContent = isOwned ? '보유중' : item.itemType === 'pointBoostEffect' ? '적용 효과' : item.itemType === 'pointBoost' ? '배치 아이템' : item.itemType === 'billboardTicket' ? '전광판' : '쿠폰';
       title.textContent = item.title || '교실 상품';
       desc.textContent = item.desc || '상품 설명이 없습니다.';
       reward.className = 'classroom-card-reward';
-      reward.textContent = item.itemType === 'pointBoost'
+      reward.textContent = isBoostItem
         ? `효과: +${formatClassroomPoint(item.boostPoint)}P · 가격: ${price.toLocaleString('ko-KR')} DJ코인`
         : `가격: ${price.toLocaleString('ko-KR')} ${priceType === 'djCoin' ? 'DJ코인' : '포인트'}`;
       status.className = `quest-status ${isOwned ? 'quest-status-claimed' : canAfford ? 'quest-status-active' : 'quest-status-ready'}`;
@@ -1029,9 +1100,11 @@
       grid.appendChild(section);
     };
     const pointItems = items.filter(item => item.priceType !== 'djCoin');
-    const coinItems = items.filter(item => item.priceType === 'djCoin');
+    const coinItems = items.filter(item => item.priceType === 'djCoin' && item.itemType !== 'pointBoostEffect');
+    const coinEffectItems = items.filter(item => item.priceType === 'djCoin' && item.itemType === 'pointBoostEffect');
     renderShopSection('point', '포인트샵', '', pointItems, '포인트로 살 수 있는 상품이 없습니다.');
-    renderShopSection('coin', '코인샵', '', coinItems, 'DJ코인으로 살 수 있는 상품이 없습니다.');
+    renderShopSection('coin', '배치 아이템', '', coinItems, 'DJ코인으로 살 수 있는 배치 아이템이 없습니다.');
+    renderShopSection('coin', '적용 효과', '', coinEffectItems, 'DJ코인으로 살 수 있는 적용 효과가 없습니다.');
   }
 
   function renderClassroomShopHistory(settings, economyBoard = {}, deps = {}) {
@@ -1068,6 +1141,7 @@
       const status = String(purchase.status || 'purchased');
       row.className = 'classroom-shop-history-row';
       const isBillboardTicket = purchase.itemId === 'billboard-ticket' || purchase.itemType === 'billboardTicket';
+      const canEquip = !canManage && status === 'purchased' && !isBillboardTicket && !['pointBoost', 'pointBoostEffect'].includes(String(purchase.itemType || ''));
       titleEl.textContent = purchase.itemTitle || (isBillboardTicket ? '전광판 이용권' : '교실 쿠폰');
       const memoText = purchase.rejectReason || purchase.refundReason || purchase.useMemo || purchase.approvalMemo || purchase.requestMemo || '';
       meta.textContent = `${canManage ? `${purchase.memberUserId || '학생'} · ` : ''}${Number(purchase.pricePoint || 0).toLocaleString('ko-KR')} 포인트 · ${getClassroomPurchaseStatusLabel(status)}${memoText ? ` · ${memoText}` : ''}`;
@@ -1109,6 +1183,19 @@
         billboardButton.dataset.classroomBillboardUseId = purchase.purchaseId || '';
         billboardButton.textContent = '전광판에 올리기';
         actions.appendChild(billboardButton);
+      } else if(canEquip) {
+        const equipButton = document.createElement('button');
+        const requestButton = document.createElement('button');
+        equipButton.className = 'quest-claim-button';
+        equipButton.type = 'button';
+        equipButton.dataset.classroomShopEquipId = purchase.purchaseId || '';
+        equipButton.dataset.classroomShopEquipState = purchase.equipped ? 'false' : 'true';
+        equipButton.textContent = purchase.equipped ? '장착 해제' : '장착';
+        requestButton.className = 'quest-claim-button';
+        requestButton.type = 'button';
+        requestButton.dataset.classroomShopRequestUseId = purchase.purchaseId || '';
+        requestButton.textContent = '사용 요청';
+        actions.append(equipButton, requestButton);
       } else if(status === 'purchased') {
         const requestButton = document.createElement('button');
         requestButton.className = 'quest-claim-button';

@@ -173,10 +173,19 @@
       }
     });
 
-    document.getElementById('classroom-shop-grid')?.addEventListener('click', event => {
+    const handleClassroomMarketClick = event => {
       const buyButton = event.target.closest('[data-classroom-shop-buy-id]');
       if(buyButton && !buyButton.disabled) {
         deps.purchaseClassroomShopItem?.(buyButton.dataset.classroomShopBuyId || '', buyButton);
+        return;
+      }
+      const equipButton = event.target.closest('[data-classroom-shop-equip-id]');
+      if(equipButton && !equipButton.disabled) {
+        deps.setClassroomShopPurchaseEquipped?.(
+          equipButton.dataset.classroomShopEquipId || '',
+          equipButton.dataset.classroomShopEquipState === 'true',
+          equipButton
+        );
         return;
       }
       const requestButton = event.target.closest('[data-classroom-shop-request-use-id]');
@@ -223,7 +232,11 @@
       if(claimSavingsButton && !claimSavingsButton.disabled) {
         deps.claimClassroomSavingsMaturity?.(claimSavingsButton.dataset.classroomSavingsAccountId || '', claimSavingsButton);
       }
-    });
+    };
+
+    document.getElementById('classroom-shop-grid')?.addEventListener('click', handleClassroomMarketClick);
+    document.getElementById('classroom-shop-history')?.addEventListener('click', handleClassroomMarketClick);
+    document.getElementById('classroom-group-purchase-shop')?.addEventListener('click', handleClassroomMarketClick);
 
     document.getElementById('classroom-bank-grid')?.addEventListener('click', event => {
       const exchangeButton = event.target.closest('[data-classroom-exchange-direction]');

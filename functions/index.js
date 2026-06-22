@@ -70,7 +70,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.35,
-    icon: "🧑‍🌾",
+    icon: "boost-farmer-friend",
     active: true,
     isDefault: true
   },
@@ -82,7 +82,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.4,
-    icon: "🌳",
+    icon: "boost-big-tree",
     active: true,
     isDefault: true
   },
@@ -94,7 +94,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.2,
-    icon: "⛲",
+    icon: "boost-fountain",
     active: true,
     isDefault: true
   },
@@ -106,7 +106,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.65,
-    icon: "🚜",
+    icon: "boost-mini-tractor",
     active: true,
     isDefault: true
   },
@@ -118,7 +118,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.3,
-    icon: "🌾",
+    icon: "boost-ripe-rice",
     active: true,
     isDefault: true
   },
@@ -130,7 +130,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.5,
-    icon: "🚚",
+    icon: "boost-truck",
     active: true,
     isDefault: true
   },
@@ -142,7 +142,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.1,
-    icon: "🪵",
+    icon: "boost-log-pile",
     active: true,
     isDefault: true
   },
@@ -154,7 +154,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.45,
-    icon: "🔊",
+    icon: "boost-bird-speaker",
     active: true,
     isDefault: true
   },
@@ -166,7 +166,7 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.25,
-    icon: "🐥",
+    icon: "boost-chick",
     active: true,
     isDefault: true
   },
@@ -178,7 +178,67 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     priceType: "djCoin",
     itemType: "pointBoost",
     boostPoint: 0.15,
-    icon: "🧪",
+    icon: "boost-liquid-fertilizer",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-greenhouse",
+    title: "작은 온실",
+    desc: "교실 포인트를 받을 때마다 +0.70P를 더 받습니다.",
+    priceCoin: 80,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.7,
+    icon: "boost-greenhouse",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-sprinkler",
+    title: "자동 스프링클러",
+    desc: "교실 포인트를 받을 때마다 +0.85P를 더 받습니다.",
+    priceCoin: 95,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.85,
+    icon: "boost-sprinkler",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-sun-lamp",
+    title: "햇빛 램프",
+    desc: "교실 포인트를 받을 때마다 +1.00P를 더 받습니다.",
+    priceCoin: 120,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 1,
+    icon: "boost-sun-lamp",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "effect-golden-garden",
+    title: "황금 텃밭 배경",
+    desc: "학생카드 배경이 바뀌고 교실 포인트를 받을 때마다 +1.50P를 더 받습니다.",
+    priceCoin: 220,
+    priceType: "djCoin",
+    itemType: "pointBoostEffect",
+    boostPoint: 1.5,
+    icon: "effect-golden-garden",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "effect-star-classroom",
+    title: "별빛 교실 배경",
+    desc: "학생카드 배경이 바뀌고 교실 포인트를 받을 때마다 +2.00P를 더 받습니다.",
+    priceCoin: 300,
+    priceType: "djCoin",
+    itemType: "pointBoostEffect",
+    boostPoint: 2,
+    icon: "effect-star-classroom",
     active: true,
     isDefault: true
   }
@@ -1633,8 +1693,18 @@ function normalizeClassroomBoostItemForWallet(item = {}) {
   return {
     itemId: String(item.itemId || "").slice(0, 80),
     title: String(item.title || "").slice(0, 40),
-    icon: String(item.icon || "").slice(0, 12),
+    icon: String(item.icon || "").slice(0, 40),
     boostPoint: roundClassroomPoint(item.boostPoint || 0)
+  };
+}
+
+function normalizeClassroomEquippedItemForWallet(item = {}) {
+  return {
+    purchaseId: String(item.purchaseId || "").slice(0, 180),
+    itemId: String(item.itemId || "").slice(0, 80),
+    title: String(item.title || item.itemTitle || "").slice(0, 40),
+    icon: String(item.icon || item.itemIcon || "").slice(0, 40),
+    itemType: String(item.itemType || "").slice(0, 40)
   };
 }
 
@@ -1741,7 +1811,7 @@ function normalizeClassroomGemConfig(rawGem = {}) {
     gemName,
     targetXp: Math.max(1, Math.min(1000, Math.round(Number(rawGem.targetXp || rawGem.gemTargetXp) || 10))),
     rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardPoint || rawGem.gemRewardPoint) || 0))),
-    icon: String(rawGem.icon || "◇").trim().slice(0, 12),
+    icon: String(rawGem.icon || "gemReading").trim().slice(0, 40),
     active: rawGem.active !== false
   };
 }
@@ -1912,6 +1982,9 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary
     boostItems: Array.isArray(wallet.boostItems)
       ? wallet.boostItems.map(item => normalizeClassroomBoostItemForWallet(item)).filter(item => item.itemId).slice(0, 12)
       : [],
+    equippedItems: Array.isArray(wallet.equippedItems)
+      ? wallet.equippedItems.map(item => normalizeClassroomEquippedItemForWallet(item)).filter(item => item.purchaseId && item.itemId).slice(0, 8)
+      : [],
     selectedTitle: {
       titleId: String(titleSummary.selectedTitleId || data.selectedTitleId || "").slice(0, 80),
       titleName: String(titleSummary.selectedTitleName || data.selectedTitleName || "").slice(0, 50)
@@ -1919,13 +1992,13 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary
     selectedKeyring: {
       keyringId: String(profile.selectedKeyringId || selectedKeyring.keyringId || profile.selectedBadgeId || selectedBadge.badgeId || "").slice(0, 80),
       label: String(profile.selectedKeyringLabel || selectedKeyring.label || profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
-      icon: String(profile.selectedKeyringIcon || selectedKeyring.icon || profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 12),
+      icon: String(profile.selectedKeyringIcon || selectedKeyring.icon || profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 40),
       color: String(profile.selectedKeyringColor || selectedKeyring.color || profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
     },
     selectedBadge: {
       badgeId: String(profile.selectedBadgeId || selectedBadge.badgeId || "").slice(0, 80),
       label: String(profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
-      icon: String(profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 12),
+      icon: String(profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 40),
       color: String(profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
     }
   };
@@ -5222,7 +5295,7 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
   const targetGemName = String(rawCampaign.targetGemName || "").trim().slice(0, 40);
   const targetGemId = slugifyClassroomGemId(rawCampaign.targetGemId || targetGemName);
   const awardLimit = Math.max(1, Math.min(10, Math.round(Number(rawCampaign.awardLimit) || 1)));
-  const icon = String(rawCampaign.icon || "🏅").trim().slice(0, 12);
+  const icon = String(rawCampaign.icon || "keyringStar").trim().slice(0, 40);
   const color = String(rawCampaign.color || "#ffcf5a").trim().slice(0, 30);
   if (!title || !targetGemId) {
     throw new HttpsError("invalid-argument", "Badge title and target gemstone are required.");
@@ -5571,9 +5644,10 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         pricePoint: Number(data.pricePoint || 0),
         priceCoin: Number(data.priceCoin || 0),
         priceType: String(data.priceType || (Number(data.priceCoin || 0) > 0 ? "djCoin" : "point")),
-        itemIcon: String(data.itemIcon || "").slice(0, 12),
+        itemIcon: String(data.itemIcon || "").slice(0, 40),
         boostPoint: roundClassroomPoint(data.boostPoint || 0),
         status: String(data.status || "purchased"),
+        equipped: data.equipped === true,
         requestedAtMillis: getTimestampMillis(data.requestedAt),
         approvedAtMillis: getTimestampMillis(data.approvedAt),
         usedAtMillis: getTimestampMillis(data.usedAt),
@@ -6203,7 +6277,7 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
     const currentPoint = Math.max(0, getClassroomPointAmount(wallet));
     const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
     const currentDjCoin = Math.max(0, Math.round(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
-    const boostItem = String(item.itemType || "") === "pointBoost";
+    const boostItem = ["pointBoost", "pointBoostEffect"].includes(String(item.itemType || ""));
     const ownedBoostItemIds = Array.isArray(wallet.boostItemIds) ? wallet.boostItemIds.map(value => String(value || "")) : [];
     if (boostItem && ownedBoostItemIds.includes(itemId)) {
       return {
@@ -6303,6 +6377,75 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
       remainingPoint: priceType === "point" ? roundClassroomPoint(currentPoint - pricePoint) : currentPoint,
       remainingDjCoin: priceType === "djCoin" ? currentDjCoin - priceCoin : currentDjCoin
     };
+  });
+
+  return { success: true, classId, memberUserId, ...result };
+});
+
+exports.setClassroomShopPurchaseEquipped = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const purchaseId = normalizeId(payload.purchaseId, "purchaseId");
+  const equipped = payload.equipped !== false;
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const [purchaseSnapshot, walletSnapshot] = await Promise.all([
+      transaction.get(purchaseRef),
+      transaction.get(walletRef)
+    ]);
+    if (!purchaseSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom shop purchase not found.");
+    }
+    const purchase = purchaseSnapshot.data() || {};
+    if (purchase.memberUserId !== memberUserId) {
+      throw new HttpsError("permission-denied", "Cannot equip another member purchase.");
+    }
+    const status = String(purchase.status || "purchased");
+    const itemType = String(purchase.itemType || "");
+    if (status !== "purchased") {
+      throw new HttpsError("failed-precondition", "Only purchased items can be equipped.");
+    }
+    if (itemType === "billboardTicket" || itemType === "pointBoost" || itemType === "pointBoostEffect") {
+      throw new HttpsError("failed-precondition", "This item type cannot be equipped manually.");
+    }
+    const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
+    const equippedItems = Array.isArray(wallet.equippedItems)
+      ? wallet.equippedItems.map(item => normalizeClassroomEquippedItemForWallet(item)).filter(item => item.purchaseId && item.purchaseId !== purchaseId)
+      : [];
+    if (equipped) {
+      equippedItems.push(normalizeClassroomEquippedItemForWallet({
+        purchaseId,
+        itemId: purchase.itemId || "",
+        title: purchase.itemTitle || "",
+        icon: purchase.itemIcon || "",
+        itemType
+      }));
+    }
+    transaction.set(walletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId,
+      equippedItems: equippedItems.slice(0, 8),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomEquipAt: FieldValue.serverTimestamp(),
+      source: "set_classroom_shop_purchase_equipped_function"
+    }, { merge: true });
+    transaction.set(purchaseRef, {
+      equipped,
+      equippedAt: equipped ? FieldValue.serverTimestamp() : null,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "set_classroom_shop_purchase_equipped_function"
+    }, { merge: true });
+    return { purchaseId, equipped };
   });
 
   return { success: true, classId, memberUserId, ...result };

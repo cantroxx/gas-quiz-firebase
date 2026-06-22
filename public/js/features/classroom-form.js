@@ -123,7 +123,7 @@
       targetGemName,
       targetGemId: deps.slugifyClassroomGemId?.(targetGemName) || '',
       awardLimit: Math.max(1, Math.min(10, Math.round(Number(document.getElementById('classroom-badge-limit-input')?.value) || 1))),
-      icon: String(document.getElementById('classroom-badge-icon-input')?.value || '🏅').trim().slice(0, 12),
+      icon: String(document.getElementById('classroom-badge-icon-input')?.value || 'keyringStar').trim().slice(0, 40),
       color: String(document.getElementById('classroom-badge-color-input')?.value || '#ffcf5a').trim().slice(0, 30)
     };
   }
@@ -207,7 +207,7 @@
       gemId: deps.slugifyClassroomGemId?.(gemName) || '',
       targetXp: Math.max(1, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-target-input')?.value) || 10))),
       rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-reward-input')?.value) || 0))),
-      icon: String(document.getElementById('classroom-gem-icon-input')?.value || '◇').trim().slice(0, 12)
+      icon: String(document.getElementById('classroom-gem-icon-input')?.value || 'gemReading').trim().slice(0, 40)
     };
   }
 
@@ -219,7 +219,7 @@
     if(name) name.value = '';
     if(target) target.value = '10';
     if(reward) reward.value = '30';
-    if(icon) icon.value = '◇';
+    if(icon) icon.value = 'gemReading';
   }
 
   function getClassroomGroupPurchaseFormValues() {
