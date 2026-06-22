@@ -5775,6 +5775,26 @@ h2 {
   white-space: nowrap;
 }
 
+.classroom-student-coin-badge {
+  position: absolute;
+  top: 42px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  max-width: calc(100% - 90px);
+  padding: 3px 8px;
+  border: 1px solid rgba(227, 153, 21, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 248, 220, 0.94);
+  color: #9a5a00;
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .classroom-student-identity {
   display: grid;
   justify-items: center;
@@ -5838,6 +5858,28 @@ h2 {
   flex-wrap: wrap;
   gap: 6px;
   margin: 4px 0 2px;
+}
+
+.classroom-student-boost-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.classroom-student-boost-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(84, 105, 132, 0.16);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #143254;
+  font-size: 1rem;
+  font-weight: 950;
+  box-shadow: 0 3px 0 rgba(188, 202, 187, 0.48);
 }
 
 .classroom-mission-panel {

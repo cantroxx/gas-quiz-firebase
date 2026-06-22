@@ -196,6 +196,7 @@ async function testClassroomRepositoryReadPaths() {
     billboardMessages: [],
     classMission: null,
     publicWallet: { point: 0 },
+    myDjCoin: 0,
     groupPurchases: [],
     savingsProducts: [],
     savingsAccounts: [],

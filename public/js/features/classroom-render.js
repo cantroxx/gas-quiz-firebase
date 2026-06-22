@@ -461,6 +461,13 @@
     return meter;
   }
 
+  function formatClassroomPoint(value) {
+    return Number(value || 0).toLocaleString('ko-KR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+  }
+
   function renderClassroomQuestCards(settings = {}, progressMap = {}, deps = {}) {
     const grid = document.getElementById('classroom-quest-grid');
     if(!grid) return;
@@ -665,12 +672,15 @@
       const level = Math.max(1, Math.round(Number(student.level || levelSummary.level) || 1));
       const medalAsset = level ? deps.getLevelMedalAsset?.(level) : null;
       const pointBadge = document.createElement('span');
+      const coinBadge = document.createElement('span');
       const levelBadge = document.createElement('span');
       const metaGrid = document.createElement('div');
+      const boostGrid = document.createElement('div');
       const titleChip = document.createElement('span');
       const keyringChip = document.createElement('span');
       const selectedTitleName = student.selectedTitle?.titleName || '';
       const selectedKeyringLabel = student.selectedKeyring?.label || student.selectedBadge?.label || '';
+      const boostItems = Array.isArray(student.boostItems) ? student.boostItems : [];
       card.className = [
         'classroom-card',
         'classroom-card--student',
@@ -681,7 +691,9 @@
       badge.className = 'classroom-card-badge';
       badge.textContent = `${student.studentNumber || '-'}번`;
       pointBadge.className = 'classroom-student-point-badge';
-      pointBadge.textContent = `${Number(student.point || 0).toLocaleString('ko-KR')}P`;
+      pointBadge.textContent = `${formatClassroomPoint(student.point)}P`;
+      coinBadge.className = 'classroom-student-coin-badge';
+      coinBadge.textContent = `${Number(student.djCoin || 0).toLocaleString('ko-KR')} DJ`;
       identity.className = 'classroom-student-identity';
       title.textContent = student.nickname || student.name || student.memberUserId || '학생';
       portrait.className = 'classroom-student-portrait';
@@ -720,8 +732,23 @@
         keyringChip.textContent = selectedKeyringLabel;
         metaGrid.appendChild(keyringChip);
       }
-      card.append(badge, pointBadge, identity);
+      boostGrid.className = 'classroom-student-boost-grid';
+      boostItems.forEach(item => {
+        const boost = document.createElement('span');
+        boost.className = 'classroom-student-boost-icon';
+        boost.title = `${item.title || '부스터'} +${formatClassroomPoint(item.boostPoint)}P`;
+        boost.textContent = item.icon || '+P';
+        boostGrid.appendChild(boost);
+      });
+      if(Number(student.pointBoostAmount || 0) > 0) {
+        const totalBoost = document.createElement('span');
+        totalBoost.className = 'quest-status quest-status-active';
+        totalBoost.textContent = `획득 +${formatClassroomPoint(student.pointBoostAmount)}P`;
+        metaGrid.appendChild(totalBoost);
+      }
+      card.append(badge, pointBadge, coinBadge, identity);
       if(metaGrid.children.length) card.appendChild(metaGrid);
+      if(boostGrid.children.length) card.appendChild(boostGrid);
       grid.appendChild(card);
     });
   }
@@ -847,13 +874,22 @@
     if(!grid) return;
     const items = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const point = Number(wallet.point || 0);
+    const djCoin = Number(economyBoard.myDjCoin || 0);
+    const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
+    const ownedItemIds = new Set(purchases
+      .filter(purchase => ['purchased', 'use_requested', 'use_approved', 'used'].includes(purchase.status))
+      .map(purchase => String(purchase.itemId || ''))
+      .filter(Boolean));
     grid.innerHTML = '';
     if(!items.length) {
       renderEmptyClassroomCard(grid, '준비 중', '아직 등록된 교실 상품이 없습니다', deps.isCurrentClassroomTeacher?.(settings) ? '담임 관리 영역에서 교실 상품을 만들어 주세요.' : '담임이 상품을 만들면 포인트로 구매할 수 있습니다.');
       return;
     }
     items.forEach(item => {
-      const price = Number(item.pricePoint || 0);
+      const priceType = item.priceType === 'djCoin' ? 'djCoin' : 'point';
+      const price = priceType === 'djCoin' ? Number(item.priceCoin || 0) : Number(item.pricePoint || 0);
+      const canAfford = priceType === 'djCoin' ? djCoin >= price : point >= price;
+      const isOwned = item.itemType === 'pointBoost' && ownedItemIds.has(String(item.itemId || ''));
       const card = document.createElement('article');
       const visual = document.createElement('div');
       const imageUrl = deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '';
@@ -863,7 +899,7 @@
       const reward = document.createElement('p');
       const status = document.createElement('span');
       const button = document.createElement('button');
-      card.className = `classroom-card classroom-card--shop${point >= price ? ' is-affordable' : ''}`;
+      card.className = `classroom-card classroom-card--shop${canAfford ? ' is-affordable' : ''}${isOwned ? ' is-complete' : ''}`;
       visual.className = 'classroom-shop-card-visual';
       if(imageUrl) {
         const image = document.createElement('img');
@@ -875,18 +911,20 @@
         visual.textContent = item.icon || (item.itemType === 'billboardTicket' ? '📣' : '선물');
       }
       badge.className = 'classroom-card-badge';
-      badge.textContent = item.itemType === 'billboardTicket' ? '전광판' : '쿠폰';
+      badge.textContent = isOwned ? '보유중' : item.itemType === 'pointBoost' ? '포인트 부스터' : item.itemType === 'billboardTicket' ? '전광판' : '쿠폰';
       title.textContent = item.title || '교실 상품';
       desc.textContent = item.desc || '상품 설명이 없습니다.';
       reward.className = 'classroom-card-reward';
-      reward.textContent = `가격: ${price.toLocaleString('ko-KR')} 포인트`;
-      status.className = `quest-status ${point >= price ? 'quest-status-active' : 'quest-status-ready'}`;
-      status.textContent = point >= price ? '구매 가능' : '포인트가 부족합니다';
+      reward.textContent = item.itemType === 'pointBoost'
+        ? `효과: +${formatClassroomPoint(item.boostPoint)}P · 가격: ${price.toLocaleString('ko-KR')} DJ코인`
+        : `가격: ${price.toLocaleString('ko-KR')} ${priceType === 'djCoin' ? 'DJ코인' : '포인트'}`;
+      status.className = `quest-status ${isOwned ? 'quest-status-claimed' : canAfford ? 'quest-status-active' : 'quest-status-ready'}`;
+      status.textContent = isOwned ? '학생카드에 배치됨' : canAfford ? '구매 가능' : `${priceType === 'djCoin' ? 'DJ코인' : '포인트'}가 부족합니다`;
       button.className = 'quest-claim-button';
       button.type = 'button';
       button.dataset.classroomShopBuyId = item.itemId || '';
-      button.disabled = price <= 0 || point < price;
-      button.textContent = '구매하기';
+      button.disabled = price <= 0 || !canAfford || isOwned;
+      button.textContent = isOwned ? '보유중' : '구매하기';
       card.append(visual, badge, title, desc, reward, status, button);
       grid.appendChild(card);
     });

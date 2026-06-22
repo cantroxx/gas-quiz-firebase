@@ -1029,6 +1029,7 @@ function computeLevelSummary(totalXpInput) {
 async function applyLevelXp(transaction, {
   memberUserId,
   authUid,
+  memberData = null,
   xpDelta,
   sourceType,
   sourceId,
@@ -1037,6 +1038,7 @@ async function applyLevelXp(transaction, {
   capKey = "",
   capLimit = 0,
   caps = [],
+  classroomPointMirrorAmount = 0,
   extra = {}
 }) {
   const safeXpDelta = Math.max(0, Math.round(Number(xpDelta) || 0));
@@ -1055,11 +1057,20 @@ async function applyLevelXp(transaction, {
     }))
     .filter(cap => cap.capKey);
   const capRefs = capSpecs.map(cap => db.collection("levelXpCaps").doc(cap.capKey));
-  const [summarySnapshot, logSnapshot, ...capSnapshots] = await Promise.all([
+  const classroomLevelRewardClassId = memberData ? getClassIdForMember(memberData) : "";
+  const classroomLevelRewardWalletRef = classroomLevelRewardClassId
+    ? db.collection("classrooms").doc(classroomLevelRewardClassId).collection("studentWallets").doc(memberUserId)
+    : null;
+  const readSnapshots = await Promise.all([
     transaction.get(summaryRef),
     transaction.get(logRef),
-    ...capRefs.map(ref => transaction.get(ref))
+    ...capRefs.map(ref => transaction.get(ref)),
+    ...(classroomLevelRewardWalletRef ? [transaction.get(classroomLevelRewardWalletRef)] : [])
   ]);
+  const summarySnapshot = readSnapshots[0];
+  const logSnapshot = readSnapshots[1];
+  const capSnapshots = readSnapshots.slice(2, 2 + capRefs.length);
+  const classroomLevelRewardWalletSnapshot = classroomLevelRewardWalletRef ? readSnapshots[2 + capRefs.length] : null;
 
   const before = computeLevelSummary(summarySnapshot.exists ? summarySnapshot.data()?.totalXp : 0);
   if (logSnapshot.exists || safeXpDelta <= 0 || before.level >= LEVEL_MAX) {
@@ -1110,6 +1121,17 @@ async function applyLevelXp(transaction, {
   }
 
   const after = computeLevelSummary(before.totalXp + appliedXp);
+  const gainedLevelCount = Math.max(0, after.level - before.level);
+  const levelRewardCoin = gainedLevelCount * LEVEL_UP_REWARD_COIN;
+  const classroomWalletData = classroomLevelRewardWalletSnapshot?.exists ? classroomLevelRewardWalletSnapshot.data() || {} : {};
+  const classroomLevelReward = getBoostedClassroomPointAmount(
+    gainedLevelCount * LEVEL_UP_CLASSROOM_POINT,
+    classroomWalletData
+  );
+  const classroomMirrorReward = getBoostedClassroomPointAmount(
+    classroomPointMirrorAmount,
+    classroomWalletData
+  );
   transaction.set(summaryRef, {
     memberUserId,
     userId: memberUserId,
@@ -1122,8 +1144,92 @@ async function applyLevelXp(transaction, {
     medalId: after.medalId,
     rankIconUrl: after.rankIconUrl,
     updatedAt: FieldValue.serverTimestamp(),
-    ...(after.level > before.level ? { lastLevelRewardAt: FieldValue.serverTimestamp() } : {})
+    ...(gainedLevelCount > 0 ? { lastLevelRewardAt: FieldValue.serverTimestamp() } : {})
   }, { merge: true });
+  if (levelRewardCoin > 0) {
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      djCoin: FieldValue.increment(levelRewardCoin),
+      totalEarned: FieldValue.increment(levelRewardCoin),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastLevelRewardAt: FieldValue.serverTimestamp(),
+      source: "level_up_reward_function"
+    }, { merge: true });
+  }
+  if (classroomLevelRewardWalletRef && classroomLevelReward.rewardAmount > 0) {
+    const levelRewardPointLogId = rewardLogId([
+      "classroom_level_up_reward",
+      classroomLevelRewardClassId,
+      memberUserId,
+      sourceType,
+      sourceId
+    ]);
+    transaction.set(classroomLevelRewardWalletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId: classroomLevelRewardClassId,
+      point: FieldValue.increment(classroomLevelReward.rewardAmount),
+      totalEarnedPoint: FieldValue.increment(classroomLevelReward.rewardAmount),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomLevelRewardAt: FieldValue.serverTimestamp(),
+      source: "level_up_reward_function"
+    }, { merge: true });
+    transaction.set(db.collection("classrooms").doc(classroomLevelRewardClassId).collection("pointLogs").doc(levelRewardPointLogId), {
+      type: "classroom_level_up_reward",
+      classId: classroomLevelRewardClassId,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCurrency: "point",
+      rewardPoint: classroomLevelReward.rewardAmount,
+      rewardAmount: classroomLevelReward.rewardAmount,
+      baseRewardAmount: classroomLevelReward.baseAmount,
+      boostPoint: classroomLevelReward.boostPoint,
+      beforeLevel: before.level,
+      afterLevel: after.level,
+      gainedLevelCount,
+      sourceType,
+      sourceId,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+  }
+  if (classroomLevelRewardWalletRef && classroomMirrorReward.rewardAmount > 0) {
+    const mirrorPointLogId = rewardLogId([
+      "dj_coin_mirror_point",
+      classroomLevelRewardClassId,
+      memberUserId,
+      sourceType || "dj_coin_reward",
+      sourceId || Date.now()
+    ]);
+    transaction.set(classroomLevelRewardWalletRef, {
+      memberUserId,
+      userId: memberUserId,
+      classId: classroomLevelRewardClassId,
+      point: FieldValue.increment(classroomMirrorReward.rewardAmount),
+      totalEarnedPoint: FieldValue.increment(classroomMirrorReward.rewardAmount),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastDjCoinMirrorPointAt: FieldValue.serverTimestamp(),
+      source: sourceType || "dj_coin_mirror_point"
+    }, { merge: true });
+    transaction.set(db.collection("classrooms").doc(classroomLevelRewardClassId).collection("pointLogs").doc(mirrorPointLogId), {
+      type: "dj_coin_mirror_point",
+      classId: classroomLevelRewardClassId,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      rewardCurrency: "point",
+      rewardPoint: classroomMirrorReward.rewardAmount,
+      rewardAmount: classroomMirrorReward.rewardAmount,
+      baseRewardAmount: classroomMirrorReward.baseAmount,
+      boostPoint: classroomMirrorReward.boostPoint,
+      sourceType: sourceType || "dj_coin_reward",
+      sourceId: sourceId || "",
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+  }
   transaction.set(logRef, {
     type: "level_xp",
     memberUserId,
@@ -1138,7 +1244,15 @@ async function applyLevelXp(transaction, {
     afterLevel: after.level,
     beforeTotalXp: before.totalXp,
     afterTotalXp: after.totalXp,
-    leveledUp: after.level > before.level,
+    leveledUp: gainedLevelCount > 0,
+    gainedLevelCount,
+    levelRewardCoin,
+    levelRewardPoint: classroomLevelReward.rewardAmount,
+    levelRewardBasePoint: classroomLevelReward.baseAmount,
+    levelRewardBoostPoint: classroomLevelReward.boostPoint,
+    classroomMirrorPoint: classroomMirrorReward.rewardAmount,
+    classroomMirrorBasePoint: classroomMirrorReward.baseAmount,
+    classroomMirrorBoostPoint: classroomMirrorReward.boostPoint,
     createdAt: FieldValue.serverTimestamp(),
     ...extra
   }, { merge: false });
@@ -1159,7 +1273,19 @@ async function applyLevelXp(transaction, {
     xpDelta: appliedXp,
     before,
     after,
-    leveledUp: after.level > before.level,
+    leveledUp: gainedLevelCount > 0,
+    gainedLevelCount,
+    levelReward: {
+      djCoin: levelRewardCoin,
+      point: classroomLevelReward.rewardAmount,
+      basePoint: classroomLevelReward.baseAmount,
+      boostPoint: classroomLevelReward.boostPoint
+    },
+    classroomMirror: {
+      point: classroomMirrorReward.rewardAmount,
+      basePoint: classroomMirrorReward.baseAmount,
+      boostPoint: classroomMirrorReward.boostPoint
+    },
     capped: capSpecs.some(cap => cap.capLimit > 0) && appliedXp < safeXpDelta,
     levelSummaryPath: summaryRef.path,
     levelXpLogPath: logRef.path
@@ -1479,6 +1605,39 @@ function getClassroomPointAmount(wallet = {}) {
   return Number(wallet.point ?? wallet.berry ?? 0) || 0;
 }
 
+function roundClassroomPoint(value) {
+  return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+function getClassroomPointBoostAmount(wallet = {}) {
+  return roundClassroomPoint(wallet.pointBoostAmount ?? wallet.pointBoost ?? 0);
+}
+
+function getBoostedClassroomPointAmount(baseAmount, wallet = {}) {
+  const base = roundClassroomPoint(baseAmount);
+  const boostPoint = base > 0 ? Math.max(0, getClassroomPointBoostAmount(wallet)) : 0;
+  return {
+    baseAmount: base,
+    boostPoint,
+    rewardAmount: roundClassroomPoint(base + boostPoint)
+  };
+}
+
+function normalizeClassroomBoostItemForWallet(item = {}) {
+  return {
+    itemId: String(item.itemId || "").slice(0, 80),
+    title: String(item.title || "").slice(0, 40),
+    icon: String(item.icon || "").slice(0, 12),
+    boostPoint: roundClassroomPoint(item.boostPoint || 0)
+  };
+}
+
+function getDefaultClassroomShopItem(itemId) {
+  const id = String(itemId || "");
+  if (id === CLASSROOM_BILLBOARD_TICKET_ITEM_ID) return DEFAULT_CLASSROOM_BILLBOARD_ITEM;
+  return DEFAULT_CLASSROOM_POINT_BOOST_ITEMS.find(item => item.itemId === id) || null;
+}
+
 function normalizeClassroomMission(rawMission = {}) {
   const thresholds = Array.isArray(rawMission.thresholds) ? rawMission.thresholds : DEFAULT_CLASSROOM_MISSION.thresholds;
   return {
@@ -1712,7 +1871,7 @@ exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
   };
 });
 
-function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary = {}) {
+function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary = {}, economy = {}) {
   const data = doc.data() || {};
   const selectedBadge = profile.selectedBadge && typeof profile.selectedBadge === "object"
     ? profile.selectedBadge
@@ -1729,6 +1888,11 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary
     name: String(data.name || data.nickname || "").slice(0, 24),
     profileImageUrl: String(data.profileImageUrl || "").slice(0, 1200),
     point: getClassroomPointAmount(wallet),
+    djCoin: Number(economy.djCoin ?? economy.coin ?? 0) || 0,
+    pointBoostAmount: getClassroomPointBoostAmount(wallet),
+    boostItems: Array.isArray(wallet.boostItems)
+      ? wallet.boostItems.map(item => normalizeClassroomBoostItemForWallet(item)).filter(item => item.itemId).slice(0, 12)
+      : [],
     selectedTitle: {
       titleId: String(titleSummary.selectedTitleId || data.selectedTitleId || "").slice(0, 80),
       titleName: String(titleSummary.selectedTitleName || data.selectedTitleName || "").slice(0, 50)
@@ -1834,7 +1998,10 @@ function normalizeClassroomShopItem(rawItem = {}) {
     title,
     desc: String(rawItem.desc || "").trim().slice(0, 160),
     pricePoint: Math.max(1, Math.min(10000, Math.round(Number(rawItem.pricePoint || rawItem.priceBerry || rawItem.price) || 1))),
+    priceCoin: Math.max(0, Math.min(10000, Math.round(Number(rawItem.priceCoin || rawItem.priceDjCoin || rawItem.djCoinPrice) || 0))),
+    priceType: ["djCoin", "point"].includes(String(rawItem.priceType || "").trim()) ? String(rawItem.priceType).trim() : "point",
     itemType: String(rawItem.itemType || rawItem.type || "coupon").trim().slice(0, 40) || "coupon",
+    boostPoint: roundClassroomPoint(rawItem.boostPoint || rawItem.pointBoost || 0),
     icon: String(rawItem.icon || "").trim().slice(0, 12),
     active: rawItem.active !== false
   };
@@ -4516,11 +4683,13 @@ exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
     const levelXp = await applyLevelXp(transaction, {
       memberUserId,
       authUid,
+      memberData,
       xpDelta: quest.xpReward || 0,
       sourceType: `event_${quest.scope || "daily"}_quest`,
       sourceId: `${getEventQuestPeriodKey(quest, dateKey, weekKey)}__${questId}__${attempt}`,
       sourceLabel: quest.title,
       dateKey,
+      classroomPointMirrorAmount: quest.rewardCoin || 0,
       caps: [getWeeklyLevelXpCap(memberUserId, weekKey)],
       extra: {
         questId,
@@ -4539,14 +4708,6 @@ exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
         lastEventQuestRewardAt: FieldValue.serverTimestamp(),
         source: "event_quest_reward_function"
       }, { merge: true });
-      mirrorDjCoinRewardToClassroomPoint(transaction, {
-        memberUserId,
-        memberData,
-        authUid,
-        rewardAmount: quest.rewardCoin,
-        sourceType: `event_${quest.scope || "daily"}_quest`,
-        sourceId: `${getEventQuestPeriodKey(quest, dateKey, weekKey)}__${questId}__${attempt}`
-      });
     }
     transaction.set(logRef, {
       type: "event_quest",
@@ -4635,10 +4796,15 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
       : null;
 
-    const [progressSnapshot, logSnapshot] = await Promise.all([
+    const [progressSnapshot, logSnapshot, walletSnapshot] = await Promise.all([
       transaction.get(progressRef),
-      transaction.get(logRef)
+      transaction.get(logRef),
+      rewardCurrency === "point" ? transaction.get(economyRef) : Promise.resolve(null)
     ]);
+    const boostedReward = getBoostedClassroomPointAmount(
+      rewardAmount,
+      walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
+    );
 
     if (progressSnapshot.exists || logSnapshot.exists) {
       return {
@@ -4688,8 +4854,8 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
         memberUserId,
         userId: memberUserId,
         classId,
-        point: FieldValue.increment(rewardAmount),
-        totalEarnedPoint: FieldValue.increment(rewardAmount),
+        point: FieldValue.increment(boostedReward.rewardAmount),
+        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
         updatedAt: FieldValue.serverTimestamp(),
         lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
         source: "classroom_auto_quest_function"
@@ -4705,8 +4871,10 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
         memberUserId,
         authUid,
         rewardCurrency,
-        rewardPoint: rewardAmount,
-        rewardAmount,
+        rewardPoint: boostedReward.rewardAmount,
+        rewardAmount: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint,
         progressPath: progressRef.path,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
@@ -4733,8 +4901,10 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       authUid,
       rewardCurrency,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
-      rewardAmount,
+      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
+      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
+      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
+      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
       progressPath: progressRef.path,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -4743,9 +4913,11 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
     return {
       duplicate: false,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
+      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
       rewardCurrency,
-      rewardAmount,
+      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
+      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
+      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
       dateKey,
       recordId,
       progressPath: progressRef.path,
@@ -4914,14 +5086,17 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
     });
 
   const walletRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentWallets").doc(doc.id));
+  const economyRefs = studentDocs.map(doc => db.collection("userEconomy").doc(doc.id));
   const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
   const titleRefs = studentDocs.map(doc => db.collection("userTitleSummary").doc(doc.id));
-  const [walletSnapshots, profileSnapshots, titleSnapshots] = await Promise.all([
+  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots] = await Promise.all([
     walletRefs.length ? db.getAll(...walletRefs) : [],
+    economyRefs.length ? db.getAll(...economyRefs) : [],
     profileRefs.length ? db.getAll(...profileRefs) : [],
     titleRefs.length ? db.getAll(...titleRefs) : []
   ]);
   const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+  const economyByUserId = new Map(economySnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const titleByUserId = new Map(titleSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
 
@@ -4933,7 +5108,8 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
       doc,
       walletByUserId.get(doc.id) || {},
       profileByUserId.get(doc.id) || {},
-      titleByUserId.get(doc.id) || {}
+      titleByUserId.get(doc.id) || {},
+      economyByUserId.get(doc.id) || {}
     ))
   };
 });
@@ -5246,6 +5422,11 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   if (!shopItems.some(item => item.itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID)) {
     shopItems.push(DEFAULT_CLASSROOM_BILLBOARD_ITEM);
   }
+  DEFAULT_CLASSROOM_POINT_BOOST_ITEMS.forEach(defaultItem => {
+    if (!shopItems.some(item => item.itemId === defaultItem.itemId)) {
+      shopItems.push(defaultItem);
+    }
+  });
   const totalStudentPoint = walletSnapshot.docs.reduce((sum, doc) => sum + Math.max(0, Math.round(getClassroomPointAmount(doc.data() || {}))), 0);
   const classMission = publicClassroomMission(
     missionSnapshot.exists ? missionSnapshot.data() || {} : DEFAULT_CLASSROOM_MISSION,
@@ -5366,6 +5547,10 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         itemType: String(data.itemType || ""),
         memberUserId: String(data.memberUserId || data.userId || ""),
         pricePoint: Number(data.pricePoint || 0),
+        priceCoin: Number(data.priceCoin || 0),
+        priceType: String(data.priceType || (Number(data.priceCoin || 0) > 0 ? "djCoin" : "point")),
+        itemIcon: String(data.itemIcon || "").slice(0, 12),
+        boostPoint: roundClassroomPoint(data.boostPoint || 0),
         status: String(data.status || "purchased"),
         requestedAtMillis: getTimestampMillis(data.requestedAt),
         approvedAtMillis: getTimestampMillis(data.approvedAt),
@@ -5420,6 +5605,8 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     })
     .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
     .slice(0, authResult.canManage ? 120 : 30);
+  const economySnapshot = await db.collection("userEconomy").doc(memberUserId).get();
+  const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
 
   return {
     success: true,
@@ -5436,6 +5623,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     billboardMessages,
     classMission,
     publicWallet,
+    myDjCoin: Number(economy.djCoin ?? economy.coin ?? 0) || 0,
     groupPurchases,
     savingsProducts,
     savingsAccounts,
@@ -5865,16 +6053,23 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
     const logRef = db.collection("rewardLogs").doc(logId);
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
     const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
-    const logSnapshot = await transaction.get(logRef);
+    const [logSnapshot, walletSnapshot] = await Promise.all([
+      transaction.get(logRef),
+      transaction.get(walletRef)
+    ]);
     if (logSnapshot.exists) {
       return { duplicate: true, rewardAmount: 0, monthKey };
     }
+    const boostedReward = getBoostedClassroomPointAmount(
+      rewardAmount,
+      walletSnapshot.exists ? walletSnapshot.data() || {} : {}
+    );
     transaction.set(walletRef, {
       memberUserId,
       userId: memberUserId,
       classId,
-      point: FieldValue.increment(rewardAmount),
-      totalEarnedPoint: FieldValue.increment(rewardAmount),
+      point: FieldValue.increment(boostedReward.rewardAmount),
+      totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
       updatedAt: FieldValue.serverTimestamp(),
       lastClassroomJobSalaryAt: FieldValue.serverTimestamp(),
       source: "claim_classroom_job_salary_function"
@@ -5890,8 +6085,10 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
       authUid,
       paidBy: adminMember.memberUserId,
       rewardCurrency: "point",
-      rewardPoint: rewardAmount,
-      rewardAmount,
+      rewardPoint: boostedReward.rewardAmount,
+      rewardAmount: boostedReward.rewardAmount,
+      baseRewardAmount: boostedReward.baseAmount,
+      boostPoint: boostedReward.boostPoint,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
@@ -5907,8 +6104,10 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
       paidBy: adminMember.memberUserId,
       rewardCurrency: "point",
       rewardCoin: 0,
-      rewardPoint: rewardAmount,
-      rewardAmount,
+      rewardPoint: boostedReward.rewardAmount,
+      rewardAmount: boostedReward.rewardAmount,
+      baseRewardAmount: boostedReward.baseAmount,
+      boostPoint: boostedReward.boostPoint,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
@@ -5918,7 +6117,7 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
       lastSalaryPaidBy: adminMember.memberUserId,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
-    return { duplicate: false, rewardAmount, monthKey, memberUserId, jobId };
+    return { duplicate: false, rewardAmount: boostedReward.rewardAmount, baseRewardAmount: boostedReward.baseAmount, boostPoint: boostedReward.boostPoint, monthKey, memberUserId, jobId };
   });
 
   return { success: true, classId, assignmentId, ...result };
@@ -5962,63 +6161,125 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
     assertMemberCanEnterClassroom(memberData, classroomResult.settings);
     const itemRef = db.collection("classrooms").doc(classId).collection("shopItems").doc(itemId);
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-    const [itemSnapshot, walletSnapshot] = await Promise.all([
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const [itemSnapshot, walletSnapshot, economySnapshot] = await Promise.all([
       transaction.get(itemRef),
-      transaction.get(walletRef)
+      transaction.get(walletRef),
+      transaction.get(economyRef)
     ]);
     const item = itemSnapshot.exists
       ? itemSnapshot.data() || {}
-      : (itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID ? DEFAULT_CLASSROOM_BILLBOARD_ITEM : null);
+      : getDefaultClassroomShopItem(itemId);
     if (!item || item.active === false) {
       throw new HttpsError("not-found", "Classroom shop item not found.");
     }
+    const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
+    const priceType = String(item.priceType || "point") === "djCoin" ? "djCoin" : "point";
     const pricePoint = Math.max(1, Math.min(10000, Math.round(Number(item.pricePoint) || 0)));
-    const currentPoint = Math.max(0, Math.round(getClassroomPointAmount(walletSnapshot.exists ? walletSnapshot.data() || {} : {})));
-    if (currentPoint < pricePoint) {
+    const priceCoin = Math.max(1, Math.min(10000, Math.round(Number(item.priceCoin || item.priceDjCoin || 0) || 0)));
+    const currentPoint = Math.max(0, getClassroomPointAmount(wallet));
+    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+    const currentDjCoin = Math.max(0, Math.round(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
+    const boostItem = String(item.itemType || "") === "pointBoost";
+    const ownedBoostItemIds = Array.isArray(wallet.boostItemIds) ? wallet.boostItemIds.map(value => String(value || "")) : [];
+    if (boostItem && ownedBoostItemIds.includes(itemId)) {
+      return {
+        duplicate: true,
+        itemId,
+        priceType,
+        pricePoint: 0,
+        priceCoin: 0,
+        remainingPoint: currentPoint,
+        remainingDjCoin: currentDjCoin
+      };
+    }
+    if (priceType === "djCoin" && currentDjCoin < priceCoin) {
+      throw new HttpsError("failed-precondition", "Not enough DJ coins.");
+    }
+    if (priceType === "point" && currentPoint < pricePoint) {
       throw new HttpsError("failed-precondition", "Not enough classroom point.");
     }
     const purchaseId = rewardLogId(["classroom_shop_purchase", classId, Date.now(), memberUserId, itemId]).slice(0, 180);
     const purchaseRef = db.collection("classrooms").doc(classId).collection("shopPurchases").doc(purchaseId);
     const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(purchaseId);
-    transaction.set(walletRef, {
-      memberUserId,
-      userId: memberUserId,
-      classId,
-      point: FieldValue.increment(-pricePoint),
-      totalSpentPoint: FieldValue.increment(pricePoint),
-      updatedAt: FieldValue.serverTimestamp(),
-      lastClassroomShopPurchaseAt: FieldValue.serverTimestamp(),
-      source: "purchase_classroom_shop_item_function"
-    }, { merge: true });
+    if (priceType === "point") {
+      transaction.set(walletRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        point: FieldValue.increment(-pricePoint),
+        totalSpentPoint: FieldValue.increment(pricePoint),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomShopPurchaseAt: FieldValue.serverTimestamp(),
+        source: "purchase_classroom_shop_item_function"
+      }, { merge: true });
+      transaction.set(pointLogRef, {
+        type: "classroom_shop_purchase",
+        classId,
+        itemId,
+        itemTitle: item.title || "",
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        rewardCurrency: "point",
+        rewardPoint: -pricePoint,
+        rewardAmount: -pricePoint,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+    } else {
+      transaction.set(economyRef, {
+        userId: memberUserId,
+        djCoin: currentDjCoin - priceCoin,
+        totalSpent: FieldValue.increment(priceCoin),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomShopPurchaseAt: FieldValue.serverTimestamp(),
+        source: "purchase_classroom_shop_item_function"
+      }, { merge: true });
+    }
+    if (boostItem) {
+      const boostItemForWallet = normalizeClassroomBoostItemForWallet({ itemId, ...item });
+      transaction.set(walletRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        pointBoostAmount: FieldValue.increment(boostItemForWallet.boostPoint),
+        boostItemIds: FieldValue.arrayUnion(itemId),
+        boostItems: FieldValue.arrayUnion(boostItemForWallet),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomBoostItemAt: FieldValue.serverTimestamp(),
+        source: "purchase_classroom_boost_item_function"
+      }, { merge: true });
+    }
     transaction.set(purchaseRef, {
       purchaseId,
       classId,
       itemId,
       itemTitle: item.title || "",
       itemType: item.itemType || "",
+      itemIcon: item.icon || "",
+      boostPoint: roundClassroomPoint(item.boostPoint || 0),
       userId: memberUserId,
       memberUserId,
       authUid,
-      pricePoint,
+      pricePoint: priceType === "point" ? pricePoint : 0,
+      priceCoin: priceType === "djCoin" ? priceCoin : 0,
+      priceType,
       status: "purchased",
       source: "purchase_classroom_shop_item_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    transaction.set(pointLogRef, {
-      type: "classroom_shop_purchase",
-      classId,
+    return {
+      duplicate: false,
+      purchaseId,
       itemId,
-      itemTitle: item.title || "",
-      userId: memberUserId,
-      memberUserId,
-      authUid,
-      rewardCurrency: "point",
-      rewardPoint: -pricePoint,
-      rewardAmount: -pricePoint,
-      source: "firebase_function",
-      createdAt: FieldValue.serverTimestamp()
-    }, { merge: false });
-    return { purchaseId, itemId, pricePoint, remainingPoint: currentPoint - pricePoint };
+      priceType,
+      pricePoint: priceType === "point" ? pricePoint : 0,
+      priceCoin: priceType === "djCoin" ? priceCoin : 0,
+      boostPoint: boostItem ? roundClassroomPoint(item.boostPoint || 0) : 0,
+      remainingPoint: priceType === "point" ? roundClassroomPoint(currentPoint - pricePoint) : currentPoint,
+      remainingDjCoin: priceType === "djCoin" ? currentDjCoin - priceCoin : currentDjCoin
+    };
   });
 
   return { success: true, classId, memberUserId, ...result };
@@ -6655,8 +6916,15 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
     const pointLogRef = completed && rewardAmount > 0
       ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(rewardLogRef.id)
       : null;
-    const rewardLogSnapshot = rewardLogRef ? await transaction.get(rewardLogRef) : null;
+    const [rewardLogSnapshot, walletSnapshot] = await Promise.all([
+      rewardLogRef ? transaction.get(rewardLogRef) : Promise.resolve(null),
+      completed && rewardAmount > 0 ? transaction.get(walletRef) : Promise.resolve(null)
+    ]);
     const canReward = completed && rewardAmount > 0 && !rewardLogSnapshot?.exists;
+    const boostedReward = getBoostedClassroomPointAmount(
+      rewardAmount,
+      walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
+    );
 
     transaction.set(checkLogRef, {
       checkLogId,
@@ -6682,8 +6950,8 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
         memberUserId,
         userId: memberUserId,
         classId,
-        point: FieldValue.increment(rewardAmount),
-        totalEarnedPoint: FieldValue.increment(rewardAmount),
+        point: FieldValue.increment(boostedReward.rewardAmount),
+        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
         updatedAt: FieldValue.serverTimestamp(),
         lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
         source: "check_classroom_routine_function"
@@ -6697,8 +6965,10 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
         memberUserId,
         authUid,
         rewardCurrency: "point",
-        rewardPoint: rewardAmount,
-        rewardAmount,
+        rewardPoint: boostedReward.rewardAmount,
+        rewardAmount: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
       }, { merge: false });
@@ -6712,8 +6982,10 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
         authUid,
         rewardCurrency: "point",
         rewardCoin: 0,
-        rewardPoint: rewardAmount,
-        rewardAmount,
+        rewardPoint: boostedReward.rewardAmount,
+        rewardAmount: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
       }, { merge: false });
@@ -6723,7 +6995,9 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
       completed,
       currentCount: nextCount,
       targetCount,
-      rewardAmount: canReward ? rewardAmount : 0
+      rewardAmount: canReward ? boostedReward.rewardAmount : 0,
+      baseRewardAmount: canReward ? boostedReward.baseAmount : 0,
+      boostPoint: canReward ? boostedReward.boostPoint : 0
     };
   });
 
@@ -6797,7 +7071,20 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       rewardCurrency
     ]);
     const logRef = db.collection("rewardLogs").doc(logId);
-    const logSnapshot = await transaction.get(logRef);
+    const walletRef = rewardCurrency === "point"
+      ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
+      : db.collection("userEconomy").doc(memberUserId);
+    const pointLogRef = rewardCurrency === "point"
+      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
+      : null;
+    const [logSnapshot, walletSnapshot] = await Promise.all([
+      transaction.get(logRef),
+      rewardCurrency === "point" ? transaction.get(walletRef) : Promise.resolve(null)
+    ]);
+    const boostedReward = getBoostedClassroomPointAmount(
+      rewardAmount,
+      walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
+    );
     if (logSnapshot.exists) {
       transaction.set(progressRef, {
         rewardStatus: "paid",
@@ -6814,12 +7101,6 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       };
     }
 
-    const walletRef = rewardCurrency === "point"
-      ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
-      : db.collection("userEconomy").doc(memberUserId);
-    const pointLogRef = rewardCurrency === "point"
-      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
-      : null;
     const gemResult = await applyClassroomGemProgress(transaction, {
       classId,
       memberUserId,
@@ -6845,8 +7126,8 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         memberUserId,
         userId: memberUserId,
         classId,
-        point: FieldValue.increment(rewardAmount),
-        totalEarnedPoint: FieldValue.increment(rewardAmount),
+        point: FieldValue.increment(boostedReward.rewardAmount),
+        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
         updatedAt: FieldValue.serverTimestamp(),
         lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
         source: "classroom_review_quest_function"
@@ -6862,8 +7143,10 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         authUid,
         reviewedBy: adminMember.memberUserId,
         rewardCurrency,
-        rewardPoint: rewardAmount,
-        rewardAmount,
+        rewardPoint: boostedReward.rewardAmount,
+        rewardAmount: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint,
         progressPath: progressRef.path,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
@@ -6891,8 +7174,10 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       reviewedBy: adminMember.memberUserId,
       rewardCurrency,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
-      rewardAmount,
+      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
+      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
+      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
+      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
       progressPath: progressRef.path,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -6902,9 +7187,11 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       duplicate: false,
       rewardStatus: "paid",
       rewardCurrency,
-      rewardAmount,
+      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
       rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? rewardAmount : 0,
+      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
+      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
+      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
       gem: gemResult
     };
   });
@@ -7093,11 +7380,13 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     const levelXp = await applyLevelXp(transaction, {
       memberUserId,
       authUid,
+      memberData,
       xpDelta: quizXpDelta,
       sourceType: isTodayQuiz ? "today_quiz_practice" : "quiz_practice",
       sourceId: `${recordId}__${questionId}`,
       sourceLabel: isTodayQuiz ? "오늘의 퀴즈 정답 경험치" : "퀴즈 정답",
       dateKey,
+      classroomPointMirrorAmount: rewardCoin,
       caps: isTodayQuiz
         ? [
           getTodayQuizDailyLevelXpCap(memberUserId, dateKey),
@@ -7133,14 +7422,6 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
         updatedAt: FieldValue.serverTimestamp(),
         createdAt: coinCapSnapshot.exists ? coinCapSnapshot.data()?.createdAt || FieldValue.serverTimestamp() : FieldValue.serverTimestamp()
       }, { merge: true });
-      mirrorDjCoinRewardToClassroomPoint(transaction, {
-        memberUserId,
-        memberData,
-        authUid,
-        rewardAmount: rewardCoin,
-        sourceType: "practice_correct",
-        sourceId: `${recordId}__${questionId}`
-      });
     }
     transaction.set(db.collection("userLevelSummary").doc(memberUserId), {
       memberUserId,

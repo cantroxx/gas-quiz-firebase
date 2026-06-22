@@ -200,6 +200,12 @@
       return result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 포인트를 지급했습니다.`;
     }
     if(functionName === 'purchaseClassroomShopItem') {
+      if(result.duplicate) return '이미 보유 중인 아이템입니다.';
+      if(result.priceType === 'djCoin') {
+        const amount = Number(result.priceCoin || 0);
+        const boost = Number(result.boostPoint || 0);
+        return `${amount} DJ코인으로 구매했습니다.${boost > 0 ? ` 포인트 보너스 +${boost}P가 적용됩니다.` : ''}`;
+      }
       const amount = Number(result.pricePoint || 0);
       return `${amount} 포인트로 구매했습니다.`;
     }
