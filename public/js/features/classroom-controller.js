@@ -46,8 +46,24 @@
       deps.saveClassroomSavingsProductFromForm?.(event);
     });
 
+    document.getElementById('classroom-exchange-form')?.addEventListener('submit', event => {
+      deps.saveClassroomExchangeSettingsFromForm?.(event);
+    });
+
     document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
       deps.saveClassroomRoutineFromForm?.(event);
+    });
+
+    document.querySelectorAll('[data-classroom-section-toggle]').forEach(button => {
+      button.addEventListener('click', () => {
+        const target = document.getElementById(button.dataset.classroomSectionToggle || '');
+        const section = target?.closest('.classroom-subsection') || target?.closest('.classroom-panel-section');
+        if(!target || !section) return;
+        const collapsed = !section.classList.contains('is-collapsed');
+        section.classList.toggle('is-collapsed', collapsed);
+        button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        button.textContent = collapsed ? '열기' : '접기';
+      });
     });
 
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {
@@ -180,6 +196,23 @@
       const contributeButton = event.target.closest('[data-classroom-group-purchase-id]');
       if(contributeButton && !contributeButton.disabled) {
         deps.contributeClassroomGroupPurchase?.(contributeButton.dataset.classroomGroupPurchaseId || '', contributeButton);
+        return;
+      }
+      const joinSavingsButton = event.target.closest('[data-classroom-savings-product-id]');
+      if(joinSavingsButton && !joinSavingsButton.disabled) {
+        deps.joinClassroomSavingsProduct?.(joinSavingsButton.dataset.classroomSavingsProductId || '', joinSavingsButton);
+        return;
+      }
+      const claimSavingsButton = event.target.closest('[data-classroom-savings-account-id]');
+      if(claimSavingsButton && !claimSavingsButton.disabled) {
+        deps.claimClassroomSavingsMaturity?.(claimSavingsButton.dataset.classroomSavingsAccountId || '', claimSavingsButton);
+      }
+    });
+
+    document.getElementById('classroom-bank-grid')?.addEventListener('click', event => {
+      const exchangeButton = event.target.closest('[data-classroom-exchange-direction]');
+      if(exchangeButton && !exchangeButton.disabled) {
+        deps.exchangeClassroomCurrency?.(exchangeButton.dataset.classroomExchangeDirection || '', exchangeButton);
         return;
       }
       const joinSavingsButton = event.target.closest('[data-classroom-savings-product-id]');

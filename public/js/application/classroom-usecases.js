@@ -242,6 +242,12 @@
     if(functionName === 'claimClassroomSavingsMaturity') {
       return result.duplicate ? '이미 수령한 적금입니다.' : `${Number(result.payoutPoint || 0).toLocaleString('ko-KR')} 포인트를 수령했습니다.`;
     }
+    if(functionName === 'exchangeClassroomCurrency') {
+      if(result.direction === 'pointToCoin') {
+        return `${Number(result.spentPoint || 0).toLocaleString('ko-KR')} 포인트를 ${Number(result.receivedCoin || 0).toLocaleString('ko-KR')} DJ코인으로 교환했습니다.`;
+      }
+      return `${Number(result.spentCoin || 0).toLocaleString('ko-KR')} DJ코인을 ${Number(result.receivedPoint || 0).toLocaleString('ko-KR')} 포인트로 교환했습니다.`;
+    }
     if(functionName === 'checkClassroomRoutine') {
       if(result.duplicate) return '오늘 이미 체크한 루틴입니다.';
       if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 포인트를 받았습니다.`;
@@ -266,6 +272,7 @@
     collectClassroomTax: { payloadKey: 'ratePercent', progressText: '징수 중...' },
     contributeClassroomGroupPurchase: { payloadKey: 'groupPurchaseId', progressText: '기여 중...' },
     joinClassroomSavingsProduct: { payloadKey: 'productId', progressText: '가입 중...' },
+    exchangeClassroomCurrency: { payloadKey: 'direction', progressText: '교환 중...' },
     deleteClassroomBillboardMessage: { payloadKey: 'messageId', progressText: '삭제 중...' },
     claimClassroomSavingsMaturity: { payloadKey: 'accountId', progressText: '수령 중...' }
   };

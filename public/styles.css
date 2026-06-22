@@ -5141,6 +5141,40 @@ h2 {
   padding-top: 0;
 }
 
+.classroom-subsection-heading {
+  align-items: center;
+  gap: 10px;
+}
+
+.classroom-subsection-body {
+  display: grid;
+  gap: 12px;
+}
+
+.classroom-subsection.is-collapsed .classroom-subsection-body {
+  display: none;
+}
+
+.classroom-section-toggle {
+  min-width: 58px;
+  border: 2px solid #bccabb;
+  border-bottom-width: 4px;
+  border-radius: 10px;
+  background: #fff;
+  color: #0b1c30;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 950;
+  line-height: 1;
+  padding: 8px 10px;
+}
+
+.classroom-section-toggle:hover,
+.classroom-section-toggle:focus-visible {
+  border-color: #64a8fe;
+  outline: none;
+}
+
 .classroom-today-grid {
   display: block;
   margin-bottom: 14px;
@@ -5563,6 +5597,14 @@ h2 {
   margin-top: 4px;
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.classroom-exchange-section {
+  border-color: #a9d7ff;
+}
+
+.classroom-exchange-row {
+  background: #f6fbff;
 }
 
 .classroom-teacher-report {

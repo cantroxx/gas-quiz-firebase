@@ -32,6 +32,12 @@ const LEVEL_MAX = 50;
 const LEVEL_XP_PER_LEVEL = 50;
 const LEVEL_UP_REWARD_COIN = 50;
 const LEVEL_UP_CLASSROOM_POINT = 50;
+const DEFAULT_CLASSROOM_EXCHANGE_SETTINGS = {
+  pointToCoinEnabled: true,
+  coinToPointEnabled: true,
+  pointToCoinPointCost: 10,
+  coinToPointReward: 10
+};
 const WEEKLY_XP_LIMIT = 500;
 const TODAY_QUIZ_XP_PER_QUESTION = 2;
 const TODAY_QUIZ_DAILY_XP_LIMIT = 20;
@@ -1700,6 +1706,19 @@ function normalizeClassroomSavingsProduct(rawProduct = {}) {
     termDays: Math.max(1, Math.min(365, Math.round(Number(rawProduct.termDays) || 7))),
     active: rawProduct.active !== false
   };
+}
+
+function normalizeClassroomExchangeSettings(rawSettings = {}) {
+  return {
+    pointToCoinEnabled: rawSettings.pointToCoinEnabled !== false,
+    coinToPointEnabled: rawSettings.coinToPointEnabled !== false,
+    pointToCoinPointCost: Math.max(1, Math.min(1000000, Math.round(Number(rawSettings.pointToCoinPointCost || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.pointToCoinPointCost) || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.pointToCoinPointCost))),
+    coinToPointReward: Math.max(1, Math.min(1000000, Math.round(Number(rawSettings.coinToPointReward || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.coinToPointReward) || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.coinToPointReward)))
+  };
+}
+
+function publicClassroomExchangeSettings(rawSettings = {}) {
+  return normalizeClassroomExchangeSettings(rawSettings);
 }
 
 function normalizeClassroomTaxPreset(rawPreset = {}) {
@@ -5399,6 +5418,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     savingsProductSnapshot,
     savingsAccountSnapshot,
     taxPresetSnapshot,
+    exchangeSettingsSnapshot,
     classroomGemSnapshot
   ] = await Promise.all([
     db.collection("classrooms").doc(classId).collection("classMissions").doc("current").get(),
@@ -5410,6 +5430,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
       ? db.collection("classrooms").doc(classId).collection("savingsAccounts").limit(200).get()
       : db.collection("classrooms").doc(classId).collection("savingsAccounts").where("memberUserId", "==", memberUserId).limit(50).get(),
     db.collection("classrooms").doc(classId).collection("taxPresets").where("active", "==", true).limit(50).get(),
+    db.collection("classrooms").doc(classId).collection("exchangeSettings").doc("current").get(),
     db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get()
   ]);
 
@@ -5433,6 +5454,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     totalStudentPoint
   );
   const publicWallet = publicClassroomPublicWallet(publicWalletSnapshot.exists ? publicWalletSnapshot.data() || {} : {});
+  const exchangeSettings = publicClassroomExchangeSettings(exchangeSettingsSnapshot.exists ? exchangeSettingsSnapshot.data() || {} : DEFAULT_CLASSROOM_EXCHANGE_SETTINGS);
   const groupPurchases = groupPurchaseSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
@@ -5624,6 +5646,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     classMission,
     publicWallet,
     myDjCoin: Number(economy.djCoin ?? economy.coin ?? 0) || 0,
+    exchangeSettings,
     groupPurchases,
     savingsProducts,
     savingsAccounts,
@@ -6542,6 +6565,28 @@ exports.saveClassroomSavingsProduct = onCall({ region: REGION }, async request =
   return { success: true, classId, product };
 });
 
+exports.saveClassroomExchangeSettings = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const settings = normalizeClassroomExchangeSettings(payload.settings && typeof payload.settings === "object" ? payload.settings : payload.values || {});
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    transaction.set(db.collection("classrooms").doc(classId).collection("exchangeSettings").doc("current"), {
+      ...settings,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_exchange_settings_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, exchangeSettings: settings };
+});
+
 exports.saveClassroomGem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -6639,6 +6684,150 @@ exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request =
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
     return { accountId, productId, depositPoint, interestPoint, maturityDate };
+  });
+
+  return { success: true, classId, memberUserId, ...result };
+});
+
+exports.exchangeClassroomCurrency = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const direction = String(payload.direction || "").trim();
+  const amount = Math.min(1000000, Math.round(Number(payload.amount || 0) || 0));
+  if (!["pointToCoin", "coinToPoint"].includes(direction)) {
+    throw new HttpsError("invalid-argument", "Exchange direction is required.");
+  }
+  if (amount <= 0) {
+    throw new HttpsError("invalid-argument", "Exchange amount must be greater than zero.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const settingsRef = db.collection("classrooms").doc(classId).collection("exchangeSettings").doc("current");
+    const [walletSnapshot, economySnapshot, settingsSnapshot] = await Promise.all([
+      transaction.get(walletRef),
+      transaction.get(economyRef),
+      transaction.get(settingsRef)
+    ]);
+    const settings = publicClassroomExchangeSettings(settingsSnapshot.exists ? settingsSnapshot.data() || {} : DEFAULT_CLASSROOM_EXCHANGE_SETTINGS);
+    const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
+    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+    const currentPoint = Math.max(0, roundClassroomPoint(getClassroomPointAmount(wallet)));
+    const currentDjCoin = Math.max(0, Math.round(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
+    const exchangeId = rewardLogId(["classroom_exchange", classId, memberUserId, direction, Date.now()]);
+    if (direction === "pointToCoin") {
+      if (!settings.pointToCoinEnabled) {
+        throw new HttpsError("failed-precondition", "Point to DJ coin exchange is disabled.");
+      }
+      const spentPoint = amount * settings.pointToCoinPointCost;
+      if (currentPoint < spentPoint) {
+        throw new HttpsError("failed-precondition", "Not enough classroom point.");
+      }
+      transaction.set(walletRef, {
+        classId,
+        memberUserId,
+        userId: memberUserId,
+        point: FieldValue.increment(-spentPoint),
+        totalExchangeSpentPoint: FieldValue.increment(spentPoint),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomExchangeAt: FieldValue.serverTimestamp(),
+        source: "exchange_classroom_currency_function"
+      }, { merge: true });
+      transaction.set(economyRef, {
+        memberUserId,
+        userId: memberUserId,
+        djCoin: FieldValue.increment(amount),
+        totalClassroomExchangeEarnedCoin: FieldValue.increment(amount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomExchangeAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(db.collection("classrooms").doc(classId).collection("pointLogs").doc(exchangeId), {
+        type: "classroom_currency_exchange",
+        classId,
+        memberUserId,
+        userId: memberUserId,
+        exchangeDirection: direction,
+        rewardCurrency: "point",
+        rewardPoint: -spentPoint,
+        rewardAmount: -spentPoint,
+        receivedCoin: amount,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+      transaction.set(db.collection("classrooms").doc(classId).collection("exchangeLogs").doc(exchangeId), {
+        exchangeId,
+        classId,
+        memberUserId,
+        userId: memberUserId,
+        direction,
+        spentPoint,
+        receivedCoin: amount,
+        pointToCoinPointCost: settings.pointToCoinPointCost,
+        source: "exchange_classroom_currency_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+      return { direction, spentPoint, receivedCoin: amount };
+    }
+
+    if (!settings.coinToPointEnabled) {
+      throw new HttpsError("failed-precondition", "DJ coin to point exchange is disabled.");
+    }
+    if (currentDjCoin < amount) {
+      throw new HttpsError("failed-precondition", "Not enough DJ coin.");
+    }
+    const receivedPoint = amount * settings.coinToPointReward;
+    transaction.set(walletRef, {
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      point: FieldValue.increment(receivedPoint),
+      totalExchangeEarnedPoint: FieldValue.increment(receivedPoint),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomExchangeAt: FieldValue.serverTimestamp(),
+      source: "exchange_classroom_currency_function"
+    }, { merge: true });
+    transaction.set(economyRef, {
+      memberUserId,
+      userId: memberUserId,
+      djCoin: FieldValue.increment(-amount),
+      totalClassroomExchangeSpentCoin: FieldValue.increment(amount),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomExchangeAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(db.collection("classrooms").doc(classId).collection("pointLogs").doc(exchangeId), {
+      type: "classroom_currency_exchange",
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      exchangeDirection: direction,
+      rewardCurrency: "point",
+      rewardPoint: receivedPoint,
+      rewardAmount: receivedPoint,
+      spentCoin: amount,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(db.collection("classrooms").doc(classId).collection("exchangeLogs").doc(exchangeId), {
+      exchangeId,
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      direction,
+      spentCoin: amount,
+      receivedPoint,
+      coinToPointReward: settings.coinToPointReward,
+      source: "exchange_classroom_currency_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { direction, spentCoin: amount, receivedPoint };
   });
 
   return { success: true, classId, memberUserId, ...result };

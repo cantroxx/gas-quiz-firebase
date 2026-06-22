@@ -758,6 +758,34 @@
               </form>
               <p id="classroom-savings-status" class="classroom-review-status" aria-live="polite"></p>
             </details>
+            <details class="classroom-quest-editor" id="classroom-exchange-editor-panel">
+              <summary>
+                <span>
+                  <strong>환전 은행 설정</strong>
+                  <small>포인트와 DJ코인 교환 비율을 정합니다.</small>
+                </span>
+              </summary>
+              <form id="classroom-exchange-form" class="classroom-quest-form">
+                <label>
+                  포인트 → DJ코인 비용
+                  <input id="classroom-exchange-point-cost-input" type="number" min="1" max="1000000" inputmode="numeric" value="10">
+                </label>
+                <label>
+                  DJ코인 → 포인트 지급
+                  <input id="classroom-exchange-coin-reward-input" type="number" min="1" max="1000000" inputmode="numeric" value="10">
+                </label>
+                <label class="classroom-checkbox-label">
+                  <input id="classroom-exchange-point-to-coin-enabled-input" type="checkbox" checked>
+                  포인트를 DJ코인으로 교환 허용
+                </label>
+                <label class="classroom-checkbox-label">
+                  <input id="classroom-exchange-coin-to-point-enabled-input" type="checkbox" checked>
+                  DJ코인을 포인트로 교환 허용
+                </label>
+                <button class="button primary" type="submit">환전 비율 저장</button>
+              </form>
+              <p id="classroom-exchange-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
             <details class="classroom-quest-editor" id="classroom-gem-editor-panel">
               <summary>
                 <span>
@@ -844,63 +872,78 @@
         <section class="classroom-panel" data-classroom-panel="classroom" aria-labelledby="classroom-student-card-heading">
           <div class="classroom-subsection-grid">
             <section class="classroom-subsection" aria-labelledby="classroom-student-card-heading">
-              <div class="event-section-heading">
+              <div class="event-section-heading classroom-subsection-heading">
                 <h3 id="classroom-student-card-heading">학생카드</h3>
+                <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-student-card-body" aria-expanded="true">접기</button>
               </div>
-              <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
+              <div id="classroom-student-card-body" class="classroom-subsection-body">
+                <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
+              </div>
             </section>
             <section class="classroom-subsection" aria-labelledby="classroom-quest-heading">
-          <div class="event-section-heading">
-            <h3 id="classroom-quest-heading">교실 퀘스트</h3>
-          </div>
-          <div id="classroom-quest-grid" class="classroom-card-grid"></div>
-          <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
+              <div class="event-section-heading classroom-subsection-heading">
+                <h3 id="classroom-quest-heading">교실 퀘스트</h3>
+                <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-quest-body" aria-expanded="true">접기</button>
+              </div>
+              <div id="classroom-quest-body" class="classroom-subsection-body">
+                <div id="classroom-quest-grid" class="classroom-card-grid"></div>
+                <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
+              </div>
             </section>
             <section class="classroom-subsection" aria-labelledby="classroom-routine-heading">
-              <div class="event-section-heading">
+              <div class="event-section-heading classroom-subsection-heading">
                 <h3 id="classroom-routine-heading">성장루틴</h3>
+                <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-routine-body" aria-expanded="true">접기</button>
               </div>
-              <form id="classroom-routine-form" class="classroom-quest-form">
-                <label>
-                  루틴 이름
-                  <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
-                </label>
-                <label>
-                  목표 횟수
-                  <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
-                </label>
-                <label>
-                  시작일
-                  <input id="classroom-routine-start-input" type="date">
-                </label>
-                <label>
-                  종료일
-                  <input id="classroom-routine-end-input" type="date">
-                </label>
-                <fieldset class="classroom-weekday-fieldset">
-                  <legend>체크 요일</legend>
-                  <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
-                  <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
-                  <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
-                  <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
-                  <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
-                </fieldset>
-                <button class="button primary" type="submit">내 루틴 만들기</button>
-              </form>
-              <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
-              <div id="classroom-routine-grid" class="classroom-card-grid"></div>
+              <div id="classroom-routine-body" class="classroom-subsection-body">
+                <form id="classroom-routine-form" class="classroom-quest-form">
+                  <label>
+                    루틴 이름
+                    <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
+                  </label>
+                  <label>
+                    목표 횟수
+                    <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
+                  </label>
+                  <label>
+                    시작일
+                    <input id="classroom-routine-start-input" type="date">
+                  </label>
+                  <label>
+                    종료일
+                    <input id="classroom-routine-end-input" type="date">
+                  </label>
+                  <fieldset class="classroom-weekday-fieldset">
+                    <legend>체크 요일</legend>
+                    <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
+                    <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
+                    <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
+                    <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
+                    <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
+                  </fieldset>
+                  <button class="button primary" type="submit">내 루틴 만들기</button>
+                </form>
+                <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
+                <div id="classroom-routine-grid" class="classroom-card-grid"></div>
+              </div>
             </section>
             <section class="classroom-subsection" aria-labelledby="classroom-mission-view-heading">
-              <div class="event-section-heading">
+              <div class="event-section-heading classroom-subsection-heading">
                 <h3 id="classroom-mission-view-heading">학급 포인트 미션</h3>
+                <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-mission-body" aria-expanded="true">접기</button>
               </div>
-              <div id="classroom-mission-view" class="classroom-mission-view"></div>
+              <div id="classroom-mission-body" class="classroom-subsection-body">
+                <div id="classroom-mission-view" class="classroom-mission-view"></div>
+              </div>
             </section>
             <section class="classroom-subsection" aria-labelledby="classroom-bank-heading">
-              <div class="event-section-heading">
+              <div class="event-section-heading classroom-subsection-heading">
                 <h3 id="classroom-bank-heading">학급 은행</h3>
+                <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-bank-body" aria-expanded="true">접기</button>
               </div>
-              <div id="classroom-bank-grid" class="classroom-shop-history"></div>
+              <div id="classroom-bank-body" class="classroom-subsection-body">
+                <div id="classroom-bank-grid" class="classroom-shop-history"></div>
+              </div>
             </section>
           </div>
         </section>
@@ -5133,7 +5176,8 @@
         normalizeDisplayImageUrl,
         getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
         getTodayDateKey: getKstDateKey,
-        setClassroomNoticeForm: slots => window.DJ48ClassroomForm.setClassroomNoticeForm(slots)
+        setClassroomNoticeForm: slots => window.DJ48ClassroomForm.setClassroomNoticeForm(slots),
+        setClassroomExchangeSettingsForm: settings => window.DJ48ClassroomForm.setClassroomExchangeSettingsForm(settings)
       };
     }
 
@@ -5207,6 +5251,10 @@
 
     function setClassroomSavingsStatus(message, isError = false) {
       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-savings-status', message, isError);
+    }
+
+    function setClassroomExchangeStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-exchange-status', message, isError);
     }
 
     function setClassroomGemEditorStatus(message, isError = false) {
@@ -5674,6 +5722,10 @@
       return window.DJ48ClassroomForm.getClassroomSavingsProductFormValues();
     }
 
+    function getClassroomExchangeSettingsFormValues() {
+      return window.DJ48ClassroomForm.getClassroomExchangeSettingsFormValues();
+    }
+
     async function saveClassroomSavingsProductFromForm(event) {
       event?.preventDefault();
       await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
@@ -5697,6 +5749,33 @@
         resetCaches: resetClassroomDataCaches,
         resetForm: window.DJ48ClassroomForm.resetClassroomSavingsProductForm,
         setStatus: setClassroomSavingsStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
+    async function saveClassroomExchangeSettingsFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 환전 비율을 설정할 수 있습니다.',
+          pending: '환전 비율을 저장하는 중입니다.',
+          success: '환전 비율을 저장했습니다.',
+          warn: 'Classroom exchange settings save failed.',
+          error: '환전 비율 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-exchange-functions-unavailable': '환전 설정 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true, wallet: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomExchangeSettingsFormValues,
+        validateValues: values => values.pointToCoinPointCost > 0 && values.coinToPointReward > 0 ? '' : '교환 비율은 1 이상이어야 합니다.',
+        save: options => getClassroomRepository().saveClassroomExchangeSettings(options),
+        resetCaches: resetClassroomDataCaches,
+        setStatus: setClassroomExchangeStatus,
         renderClassroom: renderClassroomPrototype,
         warn: console.warn
       });
@@ -5838,6 +5917,16 @@
 
     async function claimClassroomSavingsMaturity(accountId, button) {
       return runClassroomEconomyAction('claimClassroomSavingsMaturity', accountId, button);
+    }
+
+    async function exchangeClassroomCurrency(direction, button) {
+      const label = direction === 'pointToCoin' ? '받을 DJ코인 수' : '사용할 DJ코인 수';
+      const rawAmount = askClassroomActionMemo(`${label}를 입력하세요.`);
+      const amount = Math.round(Number(rawAmount.replace(/,/g, '')) || 0);
+      if(amount <= 0) return null;
+      return runClassroomEconomyAction('exchangeClassroomCurrency', direction, button, {
+        amount
+      });
     }
 
     function getClassroomRoutineFormValues() {
@@ -7542,6 +7631,7 @@
         saveClassroomShopItemFromForm,
         saveClassroomGroupPurchaseFromForm,
         saveClassroomSavingsProductFromForm,
+        saveClassroomExchangeSettingsFromForm,
         saveClassroomNoticesFromForm,
         saveClassroomRoutineFromForm,
         setActiveClassroomTab,
@@ -7562,6 +7652,7 @@
         contributeClassroomGroupPurchase,
         joinClassroomSavingsProduct,
         claimClassroomSavingsMaturity,
+        exchangeClassroomCurrency,
         checkClassroomRoutine,
         reviewClassroomQuestProgress
       };

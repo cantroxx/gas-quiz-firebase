@@ -1165,6 +1165,67 @@
     wrap.appendChild(section);
   }
 
+  function renderClassroomExchangeSection(wrap, economyBoard = {}, wallet = {}) {
+    if(!wrap) return;
+    const settings = economyBoard.exchangeSettings || {};
+    const pointToCoinCost = Math.max(1, Math.round(Number(settings.pointToCoinPointCost || 10) || 10));
+    const coinToPointReward = Math.max(1, Math.round(Number(settings.coinToPointReward || 10) || 10));
+    const pointBalance = Math.max(0, Number(wallet.point || wallet.balance || 0) || 0);
+    const coinBalance = Math.max(0, Number(economyBoard.myDjCoin || 0) || 0);
+    const section = document.createElement('section');
+    const heading = document.createElement('div');
+    const title = document.createElement('h4');
+    const note = document.createElement('p');
+    const list = document.createElement('div');
+    section.className = 'classroom-shop-history classroom-exchange-section';
+    heading.className = 'event-section-heading compact';
+    title.textContent = '환전 은행';
+    note.textContent = `내 포인트 ${pointBalance.toLocaleString('ko-KR')}P · 내 DJ코인 ${coinBalance.toLocaleString('ko-KR')}개`;
+    list.className = 'classroom-shop-history-list classroom-exchange-list';
+    heading.append(title, note);
+    section.append(heading, list);
+
+    [
+      {
+        direction: 'pointToCoin',
+        title: '포인트를 DJ코인으로',
+        meta: `${pointToCoinCost.toLocaleString('ko-KR')}P → 1 DJ코인`,
+        enabled: settings.pointToCoinEnabled !== false,
+        disabledText: '교환 중지',
+        buttonText: 'DJ코인 받기'
+      },
+      {
+        direction: 'coinToPoint',
+        title: 'DJ코인을 포인트로',
+        meta: `1 DJ코인 → ${coinToPointReward.toLocaleString('ko-KR')}P`,
+        enabled: settings.coinToPointEnabled !== false,
+        disabledText: '교환 중지',
+        buttonText: '포인트 받기'
+      }
+    ].forEach(item => {
+      const row = document.createElement('article');
+      const body = document.createElement('div');
+      const titleEl = document.createElement('strong');
+      const meta = document.createElement('p');
+      const actions = document.createElement('div');
+      const button = document.createElement('button');
+      row.className = 'classroom-shop-history-row classroom-exchange-row';
+      actions.className = 'classroom-review-actions';
+      titleEl.textContent = item.title;
+      meta.textContent = item.meta;
+      button.className = 'quest-claim-button';
+      button.type = 'button';
+      button.dataset.classroomExchangeDirection = item.direction;
+      button.disabled = !item.enabled;
+      button.textContent = item.enabled ? item.buttonText : item.disabledText;
+      body.append(titleEl, meta);
+      actions.appendChild(button);
+      row.append(body, actions);
+      list.appendChild(row);
+    });
+    wrap.appendChild(section);
+  }
+
   function renderClassroomTaxPresetList(economyBoard = {}) {
     const list = document.getElementById('classroom-tax-preset-list');
     if(!list) return;
@@ -1279,10 +1340,12 @@
     renderClassroomMissionView(economyBoard);
     const bankGrid = document.getElementById('classroom-bank-grid');
     if(bankGrid) bankGrid.innerHTML = '';
+    renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
     renderClassroomSavingsSection(bankGrid, economyBoard, deps);
     renderClassroomTaxPresetList(economyBoard);
     renderClassroomRoutineCards(economyBoard);
     deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
+    deps.setClassroomExchangeSettingsForm?.(economyBoard.exchangeSettings || {});
   }
 
   window.DJ48ClassroomRender = {

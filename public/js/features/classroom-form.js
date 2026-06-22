@@ -262,6 +262,26 @@
     if(term) term.value = '7';
   }
 
+  function getClassroomExchangeSettingsFormValues() {
+    return {
+      pointToCoinEnabled: document.getElementById('classroom-exchange-point-to-coin-enabled-input')?.checked !== false,
+      coinToPointEnabled: document.getElementById('classroom-exchange-coin-to-point-enabled-input')?.checked !== false,
+      pointToCoinPointCost: Math.max(1, Math.min(1000000, Math.round(Number(document.getElementById('classroom-exchange-point-cost-input')?.value) || 10))),
+      coinToPointReward: Math.max(1, Math.min(1000000, Math.round(Number(document.getElementById('classroom-exchange-coin-reward-input')?.value) || 10)))
+    };
+  }
+
+  function setClassroomExchangeSettingsForm(settings = {}) {
+    const pointEnabled = document.getElementById('classroom-exchange-point-to-coin-enabled-input');
+    const coinEnabled = document.getElementById('classroom-exchange-coin-to-point-enabled-input');
+    const pointCost = document.getElementById('classroom-exchange-point-cost-input');
+    const coinReward = document.getElementById('classroom-exchange-coin-reward-input');
+    if(pointEnabled) pointEnabled.checked = settings.pointToCoinEnabled !== false;
+    if(coinEnabled) coinEnabled.checked = settings.coinToPointEnabled !== false;
+    if(pointCost) pointCost.value = String(Math.max(1, Math.round(Number(settings.pointToCoinPointCost || 10) || 10)));
+    if(coinReward) coinReward.value = String(Math.max(1, Math.round(Number(settings.coinToPointReward || 10) || 10)));
+  }
+
   function setClassroomNoticeForm(slots = []) {
     const slotMap = {};
     (Array.isArray(slots) ? slots : []).forEach(slot => {
@@ -325,6 +345,8 @@
     resetClassroomGroupPurchaseForm,
     getClassroomSavingsProductFormValues,
     resetClassroomSavingsProductForm,
+    getClassroomExchangeSettingsFormValues,
+    setClassroomExchangeSettingsForm,
     setClassroomNoticeForm,
     getClassroomRoutineFormValues,
     resetClassroomRoutineForm

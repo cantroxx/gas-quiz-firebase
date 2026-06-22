@@ -97,6 +97,12 @@ const functions = {
           routines: [{ id: 'routine-1' }],
           purchases: [{ id: 'purchase-1' }],
           pointLogs: [{ id: 'point-log-1' }],
+          exchangeSettings: {
+            pointToCoinEnabled: true,
+            coinToPointEnabled: true,
+            pointToCoinPointCost: 10,
+            coinToPointReward: 10
+          },
           myAssignment: { id: 'mine' }
         }
       };
@@ -197,6 +203,12 @@ async function testClassroomRepositoryReadPaths() {
     classMission: null,
     publicWallet: { point: 0 },
     myDjCoin: 0,
+    exchangeSettings: {
+      pointToCoinEnabled: true,
+      coinToPointEnabled: true,
+      pointToCoinPointCost: 10,
+      coinToPointReward: 10
+    },
     groupPurchases: [],
     savingsProducts: [],
     savingsAccounts: [],

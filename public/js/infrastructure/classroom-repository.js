@@ -17,6 +17,12 @@
       classMission: null,
       publicWallet: { point: 0 },
       myDjCoin: 0,
+      exchangeSettings: {
+        pointToCoinEnabled: true,
+        coinToPointEnabled: true,
+        pointToCoinPointCost: 10,
+        coinToPointReward: 10
+      },
       groupPurchases: [],
       savingsProducts: [],
       savingsAccounts: [],
@@ -142,6 +148,12 @@
         classMission: data.classMission || null,
         publicWallet: data.publicWallet || { point: 0 },
         myDjCoin: Number(data.myDjCoin || 0),
+        exchangeSettings: data.exchangeSettings || {
+          pointToCoinEnabled: true,
+          coinToPointEnabled: true,
+          pointToCoinPointCost: 10,
+          coinToPointReward: 10
+        },
         groupPurchases: Array.isArray(data.groupPurchases) ? data.groupPurchases : [],
         savingsProducts: Array.isArray(data.savingsProducts) ? data.savingsProducts : [],
         savingsAccounts: Array.isArray(data.savingsAccounts) ? data.savingsAccounts : [],
@@ -364,6 +376,16 @@
     return response?.data || {};
   }
 
+  async function saveClassroomExchangeSettings(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-exchange-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomExchangeSettings');
+    const response = await callable({
+      classId: options.classId,
+      settings: options.values || {}
+    });
+    return response?.data || {};
+  }
+
   async function saveClassroomTaxPreset(options = {}, deps = {}) {
     const functions = getRequiredClassroomFunctions(deps, 'classroom-tax-functions-unavailable');
     const callable = functions.httpsCallable('saveClassroomTaxPreset');
@@ -496,6 +518,7 @@
       saveClassroomMissionConfig: options => saveClassroomMissionConfig(options, callableDeps),
       saveClassroomGroupPurchase: options => saveClassroomGroupPurchase(options, callableDeps),
       saveClassroomSavingsProduct: options => saveClassroomSavingsProduct(options, callableDeps),
+      saveClassroomExchangeSettings: options => saveClassroomExchangeSettings(options, callableDeps),
       saveClassroomTaxPreset: options => saveClassroomTaxPreset(options, callableDeps),
       saveClassroomGem: options => saveClassroomGem(options, callableDeps),
       callClassroomEconomyAction: (functionName, payload, options) => callClassroomEconomyAction(
