@@ -5146,6 +5146,10 @@ h2 {
   gap: 10px;
 }
 
+.classroom-subsection-heading h3 {
+  margin: 0;
+}
+
 .classroom-subsection-body {
   display: grid;
   gap: 12px;
@@ -5156,22 +5160,38 @@ h2 {
 }
 
 .classroom-section-toggle {
-  min-width: 58px;
-  border: 2px solid #bccabb;
-  border-bottom-width: 4px;
-  border-radius: 10px;
-  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
   color: #0b1c30;
   cursor: pointer;
-  font-size: 0.78rem;
+  font: inherit;
   font-weight: 950;
   line-height: 1;
-  padding: 8px 10px;
+  padding: 0;
+}
+
+.classroom-section-toggle::after {
+  content: "접힘";
+  padding: 5px 8px;
+  border: 2px solid #bccabb;
+  border-bottom-width: 4px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.classroom-section-toggle[aria-expanded="true"]::after {
+  content: "열림";
 }
 
 .classroom-section-toggle:hover,
 .classroom-section-toggle:focus-visible {
-  border-color: #64a8fe;
+  color: #0055a8;
   outline: none;
 }
 
@@ -5599,6 +5619,26 @@ h2 {
   font-size: 0.8rem;
 }
 
+.classroom-market-grid,
+.classroom-market-section {
+  display: grid;
+  gap: 14px;
+}
+
+.classroom-market-section {
+  padding: 14px 0;
+  border-top: 1px solid rgba(47, 125, 83, 0.12);
+}
+
+.classroom-market-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.classroom-market-card-grid {
+  margin-top: 10px;
+}
+
 .classroom-exchange-section {
   border-color: #a9d7ff;
 }
@@ -5797,15 +5837,22 @@ h2 {
     inset 0 0 0 1px rgba(255, 196, 60, 0.26);
 }
 
-.classroom-student-point-badge {
+.classroom-student-balance-row {
   position: absolute;
   top: 12px;
   right: 12px;
   display: inline-flex;
   align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  max-width: calc(100% - 88px);
+}
+
+.classroom-student-point-badge {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
   min-height: 24px;
-  max-width: calc(100% - 90px);
   padding: 3px 8px;
   border: 1px solid rgba(47, 125, 83, 0.14);
   border-radius: 999px;
@@ -5818,14 +5865,10 @@ h2 {
 }
 
 .classroom-student-coin-badge {
-  position: absolute;
-  top: 42px;
-  right: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 24px;
-  max-width: calc(100% - 90px);
   padding: 3px 8px;
   border: 1px solid rgba(227, 153, 21, 0.2);
   border-radius: 999px;
@@ -6035,6 +6078,8 @@ h2 {
   color: #8a4a17;
   font-size: 1rem;
   font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .classroom-shop-card-visual img {

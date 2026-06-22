@@ -62,7 +62,6 @@
         const collapsed = !section.classList.contains('is-collapsed');
         section.classList.toggle('is-collapsed', collapsed);
         button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-        button.textContent = collapsed ? '열기' : '접기';
       });
     });
 
