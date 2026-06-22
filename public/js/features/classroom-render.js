@@ -1,4 +1,66 @@
 (function () {
+  const CLASSROOM_ICON_BASE = 'images/classroom-icons/';
+  const CLASSROOM_ICON_ASSETS = {
+    djCoin: `${CLASSROOM_ICON_BASE}dj-coin.svg`,
+    pointToken: `${CLASSROOM_ICON_BASE}point-token.svg`,
+    bank: `${CLASSROOM_ICON_BASE}bank.svg`,
+    exchange: `${CLASSROOM_ICON_BASE}exchange.svg`,
+    pointShop: `${CLASSROOM_ICON_BASE}point-shop.svg`,
+    coinShop: `${CLASSROOM_ICON_BASE}coin-shop.svg`,
+    groupPurchase: `${CLASSROOM_ICON_BASE}group-purchase.svg`,
+    inventory: `${CLASSROOM_ICON_BASE}inventory.svg`,
+    studentCard: `${CLASSROOM_ICON_BASE}student-card.svg`,
+    quest: `${CLASSROOM_ICON_BASE}quest.svg`,
+    routine: `${CLASSROOM_ICON_BASE}routine.svg`,
+    mission: `${CLASSROOM_ICON_BASE}mission.svg`,
+    keyringStar: `${CLASSROOM_ICON_BASE}keyring-star.svg`,
+    keyringGem: `${CLASSROOM_ICON_BASE}keyring-gem.svg`,
+    keyringHeart: `${CLASSROOM_ICON_BASE}keyring-heart.svg`,
+    billboard: `${CLASSROOM_ICON_BASE}billboard.svg`,
+    'boost-farmer-friend': `${CLASSROOM_ICON_BASE}boost-scarecrow.svg`,
+    'boost-big-tree': `${CLASSROOM_ICON_BASE}boost-tree.svg`,
+    'boost-fountain': `${CLASSROOM_ICON_BASE}boost-fountain.svg`,
+    'boost-mini-tractor': `${CLASSROOM_ICON_BASE}boost-tractor.svg`,
+    'boost-ripe-rice': `${CLASSROOM_ICON_BASE}boost-rice.svg`,
+    'boost-truck': `${CLASSROOM_ICON_BASE}boost-truck.svg`,
+    'boost-log-pile': `${CLASSROOM_ICON_BASE}boost-logs.svg`,
+    'boost-bird-speaker': `${CLASSROOM_ICON_BASE}boost-bird-speaker.svg`,
+    'boost-chick': `${CLASSROOM_ICON_BASE}boost-chick.svg`,
+    'boost-liquid-fertilizer': `${CLASSROOM_ICON_BASE}boost-fertilizer.svg`
+  };
+
+  function getClassroomIconAssetUrl(key) {
+    return CLASSROOM_ICON_ASSETS[String(key || '')] || '';
+  }
+
+  function createClassroomIconImage(key, alt = '', className = 'classroom-inline-icon') {
+    const src = getClassroomIconAssetUrl(key);
+    if(!src) return null;
+    const image = document.createElement('img');
+    image.className = className;
+    image.src = src;
+    image.alt = alt;
+    image.loading = 'lazy';
+    return image;
+  }
+
+  function getClassroomShopIconKey(item = {}) {
+    if(item.imageUrl || item.iconUrl || item.thumbnailUrl) return '';
+    if(item.itemId && getClassroomIconAssetUrl(item.itemId)) return item.itemId;
+    if(item.itemType === 'billboardTicket') return 'billboard';
+    if(item.priceType === 'djCoin') return 'coinShop';
+    return 'pointShop';
+  }
+
+  function getClassroomKeyringIconKey(student = {}) {
+    const keyring = student.selectedKeyring || {};
+    const badge = student.selectedBadge || {};
+    const haystack = `${keyring.keyringId || ''} ${keyring.label || ''} ${keyring.icon || ''} ${badge.badgeId || ''} ${badge.label || ''} ${badge.icon || ''}`.toLowerCase();
+    if(haystack.includes('gem') || haystack.includes('젬') || haystack.includes('◇') || haystack.includes('◆')) return 'keyringGem';
+    if(haystack.includes('heart') || haystack.includes('하트') || haystack.includes('♥')) return 'keyringHeart';
+    return 'keyringStar';
+  }
+
   function getClassroomQuestTitle(settings, questId) {
     return window.DJ48ClassroomDomain.getClassroomQuestTitle(settings, questId);
   }
@@ -693,9 +755,11 @@
       badge.textContent = `${student.studentNumber || '-'}번`;
       balanceRow.className = 'classroom-student-balance-row';
       pointBadge.className = 'classroom-student-point-badge';
-      pointBadge.textContent = `${formatClassroomPoint(student.point)}P`;
+      pointBadge.appendChild(createClassroomIconImage('pointToken', '포인트', 'classroom-badge-icon'));
+      pointBadge.appendChild(document.createTextNode(`${formatClassroomPoint(student.point)}P`));
       coinBadge.className = 'classroom-student-coin-badge';
-      coinBadge.textContent = `${Number(student.djCoin || 0).toLocaleString('ko-KR')} DJ`;
+      coinBadge.appendChild(createClassroomIconImage('djCoin', 'DJ코인', 'classroom-badge-icon'));
+      coinBadge.appendChild(document.createTextNode(`${Number(student.djCoin || 0).toLocaleString('ko-KR')} DJ`));
       balanceRow.append(pointBadge, coinBadge);
       identity.className = 'classroom-student-identity';
       title.textContent = student.nickname || student.name || student.memberUserId || '학생';
@@ -731,16 +795,23 @@
         metaGrid.appendChild(titleChip);
       }
       if(selectedKeyringLabel) {
+        const keyringIcon = createClassroomIconImage(getClassroomKeyringIconKey(student), selectedKeyringLabel, 'classroom-chip-icon');
         keyringChip.className = 'quest-status quest-status-claimed';
-        keyringChip.textContent = selectedKeyringLabel;
+        if(keyringIcon) keyringChip.appendChild(keyringIcon);
+        keyringChip.appendChild(document.createTextNode(selectedKeyringLabel));
         metaGrid.appendChild(keyringChip);
       }
       boostGrid.className = 'classroom-student-boost-grid';
       boostItems.forEach(item => {
         const boost = document.createElement('span');
+        const boostIcon = createClassroomIconImage(item.itemId, item.title || '부스터', 'classroom-student-boost-image');
         boost.className = 'classroom-student-boost-icon';
         boost.title = `${item.title || '부스터'} +${formatClassroomPoint(item.boostPoint)}P`;
-        boost.textContent = item.icon || '+P';
+        if(boostIcon) {
+          boost.appendChild(boostIcon);
+        } else {
+          boost.textContent = item.icon || '+P';
+        }
         boostGrid.appendChild(boost);
       });
       if(Number(student.pointBoostAmount || 0) > 0) {
@@ -916,6 +987,7 @@
       const card = document.createElement('article');
       const visual = document.createElement('div');
       const imageUrl = deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '';
+      const assetIcon = createClassroomIconImage(getClassroomShopIconKey(item), item.title || '교실 상품', 'classroom-shop-card-image');
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const desc = document.createElement('p');
@@ -930,6 +1002,8 @@
         image.alt = `${item.title || '교실 상품'} 이미지`;
         image.loading = 'lazy';
         visual.appendChild(image);
+      } else if(assetIcon) {
+        visual.appendChild(assetIcon);
       } else {
         visual.textContent = item.icon || (item.itemType === 'billboardTicket' ? '📣' : '선물');
       }
@@ -1158,7 +1232,7 @@
     const todayKey = deps.getTodayDateKey?.() || new Date().toISOString().slice(0, 10);
     section.className = 'classroom-shop-history';
     heading.className = 'event-section-heading compact';
-    title.textContent = '은행 적금';
+    title.append(createClassroomIconImage('bank', '은행', 'classroom-heading-icon'), document.createTextNode('은행 적금'));
     note.textContent = '포인트를 예치하고 만기일에 이자와 함께 수령합니다.';
     list.className = 'classroom-shop-history-list';
     heading.append(title, note);
@@ -1222,7 +1296,7 @@
     const list = document.createElement('div');
     section.className = 'classroom-shop-history classroom-exchange-section';
     heading.className = 'event-section-heading compact';
-    title.textContent = '환전 은행';
+    title.append(createClassroomIconImage('exchange', '환전', 'classroom-heading-icon'), document.createTextNode('환전 은행'));
     note.textContent = `내 포인트 ${pointBalance.toLocaleString('ko-KR')}P · 내 DJ코인 ${coinBalance.toLocaleString('ko-KR')}개`;
     list.className = 'classroom-shop-history-list classroom-exchange-list';
     heading.append(title, note);
