@@ -4517,11 +4517,29 @@ h2 {
 #classroom-title {
   margin: 0;
   color: #28744a;
-  font-family: "BM JUA", "Jua", "Arial Rounded MT Bold", system-ui, sans-serif;
-  font-size: clamp(2rem, 5vw, 3.45rem);
-  font-weight: 950;
+  font-family: inherit;
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
+  font-weight: 900;
   letter-spacing: 0;
-  text-shadow: 0 3px 0 rgba(255, 255, 255, 0.86);
+  text-shadow: none;
+}
+
+.classroom-view,
+.classroom-view * {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.classroom-view img,
+.classroom-view svg {
+  max-width: 100%;
+}
+
+.classroom-view button,
+.classroom-view input,
+.classroom-view select,
+.classroom-view textarea {
+  max-width: 100%;
 }
 
 .classroom-gate-panel {
@@ -5176,6 +5194,7 @@ h2 {
   line-height: 1.15;
   text-align: center;
   white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .classroom-subtab::before {
@@ -5650,6 +5669,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
 .classroom-shop-history-row strong,
@@ -5662,6 +5682,69 @@ h2 {
   margin-top: 4px;
   color: var(--muted);
   font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.classroom-icon-picker-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  grid-column: 1 / -1;
+}
+
+.classroom-icon-picker-preview span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid rgba(84, 105, 132, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: #143254;
+  font-size: 0.82rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.classroom-icon-picker-preview img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.classroom-icon-picker-preview--wide span {
+  min-width: 108px;
+}
+
+.classroom-icon-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.classroom-icon-catalog span {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-height: 86px;
+  padding: 10px 8px;
+  border: 1px solid rgba(84, 105, 132, 0.16);
+  border-radius: 10px;
+  background: #fff;
+  color: #143254;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.classroom-icon-catalog img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .classroom-inline-icon,
@@ -5921,12 +6004,13 @@ h2 {
 .classroom-student-balance-row {
   position: absolute;
   top: 12px;
+  left: 70px;
   right: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 5px;
-  max-width: calc(100% - 88px);
 }
 
 .classroom-student-point-badge {
@@ -6167,6 +6251,7 @@ h2 {
   font-weight: 950;
   line-height: 1;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .classroom-shop-card-visual img {

@@ -431,6 +431,42 @@
             <p>퀘스트, 월간 키링, 직업, 상점 상품은 필요한 항목만 열어서 관리합니다.</p>
           </div>
           <div class="classroom-teacher-workbench">
+            <details class="classroom-quest-editor" id="classroom-icon-catalog-panel">
+              <summary>
+                <span>
+                  <strong>교실 아이콘 도감</strong>
+                  <small>학생카드, 키링, 은행, 마켓, 부스터 아이콘을 한 번에 확인합니다.</small>
+                </span>
+              </summary>
+              <div class="classroom-icon-catalog" aria-label="교실 아이콘 전체 목록">
+                <span><img src="images/classroom-icons/student-card.svg" alt="">학생카드</span>
+                <span><img src="images/classroom-icons/quest.svg" alt="">퀘스트</span>
+                <span><img src="images/classroom-icons/routine.svg" alt="">성장루틴</span>
+                <span><img src="images/classroom-icons/mission.svg" alt="">미션</span>
+                <span><img src="images/classroom-icons/bank.svg" alt="">은행</span>
+                <span><img src="images/classroom-icons/exchange.svg" alt="">환전</span>
+                <span><img src="images/classroom-icons/point-token.svg" alt="">포인트</span>
+                <span><img src="images/classroom-icons/dj-coin.svg" alt="">DJ코인</span>
+                <span><img src="images/classroom-icons/point-shop.svg" alt="">포인트샵</span>
+                <span><img src="images/classroom-icons/coin-shop.svg" alt="">코인샵</span>
+                <span><img src="images/classroom-icons/group-purchase.svg" alt="">공동구매</span>
+                <span><img src="images/classroom-icons/inventory.svg" alt="">인벤토리</span>
+                <span><img src="images/classroom-icons/keyring-star.svg" alt="">별 키링</span>
+                <span><img src="images/classroom-icons/keyring-gem.svg" alt="">젬 키링</span>
+                <span><img src="images/classroom-icons/keyring-heart.svg" alt="">하트 키링</span>
+                <span><img src="images/classroom-icons/billboard.svg" alt="">전광판</span>
+                <span><img src="images/classroom-icons/boost-scarecrow.svg" alt="">허수아비</span>
+                <span><img src="images/classroom-icons/boost-tree.svg" alt="">나무</span>
+                <span><img src="images/classroom-icons/boost-fountain.svg" alt="">분수</span>
+                <span><img src="images/classroom-icons/boost-tractor.svg" alt="">트랙터</span>
+                <span><img src="images/classroom-icons/boost-rice.svg" alt="">벼</span>
+                <span><img src="images/classroom-icons/boost-truck.svg" alt="">트럭</span>
+                <span><img src="images/classroom-icons/boost-logs.svg" alt="">통나무</span>
+                <span><img src="images/classroom-icons/boost-bird-speaker.svg" alt="">퇴치기</span>
+                <span><img src="images/classroom-icons/boost-chick.svg" alt="">병아리</span>
+                <span><img src="images/classroom-icons/boost-fertilizer.svg" alt="">비료</span>
+              </div>
+            </details>
             <details class="classroom-quest-editor" id="classroom-quest-editor-panel">
               <summary>
                 <span>
@@ -519,16 +555,16 @@
               <label>
                 아이콘
                 <select id="classroom-badge-icon-input">
-                  <option value="🏅">🏅 메달</option>
-                  <option value="👑">👑 왕관</option>
-                  <option value="⭐">⭐ 별</option>
-                  <option value="💎">💎 보석</option>
-                  <option value="📘">📘 책</option>
-                  <option value="✏️">✏️ 연필</option>
-                  <option value="🔥">🔥 열정</option>
-                  <option value="🌱">🌱 성장</option>
+                  <option value="keyringStar">별 키링</option>
+                  <option value="keyringGem">젬 키링</option>
+                  <option value="keyringHeart">하트 키링</option>
                 </select>
               </label>
+              <div class="classroom-icon-picker-preview" aria-label="키링 아이콘 미리보기">
+                <span><img src="images/classroom-icons/keyring-star.svg" alt="">별 키링</span>
+                <span><img src="images/classroom-icons/keyring-gem.svg" alt="">젬 키링</span>
+                <span><img src="images/classroom-icons/keyring-heart.svg" alt="">하트 키링</span>
+              </div>
               <label>
                 색상
                 <input id="classroom-badge-color-input" type="text" maxlength="30" value="#ffcf5a">
@@ -703,6 +739,44 @@
                 가격
                 <input id="classroom-shop-price-input" type="number" min="1" max="10000" inputmode="numeric" value="50">
               </label>
+              <label>
+                아이콘
+                <select id="classroom-shop-icon-input">
+                  <option value="pointShop">포인트샵 기본</option>
+                  <option value="coinShop">코인샵 기본</option>
+                  <option value="billboard">전광판</option>
+                  <option value="inventory">보관함</option>
+                  <option value="bank">은행</option>
+                  <option value="exchange">환전</option>
+                  <option value="studentCard">학생카드</option>
+                  <option value="quest">퀘스트</option>
+                  <option value="mission">미션</option>
+                  <option value="keyringStar">별 키링</option>
+                  <option value="keyringGem">젬 키링</option>
+                  <option value="keyringHeart">하트 키링</option>
+                  <option value="boost-farmer-friend">허수아비</option>
+                  <option value="boost-big-tree">나무</option>
+                  <option value="boost-fountain">분수</option>
+                  <option value="boost-mini-tractor">트랙터</option>
+                  <option value="boost-ripe-rice">벼</option>
+                  <option value="boost-truck">트럭</option>
+                  <option value="boost-log-pile">통나무</option>
+                  <option value="boost-bird-speaker">퇴치기</option>
+                  <option value="boost-chick">병아리</option>
+                  <option value="boost-liquid-fertilizer">비료</option>
+                </select>
+              </label>
+              <div class="classroom-icon-picker-preview classroom-icon-picker-preview--wide" aria-label="상점 아이콘 미리보기">
+                <span><img src="images/classroom-icons/point-shop.svg" alt="">포인트샵</span>
+                <span><img src="images/classroom-icons/coin-shop.svg" alt="">코인샵</span>
+                <span><img src="images/classroom-icons/billboard.svg" alt="">전광판</span>
+                <span><img src="images/classroom-icons/inventory.svg" alt="">보관함</span>
+                <span><img src="images/classroom-icons/bank.svg" alt="">은행</span>
+                <span><img src="images/classroom-icons/exchange.svg" alt="">환전</span>
+                <span><img src="images/classroom-icons/student-card.svg" alt="">학생카드</span>
+                <span><img src="images/classroom-icons/quest.svg" alt="">퀘스트</span>
+                <span><img src="images/classroom-icons/mission.svg" alt="">미션</span>
+              </div>
               <button class="button primary" type="submit">상품 저장</button>
             </form>
             <p id="classroom-shop-editor-status" class="classroom-review-status" aria-live="polite"></p>

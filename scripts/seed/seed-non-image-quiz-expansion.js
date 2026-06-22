@@ -669,7 +669,57 @@ const SNACK_FOOD_ITEMS = [
   ['죠크박바', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/202408088141d33615884e7.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
   ['메가톤', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/2024080854a37348fa7c4e3.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
   ['빵빠레', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/07/05/20220705502633d1e1ed465.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
-  ['누가바', 'https://www.bing.co.kr/upload/brand/2026/04/e2b19b47-f595-4946-a32f-1ab21a48ce69.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae']
+  ['누가바', 'https://www.bing.co.kr/upload/brand/2026/04/e2b19b47-f595-4946-a32f-1ab21a48ce69.png', 'https://www.bing.co.kr/product/list?type=1', 'Binggrae'],
+  ['후레쉬민트', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/20240610d6c0fc6d4081457.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['스피아민트', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/20240610a1d26b0fd51f4aa.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['쥬시후레쉬', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/202406108095af2ed4df41c.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['후라보노', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/202406104c739bc2db9d4e3.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['이브', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/20240610ce8fbb69f62c47a.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['자일리톨 알파', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/20240610d34577d472ea4d8.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['아이디', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/24/202206240fcb7c161c824dd.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['아라비카 커피껌', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/2024061022ce251495134bd.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['왓따', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/202406103a30e396f2ce4be.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['자일리톨 판', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/202406108194511e2200451.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['졸음번쩍껌', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/10/20240610f35adf6ce09948f.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC100', 'Lotte Wellfood'],
+  ['애니타임', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/23/20220623b39ed815ce5645d.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['스카치', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/2020121666aaf152bbd9434.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['목캔디', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/05/2025110563fa067376fc49d.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['이온플러스', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/04/20251104802461a69f46433.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['롤리팝 아이스', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/2020121693e033219e534e0.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['젤리', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/04/20251104b72893af29aa410.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['청포도', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/2020121691f5cc1aeb8f47a.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['짱셔요!', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/04/2025110498f70ae67b08469.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC200', 'Lotte Wellfood'],
+  ['립파이 초코', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/20/202405200e12b16dc6e6496.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['씨리얼', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/09/15/202209158316759fd9d2415.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['하비스트', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/07/07/202207076a074b6b5ab54d0.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['야채크래커', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/07/07/202207076b7ebeb5a29542e.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['빠다코코낫', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/09/15/20220915e8fc4c1017734c7.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['제크', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/09/15/20220915917164d66c824bd.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['롯샌', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/09/15/2022091537c816efc60c445.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['엄마손파이', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/20240530fafb83f4881245e.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC300', 'Lotte Wellfood'],
+  ['웨하스', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/07/15/202407155c2a407cb182457.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['뻥소리', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/07/15/20240715fe85e23e460d481.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['더쌀로', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/07/15/2024071527d7dcc18f19425.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['이지프로틴', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/07/15/20240715edf6974c5b844dc.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC400', 'Lotte Wellfood'],
+  ['몽쉘', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/06/03/20240603c02fc7cbc1244dd.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC500', 'Lotte Wellfood'],
+  ['찰떡파이', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/2020121678cadd48385f4a1.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC500', 'Lotte Wellfood'],
+  ['초코파이', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/20240530773fff37299b40d.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC500', 'Lotte Wellfood'],
+  ['카스타드', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/12/202511124fb21e92f186472.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC500', 'Lotte Wellfood'],
+  ['제로', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/12/202511123d430b121a98445.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC500', 'Lotte Wellfood'],
+  ['아몬드 초코볼', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/20240530bb1a886a9465488.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['프리미엄 가나', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/202405306aa5636ddd8c44e.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['가나 랑드샤 쿠키', 'https://webimage.ldcc.co.kr/upload/conf/upload/2022/06/20/2022062004be4b37318246e.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['드림카카오', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/20240530a51a26d37f63452.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['ABC 초코쿠키', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/2024053060d4911633544d8.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['가나 초코바', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/05/30/20240530b41b8c4181944a3.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['해바라기 초코볼', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/20201216d0260a9bc96b4e8.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['석기시대', 'https://webimage.ldcc.co.kr/upload/conf/upload/2020/12/16/20201216efbf067d92214c4.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC600', 'Lotte Wellfood'],
+  ['위즐', 'https://webimage.ldcc.co.kr/upload/conf/upload/2025/11/26/2025112689a9a8b6ba89443.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['쮸쮸바', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/20240808fadfef85954d47a.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['주물러', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/20240808f14b2b8fc658432.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['파스퇴르', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/20240808d4770d6d9796416.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['잇츠와플', 'https://webimage.ldcc.co.kr/upload/conf/upload/2024/08/08/202408088f64fbc293af43d.png', 'https://www.lottewellfood.com/brand/product?searchType1=LC700', 'Lotte Wellfood'],
+  ['바나나킥', 'https://nongshimusa.com/html5/imgs/products/imgs/banana-kick.jpg', 'https://nongshimusa.com/products', 'Nongshim USA']
 ];
 
 const SNACK_FOOD_MASK_GROUPS = [
@@ -688,6 +738,18 @@ const SNACK_FOOD_MASK_GROUPS = [
   {
     names: ['투게더', '붕어싸만코', '엑설런트', '월드콘', '티코'],
     areas: [{ x: 31, y: 32, width: 38, height: 12 }]
+  },
+  {
+    names: ['후레쉬민트', '스피아민트', '쥬시후레쉬', '후라보노', '이브', '자일리톨 알파', '아이디', '아라비카 커피껌', '왓따', '자일리톨 판', '졸음번쩍껌', '애니타임', '스카치', '목캔디', '이온플러스', '롤리팝 아이스', '젤리', '청포도', '짱셔요!'],
+    areas: [{ x: 26, y: 35, width: 48, height: 18 }]
+  },
+  {
+    names: ['립파이 초코', '씨리얼', '하비스트', '야채크래커', '빠다코코낫', '제크', '롯샌', '엄마손파이', '웨하스', '뻥소리', '더쌀로', '이지프로틴', '몽쉘', '찰떡파이', '초코파이', '카스타드', '제로', '아몬드 초코볼', '프리미엄 가나', '가나 랑드샤 쿠키', '드림카카오', 'ABC 초코쿠키', '가나 초코바', '해바라기 초코볼', '석기시대', '바나나킥'],
+    areas: [{ x: 27, y: 36, width: 46, height: 18 }]
+  },
+  {
+    names: ['위즐', '쮸쮸바', '주물러', '파스퇴르', '잇츠와플'],
+    areas: [{ x: 30, y: 34, width: 40, height: 16 }]
   }
 ];
 
@@ -1263,7 +1325,7 @@ const QUIZ_DEFINITIONS = [
   { quizId: 'cultural_heritage', title: '문화유산 이미지 퀴즈', subject: '사회', subjectGroup: 'social', order: 51, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '사진을 보고 우리 문화유산의 이름을 4지선다로 맞힙니다.', questions: buildCulturalHeritageQuestions },
   { quizId: 'science-general', title: '과학 상식 퀴즈', subject: '과학', subjectGroup: 'science', order: 60, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학생이 알아두면 좋은 생활 과학 상식을 확인합니다.', questions: buildScienceGeneralQuestions },
   { quizId: 'flag-country', title: '국기 퀴즈', subject: '인기', subjectGroup: 'popular', order: 69, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '국기를 보고 알맞은 나라 이름을 4지선다로 맞힙니다.', questions: buildFlagCountryQuestions },
-  { quizId: 'snack-food', title: '간식 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 50, cycleQuestionCount: 50, uiType: 'imageChoice', description: '라면, 과자, 아이스크림 이미지를 보고 알맞은 간식 이름을 4지선다로 맞힙니다.', questions: buildSnackFoodQuestions },
+  { quizId: 'snack-food', title: '간식 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '라면, 과자, 아이스크림 이미지를 보고 알맞은 간식 이름을 4지선다로 맞힙니다.', questions: buildSnackFoodQuestions },
   { quizId: 'emoji-kpop', title: 'K-POP 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 71, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-kpop', EMOJI_KPOP, 'K-POP 노래') },
   { quizId: 'emoji-anime', title: '애니 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 72, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-anime', EMOJI_ANIME, '애니') },
   { quizId: 'emoji-tiniping', title: '티니핑 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 73, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 티니핑 이름을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-tiniping', EMOJI_TINIPING, '티니핑') }

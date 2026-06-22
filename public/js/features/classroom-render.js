@@ -47,6 +47,7 @@
   function getClassroomShopIconKey(item = {}) {
     if(item.imageUrl || item.iconUrl || item.thumbnailUrl) return '';
     if(item.itemId && getClassroomIconAssetUrl(item.itemId)) return item.itemId;
+    if(item.icon && getClassroomIconAssetUrl(item.icon)) return item.icon;
     if(item.itemType === 'billboardTicket') return 'billboard';
     if(item.priceType === 'djCoin') return 'coinShop';
     return 'pointShop';
@@ -56,8 +57,8 @@
     const keyring = student.selectedKeyring || {};
     const badge = student.selectedBadge || {};
     const haystack = `${keyring.keyringId || ''} ${keyring.label || ''} ${keyring.icon || ''} ${badge.badgeId || ''} ${badge.label || ''} ${badge.icon || ''}`.toLowerCase();
-    if(haystack.includes('gem') || haystack.includes('젬') || haystack.includes('◇') || haystack.includes('◆')) return 'keyringGem';
-    if(haystack.includes('heart') || haystack.includes('하트') || haystack.includes('♥')) return 'keyringHeart';
+    if(haystack.includes('keyringgem') || haystack.includes('gem') || haystack.includes('젬') || haystack.includes('◇') || haystack.includes('◆')) return 'keyringGem';
+    if(haystack.includes('keyringheart') || haystack.includes('heart') || haystack.includes('하트') || haystack.includes('♥')) return 'keyringHeart';
     return 'keyringStar';
   }
 

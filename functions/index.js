@@ -2021,7 +2021,7 @@ function normalizeClassroomShopItem(rawItem = {}) {
     priceType: ["djCoin", "point"].includes(String(rawItem.priceType || "").trim()) ? String(rawItem.priceType).trim() : "point",
     itemType: String(rawItem.itemType || rawItem.type || "coupon").trim().slice(0, 40) || "coupon",
     boostPoint: roundClassroomPoint(rawItem.boostPoint || rawItem.pointBoost || 0),
-    icon: String(rawItem.icon || "").trim().slice(0, 12),
+    icon: String(rawItem.icon || "").trim().slice(0, 40),
     active: rawItem.active !== false
   };
 }

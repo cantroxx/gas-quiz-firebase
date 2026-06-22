@@ -152,7 +152,8 @@
     return {
       title: String(document.getElementById('classroom-shop-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-shop-desc-input')?.value || '').trim(),
-      pricePoint: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0))
+      pricePoint: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0)),
+      icon: String(document.getElementById('classroom-shop-icon-input')?.value || 'pointShop').trim()
     };
   }
 
@@ -160,9 +161,11 @@
     const title = document.getElementById('classroom-shop-title-input');
     const desc = document.getElementById('classroom-shop-desc-input');
     const price = document.getElementById('classroom-shop-price-input');
+    const icon = document.getElementById('classroom-shop-icon-input');
     if(title) title.value = '';
     if(desc) desc.value = '';
     if(price) price.value = '50';
+    if(icon) icon.value = 'pointShop';
   }
 
   function getClassroomNoticeFormValues() {
