@@ -127,6 +127,55 @@ async function testBuildQuizSessionQuestionsUsesCachedFirebaseQuestions() {
   assert.deepEqual(questions, ['firebase-q2', 'firebase-q1']);
 }
 
+async function testSnackFoodRankingUsesImageInputWithAliases() {
+  const questions = await quizUsecases.buildQuizSessionQuestions({
+    quizId: 'snack-food',
+    modeId: 'ranking'
+  }, {
+    normalizeFirebaseQuizId: quizId => quizId,
+    getFirebaseQuizDataCache: () => ({
+      'snack-food': [{
+        type: 'imageChoice',
+        questionId: 'snack-food-027',
+        imageUrl: 'https://example.com/abc.png',
+        choices: ['가나', 'ABC 초콜릿', '빼빼로', '빈츠'],
+        answer: 1
+      }]
+    }),
+    getQuestionBank: () => ({}),
+    shuffleList: items => items.slice()
+  });
+
+  assert.equal(questions.length, 1);
+  assert.equal(questions[0].type, 'imageInput');
+  assert.equal(questions[0].answerText, 'ABC 초콜릿');
+  assert.ok(questions[0].aliases.includes('ABC초콜릿'));
+  assert.ok(questions[0].aliases.includes('에이비씨 초콜릿'));
+  assert.ok(questions[0].aliases.includes('에이비씨'));
+}
+
+async function testSnackFoodPracticeKeepsImageChoice() {
+  const baseQuestion = {
+    type: 'imageChoice',
+    imageUrl: 'https://example.com/snack.png',
+    choices: ['짱셔요!', '목캔디', '제크', '웨하스'],
+    answer: 0
+  };
+  const questions = await quizUsecases.buildQuizSessionQuestions({
+    quizId: 'snack-food',
+    modeId: 'practice'
+  }, {
+    normalizeFirebaseQuizId: quizId => quizId,
+    getFirebaseQuizDataCache: () => ({ 'snack-food': [baseQuestion] }),
+    getQuestionBank: () => ({}),
+    loadSolvedPracticeIds: async () => new Set(),
+    splitPracticeQuestionsBySolvedState: questions => ({ unsolved: questions, solved: [] }),
+    shuffleList: items => items.slice()
+  });
+
+  assert.equal(questions[0].type, 'imageChoice');
+}
+
 async function testBuildQuizSessionQuestionsOrdersUnsolvedPracticeFirst() {
   const q1 = { practiceQuestionId: 'q1' };
   const q2 = { practiceQuestionId: 'q2' };
@@ -155,6 +204,8 @@ async function run() {
   await testAdminCanStartRankingWhenRankingDisabled();
   await testAccessDeniedRedirectsPopularToSchool();
   await testBuildQuizSessionQuestionsUsesCachedFirebaseQuestions();
+  await testSnackFoodRankingUsesImageInputWithAliases();
+  await testSnackFoodPracticeKeepsImageChoice();
   await testBuildQuizSessionQuestionsOrdersUnsolvedPracticeFirst();
   console.log('Application tests passed: quiz-usecases');
 }

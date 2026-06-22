@@ -1,4 +1,55 @@
 (function (root) {
+  function normalizeSnackAliasText(value) {
+    return String(value || '')
+      .trim()
+      .replace(/[!！?？.,·ㆍ・:;'"“”‘’()[\]{}<>]/g, '')
+      .replace(/\s+/g, ' ');
+  }
+
+  function buildSnackFoodAnswerAliases(answerText) {
+    const answer = String(answerText || '').trim();
+    const normalized = normalizeSnackAliasText(answer);
+    const aliases = new Set([answer, normalized, normalized.replace(/\s+/g, '')].filter(Boolean));
+    if(/abc/i.test(answer)) {
+      aliases.add(answer.replace(/abc/ig, '에이비씨'));
+      aliases.add(normalized.replace(/abc/ig, '에이비씨'));
+    }
+    normalized.split(/\s+/)
+      .map(token => token.trim())
+      .filter(token => token.length >= 3 || /^abc$/i.test(token))
+      .forEach(token => {
+        aliases.add(token);
+        if(/^abc$/i.test(token)) aliases.add('에이비씨');
+      });
+    return Array.from(aliases).filter(alias => alias && alias !== answer);
+  }
+
+  function convertSnackFoodRankingQuestion(question) {
+    if(!question || question.type !== 'imageChoice') return question;
+    const choices = Array.isArray(question.choices) ? question.choices : [];
+    const answerIndex = Number(question.answer);
+    const answerText = String(question.answerText || choices[answerIndex] || '').trim();
+    if(!answerText) return question;
+    return {
+      ...question,
+      type: 'imageInput',
+      answerText,
+      aliases: Array.from(new Set([
+        ...(Array.isArray(question.aliases) ? question.aliases : []),
+        ...buildSnackFoodAnswerAliases(answerText)
+      ].map(alias => String(alias || '').trim()).filter(Boolean)))
+    };
+  }
+
+  function prepareQuizSessionQuestions(quizId, modeId, questions, deps = {}) {
+    const normalizeQuizId = deps.normalizeFirebaseQuizId || (value => String(value || '').trim());
+    const id = normalizeQuizId(quizId);
+    if(modeId === 'ranking' && id === 'snack-food') {
+      return questions.map(convertSnackFoodRankingQuestion);
+    }
+    return questions;
+  }
+
   async function buildQuizSessionQuestions(options = {}, deps = {}) {
     const quizId = options.quizId || 'spelling';
     const modeId = options.modeId || 'practice';
@@ -9,7 +60,7 @@
     const questionBank = deps.getQuestionBank?.() || {};
     const baseQuestions = quizDataCache[id] || questionBank[quizId] || questionBank[id] || questionBank.spelling;
     if(!Array.isArray(baseQuestions) || !baseQuestions.length) return null;
-    if(modeId === 'ranking') return shuffleList(baseQuestions.slice());
+    if(modeId === 'ranking') return prepareQuizSessionQuestions(quizId, modeId, shuffleList(baseQuestions.slice()), deps);
     if(modeId !== 'practice') return baseQuestions;
 
     try {
@@ -86,6 +137,7 @@
   }
 
   const api = {
+    buildSnackFoodAnswerAliases,
     buildQuizSessionQuestions,
     startQuizPlayFlow
   };
