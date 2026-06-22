@@ -1486,7 +1486,7 @@ h2 {
 }
 
 .player-status {
-  display: grid;
+  display: none;
   grid-template-columns: auto 1fr;
   gap: 12px;
   align-items: center;
@@ -1532,7 +1532,7 @@ h2 {
 }
 
 .place-info {
-  display: grid;
+  display: none;
   grid-template-columns: auto 1fr;
   gap: 12px;
   align-items: center;
@@ -4507,8 +4507,20 @@ h2 {
   padding: 18px;
   border: 1px solid rgba(47, 125, 68, 0.14);
   border-radius: 16px;
-  background: #f8f9ff;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 236, 156, 0.52), transparent 28%),
+    linear-gradient(180deg, #eefaff 0%, #f8fff0 48%, #fffdf4 100%);
   box-shadow: 0 12px 24px rgba(47, 83, 120, 0.06);
+}
+
+#classroom-title {
+  margin: 0;
+  color: #28744a;
+  font-family: "BM JUA", "Jua", "Arial Rounded MT Bold", system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 3.45rem);
+  font-weight: 950;
+  letter-spacing: 0;
+  text-shadow: 0 3px 0 rgba(255, 255, 255, 0.86);
 }
 
 .classroom-gate-panel {
@@ -5058,6 +5070,23 @@ h2 {
 
 .classroom-panel.is-active {
   display: block;
+}
+
+.classroom-subsection-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.classroom-subsection {
+  display: grid;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(47, 125, 83, 0.12);
+}
+
+.classroom-subsection:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
 .classroom-today-grid {
@@ -5681,6 +5710,62 @@ h2 {
   height: 24px;
   object-fit: contain;
   display: block;
+}
+
+.classroom-student-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+
+.classroom-mission-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 83, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.classroom-mission-panel p {
+  margin: 0;
+  color: #516253;
+  font-weight: 800;
+}
+
+.classroom-mission-track {
+  position: relative;
+  min-height: 44px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d7f7e2, #fff0b7);
+  border: 1px solid rgba(47, 125, 83, 0.16);
+}
+
+.classroom-mission-marker {
+  position: absolute;
+  top: 50%;
+  left: var(--mission-position, 0%);
+  transform: translate(-50%, -50%);
+  display: inline-grid;
+  place-items: center;
+  min-width: 42px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid rgba(47, 125, 83, 0.28);
+  color: #2f7d53;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(47, 125, 83, 0.12);
+}
+
+.classroom-mission-marker.is-achieved {
+  background: #2f7d53;
+  border-color: #2f7d53;
+  color: #fff;
 }
 
 .classroom-card-reward,
@@ -6961,14 +7046,7 @@ h2 {
   }
 
   .town-map {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    min-height: 0;
-    padding: 14px;
-    background:
-      linear-gradient(180deg, rgba(223, 245, 255, 0.92) 0 22%, transparent 22%),
-      linear-gradient(180deg, #c1efb8 0%, #8fd18a 100%);
+    display: none;
   }
 
   .sky-layer,

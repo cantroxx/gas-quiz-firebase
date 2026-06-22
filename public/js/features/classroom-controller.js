@@ -22,12 +22,28 @@
       deps.saveClassroomNoticesFromForm?.(event);
     });
 
+    document.getElementById('classroom-mission-form')?.addEventListener('submit', event => {
+      deps.saveClassroomMissionFromForm?.(event);
+    });
+
+    document.getElementById('classroom-tax-form')?.addEventListener('submit', event => {
+      deps.collectClassroomTaxFromForm?.(event);
+    });
+
+    document.getElementById('classroom-group-purchase-form')?.addEventListener('submit', event => {
+      deps.saveClassroomGroupPurchaseFromForm?.(event);
+    });
+
+    document.getElementById('classroom-savings-form')?.addEventListener('submit', event => {
+      deps.saveClassroomSavingsProductFromForm?.(event);
+    });
+
     document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
       deps.saveClassroomRoutineFromForm?.(event);
     });
 
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {
-      button.addEventListener('click', () => deps.setActiveClassroomTab?.(button.dataset.classroomTab || 'quests'));
+      button.addEventListener('click', () => deps.setActiveClassroomTab?.(button.dataset.classroomTab || 'classroom'));
     });
 
     document.getElementById('classroom-today-grid')?.addEventListener('click', event => {
@@ -146,6 +162,21 @@
       const refundButton = event.target.closest('[data-classroom-shop-refund-id]');
       if(refundButton && !refundButton.disabled) {
         deps.refundClassroomShopPurchase?.(refundButton.dataset.classroomShopRefundId || '', refundButton);
+        return;
+      }
+      const contributeButton = event.target.closest('[data-classroom-group-purchase-id]');
+      if(contributeButton && !contributeButton.disabled) {
+        deps.contributeClassroomGroupPurchase?.(contributeButton.dataset.classroomGroupPurchaseId || '', contributeButton);
+        return;
+      }
+      const joinSavingsButton = event.target.closest('[data-classroom-savings-product-id]');
+      if(joinSavingsButton && !joinSavingsButton.disabled) {
+        deps.joinClassroomSavingsProduct?.(joinSavingsButton.dataset.classroomSavingsProductId || '', joinSavingsButton);
+        return;
+      }
+      const claimSavingsButton = event.target.closest('[data-classroom-savings-account-id]');
+      if(claimSavingsButton && !claimSavingsButton.disabled) {
+        deps.claimClassroomSavingsMaturity?.(claimSavingsButton.dataset.classroomSavingsAccountId || '', claimSavingsButton);
       }
     });
 

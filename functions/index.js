@@ -55,6 +55,18 @@ const DEFAULT_CLASSROOM_BILLBOARD_ITEM = {
 };
 const db = getFirestore();
 
+const DEFAULT_CLASSROOM_MISSION = {
+  missionId: "current",
+  title: "학급 포인트 미션",
+  desc: "우리반 학생 포인트 총합으로 달성하는 단체 목표",
+  thresholds: [
+    { label: "1단계", targetPoint: 2000, rewardText: "" },
+    { label: "2단계", targetPoint: 4000, rewardText: "" },
+    { label: "3단계", targetPoint: 6000, rewardText: "" }
+  ],
+  active: true
+};
+
 const DEFAULT_FEATURE_FLAGS = {
   practiceRewardEnabled: true,
   practiceXpEnabled: true,
@@ -1343,6 +1355,78 @@ function getClassroomPointAmount(wallet = {}) {
   return Number(wallet.point ?? wallet.berry ?? 0) || 0;
 }
 
+function normalizeClassroomMission(rawMission = {}) {
+  const thresholds = Array.isArray(rawMission.thresholds) ? rawMission.thresholds : DEFAULT_CLASSROOM_MISSION.thresholds;
+  return {
+    missionId: "current",
+    title: String(rawMission.title || DEFAULT_CLASSROOM_MISSION.title).trim().slice(0, 50),
+    desc: String(rawMission.desc || DEFAULT_CLASSROOM_MISSION.desc).trim().slice(0, 160),
+    thresholds: thresholds
+      .map((item, index) => ({
+        label: String(item?.label || `${index + 1}단계`).trim().slice(0, 30),
+        targetPoint: Math.max(1, Math.min(1000000, Math.round(Number(item?.targetPoint) || 0))),
+        rewardText: String(item?.rewardText || "").trim().slice(0, 80)
+      }))
+      .filter(item => item.targetPoint > 0)
+      .sort((a, b) => a.targetPoint - b.targetPoint)
+      .slice(0, 6),
+    active: rawMission.active !== false
+  };
+}
+
+function publicClassroomMission(mission = {}, totalPoint = 0) {
+  const normalized = normalizeClassroomMission(mission);
+  const safeTotal = Math.max(0, Math.round(Number(totalPoint) || 0));
+  const nextThreshold = normalized.thresholds.find(item => safeTotal < item.targetPoint) || null;
+  return {
+    ...normalized,
+    totalPoint: safeTotal,
+    achievedCount: normalized.thresholds.filter(item => safeTotal >= item.targetPoint).length,
+    nextTargetPoint: nextThreshold ? nextThreshold.targetPoint : 0,
+    remainingPoint: nextThreshold ? Math.max(0, nextThreshold.targetPoint - safeTotal) : 0,
+    thresholds: normalized.thresholds.map(item => ({
+      ...item,
+      achieved: safeTotal >= item.targetPoint
+    }))
+  };
+}
+
+function normalizeClassroomGroupPurchase(rawItem = {}) {
+  const title = String(rawItem.title || "").trim().slice(0, 50);
+  const groupPurchaseId = normalizeId(rawItem.groupPurchaseId || slugifyClassroomGemId(title || "group-purchase"), "groupPurchaseId");
+  return {
+    groupPurchaseId,
+    title,
+    desc: String(rawItem.desc || "").trim().slice(0, 160),
+    targetPoint: Math.max(1, Math.min(1000000, Math.round(Number(rawItem.targetPoint) || 0))),
+    dueDate: isIsoDateKey(rawItem.dueDate) ? rawItem.dueDate : "",
+    active: rawItem.active !== false,
+    status: String(rawItem.status || "open").trim() || "open"
+  };
+}
+
+function normalizeClassroomSavingsProduct(rawProduct = {}) {
+  const title = String(rawProduct.title || "").trim().slice(0, 50);
+  const productId = normalizeId(rawProduct.productId || slugifyClassroomGemId(title || "savings-product"), "productId");
+  return {
+    productId,
+    title,
+    desc: String(rawProduct.desc || "").trim().slice(0, 160),
+    depositPoint: Math.max(1, Math.min(1000000, Math.round(Number(rawProduct.depositPoint) || 0))),
+    interestRatePercent: Math.max(0, Math.min(100, Number(rawProduct.interestRatePercent) || 0)),
+    termDays: Math.max(1, Math.min(365, Math.round(Number(rawProduct.termDays) || 7))),
+    active: rawProduct.active !== false
+  };
+}
+
+function publicClassroomPublicWallet(data = {}) {
+  return {
+    point: Math.max(0, Math.round(Number(data.point || 0) || 0)),
+    totalTaxPoint: Math.max(0, Math.round(Number(data.totalTaxPoint || 0) || 0)),
+    totalSpentPoint: Math.max(0, Math.round(Number(data.totalSpentPoint || 0) || 0))
+  };
+}
+
 function mirrorDjCoinRewardToClassroomPoint(transaction, {
   memberUserId,
   memberData,
@@ -1479,10 +1563,13 @@ exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
   };
 });
 
-function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
+function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary = {}) {
   const data = doc.data() || {};
   const selectedBadge = profile.selectedBadge && typeof profile.selectedBadge === "object"
     ? profile.selectedBadge
+    : {};
+  const selectedKeyring = profile.selectedKeyring && typeof profile.selectedKeyring === "object"
+    ? profile.selectedKeyring
     : {};
   return {
     memberUserId: doc.id,
@@ -1493,6 +1580,16 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}) {
     name: String(data.name || data.nickname || "").slice(0, 24),
     profileImageUrl: String(data.profileImageUrl || "").slice(0, 1200),
     point: getClassroomPointAmount(wallet),
+    selectedTitle: {
+      titleId: String(titleSummary.selectedTitleId || data.selectedTitleId || "").slice(0, 80),
+      titleName: String(titleSummary.selectedTitleName || data.selectedTitleName || "").slice(0, 50)
+    },
+    selectedKeyring: {
+      keyringId: String(profile.selectedKeyringId || selectedKeyring.keyringId || profile.selectedBadgeId || selectedBadge.badgeId || "").slice(0, 80),
+      label: String(profile.selectedKeyringLabel || selectedKeyring.label || profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
+      icon: String(profile.selectedKeyringIcon || selectedKeyring.icon || profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 12),
+      color: String(profile.selectedKeyringColor || selectedKeyring.color || profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
+    },
     selectedBadge: {
       badgeId: String(profile.selectedBadgeId || selectedBadge.badgeId || "").slice(0, 80),
       label: String(profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
@@ -4669,12 +4766,15 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
 
   const walletRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentWallets").doc(doc.id));
   const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
-  const [walletSnapshots, profileSnapshots] = await Promise.all([
+  const titleRefs = studentDocs.map(doc => db.collection("userTitleSummary").doc(doc.id));
+  const [walletSnapshots, profileSnapshots, titleSnapshots] = await Promise.all([
     walletRefs.length ? db.getAll(...walletRefs) : [],
-    profileRefs.length ? db.getAll(...profileRefs) : []
+    profileRefs.length ? db.getAll(...profileRefs) : [],
+    titleRefs.length ? db.getAll(...titleRefs) : []
   ]);
   const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+  const titleByUserId = new Map(titleSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
 
   return {
     success: true,
@@ -4683,7 +4783,8 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
     students: studentDocs.map(doc => publicClassroomStudentCard(
       doc,
       walletByUserId.get(doc.id) || {},
-      profileByUserId.get(doc.id) || {}
+      profileByUserId.get(doc.id) || {},
+      titleByUserId.get(doc.id) || {}
     ))
   };
 });
@@ -4730,6 +4831,13 @@ exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => 
       icon: "gem",
       color: "#7cddff"
     };
+    const selectedKeyring = {
+      keyringId: selectedBadge.badgeId,
+      type: selectedBadge.type,
+      label: selectedBadge.label,
+      icon: selectedBadge.icon,
+      color: selectedBadge.color
+    };
     transaction.set(profileRef, {
       classId,
       memberUserId,
@@ -4740,6 +4848,12 @@ exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => 
       selectedBadgeIcon: selectedBadge.icon,
       selectedBadgeColor: selectedBadge.color,
       selectedBadge,
+      selectedKeyringId: selectedKeyring.keyringId,
+      selectedKeyringType: selectedKeyring.type,
+      selectedKeyringLabel: selectedKeyring.label,
+      selectedKeyringIcon: selectedKeyring.icon,
+      selectedKeyringColor: selectedKeyring.color,
+      selectedKeyring,
       updatedAt: FieldValue.serverTimestamp(),
       source: "set_classroom_selected_badge_function"
     }, { merge: true });
@@ -4827,10 +4941,19 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
       icon,
       color
     };
+    const selectedKeyring = {
+      keyringId: selectedBadge.badgeId,
+      type: selectedBadge.type,
+      label: selectedBadge.label,
+      icon: selectedBadge.icon,
+      color: selectedBadge.color
+    };
     const badgeRef = db.collection("classrooms").doc(classId).collection("studentBadges").doc(badgeId);
+    const keyringRef = db.collection("classrooms").doc(classId).collection("studentKeyrings").doc(badgeId);
     const profileRef = db.collection("classrooms").doc(classId).collection("studentProfiles").doc(memberUserId);
-    batch.set(badgeRef, {
+    const keyringDoc = {
       badgeId,
+      keyringId: badgeId,
       campaignId,
       classId,
       memberUserId,
@@ -4845,7 +4968,9 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
       awardedAt: FieldValue.serverTimestamp(),
       awardedBy: adminMember.memberUserId,
       source: "award_classroom_badge_campaign_function"
-    }, { merge: true });
+    };
+    batch.set(badgeRef, keyringDoc, { merge: true });
+    batch.set(keyringRef, keyringDoc, { merge: true });
     batch.set(profileRef, {
       classId,
       memberUserId,
@@ -4856,6 +4981,12 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
       selectedBadgeIcon: selectedBadge.icon,
       selectedBadgeColor: selectedBadge.color,
       selectedBadge,
+      selectedKeyringId: selectedKeyring.keyringId,
+      selectedKeyringType: selectedKeyring.type,
+      selectedKeyringLabel: selectedKeyring.label,
+      selectedKeyringIcon: selectedKeyring.icon,
+      selectedKeyringColor: selectedKeyring.color,
+      selectedKeyring,
       updatedAt: FieldValue.serverTimestamp(),
       source: "award_classroom_badge_campaign_function"
     }, { merge: true });
@@ -4935,6 +5066,23 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     db.collection("classrooms").doc(classId).collection("classNotices").doc("current").get(),
     db.collection("classrooms").doc(classId).collection("billboardMessages").limit(50).get()
   ]);
+  const [
+    missionSnapshot,
+    publicWalletSnapshot,
+    walletSnapshot,
+    groupPurchaseSnapshot,
+    savingsProductSnapshot,
+    savingsAccountSnapshot
+  ] = await Promise.all([
+    db.collection("classrooms").doc(classId).collection("classMissions").doc("current").get(),
+    db.collection("classrooms").doc(classId).collection("classPublicWallets").doc("current").get(),
+    db.collection("classrooms").doc(classId).collection("studentWallets").limit(500).get(),
+    db.collection("classrooms").doc(classId).collection("groupPurchases").limit(100).get(),
+    db.collection("classrooms").doc(classId).collection("savingsProducts").where("active", "==", true).limit(100).get(),
+    authResult.canManage
+      ? db.collection("classrooms").doc(classId).collection("savingsAccounts").limit(200).get()
+      : db.collection("classrooms").doc(classId).collection("savingsAccounts").where("memberUserId", "==", memberUserId).limit(50).get()
+  ]);
 
   const jobs = jobsSnapshot.docs
     .map(doc => ({ jobId: doc.id, ...(doc.data() || {}) }))
@@ -4945,6 +5093,56 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   if (!shopItems.some(item => item.itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID)) {
     shopItems.push(DEFAULT_CLASSROOM_BILLBOARD_ITEM);
   }
+  const totalStudentPoint = walletSnapshot.docs.reduce((sum, doc) => sum + Math.max(0, Math.round(getClassroomPointAmount(doc.data() || {}))), 0);
+  const classMission = publicClassroomMission(
+    missionSnapshot.exists ? missionSnapshot.data() || {} : DEFAULT_CLASSROOM_MISSION,
+    totalStudentPoint
+  );
+  const publicWallet = publicClassroomPublicWallet(publicWalletSnapshot.exists ? publicWalletSnapshot.data() || {} : {});
+  const groupPurchases = groupPurchaseSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      const targetPoint = Math.max(1, Math.round(Number(data.targetPoint || 0) || 1));
+      const raisedPoint = Math.max(0, Math.round(Number(data.raisedPoint || 0) || 0));
+      return {
+        groupPurchaseId: doc.id,
+        title: String(data.title || "").slice(0, 50),
+        desc: String(data.desc || "").slice(0, 160),
+        targetPoint,
+        raisedPoint,
+        dueDate: String(data.dueDate || ""),
+        status: String(data.status || "open"),
+        active: data.active !== false,
+        progressPercent: Math.min(100, Math.round((raisedPoint / targetPoint) * 100))
+      };
+    })
+    .filter(item => item.active !== false)
+    .sort((a, b) => {
+      const statusDelta = (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1);
+      return statusDelta || String(a.dueDate || "9999-12-31").localeCompare(String(b.dueDate || "9999-12-31"));
+    });
+  const savingsProducts = savingsProductSnapshot.docs
+    .map(doc => ({ productId: doc.id, ...(doc.data() || {}) }))
+    .sort((a, b) => String(a.title || a.productId).localeCompare(String(b.title || b.productId), "ko"));
+  const savingsAccounts = savingsAccountSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      const depositPoint = Math.max(0, Math.round(Number(data.depositPoint || 0) || 0));
+      const interestPoint = Math.max(0, Math.round(Number(data.interestPoint || 0) || 0));
+      return {
+        accountId: doc.id,
+        productId: String(data.productId || ""),
+        productTitle: String(data.productTitle || ""),
+        memberUserId: String(data.memberUserId || data.userId || ""),
+        depositPoint,
+        interestPoint,
+        payoutPoint: depositPoint + interestPoint,
+        openedDate: String(data.openedDate || ""),
+        maturityDate: String(data.maturityDate || ""),
+        status: String(data.status || "active")
+      };
+    })
+    .sort((a, b) => String(a.maturityDate || "").localeCompare(String(b.maturityDate || "")));
   const assignments = assignmentSnapshot.docs.map(doc => {
     const data = doc.data() || {};
     return {
@@ -5076,6 +5274,11 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     pointLogs,
     classNotices,
     billboardMessages,
+    classMission,
+    publicWallet,
+    groupPurchases,
+    savingsProducts,
+    savingsAccounts,
     myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
   };
 });
@@ -5654,6 +5857,380 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
     return { purchaseId, itemId, pricePoint, remainingPoint: currentPoint - pricePoint };
+  });
+
+  return { success: true, classId, memberUserId, ...result };
+});
+
+exports.saveClassroomMissionConfig = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const mission = normalizeClassroomMission(payload.mission && typeof payload.mission === "object" ? payload.mission : {});
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    transaction.set(db.collection("classrooms").doc(classId).collection("classMissions").doc("current"), {
+      ...mission,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_mission_config_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, mission };
+});
+
+exports.collectClassroomTax = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const ratePercent = Math.max(0.1, Math.min(50, Number(payload.ratePercent || 0)));
+  const reason = String(payload.reason || "학급 공공 포인트 적립").trim().slice(0, 120);
+  const classroomResult = await db.runTransaction(async transaction => {
+    const result = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, result.settings);
+    return result.settings;
+  });
+  const walletsSnapshot = await db.collection("classrooms").doc(classId).collection("studentWallets").limit(500).get();
+  const targets = walletsSnapshot.docs
+    .map(doc => {
+      const point = Math.max(0, Math.round(getClassroomPointAmount(doc.data() || {})));
+      const taxPoint = Math.floor(point * (ratePercent / 100));
+      return { memberUserId: doc.id, point, taxPoint };
+    })
+    .filter(item => item.taxPoint > 0);
+  if (!targets.length) {
+    return { success: true, classId, className: classroomResult.name || classId, ratePercent, collectedPoint: 0, affectedCount: 0 };
+  }
+  const taxId = rewardLogId(["classroom_tax", classId, getKstDateKey(), Date.now()]);
+  const batch = db.batch();
+  let collectedPoint = 0;
+  targets.forEach(item => {
+    collectedPoint += item.taxPoint;
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(item.memberUserId);
+    const logRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(`${taxId}__${item.memberUserId}`);
+    batch.set(walletRef, {
+      classId,
+      memberUserId: item.memberUserId,
+      userId: item.memberUserId,
+      point: FieldValue.increment(-item.taxPoint),
+      totalTaxPaidPoint: FieldValue.increment(item.taxPoint),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomTaxAt: FieldValue.serverTimestamp(),
+      source: "collect_classroom_tax_function"
+    }, { merge: true });
+    batch.set(logRef, {
+      type: "classroom_tax",
+      classId,
+      taxId,
+      memberUserId: item.memberUserId,
+      userId: item.memberUserId,
+      rewardCurrency: "point",
+      rewardPoint: -item.taxPoint,
+      rewardAmount: -item.taxPoint,
+      ratePercent,
+      reason,
+      collectedBy: adminMember.memberUserId,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+  });
+  const publicWalletRef = db.collection("classrooms").doc(classId).collection("classPublicWallets").doc("current");
+  const taxLogRef = db.collection("classrooms").doc(classId).collection("taxLogs").doc(taxId);
+  batch.set(publicWalletRef, {
+    classId,
+    point: FieldValue.increment(collectedPoint),
+    totalTaxPoint: FieldValue.increment(collectedPoint),
+    updatedAt: FieldValue.serverTimestamp(),
+    source: "collect_classroom_tax_function"
+  }, { merge: true });
+  batch.set(taxLogRef, {
+    taxId,
+    classId,
+    ratePercent,
+    reason,
+    collectedPoint,
+    affectedCount: targets.length,
+    collectedBy: adminMember.memberUserId,
+    createdAt: FieldValue.serverTimestamp(),
+    source: "collect_classroom_tax_function"
+  }, { merge: false });
+  await batch.commit();
+
+  return { success: true, classId, ratePercent, collectedPoint, affectedCount: targets.length };
+});
+
+exports.saveClassroomGroupPurchase = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const groupPurchase = normalizeClassroomGroupPurchase(payload.groupPurchase && typeof payload.groupPurchase === "object" ? payload.groupPurchase : {});
+  if (!groupPurchase.title || groupPurchase.targetPoint <= 0) {
+    throw new HttpsError("invalid-argument", "Group purchase title and target point are required.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    transaction.set(db.collection("classrooms").doc(classId).collection("groupPurchases").doc(groupPurchase.groupPurchaseId), {
+      ...groupPurchase,
+      classId,
+      raisedPoint: FieldValue.increment(0),
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_group_purchase_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, groupPurchase };
+});
+
+exports.contributeClassroomGroupPurchase = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const groupPurchaseId = normalizeId(payload.groupPurchaseId, "groupPurchaseId");
+  const amount = Math.max(1, Math.min(100000, Math.round(Number(payload.amount) || 0)));
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const groupRef = db.collection("classrooms").doc(classId).collection("groupPurchases").doc(groupPurchaseId);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const [groupSnapshot, walletSnapshot] = await Promise.all([transaction.get(groupRef), transaction.get(walletRef)]);
+    if (!groupSnapshot.exists || groupSnapshot.data()?.active === false) {
+      throw new HttpsError("not-found", "Classroom group purchase not found.");
+    }
+    const groupPurchase = groupSnapshot.data() || {};
+    if (String(groupPurchase.status || "open") !== "open") {
+      throw new HttpsError("failed-precondition", "Classroom group purchase is closed.");
+    }
+    const currentPoint = Math.max(0, Math.round(getClassroomPointAmount(walletSnapshot.exists ? walletSnapshot.data() || {} : {})));
+    if (currentPoint < amount) {
+      throw new HttpsError("failed-precondition", "Not enough classroom point.");
+    }
+    const targetPoint = Math.max(1, Math.round(Number(groupPurchase.targetPoint || 0) || 1));
+    const nextRaised = Math.max(0, Math.round(Number(groupPurchase.raisedPoint || 0) || 0)) + amount;
+    const contributionId = rewardLogId(["classroom_group_purchase", classId, groupPurchaseId, Date.now(), memberUserId]);
+    transaction.set(walletRef, {
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      point: FieldValue.increment(-amount),
+      totalGroupPurchasePoint: FieldValue.increment(amount),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomGroupPurchaseAt: FieldValue.serverTimestamp(),
+      source: "contribute_classroom_group_purchase_function"
+    }, { merge: true });
+    transaction.set(groupRef, {
+      raisedPoint: FieldValue.increment(amount),
+      contributorCount: FieldValue.increment(1),
+      status: nextRaised >= targetPoint ? "funded" : "open",
+      fundedAt: nextRaised >= targetPoint ? FieldValue.serverTimestamp() : groupPurchase.fundedAt || null,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(db.collection("classrooms").doc(classId).collection("groupPurchaseContributions").doc(contributionId), {
+      contributionId,
+      classId,
+      groupPurchaseId,
+      groupPurchaseTitle: groupPurchase.title || "",
+      memberUserId,
+      userId: memberUserId,
+      amount,
+      source: "contribute_classroom_group_purchase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(db.collection("classrooms").doc(classId).collection("pointLogs").doc(contributionId), {
+      type: "classroom_group_purchase_contribution",
+      classId,
+      groupPurchaseId,
+      itemTitle: groupPurchase.title || "",
+      memberUserId,
+      userId: memberUserId,
+      rewardCurrency: "point",
+      rewardPoint: -amount,
+      rewardAmount: -amount,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { groupPurchaseId, amount, raisedPoint: nextRaised, funded: nextRaised >= targetPoint };
+  });
+
+  return { success: true, classId, memberUserId, ...result };
+});
+
+exports.saveClassroomSavingsProduct = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const product = normalizeClassroomSavingsProduct(payload.product && typeof payload.product === "object" ? payload.product : {});
+  if (!product.title || product.depositPoint <= 0) {
+    throw new HttpsError("invalid-argument", "Savings product title and deposit point are required.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    transaction.set(db.collection("classrooms").doc(classId).collection("savingsProducts").doc(product.productId), {
+      ...product,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_savings_product_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, product };
+});
+
+exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const productId = normalizeId(payload.productId, "productId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const productRef = db.collection("classrooms").doc(classId).collection("savingsProducts").doc(productId);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const [productSnapshot, walletSnapshot] = await Promise.all([transaction.get(productRef), transaction.get(walletRef)]);
+    if (!productSnapshot.exists || productSnapshot.data()?.active === false) {
+      throw new HttpsError("not-found", "Classroom savings product not found.");
+    }
+    const product = normalizeClassroomSavingsProduct({ productId, ...(productSnapshot.data() || {}) });
+    const currentPoint = Math.max(0, Math.round(getClassroomPointAmount(walletSnapshot.exists ? walletSnapshot.data() || {} : {})));
+    if (currentPoint < product.depositPoint) {
+      throw new HttpsError("failed-precondition", "Not enough classroom point.");
+    }
+    const openedDate = getKstDateKey();
+    const maturityDate = addIsoDateDays(openedDate, product.termDays);
+    const interestPoint = Math.floor(product.depositPoint * (product.interestRatePercent / 100));
+    const accountId = rewardLogId(["classroom_savings", classId, productId, memberUserId, Date.now()]);
+    const accountRef = db.collection("classrooms").doc(classId).collection("savingsAccounts").doc(accountId);
+    transaction.set(walletRef, {
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      point: FieldValue.increment(-product.depositPoint),
+      totalSavingsDepositPoint: FieldValue.increment(product.depositPoint),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomSavingsAt: FieldValue.serverTimestamp(),
+      source: "join_classroom_savings_product_function"
+    }, { merge: true });
+    transaction.set(accountRef, {
+      accountId,
+      classId,
+      productId,
+      productTitle: product.title,
+      memberUserId,
+      userId: memberUserId,
+      depositPoint: product.depositPoint,
+      interestRatePercent: product.interestRatePercent,
+      interestPoint,
+      openedDate,
+      maturityDate,
+      status: "active",
+      source: "join_classroom_savings_product_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    transaction.set(db.collection("classrooms").doc(classId).collection("pointLogs").doc(accountId), {
+      type: "classroom_savings_deposit",
+      classId,
+      productId,
+      itemTitle: product.title,
+      memberUserId,
+      userId: memberUserId,
+      rewardCurrency: "point",
+      rewardPoint: -product.depositPoint,
+      rewardAmount: -product.depositPoint,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { accountId, productId, depositPoint: product.depositPoint, interestPoint, maturityDate };
+  });
+
+  return { success: true, classId, memberUserId, ...result };
+});
+
+exports.claimClassroomSavingsMaturity = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const accountId = normalizeId(payload.accountId, "accountId");
+
+  const result = await db.runTransaction(async transaction => {
+    const [memberData, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const accountRef = db.collection("classrooms").doc(classId).collection("savingsAccounts").doc(accountId);
+    const accountSnapshot = await transaction.get(accountRef);
+    if (!accountSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom savings account not found.");
+    }
+    const account = accountSnapshot.data() || {};
+    if (account.memberUserId !== memberUserId) {
+      throw new HttpsError("permission-denied", "Cannot claim another member savings account.");
+    }
+    if (String(account.status || "active") !== "active") {
+      return { duplicate: true, payoutPoint: 0 };
+    }
+    if (String(account.maturityDate || "") > getKstDateKey()) {
+      throw new HttpsError("failed-precondition", "Savings account is not mature yet.");
+    }
+    const depositPoint = Math.max(0, Math.round(Number(account.depositPoint || 0) || 0));
+    const interestPoint = Math.max(0, Math.round(Number(account.interestPoint || 0) || 0));
+    const payoutPoint = depositPoint + interestPoint;
+    const logId = rewardLogId(["classroom_savings_payout", classId, accountId]);
+    transaction.set(db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId), {
+      classId,
+      memberUserId,
+      userId: memberUserId,
+      point: FieldValue.increment(payoutPoint),
+      totalSavingsPayoutPoint: FieldValue.increment(payoutPoint),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastClassroomSavingsPayoutAt: FieldValue.serverTimestamp(),
+      source: "claim_classroom_savings_maturity_function"
+    }, { merge: true });
+    transaction.set(accountRef, {
+      status: "claimed",
+      claimedAt: FieldValue.serverTimestamp(),
+      payoutPoint,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId), {
+      type: "classroom_savings_payout",
+      classId,
+      accountId,
+      productId: account.productId || "",
+      itemTitle: account.productTitle || "",
+      memberUserId,
+      userId: memberUserId,
+      rewardCurrency: "point",
+      rewardPoint: payoutPoint,
+      rewardAmount: payoutPoint,
+      source: "firebase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { duplicate: false, accountId, payoutPoint, interestPoint };
   });
 
   return { success: true, classId, memberUserId, ...result };

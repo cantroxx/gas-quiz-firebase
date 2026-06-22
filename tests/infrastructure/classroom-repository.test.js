@@ -194,6 +194,11 @@ async function testClassroomRepositoryReadPaths() {
     pointLogs: [{ id: 'point-log-1' }],
     classNotices: { slots: [] },
     billboardMessages: [],
+    classMission: null,
+    publicWallet: { point: 0 },
+    groupPurchases: [],
+    savingsProducts: [],
+    savingsAccounts: [],
     myAssignment: { id: 'mine' }
   });
   assert.deepEqual(await repository.loadClassroomReviewItems({ settings, canReview: true }), [

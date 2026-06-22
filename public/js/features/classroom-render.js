@@ -214,7 +214,12 @@
     const completedGems = gemProgress.filter(gem => gem.completed === true);
     const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
     const myStudentCard = studentCards.find(student => student.memberUserId === currentMemberUserId) || {};
-    const selectedBadgeLabel = myStudentCard.selectedBadge?.label || '';
+    const studentNameMap = Object.fromEntries(studentCards.map(student => [
+      String(student.memberUserId || ''),
+      student.nickname || student.name || ''
+    ]).filter(([id]) => id));
+    const selectedKeyringLabel = myStudentCard.selectedKeyring?.label || myStudentCard.selectedBadge?.label || '';
+    const classMission = economyBoard.classMission || null;
     const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const billboardMessages = Array.isArray(economyBoard.billboardMessages) ? economyBoard.billboardMessages : [];
     const noticeSlots = Array.isArray(economyBoard.classNotices?.slots) ? economyBoard.classNotices.slots : [];
@@ -234,23 +239,26 @@
       pendingQuests[0]?.title ? `${pendingQuests[0].title} 도전 중` : '오늘 퀘스트 완료!',
       todayRoutines[0]?.title ? `${todayRoutines[0].title} 체크해요` : '성장루틴 체크했어요',
       shopItems[0]?.title ? `상점에 ${shopItems[0].title} 나왔대요` : '상점에 새 상품 나왔대요',
-      selectedBadgeLabel ? `${selectedBadgeLabel} 뱃지 멋져요` : '우리 반 파이팅!',
+      selectedKeyringLabel ? `${selectedKeyringLabel} 키링 멋져요` : '우리 반 파이팅!',
       completedGems.length ? `젬 ${completedGems.length}개 모았어요` : '독서젬 모으는 중'
     ];
     const messageItems = billboardMessages.length
-      ? billboardMessages.slice(0, 5).map(item => item.text)
+      ? billboardMessages.slice(0, 5).map(item => {
+        const nickname = studentNameMap[String(item.memberUserId || '')] || '';
+        return nickname ? `${nickname}: ${item.text}` : item.text;
+      })
       : fallbackMessageItems;
     const featureItems = [
-      ['퀘스트', '+', 'quests', 'secondary'],
-      ['성장루틴', '▣', 'routines', 'primary'],
-      ['학생카드', '●●', 'students', 'tertiary'],
-      ['교실상점', '▥', 'shop', 'shop'],
-      ['직업', '■', 'jobs', 'secondary']
-    ].concat(canManage ? [['교사도구', '⚒', 'today', 'tools', 'classroom-teacher-review-panel']] : []);
+      ['교실', '+', 'classroom', 'secondary'],
+      ['젬스톤', '◇', 'gems', 'primary'],
+      ['직업', '■', 'jobs', 'secondary'],
+      ['마켓', '▥', 'market', 'shop']
+    ];
     const checklistItems = [
-      ['체크할 퀘스트', `${pendingQuests.length}건 대기중`, 'quests', 'assignment'],
-      ['성장루틴 확인', todayRoutines.length ? `${todayRoutines.length}건 남음` : '모두 완료됨', 'routines', 'routine']
-    ].concat(canManage ? [['승인 대기', `${(Array.isArray(data.reviewItems) ? data.reviewItems.length : 0)}건 확인`, 'today', 'review', 'classroom-teacher-review-panel']] : []);
+      classMission ? ['학급 미션', classMission.remainingPoint ? `${Number(classMission.remainingPoint || 0).toLocaleString('ko-KR')}점 남음` : '전체 달성!', 'classroom', 'mission'] : null,
+      ['체크할 퀘스트', `${pendingQuests.length}건 대기중`, 'classroom', 'assignment'],
+      ['성장루틴 확인', todayRoutines.length ? `${todayRoutines.length}건 남음` : '모두 완료됨', 'classroom', 'routine']
+    ].filter(Boolean).concat(canManage ? [['승인 대기', `${(Array.isArray(data.reviewItems) ? data.reviewItems.length : 0)}건 확인`, 'teacher', 'review']] : []);
     const marqueeText = activeNoticeSlots[0]?.text || '이번 주 금요일은 현장체험학습일입니다. 준비물을 꼭 확인해 주세요.';
 
     const createNavButton = (tabName, teacherTarget = '') => {
@@ -302,6 +310,29 @@
       board.appendChild(noticePanel);
     }
     boardSection.append(boardHeading, board);
+
+    if(classMission) {
+      const missionPanel = document.createElement('section');
+      const missionTitle = document.createElement('h3');
+      const missionDesc = document.createElement('p');
+      const missionTrack = document.createElement('div');
+      const targetMax = Math.max(...(classMission.thresholds || []).map(item => Number(item.targetPoint || 0)), 1);
+      missionPanel.className = 'classroom-mission-panel';
+      missionTitle.className = 'classroom-visual-section-title';
+      missionTitle.textContent = classMission.title || '학급 미션';
+      missionDesc.textContent = `${Number(classMission.totalPoint || 0).toLocaleString('ko-KR')}점 모음${classMission.remainingPoint ? ` · 다음 목표까지 ${Number(classMission.remainingPoint || 0).toLocaleString('ko-KR')}점` : ' · 모든 목표 달성'}`;
+      missionTrack.className = 'classroom-mission-track';
+      (classMission.thresholds || []).forEach(step => {
+        const marker = document.createElement('span');
+        marker.className = `classroom-mission-marker${step.achieved ? ' is-achieved' : ''}`;
+        marker.style.setProperty('--mission-position', `${Math.min(100, Math.round((Number(step.targetPoint || 0) / targetMax) * 100))}%`);
+        marker.textContent = step.achieved ? '✓' : Number(step.targetPoint || 0).toLocaleString('ko-KR');
+        marker.title = `${step.label || '목표'} ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}`;
+        missionTrack.appendChild(marker);
+      });
+      missionPanel.append(missionTitle, missionDesc, missionTrack);
+      boardSection.appendChild(missionPanel);
+    }
 
     featureGrid.className = 'classroom-feature-grid';
     featureItems.forEach(([label, icon, tabName, tone, teacherTarget]) => {
@@ -567,7 +598,7 @@
       button.type = 'button';
       button.dataset.classroomBadgeGemId = gem.gemId || '';
       button.disabled = !gem.completed;
-      button.textContent = gem.completed ? '대표 뱃지로 설정' : '목표 달성 후 설정';
+      button.textContent = gem.completed ? '대표 키링으로 설정' : '목표 달성 후 설정';
       card.append(icon, badge, title, progress, createClassroomProgressMeter(percent), reward, status, button);
       grid.appendChild(card);
     });
@@ -615,8 +646,12 @@
       const level = Math.max(0, Math.round(Number(student.level || levelSummary.level) || 0));
       const medalAsset = level ? deps.getLevelMedalAsset?.(level) : null;
       const desc = document.createElement('p');
-      const status = document.createElement('span');
       const levelBadge = document.createElement('span');
+      const metaGrid = document.createElement('div');
+      const titleChip = document.createElement('span');
+      const keyringChip = document.createElement('span');
+      const selectedTitleName = student.selectedTitle?.titleName || '';
+      const selectedKeyringLabel = student.selectedKeyring?.label || student.selectedBadge?.label || '';
       card.className = 'classroom-card classroom-card--student classroom-student-card';
       badge.className = 'classroom-card-badge';
       badge.textContent = `${student.studentNumber || '-'}번`;
@@ -647,10 +682,20 @@
       }
       identity.append(title, portrait);
       if(level) identity.appendChild(levelBadge);
-      desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · 포인트 ${Number(student.point || 0).toLocaleString('ko-KR')}`;
-      status.className = `quest-status ${student.selectedBadge?.label ? 'quest-status-claimed' : 'quest-status-ready'}`;
-      status.textContent = student.selectedBadge?.label ? `대표 뱃지: ${student.selectedBadge.label}` : '대표 뱃지 미설정';
-      card.append(badge, identity, desc, status);
+      desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · ${level ? `Lv.${level} · ` : ''}포인트 ${Number(student.point || 0).toLocaleString('ko-KR')}`;
+      metaGrid.className = 'classroom-student-card-meta';
+      if(selectedTitleName) {
+        titleChip.className = 'quest-status quest-status-active';
+        titleChip.textContent = selectedTitleName;
+        metaGrid.appendChild(titleChip);
+      }
+      if(selectedKeyringLabel) {
+        keyringChip.className = 'quest-status quest-status-claimed';
+        keyringChip.textContent = selectedKeyringLabel;
+        metaGrid.appendChild(keyringChip);
+      }
+      card.append(badge, identity, desc);
+      if(metaGrid.children.length) card.appendChild(metaGrid);
       grid.appendChild(card);
     });
   }
@@ -842,7 +887,6 @@
       empty.className = 'classroom-review-status';
       empty.textContent = canManage ? '아직 구매 내역이 없습니다.' : '아직 보유한 쿠폰이 없습니다.';
       list.appendChild(empty);
-      return;
     }
     purchases.slice(0, 12).forEach(purchase => {
       const row = document.createElement('article');
@@ -912,6 +956,143 @@
       row.append(body, actions);
       list.appendChild(row);
     });
+    renderClassroomGroupPurchaseSection(wrap, economyBoard, deps);
+  }
+
+  function renderClassroomMissionView(economyBoard = {}) {
+    const wrap = document.getElementById('classroom-mission-view');
+    if(!wrap) return;
+    const mission = economyBoard.classMission || null;
+    wrap.innerHTML = '';
+    if(!mission) {
+      const empty = document.createElement('p');
+      empty.className = 'classroom-review-status';
+      empty.textContent = '아직 설정된 학급 포인트 미션이 없습니다.';
+      wrap.appendChild(empty);
+      return;
+    }
+    const panel = document.createElement('section');
+    const title = document.createElement('h4');
+    const desc = document.createElement('p');
+    const track = document.createElement('div');
+    const targetMax = Math.max(...(mission.thresholds || []).map(item => Number(item.targetPoint || 0)), 1);
+    panel.className = 'classroom-mission-panel';
+    title.textContent = mission.title || '학급 포인트 미션';
+    desc.textContent = `${Number(mission.totalPoint || 0).toLocaleString('ko-KR')}점 모음${mission.remainingPoint ? ` · 다음 기준까지 ${Number(mission.remainingPoint || 0).toLocaleString('ko-KR')}점` : ' · 모든 기준 달성'}`;
+    track.className = 'classroom-mission-track';
+    (mission.thresholds || []).forEach(step => {
+      const marker = document.createElement('span');
+      marker.className = `classroom-mission-marker${step.achieved ? ' is-achieved' : ''}`;
+      marker.style.setProperty('--mission-position', `${Math.min(100, Math.round((Number(step.targetPoint || 0) / targetMax) * 100))}%`);
+      marker.textContent = step.achieved ? '✓' : Number(step.targetPoint || 0).toLocaleString('ko-KR');
+      marker.title = `${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`}${step.rewardText ? ` · ${step.rewardText}` : ''}`;
+      track.appendChild(marker);
+    });
+    panel.append(title, desc, track);
+    wrap.appendChild(panel);
+  }
+
+  function renderClassroomGroupPurchaseSection(wrap, economyBoard = {}, deps = {}) {
+    const items = Array.isArray(economyBoard.groupPurchases) ? economyBoard.groupPurchases : [];
+    if(!items.length) return;
+    const section = document.createElement('section');
+    const heading = document.createElement('div');
+    const title = document.createElement('h4');
+    const note = document.createElement('p');
+    const list = document.createElement('div');
+    section.className = 'classroom-shop-history';
+    heading.className = 'event-section-heading compact';
+    title.textContent = '공동구매';
+    note.textContent = '학생들이 포인트를 모아 학급 상품을 달성합니다.';
+    list.className = 'classroom-shop-history-list';
+    heading.append(title, note);
+    section.append(heading, list);
+    items.slice(0, 8).forEach(item => {
+      const row = document.createElement('article');
+      const body = document.createElement('div');
+      const titleEl = document.createElement('strong');
+      const meta = document.createElement('p');
+      const actions = document.createElement('div');
+      const button = document.createElement('button');
+      const status = String(item.status || 'open');
+      row.className = 'classroom-shop-history-row';
+      actions.className = 'classroom-review-actions';
+      titleEl.textContent = item.title || '공동구매';
+      meta.textContent = `${Number(item.raisedPoint || 0).toLocaleString('ko-KR')} / ${Number(item.targetPoint || 0).toLocaleString('ko-KR')} 포인트 · ${status === 'funded' ? '목표 달성' : '진행 중'}${item.dueDate ? ` · ${item.dueDate}까지` : ''}`;
+      button.className = 'quest-claim-button';
+      button.type = 'button';
+      button.dataset.classroomGroupPurchaseId = item.groupPurchaseId || '';
+      button.disabled = status !== 'open';
+      button.textContent = status === 'funded' ? '달성 완료' : '10포인트 보태기';
+      body.append(titleEl, meta, createClassroomProgressMeter(Number(item.progressPercent || 0)));
+      actions.appendChild(button);
+      row.append(body, actions);
+      list.appendChild(row);
+    });
+    wrap.appendChild(section);
+  }
+
+  function renderClassroomSavingsSection(wrap, economyBoard = {}, deps = {}) {
+    if(!wrap) return;
+    const products = Array.isArray(economyBoard.savingsProducts) ? economyBoard.savingsProducts : [];
+    const accounts = Array.isArray(economyBoard.savingsAccounts) ? economyBoard.savingsAccounts : [];
+    if(!products.length && !accounts.length) return;
+    const section = document.createElement('section');
+    const heading = document.createElement('div');
+    const title = document.createElement('h4');
+    const note = document.createElement('p');
+    const list = document.createElement('div');
+    const todayKey = deps.getTodayDateKey?.() || new Date().toISOString().slice(0, 10);
+    section.className = 'classroom-shop-history';
+    heading.className = 'event-section-heading compact';
+    title.textContent = '은행 적금';
+    note.textContent = '포인트를 예치하고 만기일에 이자와 함께 수령합니다.';
+    list.className = 'classroom-shop-history-list';
+    heading.append(title, note);
+    section.append(heading, list);
+    products.slice(0, 6).forEach(product => {
+      const row = document.createElement('article');
+      const body = document.createElement('div');
+      const titleEl = document.createElement('strong');
+      const meta = document.createElement('p');
+      const actions = document.createElement('div');
+      const button = document.createElement('button');
+      row.className = 'classroom-shop-history-row';
+      actions.className = 'classroom-review-actions';
+      titleEl.textContent = product.title || '적금 상품';
+      meta.textContent = `${Number(product.depositPoint || 0).toLocaleString('ko-KR')}포인트 예치 · ${Number(product.interestRatePercent || 0)}% 이자 · ${Number(product.termDays || 0)}일`;
+      button.className = 'quest-claim-button';
+      button.type = 'button';
+      button.dataset.classroomSavingsProductId = product.productId || '';
+      button.textContent = '가입하기';
+      body.append(titleEl, meta);
+      actions.appendChild(button);
+      row.append(body, actions);
+      list.appendChild(row);
+    });
+    accounts.slice(0, 8).forEach(account => {
+      const row = document.createElement('article');
+      const body = document.createElement('div');
+      const titleEl = document.createElement('strong');
+      const meta = document.createElement('p');
+      const actions = document.createElement('div');
+      const button = document.createElement('button');
+      const mature = String(account.maturityDate || '') <= todayKey;
+      row.className = 'classroom-shop-history-row';
+      actions.className = 'classroom-review-actions';
+      titleEl.textContent = account.productTitle || '내 적금';
+      meta.textContent = `${Number(account.depositPoint || 0).toLocaleString('ko-KR')} + 이자 ${Number(account.interestPoint || 0).toLocaleString('ko-KR')} · 만기 ${account.maturityDate || '-'}`;
+      button.className = 'quest-claim-button';
+      button.type = 'button';
+      button.dataset.classroomSavingsAccountId = account.accountId || '';
+      button.disabled = account.status !== 'active' || !mature;
+      button.textContent = account.status === 'claimed' ? '수령 완료' : mature ? '만기 수령' : '만기 대기';
+      body.append(titleEl, meta);
+      actions.appendChild(button);
+      row.append(body, actions);
+      list.appendChild(row);
+    });
+    wrap.appendChild(section);
   }
 
   function getClassroomRoutineScheduleLabel(routine = {}) {
@@ -975,6 +1156,14 @@
   function renderClassroomSections(data = {}, deps = {}) {
     const settings = data.settings || {};
     const economyBoard = data.economyBoard || {};
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const teacherTab = document.getElementById('classroom-teacher-tab');
+    if(teacherTab) {
+      teacherTab.hidden = !canManage;
+      if(!canManage && teacherTab.classList.contains('is-active')) {
+        window.DJ48ClassroomForm?.setActiveClassroomTab?.('today');
+      }
+    }
     renderClassroomRoleState(settings, data.wallet || {}, deps, data);
     renderClassroomTeacherDashboard(data, deps);
     renderClassroomTeacherReport(data, deps);
@@ -990,6 +1179,10 @@
     renderClassroomJobCards(settings, economyBoard, deps);
     renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
     renderClassroomShopHistory(settings, economyBoard, deps);
+    renderClassroomMissionView(economyBoard);
+    const bankGrid = document.getElementById('classroom-bank-grid');
+    if(bankGrid) bankGrid.innerHTML = '';
+    renderClassroomSavingsSection(bankGrid, economyBoard, deps);
     renderClassroomRoutineCards(economyBoard);
     deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
   }

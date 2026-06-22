@@ -13,7 +13,12 @@
       purchases: [],
       pointLogs: [],
       classNotices: { slots: [] },
-      billboardMessages: []
+      billboardMessages: [],
+      classMission: null,
+      publicWallet: { point: 0 },
+      groupPurchases: [],
+      savingsProducts: [],
+      savingsAccounts: []
     };
   }
 
@@ -131,6 +136,11 @@
         pointLogs: Array.isArray(data.pointLogs) ? data.pointLogs : [],
         classNotices: data.classNotices || { slots: [] },
         billboardMessages: Array.isArray(data.billboardMessages) ? data.billboardMessages : [],
+        classMission: data.classMission || null,
+        publicWallet: data.publicWallet || { point: 0 },
+        groupPurchases: Array.isArray(data.groupPurchases) ? data.groupPurchases : [],
+        savingsProducts: Array.isArray(data.savingsProducts) ? data.savingsProducts : [],
+        savingsAccounts: Array.isArray(data.savingsAccounts) ? data.savingsAccounts : [],
         myAssignment: data.myAssignment || null
       };
     } catch(error) {
@@ -295,6 +305,36 @@
     });
   }
 
+  async function saveClassroomMissionConfig(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-mission-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomMissionConfig');
+    const response = await callable({
+      classId: options.classId,
+      mission: options.values || {}
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomGroupPurchase(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-group-purchase-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomGroupPurchase');
+    const response = await callable({
+      classId: options.classId,
+      groupPurchase: options.values || {}
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomSavingsProduct(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-savings-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomSavingsProduct');
+    const response = await callable({
+      classId: options.classId,
+      product: options.values || {}
+    });
+    return response?.data || {};
+  }
+
   async function callClassroomEconomyAction(functionName, payload = {}, options = {}, deps = {}) {
     if(!options.memberUserId) throw new Error('classroom-member-unavailable');
     const functions = getRequiredClassroomFunctions(deps, 'classroom-economy-functions-unavailable');
@@ -404,6 +444,9 @@
       saveClassroomJob: options => saveClassroomJob(options, callableDeps),
       saveClassroomShopItem: options => saveClassroomShopItem(options, callableDeps),
       saveClassroomNotices: options => saveClassroomNotices(options, callableDeps),
+      saveClassroomMissionConfig: options => saveClassroomMissionConfig(options, callableDeps),
+      saveClassroomGroupPurchase: options => saveClassroomGroupPurchase(options, callableDeps),
+      saveClassroomSavingsProduct: options => saveClassroomSavingsProduct(options, callableDeps),
       callClassroomEconomyAction: (functionName, payload, options) => callClassroomEconomyAction(
         functionName,
         payload,

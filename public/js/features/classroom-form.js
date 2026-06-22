@@ -34,7 +34,7 @@
     return `${settings.name || fallbackName} 교실에 입장했습니다.`;
   }
 
-  function setActiveClassroomTab(tabName = 'quests') {
+  function setActiveClassroomTab(tabName = 'classroom') {
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {
       const active = button.dataset.classroomTab === tabName;
       button.classList.toggle('is-active', active);
@@ -172,6 +172,73 @@
     })).filter(slot => slot.key);
   }
 
+  function getClassroomMissionFormValues() {
+    const thresholds = [1, 2, 3, 4, 5, 6].map(index => {
+      const targetPoint = Math.max(0, Math.round(Number(document.getElementById(`classroom-mission-target-${index}`)?.value) || 0));
+      const label = String(document.getElementById(`classroom-mission-label-${index}`)?.value || '').trim();
+      return {
+        label: label || (targetPoint ? `${targetPoint.toLocaleString('ko-KR')}점` : `${index}번째 목표`),
+        targetPoint,
+        rewardText: String(document.getElementById(`classroom-mission-reward-${index}`)?.value || '').trim()
+      };
+    }).filter(item => item.targetPoint > 0);
+    return {
+      title: String(document.getElementById('classroom-mission-title-input')?.value || '').trim(),
+      desc: String(document.getElementById('classroom-mission-desc-input')?.value || '').trim(),
+      thresholds
+    };
+  }
+
+  function getClassroomTaxFormValues() {
+    return {
+      ratePercent: Math.max(0.1, Math.min(50, Number(document.getElementById('classroom-tax-rate-input')?.value) || 0)),
+      reason: String(document.getElementById('classroom-tax-reason-input')?.value || '').trim()
+    };
+  }
+
+  function getClassroomGroupPurchaseFormValues() {
+    return {
+      title: String(document.getElementById('classroom-group-purchase-title-input')?.value || '').trim(),
+      desc: String(document.getElementById('classroom-group-purchase-desc-input')?.value || '').trim(),
+      targetPoint: Math.max(1, Math.round(Number(document.getElementById('classroom-group-purchase-target-input')?.value) || 0)),
+      dueDate: String(document.getElementById('classroom-group-purchase-due-input')?.value || '').trim()
+    };
+  }
+
+  function resetClassroomGroupPurchaseForm() {
+    const title = document.getElementById('classroom-group-purchase-title-input');
+    const desc = document.getElementById('classroom-group-purchase-desc-input');
+    const target = document.getElementById('classroom-group-purchase-target-input');
+    const due = document.getElementById('classroom-group-purchase-due-input');
+    if(title) title.value = '';
+    if(desc) desc.value = '';
+    if(target) target.value = '500';
+    if(due) due.value = '';
+  }
+
+  function getClassroomSavingsProductFormValues() {
+    return {
+      title: String(document.getElementById('classroom-savings-title-input')?.value || '').trim(),
+      desc: String(document.getElementById('classroom-savings-desc-input')?.value || '').trim(),
+      depositPoint: Math.max(1, Math.round(Number(document.getElementById('classroom-savings-deposit-input')?.value) || 0)),
+      interestRatePercent: Math.max(0, Math.min(100, Number(document.getElementById('classroom-savings-interest-input')?.value) || 0)),
+      termDays: Math.max(1, Math.min(365, Math.round(Number(document.getElementById('classroom-savings-term-input')?.value) || 7)))
+    };
+  }
+
+  function resetClassroomSavingsProductForm() {
+    const title = document.getElementById('classroom-savings-title-input');
+    const desc = document.getElementById('classroom-savings-desc-input');
+    const deposit = document.getElementById('classroom-savings-deposit-input');
+    const interest = document.getElementById('classroom-savings-interest-input');
+    const term = document.getElementById('classroom-savings-term-input');
+    if(title) title.value = '';
+    if(desc) desc.value = '';
+    if(deposit) deposit.value = '50';
+    if(interest) interest.value = '10';
+    if(term) term.value = '7';
+  }
+
   function setClassroomNoticeForm(slots = []) {
     const slotMap = {};
     (Array.isArray(slots) ? slots : []).forEach(slot => {
@@ -227,6 +294,12 @@
     getClassroomShopItemFormValues,
     resetClassroomShopItemForm,
     getClassroomNoticeFormValues,
+    getClassroomMissionFormValues,
+    getClassroomTaxFormValues,
+    getClassroomGroupPurchaseFormValues,
+    resetClassroomGroupPurchaseForm,
+    getClassroomSavingsProductFormValues,
+    resetClassroomSavingsProductForm,
     setClassroomNoticeForm,
     getClassroomRoutineFormValues,
     resetClassroomRoutineForm

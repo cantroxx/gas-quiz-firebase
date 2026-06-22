@@ -135,19 +135,19 @@
   async function awardClassroomBadgeCampaignFlow(options = {}, deps = {}) {
     return saveClassroomTeacherFormFlow({
       messages: {
-        permission: '담임 권한이 있어야 뱃지를 지급할 수 있습니다.',
+        permission: '담임 권한이 있어야 키링을 지급할 수 있습니다.',
         pending: '젬 기록을 스캔하는 중입니다.',
         warn: 'Classroom badge campaign award failed.',
-        error: '뱃지 지급 중 문제가 생겼습니다.'
+        error: '키링 지급 중 문제가 생겼습니다.'
       },
       errorMessages: {
-        'classroom-badge-functions-unavailable': '뱃지 지급 기능을 불러오지 못했습니다.'
+        'classroom-badge-functions-unavailable': '키링 지급 기능을 불러오지 못했습니다.'
       },
       resetCaches: { students: true }
     }, {
       ...deps,
       validateValues: values => {
-        if(!values.title) return '뱃지 이름을 입력해 주세요.';
+        if(!values.title) return '키링 이름을 입력해 주세요.';
         if(!values.targetGemId) return '기준 젬을 입력해 주세요.';
         return '';
       },
@@ -155,7 +155,7 @@
         const result = await deps.save(payload);
         await deps.renderClassroom?.(true);
         const winnerText = Array.isArray(result?.winners) && result.winners.length
-          ? `${result.winners.length}명에게 뱃지를 지급했습니다.`
+          ? `${result.winners.length}명에게 키링을 지급했습니다.`
           : '지급 대상이 없습니다.';
         deps.setStatus?.(winnerText, !result?.winners?.length);
         return result;
@@ -221,6 +221,18 @@
     if(functionName === 'useClassroomBillboardTicket') {
       return '전광판에 한마디를 올렸습니다.';
     }
+    if(functionName === 'collectClassroomTax') {
+      return `${Number(result.collectedPoint || 0).toLocaleString('ko-KR')} 포인트를 학급 공공 포인트로 모았습니다.`;
+    }
+    if(functionName === 'contributeClassroomGroupPurchase') {
+      return result.funded ? '공동구매 목표를 달성했습니다!' : `${Number(result.amount || 0).toLocaleString('ko-KR')} 포인트를 공동구매에 보탰습니다.`;
+    }
+    if(functionName === 'joinClassroomSavingsProduct') {
+      return `${Number(result.depositPoint || 0).toLocaleString('ko-KR')} 포인트 적금을 시작했습니다.`;
+    }
+    if(functionName === 'claimClassroomSavingsMaturity') {
+      return result.duplicate ? '이미 수령한 적금입니다.' : `${Number(result.payoutPoint || 0).toLocaleString('ko-KR')} 포인트를 수령했습니다.`;
+    }
     if(functionName === 'checkClassroomRoutine') {
       if(result.duplicate) return '오늘 이미 체크한 루틴입니다.';
       if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 포인트를 받았습니다.`;
@@ -241,7 +253,11 @@
     rejectClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '반려 중...' },
     refundClassroomShopPurchase: { payloadKey: 'purchaseId', progressText: '환불 중...' },
     useClassroomBillboardTicket: { payloadKey: 'purchaseId', progressText: '게시 중...' },
-    checkClassroomRoutine: { payloadKey: 'routineId', progressText: '체크 중...' }
+    checkClassroomRoutine: { payloadKey: 'routineId', progressText: '체크 중...' },
+    collectClassroomTax: { payloadKey: 'ratePercent', progressText: '징수 중...' },
+    contributeClassroomGroupPurchase: { payloadKey: 'groupPurchaseId', progressText: '기여 중...' },
+    joinClassroomSavingsProduct: { payloadKey: 'productId', progressText: '가입 중...' },
+    claimClassroomSavingsMaturity: { payloadKey: 'accountId', progressText: '수령 중...' }
   };
 
   async function runClassroomEconomyAction(actionName, options = {}, deps = {}) {
@@ -363,13 +379,13 @@
       });
       deps.resetCaches?.({ students: true });
       await deps.renderClassroom?.(true);
-      deps.alert?.('대표 뱃지를 설정했습니다.');
+      deps.alert?.('대표 키링을 설정했습니다.');
       return { error: null };
     } catch(error) {
       deps.warn?.('Classroom selected badge save failed.', error);
       deps.alert?.(error.message === 'classroom-badge-select-functions-unavailable'
-        ? '대표 뱃지 설정 기능을 불러오지 못했어요.'
-        : '대표 뱃지를 설정하지 못했어요.');
+        ? '대표 키링 설정 기능을 불러오지 못했어요.'
+        : '대표 키링을 설정하지 못했어요.');
       await deps.renderClassroom?.(true);
       return { error };
     }

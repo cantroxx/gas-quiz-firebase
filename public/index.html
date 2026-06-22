@@ -373,7 +373,6 @@
       <div class="classroom-topbar">
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
         <div>
-          <p class="eyebrow">Our Classroom</p>
           <h2 id="classroom-title">4학년 8반 교실</h2>
         </div>
       </div>
@@ -382,7 +381,7 @@
         <div>
           <p class="eyebrow">Prototype Gate</p>
           <h3 id="classroom-gate-heading">교실 비밀번호 입력</h3>
-          <p>현재는 4학년 8반 전용 프로토타입입니다. 실제 운영 권한과 저장은 다음 단계에서 연결합니다.</p>
+          <p>교실 비밀번호를 입력하면 우리반 활동판으로 이동합니다.</p>
         </div>
         <form id="classroom-entry-form" class="classroom-entry-form">
           <label>
@@ -399,8 +398,8 @@
           <article class="classroom-summary-alert-card">
             <span>알림</span>
             <div class="classroom-alert-chip-row" aria-label="교실 알림">
-              <button id="classroom-alert-quest" class="classroom-alert-chip" type="button" data-classroom-today-tab="quests">퀘스트</button>
-              <button id="classroom-alert-routine" class="classroom-alert-chip" type="button" data-classroom-today-tab="routines">성장루틴</button>
+              <button id="classroom-alert-quest" class="classroom-alert-chip" type="button" data-classroom-today-tab="classroom">퀘스트</button>
+              <button id="classroom-alert-routine" class="classroom-alert-chip" type="button" data-classroom-today-tab="classroom">성장루틴</button>
             </div>
           </article>
           <article>
@@ -409,7 +408,7 @@
           </article>
         </div>
 
-        <section id="classroom-teacher-dashboard" class="classroom-teacher-dashboard" aria-labelledby="classroom-teacher-dashboard-heading" hidden>
+        <section id="classroom-teacher-dashboard" class="classroom-panel classroom-teacher-dashboard" data-classroom-panel="teacher" aria-labelledby="classroom-teacher-dashboard-heading" hidden>
           <div class="event-section-heading">
             <h3 id="classroom-teacher-dashboard-heading">교실 운영 요약</h3>
           </div>
@@ -417,10 +416,10 @@
           <div id="classroom-teacher-report" class="classroom-teacher-report"></div>
         </section>
 
-        <section id="classroom-teacher-review-panel" class="classroom-teacher-review-panel" aria-labelledby="classroom-review-heading" hidden>
+        <section id="classroom-teacher-review-panel" class="classroom-panel classroom-teacher-review-panel" data-classroom-panel="teacher" aria-labelledby="classroom-review-heading" hidden>
           <div class="event-section-heading classroom-teacher-workbench-heading">
             <h3>교사 관리 작업대</h3>
-            <p>퀘스트, 월간 뱃지, 직업, 상점 상품은 필요한 항목만 열어서 관리합니다.</p>
+            <p>퀘스트, 월간 키링, 직업, 상점 상품은 필요한 항목만 열어서 관리합니다.</p>
           </div>
           <div class="classroom-teacher-workbench">
             <details class="classroom-quest-editor" id="classroom-quest-editor-panel">
@@ -487,17 +486,17 @@
             <details class="classroom-quest-editor" id="classroom-badge-campaign-panel">
               <summary>
                 <span>
-                  <strong>월간 뱃지 지급</strong>
-                  <small>젬 순위를 기준으로 대표 뱃지를 지급합니다.</small>
+                  <strong>월간 키링 지급</strong>
+                  <small>젬 순위를 기준으로 학생카드 대표 키링을 지급합니다.</small>
                 </span>
               </summary>
-            <div class="classroom-badge-asset-note" aria-label="월간 뱃지 이미지 제작 안내">
+            <div class="classroom-badge-asset-note" aria-label="월간 키링 이미지 제작 안내">
               <strong>아이콘 에셋 방향</strong>
-              <p>현재 선택값은 임시 표시용입니다. 월간 뱃지는 Recraft 등에서 제작한 메달·왕관·트로피·젬 아이콘으로 교체하는 방향이 좋습니다.</p>
+              <p>교실 표창은 퀴즈타운 연습 뱃지와 구분해 키링으로 표시합니다. Recraft 등에서 제작한 메달·왕관·트로피·젬 아이콘으로 교체하는 방향이 좋습니다.</p>
             </div>
             <form id="classroom-badge-campaign-form" class="classroom-quest-form">
               <label>
-                뱃지 이름
+                키링 이름
                 <input id="classroom-badge-title-input" type="text" maxlength="40" placeholder="예: 6월의 일기왕">
               </label>
               <label>
@@ -525,9 +524,121 @@
                 색상
                 <input id="classroom-badge-color-input" type="text" maxlength="30" value="#ffcf5a">
               </label>
-              <button class="button primary" type="submit">뱃지 스캔 후 지급</button>
+              <button class="button primary" type="submit">키링 스캔 후 지급</button>
             </form>
             <p id="classroom-badge-campaign-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-mission-editor-panel">
+              <summary>
+                <span>
+                  <strong>학급 미션</strong>
+                  <small>학생 포인트 총합으로 달성하는 단체 목표를 설정합니다.</small>
+                </span>
+              </summary>
+              <form id="classroom-mission-form" class="classroom-quest-form">
+                <label>
+                  미션 이름
+                  <input id="classroom-mission-title-input" type="text" maxlength="50" value="학급 포인트 미션">
+                </label>
+                <label>
+                  설명
+                  <input id="classroom-mission-desc-input" type="text" maxlength="160" value="우리반 학생 포인트 총합으로 달성하는 단체 목표">
+                </label>
+                <label>
+                  목표 1 표시명
+                  <input id="classroom-mission-label-1" type="text" maxlength="30" placeholder="예: 2,000점">
+                </label>
+                <label>
+                  목표 1 포인트
+                  <input id="classroom-mission-target-1" type="number" min="1" max="1000000" inputmode="numeric" value="2000">
+                </label>
+                <label>
+                  목표 1 메모
+                  <input id="classroom-mission-reward-1" type="text" maxlength="80" placeholder="예: 학급 간식 후보 열기">
+                </label>
+                <label>
+                  목표 2 표시명
+                  <input id="classroom-mission-label-2" type="text" maxlength="30" placeholder="예: 4,000점">
+                </label>
+                <label>
+                  목표 2 포인트
+                  <input id="classroom-mission-target-2" type="number" min="1" max="1000000" inputmode="numeric" value="4000">
+                </label>
+                <label>
+                  목표 2 메모
+                  <input id="classroom-mission-reward-2" type="text" maxlength="80" placeholder="예: 공동 이벤트 열기">
+                </label>
+                <label>
+                  목표 3 표시명
+                  <input id="classroom-mission-label-3" type="text" maxlength="30" placeholder="예: 6,000점">
+                </label>
+                <label>
+                  목표 3 포인트
+                  <input id="classroom-mission-target-3" type="number" min="1" max="1000000" inputmode="numeric" value="6000">
+                </label>
+                <label>
+                  목표 3 메모
+                  <input id="classroom-mission-reward-3" type="text" maxlength="80" placeholder="예: 특별 보상 달성">
+                </label>
+                <label>
+                  목표 4 표시명
+                  <input id="classroom-mission-label-4" type="text" maxlength="30" placeholder="선택 입력">
+                </label>
+                <label>
+                  목표 4 포인트
+                  <input id="classroom-mission-target-4" type="number" min="0" max="1000000" inputmode="numeric" value="0">
+                </label>
+                <label>
+                  목표 4 메모
+                  <input id="classroom-mission-reward-4" type="text" maxlength="80" placeholder="선택 입력">
+                </label>
+                <label>
+                  목표 5 표시명
+                  <input id="classroom-mission-label-5" type="text" maxlength="30" placeholder="선택 입력">
+                </label>
+                <label>
+                  목표 5 포인트
+                  <input id="classroom-mission-target-5" type="number" min="0" max="1000000" inputmode="numeric" value="0">
+                </label>
+                <label>
+                  목표 5 메모
+                  <input id="classroom-mission-reward-5" type="text" maxlength="80" placeholder="선택 입력">
+                </label>
+                <label>
+                  목표 6 표시명
+                  <input id="classroom-mission-label-6" type="text" maxlength="30" placeholder="선택 입력">
+                </label>
+                <label>
+                  목표 6 포인트
+                  <input id="classroom-mission-target-6" type="number" min="0" max="1000000" inputmode="numeric" value="0">
+                </label>
+                <label>
+                  목표 6 메모
+                  <input id="classroom-mission-reward-6" type="text" maxlength="80" placeholder="선택 입력">
+                </label>
+                <button class="button primary" type="submit">학급 미션 저장</button>
+              </form>
+              <p id="classroom-mission-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-tax-editor-panel">
+              <summary>
+                <span>
+                  <strong>세금 걷기</strong>
+                  <small>학생 포인트의 일정 비율을 학급 공공 포인트로 모읍니다.</small>
+                </span>
+              </summary>
+              <form id="classroom-tax-form" class="classroom-quest-form">
+                <label>
+                  세율(%)
+                  <input id="classroom-tax-rate-input" type="number" min="0.1" max="50" step="0.1" inputmode="decimal" value="10">
+                </label>
+                <label>
+                  사유
+                  <input id="classroom-tax-reason-input" type="text" maxlength="120" value="학급 공공 포인트 적립">
+                </label>
+                <button class="button primary" type="submit">세금 걷기</button>
+              </form>
+              <p id="classroom-tax-status" class="classroom-review-status" aria-live="polite"></p>
             </details>
             <details class="classroom-quest-editor" id="classroom-job-editor-panel">
               <summary>
@@ -581,6 +692,66 @@
             </form>
             <p id="classroom-shop-editor-status" class="classroom-review-status" aria-live="polite"></p>
             </details>
+            <details class="classroom-quest-editor" id="classroom-group-purchase-editor-panel">
+              <summary>
+                <span>
+                  <strong>공동구매 만들기</strong>
+                  <small>학생들이 포인트를 모아 달성할 학급 상품을 등록합니다.</small>
+                </span>
+              </summary>
+              <form id="classroom-group-purchase-form" class="classroom-quest-form">
+                <label>
+                  공동구매 이름
+                  <input id="classroom-group-purchase-title-input" type="text" maxlength="50" placeholder="예: 학급 간식 공동구매">
+                </label>
+                <label>
+                  설명
+                  <input id="classroom-group-purchase-desc-input" type="text" maxlength="160" placeholder="학생에게 보일 설명">
+                </label>
+                <label>
+                  목표 포인트
+                  <input id="classroom-group-purchase-target-input" type="number" min="1" max="1000000" inputmode="numeric" value="500">
+                </label>
+                <label>
+                  마감일
+                  <input id="classroom-group-purchase-due-input" type="date">
+                </label>
+                <button class="button primary" type="submit">공동구매 저장</button>
+              </form>
+              <p id="classroom-group-purchase-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-savings-editor-panel">
+              <summary>
+                <span>
+                  <strong>적금 상품 만들기</strong>
+                  <small>대출 없이 예치·만기·이자만 운영합니다.</small>
+                </span>
+              </summary>
+              <form id="classroom-savings-form" class="classroom-quest-form">
+                <label>
+                  적금 이름
+                  <input id="classroom-savings-title-input" type="text" maxlength="50" placeholder="예: 7일 저축왕 적금">
+                </label>
+                <label>
+                  설명
+                  <input id="classroom-savings-desc-input" type="text" maxlength="160" placeholder="학생에게 보일 설명">
+                </label>
+                <label>
+                  예치 포인트
+                  <input id="classroom-savings-deposit-input" type="number" min="1" max="1000000" inputmode="numeric" value="50">
+                </label>
+                <label>
+                  이자율(%)
+                  <input id="classroom-savings-interest-input" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="10">
+                </label>
+                <label>
+                  기간(일)
+                  <input id="classroom-savings-term-input" type="number" min="1" max="365" inputmode="numeric" value="7">
+                </label>
+                <button class="button primary" type="submit">적금 저장</button>
+              </form>
+              <p id="classroom-savings-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
             <details class="classroom-quest-editor" id="classroom-notice-editor-panel">
               <summary>
                 <span>
@@ -623,12 +794,11 @@
 
         <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
           <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">오늘</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="quests" role="tab" aria-selected="false">퀘스트</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="students" role="tab" aria-selected="false">학생카드</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">교실</button>
           <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
           <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="shop" role="tab" aria-selected="false">교실상점</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="routines" role="tab" aria-selected="false">성장루틴</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
+          <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>교사 작업대</button>
         </div>
 
         <section class="classroom-panel is-active" data-classroom-panel="today" aria-labelledby="classroom-today-heading">
@@ -637,19 +807,68 @@
           <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="quests" aria-labelledby="classroom-quest-heading">
+        <section class="classroom-panel" data-classroom-panel="classroom" aria-labelledby="classroom-student-card-heading">
+          <div class="classroom-subsection-grid">
+            <section class="classroom-subsection" aria-labelledby="classroom-student-card-heading">
+              <div class="event-section-heading">
+                <h3 id="classroom-student-card-heading">학생카드</h3>
+              </div>
+              <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
+            </section>
+            <section class="classroom-subsection" aria-labelledby="classroom-quest-heading">
           <div class="event-section-heading">
             <h3 id="classroom-quest-heading">교실 퀘스트</h3>
           </div>
           <div id="classroom-quest-grid" class="classroom-card-grid"></div>
           <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
-        </section>
-
-        <section class="classroom-panel" data-classroom-panel="students" aria-labelledby="classroom-student-card-heading">
-          <div class="event-section-heading">
-            <h3 id="classroom-student-card-heading">학생카드</h3>
+            </section>
+            <section class="classroom-subsection" aria-labelledby="classroom-routine-heading">
+              <div class="event-section-heading">
+                <h3 id="classroom-routine-heading">성장루틴</h3>
+              </div>
+              <form id="classroom-routine-form" class="classroom-quest-form">
+                <label>
+                  루틴 이름
+                  <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
+                </label>
+                <label>
+                  목표 횟수
+                  <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
+                </label>
+                <label>
+                  시작일
+                  <input id="classroom-routine-start-input" type="date">
+                </label>
+                <label>
+                  종료일
+                  <input id="classroom-routine-end-input" type="date">
+                </label>
+                <fieldset class="classroom-weekday-fieldset">
+                  <legend>체크 요일</legend>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
+                </fieldset>
+                <button class="button primary" type="submit">내 루틴 만들기</button>
+              </form>
+              <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
+              <div id="classroom-routine-grid" class="classroom-card-grid"></div>
+            </section>
+            <section class="classroom-subsection" aria-labelledby="classroom-mission-view-heading">
+              <div class="event-section-heading">
+                <h3 id="classroom-mission-view-heading">학급 포인트 미션</h3>
+              </div>
+              <div id="classroom-mission-view" class="classroom-mission-view"></div>
+            </section>
+            <section class="classroom-subsection" aria-labelledby="classroom-bank-heading">
+              <div class="event-section-heading">
+                <h3 id="classroom-bank-heading">학급 은행</h3>
+              </div>
+              <div id="classroom-bank-grid" class="classroom-shop-history"></div>
+            </section>
           </div>
-          <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="gems" aria-labelledby="classroom-gem-heading">
@@ -668,47 +887,12 @@
           <div id="classroom-job-grid" class="classroom-card-grid"></div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="shop" aria-labelledby="classroom-shop-heading">
+        <section class="classroom-panel" data-classroom-panel="market" aria-labelledby="classroom-shop-heading">
           <div class="event-section-heading">
-            <h3 id="classroom-shop-heading">교실 상점</h3>
+            <h3 id="classroom-shop-heading">마켓</h3>
           </div>
           <div id="classroom-shop-grid" class="classroom-card-grid"></div>
           <div id="classroom-shop-history" class="classroom-shop-history"></div>
-        </section>
-
-        <section class="classroom-panel" data-classroom-panel="routines" aria-labelledby="classroom-routine-heading">
-          <div class="event-section-heading">
-            <h3 id="classroom-routine-heading">성장루틴</h3>
-          </div>
-          <form id="classroom-routine-form" class="classroom-quest-form">
-            <label>
-              루틴 이름
-              <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
-            </label>
-            <label>
-              목표 횟수
-              <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
-            </label>
-            <label>
-              시작일
-              <input id="classroom-routine-start-input" type="date">
-            </label>
-            <label>
-              종료일
-              <input id="classroom-routine-end-input" type="date">
-            </label>
-            <fieldset class="classroom-weekday-fieldset">
-              <legend>체크 요일</legend>
-              <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
-              <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
-              <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
-              <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
-              <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
-            </fieldset>
-            <button class="button primary" type="submit">내 루틴 만들기</button>
-          </form>
-          <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
-          <div id="classroom-routine-grid" class="classroom-card-grid"></div>
         </section>
       </section>
     </section>
@@ -4914,6 +5098,7 @@
         getClassroomRewardCurrencyLabel,
         normalizeDisplayImageUrl,
         getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
+        getTodayDateKey: getKstDateKey,
         setClassroomNoticeForm: slots => window.DJ48ClassroomForm.setClassroomNoticeForm(slots)
       };
     }
@@ -4972,6 +5157,22 @@
 
     function setClassroomNoticeStatus(message, isError = false) {
       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-notice-status', message, isError);
+    }
+
+    function setClassroomMissionStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-mission-status', message, isError);
+    }
+
+    function setClassroomTaxStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-tax-status', message, isError);
+    }
+
+    function setClassroomGroupPurchaseStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-group-purchase-status', message, isError);
+    }
+
+    function setClassroomSavingsStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-savings-status', message, isError);
     }
 
     function setClassroomRoutineStatus(message, isError = false) {
@@ -5302,6 +5503,126 @@
       });
     }
 
+    function getClassroomMissionFormValues() {
+      return window.DJ48ClassroomForm.getClassroomMissionFormValues();
+    }
+
+    async function saveClassroomMissionFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 학급 미션을 저장할 수 있습니다.',
+          pending: '학급 미션을 저장하는 중입니다.',
+          success: '학급 미션을 저장했습니다.',
+          warn: 'Classroom mission save failed.',
+          error: '학급 미션 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-mission-functions-unavailable': '학급 미션 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomMissionFormValues,
+        validateValues: values => values.title && values.thresholds?.length ? '' : '미션 이름과 목표 포인트를 입력해 주세요.',
+        save: options => getClassroomRepository().saveClassroomMissionConfig(options),
+        resetCaches: resetClassroomDataCaches,
+        setStatus: setClassroomMissionStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
+    function getClassroomTaxFormValues() {
+      return window.DJ48ClassroomForm.getClassroomTaxFormValues();
+    }
+
+    async function collectClassroomTaxFromForm(event) {
+      event?.preventDefault();
+      const values = getClassroomTaxFormValues();
+      if(!window.confirm(`학생 포인트의 ${values.ratePercent}%를 학급 공공 포인트로 모을까요?`)) return;
+      setClassroomTaxStatus('세금을 걷는 중입니다.');
+      const result = await window.DJ48ClassroomUsecases.runClassroomEconomyAction('collectClassroomTax', {
+        value: values.ratePercent,
+        payload: { ratePercent: values.ratePercent, reason: values.reason }
+      }, {
+        getCurrentMemberUserId: () => window.DJ48AccountState.getCurrentMemberUserId(),
+        loadClassroomSettings,
+        callAction: (functionName, payload, options) => getClassroomRepository().callClassroomEconomyAction(functionName, payload, options),
+        resetCaches: resetClassroomDataCaches,
+        renderClassroom: renderClassroomPrototype,
+        containsElement: element => document.body.contains(element),
+        alert: message => setClassroomTaxStatus(message),
+        warn: console.warn
+      });
+      if(!result?.success) setClassroomTaxStatus('세금 처리 중 문제가 생겼습니다.', true);
+    }
+
+    function getClassroomGroupPurchaseFormValues() {
+      return window.DJ48ClassroomForm.getClassroomGroupPurchaseFormValues();
+    }
+
+    async function saveClassroomGroupPurchaseFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 공동구매를 만들 수 있습니다.',
+          pending: '공동구매를 저장하는 중입니다.',
+          success: '공동구매를 저장했습니다.',
+          warn: 'Classroom group purchase save failed.',
+          error: '공동구매 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-group-purchase-functions-unavailable': '공동구매 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true, wallet: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomGroupPurchaseFormValues,
+        validateValues: values => values.title && values.targetPoint > 0 ? '' : '공동구매 이름과 목표 포인트를 입력해 주세요.',
+        save: options => getClassroomRepository().saveClassroomGroupPurchase(options),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: window.DJ48ClassroomForm.resetClassroomGroupPurchaseForm,
+        setStatus: setClassroomGroupPurchaseStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
+    function getClassroomSavingsProductFormValues() {
+      return window.DJ48ClassroomForm.getClassroomSavingsProductFormValues();
+    }
+
+    async function saveClassroomSavingsProductFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 적금 상품을 만들 수 있습니다.',
+          pending: '적금 상품을 저장하는 중입니다.',
+          success: '적금 상품을 저장했습니다.',
+          warn: 'Classroom savings product save failed.',
+          error: '적금 상품 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-savings-functions-unavailable': '적금 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true, wallet: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomSavingsProductFormValues,
+        validateValues: values => values.title && values.depositPoint > 0 ? '' : '적금 이름과 예치 포인트를 입력해 주세요.',
+        save: options => getClassroomRepository().saveClassroomSavingsProduct(options),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: window.DJ48ClassroomForm.resetClassroomSavingsProductForm,
+        setStatus: setClassroomSavingsStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
     function getClassroomEconomyActionDeps() {
       return {
         getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
@@ -5383,6 +5704,20 @@
       return runClassroomEconomyAction('refundClassroomShopPurchase', purchaseId, button, {
         reason: askClassroomActionMemo('환불 사유를 입력하세요. 비워도 됩니다.')
       });
+    }
+
+    async function contributeClassroomGroupPurchase(groupPurchaseId, button) {
+      return runClassroomEconomyAction('contributeClassroomGroupPurchase', groupPurchaseId, button, {
+        amount: 10
+      });
+    }
+
+    async function joinClassroomSavingsProduct(productId, button) {
+      return runClassroomEconomyAction('joinClassroomSavingsProduct', productId, button);
+    }
+
+    async function claimClassroomSavingsMaturity(accountId, button) {
+      return runClassroomEconomyAction('claimClassroomSavingsMaturity', accountId, button);
     }
 
     function getClassroomRoutineFormValues() {
@@ -7011,7 +7346,7 @@
       });
     }
 
-    function setActiveClassroomTab(tabName = 'quests') {
+    function setActiveClassroomTab(tabName = 'classroom') {
       return window.DJ48ClassroomForm.setActiveClassroomTab(tabName);
     }
 
@@ -7078,8 +7413,12 @@
         deactivateClassroomQuest,
         restoreClassroomQuest,
         awardClassroomBadgeCampaignFromForm,
+        saveClassroomMissionFromForm,
+        collectClassroomTaxFromForm,
         saveClassroomJobFromForm,
         saveClassroomShopItemFromForm,
+        saveClassroomGroupPurchaseFromForm,
+        saveClassroomSavingsProductFromForm,
         saveClassroomNoticesFromForm,
         saveClassroomRoutineFromForm,
         setActiveClassroomTab,
@@ -7096,6 +7435,9 @@
         completeClassroomShopPurchaseUse,
         rejectClassroomShopPurchaseUse,
         refundClassroomShopPurchase,
+        contributeClassroomGroupPurchase,
+        joinClassroomSavingsProduct,
+        claimClassroomSavingsMaturity,
         checkClassroomRoutine,
         reviewClassroomQuestProgress
       };
