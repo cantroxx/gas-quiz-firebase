@@ -30,6 +30,8 @@ const POPULAR_USAGE_UNLOCK_CORRECT_COUNT = 15;
 const POPULAR_USAGE_MAX_HEARTBEAT_SECONDS = 60;
 const LEVEL_MAX = 50;
 const LEVEL_XP_PER_LEVEL = 50;
+const LEVEL_UP_REWARD_COIN = 50;
+const LEVEL_UP_CLASSROOM_POINT = 50;
 const WEEKLY_XP_LIMIT = 500;
 const TODAY_QUIZ_XP_PER_QUESTION = 2;
 const TODAY_QUIZ_DAILY_XP_LIMIT = 20;
@@ -53,6 +55,128 @@ const DEFAULT_CLASSROOM_BILLBOARD_ITEM = {
   active: true,
   isDefault: true
 };
+const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
+  {
+    itemId: "boost-farmer-friend",
+    title: "허수아비 친구",
+    desc: "교실 포인트를 받을 때마다 +0.35P를 더 받습니다.",
+    priceCoin: 35,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.35,
+    icon: "🧑‍🌾",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-big-tree",
+    title: "잎이 무성한 나무",
+    desc: "교실 포인트를 받을 때마다 +0.40P를 더 받습니다.",
+    priceCoin: 40,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.4,
+    icon: "🌳",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-fountain",
+    title: "정원 분수",
+    desc: "교실 포인트를 받을 때마다 +0.20P를 더 받습니다.",
+    priceCoin: 20,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.2,
+    icon: "⛲",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-mini-tractor",
+    title: "미니 트랙터",
+    desc: "교실 포인트를 받을 때마다 +0.65P를 더 받습니다.",
+    priceCoin: 65,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.65,
+    icon: "🚜",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-ripe-rice",
+    title: "잘 익은 벼",
+    desc: "교실 포인트를 받을 때마다 +0.30P를 더 받습니다.",
+    priceCoin: 30,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.3,
+    icon: "🌾",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-truck",
+    title: "트럭",
+    desc: "교실 포인트를 받을 때마다 +0.50P를 더 받습니다.",
+    priceCoin: 50,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.5,
+    icon: "🚚",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-log-pile",
+    title: "통나무 더미",
+    desc: "교실 포인트를 받을 때마다 +0.10P를 더 받습니다.",
+    priceCoin: 10,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.1,
+    icon: "🪵",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-bird-speaker",
+    title: "참새 퇴치기",
+    desc: "교실 포인트를 받을 때마다 +0.45P를 더 받습니다.",
+    priceCoin: 45,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.45,
+    icon: "🔊",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-chick",
+    title: "귀여운 병아리",
+    desc: "교실 포인트를 받을 때마다 +0.25P를 더 받습니다.",
+    priceCoin: 25,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.25,
+    icon: "🐥",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "boost-liquid-fertilizer",
+    title: "액체비료",
+    desc: "교실 포인트를 받을 때마다 +0.15P를 더 받습니다.",
+    priceCoin: 15,
+    priceType: "djCoin",
+    itemType: "pointBoost",
+    boostPoint: 0.15,
+    icon: "🧪",
+    active: true,
+    isDefault: true
+  }
+];
 const db = getFirestore();
 
 const DEFAULT_CLASSROOM_MISSION = {
@@ -1412,10 +1536,35 @@ function normalizeClassroomSavingsProduct(rawProduct = {}) {
     productId,
     title,
     desc: String(rawProduct.desc || "").trim().slice(0, 160),
-    depositPoint: Math.max(1, Math.min(1000000, Math.round(Number(rawProduct.depositPoint) || 0))),
+    minDepositPoint: Math.max(1, Math.min(1000000, Math.round(Number(rawProduct.minDepositPoint || rawProduct.depositPoint) || 1))),
     interestRatePercent: Math.max(0, Math.min(100, Number(rawProduct.interestRatePercent) || 0)),
     termDays: Math.max(1, Math.min(365, Math.round(Number(rawProduct.termDays) || 7))),
     active: rawProduct.active !== false
+  };
+}
+
+function normalizeClassroomTaxPreset(rawPreset = {}) {
+  const title = String(rawPreset.title || rawPreset.reason || "").trim().slice(0, 50);
+  const presetId = normalizeId(rawPreset.presetId || slugifyClassroomGemId(title || "tax-preset"), "presetId");
+  return {
+    presetId,
+    title: title || "세금 프리셋",
+    ratePercent: Math.max(0.1, Math.min(50, Number(rawPreset.ratePercent || 0))),
+    reason: String(rawPreset.reason || title || "학급 공공 포인트 적립").trim().slice(0, 120),
+    active: rawPreset.active !== false
+  };
+}
+
+function normalizeClassroomGemConfig(rawGem = {}) {
+  const gemName = String(rawGem.gemName || rawGem.title || rawGem.name || "").trim().slice(0, 40);
+  const gemId = slugifyClassroomGemId(rawGem.gemId || gemName);
+  return {
+    gemId,
+    gemName,
+    targetXp: Math.max(1, Math.min(1000, Math.round(Number(rawGem.targetXp || rawGem.gemTargetXp) || 10))),
+    rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardPoint || rawGem.gemRewardPoint) || 0))),
+    icon: String(rawGem.icon || "◇").trim().slice(0, 12),
+    active: rawGem.active !== false
   };
 }
 
@@ -5072,7 +5221,9 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     walletSnapshot,
     groupPurchaseSnapshot,
     savingsProductSnapshot,
-    savingsAccountSnapshot
+    savingsAccountSnapshot,
+    taxPresetSnapshot,
+    classroomGemSnapshot
   ] = await Promise.all([
     db.collection("classrooms").doc(classId).collection("classMissions").doc("current").get(),
     db.collection("classrooms").doc(classId).collection("classPublicWallets").doc("current").get(),
@@ -5081,7 +5232,9 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     db.collection("classrooms").doc(classId).collection("savingsProducts").where("active", "==", true).limit(100).get(),
     authResult.canManage
       ? db.collection("classrooms").doc(classId).collection("savingsAccounts").limit(200).get()
-      : db.collection("classrooms").doc(classId).collection("savingsAccounts").where("memberUserId", "==", memberUserId).limit(50).get()
+      : db.collection("classrooms").doc(classId).collection("savingsAccounts").where("memberUserId", "==", memberUserId).limit(50).get(),
+    db.collection("classrooms").doc(classId).collection("taxPresets").where("active", "==", true).limit(50).get(),
+    db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get()
   ]);
 
   const jobs = jobsSnapshot.docs
@@ -5124,6 +5277,12 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const savingsProducts = savingsProductSnapshot.docs
     .map(doc => ({ productId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.title || a.productId).localeCompare(String(b.title || b.productId), "ko"));
+  const taxPresets = taxPresetSnapshot.docs
+    .map(doc => ({ presetId: doc.id, ...(doc.data() || {}) }))
+    .sort((a, b) => String(a.title || a.presetId).localeCompare(String(b.title || b.presetId), "ko"));
+  const classroomGems = classroomGemSnapshot.docs
+    .map(doc => ({ gemId: doc.id, ...(doc.data() || {}) }))
+    .sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), "ko"));
   const savingsAccounts = savingsAccountSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
@@ -5237,11 +5396,12 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         memberUserId: String(data.memberUserId || data.userId || ""),
         text: String(data.text || "").slice(0, 80),
         purchaseId: String(data.purchaseId || ""),
+        status: String(data.status || "active"),
         createdAtMillis: getTimestampMillis(data.createdAt),
         expiresAtMillis: getTimestampMillis(data.expiresAt)
       };
     })
-    .filter(item => item.text && (!item.expiresAtMillis || item.expiresAtMillis >= nowMillis))
+    .filter(item => item.status !== "deleted" && item.text && (!item.expiresAtMillis || item.expiresAtMillis >= nowMillis))
     .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
     .slice(0, 12);
   const pointLogs = pointLogSnapshot.docs
@@ -5279,6 +5439,8 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     groupPurchases,
     savingsProducts,
     savingsAccounts,
+    taxPresets,
+    classroomGems,
     myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
   };
 });
@@ -5965,6 +6127,31 @@ exports.collectClassroomTax = onCall({ region: REGION }, async request => {
   return { success: true, classId, ratePercent, collectedPoint, affectedCount: targets.length };
 });
 
+exports.saveClassroomTaxPreset = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const preset = normalizeClassroomTaxPreset(payload.preset && typeof payload.preset === "object" ? payload.preset : payload);
+  if (!preset.title || preset.ratePercent <= 0) {
+    throw new HttpsError("invalid-argument", "Tax preset title and rate are required.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    transaction.set(db.collection("classrooms").doc(classId).collection("taxPresets").doc(preset.presetId), {
+      ...preset,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_tax_preset_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, preset };
+});
+
 exports.saveClassroomGroupPurchase = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -6075,8 +6262,8 @@ exports.saveClassroomSavingsProduct = onCall({ region: REGION }, async request =
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const product = normalizeClassroomSavingsProduct(payload.product && typeof payload.product === "object" ? payload.product : {});
-  if (!product.title || product.depositPoint <= 0) {
-    throw new HttpsError("invalid-argument", "Savings product title and deposit point are required.");
+  if (!product.title || product.minDepositPoint <= 0) {
+    throw new HttpsError("invalid-argument", "Savings product title and minimum deposit point are required.");
   }
 
   await db.runTransaction(async transaction => {
@@ -6094,12 +6281,38 @@ exports.saveClassroomSavingsProduct = onCall({ region: REGION }, async request =
   return { success: true, classId, product };
 });
 
+exports.saveClassroomGem = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const gem = normalizeClassroomGemConfig(payload.gem && typeof payload.gem === "object" ? payload.gem : payload);
+  if (!gem.gemId || !gem.gemName) {
+    throw new HttpsError("invalid-argument", "Gem name is required.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    transaction.set(db.collection("classrooms").doc(classId).collection("classroomGems").doc(gem.gemId), {
+      ...gem,
+      classId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "save_classroom_gem_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, gem };
+});
+
 exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
   const productId = normalizeId(payload.productId, "productId");
+  const requestedDepositPoint = Math.max(1, Math.min(1000000, Math.round(Number(payload.depositPoint || payload.amount) || 0)));
 
   const result = await db.runTransaction(async transaction => {
     const [memberData, classroomResult] = await Promise.all([
@@ -6114,21 +6327,22 @@ exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request =
       throw new HttpsError("not-found", "Classroom savings product not found.");
     }
     const product = normalizeClassroomSavingsProduct({ productId, ...(productSnapshot.data() || {}) });
+    const depositPoint = Math.max(product.minDepositPoint, requestedDepositPoint);
     const currentPoint = Math.max(0, Math.round(getClassroomPointAmount(walletSnapshot.exists ? walletSnapshot.data() || {} : {})));
-    if (currentPoint < product.depositPoint) {
+    if (currentPoint < depositPoint) {
       throw new HttpsError("failed-precondition", "Not enough classroom point.");
     }
     const openedDate = getKstDateKey();
     const maturityDate = addIsoDateDays(openedDate, product.termDays);
-    const interestPoint = Math.floor(product.depositPoint * (product.interestRatePercent / 100));
+    const interestPoint = Math.floor(depositPoint * (product.interestRatePercent / 100));
     const accountId = rewardLogId(["classroom_savings", classId, productId, memberUserId, Date.now()]);
     const accountRef = db.collection("classrooms").doc(classId).collection("savingsAccounts").doc(accountId);
     transaction.set(walletRef, {
       classId,
       memberUserId,
       userId: memberUserId,
-      point: FieldValue.increment(-product.depositPoint),
-      totalSavingsDepositPoint: FieldValue.increment(product.depositPoint),
+      point: FieldValue.increment(-depositPoint),
+      totalSavingsDepositPoint: FieldValue.increment(depositPoint),
       updatedAt: FieldValue.serverTimestamp(),
       lastClassroomSavingsAt: FieldValue.serverTimestamp(),
       source: "join_classroom_savings_product_function"
@@ -6140,7 +6354,8 @@ exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request =
       productTitle: product.title,
       memberUserId,
       userId: memberUserId,
-      depositPoint: product.depositPoint,
+      depositPoint,
+      minDepositPoint: product.minDepositPoint,
       interestRatePercent: product.interestRatePercent,
       interestPoint,
       openedDate,
@@ -6157,12 +6372,12 @@ exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request =
       memberUserId,
       userId: memberUserId,
       rewardCurrency: "point",
-      rewardPoint: -product.depositPoint,
-      rewardAmount: -product.depositPoint,
+      rewardPoint: -depositPoint,
+      rewardAmount: -depositPoint,
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
-    return { accountId, productId, depositPoint: product.depositPoint, interestPoint, maturityDate };
+    return { accountId, productId, depositPoint, interestPoint, maturityDate };
   });
 
   return { success: true, classId, memberUserId, ...result };
@@ -6318,6 +6533,33 @@ exports.useClassroomBillboardTicket = onCall({ region: REGION }, async request =
   });
 
   return { success: true, classId, memberUserId, purchaseId, text, ...result };
+});
+
+exports.deleteClassroomBillboardMessage = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const messageId = normalizeId(payload.messageId, "messageId");
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const messageRef = db.collection("classrooms").doc(classId).collection("billboardMessages").doc(messageId);
+    const messageSnapshot = await transaction.get(messageRef);
+    if (!messageSnapshot.exists) {
+      throw new HttpsError("not-found", "Billboard message not found.");
+    }
+    transaction.set(messageRef, {
+      status: "deleted",
+      deletedAt: FieldValue.serverTimestamp(),
+      deletedBy: adminMember.memberUserId,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "delete_classroom_billboard_message_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, messageId };
 });
 
 exports.saveClassroomRoutine = onCall({ region: REGION }, async request => {

@@ -27,7 +27,15 @@
     });
 
     document.getElementById('classroom-tax-form')?.addEventListener('submit', event => {
+      deps.saveClassroomTaxPresetFromForm?.(event);
+    });
+
+    document.getElementById('classroom-tax-run-current-button')?.addEventListener('click', event => {
       deps.collectClassroomTaxFromForm?.(event);
+    });
+
+    document.getElementById('classroom-gem-form')?.addEventListener('submit', event => {
+      deps.saveClassroomGemFromForm?.(event);
     });
 
     document.getElementById('classroom-group-purchase-form')?.addEventListener('submit', event => {
@@ -47,6 +55,11 @@
     });
 
     document.getElementById('classroom-today-grid')?.addEventListener('click', event => {
+      const deleteBillboardButton = event.target.closest('[data-classroom-billboard-delete-id]');
+      if(deleteBillboardButton && !deleteBillboardButton.disabled) {
+        deps.deleteClassroomBillboardMessage?.(deleteBillboardButton.dataset.classroomBillboardDeleteId || '', deleteBillboardButton);
+        return;
+      }
       const button = event.target.closest('[data-classroom-today-tab]');
       if(!button || button.disabled) return;
       deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
@@ -178,6 +191,16 @@
       if(claimSavingsButton && !claimSavingsButton.disabled) {
         deps.claimClassroomSavingsMaturity?.(claimSavingsButton.dataset.classroomSavingsAccountId || '', claimSavingsButton);
       }
+    });
+
+    document.getElementById('classroom-tax-preset-list')?.addEventListener('click', event => {
+      const presetButton = event.target.closest('[data-classroom-tax-preset-rate]');
+      if(!presetButton || presetButton.disabled) return;
+      deps.collectClassroomTaxPreset?.(
+        Number(presetButton.dataset.classroomTaxPresetRate || 0),
+        presetButton.dataset.classroomTaxPresetReason || '',
+        presetButton
+      );
     });
 
     document.getElementById('classroom-routine-grid')?.addEventListener('click', event => {

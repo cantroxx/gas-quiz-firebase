@@ -191,9 +191,32 @@
 
   function getClassroomTaxFormValues() {
     return {
+      title: String(document.getElementById('classroom-tax-title-input')?.value || '').trim(),
       ratePercent: Math.max(0.1, Math.min(50, Number(document.getElementById('classroom-tax-rate-input')?.value) || 0)),
       reason: String(document.getElementById('classroom-tax-reason-input')?.value || '').trim()
     };
+  }
+
+  function getClassroomGemFormValues(deps = {}) {
+    const gemName = String(document.getElementById('classroom-gem-name-input')?.value || '').trim();
+    return {
+      gemName,
+      gemId: deps.slugifyClassroomGemId?.(gemName) || '',
+      targetXp: Math.max(1, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-target-input')?.value) || 10))),
+      rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-reward-input')?.value) || 0))),
+      icon: String(document.getElementById('classroom-gem-icon-input')?.value || '◇').trim().slice(0, 12)
+    };
+  }
+
+  function resetClassroomGemForm() {
+    const name = document.getElementById('classroom-gem-name-input');
+    const target = document.getElementById('classroom-gem-target-input');
+    const reward = document.getElementById('classroom-gem-reward-input');
+    const icon = document.getElementById('classroom-gem-icon-input');
+    if(name) name.value = '';
+    if(target) target.value = '10';
+    if(reward) reward.value = '30';
+    if(icon) icon.value = '◇';
   }
 
   function getClassroomGroupPurchaseFormValues() {
@@ -220,7 +243,7 @@
     return {
       title: String(document.getElementById('classroom-savings-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-savings-desc-input')?.value || '').trim(),
-      depositPoint: Math.max(1, Math.round(Number(document.getElementById('classroom-savings-deposit-input')?.value) || 0)),
+      minDepositPoint: Math.max(1, Math.round(Number(document.getElementById('classroom-savings-deposit-input')?.value) || 0)),
       interestRatePercent: Math.max(0, Math.min(100, Number(document.getElementById('classroom-savings-interest-input')?.value) || 0)),
       termDays: Math.max(1, Math.min(365, Math.round(Number(document.getElementById('classroom-savings-term-input')?.value) || 7)))
     };
@@ -234,7 +257,7 @@
     const term = document.getElementById('classroom-savings-term-input');
     if(title) title.value = '';
     if(desc) desc.value = '';
-    if(deposit) deposit.value = '50';
+    if(deposit) deposit.value = '1';
     if(interest) interest.value = '10';
     if(term) term.value = '7';
   }
@@ -296,6 +319,8 @@
     getClassroomNoticeFormValues,
     getClassroomMissionFormValues,
     getClassroomTaxFormValues,
+    getClassroomGemFormValues,
+    resetClassroomGemForm,
     getClassroomGroupPurchaseFormValues,
     resetClassroomGroupPurchaseForm,
     getClassroomSavingsProductFormValues,

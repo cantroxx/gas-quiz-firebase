@@ -199,6 +199,8 @@ async function testClassroomRepositoryReadPaths() {
     groupPurchases: [],
     savingsProducts: [],
     savingsAccounts: [],
+    taxPresets: [],
+    classroomGems: [],
     myAssignment: { id: 'mine' }
   });
   assert.deepEqual(await repository.loadClassroomReviewItems({ settings, canReview: true }), [

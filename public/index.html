@@ -629,6 +629,10 @@
               </summary>
               <form id="classroom-tax-form" class="classroom-quest-form">
                 <label>
+                  프리셋 이름
+                  <input id="classroom-tax-title-input" type="text" maxlength="50" value="학급 운영비">
+                </label>
+                <label>
                   세율(%)
                   <input id="classroom-tax-rate-input" type="number" min="0.1" max="50" step="0.1" inputmode="decimal" value="10">
                 </label>
@@ -636,9 +640,11 @@
                   사유
                   <input id="classroom-tax-reason-input" type="text" maxlength="120" value="학급 공공 포인트 적립">
                 </label>
-                <button class="button primary" type="submit">세금 걷기</button>
+                <button class="button primary" type="submit">프리셋 저장</button>
+                <button id="classroom-tax-run-current-button" class="button secondary" type="button">현재 값으로 바로 걷기</button>
               </form>
               <p id="classroom-tax-status" class="classroom-review-status" aria-live="polite"></p>
+              <div id="classroom-tax-preset-list" class="classroom-preset-list" aria-label="세금 프리셋"></div>
             </details>
             <details class="classroom-quest-editor" id="classroom-job-editor-panel">
               <summary>
@@ -737,8 +743,8 @@
                   <input id="classroom-savings-desc-input" type="text" maxlength="160" placeholder="학생에게 보일 설명">
                 </label>
                 <label>
-                  예치 포인트
-                  <input id="classroom-savings-deposit-input" type="number" min="1" max="1000000" inputmode="numeric" value="50">
+                  최소 예치 포인트
+                  <input id="classroom-savings-deposit-input" type="number" min="1" max="1000000" inputmode="numeric" value="1">
                 </label>
                 <label>
                   이자율(%)
@@ -751,6 +757,34 @@
                 <button class="button primary" type="submit">적금 저장</button>
               </form>
               <p id="classroom-savings-status" class="classroom-review-status" aria-live="polite"></p>
+            </details>
+            <details class="classroom-quest-editor" id="classroom-gem-editor-panel">
+              <summary>
+                <span>
+                  <strong>젬스톤 만들기</strong>
+                  <small>교실에서 모을 젬 이름, 목표 경험치, 획득 보상을 관리합니다.</small>
+                </span>
+              </summary>
+              <form id="classroom-gem-form" class="classroom-quest-form">
+                <label>
+                  젬 이름
+                  <input id="classroom-gem-name-input" type="text" maxlength="40" placeholder="예: 독서젬">
+                </label>
+                <label>
+                  목표 경험치
+                  <input id="classroom-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
+                </label>
+                <label>
+                  획득 보상
+                  <input id="classroom-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="30">
+                </label>
+                <label>
+                  아이콘
+                  <input id="classroom-gem-icon-input" type="text" maxlength="12" value="◇">
+                </label>
+                <button class="button primary" type="submit">젬스톤 저장</button>
+              </form>
+              <p id="classroom-gem-editor-status" class="classroom-review-status" aria-live="polite"></p>
             </details>
             <details class="classroom-quest-editor" id="classroom-notice-editor-panel">
               <summary>
@@ -5175,6 +5209,10 @@
       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-savings-status', message, isError);
     }
 
+    function setClassroomGemEditorStatus(message, isError = false) {
+      return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-gem-editor-status', message, isError);
+    }
+
     function setClassroomRoutineStatus(message, isError = false) {
       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-routine-status', message, isError);
     }
@@ -5538,14 +5576,54 @@
       return window.DJ48ClassroomForm.getClassroomTaxFormValues();
     }
 
+    function getClassroomGemFormValues() {
+      return window.DJ48ClassroomForm.getClassroomGemFormValues({
+        slugifyClassroomGemId
+      });
+    }
+
+    async function saveClassroomTaxPresetFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 세금 프리셋을 저장할 수 있습니다.',
+          pending: '세금 프리셋을 저장하는 중입니다.',
+          success: '세금 프리셋을 저장했습니다.',
+          warn: 'Classroom tax preset save failed.',
+          error: '세금 프리셋 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-tax-functions-unavailable': '세금 프리셋 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomTaxFormValues,
+        validateValues: values => values.title && values.ratePercent > 0 ? '' : '프리셋 이름과 세율을 입력해 주세요.',
+        save: options => getClassroomRepository().saveClassroomTaxPreset(options),
+        resetCaches: resetClassroomDataCaches,
+        setStatus: setClassroomTaxStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
     async function collectClassroomTaxFromForm(event) {
       event?.preventDefault();
       const values = getClassroomTaxFormValues();
-      if(!window.confirm(`학생 포인트의 ${values.ratePercent}%를 학급 공공 포인트로 모을까요?`)) return;
+      return collectClassroomTaxPreset(values.ratePercent, values.reason, event?.target || null);
+    }
+
+    async function collectClassroomTaxPreset(ratePercent, reason, button = null) {
+      const safeRate = Math.max(0.1, Math.min(50, Number(ratePercent || 0)));
+      if(!safeRate) return null;
+      if(!window.confirm(`학생 포인트의 ${safeRate}%를 학급 공공 포인트로 모을까요?`)) return null;
       setClassroomTaxStatus('세금을 걷는 중입니다.');
       const result = await window.DJ48ClassroomUsecases.runClassroomEconomyAction('collectClassroomTax', {
-        value: values.ratePercent,
-        payload: { ratePercent: values.ratePercent, reason: values.reason }
+        value: safeRate,
+        button,
+        payload: { ratePercent: safeRate, reason }
       }, {
         getCurrentMemberUserId: () => window.DJ48AccountState.getCurrentMemberUserId(),
         loadClassroomSettings,
@@ -5557,6 +5635,7 @@
         warn: console.warn
       });
       if(!result?.success) setClassroomTaxStatus('세금 처리 중 문제가 생겼습니다.', true);
+      return result;
     }
 
     function getClassroomGroupPurchaseFormValues() {
@@ -5613,11 +5692,39 @@
         loadClassroomSettings,
         isCurrentClassroomTeacher,
         getValues: getClassroomSavingsProductFormValues,
-        validateValues: values => values.title && values.depositPoint > 0 ? '' : '적금 이름과 예치 포인트를 입력해 주세요.',
+        validateValues: values => values.title && values.minDepositPoint > 0 ? '' : '적금 이름과 최소 예치 포인트를 입력해 주세요.',
         save: options => getClassroomRepository().saveClassroomSavingsProduct(options),
         resetCaches: resetClassroomDataCaches,
         resetForm: window.DJ48ClassroomForm.resetClassroomSavingsProductForm,
         setStatus: setClassroomSavingsStatus,
+        renderClassroom: renderClassroomPrototype,
+        warn: console.warn
+      });
+    }
+
+    async function saveClassroomGemFromForm(event) {
+      event?.preventDefault();
+      await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
+        messages: {
+          permission: '담임 권한이 있어야 젬스톤을 만들 수 있습니다.',
+          pending: '젬스톤을 저장하는 중입니다.',
+          success: '젬스톤을 저장했습니다.',
+          warn: 'Classroom gem save failed.',
+          error: '젬스톤 저장 중 문제가 생겼습니다.'
+        },
+        errorMessages: {
+          'classroom-gem-functions-unavailable': '젬스톤 저장 기능을 불러오지 못했습니다.'
+        },
+        resetCaches: { economy: true, gems: true }
+      }, {
+        loadClassroomSettings,
+        isCurrentClassroomTeacher,
+        getValues: getClassroomGemFormValues,
+        validateValues: values => values.gemName ? '' : '젬 이름을 입력해 주세요.',
+        save: options => getClassroomRepository().saveClassroomGem(options),
+        resetCaches: resetClassroomDataCaches,
+        resetForm: window.DJ48ClassroomForm.resetClassroomGemForm,
+        setStatus: setClassroomGemEditorStatus,
         renderClassroom: renderClassroomPrototype,
         warn: console.warn
       });
@@ -5682,6 +5789,11 @@
       });
     }
 
+    async function deleteClassroomBillboardMessage(messageId, button) {
+      if(!messageId || !window.confirm('이 전광판 글을 삭제할까요?')) return null;
+      return runClassroomEconomyAction('deleteClassroomBillboardMessage', messageId, button);
+    }
+
     async function approveClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('approveClassroomShopPurchaseUse', purchaseId, button, {
         memo: askClassroomActionMemo('사용 승인 메모를 입력하세요. 비워도 됩니다.')
@@ -5707,13 +5819,21 @@
     }
 
     async function contributeClassroomGroupPurchase(groupPurchaseId, button) {
+      const rawAmount = askClassroomActionMemo('공동구매에 보탤 포인트를 입력하세요.');
+      const amount = Math.round(Number(rawAmount.replace(/,/g, '')) || 0);
+      if(amount <= 0) return null;
       return runClassroomEconomyAction('contributeClassroomGroupPurchase', groupPurchaseId, button, {
-        amount: 10
+        amount
       });
     }
 
     async function joinClassroomSavingsProduct(productId, button) {
-      return runClassroomEconomyAction('joinClassroomSavingsProduct', productId, button);
+      const rawAmount = askClassroomActionMemo('적금에 예치할 포인트를 입력하세요.');
+      const depositPoint = Math.round(Number(rawAmount.replace(/,/g, '')) || 0);
+      if(depositPoint <= 0) return null;
+      return runClassroomEconomyAction('joinClassroomSavingsProduct', productId, button, {
+        depositPoint
+      });
     }
 
     async function claimClassroomSavingsMaturity(accountId, button) {
@@ -7414,7 +7534,10 @@
         restoreClassroomQuest,
         awardClassroomBadgeCampaignFromForm,
         saveClassroomMissionFromForm,
+        saveClassroomTaxPresetFromForm,
         collectClassroomTaxFromForm,
+        collectClassroomTaxPreset,
+        saveClassroomGemFromForm,
         saveClassroomJobFromForm,
         saveClassroomShopItemFromForm,
         saveClassroomGroupPurchaseFromForm,
@@ -7431,6 +7554,7 @@
         purchaseClassroomShopItem,
         requestClassroomShopPurchaseUse,
         useClassroomBillboardTicket,
+        deleteClassroomBillboardMessage,
         approveClassroomShopPurchaseUse,
         completeClassroomShopPurchaseUse,
         rejectClassroomShopPurchaseUse,

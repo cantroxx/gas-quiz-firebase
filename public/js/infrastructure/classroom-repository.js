@@ -18,7 +18,9 @@
       publicWallet: { point: 0 },
       groupPurchases: [],
       savingsProducts: [],
-      savingsAccounts: []
+      savingsAccounts: [],
+      taxPresets: [],
+      classroomGems: []
     };
   }
 
@@ -141,6 +143,8 @@
         groupPurchases: Array.isArray(data.groupPurchases) ? data.groupPurchases : [],
         savingsProducts: Array.isArray(data.savingsProducts) ? data.savingsProducts : [],
         savingsAccounts: Array.isArray(data.savingsAccounts) ? data.savingsAccounts : [],
+        taxPresets: Array.isArray(data.taxPresets) ? data.taxPresets : [],
+        classroomGems: Array.isArray(data.classroomGems) ? data.classroomGems : [],
         myAssignment: data.myAssignment || null
       };
     } catch(error) {
@@ -171,12 +175,35 @@
     const db = getClassroomDb(deps);
     if(!memberUserId || !db) return [];
     try {
-      const snapshot = await db.collection('classrooms')
+      const [progressSnapshot, catalogSnapshot] = await Promise.all([
+        db.collection('classrooms')
         .doc(settings.classId)
         .collection('studentGemProgress')
         .where('memberUserId', '==', memberUserId)
-        .get();
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        .get(),
+        db.collection('classrooms')
+          .doc(settings.classId)
+          .collection('classroomGems')
+          .where('active', '==', true)
+          .get()
+      ]);
+      const progressByGemId = new Map(progressSnapshot.docs.map(doc => {
+        const data = { id: doc.id, ...doc.data() };
+        return [String(data.gemId || doc.id), data];
+      }));
+      catalogSnapshot.docs.forEach(doc => {
+        const gem = { gemId: doc.id, ...doc.data() };
+        const progress = progressByGemId.get(String(gem.gemId || doc.id));
+        progressByGemId.set(String(gem.gemId || doc.id), {
+          ...gem,
+          ...(progress || {}),
+          currentXp: Number(progress?.currentXp || 0),
+          targetXp: Number(progress?.targetXp || gem.targetXp || 10),
+          rewardPoint: Number(progress?.rewardPoint || gem.rewardPoint || 0),
+          completed: progress?.completed === true
+        });
+      });
+      return Array.from(progressByGemId.values()).sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), 'ko'));
     } catch(error) {
       deps.warn?.('Classroom gem progress load failed.', error);
       return [];
@@ -335,6 +362,26 @@
     return response?.data || {};
   }
 
+  async function saveClassroomTaxPreset(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-tax-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomTaxPreset');
+    const response = await callable({
+      classId: options.classId,
+      preset: options.values || {}
+    });
+    return response?.data || {};
+  }
+
+  async function saveClassroomGem(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-gem-functions-unavailable');
+    const callable = functions.httpsCallable('saveClassroomGem');
+    const response = await callable({
+      classId: options.classId,
+      gem: options.values || {}
+    });
+    return response?.data || {};
+  }
+
   async function callClassroomEconomyAction(functionName, payload = {}, options = {}, deps = {}) {
     if(!options.memberUserId) throw new Error('classroom-member-unavailable');
     const functions = getRequiredClassroomFunctions(deps, 'classroom-economy-functions-unavailable');
@@ -447,6 +494,8 @@
       saveClassroomMissionConfig: options => saveClassroomMissionConfig(options, callableDeps),
       saveClassroomGroupPurchase: options => saveClassroomGroupPurchase(options, callableDeps),
       saveClassroomSavingsProduct: options => saveClassroomSavingsProduct(options, callableDeps),
+      saveClassroomTaxPreset: options => saveClassroomTaxPreset(options, callableDeps),
+      saveClassroomGem: options => saveClassroomGem(options, callableDeps),
       callClassroomEconomyAction: (functionName, payload, options) => callClassroomEconomyAction(
         functionName,
         payload,

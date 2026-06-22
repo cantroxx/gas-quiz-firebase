@@ -221,6 +221,9 @@
     if(functionName === 'useClassroomBillboardTicket') {
       return '전광판에 한마디를 올렸습니다.';
     }
+    if(functionName === 'deleteClassroomBillboardMessage') {
+      return '전광판 글을 삭제했습니다.';
+    }
     if(functionName === 'collectClassroomTax') {
       return `${Number(result.collectedPoint || 0).toLocaleString('ko-KR')} 포인트를 학급 공공 포인트로 모았습니다.`;
     }
@@ -257,6 +260,7 @@
     collectClassroomTax: { payloadKey: 'ratePercent', progressText: '징수 중...' },
     contributeClassroomGroupPurchase: { payloadKey: 'groupPurchaseId', progressText: '기여 중...' },
     joinClassroomSavingsProduct: { payloadKey: 'productId', progressText: '가입 중...' },
+    deleteClassroomBillboardMessage: { payloadKey: 'messageId', progressText: '삭제 중...' },
     claimClassroomSavingsMaturity: { payloadKey: 'accountId', progressText: '수령 중...' }
   };
 

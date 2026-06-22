@@ -235,19 +235,15 @@
     const checklistSection = document.createElement('section');
     const checklistHeading = document.createElement('h3');
     const checklistGrid = document.createElement('div');
-    const fallbackMessageItems = [
-      pendingQuests[0]?.title ? `${pendingQuests[0].title} 도전 중` : '오늘 퀘스트 완료!',
-      todayRoutines[0]?.title ? `${todayRoutines[0].title} 체크해요` : '성장루틴 체크했어요',
-      shopItems[0]?.title ? `상점에 ${shopItems[0].title} 나왔대요` : '상점에 새 상품 나왔대요',
-      selectedKeyringLabel ? `${selectedKeyringLabel} 키링 멋져요` : '우리 반 파이팅!',
-      completedGems.length ? `젬 ${completedGems.length}개 모았어요` : '독서젬 모으는 중'
-    ];
     const messageItems = billboardMessages.length
       ? billboardMessages.slice(0, 5).map(item => {
         const nickname = studentNameMap[String(item.memberUserId || '')] || '';
-        return nickname ? `${nickname}: ${item.text}` : item.text;
+        return {
+          id: item.messageId || '',
+          text: nickname ? `${nickname}: ${item.text}` : item.text
+        };
       })
-      : fallbackMessageItems;
+      : [];
     const featureItems = [
       ['교실', '+', 'classroom', 'secondary'],
       ['젬스톤', '◇', 'gems', 'primary'],
@@ -276,10 +272,27 @@
     boardHeading.textContent = '우리반 게시판';
     board.className = 'classroom-bulletin-board';
     noteGrid.className = 'classroom-bulletin-notes';
+    if(!messageItems.length) {
+      const emptyNote = document.createElement('article');
+      emptyNote.className = 'classroom-bulletin-note classroom-bulletin-note--empty';
+      emptyNote.textContent = '아직 올라온 한마디가 없습니다.';
+      noteGrid.appendChild(emptyNote);
+    }
     messageItems.forEach((message, index) => {
       const note = document.createElement('article');
+      const text = document.createElement('span');
       note.className = `classroom-bulletin-note classroom-bulletin-note--${(index % 4) + 1}`;
-      note.textContent = message;
+      text.textContent = message.text || '';
+      note.appendChild(text);
+      if(canManage && message.id) {
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'classroom-billboard-delete-button';
+        deleteButton.type = 'button';
+        deleteButton.dataset.classroomBillboardDeleteId = message.id;
+        deleteButton.setAttribute('aria-label', '전광판 글 삭제');
+        deleteButton.textContent = '×';
+        note.appendChild(deleteButton);
+      }
       noteGrid.appendChild(note);
     });
     marquee.className = 'classroom-bulletin-marquee';
@@ -316,21 +329,27 @@
       const missionTitle = document.createElement('h3');
       const missionDesc = document.createElement('p');
       const missionTrack = document.createElement('div');
+      const missionList = document.createElement('div');
       const targetMax = Math.max(...(classMission.thresholds || []).map(item => Number(item.targetPoint || 0)), 1);
       missionPanel.className = 'classroom-mission-panel';
       missionTitle.className = 'classroom-visual-section-title';
       missionTitle.textContent = classMission.title || '학급 미션';
       missionDesc.textContent = `${Number(classMission.totalPoint || 0).toLocaleString('ko-KR')}점 모음${classMission.remainingPoint ? ` · 다음 목표까지 ${Number(classMission.remainingPoint || 0).toLocaleString('ko-KR')}점` : ' · 모든 목표 달성'}`;
       missionTrack.className = 'classroom-mission-track';
+      missionList.className = 'classroom-mission-step-list';
       (classMission.thresholds || []).forEach(step => {
         const marker = document.createElement('span');
+        const row = document.createElement('span');
         marker.className = `classroom-mission-marker${step.achieved ? ' is-achieved' : ''}`;
         marker.style.setProperty('--mission-position', `${Math.min(100, Math.round((Number(step.targetPoint || 0) / targetMax) * 100))}%`);
         marker.textContent = step.achieved ? '✓' : Number(step.targetPoint || 0).toLocaleString('ko-KR');
         marker.title = `${step.label || '목표'} ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}`;
         missionTrack.appendChild(marker);
+        row.className = `classroom-mission-step${step.achieved ? ' is-achieved' : ''}`;
+        row.textContent = `${step.achieved ? '✓ ' : ''}${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`} · ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}`;
+        missionList.appendChild(row);
       });
-      missionPanel.append(missionTitle, missionDesc, missionTrack);
+      missionPanel.append(missionTitle, missionDesc, missionTrack, missionList);
       boardSection.appendChild(missionPanel);
     }
 
@@ -643,18 +662,26 @@
       const portrait = document.createElement('div');
       const imageUrl = deps.normalizeDisplayImageUrl?.(student.profileImageUrl || '') || '';
       const levelSummary = student.levelSummary || {};
-      const level = Math.max(0, Math.round(Number(student.level || levelSummary.level) || 0));
+      const level = Math.max(1, Math.round(Number(student.level || levelSummary.level) || 1));
       const medalAsset = level ? deps.getLevelMedalAsset?.(level) : null;
-      const desc = document.createElement('p');
+      const pointBadge = document.createElement('span');
       const levelBadge = document.createElement('span');
       const metaGrid = document.createElement('div');
       const titleChip = document.createElement('span');
       const keyringChip = document.createElement('span');
       const selectedTitleName = student.selectedTitle?.titleName || '';
       const selectedKeyringLabel = student.selectedKeyring?.label || student.selectedBadge?.label || '';
-      card.className = 'classroom-card classroom-card--student classroom-student-card';
+      card.className = [
+        'classroom-card',
+        'classroom-card--student',
+        'classroom-student-card',
+        selectedTitleName ? 'has-title' : '',
+        selectedKeyringLabel ? 'has-keyring' : ''
+      ].filter(Boolean).join(' ');
       badge.className = 'classroom-card-badge';
       badge.textContent = `${student.studentNumber || '-'}번`;
+      pointBadge.className = 'classroom-student-point-badge';
+      pointBadge.textContent = `${Number(student.point || 0).toLocaleString('ko-KR')}P`;
       identity.className = 'classroom-student-identity';
       title.textContent = student.nickname || student.name || student.memberUserId || '학생';
       portrait.className = 'classroom-student-portrait';
@@ -682,7 +709,6 @@
       }
       identity.append(title, portrait);
       if(level) identity.appendChild(levelBadge);
-      desc.textContent = `${student.grade || '-'}학년 ${student.classNumber || '-'}반 · ${level ? `Lv.${level} · ` : ''}포인트 ${Number(student.point || 0).toLocaleString('ko-KR')}`;
       metaGrid.className = 'classroom-student-card-meta';
       if(selectedTitleName) {
         titleChip.className = 'quest-status quest-status-active';
@@ -694,7 +720,7 @@
         keyringChip.textContent = selectedKeyringLabel;
         metaGrid.appendChild(keyringChip);
       }
-      card.append(badge, identity, desc);
+      card.append(badge, pointBadge, identity);
       if(metaGrid.children.length) card.appendChild(metaGrid);
       grid.appendChild(card);
     });
@@ -975,20 +1001,26 @@
     const title = document.createElement('h4');
     const desc = document.createElement('p');
     const track = document.createElement('div');
+    const list = document.createElement('div');
     const targetMax = Math.max(...(mission.thresholds || []).map(item => Number(item.targetPoint || 0)), 1);
     panel.className = 'classroom-mission-panel';
     title.textContent = mission.title || '학급 포인트 미션';
     desc.textContent = `${Number(mission.totalPoint || 0).toLocaleString('ko-KR')}점 모음${mission.remainingPoint ? ` · 다음 기준까지 ${Number(mission.remainingPoint || 0).toLocaleString('ko-KR')}점` : ' · 모든 기준 달성'}`;
     track.className = 'classroom-mission-track';
+    list.className = 'classroom-mission-step-list';
     (mission.thresholds || []).forEach(step => {
       const marker = document.createElement('span');
+      const row = document.createElement('span');
       marker.className = `classroom-mission-marker${step.achieved ? ' is-achieved' : ''}`;
       marker.style.setProperty('--mission-position', `${Math.min(100, Math.round((Number(step.targetPoint || 0) / targetMax) * 100))}%`);
       marker.textContent = step.achieved ? '✓' : Number(step.targetPoint || 0).toLocaleString('ko-KR');
       marker.title = `${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`}${step.rewardText ? ` · ${step.rewardText}` : ''}`;
       track.appendChild(marker);
+      row.className = `classroom-mission-step${step.achieved ? ' is-achieved' : ''}`;
+      row.textContent = `${step.achieved ? '✓ ' : ''}${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`} · ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}`;
+      list.appendChild(row);
     });
-    panel.append(title, desc, track);
+    panel.append(title, desc, track, list);
     wrap.appendChild(panel);
   }
 
@@ -1023,7 +1055,7 @@
       button.type = 'button';
       button.dataset.classroomGroupPurchaseId = item.groupPurchaseId || '';
       button.disabled = status !== 'open';
-      button.textContent = status === 'funded' ? '달성 완료' : '10포인트 보태기';
+      button.textContent = status === 'funded' ? '달성 완료' : '포인트 보태기';
       body.append(titleEl, meta, createClassroomProgressMeter(Number(item.progressPercent || 0)));
       actions.appendChild(button);
       row.append(body, actions);
@@ -1060,7 +1092,7 @@
       row.className = 'classroom-shop-history-row';
       actions.className = 'classroom-review-actions';
       titleEl.textContent = product.title || '적금 상품';
-      meta.textContent = `${Number(product.depositPoint || 0).toLocaleString('ko-KR')}포인트 예치 · ${Number(product.interestRatePercent || 0)}% 이자 · ${Number(product.termDays || 0)}일`;
+      meta.textContent = `최소 ${Number(product.minDepositPoint || product.depositPoint || 1).toLocaleString('ko-KR')}포인트 · ${Number(product.interestRatePercent || 0)}% 이자 · ${Number(product.termDays || 0)}일`;
       button.className = 'quest-claim-button';
       button.type = 'button';
       button.dataset.classroomSavingsProductId = product.productId || '';
@@ -1093,6 +1125,33 @@
       list.appendChild(row);
     });
     wrap.appendChild(section);
+  }
+
+  function renderClassroomTaxPresetList(economyBoard = {}) {
+    const list = document.getElementById('classroom-tax-preset-list');
+    if(!list) return;
+    const presets = Array.isArray(economyBoard.taxPresets) ? economyBoard.taxPresets : [];
+    list.innerHTML = '';
+    if(!presets.length) {
+      const empty = document.createElement('p');
+      empty.className = 'classroom-preset-empty';
+      empty.textContent = '저장된 세금 프리셋이 없습니다.';
+      list.appendChild(empty);
+      return;
+    }
+    presets.forEach(preset => {
+      const button = document.createElement('button');
+      const title = document.createElement('strong');
+      const meta = document.createElement('span');
+      button.className = 'classroom-preset-button';
+      button.type = 'button';
+      button.dataset.classroomTaxPresetRate = String(preset.ratePercent || 0);
+      button.dataset.classroomTaxPresetReason = preset.reason || preset.title || '';
+      title.textContent = preset.title || preset.reason || '세금 프리셋';
+      meta.textContent = `${Number(preset.ratePercent || 0)}% · ${preset.reason || '학급 공공 포인트 적립'}`;
+      button.append(title, meta);
+      list.appendChild(button);
+    });
   }
 
   function getClassroomRoutineScheduleLabel(routine = {}) {
@@ -1183,6 +1242,7 @@
     const bankGrid = document.getElementById('classroom-bank-grid');
     if(bankGrid) bankGrid.innerHTML = '';
     renderClassroomSavingsSection(bankGrid, economyBoard, deps);
+    renderClassroomTaxPresetList(economyBoard);
     renderClassroomRoutineCards(economyBoard);
     deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
   }
