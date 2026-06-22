@@ -884,22 +884,23 @@
       .map(purchase => String(purchase.itemId || ''))
       .filter(Boolean));
     grid.innerHTML = '';
-    if(!items.length) {
-      renderEmptyClassroomCard(grid, '준비 중', '아직 등록된 교실 상품이 없습니다', deps.isCurrentClassroomTeacher?.(settings) ? '담임 관리 영역에서 교실 상품을 만들어 주세요.' : '담임이 상품을 만들면 포인트로 구매할 수 있습니다.');
-      return;
-    }
-    const renderShopSection = (titleText, noteText, sectionItems, emptyText = '') => {
+    const activeMarketPane = document.querySelector('[data-classroom-market-tab].is-active')?.dataset.classroomMarketTab || 'point';
+    const renderShopSection = (paneKey, titleText, noteText, sectionItems, emptyText = '') => {
       const section = document.createElement('section');
       const heading = document.createElement('div');
       const title = document.createElement('h4');
       const note = document.createElement('p');
       const list = document.createElement('div');
-      section.className = 'classroom-market-section';
+      section.className = `classroom-market-section${activeMarketPane === paneKey ? ' is-active' : ''}`;
+      section.dataset.classroomMarketPane = paneKey;
       heading.className = 'event-section-heading compact';
       title.textContent = titleText;
-      note.textContent = noteText;
       list.className = 'classroom-card-grid classroom-market-card-grid';
-      heading.append(title, note);
+      heading.appendChild(title);
+      if(noteText) {
+        note.textContent = noteText;
+        heading.appendChild(note);
+      }
       section.append(heading, list);
       if(!sectionItems.length) {
         const empty = document.createElement('p');
@@ -954,16 +955,19 @@
     };
     const pointItems = items.filter(item => item.priceType !== 'djCoin');
     const coinItems = items.filter(item => item.priceType === 'djCoin');
-    renderShopSection('포인트샵', `${point.toLocaleString('ko-KR')}P 보유 · 교실 포인트로 구매`, pointItems, '포인트로 살 수 있는 상품이 없습니다.');
-    renderShopSection('코인샵', `${djCoin.toLocaleString('ko-KR')} DJ 보유 · DJ코인으로 구매`, coinItems, 'DJ코인으로 살 수 있는 상품이 없습니다.');
+    renderShopSection('point', '포인트샵', '', pointItems, '포인트로 살 수 있는 상품이 없습니다.');
+    renderShopSection('coin', '코인샵', '', coinItems, 'DJ코인으로 살 수 있는 상품이 없습니다.');
   }
 
   function renderClassroomShopHistory(settings, economyBoard = {}, deps = {}) {
     const wrap = document.getElementById('classroom-shop-history');
     if(!wrap) return;
+    const activeMarketPane = document.querySelector('[data-classroom-market-tab].is-active')?.dataset.classroomMarketTab || 'point';
     const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     wrap.innerHTML = '';
+    wrap.dataset.classroomMarketPane = 'inventory';
+    wrap.classList.toggle('is-active', activeMarketPane === 'inventory');
     const heading = document.createElement('div');
     const title = document.createElement('h4');
     const note = document.createElement('p');
@@ -1093,13 +1097,15 @@
   function renderClassroomGroupPurchaseSection(wrap, economyBoard = {}, deps = {}) {
     const items = Array.isArray(economyBoard.groupPurchases) ? economyBoard.groupPurchases : [];
     if(!wrap) return;
+    const activeMarketPane = document.querySelector('[data-classroom-market-tab].is-active')?.dataset.classroomMarketTab || 'point';
     wrap.innerHTML = '';
     const section = document.createElement('section');
     const heading = document.createElement('div');
     const title = document.createElement('h4');
     const note = document.createElement('p');
     const list = document.createElement('div');
-    section.className = 'classroom-shop-history classroom-market-section';
+    section.className = `classroom-shop-history classroom-market-section${activeMarketPane === 'group' ? ' is-active' : ''}`;
+    section.dataset.classroomMarketPane = 'group';
     heading.className = 'event-section-heading compact';
     title.textContent = '공동구매';
     note.textContent = '학생들이 포인트를 모아 학급 상품을 달성합니다.';

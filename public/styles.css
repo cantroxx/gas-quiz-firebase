@@ -5092,8 +5092,8 @@ h2 {
 }
 
 .classroom-tabs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
   margin: 4px 0 18px;
 }
@@ -5126,73 +5126,67 @@ h2 {
 
 .classroom-subsection-grid {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .classroom-subsection {
-  display: grid;
+  display: none;
   gap: 12px;
   padding: 14px 0;
-  border-top: 1px solid rgba(47, 125, 83, 0.12);
 }
 
-.classroom-subsection:first-child {
-  border-top: 0;
-  padding-top: 0;
+.classroom-subsection.is-active {
+  display: grid;
 }
 
-.classroom-subsection-heading {
-  align-items: center;
-  gap: 10px;
+.classroom-subtab-bar {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.classroom-subsection-heading h3 {
-  margin: 0;
+.classroom-subtab-bar--five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.classroom-subtab-bar--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.classroom-subtab-bar--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.classroom-subtab {
+  min-height: 42px;
+  padding: 9px 8px;
+  border: 2px solid #bccabb;
+  border-bottom-width: 5px;
+  border-radius: 12px;
+  background: #fff;
+  color: #0b1c30;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 950;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.classroom-subtab.is-active {
+  border-color: #64a8fe;
+  background: #dce9ff;
+  color: #003c70;
+}
+
+.classroom-subtab:hover,
+.classroom-subtab:focus-visible {
+  border-color: #64a8fe;
+  outline: none;
 }
 
 .classroom-subsection-body {
   display: grid;
   gap: 12px;
-}
-
-.classroom-subsection.is-collapsed .classroom-subsection-body {
-  display: none;
-}
-
-.classroom-section-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 0;
-  background: transparent;
-  color: #0b1c30;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 950;
-  line-height: 1;
-  padding: 0;
-}
-
-.classroom-section-toggle::after {
-  content: "접힘";
-  padding: 5px 8px;
-  border: 2px solid #bccabb;
-  border-bottom-width: 4px;
-  border-radius: 999px;
-  background: #fff;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 950;
-}
-
-.classroom-section-toggle[aria-expanded="true"]::after {
-  content: "열림";
-}
-
-.classroom-section-toggle:hover,
-.classroom-section-toggle:focus-visible {
-  color: #0055a8;
-  outline: none;
 }
 
 .classroom-today-grid {
@@ -5626,13 +5620,20 @@ h2 {
 }
 
 .classroom-market-section {
-  padding: 14px 0;
-  border-top: 1px solid rgba(47, 125, 83, 0.12);
+  display: none;
 }
 
-.classroom-market-section:first-child {
-  border-top: 0;
-  padding-top: 0;
+.classroom-market-section.is-active {
+  display: grid;
+  padding: 10px 0;
+}
+
+.classroom-shop-history[data-classroom-market-pane] {
+  display: none;
+}
+
+.classroom-shop-history[data-classroom-market-pane].is-active {
+  display: block;
 }
 
 .classroom-market-card-grid {
@@ -7426,6 +7427,12 @@ h2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .classroom-tabs,
+  .classroom-subtab-bar--five,
+  .classroom-subtab-bar--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .classroom-role-grid {
     grid-template-columns: 1fr;
   }
@@ -7694,6 +7701,13 @@ h2 {
   }
 
   .classroom-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-tabs,
+  .classroom-subtab-bar--five,
+  .classroom-subtab-bar--four,
+  .classroom-subtab-bar--three {
     grid-template-columns: 1fr;
   }
 

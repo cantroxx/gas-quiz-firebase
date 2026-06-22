@@ -54,14 +54,31 @@
       deps.saveClassroomRoutineFromForm?.(event);
     });
 
-    document.querySelectorAll('[data-classroom-section-toggle]').forEach(button => {
+    document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
       button.addEventListener('click', () => {
-        const target = document.getElementById(button.dataset.classroomSectionToggle || '');
-        const section = target?.closest('.classroom-subsection') || target?.closest('.classroom-panel-section');
-        if(!target || !section) return;
-        const collapsed = !section.classList.contains('is-collapsed');
-        section.classList.toggle('is-collapsed', collapsed);
-        button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        const nextTab = button.dataset.classroomSubtab || 'student-card';
+        document.querySelectorAll('[data-classroom-subtab]').forEach(tab => {
+          const active = tab === button;
+          tab.classList.toggle('is-active', active);
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        document.querySelectorAll('[data-classroom-subpane]').forEach(pane => {
+          pane.classList.toggle('is-active', pane.dataset.classroomSubpane === nextTab);
+        });
+      });
+    });
+
+    document.querySelectorAll('[data-classroom-market-tab]').forEach(button => {
+      button.addEventListener('click', () => {
+        const nextTab = button.dataset.classroomMarketTab || 'point';
+        document.querySelectorAll('[data-classroom-market-tab]').forEach(tab => {
+          const active = tab === button;
+          tab.classList.toggle('is-active', active);
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        document.querySelectorAll('[data-classroom-market-pane]').forEach(pane => {
+          pane.classList.toggle('is-active', pane.dataset.classroomMarketPane === nextTab);
+        });
       });
     });
 

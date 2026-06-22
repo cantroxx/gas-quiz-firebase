@@ -408,6 +408,15 @@
           </article>
         </div>
 
+        <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
+          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">오늘</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">교실</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
+          <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>교사 작업대</button>
+        </div>
+
         <section id="classroom-teacher-dashboard" class="classroom-panel classroom-teacher-dashboard" data-classroom-panel="teacher" aria-labelledby="classroom-teacher-dashboard-heading" hidden>
           <div class="event-section-heading">
             <h3 id="classroom-teacher-dashboard-heading">교실 운영 요약</h3>
@@ -854,50 +863,33 @@
           <div id="classroom-review-grid" class="classroom-review-grid"></div>
         </section>
 
-        <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
-          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">오늘</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">교실</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
-          <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>교사 작업대</button>
-        </div>
-
         <section class="classroom-panel is-active" data-classroom-panel="today" aria-labelledby="classroom-today-heading">
           <h3 id="classroom-today-heading" class="sr-only">오늘</h3>
           <div id="classroom-today-grid" class="classroom-today-grid"></div>
           <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="classroom" aria-labelledby="classroom-student-card-heading">
+        <section class="classroom-panel" data-classroom-panel="classroom" aria-label="교실">
+          <div class="classroom-subtab-bar classroom-subtab-bar--five" role="tablist" aria-label="교실 세부 메뉴">
+            <button class="classroom-subtab is-active" type="button" data-classroom-subtab="student-card" aria-selected="true">학생카드</button>
+            <button class="classroom-subtab" type="button" data-classroom-subtab="quest" aria-selected="false">교실 퀘스트</button>
+            <button class="classroom-subtab" type="button" data-classroom-subtab="routine" aria-selected="false">성장루틴</button>
+            <button class="classroom-subtab" type="button" data-classroom-subtab="mission" aria-selected="false">학급 포인트 미션</button>
+            <button class="classroom-subtab" type="button" data-classroom-subtab="bank" aria-selected="false">학급 은행</button>
+          </div>
           <div class="classroom-subsection-grid">
-            <section class="classroom-subsection" aria-labelledby="classroom-student-card-heading">
-              <div class="event-section-heading classroom-subsection-heading">
-                <h3 id="classroom-student-card-heading">
-                  <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-student-card-body" aria-expanded="true">학생카드</button>
-                </h3>
-              </div>
+            <section class="classroom-subsection is-active" data-classroom-subpane="student-card" aria-label="학생카드">
               <div id="classroom-student-card-body" class="classroom-subsection-body">
                 <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
               </div>
             </section>
-            <section class="classroom-subsection" aria-labelledby="classroom-quest-heading">
-              <div class="event-section-heading classroom-subsection-heading">
-                <h3 id="classroom-quest-heading">
-                  <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-quest-body" aria-expanded="true">교실 퀘스트</button>
-                </h3>
-              </div>
+            <section class="classroom-subsection" data-classroom-subpane="quest" aria-label="교실 퀘스트">
               <div id="classroom-quest-body" class="classroom-subsection-body">
                 <div id="classroom-quest-grid" class="classroom-card-grid"></div>
                 <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
               </div>
             </section>
-            <section class="classroom-subsection" aria-labelledby="classroom-routine-heading">
-              <div class="event-section-heading classroom-subsection-heading">
-                <h3 id="classroom-routine-heading">
-                  <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-routine-body" aria-expanded="true">성장루틴</button>
-                </h3>
-              </div>
+            <section class="classroom-subsection" data-classroom-subpane="routine" aria-label="성장루틴">
               <div id="classroom-routine-body" class="classroom-subsection-body">
                 <form id="classroom-routine-form" class="classroom-quest-form">
                   <label>
@@ -930,22 +922,12 @@
                 <div id="classroom-routine-grid" class="classroom-card-grid"></div>
               </div>
             </section>
-            <section class="classroom-subsection" aria-labelledby="classroom-mission-view-heading">
-              <div class="event-section-heading classroom-subsection-heading">
-                <h3 id="classroom-mission-view-heading">
-                  <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-mission-body" aria-expanded="true">학급 포인트 미션</button>
-                </h3>
-              </div>
+            <section class="classroom-subsection" data-classroom-subpane="mission" aria-label="학급 포인트 미션">
               <div id="classroom-mission-body" class="classroom-subsection-body">
                 <div id="classroom-mission-view" class="classroom-mission-view"></div>
               </div>
             </section>
-            <section class="classroom-subsection" aria-labelledby="classroom-bank-heading">
-              <div class="event-section-heading classroom-subsection-heading">
-                <h3 id="classroom-bank-heading">
-                  <button class="classroom-section-toggle" type="button" data-classroom-section-toggle="classroom-bank-body" aria-expanded="true">학급 은행</button>
-                </h3>
-              </div>
+            <section class="classroom-subsection" data-classroom-subpane="bank" aria-label="학급 은행">
               <div id="classroom-bank-body" class="classroom-subsection-body">
                 <div id="classroom-bank-grid" class="classroom-shop-history"></div>
               </div>
@@ -953,29 +935,26 @@
           </div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="gems" aria-labelledby="classroom-gem-heading">
-          <div class="event-section-heading">
-            <h3 id="classroom-gem-heading">젬스톤</h3>
-          </div>
+        <section class="classroom-panel" data-classroom-panel="gems" aria-label="젬스톤">
           <div id="classroom-gem-summary" class="classroom-management-summary"></div>
           <div id="classroom-gem-grid" class="classroom-card-grid"></div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="jobs" aria-labelledby="classroom-job-heading">
-          <div class="event-section-heading">
-            <h3 id="classroom-job-heading">직업</h3>
-          </div>
+        <section class="classroom-panel" data-classroom-panel="jobs" aria-label="직업">
           <div id="classroom-job-summary" class="classroom-management-summary"></div>
           <div id="classroom-job-grid" class="classroom-card-grid"></div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="market" aria-labelledby="classroom-shop-heading">
-          <div class="event-section-heading">
-            <h3 id="classroom-shop-heading">마켓</h3>
+        <section class="classroom-panel" data-classroom-panel="market" aria-label="마켓">
+          <div class="classroom-subtab-bar classroom-subtab-bar--four" role="tablist" aria-label="마켓 세부 메뉴">
+            <button class="classroom-subtab is-active" type="button" data-classroom-market-tab="point" aria-selected="true">포인트샵</button>
+            <button class="classroom-subtab" type="button" data-classroom-market-tab="coin" aria-selected="false">코인샵</button>
+            <button class="classroom-subtab" type="button" data-classroom-market-tab="group" aria-selected="false">공동구매샵</button>
+            <button class="classroom-subtab" type="button" data-classroom-market-tab="inventory" aria-selected="false">인벤토리</button>
           </div>
           <div id="classroom-shop-grid" class="classroom-market-grid"></div>
           <div id="classroom-group-purchase-shop"></div>
-          <div id="classroom-shop-history" class="classroom-shop-history"></div>
+          <div id="classroom-shop-history" class="classroom-shop-history" data-classroom-market-pane="inventory"></div>
         </section>
       </section>
     </section>
