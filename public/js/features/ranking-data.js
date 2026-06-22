@@ -157,6 +157,11 @@
     const quizCatalog = deps.quizCatalog || {};
     const subjectLabels = deps.subjectLabels || {};
     const quizIds = Array.isArray(eventItem.quizIds) ? eventItem.quizIds : [];
+    const parentQuizIds = Array.from(new Set(quizIds.map(quizId => quizCatalog[quizId]?.parentQuizId).filter(Boolean)));
+    if(parentQuizIds.length === 1) {
+      const parentQuiz = quizCatalog[parentQuizIds[0]] || {};
+      return parentQuiz.title?.replace(' 퀴즈', '') || subjectLabels[parentQuiz.subjectId] || eventItem.title || '시즌';
+    }
     const subjectIds = Array.from(new Set(quizIds.map(quizId => quizCatalog[quizId]?.subjectId).filter(Boolean)));
     if(subjectIds.length === 1) return subjectLabels[subjectIds[0]] || quizCatalog[quizIds[0]]?.title?.replace(' 퀴즈', '') || eventItem.title || '시즌';
     if(quizIds.length === 1) return quizCatalog[quizIds[0]]?.title?.replace(' 퀴즈', '') || eventItem.title || '시즌';
