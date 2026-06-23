@@ -135,6 +135,76 @@
     return panel;
   }
 
+  function renderProfileRewardPanel(profile) {
+    const status = profile.dailyRewardStatus || null;
+    const panel = document.createElement('section');
+    const heading = document.createElement('div');
+    const title = document.createElement('strong');
+    const date = document.createElement('span');
+    const grid = document.createElement('div');
+    const makeItem = (label, bucket, suffix) => {
+      const item = document.createElement('p');
+      const itemLabel = document.createElement('span');
+      const value = document.createElement('strong');
+      itemLabel.textContent = label;
+      value.textContent = bucket
+        ? `${Number(bucket.remaining || 0).toLocaleString('ko-KR')}/${Number(bucket.limit || 0).toLocaleString('ko-KR')} ${suffix}`
+        : '확인 중';
+      item.append(itemLabel, value);
+      return item;
+    };
+
+    panel.className = 'profile-reward-panel';
+    heading.className = 'profile-reward-heading';
+    grid.className = 'profile-reward-grid';
+    title.textContent = '오늘 보상';
+    date.textContent = status?.dateKey ? status.dateKey : '오늘 기준';
+    heading.append(title, date);
+    grid.append(
+      makeItem('DJ코인 남음', status?.coin, '코인'),
+      makeItem('오늘 퀴즈 XP', status?.todayQuizXp, 'XP'),
+      makeItem('주간 XP', status?.weeklyXp, 'XP')
+    );
+    panel.append(heading, grid);
+    return panel;
+  }
+
+  function renderTodayQuizPanel(profile) {
+    const summary = profile.todayQuizSummary || {};
+    const quizzes = Array.isArray(summary.quizzes) ? summary.quizzes : [];
+    const panel = document.createElement('section');
+    const heading = document.createElement('div');
+    const title = document.createElement('strong');
+    const mode = document.createElement('span');
+    const list = document.createElement('div');
+    const note = document.createElement('p');
+
+    panel.className = 'profile-today-quiz-panel';
+    heading.className = 'profile-reward-heading';
+    list.className = 'profile-today-quiz-list';
+    note.className = 'profile-reward-note';
+    title.textContent = '오늘의 퀴즈';
+    mode.textContent = summary.modeLabel || '정답 보상';
+    heading.append(title, mode);
+    if(quizzes.length) {
+      quizzes.forEach(quiz => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.todayQuizId = quiz.quizId || '';
+        button.textContent = quiz.title || quiz.quizId || '퀴즈';
+        list.appendChild(button);
+      });
+    } else {
+      const empty = document.createElement('span');
+      empty.className = 'profile-today-quiz-empty';
+      empty.textContent = '오늘의 퀴즈가 아직 정해지지 않았습니다.';
+      list.appendChild(empty);
+    }
+    note.textContent = '연습전 정답마다 XP +2와 DJ코인을 받을 수 있어요.';
+    panel.append(heading, list, note);
+    return panel;
+  }
+
   function renderProfileCard(rootId, profile, deps = {}) {
     const root = document.getElementById(rootId);
     if(!root) return;
@@ -158,6 +228,8 @@
     const coinLabel = document.createElement('span');
     const coinValue = document.createElement('strong');
     const levelPanel = renderProfileLevelPanel(profile, deps);
+    const rewardPanel = renderProfileRewardPanel(profile);
+    const todayQuizPanel = renderTodayQuizPanel(profile);
     const nicknamePanel = document.createElement('div');
     const nicknameLabel = document.createElement('label');
     const nicknameRow = document.createElement('div');
@@ -345,7 +417,7 @@
       actionRow.appendChild(adminButton);
     }
     nameRow.append(name, actionRow);
-    body.append(nameRow, school, levelPanel, meta, toggleGrid, detailRoot);
+    body.append(nameRow, school, levelPanel, rewardPanel, todayQuizPanel, meta, toggleGrid, detailRoot);
     card.append(avatar, body);
     root.appendChild(card);
   }
@@ -613,6 +685,8 @@
 
   window.DJ48HomeRender = {
     renderProfileAvatar,
+    renderProfileRewardPanel,
+    renderTodayQuizPanel,
     renderProfileCard,
     renderCollectionCards,
     renderBadgeProgressGroups,

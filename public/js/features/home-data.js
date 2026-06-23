@@ -136,6 +136,27 @@
     };
   }
 
+  function normalizeDailyRewardStatus(status = null) {
+    const normalizeBucket = (bucket = {}) => {
+      const limit = Math.max(0, Math.round(Number(bucket.limit) || 0));
+      const used = Math.max(0, Math.round(Number(bucket.used) || 0));
+      return {
+        limit,
+        used: Math.min(limit, used),
+        remaining: Math.max(0, Math.round(Number(bucket.remaining ?? (limit - used)) || 0)),
+        perCorrect: Math.max(0, Math.round(Number(bucket.perCorrect) || 0))
+      };
+    };
+    if(!status) return null;
+    return {
+      dateKey: String(status.dateKey || '').trim(),
+      weekKey: String(status.weekKey || '').trim(),
+      coin: normalizeBucket(status.coin),
+      todayQuizXp: normalizeBucket(status.todayQuizXp),
+      weeklyXp: normalizeBucket(status.weeklyXp)
+    };
+  }
+
   function buildHomeMemberModel(data = {}, deps = {}) {
     const {
       profile,
@@ -146,6 +167,8 @@
       levelSummarySnapshot,
       titlesSnapshot,
       badgesSnapshot,
+      rewardStatus,
+      featureFlags,
       dataOwnerId,
       memberUserId
     } = data;
@@ -184,7 +207,9 @@
         }),
         coinText: economy ? `${Number(economy.djCoin) || 0} DJ코인` : `${userRewardData.coin} DJ코인`,
         rankingMessage: profile?.rankingMessage || '',
-        levelSummary
+        levelSummary,
+        dailyRewardStatus: normalizeDailyRewardStatus(rewardStatus),
+        todayQuizSummary: deps.buildTodayQuizSummary?.(featureFlags) || null
       },
       titleCards,
       badgeCards,
@@ -226,6 +251,7 @@
     getRepresentativeBadgeName,
     computeHomeLevelSummary,
     normalizeHomeLevelSummary,
+    normalizeDailyRewardStatus,
     buildHomeMemberModel,
     buildTitleCardsForRender,
     getDefaultTitleCards,

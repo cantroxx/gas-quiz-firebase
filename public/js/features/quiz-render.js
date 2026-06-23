@@ -317,6 +317,7 @@
     const shouldRenderHint = !!hintText && !(deps.getCurrentModeId?.() === 'ranking' && deps.getCurrentRankingModeId?.() === 'nohint');
     const card = window.DJ48QuizPlay.createQuizQuestionCard({
       question,
+      quizId: deps.getCurrentQuizId?.() || '',
       progressText: callbacks.getQuizProgressText?.() || '',
       hintText,
       shouldRenderHint

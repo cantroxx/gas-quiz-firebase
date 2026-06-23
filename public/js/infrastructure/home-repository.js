@@ -4,9 +4,20 @@
       return deps.getFirestoreDb?.() || null;
     }
 
+    function getFirebaseFunctions() {
+      return deps.getFirebaseFunctions?.() || null;
+    }
+
     return {
       getUserEconomyForRender() {
         return deps.getUserEconomyForRender?.();
+      },
+      async getDailyRewardStatus(memberUserId) {
+        const functions = getFirebaseFunctions();
+        if(!functions || !memberUserId) return null;
+        const callable = functions.httpsCallable('getDailyRewardStatus');
+        const response = await callable({ memberUserId });
+        return response?.data || null;
       },
       async getUserTitleSummary(memberUserId) {
         const db = getFirestoreDb();

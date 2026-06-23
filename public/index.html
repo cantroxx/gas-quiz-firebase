@@ -3026,7 +3026,9 @@
         badgeName: mainBadge.name,
         coinText: `${USER_REWARD_DATA.coin} DJ코인`,
         rankingMessage: '',
-        levelSummary: window.DJ48HomeData.computeHomeLevelSummary(USER_REWARD_DATA.exp)
+        levelSummary: window.DJ48HomeData.computeHomeLevelSummary(USER_REWARD_DATA.exp),
+        dailyRewardStatus: null,
+        todayQuizSummary: buildTodayQuizSummary(getActiveFeatureFlags())
       };
     }
 
@@ -3063,6 +3065,25 @@
       const edit = getProfileImageEditModel(profile);
       image.style.transform = `translate(${edit.profileImageOffsetX}%, ${edit.profileImageOffsetY}%) scale(${edit.profileImageScale})`;
       image.style.transformOrigin = 'center center';
+    }
+
+    function getActiveTodayQuizIds(flags = getActiveFeatureFlags()) {
+      const ids = Array.isArray(flags.activeTodayQuizIds) && flags.activeTodayQuizIds.length
+        ? flags.activeTodayQuizIds
+        : flags.todayQuizIds;
+      return Array.from(new Set((ids || []).map(id => normalizeFirebaseQuizId(id)).filter(Boolean)))
+        .filter(quizId => isQuizEnabledByFlags(quizId, flags));
+    }
+
+    function buildTodayQuizSummary(flags = getActiveFeatureFlags()) {
+      const quizIds = getActiveTodayQuizIds(flags);
+      return {
+        modeLabel: flags.todayQuizMode === 'dailyRandom' ? '매일 랜덤' : '오늘 지정',
+        quizzes: quizIds.slice(0, 4).map(quizId => ({
+          quizId,
+          title: QUIZ_CATALOG[quizId]?.title || quizId
+        }))
+      };
     }
 
     function renderProfileAvatar(root, profile) {
@@ -3120,6 +3141,7 @@
       }, {
         homeRepository: window.DJ48HomeRepository.createHomeRepository({
           getFirestoreDb,
+          getFirebaseFunctions,
           getUserEconomyForRender
         }),
         initializeAuthUser,
@@ -3129,6 +3151,7 @@
         buildHomeMemberModel: data => window.DJ48HomeData.buildHomeMemberModel(data, {
           isPracticeBadgeVisibleByFlags,
           getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
+          buildTodayQuizSummary,
           getKnownTitleName,
           fallbackTitleName: findTitle(PROFILE_DATA.mainTitleId).name,
           fallbackBadgeName: findBadge(PROFILE_DATA.mainBadgeId).name
@@ -7937,6 +7960,7 @@
         renderProfileRankingRecordsFromFirestore,
         saveProfileSelectedTitleFromHome,
         saveProfileLevelMedalPreviewLevel,
+        showQuizSelectView,
         renderHomeMemberDataFromFirestore
       };
     }

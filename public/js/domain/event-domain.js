@@ -12,19 +12,27 @@
   }
 
   function getEventProgressRenderData(progress = null, fallback = {}) {
-    return {
+    const data = {
       quests: progress?.quests || fallback.quests || [],
       classMissions: progress?.classMissions || fallback.classMissions || [],
       seasonEvents: progress?.seasonEvents || fallback.seasonEvents || []
     };
+    const dateKey = progress?.dateKey || fallback.dateKey || '';
+    const weekKey = progress?.weekKey || fallback.weekKey || '';
+    if(dateKey) data.dateKey = dateKey;
+    if(weekKey) data.weekKey = weekKey;
+    return data;
   }
 
   function getEventLoadingRenderData(fallback = {}) {
-    return {
+    const data = {
       quests: buildEventLoadingQuests(fallback.quests || []),
       classMissions: fallback.classMissions || [],
       seasonEvents: fallback.seasonEvents || []
     };
+    if(fallback.dateKey) data.dateKey = fallback.dateKey;
+    if(fallback.weekKey) data.weekKey = fallback.weekKey;
+    return data;
   }
 
   function getQuestStatusClass(status) {

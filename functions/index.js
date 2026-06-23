@@ -4768,6 +4768,51 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  await loadLinkedMemberForEvent(authUid, memberUserId);
+
+  const dateKey = getKstDateKey();
+  const weekKey = getKstWeekKey();
+  const coinCapId = rewardLogId(["practice_coin_daily", dateKey, memberUserId]);
+  const todayQuizXpCap = getTodayQuizDailyLevelXpCap(memberUserId, dateKey);
+  const weeklyXpCap = getWeeklyLevelXpCap(memberUserId, weekKey);
+  const [coinCapSnapshot, todayQuizXpSnapshot, weeklyXpSnapshot] = await Promise.all([
+    db.collection("rewardDailyCaps").doc(coinCapId).get(),
+    db.collection("levelXpCaps").doc(todayQuizXpCap.capKey).get(),
+    db.collection("levelXpCaps").doc(weeklyXpCap.capKey).get()
+  ]);
+  const usedCoin = Math.max(0, Math.round(Number(coinCapSnapshot.exists ? coinCapSnapshot.data()?.usedCoin : 0) || 0));
+  const usedTodayQuizXp = Math.max(0, Math.round(Number(todayQuizXpSnapshot.exists ? todayQuizXpSnapshot.data()?.xp : 0) || 0));
+  const usedWeeklyXp = Math.max(0, Math.round(Number(weeklyXpSnapshot.exists ? weeklyXpSnapshot.data()?.xp : 0) || 0));
+
+  return {
+    success: true,
+    memberUserId,
+    dateKey,
+    weekKey,
+    coin: {
+      limit: PRACTICE_DAILY_COIN_LIMIT,
+      perCorrect: PRACTICE_CORRECT_REWARD_COIN,
+      used: Math.min(PRACTICE_DAILY_COIN_LIMIT, usedCoin),
+      remaining: Math.max(0, PRACTICE_DAILY_COIN_LIMIT - usedCoin)
+    },
+    todayQuizXp: {
+      limit: TODAY_QUIZ_DAILY_XP_LIMIT,
+      perCorrect: TODAY_QUIZ_XP_PER_QUESTION,
+      used: Math.min(TODAY_QUIZ_DAILY_XP_LIMIT, usedTodayQuizXp),
+      remaining: Math.max(0, TODAY_QUIZ_DAILY_XP_LIMIT - usedTodayQuizXp)
+    },
+    weeklyXp: {
+      limit: WEEKLY_XP_LIMIT,
+      used: Math.min(WEEKLY_XP_LIMIT, usedWeeklyXp),
+      remaining: Math.max(0, WEEKLY_XP_LIMIT - usedWeeklyXp)
+    }
+  };
+});
+
 exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};

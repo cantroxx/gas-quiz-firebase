@@ -107,7 +107,37 @@
     });
   }
 
+  function renderEventCycleGuide(data = {}) {
+    const topbar = document.querySelector('#event-view .event-topbar');
+    if(!topbar) return;
+    let panel = document.getElementById('event-cycle-guide');
+    if(!panel) {
+      panel = document.createElement('section');
+      panel.id = 'event-cycle-guide';
+      panel.className = 'event-cycle-guide';
+      topbar.insertAdjacentElement('afterend', panel);
+    }
+    const dateText = data.dateKey ? `오늘 ${data.dateKey}` : '오늘 기준';
+    const weekText = data.weekKey ? `이번 주 ${data.weekKey}` : '이번 주 기준';
+    panel.innerHTML = '';
+    [
+      ['일일 퀘스트', '매일 00:00 초기화', dateText],
+      ['주간 퀘스트', '매주 월요일 초기화', weekText]
+    ].forEach(([label, value, meta]) => {
+      const item = document.createElement('p');
+      const name = document.createElement('span');
+      const detail = document.createElement('strong');
+      const sub = document.createElement('small');
+      name.textContent = label;
+      detail.textContent = value;
+      sub.textContent = meta;
+      item.append(name, detail, sub);
+      panel.appendChild(item);
+    });
+  }
+
   function renderEventSections(data = {}) {
+    renderEventCycleGuide(data);
     renderQuestCards(data.quests || []);
     renderClassMissionCards(data.classMissions || []);
     renderSeasonEvents(data.seasonEvents || []);
@@ -118,6 +148,7 @@
     renderQuestCards,
     renderClassMissionCards,
     renderSeasonEvents,
+    renderEventCycleGuide,
     renderEventSections
   };
 })();

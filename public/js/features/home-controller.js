@@ -64,6 +64,11 @@
 
   function bindProfileHomeEvents(deps = {}) {
     document.getElementById('profile-card-root')?.addEventListener('click', event => {
+      const todayQuizButton = event.target.closest('[data-today-quiz-id]');
+      if(todayQuizButton) {
+        deps.showQuizSelectView?.(todayQuizButton.dataset.todayQuizId || '');
+        return;
+      }
       const profileToggle = event.target.closest('[data-profile-detail-toggle]');
       if(profileToggle) {
         const key = profileToggle.dataset.profileDetailToggle || '';

@@ -852,13 +852,14 @@
     return input;
   }
 
-  function createQuizImageAnswerField(question, onInput) {
+  function createQuizImageAnswerField(question, onInput, options = {}) {
     const imageWrap = document.createElement('div');
     const imageFrame = document.createElement('div');
     const image = document.createElement('img');
     const input = createQuizAnswerInput(onInput);
     const maskAreas = Array.isArray(question?.imageMaskAreas) ? question.imageMaskAreas : [];
     imageWrap.className = 'quiz-image-question';
+    if(options.quizId === 'flag-country') imageWrap.classList.add('quiz-image-question--flag');
     imageFrame.className = 'quiz-image-frame';
     if(maskAreas.length) imageWrap.classList.add('quiz-image-question-has-masks');
     image.src = question?.imageUrl || '';
@@ -963,10 +964,14 @@
     };
 
     if(question.type === 'imageInput') {
-      const { imageWrap, input } = createQuizImageAnswerField(question, syncSubmitState);
+      const { imageWrap, input } = createQuizImageAnswerField(question, syncSubmitState, {
+        quizId: options.quizId || ''
+      });
       choices.append(imageWrap, input);
     } else if(question.type === 'imageChoice') {
-      const { imageWrap } = createQuizImageAnswerField(question, syncSubmitState);
+      const { imageWrap } = createQuizImageAnswerField(question, syncSubmitState, {
+        quizId: options.quizId || ''
+      });
       choices.appendChild(imageWrap);
       (Array.isArray(question.choices) ? question.choices : []).forEach((choice, index) => {
         choices.appendChild(createQuizChoiceButton(choice, index));

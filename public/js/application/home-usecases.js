@@ -7,7 +7,7 @@
     const repository = deps.homeRepository || deps.createHomeRepository?.();
     if(!repository) throw new Error('home-repository-unavailable');
     await deps.initializeAuthUser?.();
-    await deps.loadFeatureFlags?.();
+    const featureFlags = await deps.loadFeatureFlags?.();
 
     const dataOwnerId = deps.getCurrentDataOwnerId?.() || '';
     const memberUserId = options.memberUserId || '';
@@ -29,13 +29,20 @@
     const badgesPromise = memberUserId
       ? repository.getUserBadges(memberUserId)
       : Promise.resolve(null);
+    const rewardStatusPromise = memberUserId
+      ? repository.getDailyRewardStatus?.(memberUserId).catch(error => {
+        deps.warn?.('Home daily reward status read failed.', error);
+        return null;
+      }) || Promise.resolve(null)
+      : Promise.resolve(null);
 
-    const [economy, titleSummarySnapshot, levelSummarySnapshot, titlesSnapshot, badgesSnapshot] = await Promise.all([
+    const [economy, titleSummarySnapshot, levelSummarySnapshot, titlesSnapshot, badgesSnapshot, rewardStatus] = await Promise.all([
       economyPromise,
       titleSummaryPromise,
       levelSummaryPromise,
       titlesPromise,
-      badgesPromise
+      badgesPromise,
+      rewardStatusPromise
     ]);
 
     return deps.buildHomeMemberModel({
@@ -47,6 +54,8 @@
       levelSummarySnapshot,
       titlesSnapshot,
       badgesSnapshot,
+      rewardStatus,
+      featureFlags,
       dataOwnerId,
       memberUserId
     });
