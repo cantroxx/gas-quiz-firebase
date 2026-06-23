@@ -67,6 +67,38 @@
     'boost-chick': `${CLASSROOM_ICON_BASE}boost-chick.svg`,
     'boost-liquid-fertilizer': `${CLASSROOM_ICON_BASE}boost-fertilizer.svg`
   };
+  const HIDDEN_CLASSROOM_MEMBER_IDS = new Set(['G4-C8-N23']);
+
+  function isHiddenClassroomMember(memberUserId = '') {
+    return HIDDEN_CLASSROOM_MEMBER_IDS.has(String(memberUserId || '').trim().toUpperCase());
+  }
+
+  function getClassroomMemberDisplayName(item = {}, fallback = '학생') {
+    return item.memberNickname
+      || item.nickname
+      || item.displayName
+      || item.memberName
+      || item.name
+      || item.memberUserId
+      || item.userId
+      || fallback;
+  }
+
+  function getClassroomItemTimeMillis(item = {}) {
+    const direct = [
+      item.createdAtMillis,
+      item.updatedAtMillis,
+      item.requestedAtMillis,
+      item.approvedAtMillis,
+      item.usedAtMillis,
+      item.reviewedAtMillis
+    ].find(value => Number(value) > 0);
+    if(direct) return Number(direct);
+    const timestamp = item.createdAt || item.updatedAt || item.requestedAt || item.approvedAt || item.usedAt || item.reviewedAt;
+    if(timestamp && typeof timestamp.toMillis === 'function') return timestamp.toMillis();
+    if(timestamp && Number(timestamp.seconds) > 0) return Number(timestamp.seconds) * 1000;
+    return 0;
+  }
 
   function getClassroomIconAssetUrl(key) {
     return CLASSROOM_ICON_ASSETS[String(key || '')] || '';
@@ -238,14 +270,20 @@
     if(!canManage) return;
 
     const economyBoard = data.economyBoard || {};
-    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
-    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
-    const applications = Array.isArray(economyBoard.applications) ? economyBoard.applications : [];
-    const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
+    const studentCards = (Array.isArray(data.studentCards) ? data.studentCards : [])
+      .filter(student => !isHiddenClassroomMember(student.memberUserId));
+    const reviewItems = (Array.isArray(data.reviewItems) ? data.reviewItems : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const applications = (Array.isArray(economyBoard.applications) ? economyBoard.applications : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const assignments = (Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
-    const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
-    const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
+    const purchases = (Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const pointLogs = (Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
     const pendingApplications = applications.filter(item => item.status === 'pending').length;
     const activeAssignments = assignments.filter(item => item.status === 'active').length;
@@ -290,32 +328,86 @@
     report.innerHTML = '';
     if(!canManage) return;
     const economyBoard = data.economyBoard || {};
-    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
-    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
-    const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
-    const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
-    const applications = Array.isArray(economyBoard.applications) ? economyBoard.applications : [];
-    const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
+    const studentCards = (Array.isArray(data.studentCards) ? data.studentCards : [])
+      .filter(student => !isHiddenClassroomMember(student.memberUserId));
+    const reviewItems = (Array.isArray(data.reviewItems) ? data.reviewItems : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const purchases = (Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const assignments = (Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const applications = (Array.isArray(economyBoard.applications) ? economyBoard.applications : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const pointLogs = (Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [])
+      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    const questReviews = reviewItems.filter(item => item.itemType !== 'routine');
+    const routineReviews = reviewItems.filter(item => item.itemType === 'routine');
+    const useRequests = purchases.filter(item => item.status === 'use_requested');
+    const pendingApplications = applications.filter(item => item.status === 'pending');
+    const recentActivities = [
+      ...purchases
+        .filter(item => ['use_requested', 'use_approved', 'used', 'refunded'].includes(item.status))
+        .map(item => ({
+          label: `${getClassroomMemberDisplayName(item)} · ${item.itemTitle || '쿠폰'} ${getClassroomPurchaseStatusLabel(item.status)}`,
+          createdAtMillis: getClassroomItemTimeMillis(item)
+        })),
+      ...pointLogs.map(item => ({
+        label: getClassroomActivityLabel(item),
+        createdAtMillis: getClassroomItemTimeMillis(item)
+      }))
+    ].sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0)).slice(0, 10);
     const sections = [
-      ['포인트 상위 학생', studentCards.slice().sort((a, b) => Number(b.point || 0) - Number(a.point || 0)).slice(0, 5).map(item => `${item.nickname || item.memberUserId}: ${formatClassroomPoint(item.point || 0)}점`)],
-      ['검토 대기', reviewItems.slice(0, 5).map(item => `${item.memberNickname || item.memberUserId || '-'} · ${item.itemType === 'routine' ? item.routineTitle || '성장루틴' : getClassroomQuestTitle(settings, item.questId)} · ${item.itemType === 'routine' ? `${Number(item.achievementPercent || 0)}%` : getClassroomProgressStatusLabel(item)}`)],
-      ['쿠폰 현황', purchases.slice(0, 5).map(item => `${item.memberUserId || '-'} · ${item.itemTitle || '쿠폰'} · ${getClassroomPurchaseStatusLabel(item.status)}`)],
-      ['직업 현황', assignments.slice(0, 5).map(item => `${item.memberUserId || '-'} · ${item.jobTitle || item.jobId || '직업'} · ${item.status || '-'}`)],
-      ['지원 대기', applications.filter(item => item.status === 'pending').slice(0, 5).map(item => `${item.memberUserId || '-'} · ${item.jobTitle || item.jobId || '직업'}`)],
-      ['최근 포인트 로그', pointLogs.slice(0, 5).map(getClassroomActivityLabel)]
+      {
+        title: '퀘스트 검토',
+        count: `${questReviews.length}건`,
+        tone: 'review',
+        rows: questReviews.slice(0, 6).map(item => `${getClassroomMemberDisplayName(item)} · ${getClassroomQuestTitle(settings, item.questId)} · ${getClassroomProgressStatusLabel(item)}`)
+      },
+      {
+        title: '성장루틴 검토',
+        count: `${routineReviews.length}건`,
+        tone: 'routine',
+        rows: routineReviews.slice(0, 6).map(item => `${getClassroomMemberDisplayName(item)} · ${item.routineTitle || item.title || '성장루틴'} · 달성 ${Math.round(Number(item.achievementPercent || 0))}%`)
+      },
+      {
+        title: '쿠폰/상점 요청',
+        count: `${useRequests.length}건`,
+        tone: 'shop',
+        rows: useRequests.slice(0, 6).map(item => `${getClassroomMemberDisplayName(item)} · ${item.itemTitle || '쿠폰'} · 사용 승인 대기`)
+      },
+      {
+        title: '직업 지원',
+        count: `${pendingApplications.length}건`,
+        tone: 'job',
+        rows: pendingApplications.slice(0, 6).map(item => `${getClassroomMemberDisplayName(item)} · ${item.jobTitle || item.jobId || '직업'} 지원`)
+      },
+      {
+        title: '포인트 상위 학생',
+        count: `${studentCards.length}명`,
+        tone: 'student',
+        rows: studentCards.slice().sort((a, b) => Number(b.point || 0) - Number(a.point || 0)).slice(0, 5).map(item => `${getClassroomMemberDisplayName(item)} · ${formatClassroomPoint(item.point || 0)}점`)
+      },
+      {
+        title: '최근 교실 활동',
+        count: `${recentActivities.length}건`,
+        tone: 'activity',
+        rows: recentActivities.map(item => item.label)
+      }
     ];
-    sections.forEach(([titleText, rows], index) => {
+    sections.forEach((sectionData, index) => {
       const section = document.createElement('article');
       const title = document.createElement('h4');
+      const count = document.createElement('strong');
       const list = document.createElement('ul');
-      section.className = `classroom-report-section classroom-report-section--${index + 1}`;
-      title.textContent = titleText;
-      (rows.length ? rows : ['표시할 항목이 없습니다.']).forEach(text => {
+      section.className = `classroom-report-section classroom-report-section--${index + 1} classroom-report-section--${sectionData.tone}`;
+      title.textContent = sectionData.title;
+      count.textContent = sectionData.count;
+      (sectionData.rows.length ? sectionData.rows : ['표시할 항목이 없습니다.']).forEach(text => {
         const row = document.createElement('li');
         row.textContent = text;
         list.appendChild(row);
       });
-      section.append(title, list);
+      section.append(title, count, list);
       report.appendChild(section);
     });
   }
@@ -637,7 +729,7 @@
   }
 
   function getClassroomActivityLabel(item = {}) {
-    const name = item.memberNickname || item.nickname || item.displayName || item.memberUserId || '학생';
+    const name = getClassroomMemberDisplayName(item);
     const point = formatClassroomPoint(item.rewardAmount || item.rewardPoint || 0);
     if(item.type === 'classroom_auto_quest') return `${name} · ${item.questTitle || '퀘스트'} 완료, 포인트 ${point}`;
     if(item.type === 'classroom_review_quest') return `${name} · ${item.questTitle || '퀘스트'} 승인, 포인트 ${point}`;
@@ -659,20 +751,19 @@
     const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
     const useRequests = purchases.filter(item => ['use_requested', 'use_approved', 'used'].includes(item.status))
       .map(item => ({
-        label: `${item.memberNickname || item.nickname || item.memberUserId || '학생'} · ${item.itemTitle || '쿠폰'} ${getClassroomPurchaseStatusLabel(item.status)}`,
+        label: `${getClassroomMemberDisplayName(item)} · ${item.itemTitle || '쿠폰'} ${getClassroomPurchaseStatusLabel(item.status)}`,
         memberUserId: item.memberUserId || '',
-        createdAtMillis: item.usedAtMillis || item.approvedAtMillis || item.requestedAtMillis || item.createdAtMillis || 0
+        createdAtMillis: getClassroomItemTimeMillis(item)
       }));
-    const hiddenMembers = new Set(['G4-C8-N23']);
     const activities = [
       ...useRequests,
       ...pointLogs.map(item => ({
         label: getClassroomActivityLabel(item),
         memberUserId: item.memberUserId || '',
-        createdAtMillis: item.createdAtMillis || 0
+        createdAtMillis: getClassroomItemTimeMillis(item)
       }))
     ]
-      .filter(item => !hiddenMembers.has(String(item.memberUserId || '').trim()))
+      .filter(item => !isHiddenClassroomMember(item.memberUserId))
       .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
       .slice(0, 10);
     feed.innerHTML = '';
@@ -699,7 +790,8 @@
     const gemPicker = document.getElementById('classroom-quest-gem-picker');
     const targetInput = document.getElementById('classroom-quest-targets-input');
     const gemInput = document.getElementById('classroom-quest-gem-name-input');
-    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const studentCards = (Array.isArray(data.studentCards) ? data.studentCards : [])
+      .filter(student => !isHiddenClassroomMember(student.memberUserId));
     const classroomGems = Array.isArray(data.economyBoard?.classroomGems) ? data.economyBoard.classroomGems : [];
     if(targetPicker && targetInput) {
       const selected = new Set(String(targetInput.value || '').replace('대상 없음', '__none__').split(',').map(value => value.trim()).filter(Boolean));
@@ -1041,12 +1133,13 @@
     const activeJobByMember = new Map(assignments
       .filter(item => item.status === 'active' && item.memberUserId)
       .map(item => [String(item.memberUserId), item.jobTitle || item.jobId || '교실 직업']));
+    const visibleStudents = students.filter(student => !isHiddenClassroomMember(student.memberUserId));
     grid.innerHTML = '';
-    if(!students.length) {
+    if(!visibleStudents.length) {
       renderEmptyClassroomCard(grid, '준비 중', '학생카드를 불러오지 못했습니다', '교실 입장 상태를 확인한 뒤 다시 열어 주세요.');
       return;
     }
-    students.forEach(student => {
+    visibleStudents.forEach(student => {
       const card = document.createElement('article');
       const badge = document.createElement('span');
       const identity = document.createElement('div');
