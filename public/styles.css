@@ -6551,6 +6551,14 @@ h2 {
   justify-content: center;
 }
 
+.classroom-student-job-chip {
+  max-width: 100%;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .classroom-student-card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -6633,6 +6641,26 @@ h2 {
   margin: 0;
   color: #516253;
   font-weight: 800;
+}
+
+.classroom-mission-hero {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(47, 125, 83, 0.16);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(231, 249, 237, 0.95), rgba(255, 247, 204, 0.92));
+}
+
+.classroom-mission-hero h4 {
+  margin: 0;
+  color: #173f2b;
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.classroom-mission-hero .classroom-progress-meter {
+  margin-top: 2px;
 }
 
 .classroom-mission-track {

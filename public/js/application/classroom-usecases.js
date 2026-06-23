@@ -189,6 +189,13 @@
     }
   }
 
+  function formatClassroomPointAmount(value) {
+    return Number(value || 0).toLocaleString('ko-KR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
   function getClassroomEconomySuccessMessage(functionName, result = {}) {
     if(functionName === 'applyClassroomJob') {
       return result.duplicate ? '이미 지원한 직업입니다.' : '직업 지원이 저장됐습니다.';
@@ -197,17 +204,17 @@
     if(functionName === 'releaseClassroomJob') return '직업 배정을 해제했습니다.';
     if(functionName === 'claimClassroomJobSalary') {
       const amount = Number(result.rewardAmount || 0);
-      return result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${amount} 포인트를 지급했습니다.`;
+      return result.duplicate ? '이번 주 월급은 이미 지급했습니다.' : `${formatClassroomPointAmount(amount)} 포인트를 지급했습니다.`;
     }
     if(functionName === 'purchaseClassroomShopItem') {
       if(result.duplicate) return '이미 보유 중인 아이템입니다.';
       if(result.priceType === 'djCoin') {
         const amount = Number(result.priceCoin || 0);
         const boost = Number(result.boostPoint || 0);
-        return `${amount} DJ코인으로 구매했습니다.${boost > 0 ? ` 포인트 보너스 +${boost}P가 적용됩니다.` : ''}`;
+        return `${amount} DJ코인으로 구매했습니다.${boost > 0 ? ` 포인트 보너스 +${formatClassroomPointAmount(boost)}P가 적용됩니다.` : ''}`;
       }
       const amount = Number(result.pricePoint || 0);
-      return `${amount} 포인트로 구매했습니다.`;
+      return `${formatClassroomPointAmount(amount)} 포인트로 구매했습니다.`;
     }
     if(functionName === 'requestClassroomShopPurchaseUse') {
       return result.duplicate ? '이미 사용 요청 중인 쿠폰입니다.' : '쿠폰 사용을 요청했습니다.';
@@ -217,7 +224,7 @@
     }
     if(functionName === 'adjustClassroomStudentPoint') {
       const delta = Number(result.delta || 0);
-      return `${delta > 0 ? '+' : ''}${delta.toLocaleString('ko-KR')} 포인트를 조정했습니다.`;
+      return `${delta > 0 ? '+' : ''}${formatClassroomPointAmount(delta)} 포인트를 조정했습니다.`;
     }
     if(functionName === 'approveClassroomShopPurchaseUse') {
       return result.duplicate ? '이미 처리된 요청입니다.' : '쿠폰 사용을 승인했습니다.';
@@ -229,7 +236,7 @@
       return result.duplicate ? '이미 처리된 요청입니다.' : '쿠폰 사용 요청을 반려했습니다.';
     }
     if(functionName === 'refundClassroomShopPurchase') {
-      return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${Number(result.refundPoint || 0)} 포인트를 환불했습니다.`;
+      return result.duplicate ? '이미 환불된 쿠폰입니다.' : `${formatClassroomPointAmount(result.refundPoint)} 포인트를 환불했습니다.`;
     }
     if(functionName === 'useClassroomBillboardTicket') {
       return '전광판에 한마디를 올렸습니다.';
@@ -238,22 +245,22 @@
       return '전광판 글을 삭제했습니다.';
     }
     if(functionName === 'collectClassroomTax') {
-      return `${Number(result.collectedPoint || 0).toLocaleString('ko-KR')} 포인트를 학급 공공 포인트로 모았습니다.`;
+      return `${formatClassroomPointAmount(result.collectedPoint)} 포인트를 학급 공공 포인트로 모았습니다.`;
     }
     if(functionName === 'contributeClassroomGroupPurchase') {
-      return result.funded ? '공동구매 목표를 달성했습니다!' : `${Number(result.amount || 0).toLocaleString('ko-KR')} 포인트를 공동구매에 보탰습니다.`;
+      return result.funded ? '공동구매 목표를 달성했습니다!' : `${formatClassroomPointAmount(result.amount)} 포인트를 공동구매에 보탰습니다.`;
     }
     if(functionName === 'joinClassroomSavingsProduct') {
-      return `${Number(result.depositPoint || 0).toLocaleString('ko-KR')} 포인트 적금을 시작했습니다.`;
+      return `${formatClassroomPointAmount(result.depositPoint)} 포인트 적금을 시작했습니다.`;
     }
     if(functionName === 'claimClassroomSavingsMaturity') {
-      return result.duplicate ? '이미 수령한 적금입니다.' : `${Number(result.payoutPoint || 0).toLocaleString('ko-KR')} 포인트를 수령했습니다.`;
+      return result.duplicate ? '이미 수령한 적금입니다.' : `${formatClassroomPointAmount(result.payoutPoint)} 포인트를 수령했습니다.`;
     }
     if(functionName === 'exchangeClassroomCurrency') {
       if(result.direction === 'pointToCoin') {
-        return `${Number(result.spentPoint || 0).toLocaleString('ko-KR')} 포인트를 ${Number(result.receivedCoin || 0).toLocaleString('ko-KR')} DJ코인으로 교환했습니다.`;
+        return `${formatClassroomPointAmount(result.spentPoint)} 포인트를 ${Number(result.receivedCoin || 0).toLocaleString('ko-KR')} DJ코인으로 교환했습니다.`;
       }
-      return `${Number(result.spentCoin || 0).toLocaleString('ko-KR')} DJ코인을 ${Number(result.receivedPoint || 0).toLocaleString('ko-KR')} 포인트로 교환했습니다.`;
+      return `${Number(result.spentCoin || 0).toLocaleString('ko-KR')} DJ코인을 ${formatClassroomPointAmount(result.receivedPoint)} 포인트로 교환했습니다.`;
     }
     if(functionName === 'checkClassroomRoutine') {
       if(result.completed) return '이미 담임 검토가 완료된 루틴입니다.';
