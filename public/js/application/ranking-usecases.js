@@ -36,6 +36,9 @@
     const quizKing = deps.getTopQuizKingSummaries(quizKingSummaries, 1)[0] || null;
     const getBestRankingRecordByCategoryKeys = deps.getBestRankingRecordByCategoryKeys || (() => null);
     const popularCategoryKeys = options.popularCategoryKeys || [];
+    const scienceCategoryKeys = options.scienceCategoryKeys || [];
+    const pokemonCategoryKeys = options.pokemonCategoryKeys || [];
+    const tinipingCategoryKeys = options.tinipingCategoryKeys || [];
 
     return {
       cards: [
@@ -43,7 +46,10 @@
         deps.buildRankingRecordCard('korean_king', '📚', '국어왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.koreanCategoryKeys || [])),
         deps.buildRankingRecordCard('social_king', '🏛️', '사회왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.socialCategoryKeys || [])),
         deps.buildRankingRecordCard('math_king', '➗', '수학왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.mathCategoryKeys || [])),
-        deps.buildRankingRecordCard('popular_king', '⭐', '인기왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, popularCategoryKeys))
+        deps.buildRankingRecordCard('science_king', '🔬', '과학왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, scienceCategoryKeys)),
+        deps.buildRankingRecordCard('popular_king', '⭐', '인기왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, popularCategoryKeys)),
+        deps.buildRankingRecordCard('pokemon_king', '⚡', '포켓몬왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, pokemonCategoryKeys)),
+        deps.buildRankingRecordCard('tiniping_king', '💎', '티니핑왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, tinipingCategoryKeys))
       ],
       boards: deps.getRankingBoardModels(quizKingSummaries, enrichedRankingRecords, seasonEvents)
     };

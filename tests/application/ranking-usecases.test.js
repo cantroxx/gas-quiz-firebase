@@ -8,7 +8,10 @@ async function testLoadRankingPlazaData() {
     koreanCategoryKeys: ['korean'],
     socialCategoryKeys: ['social'],
     mathCategoryKeys: ['math'],
-    popularCategoryKeys: ['popular']
+    scienceCategoryKeys: ['science'],
+    popularCategoryKeys: ['popular'],
+    pokemonCategoryKeys: ['pokemon'],
+    tinipingCategoryKeys: ['tiniping']
   }, {
     getRankingRepository: () => ({
       loadQuizKingSummaries: async () => [
@@ -37,7 +40,16 @@ async function testLoadRankingPlazaData() {
   });
 
   assert.equal(initialized, true);
-  assert.equal(model.cards.length, 5);
+  assert.deepEqual(model.cards.map(card => card.rankId), [
+    'quiz_king',
+    'korean_king',
+    'social_king',
+    'math_king',
+    'science_king',
+    'popular_king',
+    'pokemon_king',
+    'tiniping_king'
+  ]);
   assert.equal(model.cards[0].nickname, 'Student One');
   assert.equal(model.cards[1].score, 90);
   assert.equal(model.cards[2].score, 0);

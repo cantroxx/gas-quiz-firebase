@@ -258,7 +258,9 @@
     const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
     const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
     const scienceKeys = scienceDefinitions.flatMap(definition => definition.keys);
-    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...tinipingRankingCategoryKeys, ...pokemonRankingCategoryKeys], deps);
+    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'], deps);
+    const pokemonKeys = getEnabledRankingCategoryKeys(pokemonRankingCategoryKeys, deps);
+    const tinipingKeys = getEnabledRankingCategoryKeys(tinipingRankingCategoryKeys, deps);
     const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
       ...koreanDefinitions
     ], groupDeps);
@@ -326,11 +328,31 @@
         id: 'popular',
         label: '인기',
         title: '인기 퀴즈 랭킹',
-        desc: '아재개그, 아이돌, 애니, 이모지, 포켓몬 퀴즈의 랭킹 기록입니다.',
+        desc: '아재개그, 아이돌, 애니, 국기, 간식, 이모지 퀴즈의 랭킹 기록입니다.',
         rows: getTopRankingRecordsByCategoryKeys(rankingRecords, popularKeys),
         sourceRows: rankingRecords,
         meta: row => `[${getPopularAreaForRecord(row).label}] ${getPopularRankingDetailLabel(row)}`,
         metaElement: createPopularRankingMeta,
+        score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+      },
+      {
+        id: 'pokemon',
+        label: '포켓몬',
+        title: '포켓몬 랭킹',
+        desc: '포켓몬 세대별·난이도별 랭킹전 기록입니다.',
+        rows: getTopRankingRecordsByCategoryKeys(rankingRecords, pokemonKeys),
+        sourceRows: rankingRecords,
+        meta: row => getRankingCategoryLabel(row) || '포켓몬',
+        score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
+      },
+      {
+        id: 'tiniping',
+        label: '티니핑',
+        title: '티니핑 랭킹',
+        desc: '티니핑 이미지·이모지 퀴즈의 랭킹전 기록입니다.',
+        rows: getTopRankingRecordsByCategoryKeys(rankingRecords, tinipingKeys),
+        sourceRows: rankingRecords,
+        meta: row => getRankingCategoryLabel(row) || '티니핑',
         score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
       }
     ];

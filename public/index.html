@@ -2246,12 +2246,36 @@
         title: '수학 해결사'
       },
       {
-        rankId: 'weekly_riser',
-        icon: '🚀',
-        category: '이번 주 상승왕',
+        rankId: 'science_king',
+        icon: '🔬',
+        category: '과학왕',
         rank: '1위',
-        nickname: '도전하는학생',
-        title: '랭킹전 챌린저'
+        nickname: '과학탐험가',
+        title: '과학 상식왕'
+      },
+      {
+        rankId: 'popular_king',
+        icon: '⭐',
+        category: '인기왕',
+        rank: '1위',
+        nickname: '인기퀴즈러',
+        title: '인기 퀴즈왕'
+      },
+      {
+        rankId: 'pokemon_king',
+        icon: '⚡',
+        category: '포켓몬왕',
+        rank: '1위',
+        nickname: '포켓몬트레이너',
+        title: '포켓몬 마스터'
+      },
+      {
+        rankId: 'tiniping_king',
+        icon: '💎',
+        category: '티니핑왕',
+        rank: '1위',
+        nickname: '티니핑마스터',
+        title: '티니핑 왕'
       }
     ];
 
@@ -3713,7 +3737,7 @@
       '포켓몬어려움',
       '포켓몬헬'
     ];
-    const TINIPING_RANKING_CATEGORY_KEYS = ['티니핑', '인물티니핑'];
+    const TINIPING_RANKING_CATEGORY_KEYS = ['티니핑', '인물티니핑', '인기이모지-티니핑'];
     const RANKING_PLAZA_CATEGORY_KEYS = [
       '맞춤법',
       '아재개그',
@@ -3939,15 +3963,13 @@
 
     function getPopularRankingAreas() {
       const areas = [
-        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS] },
+        { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
         { id: 'idol', label: '아이돌', keys: ['인물아이돌'] },
         { id: 'anime', label: '애니', keys: ['인물애니'] },
         { id: 'flag', label: '국기', keys: ['인기국기'] },
         { id: 'snack', label: '간식', keys: ['인기간식'] },
-        { id: 'emoji', label: '이모지', keys: ['인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑'] },
-        { id: 'tiniping', label: '티니핑', keys: TINIPING_RANKING_CATEGORY_KEYS },
-        { id: 'pokemon', label: '포켓몬', keys: POKEMON_RANKING_CATEGORY_KEYS }
+        { id: 'emoji', label: '이모지', keys: ['인기이모지-k-pop', '인기이모지-애니'] }
       ];
       return areas
         .map(area => ({
@@ -4120,7 +4142,10 @@
         koreanCategoryKeys: ['맞춤법', '단어다의어-동형이의어', '국어띄어쓰기', '국어속담', '국어사자성어', '독서지엠오-아이', '독서시간가게'],
         socialCategoryKeys: ['사회삼국지', '사회고대사-삼국시대', '사회통일신라-발해'],
         mathCategoryKeys: ['수학곱셈과-나눗셈', '수학분수', '수학분수-기초'],
-        popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니', '인기이모지-티니핑', ...TINIPING_RANKING_CATEGORY_KEYS, ...POKEMON_RANKING_CATEGORY_KEYS]
+        scienceCategoryKeys: ['과학과학-상식'],
+        popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'],
+        pokemonCategoryKeys: POKEMON_RANKING_CATEGORY_KEYS,
+        tinipingCategoryKeys: TINIPING_RANKING_CATEGORY_KEYS
       }, {
         getRankingRepository: createRankingRepository,
         initializeAuthUser,

@@ -3,31 +3,62 @@
     return String(data?.displayNickname || data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
   }
 
-  function renderRankingCards(entries) {
+  function getDailyFeaturedRankingIndex(entries = [], date = new Date()) {
+    if(!entries.length) return -1;
+    const key = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+    const hash = key.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return hash % entries.length;
+  }
+
+  function createRankingCard(entry, extraClass = '') {
+    const card = document.createElement('article');
+    const icon = document.createElement('span');
+    const rank = document.createElement('p');
+    const category = document.createElement('h3');
+    const nickname = document.createElement('strong');
+    const title = document.createElement('p');
+
+    card.className = `ranking-card${extraClass ? ` ${extraClass}` : ''}`;
+    icon.className = 'ranking-card-icon';
+    icon.textContent = entry.icon;
+    rank.className = 'ranking-rank';
+    rank.textContent = entry.rank;
+    category.textContent = entry.category;
+    nickname.className = 'ranking-nickname';
+    nickname.textContent = entry.nickname;
+    title.className = 'ranking-title';
+    title.textContent = entry.title;
+
+    card.append(icon, rank, category, nickname, title);
+    return card;
+  }
+
+  function renderRankingCards(entries = []) {
     const grid = document.getElementById('ranking-card-grid');
     grid.innerHTML = '';
-    entries.forEach(entry => {
-      const card = document.createElement('article');
-      const icon = document.createElement('span');
-      const rank = document.createElement('p');
-      const category = document.createElement('h3');
-      const nickname = document.createElement('strong');
-      const title = document.createElement('p');
+    if(!entries.length) return;
 
-      card.className = 'ranking-card';
-      icon.className = 'ranking-card-icon';
-      icon.textContent = entry.icon;
-      rank.className = 'ranking-rank';
-      rank.textContent = entry.rank;
-      category.textContent = entry.category;
-      nickname.className = 'ranking-nickname';
-      nickname.textContent = entry.nickname;
-      title.className = 'ranking-title';
-      title.textContent = entry.title;
+    const shell = document.createElement('section');
+    const featuredWrap = document.createElement('div');
+    const featuredLabel = document.createElement('p');
+    const hall = document.createElement('details');
+    const summary = document.createElement('summary');
+    const hallGrid = document.createElement('div');
+    const featuredEntry = entries[getDailyFeaturedRankingIndex(entries)] || entries[0];
 
-      card.append(icon, rank, category, nickname, title);
-      grid.appendChild(card);
-    });
+    shell.className = 'ranking-hall-shell';
+    featuredWrap.className = 'ranking-featured-king';
+    featuredLabel.className = 'ranking-featured-label';
+    featuredLabel.textContent = '오늘의 왕';
+    hall.className = 'ranking-hall-details';
+    summary.className = 'ranking-hall-summary';
+    summary.textContent = '명예의 전당';
+    hallGrid.className = 'ranking-hall-grid';
+    featuredWrap.append(featuredLabel, createRankingCard(featuredEntry, 'ranking-card-featured'));
+    entries.forEach(entry => hallGrid.appendChild(createRankingCard(entry)));
+    hall.append(summary, hallGrid);
+    shell.append(hall, featuredWrap);
+    grid.appendChild(shell);
   }
 
   function appendRankingDisplayName(root, row, deps = {}) {
@@ -531,6 +562,8 @@
 
   window.DJ48RankingRender = {
     normalizeRankingDisplayName,
+    getDailyFeaturedRankingIndex,
+    createRankingCard,
     renderRankingCards,
     appendRankingDisplayName,
     createRankingLevelBadge,
