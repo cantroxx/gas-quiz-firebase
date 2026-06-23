@@ -17,50 +17,148 @@ const SWIFT_HELPER = path.join(__dirname, 'snack-food-image-ocr-blur.swift');
 const OUTPUT_EXTENSION = 'jpg';
 const OUTPUT_CONTENT_TYPE = 'image/jpeg';
 const MANUAL_MASK_OVERRIDES = {
-  '신라면 블랙': { manualOnly: true, areas: [{ x: 24, y: 32, width: 52, height: 20 }] },
+  신라면: { manualOnly: true, areas: [
+    { x: 24, y: 20, width: 40, height: 46 },
+    { x: 50, y: 50, width: 30, height: 16 },
+    { x: 57, y: 46, width: 14, height: 12 }
+  ] },
+  '신라면 블랙': { manualOnly: true, areas: [
+    { x: 4, y: 30, width: 8, height: 48 },
+    { x: 27, y: 18, width: 34, height: 48 },
+    { x: 52, y: 37, width: 26, height: 13 },
+    { x: 57, y: 49, width: 24, height: 12 },
+    { x: 91, y: 30, width: 7, height: 48 }
+  ] },
+  짜파게티: { manualOnly: true, areas: [
+    { x: 24, y: 21, width: 31, height: 8 },
+    { x: 18, y: 26, width: 64, height: 18 },
+    { x: 24, y: 45, width: 50, height: 10 }
+  ] },
+  너구리: { manualOnly: true, areas: [
+    { x: 59, y: 18, width: 24, height: 12 },
+    { x: 16, y: 25, width: 68, height: 20 },
+    { x: 29, y: 45, width: 39, height: 10 }
+  ] },
+  안성탕면: { manualOnly: true, areas: [
+    { x: 58, y: 17, width: 25, height: 10 },
+    { x: 18, y: 22, width: 60, height: 19 },
+    { x: 30, y: 42, width: 36, height: 8 }
+  ] },
   김치라면: { manualOnly: true, areas: [
     { x: 24, y: 32, width: 52, height: 20 },
     { x: 57, y: 17, width: 23, height: 12 }
   ] },
-  불닭볶음면: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 18 }] },
-  치토스: { manualOnly: true, areas: [{ x: 28, y: 35, width: 44, height: 18 }] },
+  불닭볶음면: { manualOnly: true, areas: [
+    { x: 38, y: 45, width: 49, height: 16 },
+    { x: 23, y: 33, width: 31, height: 10 }
+  ] },
+  까르보불닭볶음면: { manualOnly: true, areas: [
+    { x: 10, y: 14, width: 42, height: 11 },
+    { x: 47, y: 17, width: 28, height: 8 },
+    { x: 31, y: 27, width: 58, height: 29 }
+  ] },
+  로제불닭볶음면: { manualOnly: true, areas: [
+    { x: 10, y: 16, width: 34, height: 11 },
+    { x: 18, y: 24, width: 19, height: 9 },
+    { x: 10, y: 35, width: 58, height: 28 }
+  ] },
+  삼양라면: { manualOnly: true, areas: [{ x: 11, y: 19, width: 78, height: 45 }] },
+  짜짜로니: { manualOnly: true, areas: [{ x: 11, y: 44, width: 79, height: 36 }] },
+  간짬뽕: { manualOnly: true, areas: [{ x: 17, y: 22, width: 66, height: 45 }] },
+  나가사끼짬뽕: { manualOnly: true, areas: [
+    { x: 22, y: 21, width: 38, height: 12 },
+    { x: 48, y: 31, width: 31, height: 23 }
+  ] },
+  육개장: { manualOnly: true, areas: [{ x: 10, y: 20, width: 69, height: 28 }] },
+  꼬깔콘: { manualOnly: true, areas: [{ x: 30, y: 31, width: 40, height: 18 }] },
+  치토스: { manualOnly: true, areas: [
+    { x: 29, y: 24, width: 42, height: 14 },
+    { x: 28, y: 35, width: 44, height: 18 }
+  ] },
   오잉: { manualOnly: true, areas: [{ x: 27, y: 35, width: 46, height: 18 }] },
+  쌀로별: { manualOnly: true, areas: [{ x: 33, y: 29, width: 31, height: 24 }] },
   도리토스: { manualOnly: true, areas: [{ x: 25, y: 31, width: 50, height: 21 }] },
-  엑설런트: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 15 }] },
+  빼빼로: { manualOnly: true, areas: [{ x: 27, y: 20, width: 44, height: 32 }] },
+  빈츠: { manualOnly: true, areas: [
+    { x: 18, y: 40, width: 31, height: 18 },
+    { x: 9, y: 17, width: 23, height: 10 }
+  ] },
+  칙촉: { manualOnly: true, areas: [
+    { x: 13, y: 13, width: 22, height: 11 },
+    { x: 12, y: 37, width: 34, height: 31 },
+    { x: 42, y: 23, width: 24, height: 18 }
+  ] },
+  마가렛트: { manualOnly: true, areas: [{ x: 13, y: 34, width: 56, height: 18 }] },
+  말랑카우: { manualOnly: true, areas: [
+    { x: 35, y: 27, width: 27, height: 25 },
+    { x: 44, y: 35, width: 22, height: 18 }
+  ] },
+  메로나: { manualOnly: true, areas: [{ x: 11, y: 41, width: 60, height: 16 }] },
+  투게더: { manualOnly: true, areas: [{ x: 30, y: 51, width: 41, height: 18 }] },
+  붕어싸만코: { manualOnly: true, areas: [
+    { x: 22, y: 39, width: 25, height: 14 },
+    { x: 27, y: 48, width: 18, height: 11 }
+  ] },
+  비비빅: { manualOnly: true, areas: [{ x: 12, y: 41, width: 58, height: 18 }] },
+  빵또아: { manualOnly: true, areas: [{ x: 25, y: 41, width: 28, height: 14 }] },
+  더위사냥: { manualOnly: true, areas: [{ x: 20, y: 40, width: 36, height: 19 }] },
+  쿠앤크: { manualOnly: true, areas: [{ x: 28, y: 45, width: 31, height: 12 }] },
+  엔초: { manualOnly: true, areas: [{ x: 24, y: 40, width: 29, height: 18 }] },
   바밤바: { manualOnly: true, areas: [{ x: 30, y: 43, width: 23, height: 14 }] },
   월드콘: { manualOnly: true, areas: [
     { x: 33, y: 18, width: 31, height: 24 },
     { x: 63, y: 12, width: 13, height: 15 }
   ] },
   돼지바: { manualOnly: true, areas: [{ x: 26, y: 36, width: 45, height: 17 }] },
+  빠삐코: { manualOnly: true, areas: [{ x: 32, y: 40, width: 43, height: 18 }] },
   설레임: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 18 }] },
-  죠크박바: { manualOnly: true, areas: [{ x: 26, y: 35, width: 48, height: 18 }] },
+  찰떡아이스: { manualOnly: true, areas: [
+    { x: 7, y: 31, width: 56, height: 15 },
+    { x: 6, y: 44, width: 50, height: 12 },
+    { x: 48, y: 40, width: 18, height: 18 }
+  ] },
+  티코: { manualOnly: true, areas: [
+    { x: 42, y: 29, width: 29, height: 10 },
+    { x: 20, y: 44, width: 35, height: 25 },
+    { x: 87, y: 34, width: 8, height: 25 }
+  ] },
+  메가톤: { manualOnly: true, areas: [{ x: 16, y: 42, width: 43, height: 18 }] },
+  빵빠레: { manualOnly: true, areas: [{ x: 35, y: 53, width: 34, height: 13 }] },
   누가바: { manualOnly: true, areas: [{ x: 28, y: 36, width: 44, height: 18 }] },
-  후라보노: { manualOnly: true, areas: [{ x: 29, y: 35, width: 45, height: 18 }] },
-  이브: { manualOnly: true, areas: [{ x: 31, y: 36, width: 38, height: 16 }] },
-  왓따: { manualOnly: true, areas: [{ x: 28, y: 34, width: 45, height: 20 }] },
-  졸음번쩍껌: { manualOnly: true, areas: [{ x: 26, y: 32, width: 50, height: 22 }] },
-  '롤리팝 아이스': { manualOnly: true, areas: [{ x: 25, y: 34, width: 50, height: 20 }] },
+  스카치: { manualOnly: true, areas: [{ x: 35, y: 49, width: 32, height: 13 }] },
+  목캔디: { manualOnly: true, areas: [{ x: 32, y: 31, width: 37, height: 17 }] },
   '짱셔요!': { manualOnly: true, areas: [{ x: 27, y: 32, width: 46, height: 22 }] },
-  제크: { manualOnly: true, areas: [{ x: 31, y: 38, width: 38, height: 16 }] },
-  제로: { manualOnly: true, areas: [
-    { x: 34, y: 28, width: 32, height: 13 },
-    { x: 70, y: 41, width: 23, height: 15 }
+  하비스트: { manualOnly: true, areas: [
+    { x: 17, y: 31, width: 31, height: 11 },
+    { x: 12, y: 40, width: 46, height: 21 }
   ] },
-  '프리미엄 가나': { manualOnly: true, areas: [
-    { x: 26, y: 39, width: 22, height: 16 },
-    { x: 42, y: 35, width: 43, height: 20 }
+  야채크래커: { manualOnly: true, areas: [
+    { x: 9, y: 38, width: 43, height: 24 },
+    { x: 35, y: 54, width: 12, height: 6 }
   ] },
-  드림카카오: { manualOnly: true, areas: [
-    { x: 28, y: 22, width: 44, height: 18 },
-    { x: 40, y: 42, width: 26, height: 18 }
+  빠다코코낫: { manualOnly: true, areas: [{ x: 16, y: 42, width: 53, height: 18 }] },
+  제크: { manualOnly: true, areas: [
+    { x: 13, y: 30, width: 24, height: 24 },
+    { x: 31, y: 38, width: 38, height: 16 },
+    { x: 80, y: 34, width: 10, height: 16 }
   ] },
+  롯샌: { manualOnly: true, areas: [{ x: 36, y: 45, width: 23, height: 15 }] },
+  엄마손파이: { manualOnly: true, areas: [
+    { x: 15, y: 43, width: 31, height: 15 },
+    { x: 23, y: 53, width: 17, height: 10 },
+    { x: 83, y: 30, width: 10, height: 21 }
+  ] },
+  웨하스: { manualOnly: true, areas: [{ x: 44, y: 40, width: 36, height: 16 }] },
+  몽쉘: { manualOnly: true, areas: [{ x: 12, y: 23, width: 32, height: 20 }] },
+  찰떡파이: { manualOnly: true, areas: [
+    { x: 35, y: 24, width: 39, height: 26 },
+    { x: 49, y: 36, width: 29, height: 20 }
+  ] },
+  초코파이: { manualOnly: true, areas: [{ x: 18, y: 26, width: 64, height: 22 }] },
+  카스타드: { manualOnly: true, areas: [{ x: 16, y: 31, width: 66, height: 27 }] },
   석기시대: { manualOnly: true, areas: [{ x: 28, y: 36, width: 44, height: 18 }] },
-  위즐: { manualOnly: true, areas: [
-    { x: 32, y: 16, width: 35, height: 8 },
-    { x: 18, y: 47, width: 62, height: 17 }
-  ] },
   쮸쮸바: { manualOnly: true, areas: [{ x: 28, y: 33, width: 45, height: 20 }] },
+  주물러: { manualOnly: true, areas: [{ x: 34, y: 32, width: 33, height: 26 }] },
   바나나킥: { manualOnly: true, areas: [
     { x: 20, y: 15, width: 62, height: 18 },
     { x: 18, y: 29, width: 60, height: 16 },
