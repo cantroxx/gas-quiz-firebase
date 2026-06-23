@@ -20,6 +20,8 @@ struct ResultInfo: Encodable {
   let answer: String
   let imageWidth: Int
   let imageHeight: Int
+  let outputWidth: Int
+  let outputHeight: Int
   let matchedCount: Int
   let matches: [MatchInfo]
   let recognizedTexts: [String]
@@ -95,6 +97,10 @@ let fallbackData = Data(fallbackAreasJson.utf8)
 let maskOptions = try? JSONDecoder().decode(MaskOptions.self, from: fallbackData)
 let fallbackAreas = maskOptions?.areas ?? ((try? JSONDecoder().decode([FallbackArea].self, from: fallbackData)) ?? [])
 let manualOnly = maskOptions?.manualOnly == true
+let outputMaxDimension: CGFloat = 640
+let blurRadius = 38
+let jpegQuality: CGFloat = 0.82
+let maskVeilColor = CIColor(red: 0.96, green: 0.94, blue: 0.86, alpha: 0.62)
 
 guard let source = CGImageSourceCreateWithURL(inputUrl as CFURL, nil),
       let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
@@ -183,29 +189,53 @@ let outputImage: CIImage
 if let mask = maskImage {
   let blurred = original
     .clampedToExtent()
-    .applyingFilter("CIGaussianBlur", parameters: ["inputRadius": 20])
+    .applyingFilter("CIGaussianBlur", parameters: ["inputRadius": blurRadius])
     .cropped(to: extent)
   let fullMask = CIImage(color: .black).cropped(to: extent)
   let compositedMask = mask.composited(over: fullMask).cropped(to: extent)
-  outputImage = blurred.applyingFilter("CIBlendWithMask", parameters: [
+  let blurredMasked = blurred.applyingFilter("CIBlendWithMask", parameters: [
     "inputBackgroundImage": original,
+    "inputMaskImage": compositedMask
+  ])
+  let veil = CIImage(color: maskVeilColor).cropped(to: extent)
+  outputImage = veil.applyingFilter("CIBlendWithMask", parameters: [
+    "inputBackgroundImage": blurredMasked,
     "inputMaskImage": compositedMask
   ])
 } else {
   outputImage = original
 }
 
-try context.writePNGRepresentation(
-  of: outputImage,
-  to: outputUrl,
-  format: .RGBA8,
-  colorSpace: CGColorSpaceCreateDeviceRGB()
-)
+let whiteBackground = CIImage(color: .white).cropped(to: outputImage.extent)
+let flattened = outputImage.composited(over: whiteBackground)
+let resizeScale = min(1, outputMaxDimension / max(imageWidth, imageHeight))
+let finalImage = resizeScale < 1
+  ? flattened.applyingFilter("CILanczosScaleTransform", parameters: [
+    "inputScale": resizeScale,
+    "inputAspectRatio": 1
+  ])
+  : flattened
+let finalExtent = finalImage.extent.integral
+
+guard let finalCgImage = context.createCGImage(finalImage, from: finalExtent) else {
+  fail("Failed to render output image")
+}
+guard let destination = CGImageDestinationCreateWithURL(outputUrl as CFURL, UTType.jpeg.identifier as CFString, 1, nil) else {
+  fail("Failed to create JPEG destination: \(outputPath)")
+}
+CGImageDestinationAddImage(destination, finalCgImage, [
+  kCGImageDestinationLossyCompressionQuality: jpegQuality
+] as CFDictionary)
+guard CGImageDestinationFinalize(destination) else {
+  fail("Failed to write JPEG: \(outputPath)")
+}
 
 let result = ResultInfo(
   answer: answer,
   imageWidth: Int(imageWidth),
   imageHeight: Int(imageHeight),
+  outputWidth: finalCgImage.width,
+  outputHeight: finalCgImage.height,
   matchedCount: matches.count,
   matches: matches,
   recognizedTexts: recognizedTexts

@@ -14,9 +14,14 @@ const QUESTIONS_PATH = ['quizQuestions', QUIZ_ID, 'questions'];
 const STORAGE_PREFIX = 'quiz-thumbnails/snack-food-blurred';
 const DEFAULT_BUCKET = 'dj48-quiztown-firebase.firebasestorage.app';
 const SWIFT_HELPER = path.join(__dirname, 'snack-food-image-ocr-blur.swift');
+const OUTPUT_EXTENSION = 'jpg';
+const OUTPUT_CONTENT_TYPE = 'image/jpeg';
 const MANUAL_MASK_OVERRIDES = {
   '신라면 블랙': { manualOnly: true, areas: [{ x: 24, y: 32, width: 52, height: 20 }] },
-  김치라면: { manualOnly: true, areas: [{ x: 24, y: 32, width: 52, height: 20 }] },
+  김치라면: { manualOnly: true, areas: [
+    { x: 24, y: 32, width: 52, height: 20 },
+    { x: 57, y: 17, width: 23, height: 12 }
+  ] },
   불닭볶음면: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 18 }] },
   치토스: { manualOnly: true, areas: [{ x: 28, y: 35, width: 44, height: 18 }] },
   오잉: { manualOnly: true, areas: [{ x: 27, y: 35, width: 46, height: 18 }] },
@@ -214,8 +219,8 @@ async function processQuestion(question, options) {
 
   const baseName = `${String(data.order || question.id).padStart(3, '0')}-${slugStorageName(answer)}`;
   const sourcePath = path.join(options.tempDir, `${baseName}.source`);
-  const outputPath = path.join(options.tempDir, `${baseName}.png`);
-  const filePath = `${STORAGE_PREFIX}/${baseName}.png`;
+  const outputPath = path.join(options.tempDir, `${baseName}.${OUTPUT_EXTENSION}`);
+  const filePath = `${STORAGE_PREFIX}/${baseName}.${OUTPUT_EXTENSION}`;
   const token = crypto.randomUUID();
 
   const sourceBytes = await downloadImage(originalImageUrl, sourcePath);
@@ -231,7 +236,9 @@ async function processQuestion(question, options) {
     matchedCount: ocr.matchedCount,
     matches: ocr.matches,
     recognizedSample: Array.isArray(ocr.recognizedTexts) ? ocr.recognizedTexts.slice(0, 8) : [],
-    storagePath: filePath
+    storagePath: filePath,
+    outputWidth: Number(ocr.outputWidth) || 0,
+    outputHeight: Number(ocr.outputHeight) || 0
   };
 
   if(!options.commit) {
@@ -241,7 +248,7 @@ async function processQuestion(question, options) {
   await options.bucket.upload(outputPath, {
     destination: filePath,
     metadata: {
-      contentType: 'image/png',
+      contentType: OUTPUT_CONTENT_TYPE,
       cacheControl: 'public, max-age=31536000, immutable',
       metadata: {
         firebaseStorageDownloadTokens: token,
@@ -259,6 +266,9 @@ async function processQuestion(question, options) {
     imageOriginalUrl: originalImageUrl,
     imageStoragePath: filePath,
     imageThumbnailBytes: outputStat.size,
+    imageThumbnailWidth: Number(ocr.outputWidth) || 0,
+    imageThumbnailHeight: Number(ocr.outputHeight) || 0,
+    imageThumbnailFormat: OUTPUT_CONTENT_TYPE,
     imageOcrMatchedCount: ocr.matchedCount,
     imageOcrMatches: ocr.matches,
     imageMaskAreas: [],
