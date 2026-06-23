@@ -609,6 +609,63 @@ const FLAG_COUNTRIES = [
   ['kw', '쿠웨이트'], ['om', '오만'], ['ge', '조지아'], ['az', '아제르바이잔'], ['am', '아르메니아']
 ];
 
+const FLAG_COUNTRY_NAME_OVERRIDES = new Map([
+  ...FLAG_COUNTRIES,
+  ['hk', '홍콩'],
+  ['tw', '대만'],
+  ['mo', '마카오']
+]);
+
+const FLAG_COUNTRY_CODES = [
+  'AF', 'AX', 'AL', 'DZ', 'AS', 'AD', 'AO', 'AI', 'AQ', 'AG',
+  'AR', 'AM', 'AW', 'AU', 'AT', 'AZ', 'BS', 'BH', 'BD', 'BB',
+  'BY', 'BE', 'BZ', 'BJ', 'BM', 'BT', 'BO', 'BQ', 'BA', 'BW',
+  'BV', 'BR', 'IO', 'BN', 'BG', 'BF', 'BI', 'CV', 'KH', 'CM',
+  'CA', 'KY', 'CF', 'TD', 'CL', 'CN', 'CX', 'CC', 'CO', 'KM',
+  'CG', 'CD', 'CK', 'CR', 'CI', 'HR', 'CU', 'CW', 'CY', 'CZ',
+  'DK', 'DJ', 'DM', 'DO', 'EC', 'EG', 'SV', 'GQ', 'ER', 'EE',
+  'SZ', 'ET', 'FK', 'FO', 'FJ', 'FI', 'FR', 'GF', 'PF', 'TF',
+  'GA', 'GM', 'GE', 'DE', 'GH', 'GI', 'GR', 'GL', 'GD', 'GP',
+  'GU', 'GT', 'GG', 'GN', 'GW', 'GY', 'HT', 'HM', 'VA', 'HN',
+  'HK', 'HU', 'IS', 'IN', 'ID', 'IR', 'IQ', 'IE', 'IM', 'IL',
+  'IT', 'JM', 'JP', 'JE', 'JO', 'KZ', 'KE', 'KI', 'KP', 'KR',
+  'KW', 'KG', 'LA', 'LV', 'LB', 'LS', 'LR', 'LY', 'LI', 'LT',
+  'LU', 'MO', 'MG', 'MW', 'MY', 'MV', 'ML', 'MT', 'MH', 'MQ',
+  'MR', 'MU', 'YT', 'MX', 'FM', 'MD', 'MC', 'MN', 'ME', 'MS',
+  'MA', 'MZ', 'MM', 'NA', 'NR', 'NP', 'NL', 'NC', 'NZ', 'NI',
+  'NE', 'NG', 'NU', 'NF', 'MK', 'MP', 'NO', 'OM', 'PK', 'PW',
+  'PS', 'PA', 'PG', 'PY', 'PE', 'PH', 'PN', 'PL', 'PT', 'PR',
+  'QA', 'RE', 'RO', 'RU', 'RW', 'BL', 'SH', 'KN', 'LC', 'MF',
+  'PM', 'VC', 'WS', 'SM', 'ST', 'SA', 'SN', 'RS', 'SC', 'SL',
+  'SG', 'SX', 'SK', 'SI', 'SB', 'SO', 'ZA', 'GS', 'SS', 'ES',
+  'LK', 'SD', 'SR', 'SJ', 'SE', 'CH', 'SY', 'TW', 'TJ', 'TZ',
+  'TH', 'TL', 'TG', 'TK', 'TO', 'TT', 'TN', 'TR', 'TM', 'TC',
+  'TV', 'UG', 'UA', 'AE', 'GB', 'US', 'UM', 'UY', 'UZ', 'VU',
+  'VE', 'VN', 'VG', 'VI', 'WF', 'EH', 'YE', 'ZM', 'ZW'
+];
+
+function getFlagCountries() {
+  const displayNames = typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function'
+    ? new Intl.DisplayNames(['ko'], { type: 'region' })
+    : null;
+  const regionCodes = FLAG_COUNTRY_CODES;
+  const legacyCodes = FLAG_COUNTRIES.map(([code]) => code.toUpperCase());
+  const orderedCodes = [
+    ...legacyCodes,
+    ...regionCodes
+      .filter(code => !legacyCodes.includes(code))
+      .sort((a, b) => {
+        const nameA = FLAG_COUNTRY_NAME_OVERRIDES.get(a.toLowerCase()) || displayNames?.of(a) || a;
+        const nameB = FLAG_COUNTRY_NAME_OVERRIDES.get(b.toLowerCase()) || displayNames?.of(b) || b;
+        return nameA.localeCompare(nameB, 'ko');
+      })
+  ];
+  return orderedCodes.map(code => [
+    code.toLowerCase(),
+    FLAG_COUNTRY_NAME_OVERRIDES.get(code.toLowerCase()) || displayNames?.of(code) || code
+  ]);
+}
+
 function flagImageMeta(code) {
   const safeCode = String(code || '').trim().toLowerCase();
   return {
@@ -1265,8 +1322,9 @@ function buildCulturalHeritageQuestions() {
 }
 
 function buildFlagCountryQuestions() {
-  const answers = FLAG_COUNTRIES.map(([, country]) => country);
-  return FLAG_COUNTRIES.map(([code, country], index) => makeImageChoiceQuestion(
+  const flagCountries = getFlagCountries();
+  const answers = flagCountries.map(([, country]) => country);
+  return flagCountries.map(([code, country], index) => makeImageChoiceQuestion(
     'flag-country',
     index + 1,
     '',
@@ -1324,7 +1382,7 @@ const QUIZ_DEFINITIONS = [
   { quizId: 'unified-silla-balhae', title: '통일신라~발해 역사 퀴즈', subject: '사회', subjectGroup: 'social', order: 50, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '통일신라와 발해의 주요 개념을 확인합니다.', questions: buildHistoryQuestions },
   { quizId: 'cultural_heritage', title: '문화유산 이미지 퀴즈', subject: '사회', subjectGroup: 'social', order: 51, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '사진을 보고 우리 문화유산의 이름을 4지선다로 맞힙니다.', questions: buildCulturalHeritageQuestions },
   { quizId: 'science-general', title: '과학 상식 퀴즈', subject: '과학', subjectGroup: 'science', order: 60, expectedQuestionCount: 200, cycleQuestionCount: 100, description: '초등학생이 알아두면 좋은 생활 과학 상식을 확인합니다.', questions: buildScienceGeneralQuestions },
-  { quizId: 'flag-country', title: '국기 퀴즈', subject: '인기', subjectGroup: 'popular', order: 69, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '국기를 보고 알맞은 나라 이름을 4지선다로 맞힙니다.', questions: buildFlagCountryQuestions },
+  { quizId: 'flag-country', title: '국기 퀴즈', subject: '인기', subjectGroup: 'popular', order: 69, expectedQuestionCount: getFlagCountries().length, cycleQuestionCount: 100, uiType: 'imageChoice', description: '국기를 보고 알맞은 나라 이름을 4지선다로 맞힙니다.', questions: buildFlagCountryQuestions },
   { quizId: 'snack-food', title: '간식 퀴즈', subject: '인기', subjectGroup: 'popular', order: 70, expectedQuestionCount: 100, cycleQuestionCount: 100, uiType: 'imageChoice', description: '라면, 과자, 아이스크림 이미지를 보고 알맞은 간식 이름을 4지선다로 맞힙니다.', questions: buildSnackFoodQuestions },
   { quizId: 'emoji-kpop', title: 'K-POP 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 71, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 K-POP 노래 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-kpop', EMOJI_KPOP, 'K-POP 노래') },
   { quizId: 'emoji-anime', title: '애니 이모지 퀴즈', subject: '인기', subjectGroup: 'popular', order: 72, expectedQuestionCount: 50, cycleQuestionCount: 50, description: '이모지 조합을 보고 애니 제목을 객관식으로 맞힙니다.', questions: () => buildEmojiQuestions('emoji-anime', EMOJI_ANIME, '애니') },

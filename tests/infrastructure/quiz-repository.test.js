@@ -182,12 +182,13 @@ async function testQuizRepositoryReadsFirestoreQuestions() {
   assert.deepEqual(await repository.loadPracticeRecordCorrectIds('member__area'), new Set(['q1', 'q2']));
 }
 
-function makeWriteDb(calls) {
+function makeWriteDb(calls, docOverrides = {}) {
   const docs = {
     'userRankingSummary/member-1': { exists: true, data: () => ({ totalScore: 1 }) },
     'quizKingSummary/member-1': { exists: false, data: () => ({}) },
     'practiceRecords/member-1__area-a': { exists: true, data: () => ({ correctIds: ['old-q'], correctCount: 1, starCount: 0 }) },
-    'userPracticeSummary/member-1': { exists: true, data: () => ({ totalStars: 0 }) }
+    'userPracticeSummary/member-1': { exists: true, data: () => ({ totalStars: 0 }) },
+    ...docOverrides
   };
   const makeDoc = path => ({
     path,
@@ -305,8 +306,275 @@ async function testQuizRepositoryWritesRankingAndPracticeProgress() {
   assert(calls.some(call => call[0] === 'set' && call[1] === 'practiceRecords/member-1__area-a'));
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userPracticeSummary/member-1'));
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userBadges/member-1/badges/badge-a'));
-  assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
+  assert(!calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeReward'));
+}
+
+async function testPracticeBadgeStarsEveryHundredCorrectAnswers() {
+  const calls = [];
+  const existingIds = Array.from({ length: 99 }, (_, index) => `q${index + 1}`);
+  const repository = createQuizRepository({
+    getFirestoreDb: () => makeWriteDb(calls, {
+      'practiceRecords/member-1__area-151': {
+        exists: true,
+        data: () => ({ correctIds: existingIds, correctCount: 99, starCount: 0 })
+      }
+    }),
+    getFirestoreFieldValue: () => ({
+      serverTimestamp: () => ({ type: 'timestamp' }),
+      arrayUnion: value => ({ op: 'arrayUnion', value }),
+      increment: value => ({ op: 'increment', value })
+    }),
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getFirebaseFunctions: () => ({
+      httpsCallable: name => async payload => {
+        calls.push(['callable', name, payload]);
+        return name === 'syncMemberTitles'
+          ? { data: { awardedCount: 1 } }
+          : { data: { rewardCoin: 3 } };
+      }
+    }),
+    loadFeatureFlags: async () => ({ practiceRewardEnabled: true }),
+    loadFirebaseQuizMeta: async () => ({ questionCount: 151 })
+  });
+
+  const result = await repository.savePracticeProgressAfterCorrectAnswer({
+    practiceQuestionId: 'q100'
+  }, {
+    testShopUserId: 'test-user',
+    normalizeFirebaseQuizId: value => value,
+    getCurrentDataOwnerId: () => 'member-1',
+    getCurrentModeId: () => 'practice',
+    getCurrentQuizId: () => 'pokemon-gen1',
+    getCurrentQuestionSet: () => Array.from({ length: 151 }, () => ({})),
+    getPracticeQuestionId: question => question.practiceQuestionId,
+    getPracticeQuestionIdCandidates: question => [question.practiceQuestionId],
+    getPracticeTargetForQuiz: () => ({ area: '포켓몬', detail: '1세대', areaKey: 'area-151', completionType: 'loop' }),
+    getPracticeCorrectCoin: () => 3,
+    buildPracticeProgressRecordId: (memberUserId, areaKey) => `${memberUserId}__${areaKey}`,
+    buildPracticeSummaryUpdate: (existing, options) => ({ nextStarCount: options.nextStarCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    buildPracticeBadgeUpdate: options => ({ badgeId: 'badge-151', nextCorrectCount: options.nextCorrectCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    debugLog: () => {}
+  });
+
+  const recordWrite = calls.find(call => call[0] === 'set' && call[1] === 'practiceRecords/member-1__area-151');
+  assert.equal(result.nextStarCount, 1);
+  assert.equal(result.nextCorrectCount, 100);
+  assert.equal(result.nextBadgeProgressCount, 100);
+  assert.equal(recordWrite[2].starCount, 1);
+  assert.equal(recordWrite[2].badgeProgressCount, 100);
+  assert.equal(recordWrite[2].correctIds.length, 100);
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
+}
+
+async function testPracticeFullQuestionRoundResetsOnlySolvedIds() {
+  const calls = [];
+  const existingIds = Array.from({ length: 150 }, (_, index) => `q${index + 1}`);
+  const repository = createQuizRepository({
+    getFirestoreDb: () => makeWriteDb(calls, {
+      'practiceRecords/member-1__area-151': {
+        exists: true,
+        data: () => ({ correctIds: existingIds, correctCount: 150, starCount: 1, badgeProgressCount: 150 })
+      }
+    }),
+    getFirestoreFieldValue: () => ({
+      serverTimestamp: () => ({ type: 'timestamp' }),
+      arrayUnion: value => ({ op: 'arrayUnion', value }),
+      increment: value => ({ op: 'increment', value })
+    }),
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getFirebaseFunctions: () => ({
+      httpsCallable: name => async payload => {
+        calls.push(['callable', name, payload]);
+        return { data: { rewardCoin: 3 } };
+      }
+    }),
+    loadFeatureFlags: async () => ({ practiceRewardEnabled: true }),
+    loadFirebaseQuizMeta: async () => ({ questionCount: 151 })
+  });
+
+  const result = await repository.savePracticeProgressAfterCorrectAnswer({
+    practiceQuestionId: 'q151'
+  }, {
+    testShopUserId: 'test-user',
+    normalizeFirebaseQuizId: value => value,
+    getCurrentDataOwnerId: () => 'member-1',
+    getCurrentModeId: () => 'practice',
+    getCurrentQuizId: () => 'pokemon-gen1',
+    getCurrentQuestionSet: () => Array.from({ length: 151 }, () => ({})),
+    getPracticeQuestionId: question => question.practiceQuestionId,
+    getPracticeQuestionIdCandidates: question => [question.practiceQuestionId],
+    getPracticeTargetForQuiz: () => ({ area: '포켓몬', detail: '1세대', areaKey: 'area-151', completionType: 'loop' }),
+    getPracticeCorrectCoin: () => 3,
+    buildPracticeProgressRecordId: (memberUserId, areaKey) => `${memberUserId}__${areaKey}`,
+    buildPracticeSummaryUpdate: (existing, options) => ({ nextStarCount: options.nextStarCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    buildPracticeBadgeUpdate: options => ({ badgeId: 'badge-151', nextCorrectCount: options.nextCorrectCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    debugLog: () => {}
+  });
+
+  const recordWrite = calls.find(call => call[0] === 'set' && call[1] === 'practiceRecords/member-1__area-151');
+  assert.equal(result.nextStarCount, 1);
+  assert.equal(result.nextCorrectCount, 0);
+  assert.equal(result.nextBadgeProgressCount, 151);
+  assert.equal(result.fullRoundCompleted, true);
+  assert.deepEqual(recordWrite[2].correctIds, []);
+  assert.equal(recordWrite[2].badgeProgressCount, 151);
+  assert(!calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
+}
+
+async function testLegacyFullRoundKeepsLargeQuizProgressCredit() {
+  const calls = [];
+  const repository = createQuizRepository({
+    getFirestoreDb: () => makeWriteDb(calls, {
+      'practiceRecords/member-1__area-151': {
+        exists: true,
+        data: () => ({ correctIds: [], correctCount: 0, starCount: 1 })
+      }
+    }),
+    getFirestoreFieldValue: () => ({
+      serverTimestamp: () => ({ type: 'timestamp' }),
+      arrayUnion: value => ({ op: 'arrayUnion', value }),
+      increment: value => ({ op: 'increment', value })
+    }),
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getFirebaseFunctions: () => ({
+      httpsCallable: name => async payload => {
+        calls.push(['callable', name, payload]);
+        return { data: { rewardCoin: 3 } };
+      }
+    }),
+    loadFeatureFlags: async () => ({ practiceRewardEnabled: true }),
+    loadFirebaseQuizMeta: async () => ({ sourceQuestionCount: 151, questionCount: 100 })
+  });
+
+  const result = await repository.savePracticeProgressAfterCorrectAnswer({
+    practiceQuestionId: 'q1'
+  }, {
+    testShopUserId: 'test-user',
+    normalizeFirebaseQuizId: value => value,
+    getCurrentDataOwnerId: () => 'member-1',
+    getCurrentModeId: () => 'practice',
+    getCurrentQuizId: () => 'pokemon-gen1',
+    getCurrentQuestionSet: () => Array.from({ length: 151 }, () => ({})),
+    getPracticeQuestionId: question => question.practiceQuestionId,
+    getPracticeQuestionIdCandidates: question => [question.practiceQuestionId],
+    getPracticeTargetForQuiz: () => ({ area: '포켓몬', detail: '1세대', areaKey: 'area-151', completionType: 'loop' }),
+    getPracticeCorrectCoin: () => 3,
+    buildPracticeProgressRecordId: (memberUserId, areaKey) => `${memberUserId}__${areaKey}`,
+    buildPracticeSummaryUpdate: (existing, options) => ({ nextStarCount: options.nextStarCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    buildPracticeBadgeUpdate: options => ({ badgeId: 'badge-151', nextCorrectCount: options.nextCorrectCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    debugLog: () => {}
+  });
+
+  assert.equal(result.previousBadgeProgressCount, 151);
+  assert.equal(result.nextBadgeProgressCount, 152);
+  assert.equal(result.nextStarCount, 1);
+}
+
+async function testLegacyFullRoundOnTwoHundredQuestionQuizCanAwardSecondStar() {
+  const calls = [];
+  const repository = createQuizRepository({
+    getFirestoreDb: () => makeWriteDb(calls, {
+      'practiceRecords/member-1__area-200': {
+        exists: true,
+        data: () => ({ correctIds: [], correctCount: 0, starCount: 1 })
+      }
+    }),
+    getFirestoreFieldValue: () => ({
+      serverTimestamp: () => ({ type: 'timestamp' }),
+      arrayUnion: value => ({ op: 'arrayUnion', value }),
+      increment: value => ({ op: 'increment', value })
+    }),
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getFirebaseFunctions: () => ({
+      httpsCallable: name => async payload => {
+        calls.push(['callable', name, payload]);
+        return { data: { rewardCoin: 3 } };
+      }
+    }),
+    loadFeatureFlags: async () => ({ sourceQuestionCount: 200, questionCount: 100 }),
+    loadFirebaseQuizMeta: async () => ({ sourceQuestionCount: 200, questionCount: 100 })
+  });
+
+  const result = await repository.savePracticeProgressAfterCorrectAnswer({
+    practiceQuestionId: 'q1'
+  }, {
+    testShopUserId: 'test-user',
+    normalizeFirebaseQuizId: value => value,
+    getCurrentDataOwnerId: () => 'member-1',
+    getCurrentModeId: () => 'practice',
+    getCurrentQuizId: () => 'proverb',
+    getCurrentQuestionSet: () => Array.from({ length: 200 }, () => ({})),
+    getPracticeQuestionId: question => question.practiceQuestionId,
+    getPracticeQuestionIdCandidates: question => [question.practiceQuestionId],
+    getPracticeTargetForQuiz: () => ({ area: '국어', detail: '속담', areaKey: 'area-200', completionType: 'loop' }),
+    getPracticeCorrectCoin: () => 3,
+    buildPracticeProgressRecordId: (memberUserId, areaKey) => `${memberUserId}__${areaKey}`,
+    buildPracticeSummaryUpdate: (existing, options) => ({ nextStarCount: options.nextStarCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    buildPracticeBadgeUpdate: options => ({ badgeId: 'badge-200', nextCorrectCount: options.nextCorrectCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    debugLog: () => {}
+  });
+
+  assert.equal(result.previousBadgeProgressCount, 200);
+  assert.equal(result.nextBadgeProgressCount, 201);
+  assert.equal(result.nextStarCount, 2);
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
+}
+
+async function testShortPracticeQuizAwardsStarAfterRepeatedHundredCorrects() {
+  const calls = [];
+  const existingIds = Array.from({ length: 49 }, (_, index) => `q${index + 1}`);
+  const repository = createQuizRepository({
+    getFirestoreDb: () => makeWriteDb(calls, {
+      'practiceRecords/member-1__area-50': {
+        exists: true,
+        data: () => ({ correctIds: existingIds, correctCount: 49, starCount: 0, badgeProgressCount: 99 })
+      }
+    }),
+    getFirestoreFieldValue: () => ({
+      serverTimestamp: () => ({ type: 'timestamp' }),
+      arrayUnion: value => ({ op: 'arrayUnion', value }),
+      increment: value => ({ op: 'increment', value })
+    }),
+    getFirebaseAuthUser: () => ({ uid: 'auth-1' }),
+    getFirebaseFunctions: () => ({
+      httpsCallable: name => async payload => {
+        calls.push(['callable', name, payload]);
+        return name === 'syncMemberTitles'
+          ? { data: { awardedCount: 1 } }
+          : { data: { rewardCoin: 3 } };
+      }
+    }),
+    loadFeatureFlags: async () => ({ practiceRewardEnabled: true }),
+    loadFirebaseQuizMeta: async () => ({ questionCount: 50 })
+  });
+
+  const result = await repository.savePracticeProgressAfterCorrectAnswer({
+    practiceQuestionId: 'q50'
+  }, {
+    testShopUserId: 'test-user',
+    normalizeFirebaseQuizId: value => value,
+    getCurrentDataOwnerId: () => 'member-1',
+    getCurrentModeId: () => 'practice',
+    getCurrentQuizId: () => 'emoji-kpop',
+    getCurrentQuestionSet: () => Array.from({ length: 50 }, () => ({})),
+    getPracticeQuestionId: question => question.practiceQuestionId,
+    getPracticeQuestionIdCandidates: question => [question.practiceQuestionId],
+    getPracticeTargetForQuiz: () => ({ area: '인기', detail: '이모지:K-POP', areaKey: 'area-50', completionType: 'loop' }),
+    getPracticeCorrectCoin: () => 3,
+    buildPracticeProgressRecordId: (memberUserId, areaKey) => `${memberUserId}__${areaKey}`,
+    buildPracticeSummaryUpdate: (existing, options) => ({ nextStarCount: options.nextStarCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    buildPracticeBadgeUpdate: options => ({ badgeId: 'badge-50', nextCorrectCount: options.nextCorrectCount, nextBadgeProgressCount: options.nextBadgeProgressCount }),
+    debugLog: () => {}
+  });
+
+  const recordWrite = calls.find(call => call[0] === 'set' && call[1] === 'practiceRecords/member-1__area-50');
+  assert.equal(result.nextStarCount, 1);
+  assert.equal(result.nextCorrectCount, 0);
+  assert.equal(result.nextBadgeProgressCount, 100);
+  assert.equal(result.fullRoundCompleted, true);
+  assert.deepEqual(recordWrite[2].correctIds, []);
+  assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
 }
 
 async function run() {
@@ -315,6 +583,11 @@ async function run() {
   await testQuizPlayRepositoryDeps();
   await testQuizRepositoryReadsFirestoreQuestions();
   await testQuizRepositoryWritesRankingAndPracticeProgress();
+  await testPracticeBadgeStarsEveryHundredCorrectAnswers();
+  await testPracticeFullQuestionRoundResetsOnlySolvedIds();
+  await testLegacyFullRoundKeepsLargeQuizProgressCredit();
+  await testLegacyFullRoundOnTwoHundredQuestionQuizCanAwardSecondStar();
+  await testShortPracticeQuizAwardsStarAfterRepeatedHundredCorrects();
   console.log('Infrastructure tests passed: quiz-repository');
 }
 

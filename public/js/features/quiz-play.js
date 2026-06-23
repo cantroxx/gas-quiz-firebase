@@ -382,7 +382,8 @@
       '국어': 'korean',
       '수학': 'math',
       '사회': 'social',
-      '과학': 'science'
+      '과학': 'science',
+      '인기': 'popular'
     };
     const group = groupMap[groupRaw] || slugKey(groupRaw || area);
     const badgeId = `${group}_${slugKey(detailRaw || detail).replace(/-/g, '_')}`;
@@ -409,6 +410,9 @@
       correct,
       total,
       starCount: options.nextStarCount || 0,
+      badgeCycleSize: options.badgeCycleSize || 0,
+      badgeProgressCount: options.nextBadgeProgressCount || 0,
+      badgeCycleProgress: options.badgeCycleSize ? (options.nextBadgeProgressCount || 0) % options.badgeCycleSize : 0,
       available
     };
     groups[meta.group] = groupItems;
@@ -441,6 +445,9 @@
       correct,
       total,
       starCount: options.nextStarCount || 0,
+      badgeCycleSize: options.badgeCycleSize || 0,
+      badgeProgressCount: options.nextBadgeProgressCount || 0,
+      badgeCycleProgress: options.badgeCycleSize ? (options.nextBadgeProgressCount || 0) % options.badgeCycleSize : 0,
       completed,
       progressPercent,
       available: (options.nextStarCount || 0) > 0 || completed,

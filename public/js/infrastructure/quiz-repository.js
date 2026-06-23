@@ -16,6 +16,8 @@
     return functions;
   }
 
+  const PRACTICE_BADGE_CYCLE_SIZE = 100;
+
   async function grantPracticeCorrectRewardForRepository(memberUserId, rewardCoin, context, deps = {}) {
     const functions = getRequiredFirebaseFunctions(deps);
     const debugLog = deps.debugLog || (() => {});
@@ -210,7 +212,9 @@
     const target = deps.getPracticeTargetForQuiz?.(quizId, meta);
     if(!target) throw new Error('unsupported-practice-target');
 
-    const totalCount = Number(meta?.questionCount) || deps.getCurrentQuestionSet?.().length;
+    const totalCount = Number(meta?.sourceQuestionCount)
+      || deps.getCurrentQuestionSet?.().length
+      || Number(meta?.questionCount);
     if(!totalCount || totalCount <= 0) throw new Error('invalid-total-count');
 
     const recordId = deps.buildPracticeProgressRecordId?.(memberUserId, target.areaKey);
@@ -258,10 +262,16 @@
     const mergedIds = isDuplicateCorrectId ? existingIds : Array.from(new Set([...existingIds, questionId]));
     const previousCorrectCount = Number(existing.correctCount) || existingIds.length;
     const existingStarCount = Number(existing.starCount) || 0;
+    const legacyFullRoundSize = Math.max(PRACTICE_BADGE_CYCLE_SIZE, totalCount);
+    const legacyBadgeProgressCount = existingStarCount * legacyFullRoundSize + previousCorrectCount;
+    const previousBadgeProgressCount = Math.max(0, Math.round(Number.isFinite(Number(existing.badgeProgressCount))
+      ? Number(existing.badgeProgressCount)
+      : legacyBadgeProgressCount));
+    const nextBadgeProgressCount = isDuplicateCorrectId ? previousBadgeProgressCount : previousBadgeProgressCount + 1;
     const flags = await deps.loadFeatureFlags?.();
     const rewardDisabled = flags.practiceRewardEnabled === false;
     const rewardCoin = (isDuplicateCorrectId || rewardDisabled) ? 0 : deps.getPracticeCorrectCoin?.();
-    const completed = mergedIds.length >= totalCount;
+    const completedFullRound = mergedIds.length >= totalCount;
     const isCompleteType = target.completionType === 'complete';
     let nextIds = mergedIds;
     let nextCorrectCount = mergedIds.length;
@@ -282,6 +292,9 @@
       mode: 'practice',
       source: 'firebase-app',
       version: 2,
+      badgeCycleSize: PRACTICE_BADGE_CYCLE_SIZE,
+      badgeProgressCount: nextBadgeProgressCount,
+      badgeCycleProgress: nextBadgeProgressCount % PRACTICE_BADGE_CYCLE_SIZE,
       updatedAt: fieldValue.serverTimestamp(),
       lastAchievedAt: fieldValue.serverTimestamp()
     };
@@ -290,24 +303,28 @@
       nextData.createdAt = fieldValue.serverTimestamp();
     }
 
-    if(completed) {
-      completedRound = true;
-      if(isCompleteType) {
-        nextStarCount = 1;
-        nextIds = [];
-        nextCorrectCount = totalCount;
-      } else {
-        nextStarCount += 1;
-        nextIds = [];
-        nextCorrectCount = 0;
-      }
+    if(isCompleteType && completedFullRound) {
+      completedRound = existingStarCount < 1;
+      nextStarCount = Math.max(existingStarCount, 1);
+      nextIds = [];
+      nextCorrectCount = totalCount;
       nextData.completed = true;
       nextData.firstCompletedAt = existing.firstCompletedAt || fieldValue.serverTimestamp();
       nextData.lastCompletedAt = fieldValue.serverTimestamp();
     } else {
-      nextData.completed = !!existing.completed;
-      if(existing.firstCompletedAt) nextData.firstCompletedAt = existing.firstCompletedAt;
-      if(existing.lastCompletedAt) nextData.lastCompletedAt = existing.lastCompletedAt;
+      nextStarCount = Math.max(existingStarCount, Math.floor(nextBadgeProgressCount / PRACTICE_BADGE_CYCLE_SIZE));
+      completedRound = nextStarCount > existingStarCount;
+      if(completedFullRound) {
+        nextIds = [];
+        nextCorrectCount = 0;
+        nextData.completed = true;
+        nextData.firstCompletedAt = existing.firstCompletedAt || fieldValue.serverTimestamp();
+        nextData.lastCompletedAt = fieldValue.serverTimestamp();
+      } else {
+        nextData.completed = !!existing.completed || nextStarCount > 0;
+        if(existing.firstCompletedAt) nextData.firstCompletedAt = existing.firstCompletedAt;
+        if(existing.lastCompletedAt) nextData.lastCompletedAt = existing.lastCompletedAt;
+      }
     }
 
     nextData.correctIds = readFallback ? fieldValue.arrayUnion(questionId) : nextIds;
@@ -323,6 +340,9 @@
       previousStarCount: existingStarCount,
       nextStarCount,
       nextCorrectCount,
+      badgeCycleSize: PRACTICE_BADGE_CYCLE_SIZE,
+      previousBadgeProgressCount,
+      nextBadgeProgressCount,
       updatedAt: fieldValue.serverTimestamp()
     });
     const badgeData = deps.buildPracticeBadgeUpdate?.({
@@ -333,6 +353,8 @@
       totalCount,
       nextStarCount,
       nextCorrectCount,
+      badgeCycleSize: PRACTICE_BADGE_CYCLE_SIZE,
+      nextBadgeProgressCount,
       updatedAt: fieldValue.serverTimestamp()
     });
     const badgeRef = db.collection('userBadges').doc(memberUserId).collection('badges').doc(badgeData.badgeId);
@@ -341,15 +363,19 @@
       questionId,
       duplicate: isDuplicateCorrectId,
       readFallback,
-      completed,
+      completed: nextData.completed,
       completedRound,
       completionType: target.completionType,
       rewardCoin,
       rewardDisabled,
       previousCorrectCount,
       nextCorrectCount,
+      previousBadgeProgressCount,
+      nextBadgeProgressCount,
+      badgeCycleSize: PRACTICE_BADGE_CYCLE_SIZE,
       previousStarCount: existingStarCount,
       nextStarCount,
+      fullRoundCompleted: completedFullRound,
       badgePath: badgeRef.path
     };
     if(isDuplicateCorrectId) {

@@ -51,6 +51,8 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith('social_cultural_heritage_')) return 'social_cultural_heritage';
   if (id.startsWith('science_grade4_')) return 'science_science_grade4';
   if (id.startsWith('science_general_')) return 'science_science_general';
+  if (id.startsWith('popular_flag_country_')) return 'popular_flag_country';
+  if (id.startsWith('popular_snack_food_')) return 'popular_snack_food';
   if (id.startsWith('popular_emoji_kpop_')) return 'popular_emoji_kpop';
   if (id.startsWith('popular_emoji_anime_')) return 'popular_emoji_anime';
   if (id.startsWith('popular_emoji_tiniping_')) return 'popular_emoji_tiniping';
