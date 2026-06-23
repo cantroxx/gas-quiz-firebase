@@ -32,6 +32,11 @@ struct FallbackArea: Decodable {
   let height: Double
 }
 
+struct MaskOptions: Decodable {
+  let areas: [FallbackArea]
+  let manualOnly: Bool?
+}
+
 func fail(_ message: String) -> Never {
   FileHandle.standardError.write(Data((message + "\n").utf8))
   exit(1)
@@ -86,7 +91,10 @@ let outputPath = args[3]
 let fallbackAreasJson = args.count >= 5 ? args[4] : "[]"
 let inputUrl = URL(fileURLWithPath: inputPath)
 let outputUrl = URL(fileURLWithPath: outputPath)
-let fallbackAreas = (try? JSONDecoder().decode([FallbackArea].self, from: Data(fallbackAreasJson.utf8))) ?? []
+let fallbackData = Data(fallbackAreasJson.utf8)
+let maskOptions = try? JSONDecoder().decode(MaskOptions.self, from: fallbackData)
+let fallbackAreas = maskOptions?.areas ?? ((try? JSONDecoder().decode([FallbackArea].self, from: fallbackData)) ?? [])
+let manualOnly = maskOptions?.manualOnly == true
 
 guard let source = CGImageSourceCreateWithURL(inputUrl as CFURL, nil),
       let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
@@ -139,21 +147,23 @@ func addMask(rectTopLeft: CGRect, text: String, confidence: Float, shouldExpand:
   ))
 }
 
-for observation in observations {
-  guard let candidate = observation.topCandidates(3).first(where: { isLikelyAnswerText(answer: answer, text: $0.string) }) else {
-    continue
+if !manualOnly {
+  for observation in observations {
+    guard let candidate = observation.topCandidates(3).first(where: { isLikelyAnswerText(answer: answer, text: $0.string) }) else {
+      continue
+    }
+    let box = observation.boundingBox
+    let topLeftRect = CGRect(
+      x: box.minX * imageWidth,
+      y: (1 - box.maxY) * imageHeight,
+      width: box.width * imageWidth,
+      height: box.height * imageHeight
+    )
+    addMask(rectTopLeft: topLeftRect, text: candidate.string, confidence: candidate.confidence)
   }
-  let box = observation.boundingBox
-  let topLeftRect = CGRect(
-    x: box.minX * imageWidth,
-    y: (1 - box.maxY) * imageHeight,
-    width: box.width * imageWidth,
-    height: box.height * imageHeight
-  )
-  addMask(rectTopLeft: topLeftRect, text: candidate.string, confidence: candidate.confidence)
 }
 
-if matches.isEmpty {
+if matches.isEmpty || manualOnly {
   for area in fallbackAreas {
     let rect = CGRect(
       x: max(0, min(100, area.x)) / 100 * imageWidth,
@@ -161,7 +171,7 @@ if matches.isEmpty {
       width: max(1, min(100, area.width)) / 100 * imageWidth,
       height: max(1, min(100, area.height)) / 100 * imageHeight
     )
-    addMask(rectTopLeft: rect, text: "manual-fallback", confidence: 0, shouldExpand: false)
+    addMask(rectTopLeft: rect, text: manualOnly ? "manual-override" : "manual-fallback", confidence: 0, shouldExpand: false)
   }
 }
 

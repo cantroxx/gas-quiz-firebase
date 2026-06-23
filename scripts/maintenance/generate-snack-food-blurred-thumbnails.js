@@ -15,10 +15,52 @@ const STORAGE_PREFIX = 'quiz-thumbnails/snack-food-blurred';
 const DEFAULT_BUCKET = 'dj48-quiztown-firebase.firebasestorage.app';
 const SWIFT_HELPER = path.join(__dirname, 'snack-food-image-ocr-blur.swift');
 const MANUAL_MASK_OVERRIDES = {
-  월드콘: [
+  '신라면 블랙': { manualOnly: true, areas: [{ x: 24, y: 32, width: 52, height: 20 }] },
+  김치라면: { manualOnly: true, areas: [{ x: 24, y: 32, width: 52, height: 20 }] },
+  불닭볶음면: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 18 }] },
+  치토스: { manualOnly: true, areas: [{ x: 28, y: 35, width: 44, height: 18 }] },
+  오잉: { manualOnly: true, areas: [{ x: 27, y: 35, width: 46, height: 18 }] },
+  도리토스: { manualOnly: true, areas: [{ x: 25, y: 31, width: 50, height: 21 }] },
+  엑설런트: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 15 }] },
+  바밤바: { manualOnly: true, areas: [{ x: 30, y: 43, width: 23, height: 14 }] },
+  월드콘: { manualOnly: true, areas: [
     { x: 33, y: 18, width: 31, height: 24 },
     { x: 63, y: 12, width: 13, height: 15 }
-  ]
+  ] },
+  돼지바: { manualOnly: true, areas: [{ x: 26, y: 36, width: 45, height: 17 }] },
+  설레임: { manualOnly: true, areas: [{ x: 26, y: 34, width: 48, height: 18 }] },
+  죠크박바: { manualOnly: true, areas: [{ x: 26, y: 35, width: 48, height: 18 }] },
+  누가바: { manualOnly: true, areas: [{ x: 28, y: 36, width: 44, height: 18 }] },
+  후라보노: { manualOnly: true, areas: [{ x: 29, y: 35, width: 45, height: 18 }] },
+  이브: { manualOnly: true, areas: [{ x: 31, y: 36, width: 38, height: 16 }] },
+  왓따: { manualOnly: true, areas: [{ x: 28, y: 34, width: 45, height: 20 }] },
+  졸음번쩍껌: { manualOnly: true, areas: [{ x: 26, y: 32, width: 50, height: 22 }] },
+  '롤리팝 아이스': { manualOnly: true, areas: [{ x: 25, y: 34, width: 50, height: 20 }] },
+  '짱셔요!': { manualOnly: true, areas: [{ x: 27, y: 32, width: 46, height: 22 }] },
+  제크: { manualOnly: true, areas: [{ x: 31, y: 38, width: 38, height: 16 }] },
+  제로: { manualOnly: true, areas: [
+    { x: 34, y: 28, width: 32, height: 13 },
+    { x: 70, y: 41, width: 23, height: 15 }
+  ] },
+  '프리미엄 가나': { manualOnly: true, areas: [
+    { x: 26, y: 39, width: 22, height: 16 },
+    { x: 42, y: 35, width: 43, height: 20 }
+  ] },
+  드림카카오: { manualOnly: true, areas: [
+    { x: 28, y: 22, width: 44, height: 18 },
+    { x: 40, y: 42, width: 26, height: 18 }
+  ] },
+  석기시대: { manualOnly: true, areas: [{ x: 28, y: 36, width: 44, height: 18 }] },
+  위즐: { manualOnly: true, areas: [
+    { x: 32, y: 16, width: 35, height: 8 },
+    { x: 18, y: 47, width: 62, height: 17 }
+  ] },
+  쮸쮸바: { manualOnly: true, areas: [{ x: 28, y: 33, width: 45, height: 20 }] },
+  바나나킥: { manualOnly: true, areas: [
+    { x: 20, y: 15, width: 62, height: 18 },
+    { x: 18, y: 29, width: 60, height: 16 },
+    { x: 34, y: 40, width: 38, height: 12 }
+  ] }
 };
 
 function parseArgs(argv) {
@@ -139,13 +181,23 @@ async function loadQuestions(db) {
   return snapshot.docs.map(doc => ({ id: doc.id, ref: doc.ref, data: doc.data() || {} }));
 }
 
-async function createBlurredImage(inputPath, answer, outputPath, fallbackAreas) {
+function normalizeMaskOverride(value) {
+  if(!value) return { areas: [], manualOnly: false };
+  if(Array.isArray(value)) return { areas: value, manualOnly: false };
+  return {
+    areas: Array.isArray(value.areas) ? value.areas : [],
+    manualOnly: value.manualOnly === true
+  };
+}
+
+async function createBlurredImage(inputPath, answer, outputPath, maskOverride) {
+  const maskOptions = normalizeMaskOverride(maskOverride);
   const { stdout } = await runFile('/usr/bin/swift', [
     SWIFT_HELPER,
     inputPath,
     answer,
     outputPath,
-    JSON.stringify(Array.isArray(fallbackAreas) ? fallbackAreas : [])
+    JSON.stringify(maskOptions)
   ]);
   return JSON.parse(stdout);
 }
@@ -167,8 +219,8 @@ async function processQuestion(question, options) {
   const token = crypto.randomUUID();
 
   const sourceBytes = await downloadImage(originalImageUrl, sourcePath);
-  const fallbackAreas = MANUAL_MASK_OVERRIDES[answer] || data.imageMaskAreas;
-  const ocr = await createBlurredImage(sourcePath, answer, outputPath, fallbackAreas);
+  const maskOverride = MANUAL_MASK_OVERRIDES[answer] || data.imageMaskAreas;
+  const ocr = await createBlurredImage(sourcePath, answer, outputPath, maskOverride);
   const outputStat = await fs.stat(outputPath);
 
   const result = {
