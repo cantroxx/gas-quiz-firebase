@@ -8,7 +8,7 @@
       summary: '',
       features: [
         { label: '공지', value: '오늘도 연습전과 랭킹전을 자유롭게 이용할 수 있어요' },
-        { label: '오늘의 퀴즈', value: '오늘의 퀴즈를 풀면 XP와 DJ코인을 받을 수 있어요' }
+        { label: '오늘의 퀴즈', value: '오늘의 퀴즈 연습전은 새 정답마다 XP +2가 추가돼요' }
       ],
       actions: [
         { label: '학교로 바로가기', enabled: true, action: 'openSchool' },

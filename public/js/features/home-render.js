@@ -200,7 +200,7 @@
       empty.textContent = '오늘의 퀴즈가 아직 정해지지 않았습니다.';
       list.appendChild(empty);
     }
-    note.textContent = '연습전 정답마다 XP +2와 DJ코인을 받을 수 있어요.';
+    note.textContent = '오늘의 퀴즈 연습전은 새 정답마다 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.';
     panel.append(heading, list, note);
     return panel;
   }

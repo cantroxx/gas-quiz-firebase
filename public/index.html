@@ -1463,8 +1463,8 @@
             <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-practice-xp" type="checkbox">
               <span>
-                <strong>연습전 경험치 지급</strong>
-                <small>끄면 연습전 정답 경험치가 쌓이지 않습니다.</small>
+                <strong>오늘의 퀴즈 XP 지급</strong>
+                <small>끄면 오늘의 퀴즈 연습전 정답 XP가 쌓이지 않습니다.</small>
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
@@ -2662,7 +2662,7 @@
         desc: PLACE_DETAILS.notice.desc,
         summary: '',
         announcement: PLACE_DETAILS.notice.features[0]?.value || '',
-        quest: '오늘의 퀴즈를 풀면 정답마다 XP +2와 DJ코인을 받을 수 있어요.',
+        quest: '오늘의 퀴즈 연습전에서 새 정답을 맞히면 XP +2가 추가돼요.',
         recommendedQuizLabel: PLACE_DETAILS.notice.features[2]?.value || '',
         recommendedQuizId: '',
         recommendedQuiz2Label: '',
@@ -2718,7 +2718,7 @@
         summary: '',
         features: [
           { label: '공지', value: data.announcement },
-          { label: '오늘의 퀴즈', value: todayQuizText, note: '정답 보상: XP +2 · DJ코인 지급' }
+          { label: '오늘의 퀴즈', value: todayQuizText, note: '오늘의 퀴즈 XP +2 추가 · DJ코인은 모든 연습전 새 정답에 지급' }
         ],
         hideSummary: true,
         hideStatus: true,
@@ -2735,7 +2735,7 @@
         desc: '경험치와 DJ코인을 얻는 방법입니다.',
         summary: '',
         features: [
-          { label: '연습전', value: '새 문제를 맞히면 XP와 DJ코인을 받을 수 있어요.', note: '기본 보상은 오늘 받을 수 있는 한도가 적용됩니다.' },
+          { label: '연습전', value: '새 문제를 맞히면 DJ코인을 받을 수 있어요.', note: 'DJ코인은 오늘 받을 수 있는 한도가 적용됩니다. 오늘의 퀴즈 연습전은 XP +2가 추가됩니다.' },
           { label: '랭킹전', value: '랭킹전에 참여하고 좋은 기록을 남기면 보상을 받을 수 있어요.', note: '너무 오래 걸린 기록은 랭킹 보상에서 제외될 수 있습니다.' },
           { label: '이벤트 광장', value: '오늘의 퀘스트를 완료하면 XP와 DJ코인을 추가로 받을 수 있어요.', note: '완료 후 이벤트 광장에서 보상 받기를 눌러야 지급됩니다.' },
           { label: '우리 교실', value: '교실 퀘스트, 직업, 루틴, 교환 기능으로 포인트와 DJ코인을 관리할 수 있어요.', note: '교실 기능은 학급 설정과 선생님 승인 상태에 따라 달라집니다.' }
@@ -6920,7 +6920,7 @@
         .map(quizId => QUIZ_CATALOG[quizId]?.title || quizId)
         .filter(Boolean);
       const titleText = titles.length ? titles.join(', ') : '오늘의 퀴즈';
-      return `오늘의 퀴즈: ${titleText}. 연습전에서 풀면 정답마다 XP +2와 DJ코인을 받을 수 있어요.`;
+      return `오늘의 퀴즈: ${titleText}. 연습전에서 새 정답을 맞히면 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.`;
     }
 
     function getTodayQuizShuffleCooldownInfo(flags = getActiveFeatureFlags()) {
