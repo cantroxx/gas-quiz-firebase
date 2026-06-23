@@ -1362,6 +1362,32 @@ h2 {
   outline: none;
 }
 
+.guide-board-button {
+  position: absolute;
+  z-index: 4;
+  top: 68px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid rgba(47, 125, 68, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #22624a;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 900;
+  box-shadow: 0 8px 14px rgba(69, 86, 45, 0.12);
+  cursor: pointer;
+}
+
+.guide-board-button:hover,
+.guide-board-button:focus-visible {
+  transform: translateY(-2px);
+  outline: none;
+}
+
 .my-home {
   right: 20%;
   top: 19%;
@@ -2924,6 +2950,19 @@ h2 {
 
 .home-detail-panel.is-active {
   display: block;
+}
+
+.room-decorator-panel {
+  padding: 14px;
+}
+
+.room-decorator-frame {
+  display: block;
+  width: 100%;
+  height: min(760px, 78vh);
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 14px;
+  background: #dff3ff;
 }
 
 .profile-ranking-message-label {
@@ -7577,6 +7616,7 @@ h2 {
 
   .place,
   .notice-board-button,
+  .guide-board-button,
   .event {
     position: relative;
     inset: auto;
@@ -7589,6 +7629,8 @@ h2 {
   .place:focus-visible,
   .notice-board-button:hover,
   .notice-board-button:focus-visible,
+  .guide-board-button:hover,
+  .guide-board-button:focus-visible,
   .event:hover,
   .event:focus-visible {
     transform: translateY(-3px);

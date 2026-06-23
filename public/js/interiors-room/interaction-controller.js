@@ -95,6 +95,10 @@ export class InteriorsRoomInteractionController {
   }
 
   exitToHome() {
+    if(window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'dj48-close-room-decorator' }, window.location.origin);
+      return;
+    }
     if(window.history.length > 1) {
       window.history.back();
       return;
