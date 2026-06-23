@@ -110,6 +110,9 @@ service cloud.firestore {
         && request.resource.data.totalCount is number
         && request.resource.data.starCount is number
         && request.resource.data.correctIds is list
+        && request.resource.data.badgeCycleSize is number
+        && request.resource.data.badgeProgressCount is number
+        && request.resource.data.badgeCycleProgress is number
         && request.resource.data.keys().hasOnly([
           'recordId',
           'memberUserId',
@@ -126,6 +129,9 @@ service cloud.firestore {
           'correctCount',
           'correctIds',
           'starCount',
+          'badgeCycleSize',
+          'badgeProgressCount',
+          'badgeCycleProgress',
           'completed',
           'firstCompletedAt',
           'lastCompletedAt',
@@ -168,6 +174,9 @@ service cloud.firestore {
         && request.resource.data.totalCount is number
         && request.resource.data.starCount is number
         && request.resource.data.correctIds is list
+        && request.resource.data.badgeCycleSize is number
+        && request.resource.data.badgeProgressCount is number
+        && request.resource.data.badgeCycleProgress is number
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'recordId',
           'memberUserId',
@@ -184,6 +193,9 @@ service cloud.firestore {
           'correctCount',
           'correctIds',
           'starCount',
+          'badgeCycleSize',
+          'badgeProgressCount',
+          'badgeCycleProgress',
           'completed',
           'firstCompletedAt',
           'lastCompletedAt',
@@ -259,6 +271,9 @@ service cloud.firestore {
         && request.resource.data.correct is number
         && request.resource.data.total is number
         && request.resource.data.starCount is number
+        && request.resource.data.badgeCycleSize is number
+        && request.resource.data.badgeProgressCount is number
+        && request.resource.data.badgeCycleProgress is number
         && request.resource.data.progressPercent is number
         && request.resource.data.keys().hasOnly([
           'userId',
@@ -271,6 +286,9 @@ service cloud.firestore {
           'correct',
           'total',
           'starCount',
+          'badgeCycleSize',
+          'badgeProgressCount',
+          'badgeCycleProgress',
           'completed',
           'available',
           'progressPercent',
