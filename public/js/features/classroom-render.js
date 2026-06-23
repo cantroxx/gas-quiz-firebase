@@ -379,7 +379,7 @@
       return button;
     };
 
-    map.className = 'classroom-visual-map';
+    map.className = 'classroom-visual-map classroom-today-card';
     boardSection.className = 'classroom-bulletin-section';
     boardHeading.className = 'classroom-visual-section-title';
     boardHeading.textContent = '우리반 게시판';
@@ -471,7 +471,7 @@
       const button = createNavButton(tabName, teacherTarget);
       const iconEl = document.createElement('span');
       const labelEl = document.createElement('strong');
-      button.classList.add(`classroom-feature-button--${tone}`);
+      button.classList.add('classroom-today-card', `classroom-feature-button--${tone}`);
       iconEl.className = 'classroom-feature-icon';
       iconEl.textContent = icon;
       labelEl.textContent = label;
@@ -490,7 +490,7 @@
       const labelEl = document.createElement('strong');
       const detailEl = document.createElement('small');
       const arrow = document.createElement('span');
-      item.className = `classroom-checklist-item classroom-checklist-item--${tone}`;
+      item.className = `classroom-today-card classroom-checklist-item classroom-checklist-item--${tone}`;
       item.type = 'button';
       item.dataset.classroomTodayTab = tabName;
       if(teacherTarget) item.dataset.classroomTeacherTarget = teacherTarget;
@@ -767,9 +767,10 @@
     });
   }
 
-  function renderClassroomStudentCards(students = [], deps = {}) {
+  function renderClassroomStudentCards(students = [], settings = {}, deps = {}) {
     const grid = document.getElementById('classroom-student-card-grid');
     if(!grid) return;
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     grid.innerHTML = '';
     if(!students.length) {
       renderEmptyClassroomCard(grid, '준비 중', '학생카드를 불러오지 못했습니다', '교실 입장 상태를 확인한 뒤 다시 열어 주세요.');
@@ -792,6 +793,7 @@
       const levelRow = document.createElement('div');
       const metaGrid = document.createElement('div');
       const boostGrid = document.createElement('div');
+      const teacherActions = document.createElement('div');
       const titleChip = document.createElement('span');
       const keyringChip = document.createElement('span');
       const selectedTitleName = student.selectedTitle?.titleName || '';
@@ -891,9 +893,19 @@
         totalBoost.textContent = `획득 +${formatClassroomPoint(student.pointBoostAmount)}P`;
         metaGrid.appendChild(totalBoost);
       }
+      if(canManage) {
+        const adjustButton = document.createElement('button');
+        teacherActions.className = 'classroom-student-teacher-actions';
+        adjustButton.className = 'quest-claim-button';
+        adjustButton.type = 'button';
+        adjustButton.dataset.classroomPointAdjustMemberId = student.memberUserId || '';
+        adjustButton.textContent = '포인트 조정';
+        teacherActions.appendChild(adjustButton);
+      }
       card.append(badge, balanceRow, identity);
       if(metaGrid.children.length) card.appendChild(metaGrid);
       if(boostGrid.children.length) card.appendChild(boostGrid);
+      if(teacherActions.children.length) card.appendChild(teacherActions);
       grid.appendChild(card);
     });
   }
@@ -1535,7 +1547,7 @@
     renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
     renderClassroomQuestCards(settings, data.progressMap || {}, deps);
     renderClassroomInactiveQuestCards(settings, deps);
-    renderClassroomStudentCards(data.studentCards || [], deps);
+    renderClassroomStudentCards(data.studentCards || [], settings, deps);
     renderClassroomGemSummary(data.gemProgress || [], settings);
     renderClassroomGemCards(data.gemProgress || []);
     renderClassroomJobSummary(settings, economyBoard, deps);

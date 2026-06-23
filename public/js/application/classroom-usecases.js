@@ -215,6 +215,10 @@
     if(functionName === 'setClassroomShopPurchaseEquipped') {
       return result.equipped ? '학생카드에 아이템을 장착했습니다.' : '학생카드 아이템 장착을 해제했습니다.';
     }
+    if(functionName === 'adjustClassroomStudentPoint') {
+      const delta = Number(result.delta || 0);
+      return `${delta > 0 ? '+' : ''}${delta.toLocaleString('ko-KR')} 포인트를 조정했습니다.`;
+    }
     if(functionName === 'approveClassroomShopPurchaseUse') {
       return result.duplicate ? '이미 처리된 요청입니다.' : '쿠폰 사용을 승인했습니다.';
     }
@@ -266,6 +270,7 @@
     claimClassroomJobSalary: { payloadKey: 'assignmentId', progressText: '지급 중...' },
     purchaseClassroomShopItem: { payloadKey: 'itemId', progressText: '구매 중...' },
     setClassroomShopPurchaseEquipped: { payloadKey: 'purchaseId', progressText: '장착 중...' },
+    adjustClassroomStudentPoint: { payloadKey: 'targetMemberUserId', progressText: '조정 중...' },
     requestClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '요청 중...' },
     approveClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '승인 중...' },
     completeClassroomShopPurchaseUse: { payloadKey: 'purchaseId', progressText: '완료 중...' },

@@ -367,9 +367,11 @@ async function ensureProfileDetailPanelOpen(page, toggle) {
   await toggle.waitFor({ state: 'visible', timeout: 15000 });
   const detailKey = await toggle.getAttribute('data-profile-detail-toggle');
   const expanded = await toggle.getAttribute('aria-expanded');
-  if(expanded !== 'true') await toggle.click();
+  const panel = detailKey ? page.locator(`[data-profile-detail-panel="${detailKey}"]`) : null;
+  const panelVisible = panel ? await panel.isVisible().catch(() => false) : true;
+  if(expanded !== 'true' || !panelVisible) await toggle.click();
   if(detailKey) {
-    await page.locator(`[data-profile-detail-panel="${detailKey}"]`).waitFor({ state: 'visible', timeout: 15000 });
+    await panel.waitFor({ state: 'visible', timeout: 15000 });
   }
 }
 
@@ -507,6 +509,13 @@ async function runFeatureEntryChecks(page) {
   await page.locator('#classroom-today-grid').waitFor({ state: 'visible', timeout: 15000 });
   assert.ok(await page.locator('#classroom-today-grid .classroom-today-card').count() >= 6, 'classroom today cards should render');
   assert.ok(await page.locator('#classroom-today-grid [data-classroom-today-tab]').count() >= 3, 'classroom today shortcuts should render');
+  if(await page.locator('[data-classroom-tab="classroom"]').count()) {
+    await page.click('[data-classroom-tab="classroom"]');
+  }
+  if(await page.locator('[data-classroom-subtab="quest"]').count()) {
+    await page.locator('[data-classroom-subtab="quest"]').waitFor({ state: 'visible', timeout: 15000 });
+    await page.click('[data-classroom-subtab="quest"]');
+  }
   await page.locator('#classroom-quest-grid').waitFor({ state: 'visible', timeout: 15000 });
   await page.click('[data-classroom-tab="gems"]');
   await page.locator('#classroom-gem-summary').waitFor({ state: 'visible', timeout: 15000 });

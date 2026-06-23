@@ -961,6 +961,12 @@ function assertAccessCodeMatches(accessCode, accessData) {
   }
 }
 
+function isClassroomStudentCardVisible(memberUserId, memberData = {}) {
+  if(memberData.classroomHidden === true || memberData.hiddenFromClassroom === true) return false;
+  if(memberData.classroomHidden === false || memberData.hiddenFromClassroom === false) return true;
+  return !HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS.has(String(memberUserId || "").trim());
+}
+
 function publicMemberProfile(memberId, memberData) {
   return {
     userId: memberId,
@@ -971,7 +977,8 @@ function publicMemberProfile(memberId, memberData) {
     studentNumber: memberData.studentNumber || null,
     role: memberData.role || "",
     status: memberData.status || "",
-    active: memberData.active === true
+    active: memberData.active === true,
+    classroomHidden: !isClassroomStudentCardVisible(memberId, memberData)
   };
 }
 
@@ -2002,10 +2009,6 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary
       color: String(profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
     }
   };
-}
-
-function isClassroomStudentCardVisible(memberUserId) {
-  return !HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS.has(String(memberUserId || "").trim());
 }
 
 function getKstDateKey(date = new Date()) {
@@ -3301,7 +3304,8 @@ function publicAdminMemberRow(doc) {
     authLinked: !!data.authUid,
     passwordMode: data.passwordMode || "",
     initialPasswordChanged: data.initialPasswordChanged === true,
-    updatedAt: data.updatedAt || null
+    updatedAt: data.updatedAt || null,
+    classroomHidden: !isClassroomStudentCardVisible(userId, data)
   };
 }
 
@@ -4342,6 +4346,47 @@ exports.adminUpdateMemberStatus = onCall({ region: REGION }, async request => {
   return { success: true, memberUserId, status: nextStatus, active: nextStatus === "active" };
 });
 
+exports.adminUpdateMemberVisibility = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const classroomHidden = payload.classroomHidden === true;
+
+  const result = await db.runTransaction(async transaction => {
+    const memberRef = db.collection("users").doc(memberUserId);
+    const memberSnapshot = await transaction.get(memberRef);
+    if (!memberSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+    const before = memberSnapshot.data() || {};
+    assertAdminCanAccessMember(adminMember, memberUserId, before);
+    if (before.role === "admin") {
+      throw new HttpsError("failed-precondition", "Admin members cannot be hidden from classroom cards.");
+    }
+    transaction.set(memberRef, {
+      classroomHidden,
+      hiddenFromClassroom: classroomHidden,
+      classroomHiddenUpdatedAt: FieldValue.serverTimestamp(),
+      classroomHiddenUpdatedBy: adminMember.memberUserId,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return {
+      before,
+      beforeHidden: !isClassroomStudentCardVisible(memberUserId, before)
+    };
+  });
+
+  await writeAdminLog({
+    adminUserId: adminMember.memberUserId,
+    action: "adminUpdateMemberVisibility",
+    targetUserId: memberUserId,
+    before: { classroomHidden: result.beforeHidden },
+    after: { classroomHidden },
+    reason: String(payload.reason || "classroom visibility update")
+  });
+
+  return { success: true, memberUserId, classroomHidden };
+});
+
 exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -5166,7 +5211,7 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
       return data.role === "student"
         && data.status === "active"
         && data.active === true
-        && isClassroomStudentCardVisible(doc.id)
+        && isClassroomStudentCardVisible(doc.id, data)
         && String(data.grade || "") === String(settings.grade || "")
         && String(data.classNumber || "") === String(settings.classNumber || "");
     })
@@ -5727,6 +5772,93 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     taxPresets,
     classroomGems,
     myAssignment: assignments.find(item => item.memberUserId === memberUserId && item.status === "active") || null
+  };
+});
+
+exports.adjustClassroomStudentPoint = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const targetMemberUserId = normalizeId(payload.targetMemberUserId, "targetMemberUserId");
+  const delta = Math.round(Number(payload.delta));
+  const reason = String(payload.reason || "").trim().slice(0, 160);
+  if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 10000) {
+    throw new HttpsError("invalid-argument", "delta must be between -10000 and 10000, excluding zero.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const [teacherLink, classroomResult] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, authUid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    const settings = classroomResult.settings;
+    assertMemberCanEnterClassroom(teacherLink, settings);
+    assertAdminCanManageClassroom(adminMember, settings);
+    const targetRef = db.collection("users").doc(targetMemberUserId);
+    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(targetMemberUserId);
+    const logId = rewardLogId(["teacher_point_adjust", classId, Date.now(), adminMember.memberUserId, targetMemberUserId]);
+    const logRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
+    const [targetSnapshot, walletSnapshot] = await Promise.all([
+      transaction.get(targetRef),
+      transaction.get(walletRef)
+    ]);
+    if (!targetSnapshot.exists) throw new HttpsError("not-found", "Target student not found.");
+    const target = targetSnapshot.data() || {};
+    assertActiveStudent(target);
+    if (String(target.grade || "") !== String(settings.grade || "") || String(target.classNumber || "") !== String(settings.classNumber || "")) {
+      throw new HttpsError("permission-denied", "Target student is outside this classroom.");
+    }
+    const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
+    const beforePoint = getClassroomPointAmount(wallet);
+    const afterPoint = roundClassroomPoint(beforePoint + delta);
+    if (afterPoint < 0) {
+      throw new HttpsError("failed-precondition", "Classroom point cannot become negative.");
+    }
+    transaction.set(walletRef, {
+      memberUserId: targetMemberUserId,
+      userId: targetMemberUserId,
+      classId,
+      point: afterPoint,
+      teacherAdjustedPoint: FieldValue.increment(delta),
+      lastTeacherAdjustmentDelta: delta,
+      lastTeacherAdjustedBy: adminMember.memberUserId,
+      lastTeacherAdjustmentReason: reason,
+      updatedAt: FieldValue.serverTimestamp(),
+      teacherAdjustedAt: FieldValue.serverTimestamp(),
+      source: "adjust_classroom_student_point_function"
+    }, { merge: true });
+    transaction.set(logRef, {
+      logId,
+      type: "teacher_point_adjustment",
+      classId,
+      memberUserId: targetMemberUserId,
+      userId: targetMemberUserId,
+      targetMemberUserId,
+      adjustedBy: adminMember.memberUserId,
+      teacherMemberUserId: memberUserId,
+      rewardCurrency: "point",
+      rewardPoint: delta,
+      rewardAmount: delta,
+      beforePoint,
+      afterPoint,
+      reason,
+      source: "adjust_classroom_student_point_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { beforePoint, afterPoint, logId };
+  });
+
+  return {
+    success: true,
+    classId,
+    memberUserId,
+    targetMemberUserId,
+    delta,
+    beforePoint: result.beforePoint,
+    afterPoint: result.afterPoint,
+    logId: result.logId
   };
 });
 

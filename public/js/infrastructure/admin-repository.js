@@ -22,6 +22,12 @@
     } else if(action === 'activate') {
       callableName = 'adminUpdateMemberStatus';
       payload.status = 'active';
+    } else if(action === 'hideClassroom') {
+      callableName = 'adminUpdateMemberVisibility';
+      payload.classroomHidden = true;
+    } else if(action === 'showClassroom') {
+      callableName = 'adminUpdateMemberVisibility';
+      payload.classroomHidden = false;
     } else {
       throw new Error('unsupported-admin-action');
     }

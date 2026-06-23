@@ -145,6 +145,12 @@
       deps.restoreClassroomQuest?.(restoreButton.dataset.classroomQuestRestoreId || '', restoreButton);
     });
 
+    document.getElementById('classroom-student-card-grid')?.addEventListener('click', event => {
+      const adjustButton = event.target.closest('[data-classroom-point-adjust-member-id]');
+      if(!adjustButton || adjustButton.disabled) return;
+      deps.adjustClassroomStudentPoint?.(adjustButton.dataset.classroomPointAdjustMemberId || '', adjustButton);
+    });
+
     document.getElementById('classroom-gem-grid')?.addEventListener('click', event => {
       const button = event.target.closest('[data-classroom-badge-gem-id]');
       if(!button || button.disabled) return;

@@ -271,13 +271,14 @@
       const unlinkButton = document.createElement('button');
       const statusButton = document.createElement('button');
       const walletButton = document.createElement('button');
+      const visibilityButton = document.createElement('button');
 
       card.className = 'admin-member-card';
       card.dataset.memberUserId = member.userId;
       title.textContent = `${member.nickname || '이름 없음'} · ${member.userId}`;
       meta.textContent = `${member.school || '동자'} ${member.grade || '-'}학년 ${member.classNumber || '-'}반 ${member.studentNumber || '-'}번`;
       state.className = 'admin-member-state';
-      state.textContent = `${member.role === 'admin' ? (member.adminLevel === 'classAdmin' ? `반 관리자 ${member.adminScopeGrade || member.grade || '-'}-${member.adminScopeClassNumber || member.classNumber || '-'}` : '관리자') : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}`;
+      state.textContent = `${member.role === 'admin' ? (member.adminLevel === 'classAdmin' ? `반 관리자 ${member.adminScopeGrade || member.grade || '-'}-${member.adminScopeClassNumber || member.classNumber || '-'}` : '관리자') : '학생'} · ${member.status || 'unknown'} · ${member.authLinked ? '연결됨' : '연결 없음'}${member.classroomHidden ? ' · 교실 숨김' : ''}`;
       passwordState.className = 'admin-member-password-state';
       passwordState.textContent = getAdminPasswordStateLabel(member);
       detailButton.type = 'button';
@@ -302,8 +303,13 @@
       walletButton.className = 'admin-action-button';
       walletButton.dataset.adminAction = member.role === 'admin' ? 'adjustAdminWallet' : 'adjustWallet';
       walletButton.textContent = member.role === 'admin' ? '관리자 코인 조정' : '재화 조정';
+      visibilityButton.type = 'button';
+      visibilityButton.className = 'admin-action-button';
+      visibilityButton.dataset.adminAction = member.classroomHidden ? 'showClassroom' : 'hideClassroom';
+      visibilityButton.disabled = member.role === 'admin';
+      visibilityButton.textContent = member.classroomHidden ? '교실 표시' : '교실 숨김';
       actions.className = 'admin-member-actions';
-      actions.append(detailButton, walletButton, resetButton, unlinkButton, statusButton);
+      actions.append(detailButton, walletButton, visibilityButton, resetButton, unlinkButton, statusButton);
       main.append(title, meta, state, passwordState);
       card.append(main, actions);
       root.appendChild(card);

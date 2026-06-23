@@ -1569,6 +1569,7 @@
                 <option value="">전체</option>
                 <option value="adminResetMemberPassword">비밀번호 초기화</option>
                 <option value="adminUpdateMemberStatus">회원 상태 변경</option>
+                <option value="adminUpdateMemberVisibility">교실 표시 설정</option>
                 <option value="adminUnlinkMemberAuth">연결 해제</option>
                 <option value="adminUpdateNoticeBoard">알림판 수정</option>
                 <option value="adminUpdateExternalQuizzes">외부 퀴즈 수정</option>
@@ -6019,6 +6020,21 @@
       return runClassroomEconomyAction('claimClassroomJobSalary', assignmentId, button);
     }
 
+    async function adjustClassroomStudentPoint(targetMemberUserId, button) {
+      const rawDelta = askClassroomActionMemo('조정할 포인트를 입력하세요. 예: 50 또는 -20');
+      if(!rawDelta) return null;
+      const delta = Math.round(Number(rawDelta.replace(/,/g, '')));
+      if(!Number.isFinite(delta) || delta === 0) {
+        window.alert('0이 아닌 숫자를 입력해 주세요.');
+        return null;
+      }
+      const reason = askClassroomActionMemo('조정 사유를 입력하세요. 로그에 남습니다.');
+      return runClassroomEconomyAction('adjustClassroomStudentPoint', targetMemberUserId, button, {
+        delta,
+        reason
+      });
+    }
+
     async function purchaseClassroomShopItem(itemId, button) {
       return runClassroomEconomyAction('purchaseClassroomShopItem', itemId, button);
     }
@@ -6453,7 +6469,9 @@
         resetPassword: '비밀번호를 임시 비밀번호로 초기화할까요?',
         unlinkAuth: '현재 브라우저 연결을 해제할까요?',
         deactivate: '이 회원을 비활성화할까요?',
-        activate: '이 회원을 활성화할까요?'
+        activate: '이 회원을 활성화할까요?',
+        hideClassroom: '이 학생을 교실 학생카드에서 숨길까요?',
+        showClassroom: '이 학생을 교실 학생카드에 다시 표시할까요?'
       };
       if(!window.confirm(`${memberUserId}\n${labels[action] || '처리할까요?'}`)) return;
       setAdminStatus('관리자 작업을 처리하는 중입니다...');
@@ -6957,6 +6975,7 @@
       return {
         adminResetMemberPassword: '비밀번호 초기화',
         adminUpdateMemberStatus: '회원 상태 변경',
+        adminUpdateMemberVisibility: '교실 표시 설정',
         adminUnlinkMemberAuth: '연결 해제',
         adminUpdateNoticeBoard: '알림판 수정',
         adminUpdateExternalQuizzes: '외부 퀴즈 수정',
@@ -7816,6 +7835,7 @@
         assignClassroomJob,
         releaseClassroomJob,
         claimClassroomJobSalary,
+        adjustClassroomStudentPoint,
         purchaseClassroomShopItem,
         setClassroomShopPurchaseEquipped,
         requestClassroomShopPurchaseUse,

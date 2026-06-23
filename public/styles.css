@@ -6152,6 +6152,18 @@ h2 {
   margin-top: 8px;
 }
 
+.classroom-student-teacher-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.classroom-student-teacher-actions .quest-claim-button {
+  min-height: 32px;
+  padding: 7px 12px;
+  font-size: 0.78rem;
+}
+
 .classroom-student-boost-icon {
   display: inline-grid;
   place-items: center;
