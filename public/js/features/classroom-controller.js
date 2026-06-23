@@ -95,6 +95,17 @@
       const button = event.target.closest('[data-classroom-today-tab]');
       if(!button || button.disabled) return;
       deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
+      if(button.dataset.classroomSubtabTarget) {
+        const nextTab = button.dataset.classroomSubtabTarget;
+        document.querySelectorAll('[data-classroom-subtab]').forEach(tab => {
+          const active = tab.dataset.classroomSubtab === nextTab;
+          tab.classList.toggle('is-active', active);
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        document.querySelectorAll('[data-classroom-subpane]').forEach(pane => {
+          pane.classList.toggle('is-active', pane.dataset.classroomSubpane === nextTab);
+        });
+      }
       if(button.dataset.classroomTeacherTarget) {
         document.getElementById(button.dataset.classroomTeacherTarget)?.scrollIntoView({
           block: 'start',

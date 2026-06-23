@@ -256,11 +256,20 @@
       return `${Number(result.spentCoin || 0).toLocaleString('ko-KR')} DJ코인을 ${Number(result.receivedPoint || 0).toLocaleString('ko-KR')} 포인트로 교환했습니다.`;
     }
     if(functionName === 'checkClassroomRoutine') {
+      if(result.completed) return '이미 담임 검토가 완료된 루틴입니다.';
       if(result.duplicate) return '오늘 이미 체크한 루틴입니다.';
-      if(result.completed) return `목표를 달성해 ${Number(result.rewardAmount || 0)} 포인트를 받았습니다.`;
-      return '오늘 체크했습니다.';
+      if(result.targetReached) return '오늘 체크했습니다. 목표 횟수를 채웠고, 기간 종료 후 담임 검토를 기다립니다.';
+      return '오늘 체크했습니다. 보상은 기간 종료 후 담임 검토로 정해집니다.';
     }
     return '';
+  }
+
+  function isClassroomQuestOpenForMember(quest = {}, memberUserId = '', todayKey = '') {
+    const targetIds = Array.isArray(quest.targetStudentIds) ? quest.targetStudentIds.map(String) : [];
+    if(targetIds.length && !targetIds.includes(String(memberUserId || ''))) return false;
+    if(quest.startDate && todayKey && todayKey < String(quest.startDate)) return false;
+    if(quest.endDate && todayKey && todayKey > String(quest.endDate)) return false;
+    return true;
   }
 
   const CLASSROOM_ECONOMY_ACTIONS = {
@@ -424,6 +433,11 @@
     if(!options.memberUserId) {
       deps.alert?.('회원 연결 후 교실 퀘스트를 저장할 수 있어요.');
       return { skipped: true, reason: 'member-required' };
+    }
+    const todayKey = deps.getTodayDateKey?.() || '';
+    if(!isClassroomQuestOpenForMember(quest, options.memberUserId, todayKey)) {
+      deps.alert?.('지금 완료할 수 없는 교실 퀘스트입니다.');
+      return { skipped: true, reason: 'quest-not-open' };
     }
 
     try {

@@ -5193,6 +5193,31 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
 }
 
+.classroom-picker-toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.classroom-picker-toolbar button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(84, 105, 132, 0.18);
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #18314f;
+  font-size: 0.85rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.classroom-picker-toolbar button:hover,
+.classroom-picker-toolbar button:focus-visible {
+  border-color: rgba(47, 125, 68, 0.28);
+  background: #edf8f1;
+}
+
 .classroom-picker-grid label {
   display: flex;
   align-items: center;
@@ -5356,6 +5381,10 @@ h2 {
   font-size: 0.9rem;
 }
 
+.classroom-routine-group-heading {
+  grid-column: 1 / -1;
+}
+
 .classroom-review-actions {
   display: flex;
   flex-wrap: wrap;
@@ -5373,6 +5402,60 @@ h2 {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
   margin: 4px 0 18px;
+}
+
+.classroom-grownd-overview {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.classroom-overview-card {
+  display: grid;
+  grid-template-rows: 34px auto auto 1fr;
+  gap: 5px;
+  min-width: 0;
+  min-height: 132px;
+  padding: 12px;
+  border: 2px solid #d6e0d4;
+  border-bottom-width: 5px;
+  border-radius: 12px;
+  background: #fff;
+  color: #0b1c30;
+}
+
+.classroom-overview-icon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.classroom-overview-card span,
+.classroom-overview-card strong,
+.classroom-overview-card p {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.classroom-overview-card span {
+  color: #66768a;
+  font-size: 0.74rem;
+  font-weight: 950;
+}
+
+.classroom-overview-card strong {
+  color: #143254;
+  font-size: 1rem;
+  font-weight: 1000;
+}
+
+.classroom-overview-card p {
+  color: #3d4a3e;
+  font-size: 0.78rem;
+  font-weight: 820;
+  line-height: 1.35;
 }
 
 .classroom-tab {
@@ -5520,6 +5603,43 @@ h2 {
 .classroom-today-grid {
   display: block;
   margin-bottom: 14px;
+}
+
+.classroom-profile-snapshot {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(84, 105, 132, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.classroom-profile-snapshot span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.classroom-profile-snapshot small,
+.classroom-profile-snapshot strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.classroom-profile-snapshot small {
+  color: #66768a;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.classroom-profile-snapshot strong {
+  color: #143254;
+  font-size: 0.95rem;
+  font-weight: 1000;
 }
 
 .classroom-visual-map {
@@ -7977,6 +8097,10 @@ h2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .classroom-grownd-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .classroom-tabs,
   .classroom-subtab-bar--five,
   .classroom-subtab-bar--four {
@@ -8421,6 +8545,7 @@ h2 {
   }
 
   .classroom-bulletin-notes,
+  .classroom-profile-snapshot,
   .classroom-feature-grid,
   .classroom-notice-slot-list,
   .classroom-notice-form {

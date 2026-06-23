@@ -409,10 +409,11 @@
             <strong id="classroom-summary-point-count">0</strong>
           </article>
         </div>
+        <div id="classroom-grownd-overview" class="classroom-grownd-overview" aria-label="교실 경제 요약"></div>
 
         <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
-          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">오늘</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">교실</button>
+          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">대시보드</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">학생카드</button>
           <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
           <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
           <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
@@ -525,6 +526,10 @@
                 <input id="classroom-quest-coin-input" type="number" min="1" max="1000" inputmode="numeric" value="5">
               </label>
               <label>
+                카테고리
+                <input id="classroom-quest-category-input" type="text" maxlength="30" placeholder="예: 일과, 독서, 젬스톤">
+              </label>
+              <label>
                 보상 방식
                 <select id="classroom-quest-mode-input">
                   <option value="auto">학생 완료 즉시 지급</option>
@@ -534,9 +539,17 @@
               </label>
               <label>
                 대상 학생
-                <input id="classroom-quest-targets-input" type="text" maxlength="160" placeholder="예: G4-C8-N1, G4-C8-N2 / 비우면 전체">
+                <input id="classroom-quest-targets-input" type="text" maxlength="160" placeholder="비우면 전체 학생">
               </label>
               <div id="classroom-quest-target-picker" class="classroom-picker-grid" aria-label="대상 학생 선택"></div>
+              <label>
+                노출 시작일
+                <input id="classroom-quest-start-input" type="date">
+              </label>
+              <label>
+                노출 종료일
+                <input id="classroom-quest-end-input" type="date">
+              </label>
               <label>
                 반복 설정
                 <select id="classroom-quest-repeat-input">
@@ -547,15 +560,15 @@
               </label>
               <label>
                 연결 젬
-                <input id="classroom-quest-gem-name-input" type="text" maxlength="40" placeholder="예: 일기젬">
+                <input id="classroom-quest-gem-name-input" type="text" maxlength="40" placeholder="젬 목록에서 선택하거나 직접 입력">
               </label>
               <div id="classroom-quest-gem-picker" class="classroom-picker-grid classroom-picker-grid--compact" aria-label="연결 젬 선택"></div>
               <label>
-                젬 경험치
-                <input id="classroom-quest-gem-xp-input" type="number" min="0" max="100" inputmode="numeric" value="0">
+                젬 누적
+                <input id="classroom-quest-gem-xp-input" type="number" min="1" max="100" inputmode="numeric" value="1">
               </label>
               <label>
-                젬 목표 경험치
+                젬 달성 조건
                 <input id="classroom-quest-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
               </label>
               <label>
@@ -644,7 +657,7 @@
               <form id="classroom-mission-form" class="classroom-quest-form">
                 <label>
                   미션 이름
-                  <input id="classroom-mission-title-input" type="text" maxlength="50" value="학급 포인트 미션">
+                  <input id="classroom-mission-title-input" type="text" maxlength="50" value="학급 미션">
                 </label>
                 <label>
                   설명
@@ -652,7 +665,7 @@
                 </label>
                 <label>
                   목표 1 표시명
-                  <input id="classroom-mission-label-1" type="text" maxlength="30" placeholder="예: 2,000점">
+                  <input id="classroom-mission-label-1" type="text" maxlength="30" value="2,000점" placeholder="예: 2,000점">
                 </label>
                 <label>
                   목표 1 포인트
@@ -660,11 +673,11 @@
                 </label>
                 <label>
                   목표 1 메모
-                  <input id="classroom-mission-reward-1" type="text" maxlength="80" placeholder="예: 학급 간식 후보 열기">
+                  <input id="classroom-mission-reward-1" type="text" maxlength="80" value="자유 체육(장소는 가능한 곳으로)" placeholder="예: 자유 체육">
                 </label>
                 <label>
                   목표 2 표시명
-                  <input id="classroom-mission-label-2" type="text" maxlength="30" placeholder="예: 4,000점">
+                  <input id="classroom-mission-label-2" type="text" maxlength="30" value="4,000점" placeholder="예: 4,000점">
                 </label>
                 <label>
                   목표 2 포인트
@@ -672,11 +685,11 @@
                 </label>
                 <label>
                   목표 2 메모
-                  <input id="classroom-mission-reward-2" type="text" maxlength="80" placeholder="예: 공동 이벤트 열기">
+                  <input id="classroom-mission-reward-2" type="text" maxlength="80" value="놀이터(1시간)" placeholder="예: 놀이터">
                 </label>
                 <label>
                   목표 3 표시명
-                  <input id="classroom-mission-label-3" type="text" maxlength="30" placeholder="예: 6,000점">
+                  <input id="classroom-mission-label-3" type="text" maxlength="30" value="6,000점" placeholder="예: 6,000점">
                 </label>
                 <label>
                   목표 3 포인트
@@ -684,31 +697,31 @@
                 </label>
                 <label>
                   목표 3 메모
-                  <input id="classroom-mission-reward-3" type="text" maxlength="80" placeholder="예: 특별 보상 달성">
+                  <input id="classroom-mission-reward-3" type="text" maxlength="80" value="영화(연령 제한 준수)" placeholder="예: 영화">
                 </label>
                 <label>
                   목표 4 표시명
-                  <input id="classroom-mission-label-4" type="text" maxlength="30" placeholder="선택 입력">
+                  <input id="classroom-mission-label-4" type="text" maxlength="30" value="8,000점" placeholder="선택 입력">
                 </label>
                 <label>
                   목표 4 포인트
-                  <input id="classroom-mission-target-4" type="number" min="0" max="1000000" inputmode="numeric" value="0">
+                  <input id="classroom-mission-target-4" type="number" min="0" max="1000000" inputmode="numeric" value="8000">
                 </label>
                 <label>
                   목표 4 메모
-                  <input id="classroom-mission-reward-4" type="text" maxlength="80" placeholder="선택 입력">
+                  <input id="classroom-mission-reward-4" type="text" maxlength="80" value="파티(2시간 이내)" placeholder="선택 입력">
                 </label>
                 <label>
                   목표 5 표시명
-                  <input id="classroom-mission-label-5" type="text" maxlength="30" placeholder="선택 입력">
+                  <input id="classroom-mission-label-5" type="text" maxlength="30" value="10,000점" placeholder="선택 입력">
                 </label>
                 <label>
                   목표 5 포인트
-                  <input id="classroom-mission-target-5" type="number" min="0" max="1000000" inputmode="numeric" value="0">
+                  <input id="classroom-mission-target-5" type="number" min="0" max="1000000" inputmode="numeric" value="10000">
                 </label>
                 <label>
                   목표 5 메모
-                  <input id="classroom-mission-reward-5" type="text" maxlength="80" placeholder="선택 입력">
+                  <input id="classroom-mission-reward-5" type="text" maxlength="80" value="1일 자유시간" placeholder="선택 입력">
                 </label>
                 <label>
                   목표 6 표시명
@@ -938,11 +951,11 @@
               <form id="classroom-exchange-form" class="classroom-quest-form">
                 <label>
                   포인트 → DJ코인 비용
-                  <input id="classroom-exchange-point-cost-input" type="number" min="1" max="1000000" inputmode="numeric" value="10">
+                  <input id="classroom-exchange-point-cost-input" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" value="3">
                 </label>
                 <label>
                   DJ코인 → 포인트 지급
-                  <input id="classroom-exchange-coin-reward-input" type="number" min="1" max="1000000" inputmode="numeric" value="10">
+                  <input id="classroom-exchange-coin-reward-input" type="number" min="0.01" max="1000000" step="0.01" inputmode="decimal" value="0.5">
                 </label>
                 <label class="classroom-checkbox-label">
                   <input id="classroom-exchange-point-to-coin-enabled-input" type="checkbox" checked>
@@ -1062,7 +1075,7 @@
             <button class="classroom-subtab is-active" type="button" data-classroom-subtab="student-card" aria-selected="true">학생카드</button>
             <button class="classroom-subtab" type="button" data-classroom-subtab="quest" aria-selected="false">교실 퀘스트</button>
             <button class="classroom-subtab" type="button" data-classroom-subtab="routine" aria-selected="false">성장루틴</button>
-            <button class="classroom-subtab" type="button" data-classroom-subtab="mission" aria-selected="false">학급 포인트 미션</button>
+            <button class="classroom-subtab" type="button" data-classroom-subtab="mission" aria-selected="false">학급 미션</button>
             <button class="classroom-subtab" type="button" data-classroom-subtab="bank" aria-selected="false">학급 은행</button>
           </div>
           <div class="classroom-subsection-grid">
@@ -1868,6 +1881,23 @@
       entryCode: '4822',
       teacherName: '담임 설정 예정',
       teacherScope: '4학년 8반',
+      classMission: {
+        title: '학급 미션',
+        desc: '우리반 학생 포인트 총합으로 달성하는 단체 목표',
+        thresholds: [
+          { label: '2,000점', targetPoint: 2000, rewardText: '자유 체육(장소는 가능한 곳으로)' },
+          { label: '4,000점', targetPoint: 4000, rewardText: '놀이터(1시간)' },
+          { label: '6,000점', targetPoint: 6000, rewardText: '영화(연령 제한 준수)' },
+          { label: '8,000점', targetPoint: 8000, rewardText: '파티(2시간 이내)' },
+          { label: '10,000점', targetPoint: 10000, rewardText: '1일 자유시간' }
+        ]
+      },
+      exchangeSettings: {
+        pointToCoinEnabled: true,
+        coinToPointEnabled: true,
+        pointToCoinPointCost: 3,
+        coinToPointReward: 0.5
+      },
       quests: [
         {
           id: 'desk-check',
@@ -5703,6 +5733,7 @@
         validateValues: values => {
           if(!values.title) return '퀘스트 이름을 입력해 주세요.';
           if(values.rewardCoin <= 0) return '지급 포인트는 1 이상이어야 합니다.';
+          if(values.startDate && values.endDate && values.startDate > values.endDate) return '노출 종료일은 시작일 이후여야 합니다.';
           return '';
         },
         save: options => getClassroomRepository().saveClassroomQuest(options),
@@ -6023,7 +6054,7 @@
         loadClassroomSettings,
         isCurrentClassroomTeacher,
         getValues: getClassroomExchangeSettingsFormValues,
-        validateValues: values => values.pointToCoinPointCost > 0 && values.coinToPointReward > 0 ? '' : '교환 비율은 1 이상이어야 합니다.',
+        validateValues: values => values.pointToCoinPointCost > 0 && values.coinToPointReward > 0 ? '' : '교환 비율은 0보다 커야 합니다.',
         save: options => getClassroomRepository().saveClassroomExchangeSettings(options),
         resetCaches: resetClassroomDataCaches,
         setStatus: setClassroomExchangeStatus,
@@ -6254,6 +6285,7 @@
         loadClassroomSettings,
         findClassroomQuest: window.DJ48ClassroomData.findClassroomQuest,
         getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
+        getTodayDateKey: getKstDateKey,
         getQuestActionButton: id => document.querySelector(`[data-classroom-quest-action="${id}"]`),
         completeAutoQuest: options => getClassroomRepository().completeClassroomAutoQuest(options),
         saveManualQuestProgress: options => getClassroomRepository().saveClassroomManualQuestProgress(options),

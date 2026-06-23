@@ -48,18 +48,24 @@
   function getClassroomQuestFormValues(deps = {}) {
     const linkedGemName = String(document.getElementById('classroom-quest-gem-name-input')?.value || '').trim();
     const targetText = String(document.getElementById('classroom-quest-targets-input')?.value || '').trim();
+    const targetStudentIds = targetText === '대상 없음'
+      ? ['__none__']
+      : targetText.split(',').map(value => value.trim()).filter(Boolean);
     return {
       id: String(document.getElementById('classroom-quest-id-input')?.value || '').trim(),
       title: String(document.getElementById('classroom-quest-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-quest-desc-input')?.value || '').trim(),
       rewardCoin: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-coin-input')?.value) || 0)),
       rewardCurrency: 'point',
+      category: String(document.getElementById('classroom-quest-category-input')?.value || '').trim(),
       rewardMode: String(document.getElementById('classroom-quest-mode-input')?.value || 'auto').trim(),
-      targetStudentIds: targetText.split(',').map(value => value.trim()).filter(Boolean),
+      startDate: String(document.getElementById('classroom-quest-start-input')?.value || '').trim(),
+      endDate: String(document.getElementById('classroom-quest-end-input')?.value || '').trim(),
+      targetStudentIds,
       repeatRule: String(document.getElementById('classroom-quest-repeat-input')?.value || 'once').trim(),
       linkedGemName,
       linkedGemId: deps.slugifyClassroomGemId?.(linkedGemName) || '',
-      gemXp: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-xp-input')?.value) || 0)),
+      gemXp: linkedGemName ? Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-xp-input')?.value) || 1)) : 0,
       gemTargetXp: Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10)),
       gemRewardPoint: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0)),
       active: true
@@ -71,8 +77,11 @@
     const title = document.getElementById('classroom-quest-title-input');
     const desc = document.getElementById('classroom-quest-desc-input');
     const coin = document.getElementById('classroom-quest-coin-input');
+    const category = document.getElementById('classroom-quest-category-input');
     const mode = document.getElementById('classroom-quest-mode-input');
     const targets = document.getElementById('classroom-quest-targets-input');
+    const start = document.getElementById('classroom-quest-start-input');
+    const end = document.getElementById('classroom-quest-end-input');
     const repeat = document.getElementById('classroom-quest-repeat-input');
     const gemName = document.getElementById('classroom-quest-gem-name-input');
     const gemXp = document.getElementById('classroom-quest-gem-xp-input');
@@ -82,11 +91,14 @@
     if(title) title.value = '';
     if(desc) desc.value = '';
     if(coin) coin.value = '5';
+    if(category) category.value = '';
     if(mode) mode.value = 'auto';
     if(targets) targets.value = '';
+    if(start) start.value = '';
+    if(end) end.value = '';
     if(repeat) repeat.value = 'once';
     if(gemName) gemName.value = '';
-    if(gemXp) gemXp.value = '0';
+    if(gemXp) gemXp.value = '1';
     if(gemTarget) gemTarget.value = '10';
     if(gemReward) gemReward.value = '30';
   }
@@ -96,8 +108,11 @@
     const title = document.getElementById('classroom-quest-title-input');
     const desc = document.getElementById('classroom-quest-desc-input');
     const coin = document.getElementById('classroom-quest-coin-input');
+    const category = document.getElementById('classroom-quest-category-input');
     const mode = document.getElementById('classroom-quest-mode-input');
     const targets = document.getElementById('classroom-quest-targets-input');
+    const start = document.getElementById('classroom-quest-start-input');
+    const end = document.getElementById('classroom-quest-end-input');
     const repeat = document.getElementById('classroom-quest-repeat-input');
     const gemName = document.getElementById('classroom-quest-gem-name-input');
     const gemXp = document.getElementById('classroom-quest-gem-xp-input');
@@ -107,11 +122,16 @@
     if(title) title.value = quest.title || '';
     if(desc) desc.value = quest.desc || '';
     if(coin) coin.value = String(Number(quest.rewardCoin || 5));
+    if(category) category.value = quest.category || '';
     if(mode) mode.value = quest.rewardMode || 'auto';
-    if(targets) targets.value = Array.isArray(quest.targetStudentIds) ? quest.targetStudentIds.join(', ') : '';
+    if(targets) targets.value = Array.isArray(quest.targetStudentIds)
+      ? (quest.targetStudentIds.includes('__none__') ? '대상 없음' : quest.targetStudentIds.join(', '))
+      : '';
+    if(start) start.value = quest.startDate || '';
+    if(end) end.value = quest.endDate || '';
     if(repeat) repeat.value = quest.repeatRule || 'once';
     if(gemName) gemName.value = quest.linkedGemName || '';
-    if(gemXp) gemXp.value = String(Number(quest.gemXp || 0));
+    if(gemXp) gemXp.value = String(Math.max(1, Number(quest.gemXp || 1)));
     if(gemTarget) gemTarget.value = String(Number(quest.gemTargetXp || 10));
     if(gemReward) gemReward.value = String(Number(quest.gemRewardPoint || 0));
   }
@@ -269,8 +289,8 @@
     return {
       pointToCoinEnabled: document.getElementById('classroom-exchange-point-to-coin-enabled-input')?.checked !== false,
       coinToPointEnabled: document.getElementById('classroom-exchange-coin-to-point-enabled-input')?.checked !== false,
-      pointToCoinPointCost: Math.max(1, Math.min(1000000, Math.round(Number(document.getElementById('classroom-exchange-point-cost-input')?.value) || 10))),
-      coinToPointReward: Math.max(1, Math.min(1000000, Math.round(Number(document.getElementById('classroom-exchange-coin-reward-input')?.value) || 10)))
+      pointToCoinPointCost: Math.max(0.01, Math.min(1000000, Math.round((Number(document.getElementById('classroom-exchange-point-cost-input')?.value) || 3) * 100) / 100)),
+      coinToPointReward: Math.max(0.01, Math.min(1000000, Math.round((Number(document.getElementById('classroom-exchange-coin-reward-input')?.value) || 0.5) * 100) / 100))
     };
   }
 
@@ -281,8 +301,8 @@
     const coinReward = document.getElementById('classroom-exchange-coin-reward-input');
     if(pointEnabled) pointEnabled.checked = settings.pointToCoinEnabled !== false;
     if(coinEnabled) coinEnabled.checked = settings.coinToPointEnabled !== false;
-    if(pointCost) pointCost.value = String(Math.max(1, Math.round(Number(settings.pointToCoinPointCost || 10) || 10)));
-    if(coinReward) coinReward.value = String(Math.max(1, Math.round(Number(settings.coinToPointReward || 10) || 10)));
+    if(pointCost) pointCost.value = String(Math.max(0.01, Math.round((Number(settings.pointToCoinPointCost || 3) || 3) * 100) / 100));
+    if(coinReward) coinReward.value = String(Math.max(0.01, Math.round((Number(settings.coinToPointReward || 0.5) || 0.5) * 100) / 100));
   }
 
   function setClassroomNoticeForm(slots = []) {

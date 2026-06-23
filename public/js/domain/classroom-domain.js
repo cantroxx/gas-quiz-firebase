@@ -26,7 +26,7 @@
     const rewardLabel = getClassroomRewardCurrencyLabel(rewardCurrency);
     const linkedGemName = String(rawQuest.linkedGemName || '').trim();
     const linkedGemId = String(rawQuest.linkedGemId || slugifyClassroomGemId(linkedGemName)).trim();
-    const gemXp = Math.max(0, Math.round(Number(rawQuest.gemXp) || 0));
+    const gemXp = linkedGemId ? Math.max(1, Math.round(Number(rawQuest.gemXp) || 1)) : 0;
     return {
       id,
       questId: id,
@@ -36,6 +36,9 @@
       rewardMode,
       rewardCoin,
       rewardCurrency,
+      category: String(rawQuest.category || rawQuest.categoryLabel || '').trim(),
+      startDate: String(rawQuest.startDate || '').trim(),
+      endDate: String(rawQuest.endDate || '').trim(),
       status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
       studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim().replace(/코인/g, '포인트').replace(/베리/g, '포인트'),
       linkedGemId,

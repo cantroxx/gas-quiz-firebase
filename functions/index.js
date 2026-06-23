@@ -35,8 +35,8 @@ const LEVEL_UP_CLASSROOM_POINT = 50;
 const DEFAULT_CLASSROOM_EXCHANGE_SETTINGS = {
   pointToCoinEnabled: true,
   coinToPointEnabled: true,
-  pointToCoinPointCost: 10,
-  coinToPointReward: 10
+  pointToCoinPointCost: 3,
+  coinToPointReward: 0.5
 };
 const WEEKLY_XP_LIMIT = 500;
 const TODAY_QUIZ_XP_PER_QUESTION = 2;
@@ -65,6 +65,63 @@ const DEFAULT_CLASSROOM_BILLBOARD_ITEM = {
   active: true,
   isDefault: true
 };
+const DEFAULT_CLASSROOM_POINT_SHOP_ITEMS = [
+  {
+    itemId: "homework-pass",
+    title: "숙제 면제권",
+    desc: "정해진 날 숙제 1회를 면제받는 교실 쿠폰",
+    pricePoint: 50,
+    priceType: "point",
+    itemType: "coupon",
+    icon: "shopHomeworkPass",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "seat-choice",
+    title: "자리 선택권",
+    desc: "정해진 날 원하는 자리를 먼저 고를 수 있는 쿠폰",
+    pricePoint: 100,
+    priceType: "point",
+    itemType: "coupon",
+    icon: "shopSeatChoice",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "praise-card",
+    title: "칭찬 카드",
+    desc: "선생님 칭찬 카드 또는 게시판 칭찬을 받을 수 있는 쿠폰",
+    pricePoint: 50,
+    priceType: "point",
+    itemType: "coupon",
+    icon: "shopPraiseCard",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "presentation-pass",
+    title: "발표 패스",
+    desc: "발표 순서 조정이나 발표 1회 패스를 요청할 수 있는 쿠폰",
+    pricePoint: 100,
+    priceType: "point",
+    itemType: "coupon",
+    icon: "shopPresentationPass",
+    active: true,
+    isDefault: true
+  },
+  {
+    itemId: "free-time",
+    title: "자유시간권",
+    desc: "교실 규칙 안에서 짧은 자유시간을 요청할 수 있는 쿠폰",
+    pricePoint: 150,
+    priceType: "point",
+    itemType: "coupon",
+    icon: "shopFreeTime",
+    active: true,
+    isDefault: true
+  }
+];
 const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
   {
     itemId: "boost-farmer-friend",
@@ -247,16 +304,88 @@ const DEFAULT_CLASSROOM_POINT_BOOST_ITEMS = [
     isDefault: true
   }
 ];
+const DEFAULT_CLASSROOM_SAVINGS_PRODUCTS = [
+  {
+    productId: "saving-7-days",
+    title: "1주 예치",
+    desc: "7일 동안 포인트를 맡기고 만기일에 이자를 받습니다.",
+    minDepositPoint: 1,
+    interestRatePercent: 5,
+    termDays: 7,
+    active: true,
+    isDefault: true
+  },
+  {
+    productId: "saving-14-days",
+    title: "2주 예치",
+    desc: "14일 동안 포인트를 맡기고 만기일에 이자를 받습니다.",
+    minDepositPoint: 1,
+    interestRatePercent: 12,
+    termDays: 14,
+    active: true,
+    isDefault: true
+  },
+  {
+    productId: "saving-30-days",
+    title: "1달 예치",
+    desc: "30일 동안 포인트를 맡기고 만기일에 이자를 받습니다.",
+    minDepositPoint: 1,
+    interestRatePercent: 25,
+    termDays: 30,
+    active: true,
+    isDefault: true
+  }
+];
+const DEFAULT_CLASSROOM_GEMS = [
+  {
+    gemId: "reading-gem",
+    gemName: "독서젬",
+    targetXp: 10,
+    rewardPoint: 10,
+    icon: "gemReading",
+    active: true,
+    isDefault: true
+  },
+  {
+    gemId: "planner-gem",
+    gemName: "플래너젬",
+    targetXp: 10,
+    rewardPoint: 10,
+    icon: "gemDiligence",
+    active: true,
+    isDefault: true
+  },
+  {
+    gemId: "typing-gem-150",
+    gemName: "타자젬(둥글게둥글게 150타)",
+    targetXp: 10,
+    rewardPoint: 10,
+    icon: "gemFocus",
+    active: true,
+    isDefault: true
+  },
+  {
+    gemId: "meal-gem",
+    gemName: "맛있는젬",
+    targetXp: 5,
+    rewardPoint: 8,
+    icon: "gemKindness",
+    active: true,
+    isDefault: true
+  }
+];
 const db = getFirestore();
 
 const DEFAULT_CLASSROOM_MISSION = {
   missionId: "current",
-  title: "학급 포인트 미션",
+  title: "학급 미션",
   desc: "우리반 학생 포인트 총합으로 달성하는 단체 목표",
   thresholds: [
-    { label: "1단계", targetPoint: 2000, rewardText: "" },
-    { label: "2단계", targetPoint: 4000, rewardText: "" },
-    { label: "3단계", targetPoint: 6000, rewardText: "" }
+    { label: "2,000점", targetPoint: 2000, rewardText: "자유 체육(장소는 가능한 곳으로)" },
+    { label: "4,000점", targetPoint: 4000, rewardText: "놀이터(1시간)" },
+    { label: "6,000점", targetPoint: 6000, rewardText: "영화(연령 제한 준수)" },
+    { label: "8,000점", targetPoint: 8000, rewardText: "파티(2시간 이내)" },
+    { label: "10,000점", targetPoint: 10000, rewardText: "1일 자유시간" }
   ],
   active: true
 };
@@ -1529,8 +1658,12 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rewardLabel = "포인트";
   const linkedGemName = String(rawQuest.linkedGemName || "").trim().slice(0, 40);
   const linkedGemId = slugifyClassroomGemId(rawQuest.linkedGemId || linkedGemName);
-  const gemXp = linkedGemId ? Math.max(0, Math.min(100, Math.round(Number(rawQuest.gemXp) || 0))) : 0;
+  const gemXp = linkedGemId ? Math.max(1, Math.min(100, Math.round(Number(rawQuest.gemXp) || 1))) : 0;
   const repeatRule = ["once", "daily", "weekly"].includes(rawQuest.repeatRule) ? rawQuest.repeatRule : "once";
+  const startDate = isIsoDateKey(rawQuest.startDate) ? String(rawQuest.startDate) : "";
+  const endDate = isIsoDateKey(rawQuest.endDate) ? String(rawQuest.endDate) : "";
+  const safeStartDate = startDate && endDate && startDate > endDate ? endDate : startDate;
+  const safeEndDate = startDate && endDate && startDate > endDate ? startDate : endDate;
   const targetStudentIds = Array.isArray(rawQuest.targetStudentIds)
     ? rawQuest.targetStudentIds.map(value => String(value || "").trim().slice(0, 80)).filter(Boolean).slice(0, 80)
     : [];
@@ -1544,6 +1677,9 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     rewardMode,
     rewardCoin,
     rewardCurrency,
+    category: String(rawQuest.category || rawQuest.categoryLabel || "").trim().slice(0, 30),
+    startDate: safeStartDate,
+    endDate: safeEndDate,
     targetStudentIds,
     repeatRule,
     saveEnabled: rawQuest.saveEnabled !== false,
@@ -1723,7 +1859,14 @@ function normalizeClassroomEquippedItemForWallet(item = {}) {
 function getDefaultClassroomShopItem(itemId) {
   const id = String(itemId || "");
   if (id === CLASSROOM_BILLBOARD_TICKET_ITEM_ID) return DEFAULT_CLASSROOM_BILLBOARD_ITEM;
+  const pointItem = DEFAULT_CLASSROOM_POINT_SHOP_ITEMS.find(item => item.itemId === id);
+  if (pointItem) return pointItem;
   return DEFAULT_CLASSROOM_POINT_BOOST_ITEMS.find(item => item.itemId === id) || null;
+}
+
+function getDefaultClassroomSavingsProduct(productId) {
+  const id = String(productId || "");
+  return DEFAULT_CLASSROOM_SAVINGS_PRODUCTS.find(item => item.productId === id) || null;
 }
 
 function normalizeClassroomMission(rawMission = {}) {
@@ -1791,11 +1934,13 @@ function normalizeClassroomSavingsProduct(rawProduct = {}) {
 }
 
 function normalizeClassroomExchangeSettings(rawSettings = {}) {
+  const pointToCoinPointCost = roundClassroomPoint(Number(rawSettings.pointToCoinPointCost || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.pointToCoinPointCost) || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.pointToCoinPointCost);
+  const coinToPointReward = roundClassroomPoint(Number(rawSettings.coinToPointReward || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.coinToPointReward) || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.coinToPointReward);
   return {
     pointToCoinEnabled: rawSettings.pointToCoinEnabled !== false,
     coinToPointEnabled: rawSettings.coinToPointEnabled !== false,
-    pointToCoinPointCost: Math.max(1, Math.min(1000000, Math.round(Number(rawSettings.pointToCoinPointCost || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.pointToCoinPointCost) || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.pointToCoinPointCost))),
-    coinToPointReward: Math.max(1, Math.min(1000000, Math.round(Number(rawSettings.coinToPointReward || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.coinToPointReward) || DEFAULT_CLASSROOM_EXCHANGE_SETTINGS.coinToPointReward)))
+    pointToCoinPointCost: Math.max(0.01, Math.min(1000000, pointToCoinPointCost)),
+    coinToPointReward: Math.max(0.01, Math.min(1000000, coinToPointReward))
   };
 }
 
@@ -4959,6 +5104,16 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
     }
 
     const dateKey = getKstDateKey();
+    if (quest.startDate && dateKey < String(quest.startDate)) {
+      throw new HttpsError("failed-precondition", "Classroom quest has not started.");
+    }
+    if (quest.endDate && dateKey > String(quest.endDate)) {
+      throw new HttpsError("failed-precondition", "Classroom quest period is over.");
+    }
+    if (Array.isArray(quest.targetStudentIds) && quest.targetStudentIds.length
+      && !quest.targetStudentIds.includes(memberUserId)) {
+      throw new HttpsError("permission-denied", "Classroom quest is not assigned to this member.");
+    }
     const recordId = `${memberUserId}__${questId}__${dateKey}`;
     const progressRef = db.collection("classrooms")
       .doc(classId)
@@ -5159,6 +5314,9 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       rewardMode,
       rewardCurrency,
       rewardCoin,
+      category: rawQuest.category || "",
+      startDate: rawQuest.startDate || "",
+      endDate: rawQuest.endDate || "",
       targetStudentIds: rawQuest.targetStudentIds || [],
       repeatRule: rawQuest.repeatRule || "once",
       linkedGemId: rawQuest.linkedGemId || "",
@@ -5239,6 +5397,10 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
   const routineReviewItems = routineSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
+      const currentCount = Math.max(0, Math.round(Number(data.currentCount) || 0));
+      const targetCount = Math.max(1, Math.round(Number(data.targetCount) || 1));
+      const rewardPoint = Math.max(0, Math.round(Number(data.rewardPoint) || 0));
+      const achievementPercent = Math.min(100, Math.round((currentCount / targetCount) * 100));
       return {
         id: doc.id,
         recordId: doc.id,
@@ -5248,8 +5410,12 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
         routineTitle: String(data.title || ""),
         memberUserId: String(data.memberUserId || data.userId || ""),
         rewardCurrency: "point",
-        rewardCoin: Number(data.rewardPoint || 0),
-        rewardPoint: Number(data.rewardPoint || 0),
+        rewardCoin: Math.round(rewardPoint * Math.min(1, currentCount / targetCount)),
+        rewardPoint: Math.round(rewardPoint * Math.min(1, currentCount / targetCount)),
+        baseRewardPoint: rewardPoint,
+        currentCount,
+        targetCount,
+        achievementPercent,
         endDate: String(data.endDate || ""),
         createdAt: data.createdAt || null
       };
@@ -5658,6 +5824,11 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const shopItems = shopSnapshot.docs
     .map(doc => ({ itemId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.title || a.itemId).localeCompare(String(b.title || b.itemId), "ko"));
+  DEFAULT_CLASSROOM_POINT_SHOP_ITEMS.forEach(defaultItem => {
+    if (!shopItems.some(item => item.itemId === defaultItem.itemId)) {
+      shopItems.push(defaultItem);
+    }
+  });
   if (!shopItems.some(item => item.itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID)) {
     shopItems.push(DEFAULT_CLASSROOM_BILLBOARD_ITEM);
   }
@@ -5698,12 +5869,18 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const savingsProducts = savingsProductSnapshot.docs
     .map(doc => ({ productId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.title || a.productId).localeCompare(String(b.title || b.productId), "ko"));
+  if (!savingsProducts.length) {
+    savingsProducts.push(...DEFAULT_CLASSROOM_SAVINGS_PRODUCTS);
+  }
   const taxPresets = taxPresetSnapshot.docs
     .map(doc => ({ presetId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.title || a.presetId).localeCompare(String(b.title || b.presetId), "ko"));
   const classroomGems = classroomGemSnapshot.docs
     .map(doc => ({ gemId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), "ko"));
+  if (!classroomGems.length) {
+    classroomGems.push(...DEFAULT_CLASSROOM_GEMS);
+  }
   const savingsAccounts = savingsAccountSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
@@ -7033,10 +7210,13 @@ exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request =
     const productRef = db.collection("classrooms").doc(classId).collection("savingsProducts").doc(productId);
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
     const [productSnapshot, walletSnapshot] = await Promise.all([transaction.get(productRef), transaction.get(walletRef)]);
-    if (!productSnapshot.exists || productSnapshot.data()?.active === false) {
+    const productData = productSnapshot.exists
+      ? productSnapshot.data() || {}
+      : getDefaultClassroomSavingsProduct(productId);
+    if (!productData || productData.active === false) {
       throw new HttpsError("not-found", "Classroom savings product not found.");
     }
-    const product = normalizeClassroomSavingsProduct({ productId, ...(productSnapshot.data() || {}) });
+    const product = normalizeClassroomSavingsProduct({ productId, ...productData });
     const depositPoint = Math.max(product.minDepositPoint, requestedDepositPoint);
     const currentPoint = Math.max(0, Math.round(getClassroomPointAmount(walletSnapshot.exists ? walletSnapshot.data() || {} : {})));
     if (currentPoint < depositPoint) {
@@ -7502,24 +7682,7 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
     const currentCount = Math.max(0, Math.round(Number(routine.currentCount) || 0));
     const targetCount = Math.max(1, Math.round(Number(routine.targetCount) || 1));
     const nextCount = currentCount + 1;
-    const completed = nextCount >= targetCount;
-    const rewardAmount = completed ? Math.max(0, Math.min(100, Math.round(Number(routine.rewardPoint) || 0))) : 0;
-    const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-    const rewardLogRef = completed && rewardAmount > 0
-      ? db.collection("rewardLogs").doc(rewardLogId(["classroom_routine_reward", classId, memberUserId, routineId]))
-      : null;
-    const pointLogRef = completed && rewardAmount > 0
-      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(rewardLogRef.id)
-      : null;
-    const [rewardLogSnapshot, walletSnapshot] = await Promise.all([
-      rewardLogRef ? transaction.get(rewardLogRef) : Promise.resolve(null),
-      completed && rewardAmount > 0 ? transaction.get(walletRef) : Promise.resolve(null)
-    ]);
-    const canReward = completed && rewardAmount > 0 && !rewardLogSnapshot?.exists;
-    const boostedReward = getBoostedClassroomPointAmount(
-      rewardAmount,
-      walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
-    );
+    const targetReached = nextCount >= targetCount;
 
     transaction.set(checkLogRef, {
       checkLogId,
@@ -7536,63 +7699,19 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
       currentCount: nextCount,
       lastCheckDateKey: dateKey,
       lastCheckedAt: FieldValue.serverTimestamp(),
-      status: completed ? "completed" : "active",
+      status: "active",
       updatedAt: FieldValue.serverTimestamp(),
-      ...(completed ? { completedAt: FieldValue.serverTimestamp() } : {})
+      ...(targetReached ? { targetReachedAt: FieldValue.serverTimestamp() } : {})
     }, { merge: true });
-    if (canReward) {
-      transaction.set(walletRef, {
-        memberUserId,
-        userId: memberUserId,
-        classId,
-        point: FieldValue.increment(boostedReward.rewardAmount),
-        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
-        source: "check_classroom_routine_function"
-      }, { merge: true });
-      transaction.set(pointLogRef, {
-        type: "classroom_routine_reward",
-        classId,
-        routineId,
-        routineTitle: routine.title || "",
-        userId: memberUserId,
-        memberUserId,
-        authUid,
-        rewardCurrency: "point",
-        rewardPoint: boostedReward.rewardAmount,
-        rewardAmount: boostedReward.rewardAmount,
-        baseRewardAmount: boostedReward.baseAmount,
-        boostPoint: boostedReward.boostPoint,
-        source: "firebase_function",
-        createdAt: FieldValue.serverTimestamp()
-      }, { merge: false });
-      transaction.set(rewardLogRef, {
-        type: "classroom_routine_reward",
-        classId,
-        routineId,
-        routineTitle: routine.title || "",
-        userId: memberUserId,
-        memberUserId,
-        authUid,
-        rewardCurrency: "point",
-        rewardCoin: 0,
-        rewardPoint: boostedReward.rewardAmount,
-        rewardAmount: boostedReward.rewardAmount,
-        baseRewardAmount: boostedReward.baseAmount,
-        boostPoint: boostedReward.boostPoint,
-        source: "firebase_function",
-        createdAt: FieldValue.serverTimestamp()
-      }, { merge: false });
-    }
     return {
       duplicate: false,
-      completed,
+      completed: false,
+      targetReached,
       currentCount: nextCount,
       targetCount,
-      rewardAmount: canReward ? boostedReward.rewardAmount : 0,
-      baseRewardAmount: canReward ? boostedReward.baseAmount : 0,
-      boostPoint: canReward ? boostedReward.boostPoint : 0
+      rewardAmount: 0,
+      baseRewardAmount: 0,
+      boostPoint: 0
     };
   });
 
@@ -7649,7 +7768,11 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
           rewardCurrency: "point"
         };
       }
-      const rewardAmount = Math.max(0, Math.min(1000, Math.round(Number(routine.rewardPoint) || 0)));
+      const currentCount = Math.max(0, Math.round(Number(routine.currentCount) || 0));
+      const targetCount = Math.max(1, Math.round(Number(routine.targetCount) || 1));
+      const baseRewardAmount = Math.max(0, Math.min(1000, Math.round(Number(routine.rewardPoint) || 0)));
+      const achievementRatio = Math.max(0, Math.min(1, currentCount / targetCount));
+      const rewardAmount = Math.round(baseRewardAmount * achievementRatio);
       if (rewardAmount <= 0) {
         throw new HttpsError("failed-precondition", "Classroom routine reward is invalid.");
       }
@@ -7710,6 +7833,10 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         rewardPoint: boostedReward.rewardAmount,
         rewardAmount: boostedReward.rewardAmount,
         baseRewardAmount: boostedReward.baseAmount,
+        routineBaseRewardPoint: baseRewardAmount,
+        routineCurrentCount: currentCount,
+        routineTargetCount: targetCount,
+        routineAchievementPercent: Math.round(achievementRatio * 100),
         boostPoint: boostedReward.boostPoint,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
@@ -7727,6 +7854,10 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         rewardPoint: boostedReward.rewardAmount,
         rewardAmount: boostedReward.rewardAmount,
         baseRewardAmount: boostedReward.baseAmount,
+        routineBaseRewardPoint: baseRewardAmount,
+        routineCurrentCount: currentCount,
+        routineTargetCount: targetCount,
+        routineAchievementPercent: Math.round(achievementRatio * 100),
         boostPoint: boostedReward.boostPoint,
         source: "firebase_function",
         createdAt: FieldValue.serverTimestamp()
