@@ -56,6 +56,15 @@
     return root.DJ48ClassroomDomain.buildClassroomQuestProgressId(memberUserId, questId, dateKey);
   }
 
+  function getKstDateKey() {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+  }
+
   function normalizeClassroomSettings(data = {}, prototype = {}) {
     return root.DJ48ClassroomDomain.normalizeClassroomSettings(data, prototype);
   }
@@ -219,7 +228,9 @@
       });
       return Array.from(progressByGemId.values()).sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), 'ko'));
     } catch(error) {
-      deps.warn?.('Classroom gem progress load failed.', error);
+      if(!deps.isFirestorePermissionDeniedError?.(error)) {
+        deps.warn?.('Classroom gem progress load failed.', error);
+      }
       return [];
     }
   }
@@ -245,16 +256,19 @@
     const { settings = {}, memberUserId = '' } = options;
     const db = getClassroomDb(deps);
     if(!memberUserId || !db) return {};
-    const saveEnabledQuests = (settings.quests || []).filter(quest => quest.saveEnabled && quest.rewardMode !== 'auto');
+    const todayKey = getKstDateKey();
+    const saveEnabledQuests = (settings.quests || []).filter(quest => quest.saveEnabled);
     const entries = await Promise.all(saveEnabledQuests.map(async quest => {
-      const recordId = buildClassroomQuestProgressId(memberUserId, quest.id);
+      const recordId = buildClassroomQuestProgressId(memberUserId, quest.id, quest.rewardMode === 'auto' ? todayKey : '');
       const snapshot = await db.collection('classrooms')
         .doc(settings.classId)
         .collection('questProgress')
         .doc(recordId)
         .get()
         .catch(() => null);
-      return [quest.id, snapshot?.exists ? snapshot.data() : null];
+      const data = snapshot?.exists ? snapshot.data() : null;
+      if(['cancelled', 'rejected'].includes(String(data?.rewardStatus || ''))) return [quest.id, null];
+      return [quest.id, data];
     }));
     return Object.fromEntries(entries.filter(([, data]) => !!data));
   }
@@ -492,6 +506,7 @@
     const firestoreDeps = {
       getFirestoreDb: deps.getFirestoreDb,
       getFirestoreFieldValue: deps.getFirestoreFieldValue,
+      isFirestorePermissionDeniedError: deps.isFirestorePermissionDeniedError,
       warn: deps.warn
     };
     const callableDeps = {

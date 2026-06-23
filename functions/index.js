@@ -42,6 +42,10 @@ const WEEKLY_XP_LIMIT = 500;
 const TODAY_QUIZ_XP_PER_QUESTION = 2;
 const TODAY_QUIZ_DAILY_XP_LIMIT = 20;
 const HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
+const HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
+const TITLE_ACQUISITION_XP = 50;
+const TITLE_ACQUISITION_COIN = 50;
+const TITLE_ACQUISITION_CLASSROOM_POINT = 10;
 const CLASSROOM_BILLBOARD_TICKET_ITEM_ID = "billboard-ticket";
 const CLASSROOM_NOTICE_SLOT_KEYS = ["links", "patch", "monthlyKing", "events", "personal"];
 const DEFAULT_CLASSROOM_NOTICE_SLOTS = [
@@ -1299,6 +1303,7 @@ async function applyLevelXp(transaction, {
       boostPoint: classroomMirrorReward.boostPoint,
       sourceType: sourceType || "dj_coin_reward",
       sourceId: sourceId || "",
+      sourceLabel: sourceLabel || "",
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
     }, { merge: false });
@@ -2162,7 +2167,7 @@ function normalizeClassroomRoutine(rawRoutine = {}) {
     startDate,
     endDate,
     weekdays,
-    rewardPoint: Math.max(5, Math.min(100, targetCount * 5)),
+    rewardPoint: Math.max(0, Math.min(20, Math.round(Number(rawRoutine.rewardPoint) || 0))),
     active: rawRoutine.active !== false
   };
 }
@@ -4954,8 +4959,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
     }
 
     const dateKey = getKstDateKey();
-    const attemptKey = `${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    const recordId = `${memberUserId}__${questId}__${dateKey}__${attemptKey}`;
+    const recordId = `${memberUserId}__${questId}__${dateKey}`;
     const progressRef = db.collection("classrooms")
       .doc(classId)
       .collection("questProgress")
@@ -4967,8 +4971,7 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
       classId,
       dateKey,
       memberUserId,
-      questId,
-      attemptKey
+      questId
     ]);
     const logRef = db.collection("rewardLogs").doc(logId);
     const economyRef = rewardCurrency === "point"
@@ -5048,7 +5051,6 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
         questId,
         questTitle: quest.title,
         dateKey,
-        attemptKey,
         userId: memberUserId,
         memberUserId,
         authUid,
@@ -5073,12 +5075,11 @@ exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request =>
     }
     transaction.set(logRef, {
       type: "classroom_auto_quest",
-      classId,
-      questId,
-      questTitle: quest.title,
-      dateKey,
-      attemptKey,
-      userId: memberUserId,
+        classId,
+        questId,
+        questTitle: quest.title,
+        dateKey,
+        userId: memberUserId,
       memberUserId,
       authUid,
       rewardCurrency,
@@ -5212,9 +5213,63 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
     .where("rewardStatus", "==", "pending_teacher_review")
     .limit(200)
     .get();
-  const reviewItems = snapshot.docs
+  const todayKey = getKstDateKey();
+  const paidAutoSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("questProgress")
+    .where("rewardStatus", "==", "paid")
+    .limit(200)
+    .get();
+  const routineSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("studentRoutines")
+    .where("status", "==", "active")
+    .limit(200)
+    .get();
+  const questReviewItems = snapshot.docs
     .map(doc => ({ id: doc.id, ...(doc.data() || {}) }))
-    .filter(item => item.classId === classId)
+    .filter(item => item.classId === classId);
+  const paidAutoReviewItems = paidAutoSnapshot.docs
+    .map(doc => ({ id: doc.id, ...(doc.data() || {}) }))
+    .filter(item => item.classId === classId && item.rewardMode === "auto" && item.dateKey === todayKey)
+    .map(item => ({
+      ...item,
+      reviewMode: "cancelOnly"
+    }));
+  const routineReviewItems = routineSnapshot.docs
+    .map(doc => {
+      const data = doc.data() || {};
+      return {
+        id: doc.id,
+        recordId: doc.id,
+        itemType: "routine",
+        classId,
+        routineId: doc.id,
+        routineTitle: String(data.title || ""),
+        memberUserId: String(data.memberUserId || data.userId || ""),
+        rewardCurrency: "point",
+        rewardCoin: Number(data.rewardPoint || 0),
+        rewardPoint: Number(data.rewardPoint || 0),
+        endDate: String(data.endDate || ""),
+        createdAt: data.createdAt || null
+      };
+    })
+    .filter(item => item.classId === classId && item.memberUserId && item.endDate && item.endDate < todayKey);
+  const reviewMemberIds = Array.from(new Set([...questReviewItems, ...paidAutoReviewItems, ...routineReviewItems]
+    .map(item => String(item.memberUserId || "").trim())
+    .filter(Boolean)));
+  const reviewProfileSnapshots = reviewMemberIds.length
+    ? await db.getAll(...reviewMemberIds.map(id => db.collection("users").doc(id)))
+    : [];
+  const reviewNameByUserId = new Map(reviewProfileSnapshots.map(snapshot => {
+    const data = snapshot.exists ? snapshot.data() || {} : {};
+    return [snapshot.id, String(data.nickname || data.name || "").slice(0, 24)];
+  }));
+  const reviewItems = [...questReviewItems, ...paidAutoReviewItems, ...routineReviewItems]
+    .map(item => ({
+      ...item,
+      memberNickname: reviewNameByUserId.get(String(item.memberUserId || "")) || ""
+    }))
     .sort((a, b) => {
       const aCreated = Number(a.createdAt?._seconds || a.createdAt?.seconds || 0);
       const bCreated = Number(b.createdAt?._seconds || b.createdAt?.seconds || 0);
@@ -5700,6 +5755,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
       const endDate = String(data.endDate || "");
       const withinPeriod = (!startDate || todayKey >= startDate) && (!endDate || todayKey <= endDate);
       const canCheckToday = withinPeriod && weekdays.includes(todayWeekday);
+      const status = String(data.status || "active");
       return {
         routineId: doc.id,
         title: String(data.title || ""),
@@ -5710,9 +5766,10 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         startDate,
         endDate,
         weekdays,
-        status: String(data.status || "active"),
+        status,
         checkedToday: data.lastCheckDateKey === todayKey,
-        canCheckToday
+        canCheckToday,
+        reviewPending: status === "active" && !!endDate && endDate < todayKey
       };
     })
     .filter(item => item.status !== "deleted");
@@ -5783,6 +5840,11 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         type: String(data.type || ""),
         itemTitle: String(data.itemTitle || ""),
         jobTitle: String(data.jobTitle || ""),
+        questTitle: String(data.questTitle || ""),
+        routineTitle: String(data.routineTitle || ""),
+        titleName: String(data.titleName || ""),
+        sourceLabel: String(data.sourceLabel || ""),
+        sourceType: String(data.sourceType || ""),
         memberUserId: String(data.memberUserId || data.userId || ""),
         rewardAmount: Number(data.rewardAmount || data.rewardPoint || 0),
         rewardPoint: Number(data.rewardPoint || data.rewardAmount || 0),
@@ -5793,6 +5855,28 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     .slice(0, authResult.canManage ? 120 : 30);
   const economySnapshot = await db.collection("userEconomy").doc(memberUserId).get();
   const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+  const activityMemberIds = Array.from(new Set([
+    ...purchases.map(item => item.memberUserId),
+    ...pointLogs.map(item => item.memberUserId)
+  ].map(id => String(id || "").trim()).filter(Boolean)));
+  const activityProfileSnapshots = activityMemberIds.length
+    ? await db.getAll(...activityMemberIds.map(id => db.collection("users").doc(id)))
+    : [];
+  const activityNameByUserId = new Map(activityProfileSnapshots.map(snapshot => {
+    const data = snapshot.exists ? snapshot.data() || {} : {};
+    return [snapshot.id, String(data.nickname || data.name || "").slice(0, 24)];
+  }));
+  const addActivityProfile = item => ({
+    ...item,
+    memberNickname: activityNameByUserId.get(item.memberUserId) || ""
+  });
+  const visiblePurchases = purchases
+    .filter(item => !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()))
+    .map(addActivityProfile);
+  const visiblePointLogs = pointLogs
+    .filter(item => !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()))
+    .map(addActivityProfile)
+    .slice(0, authResult.canManage ? 120 : 30);
 
   return {
     success: true,
@@ -5803,8 +5887,8 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     assignments,
     applications,
     routines,
-    purchases,
-    pointLogs,
+    purchases: visiblePurchases,
+    pointLogs: visiblePointLogs,
     classNotices,
     billboardMessages,
     classMission,
@@ -7349,15 +7433,17 @@ exports.saveClassroomRoutine = onCall({ region: REGION }, async request => {
       throw new HttpsError("failed-precondition", "Teacher accounts cannot create student routines.");
     }
     const routineRef = db.collection("classrooms").doc(classId).collection("studentRoutines").doc(`${memberUserId}__${routine.routineId}`);
+    const routineSnapshot = await transaction.get(routineRef);
+    const previousRoutine = routineSnapshot.exists ? routineSnapshot.data() || {} : {};
     transaction.set(routineRef, {
       ...routine,
       routineId: routineRef.id,
       classId,
       memberUserId,
       userId: memberUserId,
-      currentCount: 0,
+      currentCount: Math.max(0, Math.round(Number(previousRoutine.currentCount) || 0)),
       status: "active",
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: previousRoutine.createdAt || FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       source: "save_classroom_routine_function"
     }, { merge: true });
@@ -7535,11 +7621,191 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       .doc(recordId);
     const progressSnapshot = await transaction.get(progressRef);
     if (!progressSnapshot.exists) {
-      throw new HttpsError("not-found", "Classroom quest progress not found.");
+      const routineRef = db.collection("classrooms").doc(classId).collection("studentRoutines").doc(recordId);
+      const routineSnapshot = await transaction.get(routineRef);
+      if (!routineSnapshot.exists) {
+        throw new HttpsError("not-found", "Classroom quest progress not found.");
+      }
+      const routine = routineSnapshot.data() || {};
+      if (routine.classId !== classId || routine.status !== "active") {
+        throw new HttpsError("failed-precondition", "Classroom routine review is inconsistent.");
+      }
+      const todayKey = getKstDateKey();
+      if (!routine.endDate || String(routine.endDate) >= todayKey) {
+        throw new HttpsError("failed-precondition", "Classroom routine is not ready for review.");
+      }
+      const memberUserId = normalizeId(routine.memberUserId || routine.userId, "memberUserId");
+      if (nextStatus === "rejected") {
+        transaction.set(routineRef, {
+          status: "review_rejected",
+          reviewedBy: adminMember.memberUserId,
+          reviewedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+        return {
+          duplicate: false,
+          rewardStatus: "rejected",
+          rewardAmount: 0,
+          rewardCurrency: "point"
+        };
+      }
+      const rewardAmount = Math.max(0, Math.min(1000, Math.round(Number(routine.rewardPoint) || 0)));
+      if (rewardAmount <= 0) {
+        throw new HttpsError("failed-precondition", "Classroom routine reward is invalid.");
+      }
+      const logId = rewardLogId(["classroom_routine_review", classId, recordId, memberUserId]);
+      const logRef = db.collection("rewardLogs").doc(logId);
+      const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+      const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
+      const [logSnapshot, walletSnapshot] = await Promise.all([
+        transaction.get(logRef),
+        transaction.get(walletRef)
+      ]);
+      const boostedReward = getBoostedClassroomPointAmount(
+        rewardAmount,
+        walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
+      );
+      if (logSnapshot.exists) {
+        transaction.set(routineRef, {
+          status: "completed",
+          reviewedBy: adminMember.memberUserId,
+          reviewedAt: FieldValue.serverTimestamp(),
+          rewardedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+        return {
+          duplicate: true,
+          rewardStatus: "paid",
+          rewardAmount: 0,
+          rewardCurrency: "point"
+        };
+      }
+      transaction.set(walletRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        point: FieldValue.increment(boostedReward.rewardAmount),
+        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
+        source: "classroom_routine_review_function"
+      }, { merge: true });
+      transaction.set(routineRef, {
+        status: "completed",
+        reviewedBy: adminMember.memberUserId,
+        reviewedAt: FieldValue.serverTimestamp(),
+        rewardedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(pointLogRef, {
+        type: "classroom_routine_review",
+        classId,
+        routineId: recordId,
+        routineTitle: routine.title || "",
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        reviewedBy: adminMember.memberUserId,
+        rewardCurrency: "point",
+        rewardPoint: boostedReward.rewardAmount,
+        rewardAmount: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+      transaction.set(logRef, {
+        type: "classroom_routine_review",
+        classId,
+        routineId: recordId,
+        routineTitle: routine.title || "",
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        reviewedBy: adminMember.memberUserId,
+        rewardCurrency: "point",
+        rewardPoint: boostedReward.rewardAmount,
+        rewardAmount: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint,
+        source: "firebase_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+      return {
+        duplicate: false,
+        rewardStatus: "paid",
+        rewardCurrency: "point",
+        rewardAmount: boostedReward.rewardAmount,
+        rewardPoint: boostedReward.rewardAmount,
+        baseRewardAmount: boostedReward.baseAmount,
+        boostPoint: boostedReward.boostPoint
+      };
     }
     const progress = progressSnapshot.data() || {};
     if (progress.classId !== classId || progress.recordId !== recordId) {
       throw new HttpsError("failed-precondition", "Classroom quest progress is inconsistent.");
+    }
+    if (progress.rewardStatus === "paid" && nextStatus === "rejected") {
+      const memberUserId = normalizeId(progress.memberUserId || progress.userId, "memberUserId");
+      const rewardAmount = Math.max(0, Math.round(Number(progress.rewardAmount || progress.rewardPoint || progress.rewardCoin) || 0));
+      const rewardCurrency = "point";
+      const logId = progress.rewardMode === "auto"
+        ? rewardLogId([
+          "classroom_auto_quest",
+          classId,
+          progress.dateKey || getKstDateKey(),
+          memberUserId,
+          progress.questId
+        ])
+        : rewardLogId([
+          "classroom_review_quest",
+          classId,
+          recordId,
+          memberUserId,
+          rewardCurrency
+        ]);
+      const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+      const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
+      const rewardLogRef = db.collection("rewardLogs").doc(logId);
+      if (rewardAmount > 0) {
+        transaction.set(walletRef, {
+          memberUserId,
+          userId: memberUserId,
+          classId,
+          point: FieldValue.increment(-rewardAmount),
+          totalEarnedPoint: FieldValue.increment(-rewardAmount),
+          updatedAt: FieldValue.serverTimestamp(),
+          lastClassroomQuestCancelAt: FieldValue.serverTimestamp(),
+          source: "classroom_quest_cancel_function"
+        }, { merge: true });
+      }
+      transaction.set(progressRef, {
+        rewardStatus: "cancelled",
+        status: "cancelled",
+        cancelledBy: adminMember.memberUserId,
+        cancelledAt: FieldValue.serverTimestamp(),
+        reviewedBy: adminMember.memberUserId,
+        reviewedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      transaction.set(pointLogRef, {
+        cancelled: true,
+        cancelledBy: adminMember.memberUserId,
+        cancelledAt: FieldValue.serverTimestamp(),
+        source: "classroom_quest_cancel_function"
+      }, { merge: true });
+      transaction.set(rewardLogRef, {
+        cancelled: true,
+        cancelledBy: adminMember.memberUserId,
+        cancelledAt: FieldValue.serverTimestamp(),
+        source: "classroom_quest_cancel_function"
+      }, { merge: true });
+      return {
+        duplicate: false,
+        rewardStatus: "cancelled",
+        rewardAmount,
+        rewardCurrency
+      };
     }
     if (progress.rewardStatus !== "pending_teacher_review") {
       return {
@@ -8124,6 +8390,69 @@ function titleSummaryDoc(memberUserId, ownedTitleIds, selectedTitleId, selectedT
   };
 }
 
+async function awardTitleAcquisitionReward(memberUserId, authUid, title) {
+  const titleId = String(title?.titleId || "").trim();
+  if (!titleId) return null;
+  return db.runTransaction(async transaction => {
+    const memberData = await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    const rewardRef = db.collection("rewardLogs").doc(rewardLogId([
+      "title_acquisition_reward",
+      memberUserId,
+      titleId
+    ]));
+    const rewardSnapshot = await transaction.get(rewardRef);
+    if (rewardSnapshot.exists) {
+      return { duplicate: true, titleId, xpDelta: 0, rewardCoin: 0 };
+    }
+    const titleName = String(title.titleName || title.titleId || titleId).slice(0, 80);
+    const levelXp = await applyLevelXp(transaction, {
+      memberUserId,
+      authUid,
+      memberData,
+      xpDelta: TITLE_ACQUISITION_XP,
+      sourceType: "title_acquisition",
+      sourceId: titleId,
+      sourceLabel: titleName,
+      classroomPointMirrorAmount: TITLE_ACQUISITION_CLASSROOM_POINT,
+      extra: {
+        titleId,
+        titleName
+      }
+    });
+    transaction.set(db.collection("userEconomy").doc(memberUserId), {
+      userId: memberUserId,
+      djCoin: FieldValue.increment(TITLE_ACQUISITION_COIN),
+      totalEarned: FieldValue.increment(TITLE_ACQUISITION_COIN),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastTitleRewardAt: FieldValue.serverTimestamp(),
+      source: "title_acquisition_reward_function"
+    }, { merge: true });
+    transaction.set(rewardRef, {
+      type: "title_acquisition_reward",
+      memberUserId,
+      userId: memberUserId,
+      authUid,
+      titleId,
+      titleName,
+      xpDelta: levelXp.xpDelta || 0,
+      rewardCoin: TITLE_ACQUISITION_COIN,
+      classroomPoint: TITLE_ACQUISITION_CLASSROOM_POINT,
+      levelXp,
+      createdAt: FieldValue.serverTimestamp(),
+      source: "title_acquisition_reward_function"
+    }, { merge: false });
+    return {
+      duplicate: false,
+      titleId,
+      titleName,
+      xpDelta: levelXp.xpDelta || 0,
+      rewardCoin: TITLE_ACQUISITION_COIN,
+      classroomPoint: TITLE_ACQUISITION_CLASSROOM_POINT,
+      levelXp
+    };
+  });
+}
+
 function bestRankingScoreTotal(records) {
   const bestByCategory = new Map();
   records.forEach(record => {
@@ -8297,6 +8626,10 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
     { merge: true }
   );
   await batch.commit();
+  const rewardResults = [];
+  for (const title of eligibleNewTitles) {
+    rewardResults.push(await awardTitleAcquisitionReward(memberUserId, authUid, title));
+  }
 
   return {
     success: true,
@@ -8305,6 +8638,15 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
     awardedTitles: eligibleNewTitles.map(title => ({
       titleId: title.titleId,
       titleName: title.titleName || title.titleId
+    })),
+    titleRewardCount: rewardResults.filter(result => result && !result.duplicate).length,
+    titleRewards: rewardResults.filter(Boolean).map(result => ({
+      titleId: result.titleId,
+      titleName: result.titleName || "",
+      xpDelta: result.xpDelta || 0,
+      rewardCoin: result.rewardCoin || 0,
+      classroomPoint: result.classroomPoint || 0,
+      levelXp: result.levelXp || null
     })),
     titleCount: allTitleIds.size
   };

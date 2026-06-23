@@ -91,7 +91,7 @@ userId, titleId, titleName, theme, tier, effect, sourceType, sourceCategory, sou
 
 현재 Firebase에는 운영본 뱃지 산출 원본인 연습기록/포켓몬연습기록이 이관되지 않았고, 보유 뱃지 컬렉션도 없다.
 
-### 내 집 꾸미기 관련 값
+### 프로필 표시 관련 값
 
 운영본 `내집설정` 시트 헤더:
 
@@ -182,7 +182,7 @@ userId, 배경ID, 아바타ID, 대표뱃지ID, 대표칭호ID, 수정일시
 - 일일 이용 기록: `일일이용기록`
 - 회원 상태 변경/삭제 로그
 - 운영본 프로필 이미지 파일 자체
-- 운영본 내 집 꾸미기 option catalog와 Firebase `shopItems`/`assetCatalog` 간 매핑
+- 운영본 프로필 표시 option catalog와 Firebase `shopItems`/`assetCatalog` 간 매핑
 
 ## 6. 별도 컬렉션으로 설계해야 하는 항목
 

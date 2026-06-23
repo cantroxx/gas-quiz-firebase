@@ -88,7 +88,6 @@
       userId,
       selectedBackgroundItemId: '',
       selectedAvatarItemId: '',
-      selectedDecorItemIds: [],
       selectedTitleFrameItemId: ''
     };
   }
@@ -101,7 +100,6 @@
       userId: data.userId || userId,
       selectedBackgroundItemId: data.selectedBackgroundItemId || '',
       selectedAvatarItemId: data.selectedAvatarItemId || '',
-      selectedDecorItemIds: Array.isArray(data.selectedDecorItemIds) ? data.selectedDecorItemIds : [],
       selectedTitleFrameItemId: data.selectedTitleFrameItemId || ''
     };
   }
@@ -111,7 +109,6 @@
     const categoryMap = {
       '배경': 'background',
       '아바타': 'avatar',
-      '방 장식': 'roomDecor',
       '칭호 프레임': 'titleFrame'
     };
     return categoryMap[category] || category;
@@ -121,7 +118,6 @@
     const category = getRoomItemCategory(item);
     if(category === 'background') return roomSettings.selectedBackgroundItemId === item.itemId;
     if(category === 'avatar') return roomSettings.selectedAvatarItemId === item.itemId;
-    if(category === 'roomDecor') return roomSettings.selectedDecorItemIds.includes(item.itemId);
     if(category === 'titleFrame') return roomSettings.selectedTitleFrameItemId === item.itemId;
     return false;
   }
@@ -211,14 +207,6 @@
       updateData.selectedBackgroundItemId = isSelected ? '' : itemId;
     } else if(category === 'avatar') {
       updateData.selectedAvatarItemId = isSelected ? '' : itemId;
-    } else if(category === 'roomDecor') {
-      const decorSet = new Set(currentSettings.selectedDecorItemIds);
-      if(decorSet.has(itemId)) {
-        decorSet.delete(itemId);
-      } else {
-        decorSet.add(itemId);
-      }
-      updateData.selectedDecorItemIds = Array.from(decorSet);
     } else if(category === 'titleFrame') {
       updateData.selectedTitleFrameItemId = isSelected ? '' : itemId;
     } else {

@@ -148,15 +148,6 @@
     });
 
     document.getElementById('home-view')?.addEventListener('click', event => {
-      if(event.target.closest('[data-close-room-decorator]')) {
-        const homeView = document.getElementById('home-view');
-        const decoratorToggle = homeView?.querySelector('[data-home-detail-toggle="decorator"]');
-        const decoratorPanel = homeView?.querySelector('[data-home-detail-panel="decorator"]');
-        decoratorToggle?.classList.remove('is-active');
-        decoratorToggle?.setAttribute('aria-expanded', 'false');
-        decoratorPanel?.classList.remove('is-active');
-        return;
-      }
       const homeToggle = event.target.closest('[data-home-detail-toggle]');
       if(!homeToggle) return;
       const key = homeToggle.dataset.homeDetailToggle || '';
@@ -174,15 +165,7 @@
         homeToggle.setAttribute('aria-expanded', 'true');
         const panel = homeView.querySelector(`[data-home-detail-panel="${key}"]`);
         panel?.classList.add('is-active');
-        const frame = panel?.querySelector('[data-room-decorator-frame]');
-        if(frame && !frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src || '/interiors-room-preview.html');
       }
-    });
-
-    window.addEventListener('message', event => {
-      if(event?.data?.type !== 'dj48-close-room-decorator') return;
-      if(event.origin !== window.location.origin) return;
-      document.querySelector('[data-close-room-decorator]')?.click();
     });
 
     document.getElementById('profile-card-root')?.addEventListener('change', event => {

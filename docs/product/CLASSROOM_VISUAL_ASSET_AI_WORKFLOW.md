@@ -52,7 +52,6 @@ Requirements: transparent background, no text, no logo, no characters, empty inn
 - 교실 렌더링: `public/js/features/classroom-render.js`
 - 교실 스타일: `public/styles.css`
 - 기존 교실 이미지: `public/images/classroom-quiz-bg.png`, `public/images/classroom-quiz-reference.png`, `public/images/school-interior-bg.png`
-- 기존 인테리어 픽셀 에셋: `public/images/room-assets/interiors/`
 - 기존 랭크 이미지: `public/images/level-ranks/bronze-rank.png`, `silver-rank.png`, `gold-rank.png`
 - 상점/에셋 카탈로그 기준 문서: `docs/product/ASSET_CATALOG_DESIGN.md`
 
@@ -110,13 +109,6 @@ Requirements: transparent background, no text, no logo, no characters, empty inn
 
 - `public/images/classroom-quiz-bg.png`
 - `public/images/school-interior-bg.png`
-- `public/images/room-assets/interiors/office/board_empty.png`
-- `public/images/room-assets/interiors/office/board_full.png`
-- `public/images/room-assets/interiors/office/corkboard_1.png`
-- `public/images/room-assets/interiors/office/corkboard_2.png`
-- `public/images/room-assets/interiors/desks/desk_1_tile.png`
-- `public/images/room-assets/interiors/books/books_pile.png`
-- `public/images/room-assets/interiors/present/`
 
 ### 3.2 훈장/랭크 에셋
 
@@ -240,7 +232,7 @@ Requirements: transparent background, no text, no logo, no characters, empty inn
 
 교실 상점은 기존 타운 상점과 구분한다.
 
-- 타운 상점: 배경, 아바타, 방 장식, 칭호 프레임
+- 타운 상점: 배경, 아바타, 칭호 프레임
 - 교실 상점: 쿠폰, 권리, 역할 보상, 교실 이벤트용 상품
 
 권장 상품 분류:

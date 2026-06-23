@@ -30,7 +30,7 @@ shopItems/{itemId}
 | 필드 | 타입 | 설명 |
 | --- | --- | --- |
 | `itemId` | string | 아이템 고유 ID. 문서 ID와 동일하게 둔다. |
-| `category` | string | `background`, `avatar`, `roomDecor`, `titleFrame` 중 하나 |
+| `category` | string | `background`, `avatar`, `titleFrame` 중 하나 |
 | `name` | string | 화면 표시 이름 |
 | `desc` | string | 아이템 설명 |
 | `price` | number | DJ코인 가격 |
@@ -47,7 +47,7 @@ shopItems/{itemId}
 
 ## 3. Seed 아이템 목록
 
-현재 프로토타입 아이템을 기준으로 다음 7개 문서를 만든다.
+현재 프로토타입 아이템을 기준으로 다음 5개 문서를 만든다.
 
 | 문서 ID | 이름 | 카테고리 | 가격 | 희귀도 |
 | --- | --- | --- | ---: | --- |
@@ -55,8 +55,6 @@ shopItems/{itemId}
 | `star_bg` | 별빛 배경 | `background` | 150 | `rare` |
 | `cat_avatar` | 고양이 아바타 | `avatar` | 200 | `common` |
 | `explorer_avatar` | 탐험가 아바타 | `avatar` | 200 | `rare` |
-| `bookshelf` | 책장 | `roomDecor` | 100 | `common` |
-| `flowerpot` | 화분 | `roomDecor` | 50 | `common` |
 | `golden_title_frame` | 금빛 칭호 프레임 | `titleFrame` | 250 | `rare` |
 
 ## 4. 아이템별 필드 예시
@@ -144,46 +142,6 @@ shopItems/{itemId}
   imageUrl: "",
   assetId: "asset_explorer_avatar",
   rarity: "rare",
-  createdAt: "<Timestamp>",
-  updatedAt: "<Timestamp>"
-}
-```
-
-### `bookshelf`
-
-```js
-{
-  itemId: "bookshelf",
-  category: "roomDecor",
-  name: "책장",
-  desc: "내 집에 독서 분위기를 더하는 일반 장식 아이템입니다.",
-  price: 100,
-  priceType: "djCoin",
-  enabled: true,
-  sortOrder: 50,
-  imageUrl: "",
-  assetId: "asset_bookshelf",
-  rarity: "common",
-  createdAt: "<Timestamp>",
-  updatedAt: "<Timestamp>"
-}
-```
-
-### `flowerpot`
-
-```js
-{
-  itemId: "flowerpot",
-  category: "roomDecor",
-  name: "화분",
-  desc: "방 한쪽에 싱그러운 느낌을 주는 작은 장식 아이템입니다.",
-  price: 50,
-  priceType: "djCoin",
-  enabled: true,
-  sortOrder: 60,
-  imageUrl: "",
-  assetId: "asset_flowerpot",
-  rarity: "common",
   createdAt: "<Timestamp>",
   updatedAt: "<Timestamp>"
 }

@@ -300,25 +300,50 @@
       .map(input => Number(input.value))
       .filter(day => day >= 1 && day <= 5);
     return {
+      routineId: String(document.getElementById('classroom-routine-id-input')?.value || '').trim(),
       title: String(document.getElementById('classroom-routine-title-input')?.value || '').trim(),
       targetCount: Math.max(2, Math.min(30, Math.round(Number(document.getElementById('classroom-routine-target-input')?.value) || 5))),
       startDate: String(document.getElementById('classroom-routine-start-input')?.value || '').trim(),
       endDate: String(document.getElementById('classroom-routine-end-input')?.value || '').trim(),
+      rewardPoint: Math.max(0, Math.min(20, Math.round(Number(document.getElementById('classroom-routine-reward-input')?.value) || 0))),
       weekdays
     };
   }
 
   function resetClassroomRoutineForm() {
+    const routineId = document.getElementById('classroom-routine-id-input');
     const title = document.getElementById('classroom-routine-title-input');
     const target = document.getElementById('classroom-routine-target-input');
     const start = document.getElementById('classroom-routine-start-input');
     const end = document.getElementById('classroom-routine-end-input');
+    const reward = document.getElementById('classroom-routine-reward-input');
+    if(routineId) routineId.value = '';
     if(title) title.value = '';
     if(target) target.value = '5';
     if(start) start.value = '';
     if(end) end.value = '';
+    if(reward) reward.value = '10';
     document.querySelectorAll('input[name="classroom-routine-weekday"]').forEach(input => {
       input.checked = true;
+    });
+  }
+
+  function setClassroomRoutineFormValues(routine = {}) {
+    const routineId = document.getElementById('classroom-routine-id-input');
+    const title = document.getElementById('classroom-routine-title-input');
+    const target = document.getElementById('classroom-routine-target-input');
+    const start = document.getElementById('classroom-routine-start-input');
+    const end = document.getElementById('classroom-routine-end-input');
+    const reward = document.getElementById('classroom-routine-reward-input');
+    if(routineId) routineId.value = routine.routineId || routine.id || '';
+    if(title) title.value = routine.title || '';
+    if(target) target.value = String(Number(routine.targetCount || 5));
+    if(start) start.value = routine.startDate || '';
+    if(end) end.value = routine.endDate || '';
+    if(reward) reward.value = String(Math.max(0, Math.min(20, Math.round(Number(routine.rewardPoint) || 0))));
+    const weekdays = new Set((Array.isArray(routine.weekdays) ? routine.weekdays : [1, 2, 3, 4, 5]).map(String));
+    document.querySelectorAll('input[name="classroom-routine-weekday"]').forEach(input => {
+      input.checked = weekdays.has(String(input.value));
     });
   }
 
@@ -352,6 +377,7 @@
     setClassroomExchangeSettingsForm,
     setClassroomNoticeForm,
     getClassroomRoutineFormValues,
-    resetClassroomRoutineForm
+    resetClassroomRoutineForm,
+    setClassroomRoutineFormValues
   };
 })();

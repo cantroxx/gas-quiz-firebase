@@ -346,8 +346,7 @@ async function testCompleteQuestAutoFlow() {
     ['complete', { memberUserId: 'member-a', classId: 'c1', questId: 'q1' }],
     ['reset-classroom', { progress: true, wallet: true, gems: true }],
     ['reset-economy'],
-    ['render', true],
-    ['alert', '3 베리를 받았어요.']
+    ['render', true]
   ]);
 }
 

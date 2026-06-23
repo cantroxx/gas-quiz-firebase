@@ -71,7 +71,7 @@
 
 - 타운의 상점에서 진입
 - `DJ48 상점` 화면
-- 카테고리: 배경, 아바타, 방 장식, 칭호 프레임
+- 카테고리: 배경, 아바타, 칭호 프레임
 - `shopItems` Firestore 컬렉션에서 상점 아이템 읽기
 - `assetCatalog` Firestore 컬렉션에서 아이콘/이미지 메타데이터 읽기
 - Firestore 읽기 실패 시 기존 `SHOP_ITEMS`와 아이콘 fallback 유지
@@ -207,7 +207,7 @@
 
 - 데이터 소유자 기준 내 집 선택 설정 저장
 - 현재 경로: `userRoomSettings/{dataOwnerId}`
-- 필드: `userId`, `selectedBackgroundItemId`, `selectedAvatarItemId`, `selectedDecorItemIds`, `selectedTitleFrameItemId`, `updatedAt`
+- 필드: `userId`, `selectedBackgroundItemId`, `selectedAvatarItemId`, `selectedTitleFrameItemId`, `updatedAt`
 - 보유 아이템 선택 시 카테고리별 필드에 저장
 - 회원 연결 후 `userRoomSettings/{uid}`가 있고 `userRoomSettings/{memberUserId}`가 없으면 최초 1회 복사
 - migration 필드: `migratedFromUid`, `migratedAt`
@@ -356,7 +356,7 @@
 - 미이관 퀴즈 처리
   - 속담, 사자성어, 문화유산, 사회 개념, 계산 연습은 준비 중 상태로 유지한다.
 - 이미지 자산 정리
-  - 상점/내 집 꾸미기 자산은 `assetCatalog.fallbackIcon` 중심이며, 실제 Storage 이미지 연결은 후속 작업이다.
+  - 상점 자산은 `assetCatalog.fallbackIcon` 중심이며, 실제 Storage 이미지 연결은 후속 작업이다.
 
 ## 6. 현재 연결된 것
 

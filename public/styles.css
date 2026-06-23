@@ -3039,19 +3039,6 @@ h2 {
   display: block;
 }
 
-.room-decorator-panel {
-  padding: 14px;
-}
-
-.room-decorator-frame {
-  display: block;
-  width: 100%;
-  height: min(760px, 78vh);
-  border: 1px solid rgba(47, 125, 68, 0.14);
-  border-radius: 14px;
-  background: #dff3ff;
-}
-
 .profile-ranking-message-label {
   display: inline-flex;
   align-items: center;
@@ -5033,7 +5020,8 @@ h2 {
 
 .classroom-teacher-workbench {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
   margin-bottom: 18px;
 }
 
@@ -5054,6 +5042,10 @@ h2 {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 8px 18px rgba(47, 83, 120, 0.06);
+}
+
+.classroom-quest-editor[open] {
+  grid-column: 1 / -1;
 }
 
 .classroom-quest-editor summary {
@@ -5184,6 +5176,50 @@ h2 {
 .classroom-quest-form .button.primary {
   min-height: 44px;
   border-radius: 8px;
+}
+
+.classroom-picker-grid {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 2px solid rgba(100, 168, 254, 0.18);
+  border-radius: 10px;
+  background: rgba(248, 251, 255, 0.94);
+}
+
+.classroom-picker-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
+.classroom-picker-grid label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid rgba(84, 105, 132, 0.13);
+  border-radius: 8px;
+  background: #fff;
+  color: #143254;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.classroom-picker-grid input {
+  min-height: auto;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+
+.classroom-picker-grid p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #66768a;
+  font-size: 0.86rem;
+  font-weight: 850;
 }
 
 .classroom-preset-list {
@@ -6033,6 +6069,33 @@ h2 {
   background: #f6fbff;
 }
 
+.classroom-market-section > .event-section-heading.compact {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.classroom-market-section .classroom-shop-history-row {
+  padding-left: 14px;
+}
+
+.classroom-exchange-amount-input {
+  width: min(100%, 180px);
+  min-height: 38px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 2px solid rgba(100, 168, 254, 0.26);
+  border-radius: 8px;
+  background: #fff;
+  color: #143254;
+  font: inherit;
+  font-weight: 850;
+}
+
+.classroom-exchange-amount-input:focus {
+  outline: 3px solid rgba(100, 168, 254, 0.22);
+  border-color: rgba(100, 168, 254, 0.72);
+}
+
 .classroom-teacher-report {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -6352,11 +6415,12 @@ h2 {
 }
 
 .classroom-student-level-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   justify-content: center;
   align-items: center;
   gap: 6px;
+  width: min(100%, 190px);
   max-width: 100%;
 }
 
@@ -6364,6 +6428,7 @@ h2 {
   max-width: 100%;
   overflow-wrap: anywhere;
   text-align: center;
+  justify-content: center;
 }
 
 .classroom-student-card-meta {
@@ -7924,6 +7989,10 @@ h2 {
 
   .classroom-teacher-dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .classroom-teacher-workbench {
+    grid-template-columns: 1fr;
   }
 
   .classroom-visual-hero,

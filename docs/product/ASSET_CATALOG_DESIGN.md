@@ -2,7 +2,7 @@
 
 ## 1. 목적
 
-`assetCatalog`는 상점 아이템, 아바타, 방 장식, 칭호 프레임 같은 화면용 이미지와 아이콘 정보를 관리하기 위한 읽기 전용 에셋 카탈로그다.
+`assetCatalog`는 상점 아이템, 아바타, 칭호 프레임 같은 화면용 이미지와 아이콘 정보를 관리하기 위한 읽기 전용 에셋 카탈로그다.
 
 현재 `shopItems`는 Firestore에서 읽고 있으며 각 문서에 `assetId` 필드가 있다. 아직 Firebase Storage 이미지 연결은 하지 않았고, `imageUrl`이 비어 있거나 `TODO`이면 `public/index.html`의 기존 아이콘 fallback을 사용한다.
 
@@ -26,7 +26,7 @@ assetCatalog/{assetId}
 
 - 이미지, 아이콘, 스프라이트, 배경 등 화면 표시용 에셋의 메타데이터 저장
 - Storage 파일 경로와 공개 표시 URL 관리
-- 상점 아이템, 프로필, 내 집 꾸미기, 뱃지, 칭호 프레임에서 공통 참조
+- 상점 아이템, 프로필, 뱃지, 칭호 프레임에서 공통 참조
 - 클라이언트는 읽기만 하고, 생성/수정은 관리자만 수행
 
 초기 연결 우선순위:
@@ -66,7 +66,7 @@ assetCatalog/asset_forest_bg
 | 필드 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
 | `assetId` | string | 필수 | 에셋 고유 ID. 문서 ID와 동일하게 둔다. |
-| `type` | string | 필수 | `background`, `avatar`, `roomDecor`, `titleFrame`, `badge`, `title`, `profile` 등 |
+| `type` | string | 필수 | `background`, `avatar`, `titleFrame`, `badge`, `title`, `profile` 등 |
 | `name` | string | 필수 | 관리자와 화면에서 확인할 표시 이름 |
 | `storagePath` | string | 선택 | Firebase Storage 내부 파일 경로 |
 | `imageUrl` | string | 선택 | 클라이언트가 표시할 이미지 URL |
@@ -102,7 +102,7 @@ assetCatalog/asset_forest_bg
 }
 ```
 
-## 5. 현재 `shopItems` 7개 연결 목록
+## 5. 현재 `shopItems` 5개 연결 목록
 
 | shopItems 문서 ID | shopItems 이름 | assetId | asset type | fallbackIcon |
 | --- | --- | --- | --- | --- |
@@ -110,8 +110,6 @@ assetCatalog/asset_forest_bg
 | `star_bg` | 별빛 배경 | `asset_star_bg` | `background` | `🌟` |
 | `cat_avatar` | 고양이 아바타 | `asset_cat_avatar` | `avatar` | `🐱` |
 | `explorer_avatar` | 탐험가 아바타 | `asset_explorer_avatar` | `avatar` | `🧭` |
-| `bookshelf` | 책장 | `asset_bookshelf` | `roomDecor` | `📚` |
-| `flowerpot` | 화분 | `asset_flowerpot` | `roomDecor` | `🪴` |
 | `golden_title_frame` | 금빛 칭호 프레임 | `asset_golden_title_frame` | `titleFrame` | `🟨` |
 
 ## 6. Firebase Storage 폴더 구조 제안
@@ -126,9 +124,6 @@ shop/
   avatars/
     cat_avatar.png
     explorer_avatar.png
-  room-decor/
-    bookshelf.png
-    flowerpot.png
   title-frames/
     golden_title_frame.png
 
@@ -160,7 +155,6 @@ events/
 
 - 배경: 16:9 또는 4:3 비율, WebP 또는 PNG
 - 아바타: 정사각형 PNG/WebP, 투명 배경 권장
-- 방 장식: 투명 배경 PNG/WebP 권장
 - 칭호 프레임: 투명 배경 PNG/WebP 권장
 - 파일 용량은 카드용 이미지 기준으로 작게 유지한다.
 
@@ -214,20 +208,18 @@ fallback 우선순위:
 - 구매 처리
 - 보유 아이템 처리
 - DJ코인 차감
-- 내 집 꾸미기 저장
 - `assetCatalog` 쓰기 기능
 - 운영본 `gas-quiz` 이미지나 데이터를 직접 연결
 
 ## 11. 다음 구현 순서
 
 1. `assetCatalog` seed 문서 작성
-   - 현재 7개 `shopItems.assetId`에 맞춘 Firestore 문서 정의
+   - 현재 5개 `shopItems.assetId`에 맞춘 Firestore 문서 정의
    - `fallbackIcon`, `type`, `storagePath` 먼저 확정
 
 2. Firebase Storage 폴더와 파일명 확정
    - `shop/backgrounds`
    - `shop/avatars`
-   - `shop/room-decor`
    - `shop/title-frames`
 
 3. 테스트 이미지 업로드

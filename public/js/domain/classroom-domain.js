@@ -79,7 +79,7 @@
 
   function getClassroomProgressStatusLabel(progress) {
     if(!progress) return '';
-    if(progress.rewardStatus === 'paid') return '지급 완료';
+    if(progress.rewardStatus === 'paid') return '오늘 완료';
     if(progress.rewardStatus === 'approved') return '담임 승인됨';
     if(progress.rewardStatus === 'rejected') return '담임 반려됨';
     return '완료 후보 저장됨';
@@ -87,7 +87,7 @@
 
   function getClassroomProgressButtonLabel(progress) {
     if(!progress) return '';
-    if(progress.rewardStatus === 'paid') return '오늘 지급 완료';
+    if(progress.rewardStatus === 'paid') return '오늘은 완료했습니다.';
     if(progress.rewardStatus === 'approved') return '승인 완료';
     if(progress.rewardStatus === 'rejected') return '반려됨';
     return '저장 완료';

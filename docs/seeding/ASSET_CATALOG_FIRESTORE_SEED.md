@@ -6,14 +6,14 @@
 
 현재 상태:
 
-- `shopItems` 7개 문서는 Firestore에 등록되어 있다.
+- `shopItems` 5개 문서는 Firestore에 등록되어 있다.
 - 각 `shopItems` 문서는 `assetId` 필드를 가지고 있다.
 - 상점 화면은 `shopItems`를 Firestore에서 읽고, 이미지가 없으면 기존 아이콘 fallback을 사용한다.
 - 아직 Firebase Storage 이미지 연결 코드는 작성하지 않는다.
 
 목표:
 
-- `shopItems.assetId`와 연결되는 `assetCatalog` 문서 7개 정의
+- `shopItems.assetId`와 연결되는 `assetCatalog` 문서 5개 정의
 - Storage 경로, fallback icon, 표시 타입을 먼저 정리
 - 나중에 Storage 이미지 URL을 넣을 수 있도록 `imageUrl` 필드 유지
 - 첫 구현은 읽기 전용 에셋 카탈로그 준비로 제한
@@ -40,7 +40,7 @@ assetCatalog/asset_forest_bg
 
 ## 3. Seed assetId 목록
 
-`shopItems.assetId`와 연결되는 초기 문서 7개:
+`shopItems.assetId`와 연결되는 초기 문서 5개:
 
 | assetId | 연결 shopItems 문서 | 이름 | 타입 |
 | --- | --- | --- | --- |
@@ -48,8 +48,6 @@ assetCatalog/asset_forest_bg
 | `asset_star_bg` | `star_bg` | 별빛 배경 이미지 | `background` |
 | `asset_cat_avatar` | `cat_avatar` | 고양이 아바타 이미지 | `avatar` |
 | `asset_explorer_avatar` | `explorer_avatar` | 탐험가 아바타 이미지 | `avatar` |
-| `asset_bookshelf` | `bookshelf` | 책장 장식 이미지 | `roomDecor` |
-| `asset_flowerpot` | `flowerpot` | 화분 장식 이미지 | `roomDecor` |
 | `asset_golden_title_frame` | `golden_title_frame` | 금빛 칭호 프레임 이미지 | `titleFrame` |
 
 ## 4. 필드 구조와 타입
@@ -150,38 +148,6 @@ assetCatalog/asset_forest_bg
 }
 ```
 
-### `asset_bookshelf`
-
-```js
-{
-  assetId: "asset_bookshelf",
-  type: "roomDecor",
-  name: "책장 장식 이미지",
-  storagePath: "shop-items/decor/bookshelf.png",
-  imageUrl: "",
-  fallbackIcon: "📚",
-  enabled: true,
-  createdAt: "<Timestamp>",
-  updatedAt: "<Timestamp>"
-}
-```
-
-### `asset_flowerpot`
-
-```js
-{
-  assetId: "asset_flowerpot",
-  type: "roomDecor",
-  name: "화분 장식 이미지",
-  storagePath: "shop-items/decor/flowerpot.png",
-  imageUrl: "",
-  fallbackIcon: "🪴",
-  enabled: true,
-  createdAt: "<Timestamp>",
-  updatedAt: "<Timestamp>"
-}
-```
-
 ### `asset_golden_title_frame`
 
 ```js
@@ -207,8 +173,6 @@ shop-items/backgrounds/forest_bg.png
 shop-items/backgrounds/star_bg.png
 shop-items/avatars/cat_avatar.png
 shop-items/avatars/explorer_avatar.png
-shop-items/decor/bookshelf.png
-shop-items/decor/flowerpot.png
 shop-items/title-frames/golden_title_frame.png
 ```
 

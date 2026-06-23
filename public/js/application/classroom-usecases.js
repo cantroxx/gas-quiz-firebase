@@ -436,12 +436,6 @@
         deps.resetClassroomCaches?.({ progress: true, wallet: true, gems: true });
         deps.resetUserEconomyCache?.();
         await deps.renderClassroom?.(true);
-        if(result.duplicate) {
-          deps.alert?.('오늘 이미 완료한 퀘스트예요.');
-        } else {
-          const amount = Number(result.rewardAmount || result.rewardCoin || result.rewardPoint || quest.rewardCoin || 0);
-          deps.alert?.(`${amount} ${deps.getClassroomRewardCurrencyLabel(result.rewardCurrency || quest.rewardCurrency)}를 받았어요.`);
-        }
         return { result, error: null };
       }
 

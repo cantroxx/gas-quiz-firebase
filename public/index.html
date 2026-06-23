@@ -258,30 +258,18 @@
         <div>
           <p class="eyebrow">My Room</p>
           <h2 id="home-title">내 집</h2>
-          <p>내 프로필, 칭호, 뱃지, 꾸미기 아이템을 확인하고 정리합니다.</p>
+          <p>내 프로필, 칭호, 뱃지, 보유 아이템을 확인하고 정리합니다.</p>
         </div>
       </div>
 
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
       <div class="home-detail-toggle-grid" aria-label="내 집 상세 메뉴">
-        <button class="home-detail-toggle" type="button" data-home-detail-toggle="decorator" aria-expanded="false">집 꾸미기</button>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="ranking" aria-expanded="false">내 랭킹 기록</button>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="titles" aria-expanded="false">보유 칭호</button>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="badges" aria-expanded="false">뱃지·연습 현황</button>
-        <button class="home-detail-toggle" type="button" data-home-detail-toggle="items" aria-expanded="false">보유 꾸미기 아이템</button>
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="items" aria-expanded="false">보유 아이템</button>
       </div>
       <div class="home-detail-root">
-        <section class="collection-panel home-detail-panel room-decorator-panel" data-home-detail-panel="decorator" aria-labelledby="room-decorator-heading">
-          <div class="collection-heading collection-heading-row">
-            <div>
-              <p class="eyebrow">Room Decorator</p>
-              <h3 id="room-decorator-heading">집 꾸미기</h3>
-            </div>
-            <button class="mini-pill-button" type="button" data-close-room-decorator>닫기</button>
-          </div>
-          <iframe class="room-decorator-frame" title="내 집 꾸미기" data-room-decorator-frame data-src="/interiors-room-preview.html"></iframe>
-        </section>
-
         <section class="collection-panel profile-ranking-panel home-detail-panel" data-home-detail-panel="ranking" aria-labelledby="profile-ranking-heading">
           <div class="collection-heading collection-heading-row">
             <div>
@@ -342,14 +330,13 @@
         <div>
           <p class="eyebrow">Town Shop</p>
           <h2 id="shop-title">DJ48 상점</h2>
-          <p>퀴즈 보상으로 얻은 코인으로 꾸미기 아이템을 살 수 있는 공간입니다.</p>
+          <p>퀴즈 보상으로 얻은 코인으로 프로필 아이템을 살 수 있는 공간입니다.</p>
         </div>
       </div>
 
       <div class="shop-category-list" aria-label="상점 카테고리">
         <span>배경</span>
         <span>아바타</span>
-        <span>방 장식</span>
         <span>칭호 프레임</span>
       </div>
 
@@ -549,6 +536,7 @@
                 대상 학생
                 <input id="classroom-quest-targets-input" type="text" maxlength="160" placeholder="예: G4-C8-N1, G4-C8-N2 / 비우면 전체">
               </label>
+              <div id="classroom-quest-target-picker" class="classroom-picker-grid" aria-label="대상 학생 선택"></div>
               <label>
                 반복 설정
                 <select id="classroom-quest-repeat-input">
@@ -561,6 +549,7 @@
                 연결 젬
                 <input id="classroom-quest-gem-name-input" type="text" maxlength="40" placeholder="예: 일기젬">
               </label>
+              <div id="classroom-quest-gem-picker" class="classroom-picker-grid classroom-picker-grid--compact" aria-label="연결 젬 선택"></div>
               <label>
                 젬 경험치
                 <input id="classroom-quest-gem-xp-input" type="number" min="0" max="100" inputmode="numeric" value="0">
@@ -1091,6 +1080,7 @@
             <section class="classroom-subsection" data-classroom-subpane="routine" aria-label="성장루틴">
               <div id="classroom-routine-body" class="classroom-subsection-body">
                 <form id="classroom-routine-form" class="classroom-quest-form">
+                  <input id="classroom-routine-id-input" type="hidden">
                   <label>
                     루틴 이름
                     <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
@@ -1107,6 +1097,10 @@
                     종료일
                     <input id="classroom-routine-end-input" type="date">
                   </label>
+                  <label>
+                    검토 보상 포인트
+                    <input id="classroom-routine-reward-input" type="number" min="0" max="20" inputmode="numeric" value="10">
+                  </label>
                   <fieldset class="classroom-weekday-fieldset">
                     <legend>체크 요일</legend>
                     <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
@@ -1115,7 +1109,7 @@
                     <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
                     <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
                   </fieldset>
-                  <button class="button primary" type="submit">내 루틴 만들기</button>
+                  <button class="button primary" type="submit">내 루틴 저장</button>
                 </form>
                 <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
                 <div id="classroom-routine-grid" class="classroom-card-grid"></div>
@@ -2048,22 +2042,6 @@
         icon: '🧭'
       },
       {
-        itemId: 'bookshelf',
-        category: '방 장식',
-        name: '책장',
-        desc: '내 집에 독서 분위기를 더하는 방 장식 아이템입니다.',
-        price: ECONOMY_CONSTANTS.shopPriceTable.normalDecoration,
-        icon: '📚'
-      },
-      {
-        itemId: 'flowerpot',
-        category: '방 장식',
-        name: '화분',
-        desc: '방 한쪽에 싱그러운 느낌을 주는 작은 장식입니다.',
-        price: ECONOMY_CONSTANTS.shopPriceTable.smallDecoration,
-        icon: '🪴'
-      },
-      {
         itemId: 'gold_title_frame',
         category: '칭호 프레임',
         name: '금빛 칭호 프레임',
@@ -2108,7 +2086,6 @@
     const SHOP_CATEGORY_LABELS = {
       background: '배경',
       avatar: '아바타',
-      roomDecor: '방 장식',
       titleFrame: '칭호 프레임'
     };
 
@@ -2129,7 +2106,6 @@
       honor_nameplate_frame: '◆',
       background: '🌄',
       avatar: '🙂',
-      roomDecor: '🪴',
       titleFrame: '🟨'
     };
 
@@ -5357,6 +5333,7 @@
         getFirestoreDb,
         getFirestoreFieldValue,
         getFirebaseFunctions,
+        isFirestorePermissionDeniedError,
         warn: console.warn
       });
     }
@@ -5466,7 +5443,7 @@
         setSelectedBadge: options => getClassroomRepository().setClassroomSelectedBadge(options),
         resetCaches: resetClassroomDataCaches,
         renderClassroom: renderClassroomPrototype,
-        alert: window.alert,
+        alert: message => window.alert(message),
         warn: console.warn
       });
     }
@@ -5552,6 +5529,11 @@
         return;
       }
       window.DJ48ClassroomForm.setClassroomQuestFormValues(quest);
+      const [studentCards, economyBoard] = await Promise.all([
+        loadClassroomStudentCards(settings, true),
+        loadClassroomEconomyBoard(settings, true)
+      ]);
+      window.DJ48ClassroomRender.renderClassroomQuestPickers?.({ studentCards, economyBoard });
       setClassroomQuestEditorStatus('퀘스트 내용을 불러왔습니다. 수정 후 저장해 주세요.');
       const editorPanel = document.getElementById('classroom-quest-editor-panel');
       if(editorPanel) editorPanel.open = true;
@@ -6086,7 +6068,7 @@
         resetCaches: resetClassroomDataCaches,
         renderClassroom: renderClassroomPrototype,
         containsElement: element => document.body.contains(element),
-        alert: window.alert,
+        alert: message => window.alert(message),
         warn: console.warn
       };
     }
@@ -6211,9 +6193,14 @@
 
     async function exchangeClassroomCurrency(direction, button) {
       const label = direction === 'pointToCoin' ? '받을 DJ코인 수' : '사용할 DJ코인 수';
-      const rawAmount = askClassroomActionMemo(`${label}를 입력하세요.`);
+      const amountInput = button?.closest('.classroom-exchange-row')?.querySelector('[data-classroom-exchange-amount]');
+      const rawAmount = amountInput ? amountInput.value : '';
       const amount = Math.round(Number(rawAmount.replace(/,/g, '')) || 0);
-      if(amount <= 0) return null;
+      if(amount <= 0) {
+        window.alert(`${label}를 1 이상 입력해 주세요.`);
+        if(amountInput) amountInput.focus();
+        return null;
+      }
       return runClassroomEconomyAction('exchangeClassroomCurrency', direction, button, {
         amount
       });
@@ -6225,6 +6212,19 @@
 
     function resetClassroomRoutineForm() {
       return window.DJ48ClassroomForm.resetClassroomRoutineForm();
+    }
+
+    async function editClassroomRoutine(routineId) {
+      const settings = await loadClassroomSettings();
+      const economyBoard = await loadClassroomEconomyBoard(settings, true);
+      const routine = (economyBoard.routines || []).find(item => item.routineId === routineId || item.id === routineId);
+      if(!routine) {
+        setClassroomRoutineStatus('수정할 성장루틴을 찾지 못했습니다.', true);
+        return;
+      }
+      window.DJ48ClassroomForm.setClassroomRoutineFormValues(routine);
+      setClassroomRoutineStatus('성장루틴 내용을 불러왔습니다. 수정 후 저장해 주세요.');
+      document.getElementById('classroom-routine-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     async function saveClassroomRoutineFromForm(event) {
@@ -6261,7 +6261,7 @@
         resetUserEconomyCache,
         renderClassroom: renderClassroomPrototype,
         getClassroomRewardCurrencyLabel,
-        alert: window.alert,
+        alert: message => window.alert(message),
         warn: console.warn
       });
     }
@@ -6281,7 +6281,7 @@
         isAdminClassroomSectionActive: () => document.getElementById('admin-section-classroom')?.classList.contains('is-active'),
         renderAdminClassroomReview,
         getClassroomRewardCurrencyLabel,
-        alert: window.alert,
+        alert: message => window.alert(message),
         warn: console.warn
       });
     }
@@ -6332,7 +6332,7 @@
         resetEventProgressCache,
         debugLog,
         warn: console.warn,
-        alert: window.alert,
+        alert: message => window.alert(message),
         getEventRewardClaimErrorMessage: window.DJ48EventData.getEventRewardClaimErrorMessage,
         renderEventProgress: renderEventProgressFromFunctions
       });
@@ -7173,7 +7173,7 @@
     function renderQuizSelectView(quizId) {
       return window.DJ48QuizRender.renderQuizSelectView(quizId, {
         ...getQuizRenderDeps(),
-        alert: window.alert,
+        alert: message => window.alert(message),
         showTownView,
         renderQuizModeCards
       });
@@ -7190,7 +7190,7 @@
         loadFeatureFlags,
         isQuizEnabledByFlags,
         isAdminMember: isCurrentAdminMember,
-        alert: window.alert,
+        alert: message => window.alert(message),
         showTownView,
         showQuizSelectView,
         ensurePopularQuizAccess,
@@ -7928,6 +7928,7 @@
         saveClassroomExchangeSettingsFromForm,
         saveClassroomNoticesFromForm,
         saveClassroomRoutineFromForm,
+        editClassroomRoutine,
         setActiveClassroomTab,
         completeClassroomCheckQuest,
         setClassroomSelectedGemBadge,

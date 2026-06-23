@@ -158,11 +158,10 @@ globalThis.DJ48ShopData = {
   normalizeAssetCatalogFromFirestore: doc => ({ assetId: doc.data().assetId, enabled: doc.data().enabled }),
   normalizeUserEconomyFromFirestore: doc => doc.exists ? ({ userId: doc.data().userId, djCoin: doc.data().djCoin }) : null,
   getInitialUserEconomy: userId => ({ userId, djCoin: 0, totalEarned: 0, totalSpent: 0 }),
-  getDefaultRoomSettings: userId => ({ userId, selectedDecorItemIds: [] }),
+  getDefaultRoomSettings: userId => ({ userId }),
   normalizeRoomSettingsFromFirestore: doc => ({
     userId: doc.data().userId,
-    selectedAvatarItemId: doc.data().selectedAvatarItemId || '',
-    selectedDecorItemIds: []
+    selectedAvatarItemId: doc.data().selectedAvatarItemId || ''
   }),
   getRoomItemCategory: () => 'avatar',
   isRoomItemSelected: () => false
@@ -195,8 +194,7 @@ async function testShopRepositoryDelegatesToShopData() {
   assert.deepEqual(await repository.loadInventoryItemIds({ userId: 'member-1', memberUserId: 'member-1' }), new Set(['shop-a']));
   assert.deepEqual(await repository.loadRoomSettings({ userId: 'member-1', memberUserId: 'member-1' }), {
     userId: 'member-1',
-    selectedAvatarItemId: '',
-    selectedDecorItemIds: []
+    selectedAvatarItemId: ''
   });
   assert.deepEqual(await repository.purchaseShopItem({ itemId: 'shop-a' }), { success: true, itemId: 'shop-a' });
   assert.deepEqual(await repository.saveRoomItemSelection({ userId: 'member-1', itemId: 'room-a' }), {

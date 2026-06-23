@@ -309,7 +309,6 @@ purchaseLogs/{purchaseLogId}
 - 선물 기능
 - 복권, 은행, 이자 기능
 - 아이템 장착/해제 저장
-- 내 집 꾸미기 저장
 - 희귀/시즌 아이템 판매 기간 검증
 - 관리자 상점 편집 UI
 - Firebase Storage 이미지 업로드 자동화

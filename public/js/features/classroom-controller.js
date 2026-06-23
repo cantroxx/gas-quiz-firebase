@@ -272,6 +272,11 @@
     });
 
     document.getElementById('classroom-routine-grid')?.addEventListener('click', event => {
+      const editButton = event.target.closest('[data-classroom-routine-edit-id]');
+      if(editButton && !editButton.disabled) {
+        deps.editClassroomRoutine?.(editButton.dataset.classroomRoutineEditId || '');
+        return;
+      }
       const button = event.target.closest('[data-classroom-routine-check-id]');
       if(!button || button.disabled) return;
       deps.checkClassroomRoutine?.(button.dataset.classroomRoutineCheckId || '', button);

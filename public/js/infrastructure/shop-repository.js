@@ -99,14 +99,6 @@
       updateData.selectedBackgroundItemId = isSelected ? '' : itemId;
     } else if(category === 'avatar') {
       updateData.selectedAvatarItemId = isSelected ? '' : itemId;
-    } else if(category === 'roomDecor') {
-      const decorSet = new Set(currentSettings.selectedDecorItemIds);
-      if(decorSet.has(itemId)) {
-        decorSet.delete(itemId);
-      } else {
-        decorSet.add(itemId);
-      }
-      updateData.selectedDecorItemIds = Array.from(decorSet);
     } else if(category === 'titleFrame') {
       updateData.selectedTitleFrameItemId = isSelected ? '' : itemId;
     } else {
