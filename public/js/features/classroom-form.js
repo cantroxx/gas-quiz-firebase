@@ -46,7 +46,11 @@
   }
 
   function getClassroomQuestFormValues(deps = {}) {
-    const linkedGemName = String(document.getElementById('classroom-quest-gem-name-input')?.value || '').trim();
+    const linkedGemNames = String(document.getElementById('classroom-quest-gem-name-input')?.value || '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean);
+    const linkedGemName = linkedGemNames[0] || '';
     const targetText = String(document.getElementById('classroom-quest-targets-input')?.value || '').trim();
     const targetStudentIds = targetText === '대상 없음'
       ? ['__none__']
@@ -65,9 +69,12 @@
       repeatRule: String(document.getElementById('classroom-quest-repeat-input')?.value || 'once').trim(),
       linkedGemName,
       linkedGemId: deps.slugifyClassroomGemId?.(linkedGemName) || '',
+      linkedGemNames,
+      linkedGemIds: linkedGemNames.map(name => deps.slugifyClassroomGemId?.(name) || '').filter(Boolean),
       gemXp: linkedGemName ? 1 : 0,
       gemTargetXp: Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10)),
-      gemRewardPoint: 0,
+      gemRewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0))),
+      gemRewardCoin: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-quest-gem-coin-input')?.value) || 0))),
       active: true
     };
   }
@@ -87,6 +94,7 @@
     const gemXp = document.getElementById('classroom-quest-gem-xp-input');
     const gemTarget = document.getElementById('classroom-quest-gem-target-input');
     const gemReward = document.getElementById('classroom-quest-gem-reward-input');
+    const gemCoin = document.getElementById('classroom-quest-gem-coin-input');
     if(questId) questId.value = '';
     if(title) title.value = '';
     if(desc) desc.value = '';
@@ -101,6 +109,7 @@
     if(gemXp) gemXp.value = '1';
     if(gemTarget) gemTarget.value = '10';
     if(gemReward) gemReward.value = '0';
+    if(gemCoin) gemCoin.value = '0';
   }
 
   function setClassroomQuestFormValues(quest = {}) {
@@ -118,6 +127,7 @@
     const gemXp = document.getElementById('classroom-quest-gem-xp-input');
     const gemTarget = document.getElementById('classroom-quest-gem-target-input');
     const gemReward = document.getElementById('classroom-quest-gem-reward-input');
+    const gemCoin = document.getElementById('classroom-quest-gem-coin-input');
     if(questId) questId.value = quest.id || quest.questId || '';
     if(title) title.value = quest.title || '';
     if(desc) desc.value = quest.desc || '';
@@ -130,10 +140,13 @@
     if(start) start.value = quest.startDate || '';
     if(end) end.value = quest.endDate || '';
     if(repeat) repeat.value = quest.repeatRule || 'once';
-    if(gemName) gemName.value = quest.linkedGemName || '';
+    if(gemName) gemName.value = Array.isArray(quest.linkedGemNames) && quest.linkedGemNames.length
+      ? quest.linkedGemNames.join(', ')
+      : quest.linkedGemName || '';
     if(gemXp) gemXp.value = '1';
     if(gemTarget) gemTarget.value = String(Number(quest.gemTargetXp || 10));
-    if(gemReward) gemReward.value = '0';
+    if(gemReward) gemReward.value = String(Number(quest.gemRewardPoint || 0));
+    if(gemCoin) gemCoin.value = String(Number(quest.gemRewardCoin || 0));
   }
 
   function getClassroomBadgeCampaignFormValues(deps = {}) {
@@ -142,6 +155,9 @@
       title: String(document.getElementById('classroom-badge-title-input')?.value || '').trim(),
       targetGemName,
       targetGemId: deps.slugifyClassroomGemId?.(targetGemName) || '',
+      startDate: String(document.getElementById('classroom-badge-start-input')?.value || '').trim(),
+      endDate: String(document.getElementById('classroom-badge-end-input')?.value || '').trim(),
+      minIncrease: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-badge-min-increase-input')?.value) || 0))),
       awardLimit: Math.max(1, Math.min(10, Math.round(Number(document.getElementById('classroom-badge-limit-input')?.value) || 1))),
       icon: String(document.getElementById('classroom-badge-icon-input')?.value || 'keyringStar').trim().slice(0, 40),
       color: String(document.getElementById('classroom-badge-color-input')?.value || '#ffcf5a').trim().slice(0, 30)
@@ -150,6 +166,7 @@
 
   function getClassroomJobFormValues() {
     return {
+      jobId: String(document.getElementById('classroom-job-id-input')?.value || '').trim(),
       title: String(document.getElementById('classroom-job-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-job-desc-input')?.value || '').trim(),
       weeklyPayPoint: Math.max(1, Math.round(Number(document.getElementById('classroom-job-pay-input')?.value) || 0)),
@@ -158,34 +175,89 @@
   }
 
   function resetClassroomJobForm() {
+    const jobId = document.getElementById('classroom-job-id-input');
     const title = document.getElementById('classroom-job-title-input');
     const desc = document.getElementById('classroom-job-desc-input');
     const pay = document.getElementById('classroom-job-pay-input');
     const capacity = document.getElementById('classroom-job-capacity-input');
+    if(jobId) jobId.value = '';
     if(title) title.value = '';
     if(desc) desc.value = '';
     if(pay) pay.value = '20';
     if(capacity) capacity.value = '1';
   }
 
+  function setClassroomJobFormValues(job = {}) {
+    const jobId = document.getElementById('classroom-job-id-input');
+    const title = document.getElementById('classroom-job-title-input');
+    const desc = document.getElementById('classroom-job-desc-input');
+    const pay = document.getElementById('classroom-job-pay-input');
+    const capacity = document.getElementById('classroom-job-capacity-input');
+    if(jobId) jobId.value = job.jobId || job.id || '';
+    if(title) title.value = job.title || '';
+    if(desc) desc.value = job.desc || '';
+    if(pay) pay.value = String(Number(job.weeklyPayPoint || job.payPoint || 20));
+    if(capacity) capacity.value = String(Number(job.maxAssignees || 1));
+  }
+
   function getClassroomShopItemFormValues() {
+    const priceType = String(document.getElementById('classroom-shop-price-type-input')?.value || 'point').trim() === 'djCoin' ? 'djCoin' : 'point';
+    const price = Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0));
     return {
+      itemId: String(document.getElementById('classroom-shop-id-input')?.value || '').trim(),
       title: String(document.getElementById('classroom-shop-title-input')?.value || '').trim(),
       desc: String(document.getElementById('classroom-shop-desc-input')?.value || '').trim(),
-      pricePoint: Math.max(1, Math.round(Number(document.getElementById('classroom-shop-price-input')?.value) || 0)),
+      pricePoint: priceType === 'point' ? price : 0,
+      priceCoin: priceType === 'djCoin' ? price : 0,
+      priceType,
+      itemType: String(document.getElementById('classroom-shop-item-type-input')?.value || 'coupon').trim() || 'coupon',
+      boostPoint: Number(document.getElementById('classroom-shop-boost-input')?.value || 0) || 0,
+      imageUrl: String(document.getElementById('classroom-shop-image-url-input')?.value || '').trim(),
       icon: String(document.getElementById('classroom-shop-icon-input')?.value || 'pointShop').trim()
     };
   }
 
   function resetClassroomShopItemForm() {
+    const itemId = document.getElementById('classroom-shop-id-input');
+    const itemType = document.getElementById('classroom-shop-item-type-input');
+    const boost = document.getElementById('classroom-shop-boost-input');
+    const imageUrl = document.getElementById('classroom-shop-image-url-input');
     const title = document.getElementById('classroom-shop-title-input');
     const desc = document.getElementById('classroom-shop-desc-input');
     const price = document.getElementById('classroom-shop-price-input');
+    const priceType = document.getElementById('classroom-shop-price-type-input');
     const icon = document.getElementById('classroom-shop-icon-input');
+    if(itemId) itemId.value = '';
+    if(itemType) itemType.value = 'coupon';
+    if(boost) boost.value = '0';
+    if(imageUrl) imageUrl.value = '';
     if(title) title.value = '';
     if(desc) desc.value = '';
     if(price) price.value = '50';
+    if(priceType) priceType.value = 'point';
     if(icon) icon.value = 'pointShop';
+  }
+
+  function setClassroomShopItemFormValues(item = {}) {
+    const itemId = document.getElementById('classroom-shop-id-input');
+    const itemType = document.getElementById('classroom-shop-item-type-input');
+    const boost = document.getElementById('classroom-shop-boost-input');
+    const imageUrl = document.getElementById('classroom-shop-image-url-input');
+    const title = document.getElementById('classroom-shop-title-input');
+    const desc = document.getElementById('classroom-shop-desc-input');
+    const price = document.getElementById('classroom-shop-price-input');
+    const priceType = document.getElementById('classroom-shop-price-type-input');
+    const icon = document.getElementById('classroom-shop-icon-input');
+    const nextPriceType = item.priceType === 'djCoin' ? 'djCoin' : 'point';
+    if(itemId) itemId.value = item.itemId || item.id || '';
+    if(itemType) itemType.value = item.itemType || item.type || 'coupon';
+    if(boost) boost.value = String(Number(item.boostPoint || item.pointBoost || 0));
+    if(imageUrl) imageUrl.value = item.imageUrl || item.iconUrl || item.thumbnailUrl || '';
+    if(title) title.value = item.title || '';
+    if(desc) desc.value = item.desc || '';
+    if(price) price.value = String(Number(nextPriceType === 'djCoin' ? (item.priceCoin || item.priceDjCoin || item.price || 50) : (item.pricePoint || item.price || 50)));
+    if(priceType) priceType.value = nextPriceType;
+    if(icon) icon.value = item.icon || 'pointShop';
   }
 
   function getClassroomNoticeFormValues() {
@@ -226,7 +298,8 @@
       gemName,
       gemId: deps.slugifyClassroomGemId?.(gemName) || '',
       targetXp: Math.max(1, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-target-input')?.value) || 10))),
-      rewardPoint: 0,
+      rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-reward-input')?.value) || 0))),
+      rewardCoin: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-coin-input')?.value) || 0))),
       icon: String(document.getElementById('classroom-gem-icon-input')?.value || 'gemReading').trim().slice(0, 40)
     };
   }
@@ -235,10 +308,12 @@
     const name = document.getElementById('classroom-gem-name-input');
     const target = document.getElementById('classroom-gem-target-input');
     const reward = document.getElementById('classroom-gem-reward-input');
+    const coin = document.getElementById('classroom-gem-coin-input');
     const icon = document.getElementById('classroom-gem-icon-input');
     if(name) name.value = '';
     if(target) target.value = '10';
     if(reward) reward.value = '0';
+    if(coin) coin.value = '0';
     if(icon) icon.value = 'gemReading';
   }
 
@@ -382,8 +457,10 @@
     getClassroomBadgeCampaignFormValues,
     getClassroomJobFormValues,
     resetClassroomJobForm,
+    setClassroomJobFormValues,
     getClassroomShopItemFormValues,
     resetClassroomShopItemForm,
+    setClassroomShopItemFormValues,
     getClassroomNoticeFormValues,
     getClassroomMissionFormValues,
     getClassroomTaxFormValues,

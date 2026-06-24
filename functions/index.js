@@ -1657,9 +1657,18 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     ? rawQuest.rewardMode
     : "auto";
   const rewardLabel = "포인트";
-  const linkedGemName = String(rawQuest.linkedGemName || "").trim().slice(0, 40);
-  const linkedGemId = slugifyClassroomGemId(rawQuest.linkedGemId || linkedGemName);
-  const gemXp = linkedGemId ? 1 : 0;
+  const rawLinkedGemNames = Array.isArray(rawQuest.linkedGemNames)
+    ? rawQuest.linkedGemNames
+    : String(rawQuest.linkedGemName || "")
+      .split(",")
+      .map(value => value.trim())
+      .filter(Boolean);
+  const linkedGemNames = rawLinkedGemNames.map(value => String(value || "").trim().slice(0, 40)).filter(Boolean).slice(0, 12);
+  const rawLinkedGemIds = Array.isArray(rawQuest.linkedGemIds) ? rawQuest.linkedGemIds : [];
+  const linkedGemIds = linkedGemNames.map((name, index) => slugifyClassroomGemId(rawLinkedGemIds[index] || name)).filter(Boolean);
+  const linkedGemName = linkedGemNames[0] || "";
+  const linkedGemId = linkedGemIds[0] || "";
+  const gemXp = linkedGemIds.length ? 1 : 0;
   const repeatRule = ["once", "daily", "weekly"].includes(rawQuest.repeatRule) ? rawQuest.repeatRule : "once";
   const startDate = isIsoDateKey(rawQuest.startDate) ? String(rawQuest.startDate) : "";
   const endDate = isIsoDateKey(rawQuest.endDate) ? String(rawQuest.endDate) : "";
@@ -1687,9 +1696,12 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     active: rawQuest.active !== false,
     linkedGemId,
     linkedGemName,
+    linkedGemIds,
+    linkedGemNames,
     gemXp,
     gemTargetXp: linkedGemId ? Math.max(1, Math.min(1000, Math.round(Number(rawQuest.gemTargetXp) || 10))) : 10,
-    gemRewardPoint: 0,
+    gemRewardPoint: Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardPoint) || 0))),
+    gemRewardCoin: Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardCoin) || 0))),
     studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().replace(/코인/g, "포인트").replace(/베리/g, "포인트").slice(0, 60)
   };
 }
@@ -1702,6 +1714,29 @@ async function applyClassroomGemProgress(transaction, {
   source,
   progressPath
 }) {
+  const linkedGemIds = Array.isArray(quest?.linkedGemIds) ? quest.linkedGemIds.map(value => slugifyClassroomGemId(value)).filter(Boolean) : [];
+  if (linkedGemIds.length > 1) {
+    const linkedGemNames = Array.isArray(quest?.linkedGemNames) ? quest.linkedGemNames : [];
+    const results = [];
+    for (let index = 0; index < linkedGemIds.length; index += 1) {
+      const result = await applyClassroomGemProgress(transaction, {
+        classId,
+        memberUserId,
+        quest: {
+          ...quest,
+          linkedGemId: linkedGemIds[index],
+          linkedGemName: linkedGemNames[index] || linkedGemIds[index],
+          linkedGemIds: [],
+          linkedGemNames: []
+        },
+        authUid,
+        source,
+        progressPath
+      });
+      if (result) results.push(result);
+    }
+    return results;
+  }
   const gemId = slugifyClassroomGemId(quest?.linkedGemId || quest?.linkedGemName);
   const gemXp = Math.max(0, Math.min(100, Math.round(Number(quest?.gemXp) || 0)));
   if (!gemId || gemXp <= 0) return null;
@@ -1709,11 +1744,24 @@ async function applyClassroomGemProgress(transaction, {
   const gemName = String(quest?.linkedGemName || gemId).trim().slice(0, 40);
   const targetXp = Math.max(1, Math.min(1000, Math.round(Number(quest?.gemTargetXp) || 10)));
   const rewardPoint = Math.max(0, Math.min(1000, Math.round(Number(quest?.gemRewardPoint) || 0)));
+  const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(quest?.gemRewardCoin) || 0)));
   const progressId = `${memberUserId}__${gemId}`;
+  const progressLogId = rewardLogId([
+    "classroom_gem_progress",
+    classId,
+    memberUserId,
+    gemId,
+    quest?.id || quest?.questId || "",
+    progressPath || ""
+  ]);
   const gemRef = db.collection("classrooms")
     .doc(classId)
     .collection("studentGemProgress")
     .doc(progressId);
+  const gemLogRef = db.collection("classrooms")
+    .doc(classId)
+    .collection("gemProgressLogs")
+    .doc(progressLogId);
   const gemSnapshot = await transaction.get(gemRef);
   const previous = gemSnapshot.exists ? gemSnapshot.data() || {} : {};
   const previousXp = Math.max(0, Math.round(Number(previous.currentXp) || 0));
@@ -1728,8 +1776,8 @@ async function applyClassroomGemProgress(transaction, {
     gemId
   ]);
   const awardLogRef = db.collection("rewardLogs").doc(awardLogId);
-  const awardLogSnapshot = newlyCompleted && rewardPoint > 0 ? await transaction.get(awardLogRef) : null;
-  const canAward = newlyCompleted && rewardPoint > 0 && !awardLogSnapshot?.exists;
+  const awardLogSnapshot = newlyCompleted && (rewardPoint > 0 || rewardCoin > 0) ? await transaction.get(awardLogRef) : null;
+  const canAward = newlyCompleted && (rewardPoint > 0 || rewardCoin > 0) && !awardLogSnapshot?.exists;
 
   transaction.set(gemRef, {
     progressId,
@@ -1742,6 +1790,7 @@ async function applyClassroomGemProgress(transaction, {
     totalXp: FieldValue.increment(gemXp),
     targetXp,
     rewardPoint,
+    rewardCoin,
     completed: isCompleted,
     status: isCompleted ? "completed" : "in_progress",
     lastQuestId: quest?.id || quest?.questId || "",
@@ -1750,21 +1799,54 @@ async function applyClassroomGemProgress(transaction, {
     updatedAt: FieldValue.serverTimestamp(),
     ...(newlyCompleted ? { completedAt: FieldValue.serverTimestamp() } : {})
   }, { merge: true });
+  transaction.set(gemLogRef, {
+    progressLogId,
+    classId,
+    memberUserId,
+    userId: memberUserId,
+    gemId,
+    gemName,
+    questId: quest?.id || quest?.questId || "",
+    questTitle: quest?.title || "",
+    deltaXp: gemXp,
+    previousXp,
+    nextXp,
+    targetXp,
+    completedAfter: isCompleted,
+    newlyCompleted,
+    dateKey: getKstDateKey(),
+    progressPath: progressPath || "",
+    source: source || "classroom_gem_progress_function",
+    createdAt: FieldValue.serverTimestamp()
+  }, { merge: false });
 
   if (canAward) {
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
     const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(awardLogId);
-    transaction.set(walletRef, {
-      memberUserId,
-      userId: memberUserId,
-      classId,
-      point: FieldValue.increment(rewardPoint),
-      totalEarnedPoint: FieldValue.increment(rewardPoint),
-      updatedAt: FieldValue.serverTimestamp(),
-      lastClassroomGemRewardAt: FieldValue.serverTimestamp(),
-      source: source || "classroom_gem_progress_function"
-    }, { merge: true });
-    transaction.set(pointLogRef, {
+    if (rewardPoint > 0) {
+      transaction.set(walletRef, {
+        memberUserId,
+        userId: memberUserId,
+        classId,
+        point: FieldValue.increment(rewardPoint),
+        totalEarnedPoint: FieldValue.increment(rewardPoint),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomGemRewardAt: FieldValue.serverTimestamp(),
+        source: source || "classroom_gem_progress_function"
+      }, { merge: true });
+    }
+    if (rewardCoin > 0) {
+      transaction.set(economyRef, {
+        userId: memberUserId,
+        djCoin: FieldValue.increment(rewardCoin),
+        totalEarned: FieldValue.increment(rewardCoin),
+        updatedAt: FieldValue.serverTimestamp(),
+        lastClassroomGemRewardAt: FieldValue.serverTimestamp(),
+        source: source || "classroom_gem_progress_function"
+      }, { merge: true });
+    }
+    if (rewardPoint > 0) transaction.set(pointLogRef, {
       type: "classroom_gem_award",
       classId,
       gemId,
@@ -1775,6 +1857,7 @@ async function applyClassroomGemProgress(transaction, {
       rewardCurrency: "point",
       rewardPoint,
       rewardAmount: rewardPoint,
+      rewardCoin,
       progressPath: progressPath || "",
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -1787,10 +1870,10 @@ async function applyClassroomGemProgress(transaction, {
       userId: memberUserId,
       memberUserId,
       authUid,
-      rewardCurrency: "point",
-      rewardCoin: 0,
+      rewardCurrency: rewardPoint > 0 ? "point" : "djCoin",
+      rewardCoin,
       rewardPoint,
-      rewardAmount: rewardPoint,
+      rewardAmount: rewardPoint || rewardCoin,
       progressPath: progressPath || "",
       source: "firebase_function",
       createdAt: FieldValue.serverTimestamp()
@@ -1805,7 +1888,8 @@ async function applyClassroomGemProgress(transaction, {
     targetXp,
     completed: isCompleted,
     newlyCompleted,
-    rewardPoint: canAward ? rewardPoint : 0
+    rewardPoint: canAward ? rewardPoint : 0,
+    rewardCoin: canAward ? rewardCoin : 0
   };
 }
 
@@ -1968,7 +2052,8 @@ function normalizeClassroomGemConfig(rawGem = {}) {
     gemId,
     gemName,
     targetXp: Math.max(1, Math.min(1000, Math.round(Number(rawGem.targetXp || rawGem.gemTargetXp) || 10))),
-    rewardPoint: 0,
+    rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardPoint || rawGem.gemRewardPoint) || 0))),
+    rewardCoin: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardCoin || rawGem.gemRewardCoin) || 0))),
     icon: String(rawGem.icon || "gemReading").trim().slice(0, 40),
     active: rawGem.active !== false
   };
@@ -2258,6 +2343,9 @@ function normalizeClassroomShopItem(rawItem = {}) {
     itemType: String(rawItem.itemType || rawItem.type || "coupon").trim().slice(0, 40) || "coupon",
     boostPoint: roundClassroomPoint(rawItem.boostPoint || rawItem.pointBoost || 0),
     icon: String(rawItem.icon || "").trim().slice(0, 40),
+    imageUrl: String(rawItem.imageUrl || "").trim().slice(0, 500),
+    iconUrl: String(rawItem.iconUrl || "").trim().slice(0, 500),
+    thumbnailUrl: String(rawItem.thumbnailUrl || "").trim().slice(0, 500),
     active: rawItem.active !== false
   };
 }
@@ -5329,9 +5417,12 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       repeatRule: rawQuest.repeatRule || "once",
       linkedGemId: rawQuest.linkedGemId || "",
       linkedGemName: rawQuest.linkedGemName || "",
+      linkedGemIds: rawQuest.linkedGemIds || [],
+      linkedGemNames: rawQuest.linkedGemNames || [],
       gemXp: rawQuest.gemXp || 0,
       gemTargetXp: rawQuest.gemTargetXp || 10,
       gemRewardPoint: rawQuest.gemRewardPoint || 0,
+      gemRewardCoin: rawQuest.gemRewardCoin || 0,
       saveEnabled: rawQuest.saveEnabled !== false,
       active: rawQuest.active !== false,
       studentAction: rawQuest.studentAction || ""
@@ -5359,6 +5450,36 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
     classId,
     ...result
   };
+});
+
+exports.deleteClassroomQuest = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const questId = normalizeId(payload.questId || payload.id, "questId");
+  if (!questId) {
+    throw new HttpsError("invalid-argument", "Quest id is required.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    const settings = classroomResult.settings;
+    assertAdminCanManageClassroom(adminMember, settings);
+    const nextQuests = (settings.quests || []).filter(item => item.id !== questId && item.questId !== questId);
+    if (nextQuests.length === (settings.quests || []).length) {
+      throw new HttpsError("not-found", "Classroom quest not found.");
+    }
+    transaction.set(classroomResult.ref, {
+      quests: nextQuests,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: adminMember.memberUserId,
+      source: "delete_classroom_quest_function"
+    }, { merge: true });
+    return { questId, questCount: nextQuests.length };
+  });
+
+  return { success: true, classId, ...result };
 });
 
 exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
@@ -5617,6 +5738,11 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
   const title = String(rawCampaign.title || "").trim().slice(0, 40);
   const targetGemName = String(rawCampaign.targetGemName || "").trim().slice(0, 40);
   const targetGemId = slugifyClassroomGemId(rawCampaign.targetGemId || targetGemName);
+  const startDate = isIsoDateKey(rawCampaign.startDate) ? String(rawCampaign.startDate) : "";
+  const endDate = isIsoDateKey(rawCampaign.endDate) ? String(rawCampaign.endDate) : "";
+  const safeStartDate = startDate && endDate && startDate > endDate ? endDate : startDate;
+  const safeEndDate = startDate && endDate && startDate > endDate ? startDate : endDate;
+  const minIncrease = Math.max(0, Math.min(1000, Math.round(Number(rawCampaign.minIncrease) || 0)));
   const awardLimit = Math.max(1, Math.min(10, Math.round(Number(rawCampaign.awardLimit) || 1)));
   const icon = String(rawCampaign.icon || "keyringStar").trim().slice(0, 40);
   const color = String(rawCampaign.color || "#ffcf5a").trim().slice(0, 30);
@@ -5638,20 +5764,58 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
     getKstDateKey()
   ]).slice(0, 180);
 
-  const progressSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("studentGemProgress")
-    .where("gemId", "==", targetGemId)
-    .get();
-  const candidates = progressSnapshot.docs
-    .map(doc => ({ id: doc.id, ...(doc.data() || {}) }))
-    .filter(row => String(row.memberUserId || "") && Number(row.currentXp || 0) > 0)
-    .sort((a, b) => {
-      const completedDelta = (b.completed === true ? 1 : 0) - (a.completed === true ? 1 : 0);
-      if (completedDelta) return completedDelta;
-      return Number(b.currentXp || 0) - Number(a.currentXp || 0);
-    })
-    .slice(0, awardLimit);
+  let candidates = [];
+  if (safeStartDate || safeEndDate) {
+    let logQuery = db.collection("classrooms")
+      .doc(classId)
+      .collection("gemProgressLogs")
+      .where("gemId", "==", targetGemId)
+      .limit(1000);
+    const logSnapshot = await logQuery.get();
+    const aggregate = new Map();
+    logSnapshot.docs.forEach(doc => {
+      const row = { id: doc.id, ...(doc.data() || {}) };
+      const dateKey = String(row.dateKey || "");
+      if (safeStartDate && dateKey < safeStartDate) return;
+      if (safeEndDate && dateKey > safeEndDate) return;
+      const memberUserId = String(row.memberUserId || "").trim();
+      if (!memberUserId) return;
+      const previous = aggregate.get(memberUserId) || {
+        memberUserId,
+        currentXp: 0,
+        completed: false,
+        metricValue: 0
+      };
+      const deltaXp = Math.max(0, Math.round(Number(row.deltaXp || 0)));
+      previous.currentXp += deltaXp;
+      previous.metricValue += deltaXp;
+      previous.completed = previous.completed || row.completedAfter === true || row.newlyCompleted === true;
+      aggregate.set(memberUserId, previous);
+    });
+    candidates = Array.from(aggregate.values())
+      .filter(row => Number(row.metricValue || 0) >= minIncrease)
+      .sort((a, b) => {
+        const completedDelta = (b.completed === true ? 1 : 0) - (a.completed === true ? 1 : 0);
+        if (completedDelta) return completedDelta;
+        return Number(b.metricValue || 0) - Number(a.metricValue || 0);
+      })
+      .slice(0, awardLimit);
+  } else {
+    const progressSnapshot = await db.collection("classrooms")
+      .doc(classId)
+      .collection("studentGemProgress")
+      .where("gemId", "==", targetGemId)
+      .get();
+    candidates = progressSnapshot.docs
+      .map(doc => ({ id: doc.id, ...(doc.data() || {}), metricValue: Number(doc.data()?.currentXp || 0) }))
+      .filter(row => String(row.memberUserId || "") && Number(row.currentXp || 0) >= Math.max(1, minIncrease))
+      .sort((a, b) => {
+        const completedDelta = (b.completed === true ? 1 : 0) - (a.completed === true ? 1 : 0);
+        if (completedDelta) return completedDelta;
+        return Number(b.currentXp || 0) - Number(a.currentXp || 0);
+      })
+      .slice(0, awardLimit);
+  }
 
   const batch = db.batch();
   const campaignRef = db.collection("classrooms").doc(classId).collection("badgeCampaigns").doc(campaignId);
@@ -5662,6 +5826,9 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
     targetGemId,
     targetGemName: targetGemName || targetGemId,
     awardLimit,
+    startDate: safeStartDate,
+    endDate: safeEndDate,
+    minIncrease,
     icon,
     color,
     status: "awarded",
@@ -5704,7 +5871,10 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
       icon,
       color,
       rank: index + 1,
-      metricValue: Number(winner.currentXp || 0),
+      metricValue: Number(winner.metricValue || winner.currentXp || 0),
+      startDate: safeStartDate,
+      endDate: safeEndDate,
+      minIncrease,
       awardedAt: FieldValue.serverTimestamp(),
       awardedBy: adminMember.memberUserId,
       source: "award_classroom_badge_campaign_function"
@@ -5743,7 +5913,7 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
     winners: candidates.map((winner, index) => ({
       memberUserId: winner.memberUserId,
       rank: index + 1,
-      metricValue: Number(winner.currentXp || 0)
+      metricValue: Number(winner.metricValue || winner.currentXp || 0)
     }))
   };
 });
@@ -5774,6 +5944,12 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     .doc(classId)
     .collection("shopItems")
     .where("active", "==", true)
+    .limit(100)
+    .get();
+  const hiddenShopSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("shopItems")
+    .where("active", "==", false)
     .limit(100)
     .get();
   const assignmentSnapshot = await db.collection("classrooms")
@@ -5836,16 +6012,17 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const shopItems = shopSnapshot.docs
     .map(doc => ({ itemId: doc.id, ...(doc.data() || {}) }))
     .sort((a, b) => String(a.title || a.itemId).localeCompare(String(b.title || b.itemId), "ko"));
+  const hiddenShopItemIds = new Set(hiddenShopSnapshot.docs.map(doc => doc.id));
   DEFAULT_CLASSROOM_POINT_SHOP_ITEMS.forEach(defaultItem => {
-    if (!shopItems.some(item => item.itemId === defaultItem.itemId)) {
+    if (!hiddenShopItemIds.has(defaultItem.itemId) && !shopItems.some(item => item.itemId === defaultItem.itemId)) {
       shopItems.push(defaultItem);
     }
   });
-  if (!shopItems.some(item => item.itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID)) {
+  if (!hiddenShopItemIds.has(CLASSROOM_BILLBOARD_TICKET_ITEM_ID) && !shopItems.some(item => item.itemId === CLASSROOM_BILLBOARD_TICKET_ITEM_ID)) {
     shopItems.push(DEFAULT_CLASSROOM_BILLBOARD_ITEM);
   }
   DEFAULT_CLASSROOM_POINT_BOOST_ITEMS.forEach(defaultItem => {
-    if (!shopItems.some(item => item.itemId === defaultItem.itemId)) {
+    if (!hiddenShopItemIds.has(defaultItem.itemId) && !shopItems.some(item => item.itemId === defaultItem.itemId)) {
       shopItems.push(defaultItem);
     }
   });
@@ -6407,6 +6584,37 @@ exports.saveClassroomJob = onCall({ region: REGION }, async request => {
   return { success: true, classId, job };
 });
 
+exports.deleteClassroomJob = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const jobId = normalizeId(payload.jobId, "jobId");
+  if (!jobId) {
+    throw new HttpsError("invalid-argument", "Job id is required.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const jobRef = db.collection("classrooms").doc(classId).collection("jobs").doc(jobId);
+    const jobSnapshot = await transaction.get(jobRef);
+    if (!jobSnapshot.exists) {
+      throw new HttpsError("not-found", "Classroom job not found.");
+    }
+    transaction.set(jobRef, {
+      active: false,
+      status: "deleted",
+      deletedAt: FieldValue.serverTimestamp(),
+      deletedBy: adminMember.memberUserId,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "delete_classroom_job_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, jobId };
+});
+
 exports.applyClassroomJob = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6691,6 +6899,41 @@ exports.saveClassroomShopItem = onCall({ region: REGION }, async request => {
   });
 
   return { success: true, classId, item };
+});
+
+exports.deleteClassroomShopItem = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const classId = normalizeId(payload.classId || "G4-C8", "classId");
+  const itemId = normalizeId(payload.itemId, "itemId");
+  if (!itemId) {
+    throw new HttpsError("invalid-argument", "Shop item id is required.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
+    assertAdminCanManageClassroom(adminMember, classroomResult.settings);
+    const itemRef = db.collection("classrooms").doc(classId).collection("shopItems").doc(itemId);
+    const itemSnapshot = await transaction.get(itemRef);
+    const defaultItem = getDefaultClassroomShopItem(itemId);
+    if (!itemSnapshot.exists && !defaultItem) {
+      throw new HttpsError("not-found", "Classroom shop item not found.");
+    }
+    transaction.set(itemRef, {
+      ...(defaultItem || {}),
+      itemId,
+      classId,
+      active: false,
+      status: "deleted",
+      deletedAt: FieldValue.serverTimestamp(),
+      deletedBy: adminMember.memberUserId,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "delete_classroom_shop_item_function"
+    }, { merge: true });
+  });
+
+  return { success: true, classId, itemId };
 });
 
 exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => {

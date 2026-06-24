@@ -145,6 +145,11 @@
         deps.deactivateClassroomQuest?.(deactivateButton.dataset.classroomQuestDeactivateId || '', deactivateButton);
         return;
       }
+      const deleteButton = event.target.closest('[data-classroom-quest-delete-id]');
+      if(deleteButton && !deleteButton.disabled) {
+        deps.deleteClassroomQuest?.(deleteButton.dataset.classroomQuestDeleteId || '', deleteButton);
+        return;
+      }
       const button = event.target.closest('[data-classroom-quest-action]');
       if(!button || button.disabled) return;
       deps.completeClassroomCheckQuest?.(button.dataset.classroomQuestAction || '');
@@ -169,6 +174,16 @@
     });
 
     document.getElementById('classroom-job-grid')?.addEventListener('click', event => {
+      const editButton = event.target.closest('[data-classroom-job-edit-id]');
+      if(editButton && !editButton.disabled) {
+        deps.editClassroomJob?.(editButton.dataset.classroomJobEditId || '');
+        return;
+      }
+      const deleteButton = event.target.closest('[data-classroom-job-delete-id]');
+      if(deleteButton && !deleteButton.disabled) {
+        deps.deleteClassroomJob?.(deleteButton.dataset.classroomJobDeleteId || '', deleteButton);
+        return;
+      }
       const applyButton = event.target.closest('[data-classroom-job-apply-id]');
       if(applyButton && !applyButton.disabled) {
         deps.applyClassroomJob?.(applyButton.dataset.classroomJobApplyId || '', applyButton);
@@ -191,6 +206,16 @@
     });
 
     const handleClassroomMarketClick = event => {
+      const editShopButton = event.target.closest('[data-classroom-shop-edit-id]');
+      if(editShopButton && !editShopButton.disabled) {
+        deps.editClassroomShopItem?.(editShopButton.dataset.classroomShopEditId || '');
+        return;
+      }
+      const deleteShopButton = event.target.closest('[data-classroom-shop-delete-id]');
+      if(deleteShopButton && !deleteShopButton.disabled) {
+        deps.deleteClassroomShopItem?.(deleteShopButton.dataset.classroomShopDeleteId || '', deleteShopButton);
+        return;
+      }
       const buyButton = event.target.closest('[data-classroom-shop-buy-id]');
       if(buyButton && !buyButton.disabled) {
         deps.purchaseClassroomShopItem?.(buyButton.dataset.classroomShopBuyId || '', buyButton);

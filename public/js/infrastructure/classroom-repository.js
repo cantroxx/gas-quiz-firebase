@@ -223,6 +223,7 @@
           currentXp: Number(progress?.currentXp || 0),
           targetXp: Number(progress?.targetXp || gem.targetXp || 10),
           rewardPoint: Number(progress?.rewardPoint || gem.rewardPoint || 0),
+          rewardCoin: Number(progress?.rewardCoin || gem.rewardCoin || 0),
           completed: progress?.completed === true
         });
       });
@@ -317,9 +318,12 @@
         repeatRule: values.repeatRule,
         linkedGemId: values.linkedGemId,
         linkedGemName: values.linkedGemName,
+        linkedGemIds: values.linkedGemIds,
+        linkedGemNames: values.linkedGemNames,
         gemXp: values.gemXp,
         gemTargetXp: values.gemTargetXp,
         gemRewardPoint: values.gemRewardPoint,
+        gemRewardCoin: values.gemRewardCoin,
         active: values.active !== false,
         type: values.rewardMode === 'quizAchieved' ? '달성형 · 미니퀴즈' : '수락형 · 체크형'
       }
@@ -345,12 +349,39 @@
     });
   }
 
+  async function deleteClassroomJob(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-job-functions-unavailable');
+    const callable = functions.httpsCallable('deleteClassroomJob');
+    await callable({
+      classId: options.classId,
+      jobId: options.jobId
+    });
+  }
+
   async function saveClassroomShopItem(options = {}, deps = {}) {
     const functions = getRequiredClassroomFunctions(deps, 'classroom-shop-functions-unavailable');
     const callable = functions.httpsCallable('saveClassroomShopItem');
     await callable({
       classId: options.classId,
       item: options.values || {}
+    });
+  }
+
+  async function deleteClassroomShopItem(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-shop-functions-unavailable');
+    const callable = functions.httpsCallable('deleteClassroomShopItem');
+    await callable({
+      classId: options.classId,
+      itemId: options.itemId
+    });
+  }
+
+  async function deleteClassroomQuest(options = {}, deps = {}) {
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-quest-functions-unavailable');
+    const callable = functions.httpsCallable('deleteClassroomQuest');
+    await callable({
+      classId: options.classId,
+      questId: options.questId
     });
   }
 
@@ -531,9 +562,12 @@
       verifyClassroomEntryCode: options => verifyClassroomEntryCode(options, callableDeps),
       setClassroomSelectedBadge: options => setClassroomSelectedBadge(options, callableDeps),
       saveClassroomQuest: options => saveClassroomQuest(options, callableDeps),
+      deleteClassroomQuest: options => deleteClassroomQuest(options, callableDeps),
       awardClassroomBadgeCampaign: options => awardClassroomBadgeCampaign(options, callableDeps),
       saveClassroomJob: options => saveClassroomJob(options, callableDeps),
+      deleteClassroomJob: options => deleteClassroomJob(options, callableDeps),
       saveClassroomShopItem: options => saveClassroomShopItem(options, callableDeps),
+      deleteClassroomShopItem: options => deleteClassroomShopItem(options, callableDeps),
       saveClassroomNotices: options => saveClassroomNotices(options, callableDeps),
       saveClassroomMissionConfig: options => saveClassroomMissionConfig(options, callableDeps),
       saveClassroomGroupPurchase: options => saveClassroomGroupPurchase(options, callableDeps),

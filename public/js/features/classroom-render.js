@@ -852,17 +852,31 @@
       });
     }
     if(gemPicker && gemInput) {
-      const currentGem = String(gemInput.value || '').trim();
+      const currentGems = new Set(String(gemInput.value || '')
+        .split(',')
+        .map(value => value.trim())
+        .filter(Boolean));
       gemPicker.innerHTML = '';
+      const syncGemInput = () => {
+        const checkedNames = Array.from(gemPicker.querySelectorAll('input[data-classroom-gem-choice]:checked'))
+          .map(input => input.value)
+          .filter(Boolean);
+        gemInput.value = checkedNames.join(', ');
+      };
       const noneLabel = document.createElement('label');
       const noneInput = document.createElement('input');
       const noneText = document.createElement('span');
       noneInput.type = 'radio';
       noneInput.name = 'classroom-quest-gem-choice';
       noneInput.value = '';
-      noneInput.checked = !currentGem;
+      noneInput.checked = !currentGems.size;
       noneInput.addEventListener('change', () => {
-        if(noneInput.checked) gemInput.value = '';
+        if(noneInput.checked) {
+          gemPicker.querySelectorAll('input[data-classroom-gem-choice]').forEach(input => {
+            input.checked = false;
+          });
+          gemInput.value = '';
+        }
       });
       noneText.textContent = '연결 없음';
       noneLabel.append(noneInput, noneText);
@@ -874,12 +888,14 @@
         const input = document.createElement('input');
         const name = document.createElement('span');
         const targetCount = Math.max(1, Math.round(Number(gem.targetXp || gem.gemTargetXp || 10) || 10));
-        input.type = 'radio';
-        input.name = 'classroom-quest-gem-choice';
+        input.type = 'checkbox';
+        input.dataset.classroomGemChoice = 'true';
         input.value = gemName;
-        input.checked = currentGem === gemName || currentGem === String(gem.gemId || '');
+        input.checked = currentGems.has(gemName) || currentGems.has(String(gem.gemId || ''));
         input.addEventListener('change', () => {
-          if(input.checked) gemInput.value = gemName;
+          if(input.checked) noneInput.checked = false;
+          if(!gemPicker.querySelectorAll('input[data-classroom-gem-choice]:checked').length) noneInput.checked = true;
+          syncGemInput();
         });
         name.textContent = `${gemName} · 완료 1회 누적 · ${targetCount}회 달성`;
         label.append(input, name);
@@ -960,6 +976,12 @@
       const targetCount = Array.isArray(quest.targetStudentIds) ? quest.targetStudentIds.length : 0;
       const repeatLabel = quest.repeatRule === 'daily' ? '매일' : quest.repeatRule === 'weekly' ? '매주' : '한 번';
       const categoryLabel = quest.category ? `${quest.category} · ` : '';
+      const linkedGemNames = Array.isArray(quest.linkedGemNames) && quest.linkedGemNames.length
+        ? quest.linkedGemNames
+        : (quest.linkedGemName ? [quest.linkedGemName] : []);
+      const linkedGemLabel = linkedGemNames.length
+        ? `${linkedGemNames.slice(0, 3).join(', ')}${linkedGemNames.length > 3 ? ` 외 ${linkedGemNames.length - 3}개` : ''} 1회 누적`
+        : '';
       card.className = `classroom-card classroom-card--quest${progress ? ' is-complete' : ''}`;
       card.dataset.classroomQuestId = quest.id;
       badge.className = 'classroom-card-badge';
@@ -967,8 +989,8 @@
       title.textContent = quest.title;
       desc.textContent = quest.desc;
       reward.className = 'classroom-card-reward';
-      reward.textContent = quest.linkedGemId && quest.gemXp > 0
-        ? `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${quest.linkedGemName || quest.linkedGemId} 1회 누적 · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`
+      reward.textContent = linkedGemLabel && quest.gemXp > 0
+        ? `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${linkedGemLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`
         : `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`;
       status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
       status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
@@ -985,6 +1007,7 @@
         const upButton = document.createElement('button');
         const downButton = document.createElement('button');
         const deactivateButton = document.createElement('button');
+        const deleteButton = document.createElement('button');
         editButton.className = 'quest-claim-button';
         editButton.type = 'button';
         editButton.dataset.classroomQuestEditId = quest.id || '';
@@ -1007,7 +1030,11 @@
         deactivateButton.type = 'button';
         deactivateButton.dataset.classroomQuestDeactivateId = quest.id || '';
         deactivateButton.textContent = '비활성화';
-        actions.append(editButton, duplicateButton, upButton, downButton, deactivateButton);
+        deleteButton.className = 'quest-claim-button danger';
+        deleteButton.type = 'button';
+        deleteButton.dataset.classroomQuestDeleteId = quest.id || '';
+        deleteButton.textContent = '삭제';
+        actions.append(editButton, duplicateButton, upButton, downButton, deactivateButton, deleteButton);
       }
       card.append(icon, badge, title, desc, reward, status, actions);
       grid.appendChild(card);
@@ -1091,9 +1118,12 @@
       progress.className = 'classroom-card-progress';
       progress.textContent = `진행도 ${currentXp}/${targetXp}회 (${percent}%)`;
       reward.className = 'classroom-card-reward';
+      const rewardParts = [];
+      if(Number(gem.rewardPoint || 0) > 0) rewardParts.push(`${formatClassroomPoint(gem.rewardPoint)} 포인트`);
+      if(Number(gem.rewardCoin || 0) > 0) rewardParts.push(`${Number(gem.rewardCoin || 0).toLocaleString('ko-KR')} DJ코인`);
       reward.textContent = gem.completed
-        ? '획득 완료: 학생카드 대표 키링으로 전시할 수 있습니다.'
-        : `남은 횟수 ${Math.max(0, targetXp - currentXp)}회`;
+        ? `획득 완료${rewardParts.length ? `: ${rewardParts.join(' + ')} 지급` : ': 학생카드 대표 키링으로 전시할 수 있습니다.'}`
+        : `남은 횟수 ${Math.max(0, targetXp - currentXp)}회${rewardParts.length ? ` · 획득 보상 ${rewardParts.join(' + ')}` : ''}`;
       status.className = `quest-status ${gem.completed ? 'quest-status-claimed' : 'quest-status-active'}`;
       status.textContent = gem.completed ? '젬을 획득했습니다' : '연결 퀘스트를 완료해 횟수를 모으세요';
       button.className = 'quest-claim-button';
@@ -1331,6 +1361,17 @@
               : '지원 가능';
       actions.className = 'classroom-review-actions';
       if(canManage) {
+        const editButton = document.createElement('button');
+        const deleteButton = document.createElement('button');
+        editButton.className = 'quest-claim-button';
+        editButton.type = 'button';
+        editButton.dataset.classroomJobEditId = job.jobId || '';
+        editButton.textContent = '직업 수정';
+        deleteButton.className = 'quest-claim-button danger';
+        deleteButton.type = 'button';
+        deleteButton.dataset.classroomJobDeleteId = job.jobId || '';
+        deleteButton.textContent = '직업 삭제';
+        actions.append(editButton, deleteButton);
         if(assignedHere) {
           const releaseButton = document.createElement('button');
           releaseButton.className = 'quest-claim-button danger';
@@ -1354,7 +1395,7 @@
             assignButton.textContent = `${application.memberUserId || '학생'} 배정`;
             actions.appendChild(assignButton);
           });
-        if(!actions.children.length) {
+        if(actions.children.length <= 2 && !applications.some(item => item.jobId === job.jobId && item.status === 'pending') && !assignedHere) {
           const empty = document.createElement('p');
           empty.textContent = '대기 중인 지원자가 없습니다.';
           actions.appendChild(empty);
@@ -1481,7 +1522,24 @@
       button.dataset.classroomShopBuyId = item.itemId || '';
       button.disabled = price <= 0 || !canAfford || isOwned;
       button.textContent = isOwned ? '보유중' : '구매하기';
-      card.append(visual, badge, title, desc, reward, status, button);
+      if(canManage) {
+        const actions = document.createElement('div');
+        const editButton = document.createElement('button');
+        const deleteButton = document.createElement('button');
+        actions.className = 'classroom-review-actions';
+        editButton.className = 'quest-claim-button';
+        editButton.type = 'button';
+        editButton.dataset.classroomShopEditId = item.itemId || '';
+        editButton.textContent = '상품 수정';
+        deleteButton.className = 'quest-claim-button danger';
+        deleteButton.type = 'button';
+        deleteButton.dataset.classroomShopDeleteId = item.itemId || '';
+        deleteButton.textContent = '상품 삭제';
+        actions.append(editButton, deleteButton);
+        card.append(visual, badge, title, desc, reward, status, actions);
+      } else {
+        card.append(visual, badge, title, desc, reward, status, button);
+      }
         list.appendChild(card);
       });
       grid.appendChild(section);

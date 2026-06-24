@@ -560,7 +560,14 @@
               <div id="classroom-quest-gem-picker" class="classroom-picker-grid classroom-picker-grid--compact" aria-label="연결 젬 선택"></div>
               <input id="classroom-quest-gem-xp-input" type="hidden" value="1">
               <input id="classroom-quest-gem-target-input" type="hidden" value="10">
-              <input id="classroom-quest-gem-reward-input" type="hidden" value="0">
+              <label>
+                젬 획득 포인트
+                <input id="classroom-quest-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+              </label>
+              <label>
+                젬 획득 DJ코인
+                <input id="classroom-quest-gem-coin-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+              </label>
               <button class="button primary" type="submit">퀘스트 저장</button>
             </form>
             <p id="classroom-quest-editor-status" class="classroom-review-status" aria-live="polite"></p>
@@ -580,6 +587,18 @@
               <label>
                 기준 젬
                 <input id="classroom-badge-gem-input" type="text" maxlength="40" placeholder="예: 일기젬">
+              </label>
+              <label>
+                집계 시작일
+                <input id="classroom-badge-start-input" type="date">
+              </label>
+              <label>
+                집계 종료일
+                <input id="classroom-badge-end-input" type="date">
+              </label>
+              <label>
+                최소 증가 횟수
+                <input id="classroom-badge-min-increase-input" type="number" min="0" max="1000" inputmode="numeric" value="1">
               </label>
               <label>
                 지급 인원
@@ -759,6 +778,7 @@
                 </span>
               </summary>
             <form id="classroom-job-form" class="classroom-quest-form">
+              <input id="classroom-job-id-input" type="hidden">
               <label>
                 직업 이름
                 <input id="classroom-job-title-input" type="text" maxlength="40" placeholder="예: 칠판 관리자">
@@ -787,6 +807,10 @@
                 </span>
               </summary>
             <form id="classroom-shop-item-form" class="classroom-quest-form">
+              <input id="classroom-shop-id-input" type="hidden">
+              <input id="classroom-shop-item-type-input" type="hidden" value="coupon">
+              <input id="classroom-shop-boost-input" type="hidden" value="0">
+              <input id="classroom-shop-image-url-input" type="hidden">
               <label>
                 상품 이름
                 <input id="classroom-shop-title-input" type="text" maxlength="40" placeholder="예: 숙제 면제권">
@@ -798,6 +822,13 @@
               <label>
                 가격
                 <input id="classroom-shop-price-input" type="number" min="1" max="10000" inputmode="numeric" value="50">
+              </label>
+              <label>
+                가격 단위
+                <select id="classroom-shop-price-type-input">
+                  <option value="point">포인트</option>
+                  <option value="djCoin">DJ코인</option>
+                </select>
               </label>
               <label>
                 아이콘
@@ -971,7 +1002,14 @@
                   달성 조건
                   <input id="classroom-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
                 </label>
-                <input id="classroom-gem-reward-input" type="hidden" value="0">
+                <label>
+                  획득 포인트
+                  <input id="classroom-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+                </label>
+                <label>
+                  획득 DJ코인
+                  <input id="classroom-gem-coin-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
+                </label>
                 <label>
                   아이콘
                   <select id="classroom-gem-icon-input">
@@ -5571,6 +5609,38 @@
       }
     }
 
+    async function deleteClassroomQuest(questId, button) {
+      const settings = await loadClassroomSettings(true);
+      const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
+      if(!quest) {
+        setClassroomQuestEditorStatus('삭제할 퀘스트를 찾지 못했습니다.', true);
+        return;
+      }
+      if(!window.confirm(`"${quest.title || '교실 퀘스트'}" 퀘스트를 완전히 삭제할까요? 기존 완료 기록은 보존됩니다.`)) return;
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '삭제 중...';
+      }
+      try {
+        await getClassroomRepository().deleteClassroomQuest({
+          classId: settings.classId,
+          questId
+        });
+        resetClassroomDataCaches({ settings: true, progress: true, review: true, wallet: true, gems: true });
+        setClassroomQuestEditorStatus('퀘스트를 삭제했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom quest delete failed.', error);
+        setClassroomQuestEditorStatus('퀘스트 삭제 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
     async function restoreClassroomQuest(questId, button) {
       const settings = await loadClassroomSettings(true);
       const quest = (settings.quests || []).find(item => item.id === questId || item.questId === questId);
@@ -5738,6 +5808,54 @@
       return window.DJ48ClassroomForm.resetClassroomJobForm();
     }
 
+    async function editClassroomJob(jobId) {
+      const settings = await loadClassroomSettings(true);
+      const economyBoard = await loadClassroomEconomyBoard(settings, true);
+      const job = (economyBoard.jobs || []).find(item => item.jobId === jobId || item.id === jobId);
+      if(!job) {
+        setClassroomJobEditorStatus('수정할 직업을 찾지 못했습니다.', true);
+        return;
+      }
+      window.DJ48ClassroomForm.setClassroomJobFormValues(job);
+      setClassroomJobEditorStatus('직업 내용을 불러왔습니다. 수정 후 저장해 주세요.');
+      const panel = document.getElementById('classroom-job-editor-panel');
+      if(panel) panel.open = true;
+      document.getElementById('classroom-job-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function deleteClassroomJob(jobId, button) {
+      const settings = await loadClassroomSettings(true);
+      const economyBoard = await loadClassroomEconomyBoard(settings, true);
+      const job = (economyBoard.jobs || []).find(item => item.jobId === jobId || item.id === jobId);
+      if(!job) {
+        setClassroomJobEditorStatus('삭제할 직업을 찾지 못했습니다.', true);
+        return;
+      }
+      if(!window.confirm(`"${job.title || '교실 직업'}" 직업을 삭제할까요? 기존 배정 기록은 보존됩니다.`)) return;
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '삭제 중...';
+      }
+      try {
+        await getClassroomRepository().deleteClassroomJob({
+          classId: settings.classId,
+          jobId
+        });
+        resetClassroomDataCaches({ economy: true, review: true });
+        setClassroomJobEditorStatus('직업을 삭제했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom job delete failed.', error);
+        setClassroomJobEditorStatus('직업 삭제 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
     async function saveClassroomJobFromForm(event) {
       event?.preventDefault();
       await window.DJ48ClassroomUsecases.saveClassroomTeacherFormFlow({
@@ -5772,6 +5890,54 @@
 
     function resetClassroomShopItemForm() {
       return window.DJ48ClassroomForm.resetClassroomShopItemForm();
+    }
+
+    async function editClassroomShopItem(itemId) {
+      const settings = await loadClassroomSettings(true);
+      const economyBoard = await loadClassroomEconomyBoard(settings, true);
+      const item = (economyBoard.shopItems || []).find(entry => entry.itemId === itemId || entry.id === itemId);
+      if(!item) {
+        setClassroomShopEditorStatus('수정할 상품을 찾지 못했습니다.', true);
+        return;
+      }
+      window.DJ48ClassroomForm.setClassroomShopItemFormValues(item);
+      setClassroomShopEditorStatus('상품 내용을 불러왔습니다. 수정 후 저장해 주세요.');
+      const panel = document.getElementById('classroom-shop-editor-panel');
+      if(panel) panel.open = true;
+      document.getElementById('classroom-shop-item-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function deleteClassroomShopItem(itemId, button) {
+      const settings = await loadClassroomSettings(true);
+      const economyBoard = await loadClassroomEconomyBoard(settings, true);
+      const item = (economyBoard.shopItems || []).find(entry => entry.itemId === itemId || entry.id === itemId);
+      if(!item) {
+        setClassroomShopEditorStatus('삭제할 상품을 찾지 못했습니다.', true);
+        return;
+      }
+      if(!window.confirm(`"${item.title || '교실 상품'}" 상품을 삭제할까요? 기존 구매 기록은 보존됩니다.`)) return;
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '삭제 중...';
+      }
+      try {
+        await getClassroomRepository().deleteClassroomShopItem({
+          classId: settings.classId,
+          itemId
+        });
+        resetClassroomDataCaches({ economy: true, wallet: true, review: true });
+        setClassroomShopEditorStatus('상품을 삭제했습니다.');
+        await renderClassroomPrototype(true);
+      } catch(error) {
+        console.warn('Classroom shop item delete failed.', error);
+        setClassroomShopEditorStatus('상품 삭제 중 문제가 생겼습니다.', true);
+      } finally {
+        if(button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
     }
 
     async function saveClassroomShopItemFromForm(event) {
@@ -6077,8 +6243,64 @@
       }, getClassroomEconomyActionDeps());
     }
 
-    function askClassroomActionMemo(message) {
-      return String(window.prompt(message, '') || '').trim().slice(0, 160);
+    function showClassroomInputDialog(options = {}) {
+      return new Promise(resolve => {
+        const backdrop = document.createElement('div');
+        const card = document.createElement('div');
+        const title = document.createElement('h3');
+        const message = document.createElement('p');
+        const input = document.createElement('input');
+        const actions = document.createElement('div');
+        const cancel = document.createElement('button');
+        const ok = document.createElement('button');
+        backdrop.className = 'classroom-input-dialog-backdrop';
+        card.className = 'classroom-input-dialog-card';
+        title.textContent = options.title || '입력';
+        message.textContent = options.message || '';
+        input.type = options.type || 'text';
+        input.inputMode = options.inputMode || (input.type === 'number' ? 'numeric' : 'text');
+        input.value = options.defaultValue || '';
+        input.maxLength = Number(options.maxLength || 160);
+        input.placeholder = options.placeholder || '';
+        actions.className = 'classroom-input-dialog-actions';
+        cancel.className = 'button secondary';
+        cancel.type = 'button';
+        cancel.textContent = '취소';
+        ok.className = 'button primary';
+        ok.type = 'button';
+        ok.textContent = '확인';
+        actions.append(cancel, ok);
+        card.append(title, message, input, actions);
+        backdrop.appendChild(card);
+        const close = value => {
+          backdrop.remove();
+          resolve(value);
+        };
+        cancel.addEventListener('click', () => close(null));
+        ok.addEventListener('click', () => close(String(input.value || '').trim()));
+        input.addEventListener('keydown', event => {
+          if(event.key === 'Enter') close(String(input.value || '').trim());
+          if(event.key === 'Escape') close(null);
+        });
+        backdrop.addEventListener('click', event => {
+          if(event.target === backdrop) close(null);
+        });
+        document.body.appendChild(backdrop);
+        window.setTimeout(() => input.focus(), 30);
+      });
+    }
+
+    async function askClassroomActionMemo(message, options = {}) {
+      const value = await showClassroomInputDialog({
+        title: options.title || '교실 작업 입력',
+        message,
+        type: options.type || 'text',
+        inputMode: options.inputMode,
+        defaultValue: options.defaultValue || '',
+        placeholder: options.placeholder || '',
+        maxLength: options.maxLength || 160
+      });
+      return value === null ? null : String(value || '').trim().slice(0, options.maxLength || 160);
     }
 
     async function applyClassroomJob(jobId, button) {
@@ -6098,17 +6320,24 @@
     }
 
     async function adjustClassroomStudentPoint(targetMemberUserId, button) {
-      const rawDelta = askClassroomActionMemo('조정할 포인트를 입력하세요. 예: 50 또는 -20');
+      const rawDelta = await askClassroomActionMemo('조정할 포인트를 입력하세요. 예: 50 또는 -20', {
+        title: '포인트 조정',
+        inputMode: 'decimal',
+        placeholder: '예: 50 또는 -20'
+      });
       if(!rawDelta) return null;
       const delta = Math.round(Number(rawDelta.replace(/,/g, '')));
       if(!Number.isFinite(delta) || delta === 0) {
         window.alert('0이 아닌 숫자를 입력해 주세요.');
         return null;
       }
-      const reason = askClassroomActionMemo('조정 사유를 입력하세요. 로그에 남습니다.');
+      const reason = await askClassroomActionMemo('조정 사유를 입력하세요. 로그에 남습니다.', {
+        title: '조정 사유',
+        placeholder: '예: 퀘스트 보정'
+      });
       return runClassroomEconomyAction('adjustClassroomStudentPoint', targetMemberUserId, button, {
         delta,
-        reason
+        reason: reason || ''
       });
     }
 
@@ -6118,7 +6347,7 @@
 
     async function requestClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('requestClassroomShopPurchaseUse', purchaseId, button, {
-        memo: askClassroomActionMemo('쿠폰 사용 요청 메모를 입력하세요. 비워도 됩니다.')
+        memo: await askClassroomActionMemo('쿠폰 사용 요청 메모를 입력하세요. 비워도 됩니다.', { title: '쿠폰 사용 요청' }) || ''
       });
     }
 
@@ -6129,7 +6358,10 @@
     }
 
     async function useClassroomBillboardTicket(purchaseId, button) {
-      const text = askClassroomActionMemo('전광판에 올릴 한마디를 입력하세요. 80자까지 가능합니다.').slice(0, 80);
+      const text = (await askClassroomActionMemo('전광판에 올릴 한마디를 입력하세요. 80자까지 가능합니다.', {
+        title: '전광판 한마디',
+        maxLength: 80
+      }) || '').slice(0, 80);
       if(!text) return null;
       return runClassroomEconomyAction('useClassroomBillboardTicket', purchaseId, button, {
         text
@@ -6143,30 +6375,35 @@
 
     async function approveClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('approveClassroomShopPurchaseUse', purchaseId, button, {
-        memo: askClassroomActionMemo('사용 승인 메모를 입력하세요. 비워도 됩니다.')
+        memo: await askClassroomActionMemo('사용 승인 메모를 입력하세요. 비워도 됩니다.', { title: '사용 승인' }) || ''
       });
     }
 
     async function completeClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('completeClassroomShopPurchaseUse', purchaseId, button, {
-        memo: askClassroomActionMemo('사용 완료 메모를 입력하세요. 비워도 됩니다.')
+        memo: await askClassroomActionMemo('사용 완료 메모를 입력하세요. 비워도 됩니다.', { title: '사용 완료' }) || ''
       });
     }
 
     async function rejectClassroomShopPurchaseUse(purchaseId, button) {
       return runClassroomEconomyAction('rejectClassroomShopPurchaseUse', purchaseId, button, {
-        reason: askClassroomActionMemo('반려 사유를 입력하세요. 비워도 됩니다.')
+        reason: await askClassroomActionMemo('반려 사유를 입력하세요. 비워도 됩니다.', { title: '사용 반려' }) || ''
       });
     }
 
     async function refundClassroomShopPurchase(purchaseId, button) {
       return runClassroomEconomyAction('refundClassroomShopPurchase', purchaseId, button, {
-        reason: askClassroomActionMemo('환불 사유를 입력하세요. 비워도 됩니다.')
+        reason: await askClassroomActionMemo('환불 사유를 입력하세요. 비워도 됩니다.', { title: '구매 환불' }) || ''
       });
     }
 
     async function contributeClassroomGroupPurchase(groupPurchaseId, button) {
-      const rawAmount = askClassroomActionMemo('공동구매에 보탤 포인트를 입력하세요.');
+      const rawAmount = await askClassroomActionMemo('공동구매에 보탤 포인트를 입력하세요.', {
+        title: '공동구매 기여',
+        inputMode: 'numeric',
+        placeholder: '포인트'
+      });
+      if(!rawAmount) return null;
       const amount = Math.round(Number(rawAmount.replace(/,/g, '')) || 0);
       if(amount <= 0) return null;
       return runClassroomEconomyAction('contributeClassroomGroupPurchase', groupPurchaseId, button, {
@@ -6175,7 +6412,12 @@
     }
 
     async function joinClassroomSavingsProduct(productId, button) {
-      const rawAmount = askClassroomActionMemo('적금에 예치할 포인트를 입력하세요.');
+      const rawAmount = await askClassroomActionMemo('적금에 예치할 포인트를 입력하세요.', {
+        title: '적금 예치',
+        inputMode: 'numeric',
+        placeholder: '예치할 포인트'
+      });
+      if(!rawAmount) return null;
       const depositPoint = Math.round(Number(rawAmount.replace(/,/g, '')) || 0);
       if(depositPoint <= 0) return null;
       return runClassroomEconomyAction('joinClassroomSavingsProduct', productId, button, {
@@ -6267,7 +6509,12 @@
       let rewardPointOverride;
       if(nextStatus === 'approved' && button?.dataset?.classroomReviewItemType === 'routine') {
         const suggested = Math.max(0, Math.min(20, Math.round(Number(button.dataset.classroomRoutineSuggestedReward || 0) || 0)));
-        const rawReward = window.prompt('성장루틴 보상 포인트를 입력하세요. 0~20 사이에서 정할 수 있습니다.', String(suggested));
+        const rawReward = await askClassroomActionMemo('성장루틴 보상 포인트를 입력하세요. 0~20 사이에서 정할 수 있습니다.', {
+          title: '성장루틴 보상',
+          inputMode: 'numeric',
+          defaultValue: String(suggested),
+          placeholder: '0~20'
+        });
         if(rawReward === null) return { skipped: true, reason: 'cancelled' };
         const parsedReward = Math.round(Number(String(rawReward || '').replace(/,/g, '')));
         if(!Number.isFinite(parsedReward) || parsedReward < 0 || parsedReward > 20) {
@@ -7920,6 +8167,7 @@
         duplicateClassroomQuest,
         reorderClassroomQuest,
         deactivateClassroomQuest,
+        deleteClassroomQuest,
         restoreClassroomQuest,
         awardClassroomBadgeCampaignFromForm,
         saveClassroomMissionFromForm,
@@ -7928,7 +8176,11 @@
         collectClassroomTaxPreset,
         saveClassroomGemFromForm,
         saveClassroomJobFromForm,
+        editClassroomJob,
+        deleteClassroomJob,
         saveClassroomShopItemFromForm,
+        editClassroomShopItem,
+        deleteClassroomShopItem,
         saveClassroomGroupPurchaseFromForm,
         saveClassroomSavingsProductFromForm,
         saveClassroomExchangeSettingsFromForm,
