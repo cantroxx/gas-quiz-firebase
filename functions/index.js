@@ -1659,7 +1659,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
   const rewardLabel = "포인트";
   const linkedGemName = String(rawQuest.linkedGemName || "").trim().slice(0, 40);
   const linkedGemId = slugifyClassroomGemId(rawQuest.linkedGemId || linkedGemName);
-  const gemXp = linkedGemId ? Math.max(1, Math.min(100, Math.round(Number(rawQuest.gemXp) || 1))) : 0;
+  const gemXp = linkedGemId ? 1 : 0;
   const repeatRule = ["once", "daily", "weekly"].includes(rawQuest.repeatRule) ? rawQuest.repeatRule : "once";
   const startDate = isIsoDateKey(rawQuest.startDate) ? String(rawQuest.startDate) : "";
   const endDate = isIsoDateKey(rawQuest.endDate) ? String(rawQuest.endDate) : "";
@@ -1689,7 +1689,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     linkedGemName,
     gemXp,
     gemTargetXp: linkedGemId ? Math.max(1, Math.min(1000, Math.round(Number(rawQuest.gemTargetXp) || 10))) : 10,
-    gemRewardPoint: linkedGemId ? Math.max(0, Math.min(1000, Math.round(Number(rawQuest.gemRewardPoint) || 0))) : 0,
+    gemRewardPoint: 0,
     studentAction: String(rawQuest.studentAction || (rewardMode === "auto" ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : "완료 체크")).trim().replace(/코인/g, "포인트").replace(/베리/g, "포인트").slice(0, 60)
   };
 }
@@ -1968,7 +1968,7 @@ function normalizeClassroomGemConfig(rawGem = {}) {
     gemId,
     gemName,
     targetXp: Math.max(1, Math.min(1000, Math.round(Number(rawGem.targetXp || rawGem.gemTargetXp) || 10))),
-    rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardPoint || rawGem.gemRewardPoint) || 0))),
+    rewardPoint: 0,
     icon: String(rawGem.icon || "gemReading").trim().slice(0, 40),
     active: rawGem.active !== false
   };
@@ -5407,7 +5407,7 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
       const data = doc.data() || {};
       const currentCount = Math.max(0, Math.round(Number(data.currentCount) || 0));
       const targetCount = Math.max(1, Math.round(Number(data.targetCount) || 1));
-      const rewardPoint = Math.max(0, Math.round(Number(data.rewardPoint) || 0));
+      const rewardPoint = Math.max(0, Math.min(20, Math.round(Number(data.rewardPoint) || 0)));
       const achievementPercent = Math.min(100, Math.round((currentCount / targetCount) * 100));
       return {
         id: doc.id,
@@ -7737,6 +7737,10 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const recordId = normalizeId(payload.recordId, "recordId");
   const nextStatus = String(payload.nextStatus || "").trim();
+  const hasRewardPointOverride = Object.prototype.hasOwnProperty.call(payload, "rewardPointOverride");
+  const rewardPointOverride = hasRewardPointOverride
+    ? Math.max(0, Math.min(20, Math.round(Number(payload.rewardPointOverride) || 0)))
+    : null;
   if (!["approved", "rejected"].includes(nextStatus)) {
     throw new HttpsError("invalid-argument", "Invalid review status.");
   }
@@ -7782,12 +7786,11 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
       }
       const currentCount = Math.max(0, Math.round(Number(routine.currentCount) || 0));
       const targetCount = Math.max(1, Math.round(Number(routine.targetCount) || 1));
-      const baseRewardAmount = Math.max(0, Math.min(1000, Math.round(Number(routine.rewardPoint) || 0)));
+      const baseRewardAmount = Math.max(0, Math.min(20, Math.round(Number(routine.rewardPoint) || 0)));
       const achievementRatio = Math.max(0, Math.min(1, currentCount / targetCount));
-      const rewardAmount = Math.round(baseRewardAmount * achievementRatio);
-      if (rewardAmount <= 0) {
-        throw new HttpsError("failed-precondition", "Classroom routine reward is invalid.");
-      }
+      const rewardAmount = rewardPointOverride !== null
+        ? rewardPointOverride
+        : Math.round(baseRewardAmount * achievementRatio);
       const logId = rewardLogId(["classroom_routine_review", classId, recordId, memberUserId]);
       const logRef = db.collection("rewardLogs").doc(logId);
       const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
@@ -7815,16 +7818,18 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
           rewardCurrency: "point"
         };
       }
-      transaction.set(walletRef, {
-        memberUserId,
-        userId: memberUserId,
-        classId,
-        point: FieldValue.increment(boostedReward.rewardAmount),
-        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
-        source: "classroom_routine_review_function"
-      }, { merge: true });
+      if (boostedReward.rewardAmount > 0) {
+        transaction.set(walletRef, {
+          memberUserId,
+          userId: memberUserId,
+          classId,
+          point: FieldValue.increment(boostedReward.rewardAmount),
+          totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
+          updatedAt: FieldValue.serverTimestamp(),
+          lastClassroomRoutineRewardAt: FieldValue.serverTimestamp(),
+          source: "classroom_routine_review_function"
+        }, { merge: true });
+      }
       transaction.set(routineRef, {
         status: "completed",
         reviewedBy: adminMember.memberUserId,

@@ -515,7 +515,8 @@
       const result = await deps.reviewProgress({
         classId: settings.classId,
         recordId: options.recordId,
-        nextStatus: options.nextStatus
+        nextStatus: options.nextStatus,
+        ...(options.rewardPointOverride !== undefined ? { rewardPointOverride: options.rewardPointOverride } : {})
       });
       deps.resetClassroomCaches?.({
         review: true,

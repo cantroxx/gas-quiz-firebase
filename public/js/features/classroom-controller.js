@@ -298,7 +298,8 @@
       if(!button || button.disabled) return;
       deps.reviewClassroomQuestProgress?.(
         button.dataset.classroomReviewId || '',
-        button.dataset.classroomReviewAction || ''
+        button.dataset.classroomReviewAction || '',
+        button
       );
     };
 

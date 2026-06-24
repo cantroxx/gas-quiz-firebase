@@ -538,10 +538,7 @@
                   <option value="quizAchieved">퀴즈 달성형</option>
                 </select>
               </label>
-              <label>
-                대상 학생
-                <input id="classroom-quest-targets-input" type="text" maxlength="160" placeholder="비우면 전체 학생">
-              </label>
+              <input id="classroom-quest-targets-input" type="hidden">
               <div id="classroom-quest-target-picker" class="classroom-picker-grid" aria-label="대상 학생 선택"></div>
               <label>
                 노출 시작일
@@ -559,23 +556,11 @@
                   <option value="weekly">매주</option>
                 </select>
               </label>
-              <label>
-                연결 젬
-                <input id="classroom-quest-gem-name-input" type="text" maxlength="40" placeholder="젬 목록에서 선택하거나 직접 입력">
-              </label>
+              <input id="classroom-quest-gem-name-input" type="hidden">
               <div id="classroom-quest-gem-picker" class="classroom-picker-grid classroom-picker-grid--compact" aria-label="연결 젬 선택"></div>
-              <label>
-                젬 누적
-                <input id="classroom-quest-gem-xp-input" type="number" min="1" max="100" inputmode="numeric" value="1">
-              </label>
-              <label>
-                젬 달성 조건
-                <input id="classroom-quest-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
-              </label>
-              <label>
-                젬 획득 보상
-                <input id="classroom-quest-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="30">
-              </label>
+              <input id="classroom-quest-gem-xp-input" type="hidden" value="1">
+              <input id="classroom-quest-gem-target-input" type="hidden" value="10">
+              <input id="classroom-quest-gem-reward-input" type="hidden" value="0">
               <button class="button primary" type="submit">퀘스트 저장</button>
             </form>
             <p id="classroom-quest-editor-status" class="classroom-review-status" aria-live="polite"></p>
@@ -974,7 +959,7 @@
               <summary>
                 <span>
                   <strong>젬스톤 만들기</strong>
-                  <small>교실에서 모을 젬 이름, 목표 경험치, 획득 보상을 관리합니다.</small>
+                  <small>교실에서 모을 젬 이름과 달성 조건을 관리합니다.</small>
                 </span>
               </summary>
               <form id="classroom-gem-form" class="classroom-quest-form">
@@ -983,13 +968,10 @@
                   <input id="classroom-gem-name-input" type="text" maxlength="40" placeholder="예: 독서젬">
                 </label>
                 <label>
-                  목표 경험치
+                  달성 조건
                   <input id="classroom-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
                 </label>
-                <label>
-                  획득 보상
-                  <input id="classroom-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="30">
-                </label>
+                <input id="classroom-gem-reward-input" type="hidden" value="0">
                 <label>
                   아이콘
                   <select id="classroom-gem-icon-input">
@@ -6281,10 +6263,23 @@
       });
     }
 
-    async function reviewClassroomQuestProgress(recordId, nextStatus) {
+    async function reviewClassroomQuestProgress(recordId, nextStatus, button = null) {
+      let rewardPointOverride;
+      if(nextStatus === 'approved' && button?.dataset?.classroomReviewItemType === 'routine') {
+        const suggested = Math.max(0, Math.min(20, Math.round(Number(button.dataset.classroomRoutineSuggestedReward || 0) || 0)));
+        const rawReward = window.prompt('성장루틴 보상 포인트를 입력하세요. 0~20 사이에서 정할 수 있습니다.', String(suggested));
+        if(rawReward === null) return { skipped: true, reason: 'cancelled' };
+        const parsedReward = Math.round(Number(String(rawReward || '').replace(/,/g, '')));
+        if(!Number.isFinite(parsedReward) || parsedReward < 0 || parsedReward > 20) {
+          window.alert('0~20 사이의 포인트를 입력해 주세요.');
+          return { skipped: true, reason: 'invalid-reward-point' };
+        }
+        rewardPointOverride = parsedReward;
+      }
       return window.DJ48ClassroomUsecases.reviewClassroomQuestProgressWithButtonsFlow({
         recordId,
-        nextStatus
+        nextStatus,
+        ...(rewardPointOverride !== undefined ? { rewardPointOverride } : {})
       }, {
         getReviewButtons: id => document.querySelectorAll(`[data-classroom-review-id="${id}"]`),
         loadClassroomSettings,

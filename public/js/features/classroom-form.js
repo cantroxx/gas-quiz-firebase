@@ -65,9 +65,9 @@
       repeatRule: String(document.getElementById('classroom-quest-repeat-input')?.value || 'once').trim(),
       linkedGemName,
       linkedGemId: deps.slugifyClassroomGemId?.(linkedGemName) || '',
-      gemXp: linkedGemName ? Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-xp-input')?.value) || 1)) : 0,
+      gemXp: linkedGemName ? 1 : 0,
       gemTargetXp: Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10)),
-      gemRewardPoint: Math.max(0, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0)),
+      gemRewardPoint: 0,
       active: true
     };
   }
@@ -100,7 +100,7 @@
     if(gemName) gemName.value = '';
     if(gemXp) gemXp.value = '1';
     if(gemTarget) gemTarget.value = '10';
-    if(gemReward) gemReward.value = '30';
+    if(gemReward) gemReward.value = '0';
   }
 
   function setClassroomQuestFormValues(quest = {}) {
@@ -131,9 +131,9 @@
     if(end) end.value = quest.endDate || '';
     if(repeat) repeat.value = quest.repeatRule || 'once';
     if(gemName) gemName.value = quest.linkedGemName || '';
-    if(gemXp) gemXp.value = String(Math.max(1, Number(quest.gemXp || 1)));
+    if(gemXp) gemXp.value = '1';
     if(gemTarget) gemTarget.value = String(Number(quest.gemTargetXp || 10));
-    if(gemReward) gemReward.value = String(Number(quest.gemRewardPoint || 0));
+    if(gemReward) gemReward.value = '0';
   }
 
   function getClassroomBadgeCampaignFormValues(deps = {}) {
@@ -226,7 +226,7 @@
       gemName,
       gemId: deps.slugifyClassroomGemId?.(gemName) || '',
       targetXp: Math.max(1, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-target-input')?.value) || 10))),
-      rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-reward-input')?.value) || 0))),
+      rewardPoint: 0,
       icon: String(document.getElementById('classroom-gem-icon-input')?.value || 'gemReading').trim().slice(0, 40)
     };
   }
@@ -238,7 +238,7 @@
     const icon = document.getElementById('classroom-gem-icon-input');
     if(name) name.value = '';
     if(target) target.value = '10';
-    if(reward) reward.value = '30';
+    if(reward) reward.value = '0';
     if(icon) icon.value = 'gemReading';
   }
 

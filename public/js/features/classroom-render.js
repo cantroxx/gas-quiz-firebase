@@ -216,6 +216,10 @@
         approveButton.type = 'button';
         approveButton.dataset.classroomReviewAction = 'approved';
         approveButton.dataset.classroomReviewId = item.recordId || item.id || '';
+        if(item.itemType === 'routine') {
+          approveButton.dataset.classroomReviewItemType = 'routine';
+          approveButton.dataset.classroomRoutineSuggestedReward = String(Math.max(0, Math.min(20, Math.round(Number(item.rewardPoint || 0) || 0))));
+        }
         approveButton.textContent = '승인';
         actions.appendChild(approveButton);
       }
@@ -869,6 +873,7 @@
         const label = document.createElement('label');
         const input = document.createElement('input');
         const name = document.createElement('span');
+        const targetCount = Math.max(1, Math.round(Number(gem.targetXp || gem.gemTargetXp || 10) || 10));
         input.type = 'radio';
         input.name = 'classroom-quest-gem-choice';
         input.value = gemName;
@@ -876,7 +881,7 @@
         input.addEventListener('change', () => {
           if(input.checked) gemInput.value = gemName;
         });
-        name.textContent = gemName;
+        name.textContent = `${gemName} · 완료 1회 누적 · ${targetCount}회 달성`;
         label.append(input, name);
         gemPicker.appendChild(label);
       });
@@ -963,7 +968,7 @@
       desc.textContent = quest.desc;
       reward.className = 'classroom-card-reward';
       reward.textContent = quest.linkedGemId && quest.gemXp > 0
-        ? `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${quest.linkedGemName || quest.linkedGemId} +${quest.gemXp}회 · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`
+        ? `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${quest.linkedGemName || quest.linkedGemId} 1회 누적 · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`
         : `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`;
       status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
       status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
@@ -1086,7 +1091,9 @@
       progress.className = 'classroom-card-progress';
       progress.textContent = `진행도 ${currentXp}/${targetXp}회 (${percent}%)`;
       reward.className = 'classroom-card-reward';
-      reward.textContent = `획득 보상: ${formatClassroomPoint(gem.rewardPoint || 0)} 포인트`;
+      reward.textContent = gem.completed
+        ? '획득 완료: 학생카드 대표 키링으로 전시할 수 있습니다.'
+        : `남은 횟수 ${Math.max(0, targetXp - currentXp)}회`;
       status.className = `quest-status ${gem.completed ? 'quest-status-claimed' : 'quest-status-active'}`;
       status.textContent = gem.completed ? '젬을 획득했습니다' : '연결 퀘스트를 완료해 횟수를 모으세요';
       button.className = 'quest-claim-button';
