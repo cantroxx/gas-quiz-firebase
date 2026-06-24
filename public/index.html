@@ -1354,18 +1354,6 @@
               오늘의 퀴즈
               <textarea id="admin-notice-quest-input" maxlength="160"></textarea>
             </label>
-            <label class="admin-checkbox-label">
-              <input id="admin-notice-active-input" type="checkbox">
-              알림판 활성
-            </label>
-            <label>
-              게시 시작
-              <input id="admin-notice-starts-input" type="datetime-local">
-            </label>
-            <label>
-              게시 종료
-              <input id="admin-notice-ends-input" type="datetime-local">
-            </label>
           </div>
           <div class="admin-notice-actions">
             <button id="admin-notice-load" class="button secondary" type="button">불러오기</button>
@@ -2151,7 +2139,7 @@
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
-      todayQuizMode: 'manual',
+      todayQuizMode: 'dailyRandom',
       todayQuizIds: [],
       todayQuizRandomPoolIds: [],
       todayQuizDailyCount: 1,
@@ -2716,19 +2704,13 @@
         recommendedQuizId: String(data?.recommendedQuizId || fallback.recommendedQuizId).trim(),
         recommendedQuiz2Label: String(data?.recommendedQuiz2Label || fallback.recommendedQuiz2Label).trim(),
         recommendedQuiz2Id: String(data?.recommendedQuiz2Id || fallback.recommendedQuiz2Id).trim(),
-        startsAtIso: String(data?.startsAtIso || fallback.startsAtIso || '').trim(),
-        endsAtIso: String(data?.endsAtIso || fallback.endsAtIso || '').trim(),
-        active: data?.active !== false
+        startsAtIso: '',
+        endsAtIso: '',
+        active: true
       };
     }
 
     function isNoticeBoardVisible(data) {
-      if(data?.active === false) return false;
-      const now = Date.now();
-      const startsAt = data?.startsAtIso ? Date.parse(data.startsAtIso) : 0;
-      const endsAt = data?.endsAtIso ? Date.parse(data.endsAtIso) : 0;
-      if(startsAt && !Number.isNaN(startsAt) && startsAt > now) return false;
-      if(endsAt && !Number.isNaN(endsAt) && endsAt <= now) return false;
       return true;
     }
 
@@ -4209,7 +4191,7 @@
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
-        todayQuizMode: data.todayQuizMode === 'dailyRandom' ? 'dailyRandom' : 'manual',
+        todayQuizMode: data.todayQuizMode === 'manual' ? 'manual' : 'dailyRandom',
         todayQuizIds,
         activeTodayQuizIds,
         todayQuizRandomPoolIds,
@@ -6857,10 +6839,6 @@
 
     function setAdminLoginSettingsStatus(message, isError = false) {
       return window.DJ48AdminForm.setAdminStatusElement('admin-login-settings-status', message, isError);
-    }
-
-    function toDateTimeLocalInputValue(value) {
-      return window.DJ48AdminForm.toDateTimeLocalInputValue(value);
     }
 
     function setAdminLoginSettingsForm(settings) {

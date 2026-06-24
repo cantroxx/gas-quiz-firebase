@@ -1,12 +1,4 @@
 (function () {
-  function toDateTimeLocalInputValue(value) {
-    if(!value) return '';
-    const date = new Date(value);
-    if(Number.isNaN(date.getTime())) return '';
-    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-    return localDate.toISOString().slice(0, 16);
-  }
-
   function getAdminFilterValues() {
     return {
       grade: document.getElementById('admin-filter-grade')?.value || '',
@@ -138,16 +130,10 @@
     setValue('admin-notice-recommended-quiz-input', data.recommendedQuizId);
     setValue('admin-notice-recommended2-label-input', data.recommendedQuiz2Label);
     setValue('admin-notice-recommended2-quiz-input', data.recommendedQuiz2Id);
-    const activeInput = document.getElementById('admin-notice-active-input');
-    if(activeInput) activeInput.checked = data.active !== false;
-    setValue('admin-notice-starts-input', toDateTimeLocalInputValue(data.startsAtIso));
-    setValue('admin-notice-ends-input', toDateTimeLocalInputValue(data.endsAtIso));
   }
 
   function getAdminNoticeFormValues(deps = {}) {
     const normalizeNoticeBoardData = deps.normalizeNoticeBoardData || (value => value || {});
-    const startsValue = document.getElementById('admin-notice-starts-input')?.value || '';
-    const endsValue = document.getElementById('admin-notice-ends-input')?.value || '';
     return normalizeNoticeBoardData({
       title: document.getElementById('admin-notice-title-input')?.value || '',
       desc: document.getElementById('admin-notice-desc-input')?.value || '',
@@ -157,9 +143,9 @@
       recommendedQuizId: document.getElementById('admin-notice-recommended-quiz-input')?.value || '',
       recommendedQuiz2Label: document.getElementById('admin-notice-recommended2-label-input')?.value || '',
       recommendedQuiz2Id: document.getElementById('admin-notice-recommended2-quiz-input')?.value || '',
-      startsAtIso: startsValue ? new Date(startsValue).toISOString() : '',
-      endsAtIso: endsValue ? new Date(endsValue).toISOString() : '',
-      active: document.getElementById('admin-notice-active-input')?.checked === true
+      startsAtIso: '',
+      endsAtIso: '',
+      active: true
     });
   }
 
@@ -296,7 +282,6 @@
   }
 
   window.DJ48AdminForm = {
-    toDateTimeLocalInputValue,
     getAdminFilterValues,
     normalizeAdminWalletCurrency,
     getAdminWalletCurrencyLabel,

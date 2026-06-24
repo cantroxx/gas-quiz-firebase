@@ -270,8 +270,7 @@
     if(!canManage) return;
 
     const economyBoard = data.economyBoard || {};
-    const studentCards = (Array.isArray(data.studentCards) ? data.studentCards : [])
-      .filter(student => !isHiddenClassroomMember(student.memberUserId));
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
     const reviewItems = (Array.isArray(data.reviewItems) ? data.reviewItems : [])
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const applications = (Array.isArray(economyBoard.applications) ? economyBoard.applications : [])
@@ -328,8 +327,7 @@
     report.innerHTML = '';
     if(!canManage) return;
     const economyBoard = data.economyBoard || {};
-    const studentCards = (Array.isArray(data.studentCards) ? data.studentCards : [])
-      .filter(student => !isHiddenClassroomMember(student.memberUserId));
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
     const reviewItems = (Array.isArray(data.reviewItems) ? data.reviewItems : [])
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const purchases = (Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [])
@@ -790,8 +788,7 @@
     const gemPicker = document.getElementById('classroom-quest-gem-picker');
     const targetInput = document.getElementById('classroom-quest-targets-input');
     const gemInput = document.getElementById('classroom-quest-gem-name-input');
-    const studentCards = (Array.isArray(data.studentCards) ? data.studentCards : [])
-      .filter(student => !isHiddenClassroomMember(student.memberUserId));
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
     const classroomGems = Array.isArray(data.economyBoard?.classroomGems) ? data.economyBoard.classroomGems : [];
     if(targetPicker && targetInput) {
       const selected = new Set(String(targetInput.value || '').replace('대상 없음', '__none__').split(',').map(value => value.trim()).filter(Boolean));
@@ -1133,7 +1130,7 @@
     const activeJobByMember = new Map(assignments
       .filter(item => item.status === 'active' && item.memberUserId)
       .map(item => [String(item.memberUserId), item.jobTitle || item.jobId || '교실 직업']));
-    const visibleStudents = students.filter(student => !isHiddenClassroomMember(student.memberUserId));
+    const visibleStudents = students.filter(student => canManage || !isHiddenClassroomMember(student.memberUserId));
     grid.innerHTML = '';
     if(!visibleStudents.length) {
       renderEmptyClassroomCard(grid, '준비 중', '학생카드를 불러오지 못했습니다', '교실 입장 상태를 확인한 뒤 다시 열어 주세요.');

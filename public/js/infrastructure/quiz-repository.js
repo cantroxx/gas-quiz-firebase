@@ -69,6 +69,25 @@
     return result;
   }
 
+  async function grantPracticeBadgeCycleRewardForRepository(memberUserId, context, deps = {}) {
+    const functions = getRequiredFirebaseFunctions(deps);
+    const debugLog = deps.debugLog || (() => {});
+    const grantPracticeBadgeCycleReward = functions.httpsCallable('grantPracticeBadgeCycleReward');
+    const response = await grantPracticeBadgeCycleReward({
+      memberUserId,
+      recordId: context?.recordId || ''
+    });
+    const result = response?.data || {};
+    deps.resetUserEconomyCache?.();
+    debugLog('Firestore practice badge cycle reward completed:', {
+      recordId: context?.recordId || '',
+      paidStarCount: result.paidStarCount || 0,
+      rewardCoin: result.rewardCoin || 0,
+      duplicate: !!result.duplicate
+    });
+    return result;
+  }
+
   async function saveRankingRecordOnQuizCompleteForRepository(deps = {}) {
     if(deps.getCurrentModeId?.() !== 'ranking') return null;
     const db = deps.getFirestoreDb?.();
@@ -421,6 +440,14 @@
       }).catch(error => {
         console.warn('Firestore title sync after practice completion failed.', error);
       });
+      deps.grantPracticeBadgeCycleReward?.(memberUserId, {
+        recordId: saveResult.recordId,
+        quizId,
+        completionType: saveResult.completionType,
+        nextStarCount: saveResult.nextStarCount
+      }).catch(error => {
+        console.warn('Firestore badge cycle reward after practice completion failed.', error);
+      });
     }
     if(saveResult && !saveResult.duplicate) {
       const rewardResult = await deps.grantPracticeCorrectReward?.(memberUserId, saveResult.rewardCoin, {
@@ -765,7 +792,8 @@
           ...deps,
           ...nextDeps,
           grantPracticeCorrectReward: (memberUserId, rewardCoin, context) => this.grantPracticeCorrectReward(memberUserId, rewardCoin, context, nextDeps),
-          syncMemberTitlesAfterPracticeCompletion: (memberUserId, context) => this.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, nextDeps)
+          syncMemberTitlesAfterPracticeCompletion: (memberUserId, context) => this.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, nextDeps),
+          grantPracticeBadgeCycleReward: (memberUserId, context) => this.grantPracticeBadgeCycleReward(memberUserId, context, nextDeps)
         });
       },
       grantPracticeCorrectReward(memberUserId, rewardCoin, context, nextDeps = {}) {
@@ -776,6 +804,12 @@
       },
       syncMemberTitlesAfterPracticeCompletion(memberUserId, context, nextDeps = {}) {
         return syncMemberTitlesAfterPracticeCompletionForRepository(memberUserId, context, {
+          ...deps,
+          ...nextDeps
+        });
+      },
+      grantPracticeBadgeCycleReward(memberUserId, context, nextDeps = {}) {
+        return grantPracticeBadgeCycleRewardForRepository(memberUserId, context, {
           ...deps,
           ...nextDeps
         });
@@ -803,7 +837,8 @@
       saveRankingRecordOnQuizComplete: deps => repository.saveRankingRecordOnQuizComplete(deps),
       savePracticeProgressAfterCorrectAnswer: (question, deps) => repository.savePracticeProgressAfterCorrectAnswer(question, deps),
       grantPracticeCorrectReward: (memberUserId, rewardCoin, context, deps) => repository.grantPracticeCorrectReward(memberUserId, rewardCoin, context, deps),
-      syncMemberTitlesAfterPracticeCompletion: (memberUserId, context, deps) => repository.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps)
+      syncMemberTitlesAfterPracticeCompletion: (memberUserId, context, deps) => repository.syncMemberTitlesAfterPracticeCompletion(memberUserId, context, deps),
+      grantPracticeBadgeCycleReward: (memberUserId, context, deps) => repository.grantPracticeBadgeCycleReward(memberUserId, context, deps)
     };
   }
 
@@ -814,6 +849,7 @@
     createQuizRepository,
     generateFirebaseRandomBasicQuestions,
     getQuizPlayRepositoryDeps,
+    grantPracticeBadgeCycleRewardForRepository,
     grantPracticeCorrectRewardForRepository,
     savePracticeProgressAfterCorrectAnswerForRepository,
     saveRankingRecordOnQuizCompleteForRepository,

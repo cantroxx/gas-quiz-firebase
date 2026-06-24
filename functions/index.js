@@ -43,8 +43,9 @@ const TODAY_QUIZ_XP_PER_QUESTION = 2;
 const TODAY_QUIZ_DAILY_XP_LIMIT = 20;
 const HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
 const HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
+const PRACTICE_BADGE_CYCLE_REWARD_COIN = 10;
 const TITLE_ACQUISITION_XP = 50;
-const TITLE_ACQUISITION_COIN = 50;
+const TITLE_ACQUISITION_COIN = 30;
 const TITLE_ACQUISITION_CLASSROOM_POINT = 10;
 const CLASSROOM_BILLBOARD_TICKET_ITEM_ID = "billboard-ticket";
 const CLASSROOM_NOTICE_SLOT_KEYS = ["links", "patch", "monthlyKing", "events", "personal"];
@@ -397,7 +398,7 @@ const DEFAULT_FEATURE_FLAGS = {
   externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true,
-  todayQuizMode: "manual",
+  todayQuizMode: "dailyRandom",
   todayQuizIds: [],
   todayQuizRandomPoolIds: [],
   todayQuizDailyCount: 1,
@@ -578,7 +579,7 @@ function publicFeatureFlags(data = {}) {
     : [];
   const todayQuizIds = sanitizeQuizIds(data.todayQuizIds, 20);
   const todayQuizRandomPoolIds = sanitizeQuizIds(data.todayQuizRandomPoolIds, 80);
-  const todayQuizMode = data.todayQuizMode === "dailyRandom" ? "dailyRandom" : "manual";
+  const todayQuizMode = data.todayQuizMode === "manual" ? "manual" : "dailyRandom";
   const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
   const todayQuizShuffleSeed = String(data.todayQuizShuffleSeed || "").trim().slice(0, 80);
   const todayQuizShuffledAtIso = String(data.todayQuizShuffledAtIso || "").trim().slice(0, 40);
@@ -2072,7 +2073,10 @@ function assertAdminCanManageClassroom(adminMember, settings) {
 
 function assertMemberCanEnterClassroom(memberData, settings) {
   if (memberData?.role === "admin") {
-    const isFullAdmin = memberData.adminLevel === "superAdmin" || memberData.adminLevel === "fullAdmin";
+    const memberUserId = String(memberData.userId || memberData.memberUserId || "").trim();
+    const isFullAdmin = memberUserId === SUPER_ADMIN_MEMBER_USER_ID
+      || memberData.adminLevel === "superAdmin"
+      || memberData.adminLevel === "fullAdmin";
     if (isFullAdmin) return;
     const scopeGrade = String(memberData.adminScopeGrade || memberData.grade || "");
     const scopeClassNumber = String(memberData.adminScopeClassNumber || memberData.classNumber || "");
@@ -2083,6 +2087,10 @@ function assertMemberCanEnterClassroom(memberData, settings) {
     || String(memberData?.classNumber || "") !== String(settings.classNumber || "")) {
     throw new HttpsError("permission-denied", "Member is outside classroom scope.");
   }
+}
+
+function canViewHiddenClassroomStudents(memberData = {}, settings = {}) {
+  return isClassroomTeacherMember(memberData, settings);
 }
 
 exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
@@ -2194,6 +2202,8 @@ function isIsoDateKey(value) {
 
 function isClassroomTeacherMember(memberData = {}, settings = {}) {
   if (memberData.role !== "admin") return false;
+  const memberUserId = String(memberData.userId || memberData.memberUserId || "").trim();
+  if (memberUserId === SUPER_ADMIN_MEMBER_USER_ID) return true;
   const adminLevel = String(memberData.adminLevel || "").toLowerCase();
   if (["superadmin", "fulladmin"].includes(adminLevel)) return true;
   if (adminLevel !== "classadmin") return false;
@@ -4649,8 +4659,6 @@ exports.adminListLogs = onCall({ region: REGION }, async request => {
 });
 
 function publicNoticeBoard(data) {
-  const startsAtIso = String(data?.startsAtIso || data?.startsAt || "").trim();
-  const endsAtIso = String(data?.endsAtIso || data?.endsAt || "").trim();
   return {
     title: String(data?.title || "알림판").trim().slice(0, 40),
     desc: String(data?.desc || "공지와 오늘의 퀴즈를 확인하고 바로 이동할 수 있습니다.").trim().slice(0, 120),
@@ -4661,9 +4669,9 @@ function publicNoticeBoard(data) {
     recommendedQuizId: String(data?.recommendedQuizId || "").trim().slice(0, 80),
     recommendedQuiz2Label: String(data?.recommendedQuiz2Label || "").trim().slice(0, 80),
     recommendedQuiz2Id: String(data?.recommendedQuiz2Id || "").trim().slice(0, 80),
-    startsAtIso: startsAtIso.slice(0, 40),
-    endsAtIso: endsAtIso.slice(0, 40),
-    active: data?.active !== false
+    startsAtIso: "",
+    endsAtIso: "",
+    active: true
   };
 }
 
@@ -5463,7 +5471,11 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
     ]);
     const settings = classroomResult.settings;
     assertMemberCanEnterClassroom(memberData, settings);
-    return { memberData, settings };
+    return {
+      memberData,
+      settings,
+      canViewHiddenStudents: canViewHiddenClassroomStudents(memberData, settings)
+    };
   });
   const settings = authResult.settings;
 
@@ -5477,7 +5489,7 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
       return data.role === "student"
         && data.status === "active"
         && data.active === true
-        && isClassroomStudentCardVisible(doc.id, data)
+        && (authResult.canViewHiddenStudents || isClassroomStudentCardVisible(doc.id, data))
         && String(data.grade || "") === String(settings.grade || "")
         && String(data.classNumber || "") === String(settings.classNumber || "");
     })
@@ -8384,6 +8396,98 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     recordId,
     questionId,
     quizId,
+    ...result
+  };
+});
+
+exports.grantPracticeBadgeCycleReward = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const recordId = normalizeId(payload.recordId, "recordId");
+
+  if (!recordId.startsWith(`${memberUserId}__`)) {
+    throw new HttpsError("invalid-argument", "recordId does not belong to memberUserId.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    const recordRef = db.collection("practiceRecords").doc(recordId);
+    const recordSnapshot = await transaction.get(recordRef);
+    if (!recordSnapshot.exists) {
+      throw new HttpsError("failed-precondition", "Practice record does not exist.");
+    }
+    const record = recordSnapshot.data() || {};
+    if (String(record.memberUserId || record.userId || "") !== memberUserId) {
+      throw new HttpsError("permission-denied", "Practice record does not belong to member.");
+    }
+    const starCount = Math.max(0, Math.min(1000, Math.round(Number(record.starCount || 0) || 0)));
+    if (starCount <= 0) {
+      return {
+        duplicate: true,
+        starCount,
+        paidStarCount: 0,
+        rewardCoin: 0
+      };
+    }
+
+    const rewardRefs = Array.from({ length: starCount }, (_, index) => db.collection("rewardLogs").doc(rewardLogId([
+      "practice_badge_cycle_reward",
+      memberUserId,
+      recordId,
+      index + 1
+    ])));
+    const rewardSnapshots = await Promise.all(rewardRefs.map(ref => transaction.get(ref)));
+    const unpaid = rewardSnapshots
+      .map((snapshot, index) => ({ snapshot, index, ref: rewardRefs[index] }))
+      .filter(item => !item.snapshot.exists);
+    const rewardCoin = unpaid.length * PRACTICE_BADGE_CYCLE_REWARD_COIN;
+    if (rewardCoin <= 0) {
+      return {
+        duplicate: true,
+        starCount,
+        paidStarCount: 0,
+        rewardCoin: 0
+      };
+    }
+
+    transaction.set(db.collection("userEconomy").doc(memberUserId), {
+      userId: memberUserId,
+      djCoin: FieldValue.increment(rewardCoin),
+      totalEarned: FieldValue.increment(rewardCoin),
+      updatedAt: FieldValue.serverTimestamp(),
+      lastPracticeBadgeRewardAt: FieldValue.serverTimestamp(),
+      source: "practice_badge_cycle_reward_function"
+    }, { merge: true });
+    unpaid.forEach(item => {
+      const starIndex = item.index + 1;
+      transaction.set(item.ref, {
+        type: "practice_badge_cycle_reward",
+        userId: memberUserId,
+        memberUserId,
+        authUid,
+        recordId,
+        quizId: record.quizId || "",
+        areaKey: record.areaKey || "",
+        badgeId: record.badgeId || "",
+        starIndex,
+        rewardCoin: PRACTICE_BADGE_CYCLE_REWARD_COIN,
+        source: "practice_badge_cycle_reward_function",
+        createdAt: FieldValue.serverTimestamp()
+      }, { merge: false });
+    });
+    return {
+      duplicate: false,
+      starCount,
+      paidStarCount: unpaid.length,
+      rewardCoin
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    recordId,
     ...result
   };
 });

@@ -1,5 +1,7 @@
 const crypto = require('crypto');
-const admin = require('firebase-admin');
+const { initializeApp, applicationDefault, getApps } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 const DEFAULT_MEMBER_SCHOOL = '동자';
 const PASSWORD_HASH_ITERATIONS = 210000;
@@ -93,9 +95,9 @@ function createPasswordHash(password) {
 }
 
 function initializeAdminApp() {
-  if (admin.apps.length) return;
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault()
+  if (getApps().length) return;
+  initializeApp({
+    credential: applicationDefault()
   });
 }
 
@@ -109,7 +111,7 @@ async function main() {
   console.log(`Reset password: ${args.resetPassword}`);
 
   initializeAdminApp();
-  const db = admin.firestore();
+  const db = getFirestore();
   const memberRef = db.collection('users').doc(memberUserId);
   const credentialsRef = db.collection('memberCredentials').doc(memberUserId);
   const memberSnapshot = await memberRef.get();
@@ -127,7 +129,7 @@ async function main() {
     return;
   }
 
-  const now = admin.firestore.FieldValue.serverTimestamp();
+  const now = FieldValue.serverTimestamp();
   if (!args.claimsOnly) {
     await memberRef.set({
       userId: memberUserId,
@@ -161,7 +163,7 @@ async function main() {
   }
 
   if (existing.authUid) {
-    await admin.auth().setCustomUserClaims(existing.authUid, {
+    await getAuth().setCustomUserClaims(existing.authUid, {
       admin: true,
       adminLevel: args.adminLevel,
       memberUserId
