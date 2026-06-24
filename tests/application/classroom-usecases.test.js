@@ -282,6 +282,35 @@ async function testVerifyClassroomEntryFlow() {
   assert.deepEqual(emptyResult, { skipped: true, reason: 'entry-code-required' });
   assert.deepEqual(emptyCalls, [['교실 비밀번호를 입력해 주세요.', true]]);
 
+  const adminCalls = [];
+  const adminResult = await usecases.verifyClassroomEntryFlow({
+    entryCode: '',
+    memberUserId: 'admin-1',
+    isAdminMember: true
+  }, {
+    loadClassroomSettings: async forceRefresh => {
+      adminCalls.push(['settings', forceRefresh]);
+      return { classId: 'c1', name: '우리 교실' };
+    },
+    verifyEntryCode: async options => {
+      adminCalls.push(['verify', options.classId, options.memberUserId, options.entryCode]);
+      return { success: true, adminBypass: true };
+    },
+    setStatus: (...args) => adminCalls.push(['status', ...args]),
+    clearEntryCode: () => adminCalls.push(['clear']),
+    setUnlocked: unlocked => adminCalls.push(['unlocked', unlocked]),
+    getSuccessMessage: settings => `${settings.name} 입장`
+  });
+  assert.deepEqual(adminResult.result, { success: true, adminBypass: true });
+  assert.deepEqual(adminCalls, [
+    ['settings', true],
+    ['status', '관리자 권한으로 교실에 입장하는 중입니다.'],
+    ['verify', 'c1', 'admin-1', ''],
+    ['status', '우리 교실 입장'],
+    ['clear'],
+    ['unlocked', true]
+  ]);
+
   const memberCalls = [];
   const memberResult = await usecases.verifyClassroomEntryFlow({
     entryCode: '1234',

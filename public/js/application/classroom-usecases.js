@@ -374,7 +374,8 @@
 
   async function verifyClassroomEntryFlow(options = {}, deps = {}) {
     const entryCode = String(options.entryCode || '').trim();
-    if(!entryCode) {
+    const isAdminMember = options.isAdminMember === true;
+    if(!entryCode && !isAdminMember) {
       deps.setStatus?.('교실 비밀번호를 입력해 주세요.', true);
       return { skipped: true, reason: 'entry-code-required' };
     }
@@ -384,7 +385,7 @@
     }
 
     const settings = await deps.loadClassroomSettings(true);
-    deps.setStatus?.('교실 비밀번호를 확인하는 중입니다.');
+    deps.setStatus?.(isAdminMember ? '관리자 권한으로 교실에 입장하는 중입니다.' : '교실 비밀번호를 확인하는 중입니다.');
     try {
       const result = await deps.verifyEntryCode({
         classId: settings.classId,

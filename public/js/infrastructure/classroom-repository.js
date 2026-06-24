@@ -214,10 +214,12 @@
         const data = { id: doc.id, ...doc.data() };
         return [String(data.gemId || doc.id), data];
       }));
-      catalogSnapshot.docs.forEach(doc => {
-        const gem = { gemId: doc.id, ...doc.data() };
-        const progress = progressByGemId.get(String(gem.gemId || doc.id));
-        progressByGemId.set(String(gem.gemId || doc.id), {
+      const catalogDocs = catalogSnapshot.docs.map(doc => ({ gemId: doc.id, ...doc.data() }));
+      catalogDocs.forEach(rawGem => {
+        const gem = rawGem.gemId ? rawGem : { gemId: rawGem.id, ...rawGem };
+        const gemId = String(gem.gemId || gem.id || '');
+        const progress = progressByGemId.get(gemId);
+        progressByGemId.set(gemId, {
           ...gem,
           ...(progress || {}),
           currentXp: Number(progress?.currentXp || 0),

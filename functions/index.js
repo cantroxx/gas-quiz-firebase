@@ -342,6 +342,11 @@ const DEFAULT_CLASSROOM_GEMS = [
     gemId: "reading-gem",
     gemName: "독서젬",
     targetXp: 10,
+    milestones: [
+      { xp: 10, label: "독서젬 새싹" },
+      { xp: 50, label: "독서젬 별" },
+      { xp: 100, label: "독서젬 마스터" }
+    ],
     rewardPoint: 10,
     icon: "gemReading",
     active: true,
@@ -351,6 +356,11 @@ const DEFAULT_CLASSROOM_GEMS = [
     gemId: "planner-gem",
     gemName: "플래너젬",
     targetXp: 10,
+    milestones: [
+      { xp: 10, label: "플래너젬 새싹" },
+      { xp: 50, label: "플래너젬 별" },
+      { xp: 100, label: "플래너젬 마스터" }
+    ],
     rewardPoint: 10,
     icon: "gemDiligence",
     active: true,
@@ -360,6 +370,11 @@ const DEFAULT_CLASSROOM_GEMS = [
     gemId: "typing-gem-150",
     gemName: "타자젬(둥글게둥글게 150타)",
     targetXp: 10,
+    milestones: [
+      { xp: 10, label: "타자젬 새싹" },
+      { xp: 50, label: "타자젬 별" },
+      { xp: 100, label: "타자젬 마스터" }
+    ],
     rewardPoint: 10,
     icon: "gemFocus",
     active: true,
@@ -369,6 +384,11 @@ const DEFAULT_CLASSROOM_GEMS = [
     gemId: "meal-gem",
     gemName: "맛있는젬",
     targetXp: 5,
+    milestones: [
+      { xp: 5, label: "맛있는젬 새싹" },
+      { xp: 25, label: "맛있는젬 별" },
+      { xp: 50, label: "맛있는젬 마스터" }
+    ],
     rewardPoint: 8,
     icon: "gemKindness",
     active: true,
@@ -2048,10 +2068,25 @@ function normalizeClassroomTaxPreset(rawPreset = {}) {
 function normalizeClassroomGemConfig(rawGem = {}) {
   const gemName = String(rawGem.gemName || rawGem.title || rawGem.name || "").trim().slice(0, 40);
   const gemId = slugifyClassroomGemId(rawGem.gemId || gemName);
+  const rawMilestones = Array.isArray(rawGem.milestones) ? rawGem.milestones : [];
+  const milestones = rawMilestones.map((item, index) => {
+    const xp = Math.max(1, Math.min(1000, Math.round(Number(item?.xp || item?.targetXp || item) || 0)));
+    if (!xp) return null;
+    return {
+      xp,
+      label: String(item?.label || item?.name || `${gemName || "젬스톤"} ${index + 1}단계`).trim().slice(0, 40)
+    };
+  }).filter(Boolean).sort((a, b) => a.xp - b.xp).slice(0, 6);
+  const targetXp = Math.max(1, Math.min(1000, Math.round(Number(rawGem.targetXp || rawGem.gemTargetXp || milestones[milestones.length - 1]?.xp) || 10)));
   return {
     gemId,
     gemName,
-    targetXp: Math.max(1, Math.min(1000, Math.round(Number(rawGem.targetXp || rawGem.gemTargetXp) || 10))),
+    targetXp,
+    milestones: milestones.length ? milestones : [
+      { xp: Math.min(targetXp, 10), label: `${gemName || "젬스톤"} I` },
+      { xp: Math.max(targetXp, 50), label: `${gemName || "젬스톤"} II` },
+      { xp: Math.max(targetXp, 100), label: `${gemName || "젬스톤"} III` }
+    ].filter((item, index, arr) => index === 0 || item.xp !== arr[index - 1].xp),
     rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardPoint || rawGem.gemRewardPoint) || 0))),
     rewardCoin: Math.max(0, Math.min(1000, Math.round(Number(rawGem.rewardCoin || rawGem.gemRewardCoin) || 0))),
     icon: String(rawGem.icon || "gemReading").trim().slice(0, 40),
@@ -2192,13 +2227,15 @@ exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
     ]);
     const settings = classroomResult.settings;
     assertMemberCanEnterClassroom(memberData, settings);
-    if (!entryCode || entryCode !== String(settings.entryCode || "").trim()) {
+    const adminBypass = isAdminMemberData(memberData);
+    if (!adminBypass && (!entryCode || entryCode !== String(settings.entryCode || "").trim())) {
       throw new HttpsError("permission-denied", "Classroom entry code is invalid.");
     }
     return {
       className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
       grade: settings.grade,
-      classNumber: settings.classNumber
+      classNumber: settings.classNumber,
+      adminBypass
     };
   });
 
@@ -5631,17 +5668,22 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
   const economyRefs = studentDocs.map(doc => db.collection("userEconomy").doc(doc.id));
   const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
   const titleRefs = studentDocs.map(doc => db.collection("userTitleSummary").doc(doc.id));
-  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot] = await Promise.all([
+  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot, classroomGemSnapshot] = await Promise.all([
     walletRefs.length ? db.getAll(...walletRefs) : [],
     economyRefs.length ? db.getAll(...economyRefs) : [],
     profileRefs.length ? db.getAll(...profileRefs) : [],
     titleRefs.length ? db.getAll(...titleRefs) : [],
-    db.collection("classrooms").doc(classId).collection("studentGemProgress").limit(1000).get()
+    db.collection("classrooms").doc(classId).collection("studentGemProgress").limit(1000).get(),
+    db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get()
   ]);
   const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const economyByUserId = new Map(economySnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const titleByUserId = new Map(titleSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+  const classroomGemById = new Map(classroomGemSnapshot.docs.map(doc => [doc.id, { gemId: doc.id, ...(doc.data() || {}) }]));
+  if (!classroomGemById.size) {
+    DEFAULT_CLASSROOM_GEMS.forEach(gem => classroomGemById.set(gem.gemId, gem));
+  }
   const gemSummaryByUserId = new Map();
   gemProgressSnapshot.docs.forEach(doc => {
     const row = doc.data() || {};
@@ -5661,6 +5703,9 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
     summary.gems.push({
       gemId: String(row.gemId || doc.id).slice(0, 80),
       gemName: String(row.gemName || row.gemId || "젬스톤").slice(0, 40),
+      milestones: Array.isArray(classroomGemById.get(String(row.gemId || ""))?.milestones)
+        ? classroomGemById.get(String(row.gemId || "")).milestones
+        : [],
       currentXp,
       targetXp,
       completed: row.completed === true || currentXp >= targetXp

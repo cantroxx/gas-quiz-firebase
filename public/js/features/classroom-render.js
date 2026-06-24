@@ -1090,48 +1090,104 @@
     grid.appendChild(card);
   }
 
-  function renderClassroomGemCards(gemProgress = []) {
+  function getClassroomGemMilestones(gem = {}) {
+    const milestones = Array.isArray(gem.milestones) ? gem.milestones : [];
+    if(milestones.length) {
+      return milestones
+        .map((item, index) => ({
+          xp: Math.max(1, Math.round(Number(item.xp || item.targetXp || 0) || 0)),
+          label: String(item.label || item.name || `${gem.gemName || '젬스톤'} ${index + 1}단계`).trim()
+        }))
+        .filter(item => item.xp > 0)
+        .sort((a, b) => a.xp - b.xp);
+    }
+    const targetXp = Math.max(1, Math.round(Number(gem.targetXp || 10) || 10));
+    return [
+      { xp: targetXp, label: `${gem.gemName || '젬스톤'} I` },
+      { xp: Math.max(targetXp, 50), label: `${gem.gemName || '젬스톤'} II` },
+      { xp: Math.max(targetXp, 100), label: `${gem.gemName || '젬스톤'} III` }
+    ].filter((item, index, arr) => index === 0 || item.xp !== arr[index - 1].xp);
+  }
+
+  function getClassroomGemStage(gem = {}, currentXp = 0) {
+    const milestones = getClassroomGemMilestones(gem);
+    const achieved = milestones.filter(item => currentXp >= item.xp);
+    const next = milestones.find(item => currentXp < item.xp) || null;
+    return {
+      milestones,
+      achieved,
+      currentLabel: achieved.length ? achieved[achieved.length - 1].label : '성장 전',
+      next
+    };
+  }
+
+  function renderClassroomGemCards(gemProgress = [], economyBoard = {}) {
     const grid = document.getElementById('classroom-gem-grid');
     if(!grid) return;
+    const progressByGemId = new Map((Array.isArray(gemProgress) ? gemProgress : []).map(gem => [String(gem.gemId || gem.id || ''), gem]));
+    const catalog = Array.isArray(economyBoard.classroomGems) && economyBoard.classroomGems.length
+      ? economyBoard.classroomGems
+      : Array.isArray(gemProgress) ? gemProgress : [];
+    const gems = catalog.map(gem => ({
+      ...gem,
+      ...(progressByGemId.get(String(gem.gemId || gem.id || '')) || {})
+    }));
     grid.innerHTML = '';
-    if(!gemProgress.length) {
-      renderEmptyClassroomCard(grid, '진행 전', '아직 쌓인 젬 기록이 없습니다', '젬이 연결된 교실 퀘스트를 완료하면 이곳에 누적 횟수가 표시됩니다.');
+    if(!gems.length) {
+      renderEmptyClassroomCard(grid, '준비 중', '아직 생성된 젬스톤이 없습니다', '담임이 젬스톤을 만들면 이곳에 전체 목록이 표시됩니다.');
       return;
     }
-    gemProgress.forEach(gem => {
+    gems.forEach(gem => {
       const currentXp = Number(gem.currentXp || 0);
-      const targetXp = Math.max(1, Number(gem.targetXp || 1));
+      const stage = getClassroomGemStage(gem, currentXp);
+      const targetXp = Math.max(1, Number(stage.next?.xp || stage.milestones[stage.milestones.length - 1]?.xp || gem.targetXp || 1));
+      const selectableXp = Math.max(1, Number(gem.targetXp || stage.milestones[0]?.xp || 1));
+      const canSelectBadge = gem.completed === true || currentXp >= selectableXp;
       const percent = Math.min(100, Math.round((currentXp / targetXp) * 100));
+      const completed = !stage.next && currentXp > 0;
       const card = document.createElement('article');
       const icon = createClassroomIconImage(gem.icon, gem.gemName || '교실 젬', 'classroom-card-icon-image')
-        || createClassroomCardIcon('gem', gem.completed ? '◆' : '◇');
+        || createClassroomCardIcon('gem', completed ? '◆' : '◇');
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const progress = document.createElement('p');
       const reward = document.createElement('p');
       const status = document.createElement('span');
       const button = document.createElement('button');
-      card.className = `classroom-card classroom-card--gem${gem.completed ? ' is-complete' : ''}`;
+      const detail = document.createElement('details');
+      const detailSummary = document.createElement('summary');
+      const detailBody = document.createElement('div');
+      card.className = `classroom-card classroom-card--gem${completed ? ' is-complete' : ''}`;
       badge.className = 'classroom-card-badge';
-      badge.textContent = gem.completed ? '획득 완료' : '진행 중';
+      badge.textContent = completed ? '최고 단계' : currentXp > 0 ? '성장 중' : '시작 전';
       title.textContent = gem.gemName || gem.gemId || '교실 젬';
       progress.className = 'classroom-card-progress';
-      progress.textContent = `진행도 ${currentXp}/${targetXp}회 (${percent}%)`;
+      progress.textContent = `${stage.currentLabel} · ${currentXp}/${targetXp}회 (${percent}%)`;
       reward.className = 'classroom-card-reward';
       const rewardParts = [];
       if(Number(gem.rewardPoint || 0) > 0) rewardParts.push(`${formatClassroomPoint(gem.rewardPoint)} 포인트`);
       if(Number(gem.rewardCoin || 0) > 0) rewardParts.push(`${Number(gem.rewardCoin || 0).toLocaleString('ko-KR')} DJ코인`);
-      reward.textContent = gem.completed
-        ? `획득 완료${rewardParts.length ? `: ${rewardParts.join(' + ')} 지급` : ': 학생카드 대표 키링으로 전시할 수 있습니다.'}`
-        : `남은 횟수 ${Math.max(0, targetXp - currentXp)}회${rewardParts.length ? ` · 획득 보상 ${rewardParts.join(' + ')}` : ''}`;
-      status.className = `quest-status ${gem.completed ? 'quest-status-claimed' : 'quest-status-active'}`;
-      status.textContent = gem.completed ? '젬을 획득했습니다' : '연결 퀘스트를 완료해 횟수를 모으세요';
+      reward.textContent = stage.next
+        ? `다음 단계: ${stage.next.label}까지 ${Math.max(0, stage.next.xp - currentXp)}회${rewardParts.length ? ` · 최종 보상 ${rewardParts.join(' + ')}` : ''}`
+        : `모든 성장 단계 달성${rewardParts.length ? ` · 보상 ${rewardParts.join(' + ')}` : ''}`;
+      status.className = `quest-status ${completed ? 'quest-status-claimed' : 'quest-status-active'}`;
+      status.textContent = stage.next ? '연결 퀘스트를 완료해 경험치를 모으세요' : '젬스톤 최고 단계입니다';
+      detail.className = 'classroom-gem-progress-toggle';
+      detailSummary.textContent = '내 경험치 보기';
+      detailBody.className = 'classroom-gem-progress-detail';
+      stage.milestones.forEach(item => {
+        const row = document.createElement('span');
+        row.textContent = `${currentXp >= item.xp ? '획득 ' : ''}${item.label} · ${Math.min(currentXp, item.xp)}/${item.xp}`;
+        row.className = currentXp >= item.xp ? 'is-achieved' : '';
+        detailBody.appendChild(row);
+      });
+      detail.append(detailSummary, detailBody);
       button.className = 'quest-claim-button';
       button.type = 'button';
       button.dataset.classroomBadgeGemId = gem.gemId || '';
-      button.disabled = !gem.completed;
-      button.textContent = gem.completed ? '대표 키링으로 설정' : '목표 달성 후 설정';
-      card.append(icon, badge, title, progress, createClassroomProgressMeter(percent), reward, status, button);
+      button.disabled = !canSelectBadge;
+      button.textContent = canSelectBadge ? '대표 키링으로 설정' : '첫 단계 달성 후 설정';
+      card.append(icon, badge, title, progress, createClassroomProgressMeter(percent), reward, status, detail, button);
       grid.appendChild(card);
     });
   }
@@ -1277,7 +1333,10 @@
         const list = document.createElement('ul');
         gemItems.slice(0, 6).forEach(gem => {
           const row = document.createElement('li');
-          row.textContent = `${gem.completed ? '획득 ' : ''}${gem.gemName || gem.gemId || '젬'} ${Number(gem.currentXp || 0)}/${Math.max(1, Number(gem.targetXp || 1))}`;
+          const currentXp = Number(gem.currentXp || 0);
+          const stage = getClassroomGemStage(gem, currentXp);
+          const targetXp = Math.max(1, Number(stage.next?.xp || stage.milestones[stage.milestones.length - 1]?.xp || gem.targetXp || 1));
+          row.textContent = `${stage.currentLabel} · ${currentXp}/${targetXp}`;
           list.appendChild(row);
         });
         const overview = document.createElement('p');
@@ -2088,7 +2147,7 @@
     renderClassroomInactiveQuestCards(settings, deps);
     renderClassroomStudentCards(data.studentCards || [], settings, deps, economyBoard);
     renderClassroomGemSummary(data.gemProgress || [], settings);
-    renderClassroomGemCards(data.gemProgress || []);
+    renderClassroomGemCards(data.gemProgress || [], economyBoard);
     renderClassroomJobSummary(settings, economyBoard, deps);
     renderClassroomJobCards(settings, economyBoard, deps);
     renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);

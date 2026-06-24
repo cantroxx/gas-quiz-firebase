@@ -6669,6 +6669,60 @@ h2 {
   padding-left: 16px;
 }
 
+.classroom-gem-progress-toggle {
+  width: 100%;
+}
+
+.classroom-gem-progress-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(91, 132, 102, 0.24);
+  border-bottom-width: 3px;
+  border-radius: 10px;
+  background: #f2fbef;
+  color: #1f6d3f;
+  font-size: 0.78rem;
+  font-weight: 950;
+  cursor: pointer;
+  list-style: none;
+}
+
+.classroom-gem-progress-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.classroom-gem-progress-toggle[open] summary {
+  border-color: rgba(100, 168, 254, 0.42);
+  background: #eaf4ff;
+  color: #0f4f86;
+}
+
+.classroom-gem-progress-detail {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid rgba(84, 105, 132, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.74);
+  text-align: left;
+}
+
+.classroom-gem-progress-detail span {
+  display: block;
+  color: #405067;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.classroom-gem-progress-detail span.is-achieved {
+  color: #167348;
+  font-weight: 950;
+}
+
 .classroom-student-boost-grid {
   display: flex;
   flex-wrap: wrap;

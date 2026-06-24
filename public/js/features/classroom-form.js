@@ -307,10 +307,23 @@
 
   function getClassroomGemFormValues(deps = {}) {
     const gemName = String(document.getElementById('classroom-gem-name-input')?.value || '').trim();
+    const milestoneXp = String(document.getElementById('classroom-gem-milestone-xp-input')?.value || '')
+      .split(',')
+      .map(value => Math.max(0, Math.min(1000, Math.round(Number(value.trim()) || 0))))
+      .filter(value => value > 0);
+    const milestoneNames = String(document.getElementById('classroom-gem-milestone-name-input')?.value || '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean);
+    const milestones = milestoneXp.map((xp, index) => ({
+      xp,
+      label: milestoneNames[index] || `${gemName || '젬스톤'} ${index + 1}단계`
+    })).slice(0, 6);
     return {
       gemName,
       gemId: deps.slugifyClassroomGemId?.(gemName) || '',
       targetXp: Math.max(1, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-target-input')?.value) || 10))),
+      milestones,
       rewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-reward-input')?.value) || 0))),
       rewardCoin: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-gem-coin-input')?.value) || 0))),
       icon: String(document.getElementById('classroom-gem-icon-input')?.value || 'gemReading').trim().slice(0, 40)
@@ -320,11 +333,15 @@
   function resetClassroomGemForm() {
     const name = document.getElementById('classroom-gem-name-input');
     const target = document.getElementById('classroom-gem-target-input');
+    const milestoneXp = document.getElementById('classroom-gem-milestone-xp-input');
+    const milestoneName = document.getElementById('classroom-gem-milestone-name-input');
     const reward = document.getElementById('classroom-gem-reward-input');
     const coin = document.getElementById('classroom-gem-coin-input');
     const icon = document.getElementById('classroom-gem-icon-input');
     if(name) name.value = '';
     if(target) target.value = '10';
+    if(milestoneXp) milestoneXp.value = '10, 50, 100';
+    if(milestoneName) milestoneName.value = '';
     if(reward) reward.value = '0';
     if(coin) coin.value = '0';
     if(icon) icon.value = 'gemReading';

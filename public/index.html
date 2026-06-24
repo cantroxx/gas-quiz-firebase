@@ -1003,6 +1003,14 @@
                   <input id="classroom-gem-target-input" type="number" min="1" max="1000" inputmode="numeric" value="10">
                 </label>
                 <label>
+                  성장 단계 횟수
+                  <input id="classroom-gem-milestone-xp-input" type="text" maxlength="40" value="10, 50, 100" placeholder="예: 10, 50, 100">
+                </label>
+                <label>
+                  성장 단계 이름
+                  <input id="classroom-gem-milestone-name-input" type="text" maxlength="120" placeholder="예: 독서젬 새싹, 독서젬 별, 독서젬 마스터">
+                </label>
+                <label>
                   획득 포인트
                   <input id="classroom-gem-reward-input" type="number" min="0" max="1000" inputmode="numeric" value="0">
                 </label>
@@ -8080,7 +8088,12 @@
         viewId: 'classroom-view',
         placeKey: 'classroom'
       });
-      initializeAuthUser().catch(error => {
+      initializeAuthUser().then(() => {
+        if(isCurrentAdminMember()) {
+          setClassroomUnlocked(true);
+          window.DJ48ClassroomForm.setClassroomEntryStatus('관리자 권한으로 교실에 입장했습니다.');
+        }
+      }).catch(error => {
         console.warn('Classroom auth restore failed.', error);
       });
     }
@@ -8090,7 +8103,8 @@
       await initializeAuthUser();
       await window.DJ48ClassroomUsecases.verifyClassroomEntryFlow({
         entryCode: window.DJ48ClassroomForm.getClassroomEntryCode(),
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
+        isAdminMember: isCurrentAdminMember()
       }, {
         loadClassroomSettings,
         verifyEntryCode: options => getClassroomRepository().verifyClassroomEntryCode(options),
