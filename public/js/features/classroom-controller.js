@@ -57,14 +57,7 @@
     document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
       button.addEventListener('click', () => {
         const nextTab = button.dataset.classroomSubtab || 'student-card';
-        document.querySelectorAll('[data-classroom-subtab]').forEach(tab => {
-          const active = tab === button;
-          tab.classList.toggle('is-active', active);
-          tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-        document.querySelectorAll('[data-classroom-subpane]').forEach(pane => {
-          pane.classList.toggle('is-active', pane.dataset.classroomSubpane === nextTab);
-        });
+        deps.setActiveClassroomTab?.(nextTab);
       });
     });
 

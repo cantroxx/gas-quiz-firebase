@@ -35,14 +35,27 @@
   }
 
   function setActiveClassroomTab(tabName = 'classroom') {
+    const subtabAliases = new Set(['student-card', 'quest', 'routine', 'mission', 'bank']);
+    const requestedTab = String(tabName || 'classroom');
+    const panelTab = subtabAliases.has(requestedTab) ? 'classroom' : requestedTab;
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {
-      const active = button.dataset.classroomTab === tabName;
+      const active = button.dataset.classroomTab === panelTab;
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-selected', String(active));
     });
     document.querySelectorAll('[data-classroom-panel]').forEach(panel => {
-      panel.classList.toggle('is-active', panel.dataset.classroomPanel === tabName);
+      panel.classList.toggle('is-active', panel.dataset.classroomPanel === panelTab);
     });
+    if(subtabAliases.has(requestedTab)) {
+      document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
+        const active = button.dataset.classroomSubtab === requestedTab;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      document.querySelectorAll('[data-classroom-subpane]').forEach(panel => {
+        panel.classList.toggle('is-active', panel.dataset.classroomSubpane === requestedTab);
+      });
+    }
   }
 
   function getClassroomQuestFormValues(deps = {}) {

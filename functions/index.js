@@ -2210,7 +2210,7 @@ exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
   };
 });
 
-function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary = {}, economy = {}) {
+function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary = {}, economy = {}, gemSummary = {}) {
   const data = doc.data() || {};
   const selectedBadge = profile.selectedBadge && typeof profile.selectedBadge === "object"
     ? profile.selectedBadge
@@ -2250,6 +2250,12 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary
       label: String(profile.selectedBadgeLabel || selectedBadge.label || "").slice(0, 30),
       icon: String(profile.selectedBadgeIcon || selectedBadge.icon || "").slice(0, 40),
       color: String(profile.selectedBadgeColor || selectedBadge.color || "").slice(0, 30)
+    },
+    gemSummary: {
+      completedCount: Math.max(0, Math.round(Number(gemSummary.completedCount || 0))),
+      totalCount: Math.max(0, Math.round(Number(gemSummary.totalCount || 0))),
+      totalXp: Math.max(0, Math.round(Number(gemSummary.totalXp || 0))),
+      gems: Array.isArray(gemSummary.gems) ? gemSummary.gems.slice(0, 8) : []
     }
   };
 }
@@ -5625,16 +5631,49 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
   const economyRefs = studentDocs.map(doc => db.collection("userEconomy").doc(doc.id));
   const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
   const titleRefs = studentDocs.map(doc => db.collection("userTitleSummary").doc(doc.id));
-  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots] = await Promise.all([
+  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot] = await Promise.all([
     walletRefs.length ? db.getAll(...walletRefs) : [],
     economyRefs.length ? db.getAll(...economyRefs) : [],
     profileRefs.length ? db.getAll(...profileRefs) : [],
-    titleRefs.length ? db.getAll(...titleRefs) : []
+    titleRefs.length ? db.getAll(...titleRefs) : [],
+    db.collection("classrooms").doc(classId).collection("studentGemProgress").limit(1000).get()
   ]);
   const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const economyByUserId = new Map(economySnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const titleByUserId = new Map(titleSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+  const gemSummaryByUserId = new Map();
+  gemProgressSnapshot.docs.forEach(doc => {
+    const row = doc.data() || {};
+    const targetMemberUserId = String(row.memberUserId || row.userId || "").trim();
+    if (!targetMemberUserId) return;
+    const currentXp = Math.max(0, Math.round(Number(row.currentXp || 0)));
+    const targetXp = Math.max(1, Math.round(Number(row.targetXp || 1)));
+    const summary = gemSummaryByUserId.get(targetMemberUserId) || {
+      completedCount: 0,
+      totalCount: 0,
+      totalXp: 0,
+      gems: []
+    };
+    summary.totalCount += 1;
+    summary.totalXp += currentXp;
+    if (row.completed === true || currentXp >= targetXp) summary.completedCount += 1;
+    summary.gems.push({
+      gemId: String(row.gemId || doc.id).slice(0, 80),
+      gemName: String(row.gemName || row.gemId || "젬스톤").slice(0, 40),
+      currentXp,
+      targetXp,
+      completed: row.completed === true || currentXp >= targetXp
+    });
+    gemSummaryByUserId.set(targetMemberUserId, summary);
+  });
+  gemSummaryByUserId.forEach(summary => {
+    summary.gems.sort((a, b) => {
+      const completeDelta = (b.completed === true ? 1 : 0) - (a.completed === true ? 1 : 0);
+      if (completeDelta) return completeDelta;
+      return Number(b.currentXp || 0) - Number(a.currentXp || 0);
+    });
+  });
 
   return {
     success: true,
@@ -5645,7 +5684,8 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
       walletByUserId.get(doc.id) || {},
       profileByUserId.get(doc.id) || {},
       titleByUserId.get(doc.id) || {},
-      economyByUserId.get(doc.id) || {}
+      economyByUserId.get(doc.id) || {},
+      gemSummaryByUserId.get(doc.id) || {}
     ))
   };
 });

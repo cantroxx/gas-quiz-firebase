@@ -1164,9 +1164,9 @@
     if(!grid) return;
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
-    const activeJobByMember = new Map(assignments
+    const activeAssignmentByMember = new Map(assignments
       .filter(item => item.status === 'active' && item.memberUserId)
-      .map(item => [String(item.memberUserId), item.jobTitle || item.jobId || '교실 직업']));
+      .map(item => [String(item.memberUserId), item]));
     const visibleStudents = students.filter(student => canManage || !isHiddenClassroomMember(student.memberUserId));
     grid.innerHTML = '';
     if(!visibleStudents.length) {
@@ -1190,12 +1190,16 @@
       const levelRow = document.createElement('div');
       const metaGrid = document.createElement('div');
       const boostGrid = document.createElement('div');
+      const miniDropGrid = document.createElement('div');
       const teacherActions = document.createElement('div');
       const titleChip = document.createElement('span');
       const keyringChip = document.createElement('span');
       const selectedTitleName = student.selectedTitle?.titleName || '';
       const selectedKeyringLabel = student.selectedKeyring?.label || student.selectedBadge?.label || '';
-      const activeJobTitle = activeJobByMember.get(String(student.memberUserId || '')) || '';
+      const activeAssignment = activeAssignmentByMember.get(String(student.memberUserId || '')) || null;
+      const activeJobTitle = activeAssignment?.jobTitle || activeAssignment?.jobId || '';
+      const gemSummary = student.gemSummary || {};
+      const gemItems = Array.isArray(gemSummary.gems) ? gemSummary.gems : [];
       const boostItems = Array.isArray(student.boostItems) ? student.boostItems : [];
       const equippedItems = Array.isArray(student.equippedItems) ? student.equippedItems : [];
       const effectItemIds = boostItems.map(item => String(item.itemId || ''));
@@ -1252,6 +1256,39 @@
         levelRow.appendChild(titleChip);
       }
       if(levelRow.children.length) identity.appendChild(levelRow);
+      miniDropGrid.className = 'classroom-student-mini-drops';
+      const jobDrop = document.createElement('details');
+      const jobSummary = document.createElement('summary');
+      const jobBody = document.createElement('div');
+      jobDrop.className = 'classroom-student-mini-drop';
+      jobSummary.textContent = '직업';
+      jobBody.className = 'classroom-student-mini-drop-body';
+      jobBody.textContent = activeJobTitle
+        ? `${activeJobTitle}${activeAssignment?.weeklyPayPoint ? ` · 월급 ${formatClassroomPoint(activeAssignment.weeklyPayPoint)}P` : ''}`
+        : '아직 맡은 직업이 없습니다.';
+      jobDrop.append(jobSummary, jobBody);
+      const gemDrop = document.createElement('details');
+      const gemSummaryButton = document.createElement('summary');
+      const gemBody = document.createElement('div');
+      gemDrop.className = 'classroom-student-mini-drop';
+      gemSummaryButton.textContent = '젬스톤';
+      gemBody.className = 'classroom-student-mini-drop-body';
+      if(gemItems.length) {
+        const list = document.createElement('ul');
+        gemItems.slice(0, 6).forEach(gem => {
+          const row = document.createElement('li');
+          row.textContent = `${gem.completed ? '획득 ' : ''}${gem.gemName || gem.gemId || '젬'} ${Number(gem.currentXp || 0)}/${Math.max(1, Number(gem.targetXp || 1))}`;
+          list.appendChild(row);
+        });
+        const overview = document.createElement('p');
+        overview.textContent = `획득 ${Number(gemSummary.completedCount || 0)}개 · 누적 ${Number(gemSummary.totalXp || 0).toLocaleString('ko-KR')}회`;
+        gemBody.append(overview, list);
+      } else {
+        gemBody.textContent = '아직 쌓인 젬스톤 경험치가 없습니다.';
+      }
+      gemDrop.append(gemSummaryButton, gemBody);
+      miniDropGrid.append(jobDrop, gemDrop);
+      identity.appendChild(miniDropGrid);
       metaGrid.className = 'classroom-student-card-meta';
       if(selectedKeyringLabel) {
         const keyringIcon = createClassroomIconImage(getClassroomKeyringIconKey(student), selectedKeyringLabel, 'classroom-chip-icon');
@@ -1445,6 +1482,7 @@
   function renderClassroomShopCards(settings, economyBoard = {}, wallet = {}, deps = {}) {
     const grid = document.getElementById('classroom-shop-grid');
     if(!grid) return;
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     const items = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const point = Number(wallet.point || 0);
     const djCoin = Number(economyBoard.myDjCoin || 0);
