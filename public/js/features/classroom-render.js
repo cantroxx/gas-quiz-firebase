@@ -201,6 +201,50 @@
     return cell;
   }
 
+  function createClassroomDataTable(headers = []) {
+    const wrap = document.createElement('div');
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const tbody = document.createElement('tbody');
+    wrap.className = 'classroom-review-table-wrap classroom-feature-table-wrap';
+    table.className = 'classroom-review-table';
+    headers.forEach(label => appendClassroomTableCell(headerRow, label, 'th'));
+    thead.appendChild(headerRow);
+    table.append(thead, tbody);
+    wrap.appendChild(table);
+    return { wrap, tbody };
+  }
+
+  function renderClassroomFeatureStats(container, items = []) {
+    const statGrid = document.createElement('div');
+    statGrid.className = 'classroom-quest-stat-grid';
+    items.forEach(([label, value]) => {
+      const card = document.createElement('article');
+      const labelEl = document.createElement('span');
+      const valueEl = document.createElement('strong');
+      labelEl.textContent = label;
+      valueEl.textContent = value;
+      card.append(labelEl, valueEl);
+      statGrid.appendChild(card);
+    });
+    container.appendChild(statGrid);
+  }
+
+  function ensureClassroomPanelIntro(panelId, anchorId, className = '') {
+    const anchor = document.getElementById(anchorId);
+    if(!anchor?.parentElement) return null;
+    let panel = document.getElementById(panelId);
+    if(!panel) {
+      panel = document.createElement('section');
+      panel.id = panelId;
+      panel.className = `classroom-feature-management-panel${className ? ` ${className}` : ''}`;
+      anchor.parentElement.insertBefore(panel, anchor);
+    }
+    panel.innerHTML = '';
+    return panel;
+  }
+
   function renderClassroomReviewList(settings, reviewItems = [], options = {}, deps = {}) {
     const status = document.getElementById(options.statusId || 'classroom-review-status');
     const grid = document.getElementById(options.gridId || 'classroom-review-grid');
@@ -1387,6 +1431,59 @@
     });
   }
 
+  function renderClassroomGemManagementOverview(data = {}, deps = {}) {
+    const settings = data.settings || {};
+    const economyBoard = data.economyBoard || {};
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const panel = ensureClassroomPanelIntro('classroom-gem-management-overview', 'classroom-gem-grid');
+    if(!panel) return;
+    const progressList = Array.isArray(data.gemProgress) ? data.gemProgress : [];
+    const classGems = Array.isArray(economyBoard.classroomGems) ? economyBoard.classroomGems : [];
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const totalXp = progressList.reduce((sum, gem) => sum + Number(gem.currentXp || 0), 0);
+    const completed = progressList.filter(gem => gem.completed === true).length;
+    renderClassroomFeatureStats(panel, [
+      ['생성 젬', `${classGems.length}개`],
+      ['내 진행 젬', `${progressList.length}개`],
+      ['내 완료 젬', `${completed}개`],
+      ['내 누적 경험치', `${totalXp.toLocaleString('ko-KR')}회`],
+      ['학생 수', `${studentCards.length}명`]
+    ]);
+    if(!canManage) return;
+    const studentGemRows = studentCards
+      .map(student => {
+        const gemSummary = student.gemSummary || {};
+        const gems = Array.isArray(gemSummary.gems) ? gemSummary.gems : [];
+        return {
+          student,
+          gems,
+          completedCount: Number(gemSummary.completedCount || 0),
+          totalXp: Number(gemSummary.totalXp || 0)
+        };
+      })
+      .sort((a, b) => b.totalXp - a.totalXp);
+    const { wrap, tbody } = createClassroomDataTable(['학생', '완료 젬', '누적 경험치', '진행 중인 젬', '다음 단계']);
+    studentGemRows.slice(0, 20).forEach(item => {
+      const row = document.createElement('tr');
+      const leadingGem = item.gems.slice().sort((a, b) => Number(b.currentXp || 0) - Number(a.currentXp || 0))[0] || null;
+      const currentXp = Number(leadingGem?.currentXp || 0);
+      const stage = leadingGem ? getClassroomGemStage(leadingGem, currentXp) : null;
+      appendClassroomTableCell(row, `${item.student.studentNumber ? `${item.student.studentNumber}번 ` : ''}${getClassroomMemberDisplayName(item.student)}`, 'td', 'classroom-review-table-student');
+      appendClassroomTableCell(row, `${item.completedCount}개`);
+      appendClassroomTableCell(row, `${item.totalXp.toLocaleString('ko-KR')}회`);
+      appendClassroomTableCell(row, leadingGem ? leadingGem.gemName || leadingGem.gemId || '젬스톤' : '진행 없음');
+      appendClassroomTableCell(row, stage?.next ? `${stage.next.label}까지 ${Math.max(0, stage.next.xp - currentXp)}회` : leadingGem ? '최고 단계' : '-');
+      tbody.appendChild(row);
+    });
+    if(!studentGemRows.length) {
+      const row = document.createElement('tr');
+      appendClassroomTableCell(row, '표시할 학생별 젬 진행도가 없습니다.', 'td');
+      row.firstChild.colSpan = 5;
+      tbody.appendChild(row);
+    }
+    panel.appendChild(wrap);
+  }
+
   function renderClassroomStudentCards(students = [], settings = {}, deps = {}, economyBoard = {}) {
     const grid = document.getElementById('classroom-student-card-grid');
     if(!grid) return;
@@ -1710,6 +1807,69 @@
     });
   }
 
+  function renderClassroomJobManagementOverview(settings, economyBoard = {}, deps = {}) {
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const panel = ensureClassroomPanelIntro('classroom-job-management-overview', 'classroom-job-grid');
+    if(!panel) return;
+    const jobs = Array.isArray(economyBoard.jobs) ? economyBoard.jobs : [];
+    const applications = Array.isArray(economyBoard.applications) ? economyBoard.applications : [];
+    const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
+    const pendingApplications = applications.filter(item => item.status === 'pending');
+    const activeAssignments = assignments.filter(item => item.status === 'active');
+    const capacity = jobs.reduce((sum, job) => sum + Math.max(1, Number(job.maxAssignees || 1)), 0);
+    const myAssignment = economyBoard.myAssignment || activeAssignments.find(item => item.memberUserId === deps.currentMemberUserId) || null;
+    renderClassroomFeatureStats(panel, canManage
+      ? [['등록 직업', `${jobs.length}개`], ['지원 대기', `${pendingApplications.length}건`], ['배정 학생', `${activeAssignments.length}명`], ['남은 자리', `${Math.max(0, capacity - activeAssignments.length)}자리`]]
+      : [['내 직업', myAssignment?.jobTitle || myAssignment?.jobId || '없음'], ['지원 가능', `${Math.max(0, capacity - activeAssignments.length)}자리`], ['모집 직업', `${jobs.length}개`]]
+    );
+    if(!canManage) return;
+    const { wrap, tbody } = createClassroomDataTable(['구분', '학생', '직업', '상태', '처리']);
+    const rows = [
+      ...pendingApplications.map(item => ({ type: '지원', item })),
+      ...activeAssignments.map(item => ({ type: '배정', item }))
+    ];
+    rows.slice(0, 24).forEach(({ type, item }) => {
+      const row = document.createElement('tr');
+      const actions = document.createElement('div');
+      actions.className = 'classroom-review-actions';
+      appendClassroomTableCell(row, type, 'td', 'classroom-review-table-kind');
+      appendClassroomTableCell(row, getClassroomMemberDisplayName(item), 'td', 'classroom-review-table-student');
+      appendClassroomTableCell(row, item.jobTitle || item.jobId || '직업');
+      appendClassroomTableCell(row, type === '지원' ? '승인 대기' : '활동 중');
+      if(type === '지원') {
+        const assignButton = document.createElement('button');
+        assignButton.className = 'quest-claim-button';
+        assignButton.type = 'button';
+        assignButton.dataset.classroomJobAssignId = item.applicationId || '';
+        assignButton.textContent = '배정';
+        actions.appendChild(assignButton);
+      } else {
+        const salaryButton = document.createElement('button');
+        const releaseButton = document.createElement('button');
+        salaryButton.className = 'quest-claim-button';
+        salaryButton.type = 'button';
+        salaryButton.dataset.classroomJobSalaryId = item.assignmentId || item.memberUserId || '';
+        salaryButton.textContent = '월급 지급';
+        releaseButton.className = 'quest-claim-button danger';
+        releaseButton.type = 'button';
+        releaseButton.dataset.classroomJobReleaseId = item.assignmentId || item.memberUserId || '';
+        releaseButton.textContent = '해제';
+        actions.append(salaryButton, releaseButton);
+      }
+      const actionCell = document.createElement('td');
+      actionCell.appendChild(actions);
+      row.appendChild(actionCell);
+      tbody.appendChild(row);
+    });
+    if(!rows.length) {
+      const row = document.createElement('tr');
+      appendClassroomTableCell(row, '처리할 직업 지원/배정 항목이 없습니다.', 'td');
+      row.firstChild.colSpan = 5;
+      tbody.appendChild(row);
+    }
+    panel.appendChild(wrap);
+  }
+
   function renderClassroomShopCards(settings, economyBoard = {}, wallet = {}, deps = {}) {
     const grid = document.getElementById('classroom-shop-grid');
     if(!grid) return;
@@ -1840,11 +2000,61 @@
     list.className = 'classroom-shop-history-list';
     heading.append(title, note);
     wrap.append(heading, list);
+    if(canManage) {
+      const requestItems = purchases.filter(purchase => ['use_requested', 'use_approved'].includes(String(purchase.status || 'purchased')));
+      const { wrap: tableWrap, tbody } = createClassroomDataTable(['학생', '상품', '상태', '메모', '처리']);
+      requestItems.slice(0, 24).forEach(purchase => {
+        const row = document.createElement('tr');
+        const actions = document.createElement('div');
+        const status = String(purchase.status || 'purchased');
+        actions.className = 'classroom-review-actions';
+        appendClassroomTableCell(row, getClassroomMemberDisplayName(purchase), 'td', 'classroom-review-table-student');
+        appendClassroomTableCell(row, purchase.itemTitle || '교실 쿠폰', 'td', 'classroom-review-table-title');
+        appendClassroomTableCell(row, getClassroomPurchaseStatusLabel(status));
+        appendClassroomTableCell(row, purchase.requestMemo || purchase.approvalMemo || purchase.useMemo || '-');
+        if(status === 'use_requested') {
+          const approveButton = document.createElement('button');
+          const rejectButton = document.createElement('button');
+          approveButton.className = 'quest-claim-button';
+          approveButton.type = 'button';
+          approveButton.dataset.classroomShopApproveUseId = purchase.purchaseId || '';
+          approveButton.textContent = '승인';
+          rejectButton.className = 'quest-claim-button danger';
+          rejectButton.type = 'button';
+          rejectButton.dataset.classroomShopRejectUseId = purchase.purchaseId || '';
+          rejectButton.textContent = '반려';
+          actions.append(approveButton, rejectButton);
+        }
+        if(status === 'use_requested' || status === 'use_approved') {
+          const completeButton = document.createElement('button');
+          completeButton.className = 'quest-claim-button';
+          completeButton.type = 'button';
+          completeButton.dataset.classroomShopCompleteUseId = purchase.purchaseId || '';
+          completeButton.textContent = '사용 완료';
+          actions.appendChild(completeButton);
+        }
+        const actionCell = document.createElement('td');
+        actionCell.appendChild(actions);
+        row.appendChild(actionCell);
+        tbody.appendChild(row);
+      });
+      if(!requestItems.length) {
+        const row = document.createElement('tr');
+        appendClassroomTableCell(row, '현재 처리할 마켓 요청이 없습니다.', 'td');
+        row.firstChild.colSpan = 5;
+        tbody.appendChild(row);
+      }
+      list.appendChild(tableWrap);
+    }
     if(!purchases.length) {
       const empty = document.createElement('p');
       empty.className = 'classroom-review-status';
       empty.textContent = canManage ? '아직 구매 내역이 없습니다.' : '아직 보유한 쿠폰이 없습니다.';
       list.appendChild(empty);
+    }
+    if(canManage) {
+      renderClassroomGroupPurchaseSection(document.getElementById('classroom-group-purchase-shop'), economyBoard, deps);
+      return;
     }
     purchases.slice(0, 12).forEach(purchase => {
       const row = document.createElement('article');
@@ -1956,6 +2166,12 @@
     const nextPercent = Math.min(100, Math.round((currentPoint / Math.max(1, nextTarget)) * 100));
     panel.className = 'classroom-mission-panel';
     hero.className = 'classroom-mission-hero';
+    renderClassroomFeatureStats(wrap, [
+      ['현재 포인트', `${formatClassroomPoint(currentPoint)}P`],
+      ['다음 목표', nextStep ? `${formatClassroomPoint(nextTarget)}P` : '전체 달성'],
+      ['진행률', `${nextPercent}%`],
+      ['목표 단계', `${(mission.thresholds || []).length}개`]
+    ]);
     title.textContent = mission.title || '학급 미션';
     desc.textContent = nextStep
       ? `${formatClassroomPoint(currentPoint)} / ${formatClassroomPoint(nextTarget)}점 · 다음 보상: ${nextStep.rewardText || nextStep.label || '보상 준비'}`
@@ -1977,6 +2193,16 @@
     });
     panel.append(hero, track, list);
     wrap.appendChild(panel);
+    const { wrap: tableWrap, tbody } = createClassroomDataTable(['단계', '목표 포인트', '보상', '상태']);
+    (mission.thresholds || []).forEach((step, index) => {
+      const row = document.createElement('tr');
+      appendClassroomTableCell(row, step.label || `${index + 1}단계`, 'td', 'classroom-review-table-kind');
+      appendClassroomTableCell(row, `${formatClassroomPoint(step.targetPoint || 0)}P`);
+      appendClassroomTableCell(row, step.rewardText || '-');
+      appendClassroomTableCell(row, step.achieved ? '달성' : '진행중');
+      tbody.appendChild(row);
+    });
+    wrap.appendChild(tableWrap);
   }
 
   function renderClassroomGroupPurchaseSection(wrap, economyBoard = {}, deps = {}) {
@@ -2197,6 +2423,41 @@
     });
   }
 
+  function renderClassroomBankOverview(data = {}, deps = {}) {
+    const settings = data.settings || {};
+    const economyBoard = data.economyBoard || {};
+    const wallet = data.wallet || {};
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const panel = ensureClassroomPanelIntro('classroom-bank-overview', 'classroom-bank-grid');
+    if(!panel) return;
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const savingsProducts = Array.isArray(economyBoard.savingsProducts) ? economyBoard.savingsProducts : [];
+    const savingsAccounts = Array.isArray(economyBoard.savingsAccounts) ? economyBoard.savingsAccounts : [];
+    const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
+    const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
+    const totalCoin = studentCards.reduce((sum, student) => sum + Number(student.djCoin || 0), 0);
+    const earnedPoint = pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) > 0)
+      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0);
+    const spentPoint = Math.abs(pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) < 0)
+      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0));
+    renderClassroomFeatureStats(panel, canManage
+      ? [['학급 포인트', `${formatClassroomPoint(totalPoint)}P`], ['학급 DJ코인', `${totalCoin.toLocaleString('ko-KR')}개`], ['최근 지급', `${formatClassroomPoint(earnedPoint)}P`], ['최근 사용', `${formatClassroomPoint(spentPoint)}P`], ['적금 상품', `${savingsProducts.length}개`]]
+      : [['내 포인트', `${formatClassroomPoint(wallet.point || 0)}P`], ['내 DJ코인', `${Number(economyBoard.myDjCoin || 0).toLocaleString('ko-KR')}개`], ['가입 적금', `${savingsAccounts.length}개`], ['적금 상품', `${savingsProducts.length}개`]]
+    );
+    if(!canManage) return;
+    const { wrap, tbody } = createClassroomDataTable(['번호', '학생', '포인트', 'DJ코인', '대표 타이틀']);
+    studentCards.slice().sort((a, b) => Number(b.point || 0) - Number(a.point || 0)).slice(0, 30).forEach(student => {
+      const row = document.createElement('tr');
+      appendClassroomTableCell(row, student.studentNumber ? `${student.studentNumber}번` : '-', 'td', 'classroom-review-table-kind');
+      appendClassroomTableCell(row, getClassroomMemberDisplayName(student), 'td', 'classroom-review-table-student');
+      appendClassroomTableCell(row, `${formatClassroomPoint(student.point || 0)}P`);
+      appendClassroomTableCell(row, `${Number(student.djCoin || 0).toLocaleString('ko-KR')}개`);
+      appendClassroomTableCell(row, student.selectedTitle?.titleName || '-');
+      tbody.appendChild(row);
+    });
+    panel.appendChild(wrap);
+  }
+
   function getClassroomRoutineScheduleLabel(routine = {}) {
     const labels = { 1: '월', 2: '화', 3: '수', 4: '목', 5: '금' };
     const weekdays = Array.isArray(routine.weekdays) && routine.weekdays.length
@@ -2206,6 +2467,43 @@
     const end = String(routine.endDate || '').trim();
     const period = start && end ? `${start}~${end}` : '기간 미설정';
     return `${period} · ${weekdays}`;
+  }
+
+  function renderClassroomRoutineOverview(settings = {}, economyBoard = {}, deps = {}) {
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const panel = ensureClassroomPanelIntro('classroom-routine-overview', 'classroom-routine-grid');
+    if(!panel) return;
+    const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
+    const active = routines.filter(routine => routine.status !== 'completed' && routine.reviewPending !== true);
+    const pending = routines.filter(routine => routine.reviewPending === true);
+    const completed = routines.filter(routine => routine.status === 'completed');
+    const checkable = routines.filter(routine => routine.canCheckToday && !routine.checkedToday && !routine.reviewPending);
+    renderClassroomFeatureStats(panel, [
+      ['진행중', `${active.length}개`],
+      ['오늘 체크 가능', `${checkable.length}개`],
+      ['검토중', `${pending.length}개`],
+      ['완료', `${completed.length}개`]
+    ]);
+    if(!canManage) return;
+    const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '진행', '보상 기준', '상태']);
+    pending.concat(active).slice(0, 24).forEach(routine => {
+      const row = document.createElement('tr');
+      const currentCount = Number(routine.currentCount || 0);
+      const targetCount = Math.max(1, Number(routine.targetCount || 1));
+      appendClassroomTableCell(row, getClassroomMemberDisplayName(routine), 'td', 'classroom-review-table-student');
+      appendClassroomTableCell(row, routine.title || '성장루틴', 'td', 'classroom-review-table-title');
+      appendClassroomTableCell(row, `${currentCount}/${targetCount}회 · ${Math.min(100, Math.round((currentCount / targetCount) * 100))}%`);
+      appendClassroomTableCell(row, `최대 ${formatClassroomPoint(routine.rewardPoint || 0)}P`);
+      appendClassroomTableCell(row, routine.reviewPending ? '검토 대기' : routine.checkedToday ? '오늘 체크됨' : '진행중');
+      tbody.appendChild(row);
+    });
+    if(!pending.length && !active.length) {
+      const row = document.createElement('tr');
+      appendClassroomTableCell(row, '표시할 성장루틴 진행 항목이 없습니다.', 'td');
+      row.firstChild.colSpan = 5;
+      tbody.appendChild(row);
+    }
+    panel.appendChild(wrap);
   }
 
   function renderClassroomRoutineCards(economyBoard = {}) {
@@ -2320,17 +2618,21 @@
     renderClassroomInactiveQuestCards(settings, deps);
     renderClassroomStudentCards(data.studentCards || [], settings, deps, economyBoard);
     renderClassroomGemSummary(data.gemProgress || [], settings);
+    renderClassroomGemManagementOverview(data, deps);
     renderClassroomGemCards(data.gemProgress || [], economyBoard);
     renderClassroomJobSummary(settings, economyBoard, deps);
+    renderClassroomJobManagementOverview(settings, economyBoard, deps);
     renderClassroomJobCards(settings, economyBoard, deps);
     renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
     renderClassroomShopHistory(settings, economyBoard, deps);
     renderClassroomMissionView(economyBoard);
     const bankGrid = document.getElementById('classroom-bank-grid');
     if(bankGrid) bankGrid.innerHTML = '';
+    renderClassroomBankOverview(data, deps);
     renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
     renderClassroomSavingsSection(bankGrid, economyBoard, deps);
     renderClassroomTaxPresetList(economyBoard);
+    renderClassroomRoutineOverview(settings, economyBoard, deps);
     renderClassroomRoutineCards(economyBoard);
     deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
     deps.setClassroomExchangeSettingsForm?.(economyBoard.exchangeSettings || {});

@@ -155,7 +155,7 @@
       deps.setClassroomSelectedGemBadge?.(button.dataset.classroomBadgeGemId || '');
     });
 
-    document.getElementById('classroom-job-grid')?.addEventListener('click', event => {
+    const handleClassroomJobClick = event => {
       const editButton = event.target.closest('[data-classroom-job-edit-id]');
       if(editButton && !editButton.disabled) {
         deps.editClassroomJob?.(editButton.dataset.classroomJobEditId || '');
@@ -185,7 +185,9 @@
       if(salaryButton && !salaryButton.disabled) {
         deps.claimClassroomJobSalary?.(salaryButton.dataset.classroomJobSalaryId || '', salaryButton);
       }
-    });
+    };
+
+    document.querySelector('[data-classroom-panel="jobs"]')?.addEventListener('click', handleClassroomJobClick);
 
     const handleClassroomMarketClick = event => {
       const editShopButton = event.target.closest('[data-classroom-shop-edit-id]');
