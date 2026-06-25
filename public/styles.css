@@ -6382,7 +6382,7 @@ h2 {
 
 .classroom-market-section.is-active {
   display: grid;
-  padding: 10px 0;
+  padding: 10px 18px;
 }
 
 .classroom-shop-history[data-classroom-market-pane] {
@@ -6406,12 +6406,12 @@ h2 {
 }
 
 .classroom-market-section > .event-section-heading.compact {
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
 .classroom-market-section .classroom-shop-history-row {
-  padding-left: 14px;
+  padding-left: 20px;
 }
 
 .classroom-exchange-amount-input {
@@ -6651,7 +6651,6 @@ h2 {
   text-align: center;
 }
 
-.classroom-student-card.has-title,
 .classroom-student-card.has-keyring {
   border-color: rgba(255, 196, 60, 0.46);
   background:
@@ -6760,9 +6759,11 @@ h2 {
 .classroom-student-level-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  min-height: 26px;
-  padding: 2px 7px 2px 3px;
+  height: 34px;
+  min-height: 34px;
+  padding: 4px 8px 4px 4px;
   border: 1px solid rgba(29, 38, 48, 0.14);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
@@ -6770,6 +6771,7 @@ h2 {
   font-size: 0.74rem;
   font-weight: 950;
   line-height: 1;
+  box-sizing: border-box;
 }
 
 .classroom-student-level-badge img {
@@ -6795,9 +6797,13 @@ h2 {
   overflow-wrap: anywhere;
   text-align: center;
   justify-content: center;
+  height: 34px;
   min-height: 34px;
+  padding-top: 4px;
+  padding-bottom: 4px;
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .classroom-student-job-chip {
@@ -7129,14 +7135,14 @@ h2 {
 }
 
 .classroom-mission-step-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 7px;
 }
 
 .classroom-mission-step {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   min-height: 28px;
   padding: 5px 10px;
   border: 1px solid rgba(47, 125, 83, 0.16);
@@ -7152,6 +7158,79 @@ h2 {
   border-color: rgba(47, 125, 83, 0.38);
   background: rgba(216, 248, 226, 0.9);
   color: #1f6b43;
+}
+
+.classroom-routine-items-field,
+.classroom-routine-checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.classroom-routine-items-field > span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.classroom-routine-check-item {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid rgba(47, 125, 83, 0.18);
+  border-radius: 10px;
+  background: #fff;
+  color: #173f2b;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+.classroom-routine-check-item.is-checked {
+  background: #e9f8ef;
+  color: #2f7d53;
+}
+
+.classroom-routine-check-item:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.classroom-job-application-detail {
+  flex-basis: 100%;
+  margin: 0;
+  color: #516253;
+  font-size: 0.8rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.app-toast-message {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 1000;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border: 1px solid rgba(47, 125, 83, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  color: #173f2b;
+  font-weight: 900;
+  line-height: 1.4;
+  box-shadow: 0 18px 42px rgba(21, 45, 64, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-toast-message.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.app-toast-message.is-error {
+  border-color: rgba(194, 65, 65, 0.32);
+  color: #9f2727;
 }
 
 .classroom-card-reward,

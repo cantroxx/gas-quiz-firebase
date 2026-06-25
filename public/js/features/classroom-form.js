@@ -424,15 +424,46 @@
     const weekdays = Array.from(document.querySelectorAll('input[name="classroom-routine-weekday"]:checked'))
       .map(input => Number(input.value))
       .filter(day => day >= 1 && day <= 5);
+    const checkItems = Array.from(document.querySelectorAll('.classroom-routine-item-input'))
+      .map((input, index) => ({
+        itemId: `item-${index + 1}`,
+        label: String(input.value || '').trim()
+      }))
+      .filter(item => item.label)
+      .slice(0, 10);
     return {
       routineId: String(document.getElementById('classroom-routine-id-input')?.value || '').trim(),
       title: String(document.getElementById('classroom-routine-title-input')?.value || '').trim(),
-      targetCount: Math.max(2, Math.min(30, Math.round(Number(document.getElementById('classroom-routine-target-input')?.value) || 5))),
+      targetCount: Math.max(1, Math.min(300, Math.round(Number(document.getElementById('classroom-routine-target-input')?.value) || 5))),
       startDate: String(document.getElementById('classroom-routine-start-input')?.value || '').trim(),
       endDate: String(document.getElementById('classroom-routine-end-input')?.value || '').trim(),
       rewardPoint: Math.max(0, Math.min(20, Math.round(Number(document.getElementById('classroom-routine-reward-input')?.value) || 0))),
-      weekdays
+      weekdays,
+      checkItems
     };
+  }
+
+  function setClassroomRoutineItemInputs(items = []) {
+    const inputs = Array.from(document.querySelectorAll('.classroom-routine-item-input'));
+    const labels = Array.isArray(items)
+      ? items.map(item => typeof item === 'string' ? item : item?.label).map(value => String(value || '').trim()).filter(Boolean).slice(0, 10)
+      : [];
+    inputs.forEach((input, index) => {
+      input.value = labels[index] || '';
+      input.hidden = index >= Math.max(2, labels.length);
+    });
+    const addButton = document.getElementById('classroom-routine-add-item-button');
+    if(addButton) addButton.hidden = inputs.every(input => !input.hidden);
+  }
+
+  function showNextClassroomRoutineItemInput() {
+    const inputs = Array.from(document.querySelectorAll('.classroom-routine-item-input'));
+    const nextInput = inputs.find(input => input.hidden);
+    if(!nextInput) return;
+    nextInput.hidden = false;
+    nextInput.focus();
+    const addButton = document.getElementById('classroom-routine-add-item-button');
+    if(addButton) addButton.hidden = !inputs.some(input => input.hidden);
   }
 
   function resetClassroomRoutineForm() {
@@ -448,6 +479,7 @@
     if(start) start.value = '';
     if(end) end.value = '';
     if(reward) reward.value = '10';
+    setClassroomRoutineItemInputs([]);
     document.querySelectorAll('input[name="classroom-routine-weekday"]').forEach(input => {
       input.checked = true;
     });
@@ -466,6 +498,7 @@
     if(start) start.value = routine.startDate || '';
     if(end) end.value = routine.endDate || '';
     if(reward) reward.value = String(Math.max(0, Math.min(20, Math.round(Number(routine.rewardPoint) || 0))));
+    setClassroomRoutineItemInputs(routine.checkItems || []);
     const weekdays = new Set((Array.isArray(routine.weekdays) ? routine.weekdays : [1, 2, 3, 4, 5]).map(String));
     document.querySelectorAll('input[name="classroom-routine-weekday"]').forEach(input => {
       input.checked = weekdays.has(String(input.value));
@@ -505,6 +538,7 @@
     setClassroomNoticeForm,
     getClassroomRoutineFormValues,
     resetClassroomRoutineForm,
+    showNextClassroomRoutineItemInput,
     setClassroomRoutineFormValues
   };
 })();

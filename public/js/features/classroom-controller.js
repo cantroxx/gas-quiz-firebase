@@ -1,5 +1,20 @@
 (function () {
   function bindClassroomEvents(deps = {}) {
+    document.addEventListener('click', event => {
+      const openedDrop = event.target.closest('.classroom-student-mini-drop');
+      document.querySelectorAll('.classroom-student-mini-drop[open]').forEach(drop => {
+        if(drop !== openedDrop) drop.open = false;
+      });
+    });
+
+    document.addEventListener('toggle', event => {
+      const drop = event.target.closest?.('.classroom-student-mini-drop');
+      if(!drop || !drop.open) return;
+      document.querySelectorAll('.classroom-student-mini-drop[open]').forEach(otherDrop => {
+        if(otherDrop !== drop) otherDrop.open = false;
+      });
+    }, true);
+
     document.getElementById('classroom-entry-form')?.addEventListener('submit', deps.handleClassroomEntrySubmit);
 
     document.getElementById('classroom-quest-form')?.addEventListener('submit', event => {
@@ -52,6 +67,10 @@
 
     document.getElementById('classroom-routine-form')?.addEventListener('submit', event => {
       deps.saveClassroomRoutineFromForm?.(event);
+    });
+
+    document.getElementById('classroom-routine-add-item-button')?.addEventListener('click', () => {
+      window.DJ48ClassroomForm?.showNextClassroomRoutineItemInput?.();
     });
 
     document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
@@ -299,7 +318,9 @@
       }
       const button = event.target.closest('[data-classroom-routine-check-id]');
       if(!button || button.disabled) return;
-      deps.checkClassroomRoutine?.(button.dataset.classroomRoutineCheckId || '', button);
+      deps.checkClassroomRoutine?.(button.dataset.classroomRoutineCheckId || '', button, {
+        checkItemId: button.dataset.classroomRoutineCheckItemId || ''
+      });
     });
 
     const reviewClassroomAction = event => {

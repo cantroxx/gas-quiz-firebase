@@ -1137,10 +1137,21 @@
                 루틴 이름
                 <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
               </label>
-              <label>
-                목표 횟수
-                <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
-              </label>
+              <div class="classroom-routine-items-field" id="classroom-routine-checklist-fields">
+                <span>체크리스트</span>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="1" type="text" maxlength="40" placeholder="예: 10분 독서">
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="2" type="text" maxlength="40" placeholder="예: 읽은 쪽수 기록">
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="3" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="4" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="5" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="6" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="7" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="8" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="9" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <input class="classroom-routine-item-input" data-classroom-routine-item-index="10" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
+                <button id="classroom-routine-add-item-button" class="button secondary" type="button">항목 추가</button>
+              </div>
+              <input id="classroom-routine-target-input" type="hidden" value="5">
               <label>
                 시작일
                 <input id="classroom-routine-start-input" type="date">
@@ -5350,8 +5361,29 @@
       return window.DJ48Firebase.getFirestoreFieldValue();
     }
 
+    function showAppToastMessage(message, isError = false) {
+      const text = String(message || '').trim();
+      if(!text) return;
+      let toast = document.getElementById('app-toast-message');
+      if(!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast-message';
+        toast.className = 'app-toast-message';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+      }
+      toast.textContent = text;
+      toast.classList.toggle('is-error', isError);
+      toast.classList.add('is-visible');
+      window.clearTimeout(toast._hideTimer);
+      toast._hideTimer = window.setTimeout(() => {
+        toast.classList.remove('is-visible');
+      }, 2600);
+    }
+
     function showShopPurchaseMessage(message) {
-      window.alert(message);
+      showAppToastMessage(message);
     }
 
     function getShopWriteDeps() {
@@ -5543,7 +5575,7 @@
         setSelectedBadge: options => getClassroomRepository().setClassroomSelectedBadge(options),
         resetCaches: resetClassroomDataCaches,
         renderClassroom: renderClassroomPrototype,
-        alert: message => window.alert(message),
+        alert: message => showAppToastMessage(message),
         warn: console.warn
       });
     }
@@ -6297,7 +6329,7 @@
         resetCaches: resetClassroomDataCaches,
         renderClassroom: renderClassroomPrototype,
         containsElement: element => document.body.contains(element),
-        alert: message => window.alert(message),
+        alert: message => showAppToastMessage(message),
         warn: console.warn
       };
     }
@@ -6548,8 +6580,8 @@
       });
     }
 
-    async function checkClassroomRoutine(routineId, button) {
-      return runClassroomEconomyAction('checkClassroomRoutine', routineId, button);
+    async function checkClassroomRoutine(routineId, button, payload = {}) {
+      return runClassroomEconomyAction('checkClassroomRoutine', routineId, button, payload);
     }
 
     async function completeClassroomCheckQuest(questId) {
@@ -6567,7 +6599,7 @@
         resetUserEconomyCache,
         renderClassroom: renderClassroomPrototype,
         getClassroomRewardCurrencyLabel,
-        alert: message => window.alert(message),
+        alert: message => showAppToastMessage(message),
         warn: console.warn
       });
     }
@@ -6585,7 +6617,7 @@
         if(rawReward === null) return { skipped: true, reason: 'cancelled' };
         const parsedReward = Math.round(Number(String(rawReward || '').replace(/,/g, '')));
         if(!Number.isFinite(parsedReward) || parsedReward < 0 || parsedReward > 20) {
-          window.alert('0~20 사이의 포인트를 입력해 주세요.');
+          showAppToastMessage('0~20 사이의 포인트를 입력해 주세요.', true);
           return { skipped: true, reason: 'invalid-reward-point' };
         }
         rewardPointOverride = parsedReward;
@@ -6605,7 +6637,7 @@
         isAdminClassroomSectionActive: () => document.getElementById('admin-section-classroom')?.classList.contains('is-active'),
         renderAdminClassroomReview,
         getClassroomRewardCurrencyLabel,
-        alert: message => window.alert(message),
+        alert: message => showAppToastMessage(message),
         warn: console.warn
       });
     }

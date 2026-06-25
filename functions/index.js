@@ -2019,6 +2019,9 @@ function getDefaultClassroomSavingsProduct(productId) {
 
 function normalizeClassroomMission(rawMission = {}) {
   const thresholds = Array.isArray(rawMission.thresholds) ? rawMission.thresholds : DEFAULT_CLASSROOM_MISSION.thresholds;
+  const achievedDateByTarget = rawMission.achievedDateByTarget && typeof rawMission.achievedDateByTarget === "object"
+    ? rawMission.achievedDateByTarget
+    : {};
   return {
     missionId: "current",
     title: String(rawMission.title || DEFAULT_CLASSROOM_MISSION.title).trim().slice(0, 50),
@@ -2027,7 +2030,8 @@ function normalizeClassroomMission(rawMission = {}) {
       .map((item, index) => ({
         label: String(item?.label || `${index + 1}단계`).trim().slice(0, 30),
         targetPoint: Math.max(1, Math.min(1000000, Math.round(Number(item?.targetPoint) || 0))),
-        rewardText: String(item?.rewardText || "").trim().slice(0, 80)
+        rewardText: String(item?.rewardText || "").trim().slice(0, 80),
+        achievedDateKey: String(item?.achievedDateKey || achievedDateByTarget[String(Math.max(1, Math.min(1000000, Math.round(Number(item?.targetPoint) || 0))))] || "").slice(0, 10)
       }))
       .filter(item => item.targetPoint > 0)
       .sort((a, b) => a.targetPoint - b.targetPoint)
@@ -2475,7 +2479,6 @@ function normalizeClassroomRoutine(rawRoutine = {}) {
   if (!title) {
     throw new HttpsError("invalid-argument", "Routine title is required.");
   }
-  const targetCount = Math.max(2, Math.min(30, Math.round(Number(rawRoutine.targetCount) || 5)));
   const startDate = String(rawRoutine.startDate || "").trim();
   const endDate = String(rawRoutine.endDate || "").trim();
   if (!isIsoDateKey(startDate) || !isIsoDateKey(endDate) || startDate > endDate) {
@@ -2488,6 +2491,22 @@ function normalizeClassroomRoutine(rawRoutine = {}) {
   if (!weekdays.length) {
     throw new HttpsError("invalid-argument", "Routine weekdays are required.");
   }
+  const checkItems = (Array.isArray(rawRoutine.checkItems) ? rawRoutine.checkItems : [])
+    .map((item, index) => ({
+      itemId: String(item?.itemId || `item-${index + 1}`)
+        .trim()
+        .replace(/[^0-9A-Za-z_-]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40) || `item-${index + 1}`,
+      label: String(item?.label || item?.title || "").trim().slice(0, 40)
+    }))
+    .filter(item => item.label)
+    .slice(0, 10);
+  if (!checkItems.length) {
+    throw new HttpsError("invalid-argument", "Routine check items are required.");
+  }
+  const scheduledDayCount = countClassroomRoutineScheduledDays(startDate, endDate, weekdays);
+  const targetCount = Math.max(1, Math.min(300, scheduledDayCount * Math.max(1, checkItems.length)));
   return {
     routineId,
     title,
@@ -2496,9 +2515,25 @@ function normalizeClassroomRoutine(rawRoutine = {}) {
     startDate,
     endDate,
     weekdays,
+    checkItems,
     rewardPoint: Math.max(0, Math.min(20, Math.round(Number(rawRoutine.rewardPoint) || 0))),
     active: rawRoutine.active !== false
   };
+}
+
+function countClassroomRoutineScheduledDays(startDate, endDate, weekdays = []) {
+  if (!isIsoDateKey(startDate) || !isIsoDateKey(endDate)) return 1;
+  const weekdaySet = new Set(weekdays.map(day => Math.round(Number(day))).filter(day => day >= 1 && day <= 5));
+  let count = 0;
+  const cursor = new Date(`${startDate}T00:00:00.000Z`);
+  const end = new Date(`${endDate}T00:00:00.000Z`);
+  while (cursor <= end) {
+    const jsDay = cursor.getUTCDay();
+    const weekday = jsDay === 0 ? 7 : jsDay;
+    if (weekdaySet.has(weekday)) count += 1;
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return Math.max(1, count);
 }
 
 function chunkArray(items, size) {
@@ -6148,9 +6183,16 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     .where("memberUserId", "==", memberUserId)
     .limit(50)
     .get();
+  const todayKey = getKstDateKey();
+  const routineCheckSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("routineCheckLogs")
+    .where("memberUserId", "==", memberUserId)
+    .limit(500)
+    .get();
   const applicationQuery = authResult.canManage
     ? db.collection("classrooms").doc(classId).collection("jobApplications").where("status", "==", "pending").limit(200)
-    : db.collection("classrooms").doc(classId).collection("jobApplications").where("memberUserId", "==", memberUserId).limit(50);
+    : db.collection("classrooms").doc(classId).collection("jobApplications").where("status", "==", "pending").limit(200);
   const applicationSnapshot = await applicationQuery.get();
   const purchaseQuery = authResult.canManage
     ? db.collection("classrooms").doc(classId).collection("shopPurchases").limit(200)
@@ -6211,10 +6253,29 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     }
   });
   const totalStudentPoint = walletSnapshot.docs.reduce((sum, doc) => sum + Math.max(0, Math.round(getClassroomPointAmount(doc.data() || {}))), 0);
-  const classMission = publicClassroomMission(
-    missionSnapshot.exists ? missionSnapshot.data() || {} : DEFAULT_CLASSROOM_MISSION,
-    totalStudentPoint
-  );
+  const rawClassMission = missionSnapshot.exists ? missionSnapshot.data() || {} : DEFAULT_CLASSROOM_MISSION;
+  const achievedDateByTarget = {
+    ...(rawClassMission.achievedDateByTarget && typeof rawClassMission.achievedDateByTarget === "object" ? rawClassMission.achievedDateByTarget : {})
+  };
+  let shouldPersistMissionAchievementDates = false;
+  normalizeClassroomMission(rawClassMission).thresholds.forEach(step => {
+    const key = String(step.targetPoint);
+    if (totalStudentPoint >= step.targetPoint && !achievedDateByTarget[key]) {
+      achievedDateByTarget[key] = todayKey;
+      shouldPersistMissionAchievementDates = true;
+    }
+  });
+  if (shouldPersistMissionAchievementDates) {
+    await db.collection("classrooms").doc(classId).collection("classMissions").doc("current").set({
+      achievedDateByTarget,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "get_classroom_economy_board_mission_achievement_dates"
+    }, { merge: true });
+  }
+  const classMission = publicClassroomMission({
+    ...rawClassMission,
+    achievedDateByTarget
+  }, totalStudentPoint);
   const publicWallet = publicClassroomPublicWallet(publicWalletSnapshot.exists ? publicWalletSnapshot.data() || {} : {});
   const exchangeSettings = publicClassroomExchangeSettings(exchangeSettingsSnapshot.exists ? exchangeSettingsSnapshot.data() || {} : DEFAULT_CLASSROOM_EXCHANGE_SETTINGS);
   const groupPurchases = groupPurchaseSnapshot.docs
@@ -6293,8 +6354,18 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
       status: String(data.status || "pending")
     };
   });
-  const todayKey = getKstDateKey();
   const todayWeekday = getKstWeekdayNumber();
+  const checkedItemIdsByRoutineId = new Map();
+  routineCheckSnapshot.docs.forEach(doc => {
+    const data = doc.data() || {};
+    if (String(data.dateKey || "") !== todayKey) return;
+    const targetRoutineId = String(data.routineId || "");
+    const checkItemId = String(data.checkItemId || "item-1");
+    if (!targetRoutineId || !checkItemId) return;
+    const ids = checkedItemIdsByRoutineId.get(targetRoutineId) || [];
+    ids.push(checkItemId);
+    checkedItemIdsByRoutineId.set(targetRoutineId, ids);
+  });
   const routines = routineSnapshot.docs
     .map(doc => {
       const data = doc.data() || {};
@@ -6306,10 +6377,17 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
       const withinPeriod = (!startDate || todayKey >= startDate) && (!endDate || todayKey <= endDate);
       const canCheckToday = withinPeriod && weekdays.includes(todayWeekday);
       const status = String(data.status || "active");
+      const checkedItemIdsToday = checkedItemIdsByRoutineId.get(doc.id) || [];
       return {
         routineId: doc.id,
         title: String(data.title || ""),
         desc: String(data.desc || ""),
+        checkItems: Array.isArray(data.checkItems)
+          ? data.checkItems.map((item, index) => ({
+            itemId: String(item?.itemId || `item-${index + 1}`),
+            label: String(item?.label || "").slice(0, 40)
+          })).filter(item => item.label).slice(0, 10)
+          : [],
         targetCount: Number(data.targetCount || 0),
         currentCount: Number(data.currentCount || 0),
         rewardPoint: Number(data.rewardPoint || 0),
@@ -6317,7 +6395,8 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
         endDate,
         weekdays,
         status,
-        checkedToday: data.lastCheckDateKey === todayKey,
+        checkedToday: checkedItemIdsToday.length > 0,
+        checkedItemIdsToday,
         canCheckToday,
         reviewPending: status === "active" && !!endDate && endDate < todayKey
       };
@@ -6406,6 +6485,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   const economySnapshot = await db.collection("userEconomy").doc(memberUserId).get();
   const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
   const activityMemberIds = Array.from(new Set([
+    ...applications.map(item => item.memberUserId),
     ...purchases.map(item => item.memberUserId),
     ...pointLogs.map(item => item.memberUserId)
   ].map(id => String(id || "").trim()).filter(Boolean)));
@@ -6421,10 +6501,13 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     memberNickname: activityNameByUserId.get(item.memberUserId) || ""
   });
   const visiblePurchases = purchases
-    .filter(item => !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()))
+    .filter(item => authResult.canManage ? !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()) : true)
+    .map(addActivityProfile);
+  const visibleApplications = applications
+    .filter(item => authResult.canManage || !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()) || item.memberUserId === memberUserId)
     .map(addActivityProfile);
   const visiblePointLogs = pointLogs
-    .filter(item => !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()))
+    .filter(item => authResult.canManage ? !HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS.has(String(item.memberUserId || "").trim()) : true)
     .map(addActivityProfile)
     .slice(0, authResult.canManage ? 120 : 30);
 
@@ -6435,7 +6518,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     jobs,
     shopItems,
     assignments,
-    applications,
+    applications: visibleApplications,
     routines,
     purchases: visiblePurchases,
     pointLogs: visiblePointLogs,
@@ -8077,6 +8160,7 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
   const routineId = normalizeId(payload.routineId, "routineId");
+  const requestedCheckItemId = String(payload.checkItemId || "item-1").trim();
 
   const result = await db.runTransaction(async transaction => {
     const [memberData, classroomResult] = await Promise.all([
@@ -8112,11 +8196,18 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
     if (!weekdays.includes(todayWeekday)) {
       throw new HttpsError("failed-precondition", "Routine cannot be checked today.");
     }
-    const checkLogId = rewardLogId(["classroom_routine_check", classId, dateKey, memberUserId, routineId]);
+    const checkItems = Array.isArray(routine.checkItems)
+      ? routine.checkItems.map((item, index) => ({
+        itemId: String(item?.itemId || `item-${index + 1}`),
+        label: String(item?.label || "")
+      })).filter(item => item.itemId && item.label)
+      : [{ itemId: "item-1", label: String(routine.title || "성장루틴") }];
+    const checkItem = checkItems.find(item => item.itemId === requestedCheckItemId) || checkItems[0];
+    const checkLogId = rewardLogId(["classroom_routine_check", classId, dateKey, memberUserId, routineId, checkItem.itemId]);
     const checkLogRef = db.collection("classrooms").doc(classId).collection("routineCheckLogs").doc(checkLogId);
     const checkLogSnapshot = await transaction.get(checkLogRef);
-    if (checkLogSnapshot.exists || routine.lastCheckDateKey === dateKey) {
-      return { duplicate: true, completed: false, rewardAmount: 0 };
+    if (checkLogSnapshot.exists) {
+      return { duplicate: true, completed: false, rewardAmount: 0, checkItemId: checkItem.itemId };
     }
     const currentCount = Math.max(0, Math.round(Number(routine.currentCount) || 0));
     const targetCount = Math.max(1, Math.round(Number(routine.targetCount) || 1));
@@ -8128,6 +8219,8 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
       classId,
       routineId,
       routineTitle: routine.title || "",
+      checkItemId: checkItem.itemId,
+      checkItemLabel: checkItem.label,
       memberUserId,
       userId: memberUserId,
       dateKey,
@@ -8137,6 +8230,7 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
     transaction.set(routineRef, {
       currentCount: nextCount,
       lastCheckDateKey: dateKey,
+      lastCheckItemId: checkItem.itemId,
       lastCheckedAt: FieldValue.serverTimestamp(),
       status: "active",
       updatedAt: FieldValue.serverTimestamp(),
@@ -8146,6 +8240,7 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
       duplicate: false,
       completed: false,
       targetReached,
+      checkItemId: checkItem.itemId,
       currentCount: nextCount,
       targetCount,
       rewardAmount: 0,

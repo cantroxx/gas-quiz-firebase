@@ -337,6 +337,10 @@
       deps.setStatus?.('루틴 이름을 입력해 주세요.', true);
       return { skipped: true, reason: 'title-required' };
     }
+    if(!Array.isArray(values.checkItems) || !values.checkItems.length) {
+      deps.setStatus?.('체크리스트 항목을 1개 이상 입력해 주세요.', true);
+      return { skipped: true, reason: 'check-items-required' };
+    }
     if(!values.startDate || !values.endDate) {
       deps.setStatus?.('시작일과 종료일을 선택해 주세요.', true);
       return { skipped: true, reason: 'date-required' };
