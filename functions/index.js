@@ -22,6 +22,7 @@ const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
 const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
 const SEASON_EVENTS_DOC_PATH = "appSettings/seasonEvents";
+const ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS = new Set(["science-grade4"]);
 const MAX_EXTERNAL_QUIZ_ITEMS = 12;
 const MAX_SEASON_EVENT_ITEMS = 12;
 const POPULAR_USAGE_SOFT_LIMIT_SECONDS = 10 * 60;
@@ -3949,7 +3950,7 @@ function getQuestionImageRef(data) {
 
 function isImageQuestion(data) {
   const type = String(data.questionType || data.type || "").trim();
-  return type === "imageInput" || type === "image-choice" || Boolean(data.imageRequired);
+  return type === "imageInput" || type === "imageChoice" || type === "image-choice" || Boolean(data.imageRequired);
 }
 
 function isChoiceQuestion(data) {
@@ -3963,13 +3964,16 @@ function getQuestionQualityReason(data) {
   const answer = getQuestionAnswer(data);
   const choices = Array.isArray(data.choices) ? data.choices.filter(choice => String(choice || "").trim()) : [];
   const answerIndex = Number(data.answerIndex);
-  if (!prompt) return "문항/프롬프트가 비어 있음";
+  const isImage = isImageQuestion(data);
+  if (!prompt && !isImage) return "문항/프롬프트가 비어 있음";
   if (!answer && !Number.isInteger(answerIndex)) return "정답이 비어 있음";
   if (isChoiceQuestion(data)) {
     if (choices.length < 2) return "보기 수 부족";
     if (Number.isInteger(answerIndex) && (answerIndex < 0 || answerIndex >= choices.length)) return "answerIndex 범위 오류";
   }
-  if (isImageQuestion(data) && !getQuestionImageRef(data)) return "이미지 참조 없음";
+  if (isImage && !getQuestionImageRef(data)) return "이미지 참조 없음";
+  if (isImage && choices.length > 0 && choices.length < 2) return "보기 수 부족";
+  if (isImage && choices.length > 0 && Number.isInteger(answerIndex) && (answerIndex < 0 || answerIndex >= choices.length)) return "answerIndex 범위 오류";
   return "";
 }
 
@@ -3983,7 +3987,9 @@ exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
     getFeatureFlags().catch(() => DEFAULT_FEATURE_FLAGS)
   ]);
   const disabledQuizIds = new Set(publicFeatureFlags(featureFlags).disabledQuizIds || []);
-  const quizDocs = quizSnapshot.docs.map(doc => ({ quizId: doc.id, ...(doc.data() || {}) }));
+  const quizDocs = quizSnapshot.docs
+    .map(doc => ({ quizId: doc.id, ...(doc.data() || {}) }))
+    .filter(quiz => !ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS.has(quiz.quizId));
   const questionSnapshots = await Promise.all(quizDocs.map(quiz =>
     db.collection("quizQuestions").doc(quiz.quizId).collection("questions").limit(1200).get()
       .catch(error => {

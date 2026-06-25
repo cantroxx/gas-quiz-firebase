@@ -214,7 +214,7 @@
     });
 
     [
-      ['퀴즈별 문항 수', data.quizSummaries || [], row => `${row.quizId} · ${row.title || '-'} · ${row.questionCount}문항${row.disabled ? ' · 닫힘' : ''}`],
+      ['퀴즈별 문항 수', data.quizSummaries || [], row => `${row.quizId} · ${row.title || '-'} · ${row.questionCount}문항${row.expectedQuestionCount && row.expectedQuestionCount !== row.questionCount ? ` · 기준 ${row.expectedQuestionCount}` : ''}${row.disabled ? ' · 닫힘' : ''}`],
       ['문항 오류 후보', data.issues?.invalidQuestions || [], row => `${row.quizId}/${row.questionId} · ${row.reason}`],
       ['이미지 누락 후보', data.issues?.missingImages || [], row => `${row.quizId}/${row.questionId} · ${row.answer || row.prompt || '-'}`],
       ['중복 questionId 후보', data.issues?.duplicateQuestionIds || [], row => `${row.quizId} · ${row.questionId} · ${row.count}건`]
