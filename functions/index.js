@@ -432,6 +432,48 @@ const DEFAULT_EXTERNAL_QUIZZES = {
   items: []
 };
 
+const QUIZ_TITLE_MAP = {
+  spelling: "맞춤법 퀴즈",
+  "word-relation": "다의어·동형이의어 퀴즈",
+  spacing: "띄어쓰기 퀴즈",
+  gmo: "지엠오 아이 퀴즈",
+  reading: "독서 퀴즈",
+  time_store: "시간가게 퀴즈",
+  proverb: "속담 퀴즈",
+  idiom: "사자성어 퀴즈",
+  samgukji: "삼국지 퀴즈",
+  "ancient-history": "고대사 퀴즈",
+  "history-people": "역사 인물 퀴즈",
+  idol: "아이돌 퀴즈",
+  anime: "애니 퀴즈",
+  "dad-joke": "아재개그 퀴즈",
+  "emoji-kpop": "K-POP 이모지 퀴즈",
+  "emoji-anime": "애니 이모지 퀴즈",
+  "emoji-tiniping": "티니핑 이모지 퀴즈",
+  "flag-country": "국기 퀴즈",
+  "snack-food": "간식 퀴즈",
+  tiniping: "티니핑 퀴즈",
+  "pokemon-gen1": "포켓몬 1세대 퀴즈",
+  "pokemon-gen2": "포켓몬 2세대 퀴즈",
+  "pokemon-gen3": "포켓몬 3세대 퀴즈",
+  "pokemon-gen4": "포켓몬 4세대 퀴즈",
+  "pokemon-gen5": "포켓몬 5세대 퀴즈",
+  "pokemon-gen6": "포켓몬 6세대 퀴즈",
+  "pokemon-gen7": "포켓몬 7세대 퀴즈",
+  "pokemon-gen8": "포켓몬 8세대 퀴즈",
+  "pokemon-gen9": "포켓몬 9세대 퀴즈",
+  "pokemon-easy": "포켓몬 쉬움 퀴즈",
+  "pokemon-normal": "포켓몬 보통 퀴즈",
+  "pokemon-hard": "포켓몬 어려움 퀴즈",
+  "pokemon-very-hard": "포켓몬 헬 퀴즈",
+  cultural_heritage: "문화유산 이미지 퀴즈",
+  "unified-silla-balhae": "통일신라~발해 역사 퀴즈",
+  multiplication_division: "곱셈과 나눗셈 퀴즈",
+  "random-basic": "곱셈과 나눗셈 퀴즈",
+  "fraction-basic": "분수 퀴즈",
+  "science-general": "과학 상식 퀴즈"
+};
+
 const DEFAULT_SEASON_EVENTS = {
   items: [
     {
@@ -4812,6 +4854,52 @@ function publicNoticeBoard(data) {
   };
 }
 
+function getTodayQuizNoticeText(quizIds = []) {
+  const titles = quizIds
+    .map(quizId => QUIZ_TITLE_MAP[quizId] || quizId)
+    .filter(Boolean);
+  const titleText = titles.length ? titles.join(", ") : "오늘의 퀴즈";
+  return `오늘의 퀴즈: ${titleText}. 연습전에서 새 정답을 맞히면 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.`;
+}
+
+async function syncNoticeBoardWithTodayQuizFlags(flags = {}, options = {}) {
+  const quizIds = Array.isArray(flags.activeTodayQuizIds) && flags.activeTodayQuizIds.length
+    ? flags.activeTodayQuizIds
+    : flags.todayQuizIds;
+  const activeQuizIds = Array.from(new Set((quizIds || [])
+    .map(id => String(id || "").trim())
+    .filter(Boolean)))
+    .slice(0, 2);
+  if (!activeQuizIds.length) return null;
+
+  const noticeRef = db.collection("noticeBoard").doc("current");
+  const snapshot = await noticeRef.get();
+  const currentNotice = publicNoticeBoard(snapshot.exists ? snapshot.data() || {} : {});
+  const nextNotice = publicNoticeBoard({
+    ...currentNotice,
+    quest: getTodayQuizNoticeText(activeQuizIds),
+    recommendedQuizLabel: QUIZ_TITLE_MAP[activeQuizIds[0]] || activeQuizIds[0] || "",
+    recommendedQuizId: activeQuizIds[0] || "",
+    recommendedQuiz2Label: QUIZ_TITLE_MAP[activeQuizIds[1]] || activeQuizIds[1] || "",
+    recommendedQuiz2Id: activeQuizIds[1] || ""
+  });
+
+  const changed = currentNotice.quest !== nextNotice.quest
+    || currentNotice.recommendedQuizId !== nextNotice.recommendedQuizId
+    || currentNotice.recommendedQuiz2Id !== nextNotice.recommendedQuiz2Id
+    || currentNotice.recommendedQuizLabel !== nextNotice.recommendedQuizLabel
+    || currentNotice.recommendedQuiz2Label !== nextNotice.recommendedQuiz2Label;
+  if (!changed) return nextNotice;
+
+  await noticeRef.set({
+    ...nextNotice,
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByAdminUserId: options.adminUserId || "system-today-quiz-sync"
+  }, { merge: true });
+
+  return nextNotice;
+}
+
 exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
@@ -4859,6 +4947,11 @@ exports.adminGetFeatureFlags = onCall({ region: REGION }, async request => {
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
   const flags = await getFeatureFlags();
+  await syncNoticeBoardWithTodayQuizFlags(flags, {
+    adminUserId: adminMember.memberUserId
+  }).catch(error => {
+    console.warn("Today quiz notice sync failed during feature flag read.", error);
+  });
   return {
     success: true,
     flags

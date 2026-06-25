@@ -110,6 +110,16 @@
         <button id="global-refresh-button" class="global-refresh-button" type="button" title="서버의 최신 정보를 다시 불러옵니다.">최신 정보</button>
       </div>
 
+      <section id="daily-notice-drop" class="daily-notice-drop" aria-label="오늘 알림" hidden>
+        <button class="daily-notice-drop-close" type="button" aria-label="오늘 알림 닫기" data-dismiss-daily-notice>×</button>
+        <button class="daily-notice-drop-body" type="button" data-open-daily-notice>
+          <span class="daily-notice-drop-kicker">오늘의 알림</span>
+          <strong id="daily-notice-drop-title">오늘의 퀴즈</strong>
+          <span id="daily-notice-drop-quest">오늘의 퀴즈를 불러오는 중입니다.</span>
+          <span id="daily-notice-drop-announcement">공지 내용을 확인하고 있어요.</span>
+        </button>
+      </section>
+
       <div class="town-map" aria-label="퀴즈타운 장소 지도">
         <div class="sky-layer" aria-hidden="true">
           <span class="sun"></span>
@@ -2754,6 +2764,68 @@
         featureLayout: 'notice',
         actions
       };
+    }
+
+    function getDailyNoticeDropStorageKey() {
+      const memberUserId = String(window.DJ48AccountState.getCurrentMemberUserId?.() || 'guest').trim() || 'guest';
+      return `dj48:dailyNoticeDrop:${getKstDateKey()}:${memberUserId}`;
+    }
+
+    function hasDismissedDailyNoticeDropToday() {
+      try {
+        return localStorage.getItem(getDailyNoticeDropStorageKey()) === 'dismissed';
+      } catch(error) {
+        return false;
+      }
+    }
+
+    function dismissDailyNoticeDrop() {
+      try {
+        localStorage.setItem(getDailyNoticeDropStorageKey(), 'dismissed');
+      } catch(error) {
+        console.warn('Daily notice drop dismiss save failed.', error);
+      }
+      const drop = document.getElementById('daily-notice-drop');
+      if(drop) drop.hidden = true;
+    }
+
+    function getNoticeBoardForDailyDrop(notice, flags = getActiveFeatureFlags()) {
+      const data = normalizeNoticeBoardData(notice);
+      const quizIds = getActiveTodayQuizIdsForNotice(flags);
+      if(!quizIds.length) return data;
+      return normalizeNoticeBoardData({
+        ...data,
+        quest: getTodayQuizNoticeText(quizIds),
+        recommendedQuizLabel: QUIZ_CATALOG[quizIds[0]]?.title || quizIds[0] || data.recommendedQuizLabel,
+        recommendedQuizId: quizIds[0] || data.recommendedQuizId,
+        recommendedQuiz2Label: QUIZ_CATALOG[quizIds[1]]?.title || quizIds[1] || data.recommendedQuiz2Label,
+        recommendedQuiz2Id: quizIds[1] || data.recommendedQuiz2Id
+      });
+    }
+
+    function renderDailyNoticeDrop(notice) {
+      const drop = document.getElementById('daily-notice-drop');
+      if(!drop || hasDismissedDailyNoticeDropToday()) return;
+      const data = normalizeNoticeBoardData(notice);
+      document.getElementById('daily-notice-drop-title').textContent = data.title || '오늘의 퀴즈';
+      document.getElementById('daily-notice-drop-quest').textContent = data.quest || '오늘의 퀴즈를 풀고 보상을 받아요.';
+      document.getElementById('daily-notice-drop-announcement').textContent = data.announcement || '선생님 공지를 확인하세요.';
+      drop.hidden = false;
+    }
+
+    async function showDailyNoticeDropOnce() {
+      const drop = document.getElementById('daily-notice-drop');
+      if(!drop || hasDismissedDailyNoticeDropToday()) return;
+      try {
+        const [notice, flags] = await Promise.all([
+          loadNoticeBoardFromFirestore(),
+          loadFeatureFlags()
+        ]);
+        renderDailyNoticeDrop(getNoticeBoardForDailyDrop(notice, flags));
+      } catch(error) {
+        console.warn('Daily notice drop load failed.', error);
+        renderDailyNoticeDrop(getFallbackNoticeBoard());
+      }
     }
 
     function buildDjCoinGuidePlace() {
@@ -7232,6 +7304,16 @@
         recommendedQuiz2Label: QUIZ_CATALOG[quizIds[1]]?.title || quizIds[1] || '',
         recommendedQuiz2Id: quizIds[1] || ''
       });
+      const noticeChanged = notice.quest !== nextNotice.quest
+        || notice.recommendedQuizId !== nextNotice.recommendedQuizId
+        || notice.recommendedQuiz2Id !== nextNotice.recommendedQuiz2Id
+        || notice.recommendedQuizLabel !== nextNotice.recommendedQuizLabel
+        || notice.recommendedQuiz2Label !== nextNotice.recommendedQuiz2Label;
+      if(!noticeChanged) {
+        const cachedNotice = window.DJ48AdminState.setNoticeBoardCache(nextNotice);
+        setAdminNoticeForm(cachedNotice);
+        return cachedNotice;
+      }
       const result = await getAdminRepository().saveAdminNoticeBoard(nextNotice);
       const savedNotice = window.DJ48AdminState.setNoticeBoardCache(normalizeNoticeBoardData(result.notice));
       setAdminNoticeForm(savedNotice);
@@ -7243,6 +7325,9 @@
       const result = await getAdminRepository().loadAdminFeatureFlags();
       const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
       setAdminFeatureFlagsForm(featureFlags);
+      await syncNoticeBoardWithTodayQuiz(featureFlags).catch(error => {
+        console.warn('Today quiz notice sync after feature flag load failed.', error);
+      });
       setAdminFeatureFlagsStatus('기능 설정을 불러왔습니다.');
       return featureFlags;
     }
@@ -7916,6 +8001,7 @@
       enterAppView({
         viewId: 'town-view'
       });
+      showDailyNoticeDropOnce();
     }
 
     function showLoginView() {
@@ -8328,6 +8414,17 @@
         }
       });
     }
+
+    document.addEventListener('click', event => {
+      if(event.target.closest('[data-dismiss-daily-notice]')) {
+        dismissDailyNoticeDrop();
+        return;
+      }
+      if(event.target.closest('[data-open-daily-notice]')) {
+        dismissDailyNoticeDrop();
+        openNoticeBoardModal();
+      }
+    });
 
     window.DJ48AppBootstrap.startApp({}, {
       controllerSections: getAppBootstrapControllerSections(),

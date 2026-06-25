@@ -1303,7 +1303,7 @@ h2 {
   top: 18px;
   left: 18px;
   bottom: auto;
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 7px;
   min-height: 40px;
@@ -1362,10 +1362,104 @@ h2 {
   outline: none;
 }
 
+.daily-notice-drop {
+  position: relative;
+  z-index: 2;
+  width: min(320px, calc(100% - 36px));
+  margin: 0 0 14px;
+  border: 1px solid rgba(85, 62, 37, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 252, 238, 0.97);
+  box-shadow: 0 14px 28px rgba(62, 47, 33, 0.18);
+  color: #3f3024;
+}
+
+.daily-notice-drop[hidden] {
+  display: none;
+}
+
+.daily-notice-drop-body {
+  display: grid;
+  width: 100%;
+  gap: 4px;
+  padding: 13px 40px 13px 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.daily-notice-drop-kicker {
+  color: #2f7d44;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.daily-notice-drop strong,
+.daily-notice-drop span {
+  min-width: 0;
+}
+
+.daily-notice-drop strong {
+  overflow: hidden;
+  color: #2f251d;
+  font-size: 1rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#daily-notice-drop-quest,
+#daily-notice-drop-announcement {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+#daily-notice-drop-announcement {
+  color: #6b5543;
+  font-weight: 700;
+}
+
+.daily-notice-drop-close {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  color: #6b5543;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.daily-notice-drop-body:hover,
+.daily-notice-drop-body:focus-visible,
+.daily-notice-drop-close:hover,
+.daily-notice-drop-close:focus-visible {
+  outline: none;
+}
+
+.daily-notice-drop:hover,
+.daily-notice-drop:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 30px rgba(62, 47, 33, 0.21);
+}
+
 .guide-board-button {
   position: absolute;
   z-index: 4;
-  top: 68px;
+  top: 18px;
   left: 18px;
   display: inline-flex;
   align-items: center;
