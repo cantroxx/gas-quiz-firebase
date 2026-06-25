@@ -1616,10 +1616,10 @@ function getPracticeQuestKindsForQuiz(quizId) {
   if (id === "random-basic" || id === "fraction-basic") kinds.add("mathCorrect");
   if (["word-relation", "proverb", "spacing", "idiom"].includes(id)) kinds.add("vocabCorrect");
   if (id === "gmo" || id === "time_store") kinds.add("readingCorrect");
-  if (id === "samgukji" || id === "ancient-history" || id === "regional-specialties" || id === "unified-silla-balhae" || id === "cultural_heritage") kinds.add("socialCorrect");
+  if (id === "samgukji" || id === "ancient-history" || id === "unified-silla-balhae" || id === "cultural_heritage") kinds.add("socialCorrect");
   if (id === "science-grade4" || id === "science-general") kinds.add("scienceCorrect");
   if (["flag-country", "snack-food", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) kinds.add("popularCorrect");
-  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "regional-specialties", "unified-silla-balhae", "cultural_heritage", "science-grade4", "science-general", "flag-country", "snack-food", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
+  if (["spelling", "word-relation", "proverb", "spacing", "idiom", "gmo", "time_store", "random-basic", "fraction-basic", "samgukji", "ancient-history", "unified-silla-balhae", "cultural_heritage", "science-grade4", "science-general", "flag-country", "snack-food", "emoji-kpop", "emoji-anime", "emoji-tiniping"].includes(id)) {
     kinds.add("studyCorrect");
   }
   return kinds;

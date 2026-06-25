@@ -4,18 +4,86 @@ const { getFirestore } = require('firebase-admin/firestore');
 const PATCHES = [
   {
     quizId: 'ancient-history',
+    questionId: 'ancient-history-6',
+    data: {
+      hint: '법 조항을 보면 그 사회가 지키려 한 가치를 알 수 있어요.',
+      explanation: '고조선의 8조법을 통해 생명과 재산을 중요하게 여겼음을 알 수 있습니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
+    questionId: 'ancient-history-10',
+    data: {
+      hint: '철은 청동보다 단단해서 생활과 전쟁에 쓰는 물건을 튼튼하게 만들 수 있었어요.',
+      explanation: '철기 문화가 퍼지면서 더 단단한 도구를 만들 수 있었습니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
     questionId: 'ancient-history-11',
     data: {
+      prompt: '우리 역사상 첫 나라 이후 만주와 한반도 주변에 등장한 초기 여러 나라에 해당하지 않는 것은 무엇인가요?',
       hint: '부여, 옥저, 동예, 삼한처럼 초기 여러 나라의 이름을 떠올려 보세요.',
       explanation: '부여, 옥저, 동예, 삼한은 고조선 이후 등장한 여러 나라이고, 조선은 이에 해당하지 않습니다.'
     }
   },
   {
     quizId: 'ancient-history',
+    questionId: 'ancient-history-33',
+    data: {
+      prompt: '국내성은 어느 나라의 수도였나요?',
+      hint: '주몽이 세운 북쪽의 큰 나라를 떠올려 보세요.',
+      explanation: '국내성은 고구려의 수도였던 곳입니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
     questionId: 'ancient-history-47',
     data: {
-      hint: '무덤 이름에 들어간 왕은 한강 유역을 중심으로 성장한 나라의 왕이에요.',
+      prompt: '무령왕릉은 어느 나라의 무덤인가요?',
+      hint: '한강 유역을 중심으로 성장했고 공주·부여에도 유적을 남긴 나라입니다.',
       explanation: '무령왕릉은 백제 무령왕과 왕비의 무덤입니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
+    questionId: 'ancient-history-63',
+    data: {
+      prompt: '황룡사는 어느 나라의 절이었나요?',
+      hint: '경주를 수도로 삼았던 삼국 중 하나를 떠올려 보세요.',
+      explanation: '황룡사는 신라의 큰 절이었습니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
+    questionId: 'ancient-history-68',
+    data: {
+      hint: '철을 필요한 곳에 팔거나 나누며 다른 나라와 오간 일을 떠올려 보세요.',
+      explanation: '가야는 철을 바탕으로 주변 지역과 교역을 활발히 했습니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
+    questionId: 'ancient-history-70',
+    data: {
+      hint: '강 주변은 이동하기 쉽고 넓은 들을 이용하기에도 좋았어요.',
+      explanation: '한강 유역은 교통과 농사에 유리했습니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
+    questionId: 'ancient-history-72',
+    data: {
+      hint: '왕권을 뒷받침하고 사회를 안정시키는 데 도움이 된 종교를 떠올려 보세요.',
+      explanation: '삼국 시대 불교는 나라와 백성의 마음을 하나로 모으는 데 도움을 주었습니다.'
+    }
+  },
+  {
+    quizId: 'ancient-history',
+    questionId: 'ancient-history-84',
+    data: {
+      hint: '문화재에는 그것을 만든 이들의 생활 모습과 가치관이 담겨 있어요.',
+      explanation: '삼국 시대 문화재를 통해 당시 사람들의 기술과 생각을 알 수 있습니다.'
     }
   },
   {

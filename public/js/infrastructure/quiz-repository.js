@@ -605,7 +605,7 @@
       questionId,
       pokemonNo: pokemonNo || undefined,
       type: 'imageInput',
-      question: String(question.prompt || '이미지를 보고 정답을 입력하세요.').trim(),
+      question: String(question.prompt || '').trim(),
       imageUrl: String(question.imageUrl || question.question || '').trim(),
       answerText,
       aliases,

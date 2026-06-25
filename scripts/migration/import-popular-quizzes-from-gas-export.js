@@ -136,7 +136,7 @@ function normalizeQuestion(quiz, rawQuestion, index) {
     return {
       ...base,
       questionType: 'imageInput',
-      prompt: isTiniping ? '이미지를 보고 티니핑 이름을 입력하세요.' : (base.prompt || '이미지를 보고 정답을 입력하세요.'),
+      prompt: base.prompt,
       imageUrl,
       imageFileId: normalizeString(rawQuestion.imageFileId),
       sourceImageRef: normalizeString(rawQuestion.sourceImageRef),

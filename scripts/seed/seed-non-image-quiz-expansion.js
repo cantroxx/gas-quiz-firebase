@@ -254,24 +254,24 @@ const SPACING = [
 
 const UNIFIED_SILLA_BALHAE = [
   { answer: '문무왕', type: 'person', clue: '삼국 통일을 완성한 신라 왕', hint: '신라가 백제와 고구려를 차례로 통합하던 시기의 왕입니다.' },
-  { answer: '신문왕', type: 'person', clue: '통일신라의 왕권을 강화하고 관료 제도를 정비한 왕', hint: '통일 뒤 나라의 제도와 지방 통치를 정비한 왕입니다.' },
-  { answer: '9주 5소경', type: 'system', clue: '통일신라가 전국을 다스리기 위해 마련한 지방 제도', hint: '전국을 9개의 큰 행정 구역과 5개의 작은 수도로 나눈 제도입니다.' },
-  { answer: '국학', type: 'place', clue: '통일신라가 유학 교육을 위해 세운 교육 기관', hint: '관리 양성과 유학 교육을 담당했습니다.' },
+  { answer: '신문왕', type: 'person', clue: '통일신라의 왕권을 강화하고 관료 제도를 정비한 왕', hint: '통일 뒤 나라의 행정과 지방 통치를 새로 다듬었습니다.' },
+  { answer: '9주 5소경', type: 'system', clue: '통일신라가 전국을 다스리기 위해 마련한 지방 제도', hint: '큰 행정 구역과 작은 수도를 함께 둔 통치 방식입니다.' },
+  { answer: '국학', type: 'place', clue: '통일신라가 유학 교육을 위해 세운 교육 기관', hint: '관리를 기르기 위한 국가 교육 시설입니다.' },
   { answer: '불국사', type: 'heritage', clue: '통일신라의 불교 문화와 건축 기술을 보여 주는 절', hint: '석가탑과 다보탑이 있는 경주의 대표 문화유산입니다.' },
   { answer: '석굴암', type: 'heritage', clue: '통일신라의 불교 조각과 건축 기술이 담긴 문화유산', hint: '본존불을 중심으로 한 석굴 사원입니다.' },
   { answer: '장보고', type: 'person', clue: '청해진을 설치하고 해상 무역을 이끈 인물', hint: '완도에 해상 활동의 거점을 마련했습니다.' },
   { answer: '청해진', type: 'place', clue: '장보고가 해상 무역과 해적 방어를 위해 설치한 군사·무역 거점', hint: '완도에 설치된 바닷길의 중심지입니다.' },
   { answer: '원효', type: 'person', clue: '불교를 백성에게 쉽게 전하려 한 통일신라 승려', hint: '불교의 가르침을 널리 알리고 대중화하려 했습니다.' },
-  { answer: '혜초', type: 'person', clue: '인도와 중앙아시아를 여행하고 왕오천축국전을 남긴 승려', hint: '먼 나라를 여행하고 그 기록을 남긴 통일신라 승려입니다.' },
+  { answer: '혜초', type: 'person', clue: '인도와 중앙아시아를 여행하고 왕오천축국전을 남긴 승려', hint: '먼 나라를 다녀와 그 경험을 책으로 남긴 통일신라 승려입니다.' },
   { answer: '대조영', type: 'person', clue: '고구려 유민과 말갈인을 이끌고 발해를 세운 인물', hint: '발해 건국과 관련된 대표 인물입니다.' },
   { answer: '발해', type: 'country', clue: '고구려를 계승한 나라로 만주와 한반도 북부에서 발전한 나라', hint: '통일신라와 함께 남북국 시대를 이루었습니다.' },
-  { answer: '무왕', type: 'person', clue: '발해의 영토를 넓히고 당과 맞선 왕', hint: '발해의 대외 활동을 활발히 펼친 왕입니다.' },
-  { answer: '문왕', type: 'person', clue: '발해의 제도를 정비하고 문화를 발전시킨 왕', hint: '발해의 수도와 제도 정비와 관련이 깊습니다.' },
+  { answer: '무왕', type: 'person', clue: '발해의 영토를 넓히고 당과 맞선 왕', hint: '당과 대립하며 나라의 힘을 밖으로 넓힌 왕입니다.' },
+  { answer: '문왕', type: 'person', clue: '발해의 제도를 정비하고 문화를 발전시킨 왕', hint: '수도와 행정 체계를 가다듬은 왕입니다.' },
   { answer: '해동성국', type: 'name', clue: '발해가 매우 번성했을 때 당에서 부른 이름', hint: '바다 동쪽의 융성한 나라라는 뜻으로 불렸습니다.' },
-  { answer: '상경 용천부', type: 'place', clue: '발해의 수도로 알려진 곳', hint: '발해의 계획도시 모습을 보여 주는 수도입니다.' },
+  { answer: '상경 용천부', type: 'place', clue: '발해의 수도로 알려진 곳', hint: '계획도시 모습을 보여 주는 북쪽 나라의 중심지입니다.' },
   { answer: '정혜공주 묘', type: 'heritage', clue: '발해 고분 문화와 고구려 계승성을 보여 주는 유적', hint: '발해 왕실 무덤 중 하나입니다.' },
-  { answer: '이불병좌상', type: 'heritage', clue: '발해 불교 문화를 보여 주는 두 부처가 나란히 앉은 불상', hint: '두 부처가 나란히 앉아 있는 모습이 특징입니다.' },
-  { answer: '남북국 시대', type: 'era', clue: '통일신라와 발해가 함께 존재하던 시대를 이르는 말', hint: '한반도 남쪽의 통일신라와 북쪽의 발해를 함께 보는 시대 이름입니다.' },
+  { answer: '이불병좌상', type: 'heritage', clue: '발해 불교 문화를 보여 주는 두 부처가 나란히 앉은 불상', hint: '불상이 둘씩 함께 앉은 독특한 구도를 떠올려 보세요.' },
+  { answer: '남북국 시대', type: 'era', clue: '통일신라와 발해가 함께 존재하던 시대를 이르는 말', hint: '한반도 남쪽 나라와 북쪽 나라를 함께 보는 시대 구분입니다.' },
   { answer: '고구려 계승 의식', type: 'concept', clue: '발해가 고구려의 역사와 문화를 이어받았다는 생각', hint: '발해의 건국 세력과 문화에서 확인할 수 있는 역사 인식입니다.' }
 ];
 
@@ -1047,16 +1047,16 @@ const CULTURAL_HERITAGE_FOCUS_HINTS = {
   양동마을: '언덕과 마을 집들이 이어진 전통 마을을 살펴보세요.',
   화성행궁: '수원 화성과 함께 있는 궁궐 건물을 떠올려 보세요.',
   광화문: '경복궁 앞의 큰 문과 현판을 살펴보세요.',
-  '강화 고인돌': '넓은 덮개돌을 올린 고인돌 모양이 단서입니다.',
+  '강화 고인돌': '넓은 덮개돌을 올린 선사 시대 무덤 모양이 단서입니다.',
   송광사: '산속 사찰의 전각과 마당을 살펴보세요.',
   해인사: '팔만대장경으로 유명한 합천의 사찰입니다.',
   통도사: '큰 사찰의 문과 전각 배치를 살펴보세요.',
   '봉정사 극락전': '오래된 목조 건물의 낮은 지붕을 살펴보세요.',
   '화엄사 각황전': '크고 웅장한 사찰 전각이 핵심 단서입니다.',
   황룡사지: '경주에 남은 넓은 절터를 떠올려 보세요.',
-  '감은사지 삼층석탑': '절터에 서 있는 두 삼층석탑을 살펴보세요.',
-  '정림사지 오층석탑': '백제의 날렵한 오층석탑 모양을 살펴보세요.',
-  '탑평리 칠층석탑': '높게 올라간 칠층석탑의 층수를 살펴보세요.',
+  '감은사지 삼층석탑': '절터에 나란히 서 있는 두 석탑을 살펴보세요.',
+  '정림사지 오층석탑': '백제 석탑 특유의 날렵한 비례를 살펴보세요.',
+  '탑평리 칠층석탑': '높게 올라간 석탑의 층수와 균형을 살펴보세요.',
   '월정사 팔각구층석탑': '팔각형으로 높게 올라간 석탑입니다.',
   천상열차분야지도: '별자리가 새겨진 둥근 천문도 그림을 살펴보세요.',
   자격루: '물을 이용해 시간을 재는 장치를 떠올려 보세요.',
@@ -1074,10 +1074,10 @@ const CULTURAL_HERITAGE_FOCUS_HINTS = {
   병산서원: '낙동강을 바라보는 서원 건축을 떠올려 보세요.',
   옥산서원: '경주의 조선 시대 서원 건물을 살펴보세요.',
   '무위사 극락보전': '소박한 목조 불전의 정면을 살펴보세요.',
-  '수덕사 대웅전': '오래된 목조 대웅전의 지붕과 기둥이 단서입니다.',
+  '수덕사 대웅전': '오래된 목조 불전의 지붕과 기둥이 단서입니다.',
   '개심사 대웅전': '서산의 산사 안 목조 불전을 떠올려 보세요.',
   '강릉 임영관 삼문': '세 칸으로 나뉜 오래된 관아 문입니다.',
-  '경천사지 십층석탑': '박물관 안에 있는 높은 십층석탑입니다.',
+  '경천사지 십층석탑': '박물관 안에 있는 높고 화려한 석탑입니다.',
   대흥사: '해남의 산사 전각과 자연 풍경을 살펴보세요.',
   마곡사: '공주의 산사와 전각 배치를 떠올려 보세요.',
   선암사: '순천의 오래된 산사 입구와 전각을 살펴보세요.',
@@ -1260,6 +1260,9 @@ function buildDefinitionQuestions(quizId, entries, subjectLabel, questionCount) 
 }
 
 function buildHistoryDirectPrompt(item) {
+  if (item.type === 'concept' && item.answer === '고구려 계승 의식') {
+    return '발해의 건국 세력과 문화에서 확인할 수 있는 역사 인식은 무엇인가요?';
+  }
   const noun = item.type === 'person' ? '누구인가요'
     : item.type === 'heritage' ? '무엇인가요'
     : item.type === 'place' ? '어디인가요'
@@ -1269,17 +1272,19 @@ function buildHistoryDirectPrompt(item) {
 
 function buildHistoryRelationPrompt(item) {
   if (item.type === 'person') return `'${item.answer}'은 어떤 일을 한 인물인가요?`;
-  if (item.type === 'heritage') return `'${item.answer}'은 어떤 문화유산인가요?`;
+  if (item.type === 'heritage') return `'${item.answer}'은 어떤 설명과 가장 관련 있나요?`;
   if (item.type === 'place') return `'${item.answer}'은 어떤 장소인가요?`;
   if (item.type === 'country') return `'${item.answer}'는 어떤 나라인가요?`;
-  if (item.type === 'era') return `'${item.answer}'는 어떤 시대를 가리키나요?`;
+  if (item.type === 'era') return `'${item.answer}'는 어떤 흐름을 가리키나요?`;
   return `'${item.answer}'${withParticle(item.answer)} 가장 관련 있는 설명은 무엇인가요?`;
 }
 
 function buildHistoryReviewPrompt(item) {
   if (item.type === 'person') return `${item.clue}. 이 인물의 이름은 무엇인가요?`;
-  if (item.type === 'heritage') return `${item.clue}. 이 문화유산의 이름은 무엇인가요?`;
+  if (item.type === 'heritage') return `${item.clue}. 이것의 이름은 무엇인가요?`;
   if (item.type === 'place') return `${item.clue}. 이 장소의 이름은 무엇인가요?`;
+  if (item.type === 'concept') return `발해의 건국 세력과 문화에서 확인할 수 있는 역사 인식입니다. 이 말은 무엇인가요?`;
+  if (item.type === 'era') return `한반도 남쪽 나라와 북쪽 나라를 함께 보는 시대 구분입니다. 이 말은 무엇인가요?`;
   return `${item.clue}. 이 말은 무엇인가요?`;
 }
 
@@ -1375,7 +1380,7 @@ function buildCulturalHeritageQuestions() {
       answer,
       answers,
       imageMeta,
-      CULTURAL_HERITAGE_HINTS[answer] || ''
+      CULTURAL_HERITAGE_FOCUS_HINTS[answer] || CULTURAL_HERITAGE_HINTS[answer] || ''
     ));
   }
   return questions;

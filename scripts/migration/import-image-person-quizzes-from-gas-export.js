@@ -116,7 +116,7 @@ function normalizeQuestion(quiz, rawQuestion, index) {
     title: normalizeString(rawQuestion.title || `${quiz.title} 퀴즈`),
     subject: normalizeString(rawQuestion.subject || quiz.subject),
     category: normalizeString(rawQuestion.category || quiz.category),
-    prompt: normalizeString(rawQuestion.prompt || '이미지를 보고 정답을 입력하세요.'),
+    prompt: normalizeString(rawQuestion.prompt),
     question: imageUrl,
     imageUrl,
     imageFileId,

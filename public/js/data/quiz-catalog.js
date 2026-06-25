@@ -45,8 +45,8 @@
       kicker: 'Social Studies Hall',
       desc: '역사와 사회 퀴즈를 골라 연습전과 랭킹전에 도전합니다.',
       board: '역사와 사회를 살펴봐요',
-      cardDesc: '삼국시대, 역사 인물, 문화유산, 사회 개념 퀴즈를 고르는 화면입니다.',
-      quizzes: ['samgukji', 'ancient-history', 'history-people', 'unified-silla-balhae', 'cultural_heritage', 'social_concepts'],
+      cardDesc: '삼국시대, 역사 인물, 문화유산 퀴즈를 고르는 화면입니다.',
+      quizzes: ['samgukji', 'ancient-history', 'history-people', 'unified-silla-balhae', 'cultural_heritage'],
       enabled: true
     },
     popular: {
@@ -458,16 +458,6 @@
       summary: '궁궐, 탑, 사찰, 서원 등 대표 문화유산 이미지를 보고 4지선다로 풉니다.',
       subjectId: 'social',
       modes: ['practice', 'ranking', 'oneChance', 'records']
-    },
-    social_concepts: {
-      title: '사회 개념 퀴즈',
-      kicker: 'Social Studies Hall',
-      icon: '🗺️',
-      desc: '지도, 지역, 공동체 같은 기본 사회 개념을 확인합니다.',
-      summary: '문제를 준비하고 있습니다. 곧 도전할 수 있어요.',
-      subjectId: 'social',
-      modes: ['records'],
-      enabled: false
     },
     'unified-silla-balhae': {
       title: '통일신라~발해 역사 퀴즈',
