@@ -400,8 +400,8 @@
           <article class="classroom-summary-alert-card">
             <span>알림</span>
             <div class="classroom-alert-chip-row" aria-label="교실 알림">
-              <button id="classroom-alert-quest" class="classroom-alert-chip" type="button" data-classroom-today-tab="classroom">퀘스트</button>
-              <button id="classroom-alert-routine" class="classroom-alert-chip" type="button" data-classroom-today-tab="classroom">성장루틴</button>
+              <button id="classroom-alert-quest" class="classroom-alert-chip" type="button" data-classroom-today-tab="quest">퀘스트</button>
+              <button id="classroom-alert-routine" class="classroom-alert-chip" type="button" data-classroom-today-tab="routine">성장루틴</button>
             </div>
           </article>
           <article>
@@ -412,17 +412,21 @@
         <div id="classroom-grownd-overview" class="classroom-grownd-overview" aria-label="교실 경제 요약"></div>
 
         <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
-          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">대시보드</button>
+          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">홈</button>
           <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">학생카드</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="quest" role="tab" aria-selected="false">퀘스트</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="routine" role="tab" aria-selected="false">성장루틴</button>
           <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
           <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
           <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
-          <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>교사 작업대</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="bank" role="tab" aria-selected="false">은행</button>
+          <button class="classroom-tab" type="button" data-classroom-tab="mission" role="tab" aria-selected="false">학급미션</button>
+          <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>처리할 일</button>
         </div>
 
         <section id="classroom-teacher-dashboard" class="classroom-panel classroom-teacher-dashboard" data-classroom-panel="teacher" aria-labelledby="classroom-teacher-dashboard-heading" hidden>
           <div class="event-section-heading">
-            <h3 id="classroom-teacher-dashboard-heading">교사 작업대</h3>
+            <h3 id="classroom-teacher-dashboard-heading">처리할 일</h3>
             <p>오늘 처리할 검토, 요청, 직업 지원, 최근 활동을 한눈에 확인합니다.</p>
           </div>
           <div id="classroom-teacher-dashboard-grid" class="classroom-teacher-dashboard-grid"></div>
@@ -431,10 +435,10 @@
 
         <section id="classroom-teacher-review-panel" class="classroom-panel classroom-teacher-review-panel" data-classroom-panel="teacher" aria-labelledby="classroom-review-heading" hidden>
           <div class="event-section-heading classroom-teacher-workbench-heading">
-            <h3>교사 관리 작업대</h3>
-            <p>퀘스트, 월간 키링, 직업, 상점 상품은 필요한 항목만 열어서 관리합니다.</p>
+            <h3>검토 대기</h3>
+            <p>학생이 완료한 퀘스트와 성장루틴을 확인하고 처리합니다.</p>
           </div>
-          <div class="classroom-teacher-workbench">
+          <div id="classroom-teacher-management-holding" class="classroom-teacher-workbench">
             <details class="classroom-quest-editor" id="classroom-icon-catalog-panel">
               <summary>
                 <span>
@@ -1097,90 +1101,91 @@
           <h3 id="classroom-today-heading" class="sr-only">오늘</h3>
           <div id="classroom-today-grid" class="classroom-today-grid"></div>
           <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
+          <div id="classroom-home-management-slot" class="classroom-management-slot"></div>
         </section>
 
-        <section class="classroom-panel" data-classroom-panel="classroom" aria-label="교실">
-          <div class="classroom-subtab-bar classroom-subtab-bar--five" role="tablist" aria-label="교실 세부 메뉴">
-            <button class="classroom-subtab is-active" type="button" data-classroom-subtab="student-card" aria-selected="true">학생카드</button>
-            <button class="classroom-subtab" type="button" data-classroom-subtab="quest" aria-selected="false">교실 퀘스트</button>
-            <button class="classroom-subtab" type="button" data-classroom-subtab="routine" aria-selected="false">성장루틴</button>
-            <button class="classroom-subtab" type="button" data-classroom-subtab="mission" aria-selected="false">학급 미션</button>
-            <button class="classroom-subtab" type="button" data-classroom-subtab="bank" aria-selected="false">학급 은행</button>
+        <section class="classroom-panel" data-classroom-panel="classroom" aria-label="학생카드">
+          <div id="classroom-card-management-slot" class="classroom-management-slot"></div>
+          <div id="classroom-student-card-body" class="classroom-subsection-body">
+            <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
           </div>
-          <div class="classroom-subsection-grid">
-            <section class="classroom-subsection is-active" data-classroom-subpane="student-card" aria-label="학생카드">
-              <div id="classroom-student-card-body" class="classroom-subsection-body">
-                <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
-              </div>
-            </section>
-            <section class="classroom-subsection" data-classroom-subpane="quest" aria-label="교실 퀘스트">
-              <div id="classroom-quest-body" class="classroom-subsection-body">
-                <div id="classroom-quest-grid" class="classroom-card-grid"></div>
-                <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
-              </div>
-            </section>
-            <section class="classroom-subsection" data-classroom-subpane="routine" aria-label="성장루틴">
-              <div id="classroom-routine-body" class="classroom-subsection-body">
-                <form id="classroom-routine-form" class="classroom-quest-form">
-                  <input id="classroom-routine-id-input" type="hidden">
-                  <label>
-                    루틴 이름
-                    <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
-                  </label>
-                  <label>
-                    목표 횟수
-                    <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
-                  </label>
-                  <label>
-                    시작일
-                    <input id="classroom-routine-start-input" type="date">
-                  </label>
-                  <label>
-                    종료일
-                    <input id="classroom-routine-end-input" type="date">
-                  </label>
-                  <label>
-                    검토 보상 포인트
-                    <input id="classroom-routine-reward-input" type="number" min="0" max="20" inputmode="numeric" value="10">
-                  </label>
-                  <fieldset class="classroom-weekday-fieldset">
-                    <legend>체크 요일</legend>
-                    <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
-                    <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
-                    <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
-                    <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
-                    <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
-                  </fieldset>
-                  <button class="button primary" type="submit">내 루틴 저장</button>
-                </form>
-                <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
-                <div id="classroom-routine-grid" class="classroom-card-grid"></div>
-              </div>
-            </section>
-            <section class="classroom-subsection" data-classroom-subpane="mission" aria-label="학급 포인트 미션">
-              <div id="classroom-mission-body" class="classroom-subsection-body">
-                <div id="classroom-mission-view" class="classroom-mission-view"></div>
-              </div>
-            </section>
-            <section class="classroom-subsection" data-classroom-subpane="bank" aria-label="학급 은행">
-              <div id="classroom-bank-body" class="classroom-subsection-body">
-                <div id="classroom-bank-grid" class="classroom-shop-history"></div>
-              </div>
-            </section>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="quest" aria-label="퀘스트">
+          <div id="classroom-quest-management-slot" class="classroom-management-slot"></div>
+          <div id="classroom-quest-body" class="classroom-subsection-body">
+            <div id="classroom-quest-grid" class="classroom-card-grid"></div>
+            <div id="classroom-inactive-quest-grid" class="classroom-card-grid compact"></div>
+          </div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="routine" aria-label="성장루틴">
+          <div id="classroom-routine-body" class="classroom-subsection-body">
+            <form id="classroom-routine-form" class="classroom-quest-form">
+              <input id="classroom-routine-id-input" type="hidden">
+              <label>
+                루틴 이름
+                <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
+              </label>
+              <label>
+                목표 횟수
+                <input id="classroom-routine-target-input" type="number" min="2" max="30" inputmode="numeric" value="5">
+              </label>
+              <label>
+                시작일
+                <input id="classroom-routine-start-input" type="date">
+              </label>
+              <label>
+                종료일
+                <input id="classroom-routine-end-input" type="date">
+              </label>
+              <label>
+                검토 보상 포인트
+                <input id="classroom-routine-reward-input" type="number" min="0" max="20" inputmode="numeric" value="10">
+              </label>
+              <fieldset class="classroom-weekday-fieldset">
+                <legend>체크 요일</legend>
+                <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
+                <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
+                <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
+                <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
+                <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
+              </fieldset>
+              <button class="button primary" type="submit">내 루틴 저장</button>
+            </form>
+            <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
+            <div id="classroom-routine-grid" class="classroom-card-grid"></div>
+          </div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="bank" aria-label="은행">
+          <div id="classroom-bank-management-slot" class="classroom-management-slot"></div>
+          <div id="classroom-bank-body" class="classroom-subsection-body">
+            <div id="classroom-bank-grid" class="classroom-shop-history"></div>
+          </div>
+        </section>
+
+        <section class="classroom-panel" data-classroom-panel="mission" aria-label="학급미션">
+          <div id="classroom-mission-management-slot" class="classroom-management-slot"></div>
+          <div id="classroom-mission-body" class="classroom-subsection-body">
+            <div id="classroom-mission-view" class="classroom-mission-view"></div>
           </div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="gems" aria-label="젬스톤">
+          <div id="classroom-gem-management-slot" class="classroom-management-slot"></div>
           <div id="classroom-gem-summary" class="classroom-management-summary"></div>
           <div id="classroom-gem-grid" class="classroom-card-grid"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="jobs" aria-label="직업">
+          <div id="classroom-job-management-slot" class="classroom-management-slot"></div>
           <div id="classroom-job-summary" class="classroom-management-summary"></div>
           <div id="classroom-job-grid" class="classroom-card-grid"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="market" aria-label="마켓">
+          <div id="classroom-market-management-slot" class="classroom-management-slot"></div>
           <div class="classroom-subtab-bar classroom-subtab-bar--four" role="tablist" aria-label="마켓 세부 메뉴">
             <button class="classroom-subtab is-active" type="button" data-classroom-market-tab="point" aria-selected="true">포인트샵</button>
             <button class="classroom-subtab" type="button" data-classroom-market-tab="coin" aria-selected="false">코인샵</button>

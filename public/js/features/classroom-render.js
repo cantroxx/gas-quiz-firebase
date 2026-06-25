@@ -68,6 +68,25 @@
     'boost-liquid-fertilizer': `${CLASSROOM_ICON_BASE}boost-fertilizer.svg`
   };
   const HIDDEN_CLASSROOM_MEMBER_IDS = new Set(['G4-C8-N23']);
+  const CLASSROOM_MANAGEMENT_PANEL_MOVES = [
+    ['classroom-icon-catalog-panel', 'classroom-card-management-slot'],
+    ['classroom-quest-editor-panel', 'classroom-quest-management-slot'],
+    ['classroom-badge-campaign-panel', 'classroom-gem-management-slot'],
+    ['classroom-gem-editor-panel', 'classroom-gem-management-slot'],
+    ['classroom-job-editor-panel', 'classroom-job-management-slot'],
+    ['classroom-shop-editor-panel', 'classroom-market-management-slot'],
+    ['classroom-group-purchase-editor-panel', 'classroom-market-management-slot'],
+    ['classroom-tax-editor-panel', 'classroom-bank-management-slot'],
+    ['classroom-savings-editor-panel', 'classroom-bank-management-slot'],
+    ['classroom-exchange-editor-panel', 'classroom-bank-management-slot'],
+    ['classroom-mission-editor-panel', 'classroom-mission-management-slot'],
+    ['classroom-notice-editor-panel', 'classroom-home-management-slot']
+  ];
+  const classroomQuestFilterState = {
+    category: 'all',
+    status: 'all',
+    audience: 'all'
+  };
 
   function isHiddenClassroomMember(memberUserId = '') {
     return HIDDEN_CLASSROOM_MEMBER_IDS.has(String(memberUserId || '').trim().toUpperCase());
@@ -102,6 +121,20 @@
 
   function getClassroomIconAssetUrl(key) {
     return CLASSROOM_ICON_ASSETS[String(key || '')] || '';
+  }
+
+  function arrangeClassroomManagementPanels(canManage = false) {
+    const holding = document.getElementById('classroom-teacher-management-holding');
+    CLASSROOM_MANAGEMENT_PANEL_MOVES.forEach(([panelId, slotId]) => {
+      const panel = document.getElementById(panelId);
+      const slot = document.getElementById(slotId);
+      if(!panel) return;
+      const target = canManage && slot ? slot : holding;
+      if(target && panel.parentElement !== target) {
+        target.appendChild(panel);
+      }
+      panel.hidden = !canManage;
+    });
   }
 
   function createClassroomIconImage(key, alt = '', className = 'classroom-inline-icon') {
@@ -160,6 +193,14 @@
     return window.DJ48ClassroomDomain.getClassroomProgressStatusClass(progress);
   }
 
+  function appendClassroomTableCell(row, text = '', tagName = 'td', className = '') {
+    const cell = document.createElement(tagName);
+    cell.textContent = text;
+    if(className) cell.className = className;
+    row.appendChild(cell);
+    return cell;
+  }
+
   function renderClassroomReviewList(settings, reviewItems = [], options = {}, deps = {}) {
     const status = document.getElementById(options.statusId || 'classroom-review-status');
     const grid = document.getElementById(options.gridId || 'classroom-review-grid');
@@ -167,6 +208,7 @@
 
     const canReview = deps.isCurrentClassroomTeacher?.(settings) === true;
     grid.innerHTML = '';
+    grid.classList.remove('classroom-review-table-wrap');
     if(!canReview) {
       status.textContent = '담임 권한이 있어야 확인 대기 목록을 볼 수 있습니다.';
       return;
@@ -178,30 +220,41 @@
     }
 
     status.textContent = `${reviewItems.length}건이 담임 확인을 기다리고 있습니다.`;
+    grid.classList.add('classroom-review-table-wrap');
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const tbody = document.createElement('tbody');
+    table.className = 'classroom-review-table';
+    ['구분', '학생', '내용', '상태', '보상/진행', '처리'].forEach(label => {
+      appendClassroomTableCell(headerRow, label, 'th');
+    });
+    thead.appendChild(headerRow);
+    table.append(thead, tbody);
     reviewItems.forEach(item => {
-      const card = document.createElement('article');
-      const title = document.createElement('h4');
-      const meta = document.createElement('p');
+      const row = document.createElement('tr');
       const state = document.createElement('span');
       const actions = document.createElement('div');
       const approveButton = document.createElement('button');
       const rejectButton = document.createElement('button');
-      card.className = 'classroom-review-card';
-      title.textContent = item.itemType === 'routine'
+      const typeLabel = item.itemType === 'routine' ? '성장루틴' : '퀘스트';
+      const studentLabel = item.memberNickname || item.memberUserId || '-';
+      const titleText = item.itemType === 'routine'
         ? (item.routineTitle || item.title || '성장루틴')
         : getClassroomQuestTitle(settings, item.questId);
+      let detailText = '';
       if(item.itemType === 'routine') {
         const percent = Math.max(0, Math.min(100, Math.round(Number(item.achievementPercent) || 0)));
         const currentCount = Math.max(0, Math.round(Number(item.currentCount) || 0));
         const targetCount = Math.max(1, Math.round(Number(item.targetCount) || 1));
         const baseReward = Number(item.baseRewardPoint || item.rewardPoint || 0);
-        meta.textContent = `${item.memberNickname || item.memberUserId || '-'} · 루틴 검토 · 달성 ${currentCount}/${targetCount}회(${percent}%) · 지급 예정 ${formatClassroomPoint(item.rewardPoint || 0)}/${formatClassroomPoint(baseReward)} 포인트`;
+        detailText = `달성 ${currentCount}/${targetCount}회(${percent}%) · 지급 예정 ${formatClassroomPoint(item.rewardPoint || 0)}/${formatClassroomPoint(baseReward)} 포인트`;
       } else {
         const rewardCurrencyLabel = deps.getClassroomRewardCurrencyLabel?.(item.rewardCurrency) || '포인트';
         const rewardAmount = rewardCurrencyLabel === '포인트'
           ? formatClassroomPoint(item.rewardPoint || item.rewardCoin || 0)
           : Number(item.rewardCoin || item.rewardPoint || 0).toLocaleString('ko-KR');
-        meta.textContent = `${item.memberNickname || item.memberUserId || '-'} · 퀘스트 검토 · 보상 예정 ${rewardAmount} ${rewardCurrencyLabel}`;
+        detailText = `보상 예정 ${rewardAmount} ${rewardCurrencyLabel}`;
       }
       state.className = 'quest-status quest-status-ready';
       state.textContent = item.reviewMode === 'cancelOnly' ? '오늘 완료됨' : '확인 대기';
@@ -224,9 +277,19 @@
         actions.appendChild(approveButton);
       }
       actions.appendChild(rejectButton);
-      card.append(title, meta, state, actions);
-      grid.appendChild(card);
+      appendClassroomTableCell(row, typeLabel, 'td', 'classroom-review-table-kind');
+      appendClassroomTableCell(row, studentLabel, 'td', 'classroom-review-table-student');
+      appendClassroomTableCell(row, titleText, 'td', 'classroom-review-table-title');
+      const stateCell = document.createElement('td');
+      stateCell.appendChild(state);
+      row.appendChild(stateCell);
+      appendClassroomTableCell(row, detailText, 'td', 'classroom-review-table-detail');
+      const actionCell = document.createElement('td');
+      actionCell.appendChild(actions);
+      row.appendChild(actionCell);
+      tbody.appendChild(row);
     });
+    grid.appendChild(table);
   }
 
   function renderClassroomReviewPanel(settings, reviewItems = [], deps = {}) {
@@ -550,15 +613,19 @@
       })
       : [];
     const featureItems = [
-      ['교실', '+', 'classroom', 'secondary'],
+      ['학생카드', '+', 'classroom', 'secondary'],
+      ['퀘스트', '▣', 'quest', 'assignment'],
+      ['성장루틴', '✓', 'routine', 'routine'],
       ['젬스톤', '◇', 'gems', 'primary'],
       ['직업', '■', 'jobs', 'secondary'],
-      ['마켓', '▥', 'market', 'shop']
+      ['마켓', '▥', 'market', 'shop'],
+      ['은행', 'P', 'bank', 'secondary'],
+      ['학급미션', '!', 'mission', 'mission']
     ];
     const checklistItems = [
-      classMission ? ['학급 미션', classMission.remainingPoint ? `${formatClassroomPoint(classMission.remainingPoint || 0)}점 남음` : '전체 달성!', 'classroom', 'mission', '', 'mission'] : null,
-      ['체크할 퀘스트', `${pendingQuests.length}건 대기중`, 'classroom', 'assignment', '', 'quest'],
-      ['성장루틴', reviewPendingRoutines.length ? `${reviewPendingRoutines.length}건 검토 대기` : `${todayCheckableRoutineCount}건 체크 가능`, 'classroom', 'routine', '', 'routine']
+      classMission ? ['학급 미션', classMission.remainingPoint ? `${formatClassroomPoint(classMission.remainingPoint || 0)}점 남음` : '전체 달성!', 'mission', 'mission'] : null,
+      ['체크할 퀘스트', `${pendingQuests.length}건 대기중`, 'quest', 'assignment'],
+      ['성장루틴', reviewPendingRoutines.length ? `${reviewPendingRoutines.length}건 검토 대기` : `${todayCheckableRoutineCount}건 체크 가능`, 'routine', 'routine']
     ].filter(Boolean).concat(canManage ? [['승인 대기', `${(Array.isArray(data.reviewItems) ? data.reviewItems.length : 0)}건 확인`, 'teacher', 'review']] : []);
     const marqueeText = activeNoticeSlots[0]?.text || '이번 주 금요일은 현장체험학습일입니다. 준비물을 꼭 확인해 주세요.';
 
@@ -692,7 +759,7 @@
     checklistHeading.className = 'classroom-visual-section-title classroom-visual-section-title--checklist';
     checklistHeading.textContent = '오늘 확인할 일';
     checklistGrid.className = 'classroom-checklist-grid';
-    checklistItems.forEach(([label, detail, tabName, tone, teacherTarget, subtabTarget]) => {
+    checklistItems.forEach(([label, detail, tabName, tone, teacherTarget]) => {
       const item = document.createElement('button');
       const iconEl = document.createElement('span');
       const copy = document.createElement('span');
@@ -703,7 +770,6 @@
       item.type = 'button';
       item.dataset.classroomTodayTab = tabName;
       if(teacherTarget) item.dataset.classroomTeacherTarget = teacherTarget;
-      if(subtabTarget) item.dataset.classroomSubtabTarget = subtabTarget;
       iconEl.className = 'classroom-checklist-icon';
       copy.className = 'classroom-checklist-copy';
       arrow.className = 'classroom-checklist-arrow';
@@ -944,6 +1010,105 @@
     return '상시 노출';
   }
 
+  function getClassroomQuestAudienceLabel(quest = {}) {
+    const targetCount = Array.isArray(quest.targetStudentIds) ? quest.targetStudentIds.length : 0;
+    if(!targetCount) return '전체 대상';
+    if(quest.targetStudentIds.includes('__none__')) return '대상 없음';
+    return `${targetCount}명 대상`;
+  }
+
+  function getClassroomQuestStatusBucket(quest = {}, progress = null) {
+    if(quest.active === false) return 'inactive';
+    if(progress?.rewardStatus === 'paid' || progress?.rewardStatus === 'approved') return 'done';
+    if(progress) return 'review';
+    return 'todo';
+  }
+
+  function isClassroomQuestMatchedByFilter(quest = {}, progress = null) {
+    const category = quest.category || '미분류';
+    const status = getClassroomQuestStatusBucket(quest, progress);
+    const targetIds = Array.isArray(quest.targetStudentIds) ? quest.targetStudentIds : [];
+    const audience = targetIds.length && !targetIds.includes('__none__') ? 'targeted' : targetIds.includes('__none__') ? 'none' : 'all';
+    if(classroomQuestFilterState.category !== 'all' && classroomQuestFilterState.category !== category) return false;
+    if(classroomQuestFilterState.status !== 'all' && classroomQuestFilterState.status !== status) return false;
+    if(classroomQuestFilterState.audience !== 'all' && classroomQuestFilterState.audience !== audience) return false;
+    return true;
+  }
+
+  function renderClassroomQuestSummary(settings = {}, visibleQuests = [], filteredQuests = [], progressMap = {}, deps = {}) {
+    const body = document.getElementById('classroom-quest-body');
+    const grid = document.getElementById('classroom-quest-grid');
+    if(!body || !grid) return;
+    let wrap = document.getElementById('classroom-quest-summary');
+    if(!wrap) {
+      wrap = document.createElement('section');
+      wrap.id = 'classroom-quest-summary';
+      wrap.className = 'classroom-feature-management-panel classroom-quest-summary';
+      body.insertBefore(wrap, grid);
+    }
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const activeQuests = (settings.quests || []).filter(quest => quest.active !== false);
+    const reviewCount = visibleQuests.filter(quest => getClassroomQuestStatusBucket(quest, progressMap[quest.id] || null) === 'review').length;
+    const doneCount = visibleQuests.filter(quest => getClassroomQuestStatusBucket(quest, progressMap[quest.id] || null) === 'done').length;
+    const categories = Array.from(new Set(activeQuests.map(quest => quest.category || '미분류'))).sort((a, b) => a.localeCompare(b, 'ko-KR'));
+    const createSelect = (labelText, key, options) => {
+      const label = document.createElement('label');
+      const labelSpan = document.createElement('span');
+      const select = document.createElement('select');
+      labelSpan.textContent = labelText;
+      select.dataset.classroomQuestFilter = key;
+      options.forEach(([value, text]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = text;
+        select.appendChild(option);
+      });
+      select.value = classroomQuestFilterState[key] || 'all';
+      select.addEventListener('change', () => {
+        classroomQuestFilterState[key] = select.value || 'all';
+        renderClassroomQuestCards(settings, progressMap, deps);
+      });
+      label.append(labelSpan, select);
+      return label;
+    };
+    wrap.innerHTML = '';
+    const statGrid = document.createElement('div');
+    const filterBar = document.createElement('div');
+    statGrid.className = 'classroom-quest-stat-grid';
+    filterBar.className = 'classroom-quest-filter-bar';
+    [
+      ['전체 퀘스트', `${activeQuests.length}개`],
+      ['오늘 노출', `${visibleQuests.length}개`],
+      ['완료/승인', `${doneCount}개`],
+      ['검토 대기', `${reviewCount}개`],
+      ['현재 표시', `${filteredQuests.length}개`]
+    ].forEach(([label, value]) => {
+      const card = document.createElement('article');
+      const labelEl = document.createElement('span');
+      const valueEl = document.createElement('strong');
+      labelEl.textContent = label;
+      valueEl.textContent = value;
+      card.append(labelEl, valueEl);
+      statGrid.appendChild(card);
+    });
+    filterBar.append(
+      createSelect('카테고리', 'category', [['all', '전체'], ...categories.map(category => [category, category])]),
+      createSelect('상태', 'status', [
+        ['all', '전체'],
+        ['todo', '진행 가능'],
+        ['review', '검토/저장'],
+        ['done', '완료/승인']
+      ]),
+      createSelect('대상', 'audience', [
+        ['all', '전체'],
+        ['targeted', '대상 지정'],
+        ['none', '대상 없음']
+      ])
+    );
+    if(!canManage) filterBar.hidden = true;
+    wrap.append(statGrid, filterBar);
+  }
+
   function renderClassroomQuestCards(settings = {}, progressMap = {}, deps = {}) {
     const grid = document.getElementById('classroom-quest-grid');
     if(!grid) return;
@@ -954,11 +1119,19 @@
     const visibleQuests = (settings.quests || [])
       .filter(quest => quest.active !== false)
       .filter(quest => isClassroomQuestVisibleForMember(quest, currentMemberUserId, todayKey, canManage));
+    const filteredQuests = canManage
+      ? visibleQuests.filter(quest => isClassroomQuestMatchedByFilter(quest, progressMap[quest.id] || null))
+      : visibleQuests;
+    renderClassroomQuestSummary(settings, visibleQuests, filteredQuests, progressMap, deps);
     if(!visibleQuests.length) {
       renderEmptyClassroomCard(grid, '오늘 할 일', '표시할 교실 퀘스트가 없습니다', '담임이 퀘스트를 열면 이곳에 나타납니다.');
       return;
     }
-    visibleQuests.forEach(quest => {
+    if(!filteredQuests.length) {
+      renderEmptyClassroomCard(grid, '필터', '조건에 맞는 퀘스트가 없습니다', '카테고리, 상태, 대상 필터를 조정해 보세요.');
+      return;
+    }
+    filteredQuests.forEach(quest => {
       const progress = progressMap[quest.id] || null;
       const card = document.createElement('article');
       const icon = createClassroomCardIcon('quest', 'Q');
@@ -973,7 +1146,6 @@
       const rewardAmount = rewardCurrencyLabel === '포인트'
         ? formatClassroomPoint(quest.rewardPoint || quest.rewardCoin || 0)
         : Number(quest.rewardCoin || quest.rewardPoint || 0).toLocaleString('ko-KR');
-      const targetCount = Array.isArray(quest.targetStudentIds) ? quest.targetStudentIds.length : 0;
       const repeatLabel = quest.repeatRule === 'daily' ? '매일' : quest.repeatRule === 'weekly' ? '매주' : '한 번';
       const categoryLabel = quest.category ? `${quest.category} · ` : '';
       const linkedGemNames = Array.isArray(quest.linkedGemNames) && quest.linkedGemNames.length
@@ -990,8 +1162,8 @@
       desc.textContent = quest.desc;
       reward.className = 'classroom-card-reward';
       reward.textContent = linkedGemLabel && quest.gemXp > 0
-        ? `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${linkedGemLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`
-        : `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${targetCount ? `${targetCount}명 대상` : '전체 대상'}`;
+        ? `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${linkedGemLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${getClassroomQuestAudienceLabel(quest)}`
+        : `예상 보상: ${rewardAmount} ${rewardCurrencyLabel} · ${categoryLabel}${repeatLabel} · ${getClassroomQuestPeriodLabel(quest)} · ${getClassroomQuestAudienceLabel(quest)}`;
       status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
       status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
       button.className = 'quest-claim-button';
@@ -2135,6 +2307,7 @@
         window.DJ48ClassroomForm?.setActiveClassroomTab?.('today');
       }
     }
+    arrangeClassroomManagementPanels(canManage);
     renderClassroomRoleState(settings, data.wallet || {}, deps, data);
     renderClassroomGrowndOverview(data);
     renderClassroomTeacherDashboard(data, deps);

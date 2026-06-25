@@ -35,7 +35,7 @@
   }
 
   function setActiveClassroomTab(tabName = 'classroom') {
-    const subtabAliases = new Set(['student-card', 'quest', 'routine', 'mission', 'bank']);
+    const subtabAliases = new Set(['student-card']);
     const requestedTab = String(tabName || 'classroom');
     const panelTab = subtabAliases.has(requestedTab) ? 'classroom' : requestedTab;
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {

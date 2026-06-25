@@ -5353,8 +5353,57 @@ h2 {
 
 .classroom-review-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.classroom-review-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(84, 105, 132, 0.14);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.classroom-review-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.classroom-review-table th,
+.classroom-review-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(84, 105, 132, 0.12);
+  color: #143254;
+  font-size: 0.86rem;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.classroom-review-table th {
+  background: #f3f7ff;
+  color: #516070;
+  font-size: 0.78rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.classroom-review-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.classroom-review-table-kind,
+.classroom-review-table-student {
+  white-space: nowrap;
+}
+
+.classroom-review-table-title {
+  font-weight: 950;
+}
+
+.classroom-review-table-detail {
+  color: #66768a;
 }
 
 .classroom-review-card {
@@ -5383,6 +5432,69 @@ h2 {
 
 .classroom-routine-group-heading {
   grid-column: 1 / -1;
+}
+
+.classroom-feature-management-panel {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid rgba(84, 105, 132, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(255, 255, 255, 0.94));
+}
+
+.classroom-quest-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+}
+
+.classroom-quest-stat-grid article {
+  display: grid;
+  gap: 5px;
+  min-height: 72px;
+  padding: 11px 12px;
+  border: 1px solid rgba(84, 105, 132, 0.14);
+  border-left: 4px solid #64a8fe;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.classroom-quest-stat-grid span {
+  color: #66768a;
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.classroom-quest-stat-grid strong {
+  color: #143254;
+  font-size: 1.08rem;
+  font-weight: 1000;
+}
+
+.classroom-quest-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.classroom-quest-filter-bar label {
+  display: grid;
+  gap: 6px;
+  color: #516070;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.classroom-quest-filter-bar select {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 2px solid rgba(188, 202, 187, 0.85);
+  border-radius: 10px;
+  background: #fff;
+  color: #143254;
+  font: inherit;
+  font-weight: 900;
 }
 
 .classroom-review-actions {
@@ -5482,6 +5594,16 @@ h2 {
 
 .classroom-panel.is-active {
   display: block;
+}
+
+.classroom-management-slot {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.classroom-management-slot:empty {
+  display: none;
 }
 
 .classroom-subsection-grid {
@@ -8382,6 +8504,10 @@ h2 {
   }
 
   .classroom-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-quest-filter-bar {
     grid-template-columns: 1fr;
   }
 
