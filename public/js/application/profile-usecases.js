@@ -203,7 +203,8 @@
     });
     deps.setCurrentMemberProfile?.({
       ...(deps.getCurrentMemberProfile?.() || {}),
-      selectedTitleId: updateData.selectedTitleId
+      selectedTitleId: updateData.selectedTitleId,
+      selectedTitleName: updateData.selectedTitleName || ''
     });
     deps.renderHomeMemberDataFromFirestore?.();
     return updateData;

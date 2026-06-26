@@ -297,8 +297,12 @@
               <p class="eyebrow">Titles</p>
               <h3 id="title-list-heading">보유 칭호</h3>
             </div>
-            <button id="title-catalog-button" class="mini-pill-button" type="button">타이틀 목록</button>
+            <div class="collection-heading-actions">
+              <button id="title-sync-button" class="mini-pill-button" type="button">칭호 확인</button>
+              <button id="title-catalog-button" class="mini-pill-button" type="button">타이틀 목록</button>
+            </div>
           </div>
+          <p id="title-sync-status" class="profile-ranking-message-help" aria-live="polite"></p>
           <div id="title-card-grid" class="collection-grid"></div>
         </section>
 
@@ -3460,7 +3464,8 @@
 
     function getProfileRepository() {
       return window.DJ48ProfileRepository.createProfileRepository({
-        getFirestoreFieldValue
+        getFirestoreFieldValue,
+        getFirebaseFunctions
       });
     }
 
@@ -3577,6 +3582,45 @@
 
     async function saveProfileSelectedTitleFromHome(titleId) {
       return runProfileHomeAction('saveSelectedTitle', { titleId });
+    }
+
+    async function syncCurrentMemberTitlesFromHome(button = null) {
+      const memberUserId = window.DJ48AccountState.getCurrentMemberUserId();
+      const status = document.getElementById('title-sync-status');
+      if(!memberUserId) {
+        if(status) status.textContent = '회원 연결 후 칭호를 확인할 수 있습니다.';
+        return null;
+      }
+      const originalText = button?.textContent || '';
+      if(button) {
+        button.disabled = true;
+        button.textContent = '확인 중...';
+      }
+      if(status) status.textContent = '받을 수 있는 칭호를 확인하고 있습니다.';
+      try {
+        const functions = getFirebaseFunctions();
+        if(!functions?.httpsCallable) throw new Error('functions-unavailable');
+        const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
+        const response = await syncMemberTitles({ memberUserId });
+        const result = response?.data || {};
+        await renderHomeMemberDataFromFirestore();
+        const awardedTitles = Array.isArray(result.awardedTitles) ? result.awardedTitles : [];
+        if(status) {
+          status.textContent = awardedTitles.length
+            ? `새 칭호 ${awardedTitles.length}개를 받았습니다: ${awardedTitles.map(item => item.titleName || item.titleId).join(', ')}`
+            : '새로 받을 칭호는 없습니다.';
+        }
+        return result;
+      } catch(error) {
+        console.warn('Home title sync failed.', error);
+        if(status) status.textContent = '칭호 확인 중 문제가 생겼습니다.';
+        return null;
+      } finally {
+        if(button) {
+          button.disabled = false;
+          button.textContent = originalText || '칭호 확인';
+        }
+      }
     }
 
     function renderHomeOwnedItemsFallback() {
@@ -8406,6 +8450,7 @@
         openTitleCatalogModal,
         renderProfileRankingRecordsFromFirestore,
         saveProfileSelectedTitleFromHome,
+        syncCurrentMemberTitlesFromHome,
         saveProfileLevelMedalPreviewLevel,
         showQuizSelectView,
         renderHomeMemberDataFromFirestore

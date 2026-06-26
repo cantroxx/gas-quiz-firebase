@@ -209,6 +209,14 @@
     });
 
     document.getElementById('title-catalog-button')?.addEventListener('click', deps.openTitleCatalogModal);
+    document.getElementById('title-sync-button')?.addEventListener('click', event => {
+      const button = event.currentTarget;
+      if(button?.disabled) return;
+      deps.syncCurrentMemberTitlesFromHome?.(button).catch(error => {
+        console.warn('Firestore title sync from home failed.', error);
+        deps.renderHomeMemberDataFromFirestore?.();
+      });
+    });
 
     document.getElementById('profile-ranking-refresh-button')?.addEventListener('click', () => {
       deps.renderProfileRankingRecordsFromFirestore?.().catch(error => {

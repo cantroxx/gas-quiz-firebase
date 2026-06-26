@@ -284,6 +284,8 @@ async function testQuizRepositoryWritesRankingAndPracticeProgress() {
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'rankingRecords/member-1__korean__normal'));
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userRankingSummary/member-1'));
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'quizKingSummary/member-1'));
+  const syncCountAfterRanking = calls.filter(call => call[0] === 'callable' && call[1] === 'syncMemberTitles').length;
+  assert.equal(syncCountAfterRanking, 1);
 
   const practiceResult = await repository.savePracticeProgressAfterCorrectAnswer({
     practiceQuestionId: 'new-q'
@@ -306,7 +308,7 @@ async function testQuizRepositoryWritesRankingAndPracticeProgress() {
   assert(calls.some(call => call[0] === 'set' && call[1] === 'practiceRecords/member-1__area-a'));
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userPracticeSummary/member-1'));
   assert(calls.some(call => call[0] === 'batchSet' && call[1] === 'userBadges/member-1/badges/badge-a'));
-  assert(!calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
+  assert.equal(calls.filter(call => call[0] === 'callable' && call[1] === 'syncMemberTitles').length, syncCountAfterRanking);
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeReward'));
 }
 

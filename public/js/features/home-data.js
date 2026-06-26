@@ -176,6 +176,7 @@
     const badgeCards = (badgesSnapshot?.docs?.map(normalizeBadgeCardFromFirestore) || [])
       .filter(badge => deps.isPracticeBadgeVisibleByFlags?.(badge) !== false);
     const titleSummary = titleSummarySnapshot?.exists ? titleSummarySnapshot.data() : null;
+    const selectedTitleId = titleSummary?.selectedTitleId || profile?.selectedTitleId || '';
     const levelSummary = normalizeHomeLevelSummary(levelSummarySnapshot, userRewardData, deps);
     const hasMemberUserId = !!memberUserId;
     const schoolText = profile
@@ -196,6 +197,7 @@
         profileImageOffsetY: profile?.profileImageOffsetY,
         nickname: profile?.nickname || profileData.nickname,
         school: schoolText || profileData.school,
+        selectedTitleId,
         titleName: getSelectedTitleNameFromHomeData(profile, titleSummary, titleCards, {
           hasMemberUserId,
           getKnownTitleName: deps.getKnownTitleName,

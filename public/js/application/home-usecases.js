@@ -65,7 +65,7 @@
     try {
       const model = await deps.loadHomeMemberData();
       deps.renderProfileCard?.(model.profile);
-      const selectedTitleId = options.selectedTitleId || '';
+      const selectedTitleId = model.profile?.selectedTitleId || options.selectedTitleId || '';
       const titleCards = deps.buildTitleCardsForRender(model.titleCards, selectedTitleId);
       deps.renderCollectionCards?.(
         'title-card-grid',

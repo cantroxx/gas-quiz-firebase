@@ -147,6 +147,20 @@
   async function saveSelectedTitleForMember(options = {}, deps = {}) {
     const selectedTitleId = String(options.titleId || '').trim();
     if(!options.memberUserId) throw new Error('member-required');
+    const functions = deps.getFirebaseFunctions?.();
+    if(functions?.httpsCallable) {
+      const setSelectedMemberTitle = functions.httpsCallable('setSelectedMemberTitle');
+      const response = await setSelectedMemberTitle({
+        memberUserId: options.memberUserId,
+        titleId: selectedTitleId
+      });
+      const result = response?.data || {};
+      return {
+        selectedTitleId: result.selectedTitleId || selectedTitleId,
+        selectedTitleName: result.selectedTitleName || '',
+        titleCount: Number(result.titleCount || 0)
+      };
+    }
     if(!options.db) throw new Error('firestore-unavailable');
     if(selectedTitleId) {
       const titleSnapshot = await options.db
@@ -166,7 +180,8 @@
 
   function createProfileRepository(deps = {}) {
     const firestoreDeps = {
-      getFirestoreFieldValue: deps.getFirestoreFieldValue
+      getFirestoreFieldValue: deps.getFirestoreFieldValue,
+      getFirebaseFunctions: deps.getFirebaseFunctions
     };
     return {
       searchProfileImageCandidates,

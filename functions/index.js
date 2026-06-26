@@ -9189,6 +9189,47 @@ function titleSummaryDoc(memberUserId, ownedTitleIds, selectedTitleId, selectedT
   };
 }
 
+async function setSelectedMemberTitleForUser(memberUserId, selectedTitleId = "") {
+  const safeTitleId = String(selectedTitleId || "").trim();
+  const titleCollectionRef = db.collection("userTitles").doc(memberUserId).collection("titles");
+  const [titleSnapshot, selectedTitleSnapshot] = await Promise.all([
+    titleCollectionRef.get(),
+    safeTitleId ? titleCollectionRef.doc(safeTitleId).get() : Promise.resolve(null)
+  ]);
+  if (safeTitleId && !selectedTitleSnapshot?.exists) {
+    throw new HttpsError("failed-precondition", "Selected title is not owned.");
+  }
+  const ownedTitleIds = new Set(titleSnapshot.docs.map(doc => doc.id));
+  const selectedTitleData = selectedTitleSnapshot?.exists ? selectedTitleSnapshot.data() || {} : {};
+  const selectedTitleName = safeTitleId
+    ? String(selectedTitleData.titleName || selectedTitleData.name || safeTitleId).slice(0, 80)
+    : "";
+  const batch = db.batch();
+  batch.set(db.collection("users").doc(memberUserId), {
+    selectedTitleId: safeTitleId,
+    selectedTitleName,
+    updatedAt: FieldValue.serverTimestamp(),
+    source: "set_selected_member_title_function"
+  }, { merge: true });
+  batch.set(
+    db.collection("userTitleSummary").doc(memberUserId),
+    titleSummaryDoc(memberUserId, ownedTitleIds, safeTitleId, selectedTitleName),
+    { merge: true }
+  );
+  titleSnapshot.docs.forEach(doc => {
+    batch.set(doc.ref, {
+      selected: safeTitleId ? doc.id === safeTitleId : false,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+  await batch.commit();
+  return {
+    selectedTitleId: safeTitleId,
+    selectedTitleName,
+    titleCount: ownedTitleIds.size
+  };
+}
+
 async function awardTitleAcquisitionReward(memberUserId, authUid, title) {
   const titleId = String(title?.titleId || "").trim();
   if (!titleId) return null;
@@ -9404,8 +9445,10 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
   });
   const eligibleNewTitles = evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTitleIds);
 
+  const userSnapshot = await db.collection("users").doc(memberUserId).get();
+  const userData = userSnapshot.exists ? userSnapshot.data() || {} : {};
   const summaryData = titleSummarySnapshot.exists ? titleSummarySnapshot.data() || {} : {};
-  const selectedTitleId = String(summaryData.selectedTitleId || "").trim();
+  const selectedTitleId = String(userData.selectedTitleId || summaryData.selectedTitleId || "").trim();
   const selectedTitleName = selectedTitleId
     ? (existingTitleNames[selectedTitleId] || eligibleNewTitles.find(title => title.titleId === selectedTitleId)?.titleName || summaryData.selectedTitleName || "")
     : "";
@@ -9415,7 +9458,10 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
   eligibleNewTitles.forEach(title => {
     batch.set(
       db.collection("userTitles").doc(memberUserId).collection("titles").doc(title.titleId),
-      ownedTitleDoc(title, memberUserId, "firebase_title_sync"),
+      {
+        ...ownedTitleDoc(title, memberUserId, "firebase_title_sync"),
+        selected: selectedTitleId ? title.titleId === selectedTitleId : false
+      },
       { merge: true }
     );
   });
@@ -9424,6 +9470,18 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
     titleSummaryDoc(memberUserId, allTitleIds, selectedTitleId, selectedTitleName),
     { merge: true }
   );
+  batch.set(db.collection("users").doc(memberUserId), {
+    selectedTitleId,
+    selectedTitleName,
+    updatedAt: FieldValue.serverTimestamp(),
+    source: "sync_member_titles_function"
+  }, { merge: true });
+  titleSnapshot.docs.forEach(doc => {
+    batch.set(doc.ref, {
+      selected: selectedTitleId ? doc.id === selectedTitleId : false,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
   await batch.commit();
   const rewardResults = [];
   for (const title of eligibleNewTitles) {
@@ -9448,5 +9506,23 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
       levelXp: result.levelXp || null
     })),
     titleCount: allTitleIds.size
+  };
+});
+
+exports.setSelectedMemberTitle = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const selectedTitleId = String(payload.titleId || payload.selectedTitleId || "").trim();
+
+  await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+  });
+
+  const result = await setSelectedMemberTitleForUser(memberUserId, selectedTitleId);
+  return {
+    success: true,
+    memberUserId,
+    ...result
   };
 });

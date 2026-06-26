@@ -194,13 +194,26 @@
     } catch(error) {
       console.warn('Ranking completion XP grant failed.', error);
     }
+    let titleSyncResult = null;
+    try {
+      titleSyncResult = await syncMemberTitlesAfterPracticeCompletionForRepository(memberUserId, {
+        recordId,
+        quizId,
+        categoryKey: target.categoryKey,
+        rankingMode: target.rankingMode,
+        completionType: 'ranking'
+      }, deps);
+    } catch(error) {
+      console.warn('Firestore title sync after ranking completion failed.', error);
+    }
 
     debugLog('Firestore ranking record save succeeded:', {
       recordId,
       score: correctCount,
       categoryKey: target.categoryKey,
       elapsedSeconds,
-      xpDelta: levelXpResult?.xpDelta || 0
+      xpDelta: levelXpResult?.xpDelta || 0,
+      titleAwardedCount: titleSyncResult?.awardedCount || 0
     });
     return {
       recordId,
