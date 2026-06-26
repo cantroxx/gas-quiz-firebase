@@ -24,6 +24,14 @@
 
   function getShopItemState(item = {}, economy = null, inventoryItemIds = new Set(), deps = {}) {
     const fallbackCoin = Number(deps.userRewardData?.coin) || 0;
+    if(item.previewOnly === true) {
+      return {
+        label: '시안',
+        buttonLabel: '준비중',
+        className: 'shop-state-short',
+        disabled: true
+      };
+    }
     if(inventoryItemIds.has(item.itemId)) {
       return {
         label: '보유중',

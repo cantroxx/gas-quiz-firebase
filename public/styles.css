@@ -4502,7 +4502,7 @@ h2 {
   margin-bottom: 14px;
 }
 
-.shop-category-list span {
+.shop-category-tab {
   display: inline-flex;
   align-items: center;
   min-height: 34px;
@@ -4513,6 +4513,281 @@ h2 {
   color: var(--green-dark);
   font-size: 0.86rem;
   font-weight: 900;
+  cursor: pointer;
+}
+
+.shop-category-tab.is-active,
+.shop-category-tab[aria-pressed="true"] {
+  border-color: rgba(47, 125, 68, 0.36);
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(47, 125, 68, 0.16);
+}
+
+.shop-avatar-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.shop-avatar-preview {
+  position: sticky;
+  top: 12px;
+}
+
+.shop-avatar-stage {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  padding: 18px 16px;
+  border: 1px solid rgba(47, 125, 68, 0.14);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(235, 249, 241, 0.92));
+  box-shadow: 0 12px 22px rgba(47, 125, 68, 0.09);
+}
+
+.shop-avatar-figure {
+  position: relative;
+  width: 154px;
+  height: 226px;
+  image-rendering: pixelated;
+}
+
+.shop-avatar-base,
+.shop-avatar-layer,
+.shop-avatar-shadow {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.shop-avatar-base {
+  left: 40px;
+  top: 34px;
+  width: 74px;
+  height: 142px;
+}
+
+.shop-avatar-base::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 0;
+  width: 58px;
+  height: 58px;
+  border: 3px solid #6f4b2f;
+  border-radius: 20px 20px 18px 18px;
+  background:
+    radial-gradient(circle at 22px 26px, #31373f 0 2px, transparent 3px),
+    radial-gradient(circle at 40px 26px, #31373f 0 2px, transparent 3px),
+    linear-gradient(#ffd7ad, #ffc895);
+}
+
+.shop-avatar-base::after {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 58px;
+  width: 40px;
+  height: 74px;
+  border: 3px solid #6f4b2f;
+  border-radius: 14px 14px 12px 12px;
+  background: #fef7e8;
+  box-shadow:
+    -21px 8px 0 -9px #ffd7ad,
+    21px 8px 0 -9px #ffd7ad,
+    -10px 75px 0 -7px #ffd7ad,
+    10px 75px 0 -7px #ffd7ad;
+}
+
+.shop-avatar-shadow {
+  left: 28px;
+  bottom: 4px;
+  width: 98px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(47, 125, 68, 0.13);
+}
+
+.shop-avatar-summary {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.shop-avatar-summary strong {
+  color: var(--green-dark);
+  font-size: 1rem;
+  font-weight: 950;
+}
+
+.shop-avatar-summary span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.shop-avatar-layer--hair {
+  z-index: 4;
+}
+
+.shop-avatar-layer--top,
+.shop-avatar-layer--bottom,
+.shop-avatar-layer--shoes {
+  z-index: 3;
+}
+
+.shop-avatar-layer--head,
+.shop-avatar-layer--face,
+.shop-avatar-layer--accessory {
+  z-index: 5;
+}
+
+.shop-avatar-layer--hair-choco {
+  left: 45px;
+  top: 24px;
+  width: 64px;
+  height: 44px;
+  border: 3px solid #4a2d1d;
+  border-radius: 24px 24px 16px 16px;
+  background: #6a3e25;
+  box-shadow: inset 10px 4px 0 rgba(255, 255, 255, 0.12);
+}
+
+.shop-avatar-layer--top-mint-hoodie {
+  left: 49px;
+  top: 92px;
+  width: 56px;
+  height: 54px;
+  border: 3px solid #2f7d68;
+  border-radius: 16px 16px 12px 12px;
+  background: linear-gradient(180deg, #78dfc3, #38b894);
+}
+
+.shop-avatar-layer--top-mint-hoodie::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: -10px;
+  width: 20px;
+  height: 18px;
+  border: 3px solid #2f7d68;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: #78dfc3;
+}
+
+.shop-avatar-layer--bottom-denim {
+  left: 55px;
+  top: 140px;
+  width: 44px;
+  height: 33px;
+  border: 3px solid #315a96;
+  border-radius: 8px 8px 10px 10px;
+  background: #4f83cf;
+}
+
+.shop-avatar-layer--shoes-red {
+  left: 46px;
+  top: 186px;
+  width: 62px;
+  height: 16px;
+}
+
+.shop-avatar-layer--shoes-red::before,
+.shop-avatar-layer--shoes-red::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 28px;
+  height: 12px;
+  border: 3px solid #973442;
+  border-radius: 10px 10px 8px 8px;
+  background: #f35d6a;
+}
+
+.shop-avatar-layer--shoes-red::before {
+  left: 0;
+}
+
+.shop-avatar-layer--shoes-red::after {
+  right: 0;
+}
+
+.shop-avatar-layer--head-yellow-cap {
+  left: 44px;
+  top: 21px;
+  width: 66px;
+  height: 28px;
+  border: 3px solid #a26c12;
+  border-radius: 22px 22px 8px 8px;
+  background: #ffd84d;
+  z-index: 6;
+}
+
+.shop-avatar-layer--head-yellow-cap::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  bottom: -2px;
+  width: 24px;
+  height: 9px;
+  border: 3px solid #a26c12;
+  border-left: 0;
+  border-radius: 0 999px 999px 0;
+  background: #ffd84d;
+}
+
+.shop-avatar-layer--face-round-glasses {
+  left: 58px;
+  top: 57px;
+  width: 39px;
+  height: 15px;
+  border-top: 3px solid #263238;
+  z-index: 7;
+}
+
+.shop-avatar-layer--face-round-glasses::before,
+.shop-avatar-layer--face-round-glasses::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  width: 15px;
+  height: 15px;
+  border: 3px solid #263238;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.shop-avatar-layer--face-round-glasses::before {
+  left: -2px;
+}
+
+.shop-avatar-layer--face-round-glasses::after {
+  right: -2px;
+}
+
+.shop-avatar-layer--accessory-quiz-badge {
+  left: 85px;
+  top: 113px;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #a26c12;
+  border-radius: 50%;
+  background: #ffe16b;
+  z-index: 7;
+}
+
+.shop-avatar-layer--accessory-quiz-badge::before {
+  content: "Q";
+  position: absolute;
+  inset: 0;
+  color: #7b5a17;
+  font-size: 11px;
+  font-weight: 950;
+  line-height: 16px;
+  text-align: center;
 }
 
 .shop-wallet {
@@ -4564,6 +4839,11 @@ h2 {
   box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
 }
 
+.shop-item-card.is-equipped {
+  border-color: rgba(47, 125, 68, 0.45);
+  box-shadow: 0 12px 24px rgba(47, 125, 68, 0.14);
+}
+
 .shop-item-icon {
   display: grid;
   place-items: center;
@@ -4572,6 +4852,92 @@ h2 {
   border-radius: 17px;
   background: #fff8d8;
   font-size: 1.8rem;
+}
+
+.shop-item-card--avatar .shop-item-icon {
+  overflow: hidden;
+  background: #f0fbf4;
+}
+
+.shop-avatar-item-visual {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
+.shop-avatar-item-visual--hair-choco {
+  border: 3px solid #4a2d1d;
+  border-radius: 16px 16px 10px 10px;
+  background: #6a3e25;
+}
+
+.shop-avatar-item-visual--top-mint-hoodie {
+  border: 3px solid #2f7d68;
+  border-radius: 10px;
+  background: #54d0ad;
+}
+
+.shop-avatar-item-visual--bottom-denim {
+  width: 34px;
+  height: 24px;
+  border: 3px solid #315a96;
+  border-radius: 7px 7px 10px 10px;
+  background: #4f83cf;
+}
+
+.shop-avatar-item-visual--shoes-red::before,
+.shop-avatar-item-visual--shoes-red::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  width: 18px;
+  height: 10px;
+  border: 3px solid #973442;
+  border-radius: 999px;
+  background: #f35d6a;
+}
+
+.shop-avatar-item-visual--shoes-red::before {
+  left: 0;
+}
+
+.shop-avatar-item-visual--shoes-red::after {
+  right: 0;
+}
+
+.shop-avatar-item-visual--head-yellow-cap {
+  height: 22px;
+  border: 3px solid #a26c12;
+  border-radius: 18px 18px 7px 7px;
+  background: #ffd84d;
+}
+
+.shop-avatar-item-visual--face-round-glasses::before,
+.shop-avatar-item-visual--face-round-glasses::after {
+  content: "";
+  position: absolute;
+  top: 11px;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #263238;
+  border-radius: 50%;
+}
+
+.shop-avatar-item-visual--face-round-glasses::before {
+  left: 2px;
+}
+
+.shop-avatar-item-visual--face-round-glasses::after {
+  right: 2px;
+}
+
+.shop-avatar-item-visual--accessory-quiz-badge {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #a26c12;
+  border-radius: 50%;
+  background: #ffe16b;
 }
 
 .shop-item-category {
@@ -8659,6 +9025,14 @@ h2 {
 
   .classroom-gate-panel {
     grid-template-columns: 1fr;
+  }
+
+  .shop-avatar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-avatar-preview {
+    position: static;
   }
 
   .classroom-summary-grid {

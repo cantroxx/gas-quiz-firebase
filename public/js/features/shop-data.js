@@ -27,7 +27,11 @@
       priceType: data.priceType || 'djCoin',
       imageUrl: imageUrl && imageUrl !== 'TODO' ? imageUrl : '',
       assetId: data.assetId || '',
-      rarity: data.rarity || 'common'
+      rarity: data.rarity || 'common',
+      itemType: data.itemType || '',
+      avatarLayer: data.avatarLayer === true || data.itemType === 'avatarLayer',
+      avatarSlot: data.avatarSlot || '',
+      avatarLayerClass: data.avatarLayerClass || ''
     };
   }
 
@@ -136,7 +140,12 @@
   }
 
   function buildShopItemsResult(items = [], fallbackItems = []) {
-    return items.length ? items : fallbackItems;
+    if(!items.length) return fallbackItems;
+    const itemIds = new Set(items.map(item => item.itemId));
+    const previewAvatarItems = fallbackItems
+      .filter(item => item.avatarLayer === true && !itemIds.has(item.itemId))
+      .map(item => ({ ...item, previewOnly: true }));
+    return [...items, ...previewAvatarItems].sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999));
   }
 
   function buildEconomyFallback(options = {}) {
@@ -165,6 +174,33 @@
 
   function getOwnedShopItems(items = [], inventoryItemIds = new Set()) {
     return items.filter(item => inventoryItemIds.has(item.itemId));
+  }
+
+  function getShopTabDefinitions() {
+    return [
+      { tabId: 'all', label: '전체' },
+      { tabId: 'avatar', label: '아바타' },
+      { tabId: 'background', label: '배경' },
+      { tabId: 'titleFrame', label: '칭호 프레임' }
+    ];
+  }
+
+  function getShopItemTabId(item = {}) {
+    if(item.avatarLayer === true) return 'avatar';
+    const category = String(item.rawCategory || item.category || '').trim();
+    if(category === '배경' || category === 'background') return 'background';
+    if(category === '아바타' || category === 'avatar') return 'avatar';
+    if(category === '칭호 프레임' || category === 'titleFrame') return 'titleFrame';
+    return 'all';
+  }
+
+  function filterShopItemsByTab(items = [], tabId = 'all') {
+    if(tabId === 'all') return items;
+    return items.filter(item => getShopItemTabId(item) === tabId);
+  }
+
+  function getAvatarLayerItems(items = []) {
+    return items.filter(item => item.avatarLayer === true);
   }
 
   function getShopPurchaseErrorMessage(error) {
@@ -243,6 +279,10 @@
     buildEconomyFallback,
     buildUserEconomyForRender,
     getOwnedShopItems,
+    getShopTabDefinitions,
+    getShopItemTabId,
+    filterShopItemsByTab,
+    getAvatarLayerItems,
     getShopPurchaseErrorMessage,
     buildRoomItemSelectionUpdate,
     getRoomItemSaveErrorMessage

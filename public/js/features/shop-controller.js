@@ -1,8 +1,20 @@
 (function () {
   function bindShopRoomEvents(deps = {}) {
+    document.getElementById('shop-category-list')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-shop-tab]');
+      if(!button) return;
+      deps.setActiveShopTab?.(button.dataset.shopTab || 'all');
+      deps.renderShop?.();
+    });
+
     document.getElementById('shop-item-grid')?.addEventListener('click', event => {
       const button = event.target.closest('[data-shop-item-id]');
       if(!button || button.disabled) return;
+      if(button.dataset.shopAvatarAction === 'toggle') {
+        deps.toggleAvatarEquipment?.(button.dataset.shopItemId);
+        deps.renderShop?.();
+        return;
+      }
       deps.purchaseShopItem?.(button.dataset.shopItemId);
     });
 

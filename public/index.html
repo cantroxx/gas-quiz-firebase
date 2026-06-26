@@ -348,14 +348,13 @@
         </div>
       </div>
 
-      <div class="shop-category-list" aria-label="상점 카테고리">
-        <span>배경</span>
-        <span>아바타</span>
-        <span>칭호 프레임</span>
-      </div>
+      <div id="shop-category-list" class="shop-category-list" aria-label="상점 카테고리"></div>
 
       <div id="shop-wallet" class="shop-wallet" aria-label="상점 보유 코인"></div>
-      <div id="shop-item-grid" class="shop-item-grid" aria-label="상점 아이템 카드"></div>
+      <div class="shop-avatar-layout">
+        <section id="shop-avatar-preview" class="shop-avatar-preview" aria-label="아바타 미리보기"></section>
+        <div id="shop-item-grid" class="shop-item-grid" aria-label="상점 아이템 카드"></div>
+      </div>
     </section>
 
     <section id="event-view" class="event-view app-view" aria-labelledby="event-title" hidden>
@@ -2119,6 +2118,90 @@
         icon: '🧭'
       },
       {
+        itemId: 'avatar_hair_choco',
+        category: '아바타',
+        name: '초코 단정머리',
+        desc: '프로필 캐릭터에 차분한 갈색 머리를 씌웁니다.',
+        price: 90,
+        icon: '✂',
+        avatarLayer: true,
+        avatarSlot: 'hair',
+        avatarLayerClass: 'hair-choco',
+        sortOrder: 20
+      },
+      {
+        itemId: 'avatar_top_mint_hoodie',
+        category: '아바타',
+        name: '민트 후드티',
+        desc: '퀴즈타운 캐릭터에게 밝은 후드티를 입힙니다.',
+        price: 140,
+        icon: '▰',
+        avatarLayer: true,
+        avatarSlot: 'top',
+        avatarLayerClass: 'top-mint-hoodie',
+        sortOrder: 21
+      },
+      {
+        itemId: 'avatar_bottom_denim',
+        category: '아바타',
+        name: '데님 반바지',
+        desc: '가볍고 활동적인 느낌의 하의를 입힙니다.',
+        price: 110,
+        icon: '▱',
+        avatarLayer: true,
+        avatarSlot: 'bottom',
+        avatarLayerClass: 'bottom-denim',
+        sortOrder: 22
+      },
+      {
+        itemId: 'avatar_shoes_red',
+        category: '아바타',
+        name: '빨간 운동화',
+        desc: '프로필 캐릭터 발끝에 선명한 포인트를 줍니다.',
+        price: 80,
+        icon: '▬',
+        avatarLayer: true,
+        avatarSlot: 'shoes',
+        avatarLayerClass: 'shoes-red',
+        sortOrder: 23
+      },
+      {
+        itemId: 'avatar_head_yellow_cap',
+        category: '아바타',
+        name: '노란 볼캡',
+        desc: '캐릭터 머리 위에 산뜻한 모자를 씌웁니다.',
+        price: 120,
+        icon: '◠',
+        avatarLayer: true,
+        avatarSlot: 'head',
+        avatarLayerClass: 'head-yellow-cap',
+        sortOrder: 24
+      },
+      {
+        itemId: 'avatar_face_round_glasses',
+        category: '아바타',
+        name: '동그란 안경',
+        desc: '공부도 게임도 잘할 것 같은 표정을 더합니다.',
+        price: 100,
+        icon: '∞',
+        avatarLayer: true,
+        avatarSlot: 'face',
+        avatarLayerClass: 'face-round-glasses',
+        sortOrder: 25
+      },
+      {
+        itemId: 'avatar_accessory_quiz_badge',
+        category: '아바타',
+        name: '퀴즈 배지',
+        desc: '상의에 작은 퀴즈 배지를 달아 줍니다.',
+        price: 130,
+        icon: '★',
+        avatarLayer: true,
+        avatarSlot: 'accessory',
+        avatarLayerClass: 'accessory-quiz-badge',
+        sortOrder: 26
+      },
+      {
         itemId: 'gold_title_frame',
         category: '칭호 프레임',
         name: '금빛 칭호 프레임',
@@ -2173,6 +2256,13 @@
       starlight_background: '🌟',
       cat_avatar: '🐱',
       explorer_avatar: '🧭',
+      avatar_hair_choco: '✂',
+      avatar_top_mint_hoodie: '▰',
+      avatar_bottom_denim: '▱',
+      avatar_shoes_red: '▬',
+      avatar_head_yellow_cap: '◠',
+      avatar_face_round_glasses: '∞',
+      avatar_accessory_quiz_badge: '★',
       bookshelf: '📚',
       flowerpot: '🪴',
       golden_title_frame: '🟨',
@@ -5428,11 +5518,31 @@
       });
     }
 
+    function renderShopTabs() {
+      return window.DJ48ShopRender.renderShopTabs(
+        window.DJ48ShopData.getShopTabDefinitions(),
+        window.DJ48ShopState.getActiveShopTab()
+      );
+    }
+
+    function renderAvatarPreview(items = SHOP_ITEMS, inventoryItemIds = new Set()) {
+      return window.DJ48ShopRender.renderAvatarPreview(
+        window.DJ48ShopData.getAvatarLayerItems(items),
+        window.DJ48ShopState.getAvatarEquipment(),
+        inventoryItemIds
+      );
+    }
+
     function renderShopItems(items = SHOP_ITEMS, assetCatalogMap = {}, economy = null, inventoryItemIds = new Set()) {
-      return window.DJ48ShopRender.renderShopItems(items, assetCatalogMap, economy, inventoryItemIds, {
+      const filteredItems = window.DJ48ShopData.filterShopItemsByTab(
+        items,
+        window.DJ48ShopState.getActiveShopTab()
+      );
+      return window.DJ48ShopRender.renderShopItems(filteredItems, assetCatalogMap, economy, inventoryItemIds, {
         userRewardData: USER_REWARD_DATA,
         isUsableImageUrl,
-        getShopFallbackIcon
+        getShopFallbackIcon,
+        getAvatarEquipment: window.DJ48ShopState.getAvatarEquipment
       });
     }
 
@@ -5489,7 +5599,9 @@
 
     async function renderShopFromFirestore() {
       const { items, assetCatalogMap, economy, inventoryItemIds } = await getShopRenderData();
+      renderShopTabs();
       renderShopWallet(economy);
+      renderAvatarPreview(items, inventoryItemIds);
       renderShopItems(items, assetCatalogMap, economy, inventoryItemIds);
     }
 
@@ -8241,7 +8353,9 @@
         window.alert('상점은 지금 점검 중입니다.');
         return;
       }
+      renderShopTabs();
       renderShopWallet();
+      renderAvatarPreview(SHOP_ITEMS, new Set());
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       enterAppView({
         viewId: 'shop-view',
@@ -8344,7 +8458,14 @@
     function getShopControllerEvents() {
       return {
         purchaseShopItem,
-        saveRoomItemSelection
+        saveRoomItemSelection,
+        setActiveShopTab: window.DJ48ShopState.setActiveShopTab,
+        toggleAvatarEquipment: itemId => {
+          const items = window.DJ48ShopState.getShopItems() || SHOP_ITEMS;
+          const item = items.find(next => next.itemId === itemId);
+          window.DJ48ShopState.toggleAvatarEquipment(item || {});
+        },
+        renderShop: renderShopFromFirestore
       };
     }
 
