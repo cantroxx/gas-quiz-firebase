@@ -474,6 +474,41 @@ const QUIZ_TITLE_MAP = {
   "science-general": "과학 상식 퀴즈"
 };
 
+const TODAY_QUIZ_ELIGIBLE_IDS = new Set([
+  "spelling",
+  "word-relation",
+  "spacing",
+  "proverb",
+  "idiom",
+  "gmo",
+  "time_store",
+  "fraction-basic",
+  "science-general",
+  "samgukji",
+  "ancient-history",
+  "unified-silla-balhae",
+  "cultural_heritage",
+  "history-people",
+  "idol",
+  "anime",
+  "flag-country",
+  "snack-food",
+  "emoji-kpop",
+  "emoji-anime",
+  "emoji-tiniping",
+  "dad-joke",
+  "tiniping",
+  "pokemon-gen1",
+  "pokemon-gen2",
+  "pokemon-gen3",
+  "pokemon-gen4",
+  "pokemon-gen5",
+  "pokemon-gen6",
+  "pokemon-gen7",
+  "pokemon-gen8",
+  "pokemon-gen9"
+]);
+
 const DEFAULT_SEASON_EVENTS = {
   items: [
     {
@@ -637,11 +672,13 @@ function publicFeatureFlags(data = {}) {
       .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
       .slice(0, limit)
     : [];
+  const sanitizeTodayQuizIds = (value, limit) => sanitizeQuizIds(value, limit)
+    .filter(id => TODAY_QUIZ_ELIGIBLE_IDS.has(id));
   const disabledQuizIds = Array.isArray(data.disabledQuizIds)
     ? sanitizeQuizIds(data.disabledQuizIds, 120)
     : [];
-  const todayQuizIds = sanitizeQuizIds(data.todayQuizIds, 20);
-  const todayQuizRandomPoolIds = sanitizeQuizIds(data.todayQuizRandomPoolIds, 80);
+  const todayQuizIds = sanitizeTodayQuizIds(data.todayQuizIds, 20);
+  const todayQuizRandomPoolIds = sanitizeTodayQuizIds(data.todayQuizRandomPoolIds, 80);
   const todayQuizMode = data.todayQuizMode === "manual" ? "manual" : "dailyRandom";
   const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
   const todayQuizShuffleSeed = String(data.todayQuizShuffleSeed || "").trim().slice(0, 80);

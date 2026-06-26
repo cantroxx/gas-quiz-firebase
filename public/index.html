@@ -112,7 +112,7 @@
 
       <section id="daily-notice-drop" class="daily-notice-drop" aria-label="오늘 알림" hidden>
         <button class="daily-notice-drop-close" type="button" aria-label="오늘 알림 닫기" data-dismiss-daily-notice>×</button>
-        <button class="daily-notice-drop-body" type="button" data-open-daily-notice>
+        <button class="daily-notice-drop-body" type="button" data-dismiss-daily-notice>
           <span class="daily-notice-drop-kicker">오늘의 알림</span>
           <strong id="daily-notice-drop-title">오늘의 퀴즈</strong>
           <span id="daily-notice-drop-quest">오늘의 퀴즈를 불러오는 중입니다.</span>
@@ -2371,6 +2371,41 @@
       'pokemon-gen9'
     ]);
 
+    const TODAY_QUIZ_ELIGIBLE_IDS = new Set([
+      'spelling',
+      'word-relation',
+      'spacing',
+      'proverb',
+      'idiom',
+      'gmo',
+      'time_store',
+      'fraction-basic',
+      'science-general',
+      'samgukji',
+      'ancient-history',
+      'unified-silla-balhae',
+      'cultural_heritage',
+      'history-people',
+      'idol',
+      'anime',
+      'flag-country',
+      'snack-food',
+      'emoji-kpop',
+      'emoji-anime',
+      'emoji-tiniping',
+      'dad-joke',
+      'tiniping',
+      'pokemon-gen1',
+      'pokemon-gen2',
+      'pokemon-gen3',
+      'pokemon-gen4',
+      'pokemon-gen5',
+      'pokemon-gen6',
+      'pokemon-gen7',
+      'pokemon-gen8',
+      'pokemon-gen9'
+    ]);
+
     const QUESTION_BANK = {
       spelling: [
         {
@@ -4271,18 +4306,18 @@
     }
 
     function normalizeFeatureFlags(data = {}) {
+      const normalizeQuizIds = value => Array.isArray(value)
+        ? Array.from(new Set(value.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
+        : [];
+      const filterTodayQuizIds = ids => ids.filter(id => TODAY_QUIZ_ELIGIBLE_IDS.has(id));
       const disabledQuizIds = Array.isArray(data.disabledQuizIds)
         ? Array.from(new Set(data.disabledQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
         : [];
-      const todayQuizIds = Array.isArray(data.todayQuizIds)
-        ? Array.from(new Set(data.todayQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
-        : [];
+      const todayQuizIds = filterTodayQuizIds(normalizeQuizIds(data.todayQuizIds));
       const activeTodayQuizIds = Array.isArray(data.activeTodayQuizIds)
-        ? Array.from(new Set(data.activeTodayQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
+        ? filterTodayQuizIds(normalizeQuizIds(data.activeTodayQuizIds))
         : todayQuizIds;
-      const todayQuizRandomPoolIds = Array.isArray(data.todayQuizRandomPoolIds)
-        ? Array.from(new Set(data.todayQuizRandomPoolIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
-        : [];
+      const todayQuizRandomPoolIds = filterTodayQuizIds(normalizeQuizIds(data.todayQuizRandomPoolIds));
       return {
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -7270,6 +7305,15 @@
         .map(label => ({ label, quizIds: groups[label] }));
     }
 
+    function getAdminTodayQuizToggleGroups() {
+      return getAdminQuizToggleGroups()
+        .map(group => ({
+          ...group,
+          quizIds: group.quizIds.filter(quizId => TODAY_QUIZ_ELIGIBLE_IDS.has(quizId))
+        }))
+        .filter(group => group.quizIds.length);
+    }
+
     function renderAdminQuizToggleGrid(flags) {
       return window.DJ48AdminRender.renderAdminQuizToggleGrid(flags, {
         getDisabledQuizIdSet,
@@ -7280,7 +7324,7 @@
 
     function renderAdminTodayQuizPoolGrid(flags) {
       return window.DJ48AdminRender.renderAdminTodayQuizPoolGrid(flags, {
-        getAdminQuizToggleGroups,
+        getAdminQuizToggleGroups: getAdminTodayQuizToggleGroups,
         quizCatalog: QUIZ_CATALOG
       });
     }
@@ -8450,11 +8494,6 @@
     document.addEventListener('click', event => {
       if(event.target.closest('[data-dismiss-daily-notice]')) {
         dismissDailyNoticeDrop();
-        return;
-      }
-      if(event.target.closest('[data-open-daily-notice]')) {
-        dismissDailyNoticeDrop();
-        openNoticeBoardModal();
       }
     });
 
