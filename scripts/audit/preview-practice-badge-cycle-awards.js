@@ -69,6 +69,7 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith('korean_spacing_')) return 'korean_spacing';
   if (id.startsWith('korean_idiom_')) return 'korean_idiom';
   if (id === 'reading_gmo_complete') return 'korean_gmo';
+  if (id === 'reading_time_store_complete') return 'korean_독서:시간가게';
   if (id.startsWith('math_muldiv_')) return 'math_random_basic';
   if (id.startsWith('math_fraction_basic_')) return 'math_분수';
   if (id.startsWith('people_') || id === 'history_god') return 'people_역사인물';

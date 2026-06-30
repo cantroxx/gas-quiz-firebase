@@ -44,7 +44,7 @@
     });
   }
 
-  function renderAvatarPreview(items = [], avatarEquipment = {}, inventoryItemIds = new Set()) {
+  function renderAvatarPreview(items = [], assetCatalogMap = {}, avatarEquipment = {}, inventoryItemIds = new Set(), deps = {}) {
     const root = document.getElementById('shop-avatar-preview');
     if(!root) return;
     const layerItems = items.filter(item => item.avatarLayer === true);
@@ -53,23 +53,36 @@
     root.innerHTML = '';
     const stage = document.createElement('div');
     const figure = document.createElement('div');
-    const base = document.createElement('span');
-    const shadow = document.createElement('span');
+    const card = document.createElement('div');
     const summary = document.createElement('div');
     const ownedCount = layerItems.filter(item => inventoryItemIds.has(item.itemId)).length;
 
     stage.className = 'shop-avatar-stage';
     figure.className = 'shop-avatar-figure';
-    base.className = 'shop-avatar-base';
-    shadow.className = 'shop-avatar-shadow';
+    card.className = 'shop-avatar-card-base';
     summary.className = 'shop-avatar-summary';
 
-    ['hair', 'bottom', 'shoes', 'top', 'head', 'face', 'accessory'].forEach(slot => {
+    const cardItem = equippedItems.find(next => next.avatarSlot === 'card');
+    const cardVisual = cardItem ? resolveShopItemVisual(cardItem, assetCatalogMap, deps) : null;
+    const baseImage = document.createElement('img');
+    baseImage.src = cardVisual?.imageUrl || '/images/classroom-icons/student-card.svg';
+    baseImage.alt = cardItem?.name || '기본 학생카드';
+    baseImage.loading = 'lazy';
+    card.appendChild(baseImage);
+    figure.appendChild(card);
+
+    ['keyring', 'badge', 'medal', 'nameplate'].forEach(slot => {
       const item = equippedItems.find(next => next.avatarSlot === slot);
       if(!item) return;
+      const visual = resolveShopItemVisual(item, assetCatalogMap, deps);
       const layer = document.createElement('span');
+      const image = document.createElement('img');
       layer.className = `shop-avatar-layer shop-avatar-layer--${slot} shop-avatar-layer--${getAvatarLayerClass(item)}`;
-      layer.setAttribute('aria-hidden', 'true');
+      image.src = visual.imageUrl || '';
+      image.alt = item.name || visual.alt || '프로필 장식';
+      image.loading = 'lazy';
+      if(visual.imageUrl) layer.appendChild(image);
+      else layer.textContent = visual.fallbackIcon || item.icon || '';
       figure.appendChild(layer);
     });
 
@@ -77,8 +90,6 @@
       <strong>내 아바타 미리보기</strong>
       <span>보유 ${ownedCount}/${layerItems.length}개 · 장착 ${equippedItems.length}개</span>
     `;
-    figure.prepend(base);
-    figure.appendChild(shadow);
     stage.append(figure, summary);
     root.appendChild(stage);
   }
@@ -106,12 +117,7 @@
       if(isAvatarLayer) card.classList.add('shop-item-card--avatar');
       if(isEquipped) card.classList.add('is-equipped');
       icon.className = 'shop-item-icon';
-      if(isAvatarLayer) {
-        const avatarIcon = document.createElement('span');
-        avatarIcon.className = `shop-avatar-item-visual shop-avatar-item-visual--${item.avatarSlot || 'item'} shop-avatar-item-visual--${getAvatarLayerClass(item)}`;
-        avatarIcon.setAttribute('aria-hidden', 'true');
-        icon.appendChild(avatarIcon);
-      } else if(visual.imageUrl) {
+      if(visual.imageUrl) {
         const image = document.createElement('img');
         image.src = visual.imageUrl;
         image.alt = visual.alt;

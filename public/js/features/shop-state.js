@@ -11,13 +11,11 @@
   let roomSettingsLoadPromise = null;
   let activeShopTab = 'all';
   let avatarEquipment = {
-    hair: '',
-    top: '',
-    bottom: '',
-    shoes: '',
-    head: '',
-    face: '',
-    accessory: ''
+    card: '',
+    keyring: '',
+    badge: '',
+    medal: '',
+    nameplate: ''
   };
 
   function getShopItems() { return shopItems; }

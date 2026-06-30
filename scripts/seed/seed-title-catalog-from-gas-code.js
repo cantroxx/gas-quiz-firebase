@@ -3,17 +3,41 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const admin = require('firebase-admin');
+const { initializeApp, applicationDefault, getApps } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 const DEFAULT_GAS_CODE = '../gas-quiz/Code.js';
 const COLLECTION = 'titleCatalog';
+const EXTRA_FIREBASE_TITLES = [{
+  id: 'reading_time_store_complete',
+  title: '시간가게 완독',
+  category: '국어',
+  theme: 'school',
+  themeClass: 'title-theme-school',
+  tier: 1,
+  tierClass: 'title-tier-1',
+  effectClass: '',
+  source: 'korean_time_store',
+  sourceType: 'practiceStars',
+  subjectGroup: 'korean',
+  conditionText: '시간가게 연습 뱃지 1회 완주',
+  description: '시간가게 연습을 1회 완주한 친구에게 어울리는 타이틀입니다.',
+  requiredBadgeCount: 1,
+  requiredGenCount: 0,
+  fieldKey: 'korean',
+  generation: '',
+  order: 39,
+  legacyNames: [],
+  legacyIds: []
+}];
 
 function parseArgs(argv) {
   const args = {
     gasCode: DEFAULT_GAS_CODE,
     dryRun: true,
     commit: false,
-    sample: 5
+    sample: 5,
+    only: ''
   };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -28,6 +52,9 @@ function parseArgs(argv) {
       i += 1;
     } else if (arg === '--sample') {
       args.sample = Number(argv[i + 1]) || args.sample;
+      i += 1;
+    } else if (arg === '--only') {
+      args.only = String(argv[i + 1] || '').trim();
       i += 1;
     }
   }
@@ -81,9 +108,8 @@ function normalizeTitle(definition) {
 }
 
 function initializeAdmin() {
-  if (admin.apps.length) return admin.firestore();
-  admin.initializeApp({ credential: admin.credential.applicationDefault() });
-  return admin.firestore();
+  if (!getApps().length) initializeApp({ credential: applicationDefault() });
+  return getFirestore();
 }
 
 async function commitTitles(titles) {
@@ -94,7 +120,7 @@ async function commitTitles(titles) {
     titles.slice(i, i + 450).forEach(title => {
       batch.set(db.collection(COLLECTION).doc(title.titleId), {
         ...title,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
     });
     await batch.commit();
@@ -105,9 +131,19 @@ async function commitTitles(titles) {
 
 async function main() {
   const args = parseArgs(process.argv);
-  const titles = extractDefinitions(args.gasCode).map(normalizeTitle).filter(Boolean);
-  console.log(`Prepared ${titles.length} titleCatalog documents.`);
-  titles.slice(0, Math.max(0, args.sample)).forEach(title => {
+  const titleMap = new Map();
+  extractDefinitions(args.gasCode)
+    .concat(EXTRA_FIREBASE_TITLES)
+    .map(normalizeTitle)
+    .filter(Boolean)
+    .forEach(title => titleMap.set(title.titleId, title));
+  const titles = Array.from(titleMap.values()).sort((a, b) => a.order - b.order || a.titleId.localeCompare(b.titleId));
+  const selectedTitles = args.only ? titles.filter(title => title.titleId === args.only) : titles;
+  if (args.only && !selectedTitles.length) {
+    throw new Error(`No title definition found for --only ${args.only}.`);
+  }
+  console.log(`Prepared ${selectedTitles.length} titleCatalog documents${args.only ? ` for ${args.only}` : ''}.`);
+  selectedTitles.slice(0, Math.max(0, args.sample)).forEach(title => {
     console.log(JSON.stringify({
       path: `${COLLECTION}/${title.titleId}`,
       titleName: title.titleName,
@@ -121,7 +157,7 @@ async function main() {
     console.log('No Firestore writes performed. Re-run with --commit to seed.');
     return;
   }
-  await commitTitles(titles);
+  await commitTitles(selectedTitles);
 }
 
 main().catch(error => {

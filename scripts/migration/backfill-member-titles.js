@@ -11,13 +11,14 @@ if (!getApps().length) {
 const db = getFirestore();
 
 function parseArgs(argv) {
-  const args = { commit: false, sample: 10, user: '' };
+  const args = { commit: false, sample: 10, user: '', only: '' };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--commit') args.commit = true;
     else if (arg === '--dry-run') args.commit = false;
     else if (arg === '--sample') args.sample = Number(argv[++i]) || args.sample;
     else if (arg === '--user') args.user = String(argv[++i] || '').trim();
+    else if (arg === '--only') args.only = String(argv[++i] || '').trim();
   }
   return args;
 }
@@ -41,6 +42,7 @@ function practiceTitleBadgeId(title = {}) {
   if (id.startsWith('korean_spacing_')) return 'korean_spacing';
   if (id.startsWith('korean_idiom_')) return 'korean_idiom';
   if (id === 'reading_gmo_complete') return 'korean_gmo';
+  if (id === 'reading_time_store_complete') return 'korean_독서:시간가게';
   if (id.startsWith('math_muldiv_')) return 'math_random_basic';
   if (id.startsWith('math_fraction_basic_')) return 'math_분수';
   if (id.startsWith('people_') || id === 'history_god') return 'people_역사인물';
@@ -281,13 +283,17 @@ async function syncOneUser(memberUserId, titleCatalog, commit) {
 async function main() {
   const args = parseArgs(process.argv);
   const titleCatalog = await loadCollectionDocs('titleCatalog');
+  const selectedTitleCatalog = args.only ? titleCatalog.filter(title => title.titleId === args.only) : titleCatalog;
+  if (args.only && !selectedTitleCatalog.length) {
+    throw new Error(`No titleCatalog document found for --only ${args.only}.`);
+  }
   const userIds = await buildUserIds(args);
   const results = [];
   for (const userId of userIds) {
-    const result = await syncOneUser(userId, titleCatalog, args.commit);
+    const result = await syncOneUser(userId, selectedTitleCatalog, args.commit);
     if (result.awardedCount > 0) results.push(result);
   }
-  console.log(`${args.commit ? 'Commit' : 'Dry run'}: ${results.reduce((sum, item) => sum + item.awardedCount, 0)} titles for ${results.length} users.`);
+  console.log(`${args.commit ? 'Commit' : 'Dry run'}: ${results.reduce((sum, item) => sum + item.awardedCount, 0)} titles for ${results.length} users${args.only ? ` with ${args.only}` : ''}.`);
   results.slice(0, Math.max(0, args.sample)).forEach(item => {
     console.log(JSON.stringify(item, null, 2));
   });

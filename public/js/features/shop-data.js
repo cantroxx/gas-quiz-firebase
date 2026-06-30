@@ -2,7 +2,7 @@
   function isUsableImageUrl(value) {
     if(typeof value !== 'string') return false;
     const imageUrl = value.trim();
-    return imageUrl && imageUrl !== 'TODO' && /^https?:\/\//.test(imageUrl);
+    return imageUrl && imageUrl !== 'TODO' && (/^https?:\/\//.test(imageUrl) || imageUrl.startsWith('/images/'));
   }
 
   function normalizeShopItemFromFirestore(doc, deps = {}) {
