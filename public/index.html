@@ -351,6 +351,7 @@
       <div id="shop-category-list" class="shop-category-list" aria-label="상점 카테고리"></div>
 
       <div id="shop-wallet" class="shop-wallet" aria-label="상점 보유 코인"></div>
+      <section id="shop-avatar-market" class="shop-avatar-market" aria-label="아바타 마켓"></section>
       <div class="shop-avatar-layout">
         <section id="shop-avatar-preview" class="shop-avatar-preview" aria-label="아바타 미리보기"></section>
         <div id="shop-item-grid" class="shop-item-grid" aria-label="상점 아이템 카드"></div>
@@ -1576,6 +1577,13 @@
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
+              <input id="admin-feature-avatar-market" type="checkbox">
+              <span>
+                <strong>아바타 마켓 열기</strong>
+                <small>상점 안의 임시 아바타 마켓 입구를 열고 닫습니다.</small>
+              </span>
+            </label>
+            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-external-quizzes" type="checkbox">
               <span>
                 <strong>외부 퀴즈 열기</strong>
@@ -2340,6 +2348,7 @@
       practiceRewardEnabled: true,
       practiceXpEnabled: true,
       shopEnabled: true,
+      avatarMarketEnabled: true,
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
@@ -4512,6 +4521,7 @@
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         practiceXpEnabled: data.practiceXpEnabled !== false,
         shopEnabled: data.shopEnabled !== false,
+        avatarMarketEnabled: data.avatarMarketEnabled !== false,
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
@@ -5581,6 +5591,12 @@
       );
     }
 
+    function renderAvatarMarket() {
+      return window.DJ48ShopRender.renderAvatarMarket(getActiveFeatureFlags(), {
+        isAdminMember: isCurrentAdminMember
+      });
+    }
+
     function renderAvatarPreview(items = SHOP_ITEMS, inventoryItemIds = new Set()) {
       return window.DJ48ShopRender.renderAvatarPreview(
         window.DJ48ShopData.getAvatarLayerItems(items),
@@ -5662,6 +5678,7 @@
       const { items, assetCatalogMap, economy, inventoryItemIds } = await getShopRenderData();
       renderShopTabs();
       renderShopWallet(economy);
+      renderAvatarMarket();
       renderAvatarPreview(items, inventoryItemIds);
       renderShopItems(items, assetCatalogMap, economy, inventoryItemIds);
     }
@@ -8447,6 +8464,7 @@
       }
       renderShopTabs();
       renderShopWallet();
+      renderAvatarMarket();
       renderAvatarPreview(SHOP_ITEMS, new Set());
       renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
       enterAppView({
