@@ -17,6 +17,7 @@
       classNumber: document.getElementById('admin-economy-filter-class')?.value || '',
       query: document.getElementById('admin-economy-filter-query')?.value || '',
       memberStatus: document.getElementById('admin-economy-filter-member-status')?.value || '',
+      metric: document.getElementById('admin-economy-filter-metric')?.value || 'all',
       limit: 200
     };
   }

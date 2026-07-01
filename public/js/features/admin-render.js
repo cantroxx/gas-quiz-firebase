@@ -250,14 +250,16 @@
     const root = document.getElementById('admin-student-economy-summary');
     if(!root) return;
     const data = summary || {};
+    const metric = getAdminStudentEconomyMetric();
     root.innerHTML = '';
-    [
+    const rows = [
       ['표시 학생', data.total || 0],
-      ['필터 일치', data.matchingStudents || data.total || 0],
-      ['교실 포인트 합계', formatAdminNumber(data.classroomPoint || 0, 'P')],
-      ['DJ코인 합계', formatAdminNumber(data.djCoin || 0, '개')],
-      ['레벨 경험치 합계', formatAdminNumber(data.totalXp || 0, 'XP')]
-    ].forEach(([label, value]) => {
+      ['필터 일치', data.matchingStudents || data.total || 0]
+    ];
+    if(metric === 'all' || metric === 'point') rows.push(['교실 포인트 합계', formatAdminNumber(data.classroomPoint || 0, 'P')]);
+    if(metric === 'all' || metric === 'xp') rows.push(['레벨 경험치 합계', formatAdminNumber(data.totalXp || 0, 'XP')]);
+    if(metric === 'all' || metric === 'djCoin') rows.push(['DJ코인 합계', formatAdminNumber(data.djCoin || 0, '개')]);
+    rows.forEach(([label, value]) => {
       const item = document.createElement('article');
       const strong = document.createElement('strong');
       const span = document.createElement('span');
@@ -344,6 +346,19 @@
     return suffix ? `${text}${suffix}` : text;
   }
 
+  function getAdminStudentEconomyMetric() {
+    const value = String(document.getElementById('admin-economy-filter-metric')?.value || 'all').trim();
+    return ['all', 'point', 'xp', 'djCoin'].includes(value) ? value : 'all';
+  }
+
+  function appendAdminTableCell(row, text, cellTag = 'td', className = '') {
+    const cell = document.createElement(cellTag);
+    cell.textContent = text;
+    if(className) cell.className = className;
+    row.appendChild(cell);
+    return cell;
+  }
+
   function renderAdminStudentEconomyList(students) {
     const root = document.getElementById('admin-student-economy-list');
     if(!root) return;
@@ -356,43 +371,60 @@
       root.appendChild(empty);
       return;
     }
+    const metric = getAdminStudentEconomyMetric();
+    const tableWrap = document.createElement('div');
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+    const headRow = document.createElement('tr');
+    const columns = [
+      ['studentNumber', '번호'],
+      ['name', '학생'],
+      ['classId', '교실']
+    ];
+    if(metric === 'all' || metric === 'point') columns.push(['point', '교실 포인트']);
+    if(metric === 'all' || metric === 'xp') {
+      columns.push(['level', '레벨']);
+      columns.push(['xp', '현재 경험치']);
+      columns.push(['totalXp', '누적 경험치']);
+    }
+    if(metric === 'all' || metric === 'djCoin') columns.push(['djCoin', 'DJ코인']);
+    columns.push(['status', '상태']);
+    tableWrap.className = 'admin-student-economy-table-wrap';
+    table.className = 'admin-student-economy-table';
+    columns.forEach(([, label]) => appendAdminTableCell(headRow, label, 'th'));
+    thead.appendChild(headRow);
     items.forEach(student => {
-      const card = document.createElement('article');
-      const main = document.createElement('div');
-      const title = document.createElement('h4');
-      const meta = document.createElement('p');
-      const state = document.createElement('p');
-      const metrics = document.createElement('div');
+      const row = document.createElement('tr');
       const level = student.levelSummary || {};
       const nextLevelXp = Number(level.nextLevelXp || 0);
       const xpText = nextLevelXp > 0
         ? `${formatAdminNumber(level.xp)} / ${formatAdminNumber(nextLevelXp)} XP`
         : `${formatAdminNumber(level.totalXp)} XP`;
-
-      card.className = 'admin-member-card admin-student-economy-card';
-      title.textContent = `${student.nickname || '이름 없음'} · ${student.userId}`;
-      meta.textContent = `${student.school || '동자'} ${student.grade || '-'}학년 ${student.classNumber || '-'}반 ${student.studentNumber || '-'}번`;
-      state.className = 'admin-member-state';
-      state.textContent = `${student.classId || '-'} · ${student.status || 'unknown'}${student.classroomHidden ? ' · 교실 숨김' : ''}`;
-      metrics.className = 'admin-student-economy-metrics';
-      [
-        ['교실 포인트', formatAdminNumber(student.classroomPoint, 'P')],
-        ['레벨', `Lv.${formatAdminNumber(level.level || 1)}`],
-        ['경험치', xpText],
-        ['DJ코인', formatAdminNumber(student.djCoin, '개')]
-      ].forEach(([label, value]) => {
-        const item = document.createElement('p');
-        const labelEl = document.createElement('span');
-        const valueEl = document.createElement('strong');
-        labelEl.textContent = label;
-        valueEl.textContent = value;
-        item.append(labelEl, valueEl);
-        metrics.appendChild(item);
+      const values = {
+        studentNumber: student.studentNumber ? `${student.studentNumber}번` : '-',
+        name: `${student.nickname || '이름 없음'} · ${student.userId}`,
+        classId: student.classId || '-',
+        point: formatAdminNumber(student.classroomPoint, 'P'),
+        level: `Lv.${formatAdminNumber(level.level || 1)}`,
+        xp: xpText,
+        totalXp: formatAdminNumber(level.totalXp || 0, 'XP'),
+        djCoin: formatAdminNumber(student.djCoin, '개'),
+        status: `${student.status || 'unknown'}${student.classroomHidden ? ' · 교실 숨김' : ''}`
+      };
+      columns.forEach(([key]) => {
+        const className = key === 'name'
+          ? 'admin-student-economy-table-student'
+          : ['point', 'level', 'xp', 'totalXp', 'djCoin'].includes(key)
+            ? 'admin-student-economy-table-number'
+            : '';
+        appendAdminTableCell(row, values[key] || '-', 'td', className);
       });
-      main.append(title, meta, state, metrics);
-      card.appendChild(main);
-      root.appendChild(card);
+      tbody.appendChild(row);
     });
+    table.append(thead, tbody);
+    tableWrap.appendChild(table);
+    root.appendChild(tableWrap);
   }
 
   function renderAdminMemberDetail(data) {

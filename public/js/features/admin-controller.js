@@ -15,6 +15,13 @@
       });
     });
 
+    document.getElementById('admin-economy-filter-metric')?.addEventListener('change', () => {
+      deps.loadAdminStudentEconomy?.().catch(error => {
+        console.warn('Admin student economy metric change failed.', error);
+        deps.setAdminStudentEconomyStatus?.('학생 재화 표시 방식을 바꾸지 못했습니다.', true);
+      });
+    });
+
     document.getElementById('admin-dashboard-refresh')?.addEventListener('click', () => {
       deps.loadAdminDashboard?.().catch(error => {
         console.warn('Admin dashboard refresh failed.', error);
