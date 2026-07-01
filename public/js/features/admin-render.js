@@ -351,6 +351,23 @@
     return ['all', 'point', 'xp', 'djCoin'].includes(value) ? value : 'all';
   }
 
+  function getAdminStudentEconomySortOptions() {
+    const sortMetric = String(document.getElementById('admin-economy-sort-metric')?.value || 'point').trim();
+    const sortDirection = String(document.getElementById('admin-economy-sort-direction')?.value || 'desc').trim();
+    return {
+      sortMetric: ['point', 'xp', 'djCoin', 'level'].includes(sortMetric) ? sortMetric : 'point',
+      sortDirection: sortDirection === 'asc' ? 'asc' : 'desc'
+    };
+  }
+
+  function getAdminStudentEconomySortValue(student = {}, sortMetric = 'point') {
+    const level = student.levelSummary || {};
+    if(sortMetric === 'xp') return Number(level.totalXp || 0);
+    if(sortMetric === 'djCoin') return Number(student.djCoin || 0);
+    if(sortMetric === 'level') return Number(level.level || 1);
+    return Number(student.classroomPoint || 0);
+  }
+
   function appendAdminTableCell(row, text, cellTag = 'td', className = '') {
     const cell = document.createElement(cellTag);
     cell.textContent = text;
@@ -372,12 +389,24 @@
       return;
     }
     const metric = getAdminStudentEconomyMetric();
+    const { sortMetric, sortDirection } = getAdminStudentEconomySortOptions();
+    const sortedItems = items.slice().sort((a, b) => {
+      const direction = sortDirection === 'asc' ? 1 : -1;
+      const valueDiff = getAdminStudentEconomySortValue(a, sortMetric) - getAdminStudentEconomySortValue(b, sortMetric);
+      if(valueDiff !== 0) return valueDiff * direction;
+      const classDiff = Number(a.grade || 0) - Number(b.grade || 0)
+        || Number(a.classNumber || 0) - Number(b.classNumber || 0)
+        || Number(a.studentNumber || 0) - Number(b.studentNumber || 0);
+      if(classDiff !== 0) return classDiff;
+      return String(a.userId || '').localeCompare(String(b.userId || ''));
+    });
     const tableWrap = document.createElement('div');
     const table = document.createElement('table');
     const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
     const headRow = document.createElement('tr');
     const columns = [
+      ['rank', '순위'],
       ['studentNumber', '번호'],
       ['name', '학생'],
       ['classId', '교실']
@@ -394,7 +423,7 @@
     table.className = 'admin-student-economy-table';
     columns.forEach(([, label]) => appendAdminTableCell(headRow, label, 'th'));
     thead.appendChild(headRow);
-    items.forEach(student => {
+    sortedItems.forEach((student, index) => {
       const row = document.createElement('tr');
       const level = student.levelSummary || {};
       const nextLevelXp = Number(level.nextLevelXp || 0);
@@ -402,6 +431,7 @@
         ? `${formatAdminNumber(level.xp)} / ${formatAdminNumber(nextLevelXp)} XP`
         : `${formatAdminNumber(level.totalXp)} XP`;
       const values = {
+        rank: `${index + 1}위`,
         studentNumber: student.studentNumber ? `${student.studentNumber}번` : '-',
         name: `${student.nickname || '이름 없음'} · ${student.userId}`,
         classId: student.classId || '-',
@@ -415,7 +445,7 @@
       columns.forEach(([key]) => {
         const className = key === 'name'
           ? 'admin-student-economy-table-student'
-          : ['point', 'level', 'xp', 'totalXp', 'djCoin'].includes(key)
+          : ['rank', 'point', 'level', 'xp', 'totalXp', 'djCoin'].includes(key)
             ? 'admin-student-economy-table-number'
             : '';
         appendAdminTableCell(row, values[key] || '-', 'td', className);

@@ -2696,7 +2696,7 @@ h2 {
 
 .admin-student-economy-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 820px;
   border-collapse: collapse;
 }
 
@@ -2724,6 +2724,11 @@ h2 {
 .admin-student-economy-table-student {
   min-width: 190px;
   font-weight: 900;
+}
+
+.admin-student-economy-table th:first-child,
+.admin-student-economy-table td:first-child {
+  width: 72px;
 }
 
 .admin-student-economy-table-number {

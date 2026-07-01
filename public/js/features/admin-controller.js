@@ -15,10 +15,12 @@
       });
     });
 
-    document.getElementById('admin-economy-filter-metric')?.addEventListener('change', () => {
-      deps.loadAdminStudentEconomy?.().catch(error => {
-        console.warn('Admin student economy metric change failed.', error);
-        deps.setAdminStudentEconomyStatus?.('학생 재화 표시 방식을 바꾸지 못했습니다.', true);
+    ['admin-economy-filter-metric', 'admin-economy-sort-metric', 'admin-economy-sort-direction'].forEach(elementId => {
+      document.getElementById(elementId)?.addEventListener('change', () => {
+        deps.loadAdminStudentEconomy?.().catch(error => {
+          console.warn('Admin student economy option change failed.', error);
+          deps.setAdminStudentEconomyStatus?.('학생 재화 표시 방식을 바꾸지 못했습니다.', true);
+        });
       });
     });
 
