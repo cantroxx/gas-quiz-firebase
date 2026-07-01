@@ -15,12 +15,25 @@
       });
     });
 
-    ['admin-economy-filter-metric', 'admin-economy-sort-metric', 'admin-economy-sort-direction'].forEach(elementId => {
-      document.getElementById(elementId)?.addEventListener('change', () => {
-        deps.loadAdminStudentEconomy?.().catch(error => {
-          console.warn('Admin student economy option change failed.', error);
-          deps.setAdminStudentEconomyStatus?.('학생 재화 표시 방식을 바꾸지 못했습니다.', true);
-        });
+    document.getElementById('admin-economy-filter-metric')?.addEventListener('change', () => {
+      deps.loadAdminStudentEconomy?.().catch(error => {
+        console.warn('Admin student economy metric change failed.', error);
+        deps.setAdminStudentEconomyStatus?.('학생 재화 표시 방식을 바꾸지 못했습니다.', true);
+      });
+    });
+
+    document.getElementById('admin-student-economy-list')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-admin-economy-sort-key]');
+      const root = document.getElementById('admin-student-economy-list');
+      if(!button || !root) return;
+      const nextMetric = button.dataset.adminEconomySortKey || 'point';
+      const currentMetric = root.dataset.adminEconomySortMetric || 'point';
+      const currentDirection = root.dataset.adminEconomySortDirection || 'desc';
+      root.dataset.adminEconomySortMetric = nextMetric;
+      root.dataset.adminEconomySortDirection = currentMetric === nextMetric && currentDirection === 'desc' ? 'asc' : 'desc';
+      deps.loadAdminStudentEconomy?.({ updateStatus: false }).catch(error => {
+        console.warn('Admin student economy header sort failed.', error);
+        deps.setAdminStudentEconomyStatus?.('학생 재화 순서를 바꾸지 못했습니다.', true);
       });
     });
 

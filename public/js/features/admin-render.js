@@ -352,19 +352,21 @@
   }
 
   function getAdminStudentEconomySortOptions() {
-    const sortMetric = String(document.getElementById('admin-economy-sort-metric')?.value || 'point').trim();
-    const sortDirection = String(document.getElementById('admin-economy-sort-direction')?.value || 'desc').trim();
+    const root = document.getElementById('admin-student-economy-list');
+    const sortMetric = String(root?.dataset.adminEconomySortMetric || 'point').trim();
+    const sortDirection = String(root?.dataset.adminEconomySortDirection || 'desc').trim();
     return {
-      sortMetric: ['point', 'xp', 'djCoin', 'level'].includes(sortMetric) ? sortMetric : 'point',
+      sortMetric: ['point', 'level', 'xp', 'totalXp', 'djCoin'].includes(sortMetric) ? sortMetric : 'point',
       sortDirection: sortDirection === 'asc' ? 'asc' : 'desc'
     };
   }
 
   function getAdminStudentEconomySortValue(student = {}, sortMetric = 'point') {
     const level = student.levelSummary || {};
-    if(sortMetric === 'xp') return Number(level.totalXp || 0);
-    if(sortMetric === 'djCoin') return Number(student.djCoin || 0);
     if(sortMetric === 'level') return Number(level.level || 1);
+    if(sortMetric === 'xp') return Number(level.xp || 0);
+    if(sortMetric === 'totalXp') return Number(level.totalXp || 0);
+    if(sortMetric === 'djCoin') return Number(student.djCoin || 0);
     return Number(student.classroomPoint || 0);
   }
 
@@ -372,6 +374,25 @@
     const cell = document.createElement(cellTag);
     cell.textContent = text;
     if(className) cell.className = className;
+    row.appendChild(cell);
+    return cell;
+  }
+
+  function appendAdminSortableTableHeader(row, column, sortMetric, sortDirection) {
+    const [key, label, sortKey] = column;
+    const cell = document.createElement('th');
+    if(sortKey) {
+      const button = document.createElement('button');
+      const arrow = sortMetric === sortKey ? (sortDirection === 'asc' ? '▲' : '▼') : '↕';
+      button.type = 'button';
+      button.className = 'admin-student-economy-sort-button';
+      button.dataset.adminEconomySortKey = sortKey;
+      button.setAttribute('aria-label', `${label} 기준 ${sortMetric === sortKey && sortDirection === 'desc' ? '오름차순' : '내림차순'} 정렬`);
+      button.textContent = `${label} ${arrow}`;
+      cell.appendChild(button);
+    } else {
+      cell.textContent = label;
+    }
     row.appendChild(cell);
     return cell;
   }
@@ -411,17 +432,17 @@
       ['name', '학생'],
       ['classId', '교실']
     ];
-    if(metric === 'all' || metric === 'point') columns.push(['point', '교실 포인트']);
+    if(metric === 'all' || metric === 'point') columns.push(['point', '교실 포인트', 'point']);
     if(metric === 'all' || metric === 'xp') {
-      columns.push(['level', '레벨']);
-      columns.push(['xp', '현재 경험치']);
-      columns.push(['totalXp', '누적 경험치']);
+      columns.push(['level', '레벨', 'level']);
+      columns.push(['xp', '현재 경험치', 'xp']);
+      columns.push(['totalXp', '누적 경험치', 'totalXp']);
     }
-    if(metric === 'all' || metric === 'djCoin') columns.push(['djCoin', 'DJ코인']);
+    if(metric === 'all' || metric === 'djCoin') columns.push(['djCoin', 'DJ코인', 'djCoin']);
     columns.push(['status', '상태']);
     tableWrap.className = 'admin-student-economy-table-wrap';
     table.className = 'admin-student-economy-table';
-    columns.forEach(([, label]) => appendAdminTableCell(headRow, label, 'th'));
+    columns.forEach(column => appendAdminSortableTableHeader(headRow, column, sortMetric, sortDirection));
     thead.appendChild(headRow);
     sortedItems.forEach((student, index) => {
       const row = document.createElement('tr');

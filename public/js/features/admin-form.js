@@ -18,8 +18,6 @@
       query: document.getElementById('admin-economy-filter-query')?.value || '',
       memberStatus: document.getElementById('admin-economy-filter-member-status')?.value || '',
       metric: document.getElementById('admin-economy-filter-metric')?.value || 'all',
-      sortMetric: document.getElementById('admin-economy-sort-metric')?.value || 'point',
-      sortDirection: document.getElementById('admin-economy-sort-direction')?.value || 'desc',
       limit: 200
     };
   }

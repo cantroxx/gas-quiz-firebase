@@ -2717,6 +2717,24 @@ h2 {
   font-weight: 900;
 }
 
+.admin-student-economy-sort-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 900;
+  text-align: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-student-economy-sort-button:hover,
+.admin-student-economy-sort-button:focus-visible {
+  color: #1d4ed8;
+}
+
 .admin-student-economy-table tbody tr:last-child td {
   border-bottom: 0;
 }
