@@ -5593,7 +5593,14 @@
 
     function renderAvatarMarket() {
       return window.DJ48ShopRender.renderAvatarMarket(getActiveFeatureFlags(), {
-        isAdminMember: isCurrentAdminMember
+        isAdminMember: isCurrentAdminMember,
+        loadCatalogSummary: async () => {
+          const response = await fetch('/data/maple-cosmetics-catalog.json', { cache: 'no-store' });
+          if(!response.ok) return null;
+          const data = await response.json();
+          const items = Array.isArray(data.items) ? data.items : [];
+          return { count: items.length, updatedAt: data.updatedAt || '' };
+        }
       });
     }
 

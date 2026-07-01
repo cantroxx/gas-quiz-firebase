@@ -131,6 +131,12 @@
     title.append(eyebrow, heading, desc);
     actions.append(state, link);
     root.append(title, actions);
+    deps.loadCatalogSummary?.().then(summary => {
+      if(!summary || !Number.isFinite(summary.count)) return;
+      desc.textContent = summary.count > 0
+        ? `메이플 코디 카탈로그 ${summary.count.toLocaleString('ko-KR')}개가 연결되어 있습니다.`
+        : desc.textContent;
+    }).catch(() => {});
   }
 
   function renderShopItems(items = [], assetCatalogMap = {}, economy = null, inventoryItemIds = new Set(), deps = {}) {
