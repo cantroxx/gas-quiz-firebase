@@ -34,6 +34,19 @@
     return result;
   }
 
+  async function loadAdminStudentEconomyFlow(options = {}, deps = {}) {
+    const shouldUpdateStatus = options.updateStatus !== false;
+    if(shouldUpdateStatus) deps.setStatus?.(options.loadingMessage || '학생 재화 목록을 불러오는 중입니다...');
+    const result = await deps.loadStudentEconomy(deps.getFilterValues?.() || {});
+    deps.renderSummary?.(result.summary);
+    deps.renderStudentEconomyList?.(result.students);
+    if(shouldUpdateStatus) {
+      const count = result.students?.length || 0;
+      deps.setStatus?.(options.successMessage || `교실이 배정된 학생 ${count}명의 재화 상태를 표시했습니다.`);
+    }
+    return result;
+  }
+
   async function loadAdminInitialViewFlow(options = {}, deps = {}) {
     deps.enterAdminView?.();
     deps.setActiveAdminSection?.(options.sectionId || 'dashboard');
@@ -71,6 +84,7 @@
     loadAdminDashboardFlow,
     loadAdminAuditFlow,
     loadAdminMembersFlow,
+    loadAdminStudentEconomyFlow,
     loadAdminInitialViewFlow
   };
 

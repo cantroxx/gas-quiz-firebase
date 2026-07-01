@@ -4284,6 +4284,94 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
   };
 });
 
+exports.adminListStudentEconomy = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const grade = String(payload.grade || "").trim();
+  const classNumber = String(payload.classNumber || "").trim();
+  const queryText = String(payload.query || "").trim().toLowerCase();
+  const memberStatus = String(payload.memberStatus || "").trim().toLowerCase();
+  const limit = Math.max(1, Math.min(Number(payload.limit) || 120, 200));
+
+  const snapshot = await db.collection("users").orderBy("userId").limit(1000).get();
+  let members = snapshot.docs
+    .map(doc => ({ ...publicAdminMemberRow(doc), classId: getClassIdForMember(doc.data() || {}) }))
+    .filter(member => member.role !== "admin" && member.classId);
+  if (!adminMember.isSuperAdmin) {
+    members = members.filter(member => isMemberInAdminScope(adminMember, member));
+  }
+  if (grade) {
+    members = members.filter(member => String(member.grade) === grade);
+  }
+  if (classNumber) {
+    members = members.filter(member => String(member.classNumber) === classNumber);
+  }
+  if (memberStatus === "active") {
+    members = members.filter(member => member.active && member.status === "active");
+  } else if (memberStatus === "inactive") {
+    members = members.filter(member => !member.active || member.status !== "active");
+  }
+  if (queryText) {
+    members = members.filter(member => [
+      member.userId,
+      member.school,
+      member.nickname,
+      `${member.grade}-${member.classNumber}-${member.studentNumber}`
+    ].join(" ").toLowerCase().includes(queryText));
+  }
+
+  const selectedMembers = members.slice(0, limit);
+  const walletRefs = selectedMembers.map(member =>
+    db.collection("classrooms").doc(member.classId).collection("studentWallets").doc(member.userId)
+  );
+  const levelRefs = selectedMembers.map(member => db.collection("userLevelSummary").doc(member.userId));
+  const economyRefs = selectedMembers.map(member => db.collection("userEconomy").doc(member.userId));
+  const [walletSnapshots, levelSnapshots, economySnapshots] = await Promise.all([
+    walletRefs.length ? db.getAll(...walletRefs) : [],
+    levelRefs.length ? db.getAll(...levelRefs) : [],
+    economyRefs.length ? db.getAll(...economyRefs) : []
+  ]);
+
+  const students = selectedMembers.map((member, index) => {
+    const wallet = walletSnapshots[index]?.exists ? walletSnapshots[index].data() || {} : {};
+    const levelData = levelSnapshots[index]?.exists ? levelSnapshots[index].data() || {} : {};
+    const economy = economySnapshots[index]?.exists ? economySnapshots[index].data() || {} : {};
+    const levelSummary = computeLevelSummary(levelData.totalXp ?? 0);
+    return {
+      ...member,
+      classroomPoint: getClassroomPointAmount(wallet),
+      classroomWalletUpdatedAt: wallet.updatedAt || null,
+      djCoin: Number(economy.djCoin ?? economy.coin ?? 0),
+      economyUpdatedAt: economy.updatedAt || null,
+      levelSummary: {
+        ...levelSummary,
+        level: Number(levelData.level || levelSummary.level),
+        xp: Number(levelData.xp ?? levelSummary.xp),
+        totalXp: Number(levelData.totalXp ?? levelSummary.totalXp),
+        nextLevelXp: Number(levelData.nextLevelXp ?? levelSummary.nextLevelXp),
+        updatedAt: levelData.updatedAt || null
+      }
+    };
+  });
+
+  const summary = students.reduce((acc, student) => {
+    acc.total += 1;
+    acc.classroomPoint += Number(student.classroomPoint || 0);
+    acc.djCoin += Number(student.djCoin || 0);
+    acc.totalXp += Number(student.levelSummary?.totalXp || 0);
+    return acc;
+  }, { total: 0, classroomPoint: 0, djCoin: 0, totalXp: 0 });
+  summary.matchingStudents = members.length;
+
+  return {
+    success: true,
+    adminUserId: adminMember.memberUserId,
+    summary,
+    students
+  };
+});
+
 exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);

@@ -102,6 +102,11 @@
         payload,
         errorCode: 'admin-list-failed'
       }, deps),
+      loadAdminStudentEconomy: (payload = {}) => callAdminCallable({
+        callableName: 'adminListStudentEconomy',
+        payload,
+        errorCode: 'admin-student-economy-list-failed'
+      }, deps),
       loadAdminMemberDetail: memberUserId => callAdminCallable({
         callableName: 'adminGetMemberDetail',
         payload: { memberUserId },

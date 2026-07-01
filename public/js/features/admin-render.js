@@ -246,6 +246,28 @@
     });
   }
 
+  function renderAdminStudentEconomySummary(summary) {
+    const root = document.getElementById('admin-student-economy-summary');
+    if(!root) return;
+    const data = summary || {};
+    root.innerHTML = '';
+    [
+      ['표시 학생', data.total || 0],
+      ['필터 일치', data.matchingStudents || data.total || 0],
+      ['교실 포인트 합계', formatAdminNumber(data.classroomPoint || 0, 'P')],
+      ['DJ코인 합계', formatAdminNumber(data.djCoin || 0, '개')],
+      ['레벨 경험치 합계', formatAdminNumber(data.totalXp || 0, 'XP')]
+    ].forEach(([label, value]) => {
+      const item = document.createElement('article');
+      const strong = document.createElement('strong');
+      const span = document.createElement('span');
+      strong.textContent = value;
+      span.textContent = label;
+      item.append(strong, span);
+      root.appendChild(item);
+    });
+  }
+
   function renderAdminMemberList(members) {
     const root = document.getElementById('admin-member-list');
     if(!root) return;
@@ -312,6 +334,63 @@
       actions.append(detailButton, walletButton, visibilityButton, resetButton, unlinkButton, statusButton);
       main.append(title, meta, state, passwordState);
       card.append(main, actions);
+      root.appendChild(card);
+    });
+  }
+
+  function formatAdminNumber(value, suffix = '') {
+    const number = Number(value || 0);
+    const text = Number.isFinite(number) ? number.toLocaleString('ko-KR') : '0';
+    return suffix ? `${text}${suffix}` : text;
+  }
+
+  function renderAdminStudentEconomyList(students) {
+    const root = document.getElementById('admin-student-economy-list');
+    if(!root) return;
+    root.innerHTML = '';
+    const items = students || [];
+    if(!items.length) {
+      const empty = document.createElement('p');
+      empty.className = 'admin-empty';
+      empty.textContent = '조회된 학생 재화가 없습니다.';
+      root.appendChild(empty);
+      return;
+    }
+    items.forEach(student => {
+      const card = document.createElement('article');
+      const main = document.createElement('div');
+      const title = document.createElement('h4');
+      const meta = document.createElement('p');
+      const state = document.createElement('p');
+      const metrics = document.createElement('div');
+      const level = student.levelSummary || {};
+      const nextLevelXp = Number(level.nextLevelXp || 0);
+      const xpText = nextLevelXp > 0
+        ? `${formatAdminNumber(level.xp)} / ${formatAdminNumber(nextLevelXp)} XP`
+        : `${formatAdminNumber(level.totalXp)} XP`;
+
+      card.className = 'admin-member-card admin-student-economy-card';
+      title.textContent = `${student.nickname || '이름 없음'} · ${student.userId}`;
+      meta.textContent = `${student.school || '동자'} ${student.grade || '-'}학년 ${student.classNumber || '-'}반 ${student.studentNumber || '-'}번`;
+      state.className = 'admin-member-state';
+      state.textContent = `${student.classId || '-'} · ${student.status || 'unknown'}${student.classroomHidden ? ' · 교실 숨김' : ''}`;
+      metrics.className = 'admin-student-economy-metrics';
+      [
+        ['교실 포인트', formatAdminNumber(student.classroomPoint, 'P')],
+        ['레벨', `Lv.${formatAdminNumber(level.level || 1)}`],
+        ['경험치', xpText],
+        ['DJ코인', formatAdminNumber(student.djCoin, '개')]
+      ].forEach(([label, value]) => {
+        const item = document.createElement('p');
+        const labelEl = document.createElement('span');
+        const valueEl = document.createElement('strong');
+        labelEl.textContent = label;
+        valueEl.textContent = value;
+        item.append(labelEl, valueEl);
+        metrics.appendChild(item);
+      });
+      main.append(title, meta, state, metrics);
+      card.appendChild(main);
       root.appendChild(card);
     });
   }
@@ -579,7 +658,9 @@
     renderAdminOperationalAudit,
     renderAdminQuizQualityAudit,
     renderAdminSummary,
+    renderAdminStudentEconomySummary,
     renderAdminMemberList,
+    renderAdminStudentEconomyList,
     renderAdminMemberDetail,
     renderAdminExternalQuizRows,
     renderAdminSeasonEventRows,

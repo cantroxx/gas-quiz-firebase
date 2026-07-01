@@ -11,6 +11,16 @@
     };
   }
 
+  function getAdminStudentEconomyFilterValues() {
+    return {
+      grade: document.getElementById('admin-economy-filter-grade')?.value || '',
+      classNumber: document.getElementById('admin-economy-filter-class')?.value || '',
+      query: document.getElementById('admin-economy-filter-query')?.value || '',
+      memberStatus: document.getElementById('admin-economy-filter-member-status')?.value || '',
+      limit: 200
+    };
+  }
+
   function normalizeAdminWalletCurrency(value) {
     const text = String(value || '').trim().toLowerCase();
     if(['coin', 'coins', 'dj', 'djcoin', 'djcoins', 'dj코인', '코인'].includes(text)) return 'djCoin';
@@ -283,6 +293,7 @@
 
   window.DJ48AdminForm = {
     getAdminFilterValues,
+    getAdminStudentEconomyFilterValues,
     normalizeAdminWalletCurrency,
     getAdminWalletCurrencyLabel,
     getAdminPermissionFormValues,

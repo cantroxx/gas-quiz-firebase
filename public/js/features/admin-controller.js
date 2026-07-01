@@ -8,6 +8,13 @@
       });
     });
 
+    document.getElementById('admin-student-economy-refresh')?.addEventListener('click', () => {
+      deps.loadAdminStudentEconomy?.().catch(error => {
+        console.warn('Admin student economy refresh failed.', error);
+        deps.setAdminStudentEconomyStatus?.('학생 재화 목록을 다시 불러오지 못했습니다.', true);
+      });
+    });
+
     document.getElementById('admin-dashboard-refresh')?.addEventListener('click', () => {
       deps.loadAdminDashboard?.().catch(error => {
         console.warn('Admin dashboard refresh failed.', error);

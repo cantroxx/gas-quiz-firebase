@@ -1242,6 +1242,7 @@
         <button class="admin-section-tab" type="button" data-admin-section-target="audit" data-super-admin-only>운영 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="quiz-quality" data-super-admin-only>문제 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="student-economy">학생 재화</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="season-events" data-super-admin-only>시즌 이벤트</button>
@@ -1382,6 +1383,44 @@
           </div>
           <div id="admin-summary" class="admin-summary"></div>
           <div id="admin-member-list" class="admin-member-list"></div>
+        </div>
+      </section>
+
+      <section id="admin-section-student-economy" class="admin-section" aria-labelledby="admin-student-economy-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="student-economy" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Economy</span>
+            <strong id="admin-student-economy-heading">학생 재화</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-toolbar">
+            <label>
+              학년
+              <input id="admin-economy-filter-grade" type="number" min="1" max="9" inputmode="numeric" placeholder="전체">
+            </label>
+            <label>
+              반
+              <input id="admin-economy-filter-class" type="number" min="1" inputmode="numeric" placeholder="전체">
+            </label>
+            <label>
+              검색
+              <input id="admin-economy-filter-query" type="text" placeholder="닉네임, userId">
+            </label>
+            <label>
+              회원 상태
+              <select id="admin-economy-filter-member-status">
+                <option value="">전체</option>
+                <option value="active">활성 학생</option>
+                <option value="inactive">비활성</option>
+              </select>
+            </label>
+            <button id="admin-student-economy-refresh" class="button primary" type="button">조회</button>
+          </div>
+          <p id="admin-student-economy-status" class="admin-status" aria-live="polite"></p>
+          <div id="admin-student-economy-summary" class="admin-summary"></div>
+          <div id="admin-student-economy-list" class="admin-member-list"></div>
         </div>
       </section>
 
@@ -6920,6 +6959,11 @@
           const status = document.getElementById('admin-classroom-status');
           if(status) status.textContent = '우리 교실 확인 대기 목록을 불러오지 못했습니다.';
         });
+      } else if(targetName === 'student-economy') {
+        loadAdminStudentEconomy().catch(error => {
+          console.warn('Admin student economy load failed.', error);
+          setAdminStudentEconomyStatus('학생 재화 목록을 불러오지 못했습니다.', true);
+        });
       }
     }
 
@@ -7103,6 +7147,32 @@
 
     function renderAdminMemberList(members) {
       return window.DJ48AdminRender.renderAdminMemberList(members);
+    }
+
+    function getAdminStudentEconomyFilterValues() {
+      return window.DJ48AdminForm.getAdminStudentEconomyFilterValues();
+    }
+
+    function setAdminStudentEconomyStatus(message, isError = false) {
+      return window.DJ48AdminForm.setAdminStatusElement('admin-student-economy-status', message, isError);
+    }
+
+    function renderAdminStudentEconomySummary(summary) {
+      return window.DJ48AdminRender.renderAdminStudentEconomySummary(summary);
+    }
+
+    function renderAdminStudentEconomyList(students) {
+      return window.DJ48AdminRender.renderAdminStudentEconomyList(students);
+    }
+
+    async function loadAdminStudentEconomy(options = {}) {
+      return window.DJ48AdminUsecases.loadAdminStudentEconomyFlow(options, {
+        setStatus: setAdminStudentEconomyStatus,
+        getFilterValues: getAdminStudentEconomyFilterValues,
+        loadStudentEconomy: filters => getAdminRepository().loadAdminStudentEconomy(filters),
+        renderSummary: renderAdminStudentEconomySummary,
+        renderStudentEconomyList: renderAdminStudentEconomyList
+      });
     }
 
     async function loadAdminMembers(options = {}) {
@@ -8596,6 +8666,8 @@
         hideAdminTemporaryPassword,
         loadAdminMembers,
         setAdminStatus,
+        loadAdminStudentEconomy,
+        setAdminStudentEconomyStatus,
         loadAdminDashboard,
         setAdminDashboardStatus,
         loadAdminOperationalAudit,
