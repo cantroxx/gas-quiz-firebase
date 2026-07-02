@@ -62,7 +62,8 @@ async function runPublicShellCheck(page, config) {
   await page.locator('#member-link-number').waitFor({ state: 'visible' });
   await page.locator('#member-link-password').waitFor({ state: 'visible' });
   const globals = await page.evaluate(() => {
-    const hasScript = src => !!document.querySelector(`script[src="${src}"]`);
+    const hasAppBundle = !!document.querySelector('script[src="/js/app.bundle.js"]');
+    const hasScript = src => hasAppBundle || !!document.querySelector(`script[src="${src}"]`);
     return {
       format: !!window.DJ48Format,
       firebase: !!window.DJ48Firebase,
