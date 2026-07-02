@@ -52,6 +52,15 @@
             "value": "public, max-age=300, stale-while-revalidate=3600"
           }
         ]
+      },
+      {
+        "source": "**/*.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
       }
     ]
   }
