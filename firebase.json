@@ -62,6 +62,22 @@
           }
         ]
       }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/maple/official-look",
+        "function": {
+          "functionId": "getMapleOfficialLook",
+          "region": "asia-northeast3"
+        }
+      },
+      {
+        "source": "/api/maple/official-coordi-look",
+        "function": {
+          "functionId": "getMapleOfficialCoordiLook",
+          "region": "asia-northeast3"
+        }
+      }
     ]
   }
 }

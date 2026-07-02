@@ -1,7 +1,7 @@
 "use strict";
 
 const crypto = require("crypto");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
@@ -397,6 +397,262 @@ const DEFAULT_CLASSROOM_GEMS = [
   }
 ];
 const db = getFirestore();
+
+const MAPLE_OFFICIAL_HASH_PATTERN = /^[A-Z]{40,1400}$/;
+const MAPLE_OFFICIAL_LOOK_ALLOWED_HOSTS = new Set([
+  "open.api.nexon.com",
+  "avatar.maplestory.nexon.com"
+]);
+const MEAEGI_DRESSING_ROOM_ACTION_ID = "4069ff34107456810c8d27dd832da130c0f2c06e12";
+const MEAEGI_DRESSING_ROOM_ACTION_URL = "https://meaegi.com/dressing-room";
+const MEAEGI_DRESSING_ROOM_ROUTER_STATE = "%5B%22%22%2C%7B%22children%22%3A%5B%22dressing-room%22%2C%7B%22children%22%3A%5B%22__PAGE__%22%2C%7B%7D%2Cnull%2Cnull%5D%7D%2Cnull%2Cnull%5D%7D%2Cnull%2Cnull%2Ctrue%5D";
+const MAPLE_COORDI_SLOT_KEYS = [
+  "skin",
+  "face",
+  "hair",
+  "cap",
+  "faceDeco",
+  "eyeDeco",
+  "earring",
+  "dress",
+  "pants",
+  "shoes",
+  "glove",
+  "subWeapon",
+  "cape",
+  "weapon"
+];
+
+function sendJsonResponse(response, statusCode, payload, cacheControl = "no-store") {
+  response
+    .status(statusCode)
+    .set("Cache-Control", cacheControl)
+    .set("Content-Type", "application/json; charset=utf-8")
+    .send(JSON.stringify(payload));
+}
+
+function normalizeMapleOfficialHash(value) {
+  const normalized = String(value || "").trim().replace(/\.png$/i, "").toUpperCase();
+  return MAPLE_OFFICIAL_HASH_PATTERN.test(normalized) ? normalized : "";
+}
+
+function extractMapleOfficialHash(input) {
+  const value = String(input || "").trim();
+  if (!value) return "";
+  const rawHash = normalizeMapleOfficialHash(value);
+  if (rawHash) return rawHash;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:" || !MAPLE_OFFICIAL_LOOK_ALLOWED_HOSTS.has(parsed.hostname)) return "";
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1] || "";
+    return normalizeMapleOfficialHash(lastSegment);
+  } catch(error) {
+    return "";
+  }
+}
+
+function clampInteger(value, fallback, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(min, Math.min(Math.round(number), max));
+}
+
+function buildMapleOfficialLookPayload(hash, query = {}) {
+  const width = clampInteger(query.width, 220, 96, 1000);
+  const height = clampInteger(query.height, 180, 96, 1000);
+  const x = clampInteger(query.x, Math.round(width / 2), 0, width);
+  const y = clampInteger(query.y, Math.round(height / 2 + 50), 0, height + 200);
+  const params = new URLSearchParams({
+    width: String(width),
+    height: String(height),
+    x: String(x),
+    y: String(y)
+  });
+  const lookUrl = `https://open.api.nexon.com/static/maplestory/character/look/${hash}?${params.toString()}`;
+  const character180Url = `https://avatar.maplestory.nexon.com/Character/180/${hash}.png`;
+  return {
+    success: true,
+    renderer: "nexon-official-look",
+    hash,
+    imageUrl: character180Url,
+    urls: {
+      look: lookUrl,
+      character96: `https://avatar.maplestory.nexon.com/Character/${hash}.png`,
+      character180: character180Url
+    },
+    size: { width, height, x, y }
+  };
+}
+
+function stableStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableStringify(entry)).join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => (
+      `${JSON.stringify(key)}:${stableStringify(value[key])}`
+    )).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function clampMapleFlag(value, fallback = 1) {
+  const number = Number(value);
+  return number === 0 || number === 1 ? number : fallback;
+}
+
+function clampMapleCode(value) {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number <= 0 || number > 99999999) return null;
+  return number;
+}
+
+function normalizeMapleOfficialCoordiPayload(input = {}) {
+  const itemCode = {};
+  const sourceItemCode = input.itemCode && typeof input.itemCode === "object" ? input.itemCode : {};
+  MAPLE_COORDI_SLOT_KEYS.forEach((slot) => {
+    const code = clampMapleCode(sourceItemCode[slot]);
+    if (code) itemCode[slot] = code;
+  });
+  if (!itemCode.skin || !itemCode.face || !itemCode.hair) return null;
+  return {
+    gender: Number(input.gender) === 0 ? 0 : 1,
+    earType: clampInteger(input.earType, 0, 0, 3),
+    weaponMotion: clampInteger(input.weaponMotion, 0, 0, 4),
+    variation: clampInteger(input.variation, 0, 0, 20),
+    variationType: clampInteger(input.variationType, 0, 0, 20),
+    weaponBaseEffect: clampMapleFlag(input.weaponBaseEffect),
+    weaponJumpEffect: clampMapleFlag(input.weaponJumpEffect),
+    weaponSpecialEffect: clampMapleFlag(input.weaponSpecialEffect),
+    capeEffect: clampMapleFlag(input.capeEffect),
+    hideWeaponOnSkill: clampMapleFlag(input.hideWeaponOnSkill),
+    capEffect: clampMapleFlag(input.capEffect),
+    floatEffect: clampMapleFlag(input.floatEffect),
+    itemCode,
+    itemPrism: input.itemPrism && typeof input.itemPrism === "object" ? input.itemPrism : {}
+  };
+}
+
+function extractMapleOfficialHashFromRsc(text) {
+  const match = String(text || "").match(/T[0-9a-fA-F]+,([A-Z]{40,1400})/);
+  return normalizeMapleOfficialHash(match && match[1]);
+}
+
+async function requestMeaegiOfficialCoordiHash(payload) {
+  const response = await fetch(MEAEGI_DRESSING_ROOM_ACTION_URL, {
+    method: "POST",
+    headers: {
+      "accept": "text/x-component",
+      "content-type": "text/plain;charset=UTF-8",
+      "next-action": MEAEGI_DRESSING_ROOM_ACTION_ID,
+      "next-router-state-tree": MEAEGI_DRESSING_ROOM_ROUTER_STATE,
+      "origin": "https://meaegi.com",
+      "referer": "https://meaegi.com/dressing-room"
+    },
+    body: JSON.stringify([payload])
+  });
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`meaegi-action-${response.status}`);
+  }
+  const hash = extractMapleOfficialHashFromRsc(text);
+  if (!hash) {
+    throw new Error("meaegi-action-missing-hash");
+  }
+  return hash;
+}
+
+exports.getMapleOfficialLook = onRequest({ region: REGION }, async (request, response) => {
+  if (request.method !== "GET" && request.method !== "POST") {
+    response.set("Allow", "GET, POST");
+    sendJsonResponse(response, 405, { success: false, error: "method-not-allowed" });
+    return;
+  }
+  const input = request.method === "POST"
+    ? request.body?.hash || request.body?.url || request.body?.src || request.body?.input
+    : request.query.hash || request.query.url || request.query.src || request.query.input;
+  const hash = extractMapleOfficialHash(input);
+  if (!hash) {
+    sendJsonResponse(response, 400, {
+      success: false,
+      error: "invalid-maple-official-look",
+      message: "Expected a MapleStory official character image hash or official character image URL."
+    });
+    return;
+  }
+  const payload = buildMapleOfficialLookPayload(hash, request.method === "POST" ? request.body || {} : request.query || {});
+  try {
+    if (process.env.FUNCTIONS_EMULATOR === "true") {
+      sendJsonResponse(response, 200, payload, "public, max-age=300, stale-while-revalidate=3600");
+      return;
+    }
+    await db.collection("mapleOfficialLookCache").doc(hash).set({
+      hash,
+      imageUrl: payload.imageUrl,
+      urls: payload.urls,
+      size: payload.size,
+      updatedAt: FieldValue.serverTimestamp(),
+      source: "getMapleOfficialLook"
+    }, { merge: true });
+  } catch(error) {
+    console.error("Maple official look cache write failed", error);
+  }
+  sendJsonResponse(response, 200, payload, "public, max-age=300, stale-while-revalidate=3600");
+});
+
+exports.getMapleOfficialCoordiLook = onRequest({ region: REGION, timeoutSeconds: 20 }, async (request, response) => {
+  if (request.method !== "POST") {
+    response.set("Allow", "POST");
+    sendJsonResponse(response, 405, { success: false, error: "method-not-allowed" });
+    return;
+  }
+  const coordiPayload = normalizeMapleOfficialCoordiPayload(request.body || {});
+  if (!coordiPayload) {
+    sendJsonResponse(response, 400, {
+      success: false,
+      error: "invalid-maple-coordi-payload",
+      message: "Expected gender and itemCode with skin, face, and hair Maple item codes."
+    });
+    return;
+  }
+  const cacheKey = crypto.createHash("sha256").update(stableStringify(coordiPayload)).digest("hex");
+  try {
+    if (process.env.FUNCTIONS_EMULATOR !== "true") {
+      const cacheDoc = await db.collection("mapleOfficialCoordiLookCache").doc(cacheKey).get();
+      const cached = cacheDoc.exists ? cacheDoc.data() : null;
+      if (cached && cached.hash) {
+        sendJsonResponse(
+          response,
+          200,
+          { ...buildMapleOfficialLookPayload(cached.hash, request.body || {}), cache: "hit" },
+          "public, max-age=300, stale-while-revalidate=3600"
+        );
+        return;
+      }
+    }
+    const hash = await requestMeaegiOfficialCoordiHash(coordiPayload);
+    const payload = { ...buildMapleOfficialLookPayload(hash, request.body || {}), cache: "miss" };
+    if (process.env.FUNCTIONS_EMULATOR !== "true") {
+      await db.collection("mapleOfficialCoordiLookCache").doc(cacheKey).set({
+        hash,
+        itemCode: coordiPayload.itemCode,
+        itemPrism: coordiPayload.itemPrism,
+        payloadHash: cacheKey,
+        updatedAt: FieldValue.serverTimestamp(),
+        source: "meaegi-getAvatarHashByCoordiPreset"
+      }, { merge: true });
+    }
+    sendJsonResponse(response, 200, payload, "public, max-age=300, stale-while-revalidate=3600");
+  } catch(error) {
+    console.error("Maple official coordi look failed", error);
+    sendJsonResponse(response, 502, {
+      success: false,
+      error: "maple-official-coordi-look-failed",
+      message: "Failed to generate official MapleStory coordi render hash."
+    });
+  }
+});
 
 const DEFAULT_CLASSROOM_MISSION = {
   missionId: "current",
