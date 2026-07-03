@@ -241,7 +241,6 @@
     document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
     document.getElementById('admin-feature-practice-xp').checked = data.practiceXpEnabled;
     document.getElementById('admin-feature-shop').checked = data.shopEnabled;
-    document.getElementById('admin-feature-avatar-market').checked = data.avatarMarketEnabled;
     document.getElementById('admin-feature-external-quizzes').checked = data.externalQuizzesEnabled;
     document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
     document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
@@ -280,7 +279,6 @@
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
       practiceXpEnabled: document.getElementById('admin-feature-practice-xp')?.checked === true,
       shopEnabled: document.getElementById('admin-feature-shop')?.checked === true,
-      avatarMarketEnabled: document.getElementById('admin-feature-avatar-market')?.checked === true,
       externalQuizzesEnabled: document.getElementById('admin-feature-external-quizzes')?.checked === true,
       eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
       rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,

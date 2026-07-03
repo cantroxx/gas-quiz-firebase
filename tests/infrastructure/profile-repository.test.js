@@ -32,6 +32,17 @@ const db = {
     })
   })
 };
+const callableCalls = [];
+const functions = {
+  httpsCallable: name => payload => {
+    callableCalls.push(['callable', name, payload]);
+    return Promise.resolve({
+      data: {
+        awardedTitles: [{ titleId: 'title-2', titleName: '새 칭호' }]
+      }
+    });
+  }
+};
 globalThis.DJ48AccountDomain = {
   normalizeRankingMessageInput: value => String(value || '').trim().replace(/\s+/g, ' ').slice(0, 24)
 };
@@ -41,6 +52,10 @@ const { createProfileRepository } = require('../../public/js/infrastructure/prof
 async function testProfileRepositoryWritesProfileData() {
   const repository = createProfileRepository({
     getFirestoreFieldValue: () => ({ serverTimestamp: () => serverTimestamp })
+  });
+  const callableRepository = createProfileRepository({
+    getFirestoreFieldValue: () => ({ serverTimestamp: () => serverTimestamp }),
+    getFirebaseFunctions: () => functions
   });
   const storage = {
     ref: path => {
@@ -120,6 +135,9 @@ async function testProfileRepositoryWritesProfileData() {
     () => repository.saveSelectedTitleForMember({ db, memberUserId: 'member-1', titleId: 'missing-title' }),
     /title-not-owned/
   );
+  assert.deepEqual(await callableRepository.syncMemberTitlesForMember({ memberUserId: 'member-1' }), {
+    awardedTitles: [{ titleId: 'title-2', titleName: '새 칭호' }]
+  });
   const uploadPath = calls.find(call => call[0] === 'storage-ref')?.[1] || '';
   assert.match(uploadPath, /^profileImages\/auth-1\/member-1_\d+\.png$/);
   assert.deepEqual(calls, [
@@ -154,6 +172,9 @@ async function testProfileRepositoryWritesProfileData() {
     ['get', 'userTitles', 'member-1', 'titles', 'title-1'],
     ['set', 'users', 'member-1', { selectedTitleId: 'title-1', updatedAt: serverTimestamp }, { merge: true }],
     ['get', 'userTitles', 'member-1', 'titles', 'missing-title']
+  ]);
+  assert.deepEqual(callableCalls, [
+    ['callable', 'syncMemberTitles', { memberUserId: 'member-1' }]
   ]);
 }
 

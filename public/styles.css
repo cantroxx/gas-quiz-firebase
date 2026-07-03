@@ -2926,6 +2926,15 @@ h2 {
   color: #245b87;
 }
 
+.profile-dressing-room-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background: #f3ecff;
+  color: #5b3b87;
+}
+
 .profile-school {
   margin: 6px 0 0;
   color: var(--muted);
@@ -4732,70 +4741,6 @@ h2 {
   font-weight: 900;
   line-height: 1.45;
   word-break: keep-all;
-}
-
-.shop-avatar-market {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  padding: 16px;
-  border: 1px solid rgba(95, 82, 186, 0.18);
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(241, 239, 255, 0.9));
-  box-shadow: 0 12px 22px rgba(95, 82, 186, 0.09);
-}
-
-.shop-avatar-market-title {
-  display: grid;
-  gap: 4px;
-  min-width: 220px;
-}
-
-.shop-avatar-market-title strong {
-  color: #403783;
-  font-size: 1.08rem;
-  font-weight: 950;
-}
-
-.shop-avatar-market-title span {
-  color: var(--muted);
-  font-size: 0.88rem;
-  font-weight: 850;
-  line-height: 1.45;
-  word-break: keep-all;
-}
-
-.shop-avatar-market-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.shop-avatar-market-state {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.16);
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 950;
-}
-
-.shop-avatar-market-state.is-open {
-  background: rgba(47, 125, 68, 0.12);
-  color: var(--green-dark);
-}
-
-.shop-avatar-market-state.is-closed {
-  background: rgba(190, 76, 76, 0.12);
-  color: #9a3b3b;
 }
 
 .shop-item-grid {

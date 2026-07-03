@@ -47,6 +47,7 @@
   function renderAvatarPreview(items = [], assetCatalogMap = {}, avatarEquipment = {}, inventoryItemIds = new Set(), deps = {}) {
     const root = document.getElementById('shop-avatar-preview');
     if(!root) return;
+    root.hidden = false;
     const layerItems = items.filter(item => item.avatarLayer === true);
     const equippedItems = layerItems.filter(item => isAvatarItemEquipped(item, avatarEquipment));
 
@@ -97,50 +98,13 @@
   function renderAvatarMarket(featureFlags = {}, deps = {}) {
     const root = document.getElementById('shop-avatar-market');
     if(!root) return;
-    const isEnabled = featureFlags.avatarMarketEnabled !== false;
-    const isAdmin = deps.isAdminMember?.() === true;
     root.innerHTML = '';
-    root.hidden = !isEnabled && !isAdmin;
-    if(root.hidden) return;
-
-    const title = document.createElement('div');
-    const actions = document.createElement('div');
-    const eyebrow = document.createElement('p');
-    const heading = document.createElement('strong');
-    const desc = document.createElement('span');
-    const link = document.createElement('a');
-    const state = document.createElement('span');
-
-    title.className = 'shop-avatar-market-title';
-    actions.className = 'shop-avatar-market-actions';
-    eyebrow.className = 'eyebrow';
-    state.className = `shop-avatar-market-state${isEnabled ? ' is-open' : ' is-closed'}`;
-    link.className = 'button secondary';
-    link.href = '/prototypes/dressing-room/';
-    link.target = '_blank';
-    link.rel = 'noopener';
-
-    eyebrow.textContent = 'Avatar Market';
-    heading.textContent = '아바타 마켓';
-    desc.textContent = isEnabled
-      ? '넥슨 코디 카탈로그 연동 전까지 임시 드레스룸에서 착용 흐름을 확인합니다.'
-      : '관리자 설정에서 닫혀 있어 학생 화면에는 숨겨집니다.';
-    state.textContent = isEnabled ? '열림' : '닫힘';
-    link.textContent = '임시 드레스룸 열기';
-
-    title.append(eyebrow, heading, desc);
-    actions.append(state, link);
-    root.append(title, actions);
-    deps.loadCatalogSummary?.().then(summary => {
-      if(!summary || !Number.isFinite(summary.count)) return;
-      desc.textContent = summary.count > 0
-        ? `메이플 코디 카탈로그 ${summary.count.toLocaleString('ko-KR')}개가 연결되어 있습니다.`
-        : desc.textContent;
-    }).catch(() => {});
+    root.hidden = true;
   }
 
   function renderShopItems(items = [], assetCatalogMap = {}, economy = null, inventoryItemIds = new Set(), deps = {}) {
     const grid = document.getElementById('shop-item-grid');
+    grid.hidden = false;
     grid.innerHTML = '';
     const avatarEquipment = deps.getAvatarEquipment?.() || {};
     items.forEach(item => {

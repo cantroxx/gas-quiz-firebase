@@ -178,6 +178,16 @@
     });
   }
 
+  async function syncMemberTitlesForMember(options = {}, deps = {}) {
+    const memberUserId = String(options.memberUserId || '').trim();
+    if(!memberUserId) throw new Error('member-required');
+    const functions = deps.getFirebaseFunctions?.();
+    if(!functions?.httpsCallable) throw new Error('functions-unavailable');
+    const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
+    const response = await syncMemberTitles({ memberUserId });
+    return response?.data || {};
+  }
+
   function createProfileRepository(deps = {}) {
     const firestoreDeps = {
       getFirestoreFieldValue: deps.getFirestoreFieldValue,
@@ -187,7 +197,8 @@
       searchProfileImageCandidates,
       saveProfileImageEditorSelection: options => saveProfileImageEditorSelection(options, firestoreDeps),
       saveRankingMessageForMember: options => saveRankingMessageForMember(options, firestoreDeps),
-      saveSelectedTitleForMember: options => saveSelectedTitleForMember(options, firestoreDeps)
+      saveSelectedTitleForMember: options => saveSelectedTitleForMember(options, firestoreDeps),
+      syncMemberTitlesForMember: options => syncMemberTitlesForMember(options, firestoreDeps)
     };
   }
 

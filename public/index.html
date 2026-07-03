@@ -1577,13 +1577,6 @@
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
-              <input id="admin-feature-avatar-market" type="checkbox">
-              <span>
-                <strong>아바타 마켓 열기</strong>
-                <small>상점 안의 임시 아바타 마켓 입구를 열고 닫습니다.</small>
-              </span>
-            </label>
-            <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-external-quizzes" type="checkbox">
               <span>
                 <strong>외부 퀴즈 열기</strong>
@@ -2281,7 +2274,6 @@
       practiceRewardEnabled: true,
       practiceXpEnabled: true,
       shopEnabled: true,
-      avatarMarketEnabled: true,
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
@@ -3686,11 +3678,7 @@
       }
       if(status) status.textContent = '받을 수 있는 칭호를 확인하고 있습니다.';
       try {
-        const functions = getFirebaseFunctions();
-        if(!functions?.httpsCallable) throw new Error('functions-unavailable');
-        const syncMemberTitles = functions.httpsCallable('syncMemberTitles');
-        const response = await syncMemberTitles({ memberUserId });
-        const result = response?.data || {};
+        const result = await getProfileRepository().syncMemberTitlesForMember({ memberUserId });
         await renderHomeMemberDataFromFirestore();
         const awardedTitles = Array.isArray(result.awardedTitles) ? result.awardedTitles : [];
         if(status) {
@@ -4454,7 +4442,6 @@
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         practiceXpEnabled: data.practiceXpEnabled !== false,
         shopEnabled: data.shopEnabled !== false,
-        avatarMarketEnabled: data.avatarMarketEnabled !== false,
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
@@ -5526,14 +5513,7 @@
 
     function renderAvatarMarket() {
       return window.DJ48ShopRender.renderAvatarMarket(getActiveFeatureFlags(), {
-        isAdminMember: isCurrentAdminMember,
-        loadCatalogSummary: async () => {
-          const response = await fetch('/data/maple-cosmetics-catalog.json');
-          if(!response.ok) return null;
-          const data = await response.json();
-          const items = Array.isArray(data.items) ? data.items : [];
-          return { count: items.length, updatedAt: data.updatedAt || '' };
-        }
+        isAdminMember: isCurrentAdminMember
       });
     }
 
