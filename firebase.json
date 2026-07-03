@@ -65,6 +65,13 @@
     ],
     "rewrites": [
       {
+        "source": "/api/maple/official-image",
+        "function": {
+          "functionId": "getMapleOfficialImage",
+          "region": "asia-northeast3"
+        }
+      },
+      {
         "source": "/api/maple/official-look",
         "function": {
           "functionId": "getMapleOfficialLook",

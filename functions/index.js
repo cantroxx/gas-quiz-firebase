@@ -403,6 +403,7 @@ const MAPLE_OFFICIAL_LOOK_ALLOWED_HOSTS = new Set([
   "open.api.nexon.com",
   "avatar.maplestory.nexon.com"
 ]);
+const MAPLE_OFFICIAL_IMAGE_CACHE_CONTROL = "public, max-age=86400, stale-while-revalidate=604800";
 const MEAEGI_DRESSING_ROOM_ACTION_ID = "4069ff34107456810c8d27dd832da130c0f2c06e12";
 const MEAEGI_DRESSING_ROOM_ACTION_URL = "https://meaegi.com/dressing-room";
 const MEAEGI_DRESSING_ROOM_ROUTER_STATE = "%5B%22%22%2C%7B%22children%22%3A%5B%22dressing-room%22%2C%7B%22children%22%3A%5B%22__PAGE__%22%2C%7B%7D%2Cnull%2Cnull%5D%7D%2Cnull%2Cnull%5D%7D%2Cnull%2Cnull%2Ctrue%5D";
@@ -458,6 +459,23 @@ function clampInteger(value, fallback, min, max) {
   return Math.max(min, Math.min(Math.round(number), max));
 }
 
+function normalizeMapleOfficialImageSize(value) {
+  return String(value || "180") === "96" ? "96" : "180";
+}
+
+function buildMapleOfficialImageUrl(hash, size = "180") {
+  const imageSize = normalizeMapleOfficialImageSize(size);
+  return imageSize === "96"
+    ? `https://avatar.maplestory.nexon.com/Character/${hash}.png`
+    : `https://avatar.maplestory.nexon.com/Character/180/${hash}.png`;
+}
+
+function buildMapleOfficialImageProxyUrl(hash, query = {}) {
+  const imageSize = normalizeMapleOfficialImageSize(query.imageSize || query.size || "180");
+  const params = new URLSearchParams({ hash, size: imageSize });
+  return `/api/maple/official-image?${params.toString()}`;
+}
+
 function buildMapleOfficialLookPayload(hash, query = {}) {
   const width = clampInteger(query.width, 220, 96, 1000);
   const height = clampInteger(query.height, 180, 96, 1000);
@@ -470,16 +488,19 @@ function buildMapleOfficialLookPayload(hash, query = {}) {
     y: String(y)
   });
   const lookUrl = `https://open.api.nexon.com/static/maplestory/character/look/${hash}?${params.toString()}`;
-  const character180Url = `https://avatar.maplestory.nexon.com/Character/180/${hash}.png`;
+  const character96Url = buildMapleOfficialImageUrl(hash, "96");
+  const character180Url = buildMapleOfficialImageUrl(hash, "180");
+  const proxyImageUrl = buildMapleOfficialImageProxyUrl(hash, query);
   return {
     success: true,
     renderer: "nexon-official-look",
     hash,
-    imageUrl: character180Url,
+    imageUrl: proxyImageUrl,
     urls: {
       look: lookUrl,
-      character96: `https://avatar.maplestory.nexon.com/Character/${hash}.png`,
-      character180: character180Url
+      character96: character96Url,
+      character180: character180Url,
+      proxyImage: proxyImageUrl
     },
     size: { width, height, x, y }
   };
@@ -599,6 +620,63 @@ exports.getMapleOfficialLook = onRequest({ region: REGION }, async (request, res
     console.error("Maple official look cache write failed", error);
   }
   sendJsonResponse(response, 200, payload, "public, max-age=300, stale-while-revalidate=3600");
+});
+
+exports.getMapleOfficialImage = onRequest({ region: REGION, timeoutSeconds: 20 }, async (request, response) => {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    response.set("Allow", "GET, HEAD");
+    sendJsonResponse(response, 405, { success: false, error: "method-not-allowed" });
+    return;
+  }
+  const input = request.query.hash || request.query.url || request.query.src || request.query.input;
+  const hash = extractMapleOfficialHash(input);
+  if (!hash) {
+    sendJsonResponse(response, 400, {
+      success: false,
+      error: "invalid-maple-official-image",
+      message: "Expected a MapleStory official character image hash or official character image URL."
+    });
+    return;
+  }
+  const imageSize = normalizeMapleOfficialImageSize(request.query.size);
+  const sourceUrl = buildMapleOfficialImageUrl(hash, imageSize);
+  try {
+    const upstream = await fetch(sourceUrl, {
+      headers: {
+        "accept": "image/png,image/*;q=0.8,*/*;q=0.5",
+        "user-agent": "quiztown-maple-official-image-proxy/1.0"
+      }
+    });
+    const contentType = upstream.headers.get("content-type") || "";
+    if (!upstream.ok || !contentType.toLowerCase().includes("image/")) {
+      sendJsonResponse(response, 502, {
+        success: false,
+        error: "maple-official-image-fetch-failed",
+        message: "Failed to fetch MapleStory official render image.",
+        status: upstream.status
+      });
+      return;
+    }
+    response
+      .status(200)
+      .set("Cache-Control", MAPLE_OFFICIAL_IMAGE_CACHE_CONTROL)
+      .set("Content-Type", contentType.includes("png") ? contentType : "image/png")
+      .set("Access-Control-Allow-Origin", "*")
+      .set("X-Maple-Official-Image-Source", "avatar.maplestory.nexon.com");
+    if (request.method === "HEAD") {
+      response.send("");
+      return;
+    }
+    const imageBuffer = Buffer.from(await upstream.arrayBuffer());
+    response.send(imageBuffer);
+  } catch(error) {
+    console.error("Maple official image proxy failed", error);
+    sendJsonResponse(response, 502, {
+      success: false,
+      error: "maple-official-image-proxy-failed",
+      message: "Failed to proxy MapleStory official render image."
+    });
+  }
 });
 
 exports.getMapleOfficialCoordiLook = onRequest({ region: REGION, timeoutSeconds: 20 }, async (request, response) => {
