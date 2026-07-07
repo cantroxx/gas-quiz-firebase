@@ -4118,19 +4118,27 @@ h2 {
 }
 
 .ranking-board-tab {
-  min-height: 40px;
-  padding: 9px 13px;
-  border: 1px solid rgba(47, 125, 68, 0.18);
+  min-height: 42px;
+  padding: 9px 15px 10px;
+  border: 2px solid var(--line);
+  border-bottom-width: 3px;
   border-radius: 999px;
-  background: #fff;
+  background: var(--cream);
   color: var(--green-dark);
-  font-weight: 900;
+  font-family: var(--font-title);
+  font-size: 0.98rem;
   cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.ranking-board-tab:hover {
+  transform: translateY(-1px);
 }
 
 .ranking-board-tab.is-active {
-  border-color: rgba(47, 125, 68, 0.44);
-  background: var(--mint);
+  border-color: var(--green-deep);
+  background: var(--green);
+  color: #fff;
 }
 
 .ranking-board-panel {
@@ -4248,17 +4256,13 @@ h2 {
   display: grid;
   gap: 8px;
   margin-top: 12px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 8px 16px rgba(47, 125, 68, 0.08);
 }
 
 .ranking-podium {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  align-items: stretch;
+  align-items: end;
 }
 
 .ranking-podium-card {
@@ -4267,31 +4271,53 @@ h2 {
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  min-height: 190px;
+  min-height: 185px;
   padding: 20px 12px 14px;
-  border: 1px solid rgba(47, 125, 68, 0.14);
-  border-top-width: 6px;
+  border: 2px solid var(--line);
+  border-bottom-width: 8px;
   border-radius: 20px;
   background: linear-gradient(180deg, #ffffff 0%, #fbfff4 100%);
   text-align: center;
-  box-shadow: 0 10px 20px rgba(47, 125, 68, 0.08);
+  box-shadow: 0 10px 20px rgba(88, 118, 60, 0.1);
 }
+
+/* 시상대 배치 — 2위·1위·3위 순서, 1위가 가운데에서 가장 높게 */
+.ranking-podium-card.rank-2 { order: 1; }
+.ranking-podium-card.rank-1 { order: 2; }
+.ranking-podium-card.rank-3 { order: 3; }
 
 .ranking-podium-card.rank-1 {
-  min-height: 214px;
+  min-height: 226px;
+  animation: qt-rise 0.3s ease-out both;
 }
 
+.ranking-podium-card.rank-1::before {
+  content: "👑";
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-8deg);
+  font-size: 1.7rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+}
+
+.ranking-podium-card.rank-2 { min-height: 198px; }
+.ranking-podium-card.rank-3 { min-height: 185px; }
+
 .ranking-medal-gold {
-  border-color: rgba(226, 179, 52, 0.72);
-  box-shadow: 0 12px 24px rgba(226, 179, 52, 0.18);
+  border-color: #d9a916;
+  background: linear-gradient(180deg, #fffdf1 0%, #fff3c2 100%);
+  box-shadow: 0 12px 24px rgba(217, 169, 22, 0.22);
 }
 
 .ranking-medal-silver {
-  border-color: rgba(189, 196, 207, 0.82);
+  border-color: #a9b4c2;
+  background: linear-gradient(180deg, #ffffff 0%, #eef3f8 100%);
 }
 
 .ranking-medal-bronze {
-  border-color: rgba(201, 137, 85, 0.76);
+  border-color: #c98955;
+  background: linear-gradient(180deg, #fffcf8 0%, #faeadb 100%);
 }
 
 .ranking-medal-badge {
@@ -4592,26 +4618,24 @@ h2 {
   grid-template-columns: 38px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  padding: 11px 12px;
-  border: 0;
-  border-bottom: 1px solid rgba(47, 125, 68, 0.1);
-  border-radius: 12px;
-  background: #fff;
-}
-
-.ranking-board-row:last-child {
-  border-bottom: 0;
+  padding: 11px 14px;
+  border: 2px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 14px;
+  background: var(--card);
 }
 
 .ranking-board-rank {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--yellow-deep);
   border-radius: 50%;
-  background: #fff8d8;
-  color: var(--green-dark);
-  font-size: 0.9rem;
+  background: var(--yellow);
+  color: var(--yellow-deep);
+  font-family: var(--font-title);
+  font-size: 0.95rem;
 }
 
 .ranking-board-name,
@@ -4642,8 +4666,9 @@ h2 {
 
 .ranking-board-score {
   color: var(--green-dark);
-  font-size: 0.96rem;
-  font-weight: 850;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 400;
   text-align: right;
   white-space: nowrap;
 }
