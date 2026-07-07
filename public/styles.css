@@ -1592,22 +1592,60 @@ h2 {
 }
 
 .map-buttons button {
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 52px;
+  padding: 10px 12px 12px;
+  border: 2px solid var(--wood-dark);
+  border-bottom-width: 4px;
+  border-radius: 16px;
+  background: var(--cream);
   color: var(--green-dark);
-  font-weight: 900;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  line-height: 1.15;
+  word-break: keep-all;
   cursor: pointer;
+  box-shadow: 0 5px 10px rgba(88, 118, 60, 0.14);
+  transition: transform 0.15s ease, border-bottom-width 0.15s ease, filter 0.15s ease;
 }
 
 .map-buttons button:hover,
 .map-buttons button:focus-visible {
-  border-color: rgba(40, 114, 74, 0.36);
-  background: var(--mint);
+  transform: translateY(-2px);
+  filter: brightness(1.04);
   outline: none;
 }
+
+.map-buttons button:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+.map-buttons button::before {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+/* 장소별 색·아이콘 — 지도 위 건물 색과 맞춤 */
+.map-buttons button[data-place="notice"] { border-color: var(--wood-dark); background: #f9efd7; color: #6f4a20; }
+.map-buttons button[data-place="notice"]::before { content: "📌"; }
+.map-buttons button[data-place="guide"] { border-color: #5faf3c; background: #e8f8dc; color: #2f6b3c; }
+.map-buttons button[data-place="guide"]::before { content: "🌱"; }
+.map-buttons button[data-place="home"] { border-color: #e0603f; background: #ffe4dc; color: #a83c22; }
+.map-buttons button[data-place="home"]::before { content: "🏠"; }
+.map-buttons button[data-place="school"] { border-color: #e0862a; background: #ffeeda; color: #9c5a12; }
+.map-buttons button[data-place="school"]::before { content: "🏫"; }
+.map-buttons button[data-place="classroom"] { border-color: #4592d8; background: #e3f1ff; color: #295f96; }
+.map-buttons button[data-place="classroom"]::before { content: "📚"; }
+.map-buttons button[data-place="shop"] { border-color: #d9a916; background: #ffedb1; color: #8a690a; }
+.map-buttons button[data-place="shop"]::before { content: "🛒"; }
+.map-buttons button[data-place="ranking"] { border-color: #8f6fce; background: #efe7fb; color: #61439c; }
+.map-buttons button[data-place="ranking"]::before { content: "🏆"; }
+.map-buttons button[data-place="event"] { border-color: #d8688f; background: #ffe6ef; color: #a63a63; }
+.map-buttons button[data-place="event"]::before { content: "🎉"; }
 
 .global-refresh-button {
   position: relative;
@@ -1672,21 +1710,21 @@ h2 {
   align-items: center;
   margin-top: 14px;
   padding: 14px 16px;
-  border: 1px solid rgba(47, 125, 68, 0.12);
+  border: 2px solid var(--line);
   border-radius: 18px;
-  background:
-    linear-gradient(90deg, rgba(232, 248, 236, 0.9), rgba(255, 255, 255, 0.78));
+  background: linear-gradient(90deg, var(--mint), var(--cream));
 }
 
 .player-status-avatar {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
+  border: 2px solid rgba(161, 110, 31, 0.35);
   border-radius: 16px;
   background: #fff;
-  font-size: 1.55rem;
-  box-shadow: 0 7px 12px rgba(47, 125, 68, 0.1);
+  font-size: 1.65rem;
+  box-shadow: 0 7px 12px rgba(88, 118, 60, 0.12);
 }
 
 .player-status-name,
