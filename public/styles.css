@@ -1,17 +1,28 @@
 :root {
-  --green: #48a868;
-  --green-dark: #28724a;
-  --mint: #e8f8ec;
-  --sky: #dff5ff;
-  --yellow: #ffcf3a;
-  --orange: #ff9f43;
-  --pink: #ff7ab6;
-  --blue: #6cb9ff;
-  --ink: #2f3b35;
-  --muted: #65756b;
-  --card: rgba(255, 255, 255, 0.94);
-  --line: rgba(47, 125, 68, 0.16);
-  --shadow: 0 18px 40px rgba(47, 125, 68, 0.14);
+  /* 동물농장 파스텔 팔레트 — 주요 행동 = 초록, 이벤트/특별 = 주황 */
+  --green: #4fa83d;
+  --green-deep: #3c8a2e;
+  --green-dark: #2f6b3c;
+  --mint: #eaf8df;
+  --sky: #bde9fb;
+  --yellow: #ffd93b;
+  --yellow-deep: #a16e1f; /* 노랑 위 글자·테두리 대비 확보용 브라운 */
+  --orange: #ff9a3d;
+  --orange-deep: #d97a1e;
+  --pink: #ff8fb2;
+  --blue: #55a8f0;
+  --purple: #a78bdb;
+  --red: #f2593f;
+  --cream: #fff6dc;
+  --wood: #f5d989;
+  --wood-dark: #8a5a2b;
+  --ink: #5b4023;
+  --muted: #7a6748;
+  --card: #fffdf4;
+  --line: rgba(138, 90, 43, 0.28);
+  --shadow: 0 14px 30px rgba(88, 118, 60, 0.16);
+  --font-round: "NanumSquareRound", "Noto Sans KR", system-ui, sans-serif;
+  --font-title: "Jua", "Gaegu", "Noto Sans KR", system-ui, sans-serif;
 }
 
 * {
@@ -36,11 +47,11 @@
 body {
   min-height: 100vh;
   margin: 0;
-  font-family: "Noto Sans KR", system-ui, sans-serif;
+  font-family: var(--font-round);
   color: var(--ink);
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 207, 58, 0.28), transparent 18%),
-    linear-gradient(180deg, #dff5ff 0%, #f7fff7 54%, #fff9e8 100%);
+    radial-gradient(circle at 12% 18%, rgba(255, 217, 59, 0.32), transparent 18%),
+    linear-gradient(180deg, #bde9fb 0%, #e9f9e0 54%, #fff6dc 100%);
 }
 
 button,
@@ -113,7 +124,7 @@ h1,
 h2 {
   margin: 0;
   color: var(--green-dark);
-  font-family: "Gaegu", "Noto Sans KR", sans-serif;
+  font-family: var(--font-title);
   letter-spacing: 0;
 }
 
@@ -162,30 +173,58 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
-  padding: 12px 18px;
+  min-height: 48px;
+  padding: 11px 20px 13px;
   border: 0;
-  border-radius: 999px;
+  border-bottom: 4px solid rgba(0, 0, 0, 0.18);
+  border-radius: 18px;
   text-decoration: none;
-  font-weight: 900;
+  font-family: var(--font-title);
+  font-size: 1.08rem;
+  font-weight: 400;
   line-height: 1.2;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(47, 125, 68, 0.14);
+  box-shadow: 0 6px 14px rgba(88, 118, 60, 0.16);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-bottom-width 0.15s ease, filter 0.15s ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(88, 118, 60, 0.2);
+  filter: brightness(1.04);
+}
+
+.button:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  box-shadow: 0 3px 8px rgba(88, 118, 60, 0.18);
 }
 
 .button.primary {
   background: var(--green);
+  border-bottom-color: var(--green-deep);
   color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 .button.secondary {
-  border: 1px solid var(--line);
-  background: #fff;
+  background: var(--cream);
+  border: 2px solid var(--wood-dark);
+  border-bottom-width: 4px;
   color: var(--green-dark);
 }
 
+.button.event {
+  background: var(--orange);
+  border-bottom-color: var(--orange-deep);
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
 .button.danger {
-  border-color: rgba(179, 38, 30, 0.22);
+  background: #fff2ef;
+  border: 2px solid rgba(179, 38, 30, 0.45);
+  border-bottom-width: 4px;
   color: #b3261e;
 }
 
@@ -9407,5 +9446,100 @@ h2 {
 
   .quiz-submit-button {
     width: 100%;
+  }
+}
+
+/* ===== DJ48 디자인 시스템 공통 (2026-07 UI 개편) ===== */
+
+/* 통통 튀는 등장/획득 애니메이션 — 한 화면에 동시 사용 2개 이하, 400ms 이내 */
+@keyframes qt-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes qt-rise {
+  0% { transform: translateY(14px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes qt-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+}
+
+.qt-pop { animation: qt-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.qt-rise { animation: qt-rise 0.24s ease-out both; }
+.qt-bounce { animation: qt-bounce 0.4s ease-in-out; }
+
+/* DJ코인 칩 — 노랑 배경엔 반드시 브라운 테두리+글자로 대비 확보 */
+.qt-coin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 5px;
+  border: 2px solid var(--yellow-deep);
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--yellow-deep);
+  font-family: var(--font-title);
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+/* JS가 생성하는 '입장하기' 계열 버튼 — 공통 통통 스타일 */
+.school-ready-button,
+.subject-ready-button,
+.quiz-mode-ready-button {
+  min-height: 42px;
+  padding: 8px 18px 10px;
+  border: 0;
+  border-bottom: 4px solid var(--green-deep);
+  border-radius: 14px;
+  background: var(--green);
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 400;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(88, 118, 60, 0.18);
+  transition: transform 0.15s ease, border-bottom-width 0.15s ease, filter 0.15s ease;
+}
+
+.school-ready-button:hover,
+.subject-ready-button:hover,
+.quiz-mode-ready-button:hover,
+.school-ready-button:focus-visible,
+.subject-ready-button:focus-visible,
+.quiz-mode-ready-button:focus-visible {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  outline: none;
+}
+
+.school-ready-button:active,
+.subject-ready-button:active,
+.quiz-mode-ready-button:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+.school-disabled-button,
+.subject-disabled-button,
+.quiz-mode-disabled-button {
+  border: 2px dashed var(--line);
+  background: var(--cream);
+  color: var(--muted);
+  font-family: var(--font-title);
+}
+
+/* 움직임 줄이기 설정 사용자는 애니메이션 최소화 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
