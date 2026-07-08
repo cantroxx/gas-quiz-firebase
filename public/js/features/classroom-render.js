@@ -103,6 +103,13 @@
       || fallback;
   }
 
+  function formatClassroomTimeLabel(millis) {
+    const value = Number(millis || 0);
+    if(!value) return '-';
+    const date = new Date(value);
+    return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  }
+
   function getClassroomItemTimeMillis(item = {}) {
     const direct = [
       item.createdAtMillis,
@@ -2060,7 +2067,7 @@
     wrap.append(heading, list);
     if(canManage) {
       const requestItems = purchases.filter(purchase => ['use_requested', 'use_approved'].includes(String(purchase.status || 'purchased')));
-      const { wrap: tableWrap, tbody } = createClassroomDataTable(['학생', '상품', '상태', '메모', '처리']);
+      const { wrap: tableWrap, tbody } = createClassroomDataTable(['학생', '상품', '요청 시각', '상태', '메모', '처리']);
       requestItems.slice(0, 24).forEach(purchase => {
         const row = document.createElement('tr');
         const actions = document.createElement('div');
@@ -2068,6 +2075,7 @@
         actions.className = 'classroom-review-actions';
         appendClassroomTableCell(row, getClassroomMemberDisplayName(purchase), 'td', 'classroom-review-table-student');
         appendClassroomTableCell(row, purchase.itemTitle || '교실 쿠폰', 'td', 'classroom-review-table-title');
+        appendClassroomTableCell(row, formatClassroomTimeLabel(purchase.requestedAtMillis || getClassroomItemTimeMillis(purchase)));
         appendClassroomTableCell(row, getClassroomPurchaseStatusLabel(status));
         appendClassroomTableCell(row, purchase.requestMemo || purchase.approvalMemo || purchase.useMemo || '-');
         if(status === 'use_requested') {
@@ -2099,7 +2107,7 @@
       if(!requestItems.length) {
         const row = document.createElement('tr');
         appendClassroomTableCell(row, '현재 처리할 마켓 요청이 없습니다.', 'td');
-        row.firstChild.colSpan = 5;
+        row.firstChild.colSpan = 6;
         tbody.appendChild(row);
       }
       list.appendChild(tableWrap);
