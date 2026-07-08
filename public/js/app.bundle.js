@@ -8805,6 +8805,9 @@
     const questAlert = document.getElementById('classroom-alert-quest');
     const routineAlert = document.getElementById('classroom-alert-routine');
     const pointCount = document.getElementById('classroom-summary-point-count');
+    const pointCard = document.getElementById('classroom-summary-my-point-card');
+    // '내 포인트' 배지는 학생 전용 — 교사 뷰에서는 숨긴다
+    if(pointCard) pointCard.hidden = deps.isCurrentClassroomTeacher?.(settings) === true;
     const progressMap = data.progressMap || {};
     const quests = (settings.quests || []).filter(quest => quest.active !== false && quest.saveEnabled !== false);
     const pendingQuestCount = quests.filter(quest => !progressMap[quest.id]).length;
@@ -9664,13 +9667,15 @@
       reward.textContent = '';
       status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
       status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
-      button.className = 'quest-claim-button';
-      button.type = 'button';
-      button.dataset.classroomQuestAction = quest.id;
-      button.disabled = !quest.saveEnabled || !!progress;
-      button.textContent = progress ? getClassroomProgressButtonLabel(progress) : (quest.studentAction || '저장 연결 예정');
       actions.className = 'classroom-review-actions';
-      actions.appendChild(button);
+      if(!canManage) {
+        button.className = 'quest-claim-button';
+        button.type = 'button';
+        button.dataset.classroomQuestAction = quest.id;
+        button.disabled = !quest.saveEnabled || !!progress;
+        button.textContent = progress ? getClassroomProgressButtonLabel(progress) : (quest.studentAction || '저장 연결 예정');
+        actions.appendChild(button);
+      }
       if(canManage) {
         const editButton = document.createElement('button');
         const duplicateButton = document.createElement('button');
@@ -11092,6 +11097,9 @@
       }
     }
     arrangeClassroomManagementPanels(canManage);
+    // '내 루틴 저장' 폼은 학생 전용 — 교사 뷰에서는 렌더 시점에 숨긴다
+    const routineForm = document.getElementById('classroom-routine-form');
+    if(routineForm) routineForm.hidden = canManage;
     renderClassroomRoleState(settings, data.wallet || {}, deps, data);
     renderClassroomGrowndOverview(data);
     renderClassroomTeacherDashboard(data, deps);
