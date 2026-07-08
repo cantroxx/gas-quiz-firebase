@@ -4544,7 +4544,9 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
   const passwordStatus = String(payload.passwordStatus || "").trim().toLowerCase();
   const limit = Math.max(1, Math.min(Number(payload.limit) || 80, 200));
 
-  const snapshot = await db.collection("users").orderBy("userId").limit(1000).get();
+  // orderBy("userId")는 userId 필드가 없는 문서(신규가입 생성분)를 제외하므로 사용하지 않는다.
+  // 기본 정렬(문서 ID 순)이 곧 userId 순이라 결과 순서는 같다.
+  const snapshot = await db.collection("users").limit(1000).get();
   let members = snapshot.docs.map(publicAdminMemberRow);
   if (!adminMember.isSuperAdmin) {
     members = members.filter(member => isMemberInAdminScope(adminMember, member));
