@@ -11,6 +11,19 @@
     return String(item.avatarLayerClass || item.itemId || '').replace(/[^a-zA-Z0-9_-]/g, '');
   }
 
+  // Firestore에 영문 키로 저장된 카테고리를 화면용 한글 라벨로만 바꾼다 (데이터는 그대로)
+  const SHOP_CATEGORY_DISPLAY_LABELS = {
+    roomDecor: '방 꾸미기',
+    background: '배경',
+    avatar: '아바타',
+    titleFrame: '칭호 프레임'
+  };
+
+  function getShopItemCategoryLabel(item = {}) {
+    const category = String(item.rawCategory || item.category || '').trim();
+    return SHOP_CATEGORY_DISPLAY_LABELS[category] || category;
+  }
+
   function isAvatarItemEquipped(item = {}, avatarEquipment = {}) {
     return !!item.avatarSlot && avatarEquipment[item.avatarSlot] === item.itemId;
   }
@@ -142,7 +155,7 @@
         icon.textContent = visual.fallbackIcon;
       }
       category.className = 'shop-item-category';
-      category.textContent = item.category;
+      category.textContent = getShopItemCategoryLabel(item);
       title.textContent = item.name;
       desc.className = 'shop-item-desc';
       desc.textContent = item.desc;
