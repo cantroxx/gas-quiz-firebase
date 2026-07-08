@@ -6168,34 +6168,58 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
       ...item,
       reviewMode: "cancelOnly"
     }));
-  const routineReviewItems = routineSnapshot.docs
-    .map(doc => {
-      const data = doc.data() || {};
-      const currentCount = Math.max(0, Math.round(Number(data.currentCount) || 0));
-      const targetCount = Math.max(1, Math.round(Number(data.targetCount) || 1));
-      const rewardPoint = Math.max(0, Math.min(20, Math.round(Number(data.rewardPoint) || 0)));
-      const achievementPercent = Math.min(100, Math.round((currentCount / targetCount) * 100));
-      return {
-        id: doc.id,
-        recordId: doc.id,
-        itemType: "routine",
-        classId,
-        routineId: doc.id,
-        routineTitle: String(data.title || ""),
-        memberUserId: String(data.memberUserId || data.userId || ""),
-        rewardCurrency: "point",
-        rewardCoin: Math.round(rewardPoint * Math.min(1, currentCount / targetCount)),
-        rewardPoint: Math.round(rewardPoint * Math.min(1, currentCount / targetCount)),
-        baseRewardPoint: rewardPoint,
-        currentCount,
-        targetCount,
-        achievementPercent,
-        endDate: String(data.endDate || ""),
-        createdAt: data.createdAt || null
-      };
-    })
-    .filter(item => item.classId === classId && item.memberUserId && item.endDate && item.endDate < todayKey);
-  const reviewMemberIds = Array.from(new Set([...questReviewItems, ...paidAutoReviewItems, ...routineReviewItems]
+  const mapRoutineBoardItem = doc => {
+    const data = doc.data() || {};
+    const currentCount = Math.max(0, Math.round(Number(data.currentCount) || 0));
+    const targetCount = Math.max(1, Math.round(Number(data.targetCount) || 1));
+    const rewardPoint = Math.max(0, Math.min(20, Math.round(Number(data.rewardPoint) || 0)));
+    const achievementPercent = Math.min(100, Math.round((currentCount / targetCount) * 100));
+    return {
+      id: doc.id,
+      recordId: doc.id,
+      itemType: "routine",
+      classId: String(data.classId || ""),
+      routineId: doc.id,
+      routineTitle: String(data.title || ""),
+      memberUserId: String(data.memberUserId || data.userId || ""),
+      status: String(data.status || "active"),
+      rewardCurrency: "point",
+      rewardCoin: Math.round(rewardPoint * Math.min(1, currentCount / targetCount)),
+      rewardPoint: Math.round(rewardPoint * Math.min(1, currentCount / targetCount)),
+      baseRewardPoint: rewardPoint,
+      currentCount,
+      targetCount,
+      achievementPercent,
+      startDate: String(data.startDate || ""),
+      endDate: String(data.endDate || ""),
+      reviewedAtMillis: timestampToMillis(data.reviewedAt),
+      createdAt: data.createdAt || null
+    };
+  };
+  const activeRoutineItems = routineSnapshot.docs
+    .map(mapRoutineBoardItem)
+    .filter(item => (!item.classId || item.classId === classId) && item.memberUserId);
+  const routineReviewItems = activeRoutineItems
+    .filter(item => item.endDate && item.endDate < todayKey);
+  const ongoingRoutineItems = activeRoutineItems
+    .filter(item => !item.endDate || item.endDate >= todayKey);
+  const processedRoutineSnapshot = await db.collection("classrooms")
+    .doc(classId)
+    .collection("studentRoutines")
+    .where("status", "in", ["completed", "review_rejected"])
+    .limit(100)
+    .get();
+  const processedRoutineItems = processedRoutineSnapshot.docs
+    .map(mapRoutineBoardItem)
+    .filter(item => (!item.classId || item.classId === classId) && item.memberUserId)
+    .sort((a, b) => (b.reviewedAtMillis || 0) - (a.reviewedAtMillis || 0));
+  const reviewMemberIds = Array.from(new Set([
+    ...questReviewItems,
+    ...paidAutoReviewItems,
+    ...routineReviewItems,
+    ...ongoingRoutineItems,
+    ...processedRoutineItems
+  ]
     .map(item => String(item.memberUserId || "").trim())
     .filter(Boolean)));
   const reviewProfileSnapshots = reviewMemberIds.length
@@ -6216,11 +6240,22 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
       return bCreated - aCreated || String(a.recordId || a.id).localeCompare(String(b.recordId || b.id), "ko");
     });
 
+  const withNickname = item => ({
+    ...item,
+    memberNickname: reviewNameByUserId.get(String(item.memberUserId || "")) || ""
+  });
+
   return {
     success: true,
     classId,
     className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
-    reviewItems
+    reviewItems,
+    // 성장루틴 교사 검토 화면용 반 전체 루틴 현황 (진행중/마감 검토/처리 완료)
+    routineBoard: {
+      ongoing: ongoingRoutineItems.map(withNickname),
+      reviewPending: routineReviewItems.map(withNickname),
+      processed: processedRoutineItems.map(withNickname)
+    }
   };
 });
 

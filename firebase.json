@@ -1,4 +1,9 @@
 {
+  "emulators": {
+    "hosting": {
+      "port": 5310
+    }
+  },
   "functions": {
     "source": "functions"
   },

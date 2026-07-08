@@ -6208,6 +6208,108 @@ h2 {
   outline: none;
 }
 
+/* 성장루틴 교사 검토 보드 (학생 목록 + 상태 탭 상세) */
+.classroom-routine-board {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.classroom-routine-board .classroom-subtab::before {
+  display: none;
+}
+
+.classroom-routine-board-layout {
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.classroom-routine-board-students {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid #bccabb;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.classroom-routine-board-students h4 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #0b1c30;
+}
+
+.classroom-routine-board-student-list {
+  display: grid;
+  gap: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.classroom-routine-board-student {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #d5dfd4;
+  border-radius: 10px;
+  background: #fff;
+  color: #0b1c30;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.classroom-routine-board-student:hover,
+.classroom-routine-board-student:focus-visible {
+  border-color: #64a8fe;
+  outline: none;
+}
+
+.classroom-routine-board-student.is-active {
+  border-color: #64a8fe;
+  background: #dce9ff;
+  color: #003c70;
+}
+
+.classroom-routine-board-badge {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #d9542e;
+  color: #fff;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.classroom-routine-board-detail {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.quest-claim-button.secondary {
+  background: linear-gradient(180deg, #f4f8ff, #dce9ff);
+  border-color: rgba(0, 60, 112, 0.22);
+  color: #003c70;
+  box-shadow: 0 7px 14px rgba(0, 60, 112, 0.1);
+}
+
+@media (max-width: 720px) {
+  .classroom-routine-board-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .classroom-routine-board-student-list {
+    max-height: 200px;
+  }
+}
+
 .classroom-subsection-body {
   display: grid;
   gap: 12px;

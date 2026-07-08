@@ -1135,6 +1135,7 @@
         </section>
 
         <section class="classroom-panel" data-classroom-panel="routine" aria-label="성장루틴">
+          <div id="classroom-routine-teacher-board" class="classroom-routine-board" hidden></div>
           <div id="classroom-routine-body" class="classroom-subsection-body">
             <form id="classroom-routine-form" class="classroom-quest-form">
               <input id="classroom-routine-id-input" type="hidden">
@@ -8552,6 +8553,7 @@
         saveClassroomRoutineFromForm,
         editClassroomRoutine,
         setActiveClassroomTab,
+        setClassroomRoutineBoardSelection: partial => window.DJ48ClassroomRender.setClassroomRoutineBoardSelection(partial),
         completeClassroomCheckQuest,
         setClassroomSelectedGemBadge,
         applyClassroomJob,

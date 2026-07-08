@@ -248,7 +248,12 @@
       const response = await callable({
         classId: settings.classId
       });
-      return Array.isArray(response?.data?.reviewItems) ? response.data.reviewItems : [];
+      const items = Array.isArray(response?.data?.reviewItems) ? response.data.reviewItems : [];
+      // 성장루틴 교사 검토 화면용 부가 데이터 — 구버전 서버 응답에는 없을 수 있다
+      if(response?.data?.routineBoard && typeof response.data.routineBoard === 'object') {
+        items.routineBoard = response.data.routineBoard;
+      }
+      return items;
     } catch(error) {
       deps.warn?.('Classroom review items load failed.', error);
       return [];

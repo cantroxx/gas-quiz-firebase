@@ -333,8 +333,29 @@
       );
     };
 
-    document.getElementById('classroom-review-grid')?.addEventListener('click', reviewClassroomAction);
+    document.getElementById('classroom-review-grid')?.addEventListener('click', event => {
+      const tabButton = event.target.closest('[data-classroom-today-tab]');
+      if(tabButton && !tabButton.disabled) {
+        deps.setActiveClassroomTab?.(tabButton.dataset.classroomTodayTab || 'today');
+        return;
+      }
+      reviewClassroomAction(event);
+    });
     document.getElementById('admin-classroom-review-grid')?.addEventListener('click', reviewClassroomAction);
+
+    document.getElementById('classroom-routine-teacher-board')?.addEventListener('click', event => {
+      const studentButton = event.target.closest('[data-routine-board-student]');
+      if(studentButton && !studentButton.disabled) {
+        deps.setClassroomRoutineBoardSelection?.({ studentId: studentButton.dataset.routineBoardStudent || '' });
+        return;
+      }
+      const tabButton = event.target.closest('[data-routine-board-tab]');
+      if(tabButton && !tabButton.disabled) {
+        deps.setClassroomRoutineBoardSelection?.({ tab: tabButton.dataset.routineBoardTab || '' });
+        return;
+      }
+      reviewClassroomAction(event);
+    });
   }
 
   window.DJ48ClassroomController = {

@@ -328,6 +328,14 @@
         actions.appendChild(approveButton);
       }
       actions.appendChild(rejectButton);
+      if(item.itemType === 'routine' && options.routineBoardLink === true) {
+        const boardLink = document.createElement('button');
+        boardLink.className = 'quest-claim-button secondary';
+        boardLink.type = 'button';
+        boardLink.dataset.classroomTodayTab = 'routine';
+        boardLink.textContent = '검토 화면';
+        actions.appendChild(boardLink);
+      }
       appendClassroomTableCell(row, typeLabel, 'td', 'classroom-review-table-kind');
       appendClassroomTableCell(row, studentLabel, 'td', 'classroom-review-table-student');
       appendClassroomTableCell(row, titleText, 'td', 'classroom-review-table-title');
@@ -350,7 +358,8 @@
     if(panel.hidden) return;
     renderClassroomReviewList(settings, reviewItems, {
       statusId: 'classroom-review-status',
-      gridId: 'classroom-review-grid'
+      gridId: 'classroom-review-grid',
+      routineBoardLink: true
     }, deps);
   }
 
@@ -2554,10 +2563,235 @@
     return `${period} · ${weekdays} 해당 요일/날짜입니다.`;
   }
 
+  // 성장루틴 교사 검토 보드 상태 (탭/학생 선택은 데이터 새로고침 후에도 유지)
+  let classroomRoutineBoardSelection = { studentId: '', tab: '' };
+  let classroomRoutineBoardLastArgs = null;
+
+  function getClassroomRoutineBoardItems(data = {}) {
+    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
+    const board = reviewItems.routineBoard && typeof reviewItems.routineBoard === 'object'
+      ? reviewItems.routineBoard
+      : null;
+    return {
+      hasBoardData: !!board,
+      ongoing: Array.isArray(board?.ongoing) ? board.ongoing : [],
+      reviewPending: Array.isArray(board?.reviewPending)
+        ? board.reviewPending
+        : reviewItems.filter(item => item.itemType === 'routine'),
+      processed: Array.isArray(board?.processed) ? board.processed : []
+    };
+  }
+
+  function getClassroomRoutineBoardStatusLabel(item = {}) {
+    if(item.status === 'completed') return '승인 완료';
+    if(item.status === 'review_rejected') return '반려';
+    return '처리됨';
+  }
+
+  function setClassroomRoutineBoardSelection(partial = {}) {
+    classroomRoutineBoardSelection = {
+      ...classroomRoutineBoardSelection,
+      ...(partial.studentId !== undefined ? { studentId: String(partial.studentId || '') } : {}),
+      ...(partial.tab !== undefined ? { tab: String(partial.tab || '') } : {})
+    };
+    if(classroomRoutineBoardLastArgs) {
+      renderClassroomRoutineTeacherBoard(classroomRoutineBoardLastArgs.data, classroomRoutineBoardLastArgs.deps);
+    }
+  }
+
+  function appendClassroomRoutineBoardNoticeRow(tbody, text, colSpan) {
+    const row = document.createElement('tr');
+    appendClassroomTableCell(row, text, 'td');
+    row.firstChild.colSpan = colSpan;
+    tbody.appendChild(row);
+  }
+
+  function renderClassroomRoutineTeacherBoard(data = {}, deps = {}) {
+    const boardRoot = document.getElementById('classroom-routine-teacher-board');
+    if(!boardRoot) return;
+    const settings = data.settings || {};
+    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    boardRoot.hidden = !canManage;
+    boardRoot.innerHTML = '';
+    if(!canManage) return;
+    classroomRoutineBoardLastArgs = { data, deps };
+
+    const { hasBoardData, ongoing, reviewPending, processed } = getClassroomRoutineBoardItems(data);
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const boardMembers = studentCards.map(student => ({
+      memberUserId: String(student.memberUserId || student.userId || ''),
+      label: getClassroomMemberDisplayName(student)
+    })).filter(member => member.memberUserId);
+    [...ongoing, ...reviewPending, ...processed].forEach(item => {
+      const memberUserId = String(item.memberUserId || '');
+      if(memberUserId && !boardMembers.some(member => member.memberUserId === memberUserId)) {
+        boardMembers.push({ memberUserId, label: getClassroomMemberDisplayName(item) });
+      }
+    });
+    const pendingCountByMember = new Map();
+    reviewPending.forEach(item => {
+      const memberUserId = String(item.memberUserId || '');
+      pendingCountByMember.set(memberUserId, (pendingCountByMember.get(memberUserId) || 0) + 1);
+    });
+
+    if(!classroomRoutineBoardSelection.tab) {
+      classroomRoutineBoardSelection.tab = reviewPending.length ? 'review' : 'ongoing';
+    }
+    if(classroomRoutineBoardSelection.studentId
+      && !boardMembers.some(member => member.memberUserId === classroomRoutineBoardSelection.studentId)) {
+      classroomRoutineBoardSelection.studentId = '';
+    }
+    const activeTab = classroomRoutineBoardSelection.tab;
+    const selectedStudentId = classroomRoutineBoardSelection.studentId;
+
+    renderClassroomFeatureStats(boardRoot, [
+      ['학생', `${boardMembers.length}명`],
+      ['진행중', `${ongoing.length}개`],
+      ['마감 검토', `${reviewPending.length}건`],
+      ['처리 완료', `${processed.length}건`]
+    ]);
+
+    const layout = document.createElement('div');
+    layout.className = 'classroom-routine-board-layout';
+
+    const aside = document.createElement('aside');
+    aside.className = 'classroom-routine-board-students';
+    const asideTitle = document.createElement('h4');
+    asideTitle.textContent = '학생 목록';
+    aside.appendChild(asideTitle);
+    const studentList = document.createElement('div');
+    studentList.className = 'classroom-routine-board-student-list';
+    const memberEntries = [{ memberUserId: '', label: '전체 학생' }, ...boardMembers];
+    memberEntries.forEach(member => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'classroom-routine-board-student';
+      button.dataset.routineBoardStudent = member.memberUserId;
+      if(member.memberUserId === selectedStudentId) button.classList.add('is-active');
+      const name = document.createElement('span');
+      name.textContent = member.label;
+      button.appendChild(name);
+      const pendingCount = member.memberUserId
+        ? pendingCountByMember.get(member.memberUserId) || 0
+        : reviewPending.length;
+      if(pendingCount > 0) {
+        const badge = document.createElement('strong');
+        badge.className = 'classroom-routine-board-badge';
+        badge.textContent = `${pendingCount}`;
+        button.appendChild(badge);
+      }
+      studentList.appendChild(button);
+    });
+    aside.appendChild(studentList);
+
+    const detail = document.createElement('div');
+    detail.className = 'classroom-routine-board-detail';
+    const tabRow = document.createElement('div');
+    tabRow.className = 'classroom-subtab-bar classroom-subtab-bar--three';
+    [
+      ['ongoing', '진행중', ongoing.length],
+      ['review', '마감 검토', reviewPending.length],
+      ['processed', '처리 완료', processed.length]
+    ].forEach(([tabId, label, count]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'classroom-subtab';
+      button.dataset.routineBoardTab = tabId;
+      button.textContent = `${label} ${count}`;
+      button.setAttribute('aria-pressed', tabId === activeTab ? 'true' : 'false');
+      if(tabId === activeTab) button.classList.add('is-active');
+      tabRow.appendChild(button);
+    });
+    detail.appendChild(tabRow);
+
+    const filterByStudent = items => selectedStudentId
+      ? items.filter(item => String(item.memberUserId || '') === selectedStudentId)
+      : items;
+
+    if(activeTab === 'ongoing') {
+      const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '진행', '기간', '기준 보상']);
+      const rows = filterByStudent(ongoing);
+      rows.forEach(item => {
+        const row = document.createElement('tr');
+        appendClassroomTableCell(row, getClassroomMemberDisplayName(item), 'td', 'classroom-review-table-student');
+        appendClassroomTableCell(row, item.routineTitle || '성장루틴', 'td', 'classroom-review-table-title');
+        appendClassroomTableCell(row, `${item.currentCount}/${item.targetCount}회 (${item.achievementPercent}%)`);
+        appendClassroomTableCell(row, `${item.startDate || '-'} ~ ${item.endDate || '-'}`);
+        appendClassroomTableCell(row, `최대 ${formatClassroomPoint(item.baseRewardPoint || 0)}P`);
+        tbody.appendChild(row);
+      });
+      if(!rows.length) {
+        appendClassroomRoutineBoardNoticeRow(tbody, hasBoardData
+          ? '진행 중인 성장루틴이 없습니다.'
+          : '진행중 목록은 서버 배포 후 표시됩니다.', 5);
+      }
+      detail.appendChild(wrap);
+    } else if(activeTab === 'review') {
+      const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '달성', '지급 예정', '처리']);
+      const rows = filterByStudent(reviewPending);
+      rows.forEach(item => {
+        const row = document.createElement('tr');
+        appendClassroomTableCell(row, getClassroomMemberDisplayName(item), 'td', 'classroom-review-table-student');
+        appendClassroomTableCell(row, item.routineTitle || '성장루틴', 'td', 'classroom-review-table-title');
+        appendClassroomTableCell(row, `${item.currentCount}/${item.targetCount}회 (${item.achievementPercent}%)`);
+        appendClassroomTableCell(row, `${formatClassroomPoint(item.rewardPoint || 0)}/${formatClassroomPoint(item.baseRewardPoint || 0)} 포인트`);
+        const actionCell = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'classroom-review-actions';
+        const approveButton = document.createElement('button');
+        approveButton.className = 'quest-claim-button';
+        approveButton.type = 'button';
+        approveButton.dataset.classroomReviewAction = 'approved';
+        approveButton.dataset.classroomReviewId = item.recordId || item.id || '';
+        approveButton.dataset.classroomReviewItemType = 'routine';
+        approveButton.dataset.classroomRoutineSuggestedReward = String(Math.max(0, Math.min(20, Math.round(Number(item.rewardPoint || 0) || 0))));
+        approveButton.textContent = '승인';
+        const rejectButton = document.createElement('button');
+        rejectButton.className = 'quest-claim-button danger';
+        rejectButton.type = 'button';
+        rejectButton.dataset.classroomReviewAction = 'rejected';
+        rejectButton.dataset.classroomReviewId = item.recordId || item.id || '';
+        rejectButton.textContent = '반려';
+        actions.append(approveButton, rejectButton);
+        actionCell.appendChild(actions);
+        row.appendChild(actionCell);
+        tbody.appendChild(row);
+      });
+      if(!rows.length) {
+        appendClassroomRoutineBoardNoticeRow(tbody, '마감 검토를 기다리는 성장루틴이 없습니다.', 5);
+      }
+      detail.appendChild(wrap);
+    } else {
+      const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '달성', '상태', '처리일']);
+      const rows = filterByStudent(processed);
+      rows.forEach(item => {
+        const row = document.createElement('tr');
+        appendClassroomTableCell(row, getClassroomMemberDisplayName(item), 'td', 'classroom-review-table-student');
+        appendClassroomTableCell(row, item.routineTitle || '성장루틴', 'td', 'classroom-review-table-title');
+        appendClassroomTableCell(row, `${item.currentCount}/${item.targetCount}회 (${item.achievementPercent}%)`);
+        appendClassroomTableCell(row, getClassroomRoutineBoardStatusLabel(item));
+        appendClassroomTableCell(row, item.reviewedAtMillis ? formatClassroomTimeLabel(item.reviewedAtMillis) : '-');
+        tbody.appendChild(row);
+      });
+      if(!rows.length) {
+        appendClassroomRoutineBoardNoticeRow(tbody, hasBoardData
+          ? '처리 완료된 성장루틴이 없습니다.'
+          : '처리 완료 목록은 서버 배포 후 표시됩니다.', 5);
+      }
+      detail.appendChild(wrap);
+    }
+
+    layout.append(aside, detail);
+    boardRoot.appendChild(layout);
+  }
+
   function renderClassroomRoutineOverview(settings = {}, economyBoard = {}, deps = {}) {
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     const panel = ensureClassroomPanelIntro('classroom-routine-overview', 'classroom-routine-grid');
     if(!panel) return;
+    // 교사 뷰는 성장루틴 교사 검토 보드가 대신한다 (본인 루틴만 집계하는 이 개요는 학생 전용)
+    panel.hidden = canManage;
+    if(canManage) return;
     const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
     const active = routines.filter(routine => routine.status !== 'completed' && routine.reviewPending !== true);
     const pending = routines.filter(routine => routine.reviewPending === true);
@@ -2569,26 +2803,6 @@
       ['검토중', `${pending.length}개`],
       ['완료', `${completed.length}개`]
     ]);
-    if(!canManage) return;
-    const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '진행', '보상 기준', '상태']);
-    pending.concat(active).slice(0, 24).forEach(routine => {
-      const row = document.createElement('tr');
-      const currentCount = Number(routine.currentCount || 0);
-      const targetCount = Math.max(1, Number(routine.targetCount || 1));
-      appendClassroomTableCell(row, getClassroomMemberDisplayName(routine), 'td', 'classroom-review-table-student');
-      appendClassroomTableCell(row, routine.title || '성장루틴', 'td', 'classroom-review-table-title');
-      appendClassroomTableCell(row, `${currentCount}/${targetCount}회 · ${Math.min(100, Math.round((currentCount / targetCount) * 100))}%`);
-      appendClassroomTableCell(row, `최대 ${formatClassroomPoint(routine.rewardPoint || 0)}P`);
-      appendClassroomTableCell(row, routine.reviewPending ? '검토 대기' : routine.checkedToday ? '오늘 체크됨' : '진행중');
-      tbody.appendChild(row);
-    });
-    if(!pending.length && !active.length) {
-      const row = document.createElement('tr');
-      appendClassroomTableCell(row, '표시할 성장루틴 진행 항목이 없습니다.', 'td');
-      row.firstChild.colSpan = 5;
-      tbody.appendChild(row);
-    }
-    panel.appendChild(wrap);
   }
 
   function renderClassroomRoutineCards(economyBoard = {}) {
@@ -2722,6 +2936,7 @@
     renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
     renderClassroomSavingsSection(bankGrid, economyBoard, deps);
     renderClassroomTaxPresetList(economyBoard);
+    renderClassroomRoutineTeacherBoard(data, deps);
     renderClassroomRoutineOverview(settings, economyBoard, deps);
     renderClassroomRoutineCards(economyBoard);
     deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
@@ -2752,6 +2967,8 @@
     renderClassroomShopHistory,
     getClassroomRoutineScheduleLabel,
     renderClassroomRoutineCards,
+    renderClassroomRoutineTeacherBoard,
+    setClassroomRoutineBoardSelection,
     applyClassroomOverviewTabVisibility,
     renderClassroomSections
   };
