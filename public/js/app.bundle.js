@@ -8855,8 +8855,8 @@
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
-    const purchases = (Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [])
-      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    // '쿠폰 요청' 카운터는 마켓 탭 처리 목록과 같은 기준을 쓰도록 숨김 학생 필터를 거치지 않는다
+    const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
     const pointLogs = (Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [])
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
@@ -8906,7 +8906,10 @@
     const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
     // 하단 '검토 처리' 목록과 같은 기준을 쓰도록 reviewItems는 숨김 학생 필터를 거치지 않는다
     const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
-    const purchases = (Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [])
+    // '쿠폰/상점 요청' 건수는 마켓 탭 처리 목록과 같은 기준 — 숨김 학생 필터 없음.
+    // 최근 활동 표시(visiblePurchases)는 활동 피드와 같은 숨김 정책을 유지한다.
+    const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
+    const visiblePurchases = purchases
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const assignments = (Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [])
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
@@ -8919,7 +8922,7 @@
     const useRequests = purchases.filter(item => item.status === 'use_requested');
     const pendingApplications = applications.filter(item => item.status === 'pending');
     const recentActivities = [
-      ...purchases
+      ...visiblePurchases
         .filter(item => ['use_requested', 'use_approved', 'used', 'refunded'].includes(item.status))
         .map(item => ({
           label: `${getClassroomMemberDisplayName(item)} · ${item.itemTitle || '쿠폰'} ${getClassroomPurchaseStatusLabel(item.status)}`,
