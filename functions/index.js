@@ -4112,7 +4112,8 @@ function buildAdminDashboardSummary({ adminMember, members, credentialStates, to
 exports.adminGetDashboard = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
-  const userSnapshot = await db.collection("users").orderBy("userId").limit(1000).get();
+  // orderBy("userId")는 userId 필드가 없는 문서(신규가입 생성분)를 제외하므로 사용하지 않는다.
+  const userSnapshot = await db.collection("users").limit(1000).get();
   let members = userSnapshot.docs.map(publicAdminMemberRow);
   if (!adminMember.isSuperAdmin) {
     members = members.filter(member => isMemberInAdminScope(adminMember, member));
@@ -4632,7 +4633,9 @@ exports.adminListStudentEconomy = onCall({ region: REGION }, async request => {
   const memberStatus = String(payload.memberStatus || "").trim().toLowerCase();
   const limit = Math.max(1, Math.min(Number(payload.limit) || 120, 200));
 
-  const snapshot = await db.collection("users").orderBy("userId").limit(1000).get();
+  // orderBy("userId")는 userId 필드가 없는 문서(신규가입 생성분)를 제외하므로 사용하지 않는다.
+  // 기본 정렬(문서 ID 순)이 곧 userId 순이라 이후 slice(0, limit) 구간도 동일하다.
+  const snapshot = await db.collection("users").limit(1000).get();
   let members = snapshot.docs
     .map(doc => ({ ...publicAdminMemberRow(doc), classId: getClassIdForMember(doc.data() || {}) }))
     .filter(member => member.role !== "admin" && member.classId);
