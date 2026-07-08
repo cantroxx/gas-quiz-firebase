@@ -46,6 +46,7 @@
     document.querySelectorAll('[data-classroom-panel]').forEach(panel => {
       panel.classList.toggle('is-active', panel.dataset.classroomPanel === panelTab);
     });
+    window.DJ48ClassroomRender?.applyClassroomOverviewTabVisibility?.(panelTab);
     if(subtabAliases.has(requestedTab)) {
       document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
         const active = button.dataset.classroomSubtab === requestedTab;

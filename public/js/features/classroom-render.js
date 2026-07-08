@@ -543,18 +543,21 @@
     const missionPercent = missionTarget ? Math.min(100, Math.round((missionTotal / missionTarget) * 100)) : 100;
     const items = [
       {
+        key: 'point',
         icon: 'studentCard',
         label: '학급 총 포인트',
         value: `${formatClassroomPoint(totalPoint)}P`,
         detail: `학생 ${studentCards.length}명 합산`
       },
       {
+        key: 'coin',
         icon: 'djCoin',
         label: '학급 총 DJ코인',
         value: `${Number(totalCoin || 0).toLocaleString('ko-KR')}개`,
         detail: `내 포인트 ${formatClassroomPoint(wallet.point || 0)}P`
       },
       {
+        key: 'mission',
         icon: 'mission',
         label: '다음 학급 미션',
         value: nextMission ? `${formatClassroomPoint(nextMission.targetPoint || 0)}점` : '전체 달성',
@@ -563,24 +566,28 @@
           : '등록된 목표를 모두 달성했습니다.'
       },
       {
+        key: 'exchange',
         icon: 'exchange',
         label: '환전 은행',
         value: `${formatClassroomPoint(exchange.pointToCoinPointCost || 3)}P → 1 DJ`,
         detail: `1 DJ → ${formatClassroomPoint(exchange.coinToPointReward || 0.5)}P`
       },
       {
+        key: 'savings',
         icon: 'bank',
         label: '예금 상품',
         value: `${savingsProducts.length}개`,
         detail: savingsProducts.map(item => `${item.termDays}일 ${item.interestRatePercent}%`).slice(0, 3).join(' · ') || '교사가 설정하면 표시됩니다.'
       },
       {
+        key: 'gems',
         icon: 'keyringGem',
         label: '젬스톤',
         value: `${gems.length}개`,
         detail: gems.map(item => item.gemName || item.title || item.gemId).slice(0, 3).join(' · ') || '연결 젬을 준비 중입니다.'
       },
       {
+        key: 'market',
         icon: 'pointShop',
         label: '마켓 상품',
         value: `${shopItems.length}개`,
@@ -595,6 +602,7 @@
       const value = document.createElement('strong');
       const detail = document.createElement('p');
       card.className = 'classroom-overview-card';
+      card.dataset.classroomOverviewKey = item.key;
       label.textContent = item.label;
       value.textContent = item.value;
       detail.textContent = item.detail;
@@ -602,6 +610,37 @@
       card.append(label, value, detail);
       wrap.appendChild(card);
     });
+    applyClassroomOverviewTabVisibility();
+  }
+
+  // 탭별로 표시할 상단 요약 카드 매핑 — 홈 탭은 7장 전체, 나머지는 탭과 직접 관련된 카드만
+  const CLASSROOM_OVERVIEW_TAB_CARD_KEYS = {
+    today: ['point', 'coin', 'mission', 'exchange', 'savings', 'gems', 'market'],
+    classroom: ['point'],
+    quest: [],
+    routine: [],
+    gems: ['gems'],
+    jobs: [],
+    market: ['market', 'coin'],
+    bank: ['exchange', 'savings', 'coin'],
+    mission: ['mission'],
+    teacher: []
+  };
+
+  function applyClassroomOverviewTabVisibility(tabName = '') {
+    const wrap = document.getElementById('classroom-grownd-overview');
+    if(!wrap) return;
+    const activeTab = String(tabName
+      || document.querySelector('.classroom-tab.is-active')?.dataset.classroomTab
+      || 'today');
+    const visibleKeys = new Set(CLASSROOM_OVERVIEW_TAB_CARD_KEYS[activeTab] || []);
+    let visibleCount = 0;
+    wrap.querySelectorAll('[data-classroom-overview-key]').forEach(card => {
+      const visible = visibleKeys.has(card.dataset.classroomOverviewKey);
+      card.hidden = !visible;
+      if(visible) visibleCount += 1;
+    });
+    wrap.hidden = visibleCount === 0;
   }
 
   function renderClassroomTodayHome(data = {}, deps = {}) {
@@ -2702,6 +2741,7 @@
     renderClassroomShopHistory,
     getClassroomRoutineScheduleLabel,
     renderClassroomRoutineCards,
+    applyClassroomOverviewTabVisibility,
     renderClassroomSections
   };
 })();
