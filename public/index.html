@@ -7093,7 +7093,12 @@
     }
 
     function renderAdminMemberList(members) {
-      return window.DJ48AdminRender.renderAdminMemberList(members);
+      // 대시보드 응답의 adminLevel(서버가 fullAdmin도 superAdmin으로 정규화)을 우선 쓰고,
+      // 아직 로드 전이면 로그인 프로필 기준으로 판별한다
+      const dashboardAdminLevel = String(window.DJ48AdminState.getDashboard()?.adminLevel || '');
+      return window.DJ48AdminRender.renderAdminMemberList(members, {
+        isSuperAdmin: dashboardAdminLevel ? dashboardAdminLevel === 'superAdmin' : isCurrentSuperAdminMember()
+      });
     }
 
     function getAdminStudentEconomyFilterValues() {

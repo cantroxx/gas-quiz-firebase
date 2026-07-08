@@ -270,9 +270,12 @@
     });
   }
 
-  function renderAdminMemberList(members) {
+  function renderAdminMemberList(members, options = {}) {
     const root = document.getElementById('admin-member-list');
     if(!root) return;
+    // 재화 조정 callable(adminAdjustMemberWallet/adminAdjustAdminWallet)은 서버에서 슈퍼관리자 전용이므로
+    // 학급관리자에게는 버튼 자체를 렌더링하지 않는다
+    const canAdjustWallet = options.isSuperAdmin === true;
     root.innerHTML = '';
     const items = members || [];
     if(!items.length) {
@@ -323,17 +326,23 @@
       statusButton.dataset.adminAction = member.status === 'active' ? 'deactivate' : 'activate';
       statusButton.disabled = member.role === 'admin';
       statusButton.textContent = member.status === 'active' ? '비활성화' : '활성화';
-      walletButton.type = 'button';
-      walletButton.className = 'admin-action-button';
-      walletButton.dataset.adminAction = member.role === 'admin' ? 'adjustAdminWallet' : 'adjustWallet';
-      walletButton.textContent = member.role === 'admin' ? '관리자 코인 조정' : '재화 조정';
+      if(canAdjustWallet) {
+        walletButton.type = 'button';
+        walletButton.className = 'admin-action-button';
+        walletButton.dataset.adminAction = member.role === 'admin' ? 'adjustAdminWallet' : 'adjustWallet';
+        walletButton.textContent = member.role === 'admin' ? '관리자 코인 조정' : '재화 조정';
+      }
       visibilityButton.type = 'button';
       visibilityButton.className = 'admin-action-button';
       visibilityButton.dataset.adminAction = member.classroomHidden ? 'showClassroom' : 'hideClassroom';
       visibilityButton.disabled = member.role === 'admin';
       visibilityButton.textContent = member.classroomHidden ? '교실 표시' : '교실 숨김';
       actions.className = 'admin-member-actions';
-      actions.append(detailButton, walletButton, visibilityButton, resetButton, unlinkButton, statusButton);
+      if(canAdjustWallet) {
+        actions.append(detailButton, walletButton, visibilityButton, resetButton, unlinkButton, statusButton);
+      } else {
+        actions.append(detailButton, visibilityButton, resetButton, unlinkButton, statusButton);
+      }
       main.append(title, meta, state, passwordState);
       card.append(main, actions);
       root.appendChild(card);
