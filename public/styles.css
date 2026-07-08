@@ -3003,15 +3003,6 @@ h2 {
   color: #245b87;
 }
 
-.profile-dressing-room-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  background: #f3ecff;
-  color: #5b3b87;
-}
-
 .profile-school {
   margin: 6px 0 0;
   color: var(--muted);

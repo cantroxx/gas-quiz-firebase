@@ -5317,7 +5317,6 @@
     const name = document.createElement('h3');
     const actionRow = document.createElement('div');
     const adminButton = document.createElement('button');
-    const dressingRoomLink = document.createElement('a');
     const school = document.createElement('p');
     const meta = document.createElement('div');
     const title = document.createElement('p');
@@ -5376,11 +5375,6 @@
     adminButton.type = 'button';
     adminButton.dataset.profileOpenAdmin = 'true';
     adminButton.textContent = '관리자 화면으로';
-    dressingRoomLink.className = 'profile-decorate-button profile-dressing-room-link';
-    dressingRoomLink.href = '/prototypes/dressing-room/?admin=1';
-    dressingRoomLink.target = '_blank';
-    dressingRoomLink.rel = 'noopener';
-    dressingRoomLink.textContent = '드레스룸';
     school.className = 'profile-school';
     school.textContent = profile.school;
     meta.className = 'profile-meta';
@@ -5521,7 +5515,7 @@
     detailRoot.append(nicknamePanel, passwordPanel, imagePanel, messagePanel);
     if(isAdmin) {
       detailRoot.appendChild(renderProfileLevelMedalPicker(profile, deps));
-      actionRow.append(adminButton, dressingRoomLink);
+      actionRow.append(adminButton);
     }
     nameRow.append(name, actionRow);
     body.append(nameRow, school, levelPanel, rewardPanel, todayQuizPanel, meta, toggleGrid, detailRoot);
