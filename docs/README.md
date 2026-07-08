@@ -6,7 +6,7 @@ This directory groups project documents by ownership so parallel work can stay s
 
 - `architecture/`: Firebase schema, rules, integration notes, and refactor status.
 - `migration/`: member, title, badge, quiz, ranking, and login migration plans.
-- `operations/`: runbooks, opening checklist, and browser smoke-test instructions.
+- `operations/`: runbooks, opening checklist, known constraints, and browser smoke-test instructions.
 - `product/`: economy, asset catalog, classroom prototype, and user-facing design notes.
 - `seeding/`: Firestore seed and test-seed documents.
 - `snippets/`: reference-only code, rules, and markup snippets.
