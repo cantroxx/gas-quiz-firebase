@@ -1369,9 +1369,11 @@ function verifyPassword(password, credentials) {
   return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
 }
 
-function buildMemberProfileForRegistration(identity, nickname, authUid) {
+function buildMemberProfileForRegistration(identity, nickname, authUid, memberUserId) {
   const normalizedSchool = normalizeLegacyMemberSchool(identity.school);
   return {
+    // userId 필드가 없으면 orderBy("userId") 계열 조회에서 문서가 통째로 제외되므로 반드시 저장한다
+    userId: memberUserId,
     school: normalizedSchool,
     grade: Number(identity.grade),
     classNumber: Number(identity.classNumber),
@@ -3766,7 +3768,7 @@ exports.registerNewMember = onCall({ region: REGION }, async request => {
         throw new HttpsError("already-exists", "Member credentials already exist.");
       }
 
-      const memberData = buildMemberProfileForRegistration(identity, nickname, authUid);
+      const memberData = buildMemberProfileForRegistration(identity, nickname, authUid, memberUserId);
       transaction.set(memberRef, memberData, { merge: false });
       transaction.set(credentialsRef, {
         memberUserId,
