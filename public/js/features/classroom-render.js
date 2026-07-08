@@ -382,8 +382,8 @@
 
     const economyBoard = data.economyBoard || {};
     const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
-    const reviewItems = (Array.isArray(data.reviewItems) ? data.reviewItems : [])
-      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    // 하단 '검토 처리' 목록과 같은 기준을 쓰도록 reviewItems는 숨김 학생 필터를 거치지 않는다
+    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
     const applications = (Array.isArray(economyBoard.applications) ? economyBoard.applications : [])
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const assignments = (Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [])
@@ -439,8 +439,8 @@
     if(!canManage) return;
     const economyBoard = data.economyBoard || {};
     const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
-    const reviewItems = (Array.isArray(data.reviewItems) ? data.reviewItems : [])
-      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
+    // 하단 '검토 처리' 목록과 같은 기준을 쓰도록 reviewItems는 숨김 학생 필터를 거치지 않는다
+    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
     const purchases = (Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [])
       .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
     const assignments = (Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [])
