@@ -3285,6 +3285,16 @@ h2 {
   box-shadow: 0 6px 14px rgba(47, 125, 68, 0.08);
 }
 
+/* 우리집(하우징) 바로가기 — 링크지만 토글 버튼과 같은 생김새 + 강조색 */
+.home-housing-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background: var(--mint);
+  border-color: rgba(47, 125, 68, 0.32);
+}
+
 .home-detail-root {
   display: grid;
   gap: 12px;

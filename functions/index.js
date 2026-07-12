@@ -8948,8 +8948,274 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   };
 });
 
+// ---- 하우징 방명록 언어 필터 (초4 학급 기준: 욕설·성적 표현 금지) ----
+// 목록 기반 필터는 100%가 아니므로 실명 표시 + 신고 블라인드 + 교사 관리와 함께 4중으로 운용한다.
+
+const HOUSING_BANNED_WORDS = [
+  // 욕설·비하 (변형 포함해 정규화 후 검사)
+  "시발", "씨발", "씨빨", "시빨", "씨바", "시바라", "씨팔", "시팔", "ㅅㅂ", "ㅆㅂ",
+  "개새끼", "개새키", "개색기", "개색끼", "새끼", "새키", "색기", "ㅅㄲ",
+  "병신", "븅신", "ㅂㅅ", "빙신", "지랄", "ㅈㄹ", "존나", "졸라", "ㅈㄴ", "좆", "젖같",
+  "꺼져", "닥쳐", "죽어라", "죽을래", "미친놈", "미친년", "또라이", "돌아이",
+  "바보새끼", "멍청이새끼", "찐따", "장애인같", "애자",
+  "fuck", "fck", "shit", "bitch", "asshole",
+  // 성적 표현
+  "섹스", "쎅스", "섹기", "야동", "야사", "포르노", "자지", "보지", "고추만지",
+  "가슴만지", "엉덩이만지", "벗어봐", "빨아", "sex", "porn", "penis", "vagina",
+  // 개인정보 유도
+  "전화번호알려", "집주소알려", "카톡아이디알려"
+];
+
+// 검사용 정규화: 공백·숫자·특수문자 제거 (예: "시1발", "시 발" → "시발")
+function normalizeForBanCheck(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[\s0-9~!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?·ㆍ]/g, "");
+}
+
+function findBannedWord(text) {
+  const normalized = normalizeForBanCheck(text);
+  return HOUSING_BANNED_WORDS.find(word => normalized.includes(word)) || null;
+}
+
+// 하우징 이용 정지 검사 (users.housingSuspendedUntil — 관리자 소통 관리에서 부여)
+function assertHousingNotSuspended(memberData) {
+  const until = memberData?.housingSuspendedUntil;
+  const untilMs = until?.toMillis ? until.toMillis() : 0;
+  if (untilMs > Date.now()) {
+    throw new HttpsError("permission-denied", "Housing access is suspended.");
+  }
+}
+
+// 친구집 방명록 글쓰기 — 언어 필터 + 실명(닉네임·아이디) + 정지 검사
+exports.writeHousingGuestbook = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const ownerUserId = normalizeId(payload.ownerUserId, "ownerUserId");
+  const text = String(payload.text || "").trim();
+
+  if (!text || text.length > 80) {
+    throw new HttpsError("invalid-argument", "Guestbook text must be 1-80 characters.");
+  }
+  const banned = findBannedWord(text);
+  if (banned) {
+    throw new HttpsError("failed-precondition", "Guestbook text contains a banned word.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const memberData = await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    assertHousingNotSuspended(memberData);
+
+    const ownerRoomRef = db.collection("userHomeRooms").doc(ownerUserId);
+    const ownerRoomSnapshot = await transaction.get(ownerRoomRef);
+    if (!ownerRoomSnapshot.exists) {
+      throw new HttpsError("not-found", "Friend room not found.");
+    }
+
+    const entryRef = ownerRoomRef.collection("guestbook").doc();
+    transaction.set(entryRef, {
+      entryId: entryRef.id,
+      ownerUserId,
+      authorUserId: memberUserId,
+      authorName: memberData.nickname || memberData.name || memberUserId,
+      text,
+      blinded: false,
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { entryId: entryRef.id };
+  });
+
+  return { success: true, ...result };
+});
+
+// 방명록 신고 — 즉시 임시 블라인드 (관리자가 소통 관리에서 삭제/복구 판단)
+exports.reportHousingGuestbookEntry = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const ownerUserId = normalizeId(payload.ownerUserId, "ownerUserId");
+  const entryId = normalizeId(payload.entryId, "entryId");
+
+  await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    const entryRef = db.collection("userHomeRooms").doc(ownerUserId).collection("guestbook").doc(entryId);
+    const entrySnapshot = await transaction.get(entryRef);
+    if (!entrySnapshot.exists) {
+      throw new HttpsError("not-found", "Guestbook entry not found.");
+    }
+    transaction.set(entryRef, {
+      blinded: true,
+      blindReason: "user_report",
+      reportedBy: memberUserId,
+      reportedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+
+  return { success: true };
+});
+
+// 문의하기 — 학생이 선생님(관리자)에게 보내는 글 (관리자 센터 '소통 관리'에서 확인)
+exports.submitMemberInquiry = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const text = String(payload.text || "").trim();
+
+  if (!text || text.length > 300) {
+    throw new HttpsError("invalid-argument", "Inquiry text must be 1-300 characters.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const memberData = await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    const inquiryRef = db.collection("inquiries").doc();
+    transaction.set(inquiryRef, {
+      inquiryId: inquiryRef.id,
+      memberUserId,
+      authorName: memberData.nickname || memberData.name || memberUserId,
+      text,
+      status: "open",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { inquiryId: inquiryRef.id };
+  });
+
+  return { success: true, ...result };
+});
+
+// 관리자: 소통 관리 목록 (문의 + 신고된 방명록)
+exports.adminListCommunications = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+
+  const [inquirySnapshot, reportSnapshot] = await Promise.all([
+    db.collection("inquiries").orderBy("createdAt", "desc").limit(100).get(),
+    db.collectionGroup("guestbook").where("blinded", "==", true).orderBy("reportedAt", "desc").limit(100).get()
+  ]);
+
+  return {
+    success: true,
+    inquiries: inquirySnapshot.docs.map(doc => {
+      const data = doc.data() || {};
+      return {
+        inquiryId: doc.id,
+        memberUserId: data.memberUserId || "",
+        authorName: data.authorName || "",
+        text: data.text || "",
+        status: data.status || "open",
+        createdAt: data.createdAt?.toDate?.()?.toISOString?.() || ""
+      };
+    }),
+    reports: reportSnapshot.docs.map(doc => {
+      const data = doc.data() || {};
+      return {
+        entryId: doc.id,
+        ownerUserId: data.ownerUserId || "",
+        authorUserId: data.authorUserId || "",
+        authorName: data.authorName || "",
+        text: data.text || "",
+        reportedBy: data.reportedBy || "",
+        reportedAt: data.reportedAt?.toDate?.()?.toISOString?.() || ""
+      };
+    })
+  };
+});
+
+// 관리자: 문의 처리 상태 변경
+exports.adminResolveInquiry = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const inquiryId = normalizeId(payload.inquiryId, "inquiryId");
+  const status = payload.status === "done" ? "done" : "open";
+
+  await db.collection("inquiries").doc(inquiryId).set({
+    status,
+    resolvedBy: status === "done" ? adminMember.userId : "",
+    resolvedAt: status === "done" ? FieldValue.serverTimestamp() : null
+  }, { merge: true });
+
+  return { success: true, inquiryId, status };
+});
+
+// 관리자: 신고된 방명록 글 삭제 또는 복구
+exports.adminModerateGuestbook = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const ownerUserId = normalizeId(payload.ownerUserId, "ownerUserId");
+  const entryId = normalizeId(payload.entryId, "entryId");
+  const action = payload.action === "restore" ? "restore" : "delete";
+
+  const entryRef = db.collection("userHomeRooms").doc(ownerUserId).collection("guestbook").doc(entryId);
+  if (action === "delete") {
+    await entryRef.delete();
+  } else {
+    await entryRef.set({
+      blinded: false,
+      blindReason: "",
+      moderatedBy: adminMember.userId,
+      moderatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  }
+
+  return { success: true, entryId, action };
+});
+
+// 관리자: 하우징 이용 일시정지 (days 0 = 해제)
+exports.adminSetHousingSuspension = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const adminMember = await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const days = Math.max(0, Math.min(365, Math.round(Number(payload.days) || 0)));
+
+  const until = days > 0 ? Timestamp.fromMillis(Date.now() + days * 24 * 60 * 60 * 1000) : null;
+  await db.collection("users").doc(memberUserId).set({
+    housingSuspendedUntil: until,
+    housingSuspensionSetBy: adminMember.userId,
+    housingSuspensionSetAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  return { success: true, memberUserId, days, until: until ? until.toDate().toISOString() : null };
+});
+
+// 하우징 일일 무료 쿠폰 — 퀴즈타운 접속 시 자동 호출 (하루 1장, 한국시간 날짜 기준)
+// 쿠폰 수는 userEconomy.housingCoupons(서버 전용)에 보관
+exports.claimHousingDailyCoupon = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const dateKey = getKstDateKey();
+
+  const result = await db.runTransaction(async transaction => {
+    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const economySnapshot = await transaction.get(economyRef);
+    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+    const coupons = Math.max(0, Math.round(Number(economy.housingCoupons) || 0));
+
+    if (economy.lastHousingCouponDate === dateKey) {
+      return { granted: false, coupons };
+    }
+
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      housingCoupons: coupons + 1,
+      lastHousingCouponDate: dateKey,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { granted: true, coupons: coupons + 1 };
+  });
+
+  return { success: true, memberUserId, dateKey, ...result };
+});
+
 // 하우징(내 방 꾸미기) 전용 구매 — purchaseShopItem과 같지만 같은 가구를 여러 개 살 수 있게
 // 보유 문서를 quantity 증가 방식으로 기록한다. room_ 접두사 아이템만 허용.
+// useCoupon: true 이면 코인 대신 일일 쿠폰 1장으로 결제 (50코인 이하 아이템만)
 exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -8963,6 +9229,7 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
   const result = await db.runTransaction(async transaction => {
     const flags = await getFeatureFlags(transaction);
     const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+    assertHousingNotSuspended(memberData);
 
     const itemRef = db.collection("shopItems").doc(itemId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
@@ -8993,9 +9260,20 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
       throw new HttpsError("failed-precondition", "Invalid shop item price.");
     }
 
+    const useCoupon = payload.useCoupon === true;
+    const HOUSING_COUPON_MAX_PRICE = 50;
     const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
     const djCoin = Number(economy.djCoin ?? economy.coin ?? 0);
-    if (!Number.isFinite(djCoin) || djCoin < price) {
+    const coupons = Math.max(0, Math.round(Number(economy.housingCoupons) || 0));
+
+    if (useCoupon) {
+      if (price > HOUSING_COUPON_MAX_PRICE) {
+        throw new HttpsError("failed-precondition", "Coupon covers items up to 50 coins only.");
+      }
+      if (coupons < 1) {
+        throw new HttpsError("failed-precondition", "No housing coupon available.");
+      }
+    } else if (!Number.isFinite(djCoin) || djCoin < price) {
       throw new HttpsError("failed-precondition", "Not enough DJ coins.");
     }
 
@@ -9004,7 +9282,11 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
       : 0;
     const nextQuantity = previousQuantity + 1;
 
-    transaction.set(economyRef, {
+    transaction.set(economyRef, useCoupon ? {
+      userId: memberUserId,
+      housingCoupons: coupons - 1,
+      updatedAt: FieldValue.serverTimestamp()
+    } : {
       userId: memberUserId,
       djCoin: djCoin - price,
       totalSpent: FieldValue.increment(price),
@@ -9028,9 +9310,10 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
       authUid,
       itemId,
       assetId: item.assetId || "",
-      coinDelta: -price,
-      pricePaid: price,
-      priceType: "djCoin",
+      coinDelta: useCoupon ? 0 : -price,
+      pricePaid: useCoupon ? 0 : price,
+      priceType: useCoupon ? "housingCoupon" : "djCoin",
+      couponUsed: useCoupon,
       quantityAfter: nextQuantity,
       inventoryPath: inventoryRef.path,
       serverVerified: true,
@@ -9040,8 +9323,10 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
 
     return {
       itemId,
-      pricePaid: price,
-      nextDjCoin: djCoin - price,
+      pricePaid: useCoupon ? 0 : price,
+      couponUsed: useCoupon,
+      nextDjCoin: useCoupon ? djCoin : djCoin - price,
+      nextCoupons: useCoupon ? coupons - 1 : coupons,
       quantity: nextQuantity,
       inventoryPath: inventoryRef.path,
       purchaseLogPath: purchaseLogRef.path

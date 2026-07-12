@@ -30,6 +30,7 @@
         mode: 'guest',
         member: null,
         djCoin: 0,
+        coupons: 0,          // 일일 무료 쿠폰 (50코인 이하 아이템 교환)
         roomData: null,
         furniItemId,
         paperItemId,
@@ -37,7 +38,49 @@
         onCoinChange(cb) { coinListeners.push(cb); },
         purchase,
         saveRoom,
-        flushRoomSave
+        flushRoomSave,
+
+        // ---- 친구집 방문 ----
+        async loadVisitRoom(ownerUserId) {
+            const doc = await db.collection('userHomeRooms').doc(ownerUserId).get();
+            return doc.exists ? doc.data() : null;
+        },
+        async listRooms() {
+            // 방을 만든 학급 구성원 목록 (방문 대상 선택·랜덤용)
+            const snapshot = await db.collection('userHomeRooms').get();
+            return snapshot.docs
+                .map(doc => ({ userId: doc.id, playerName: doc.data()?.playerName || doc.id }))
+                .filter(room => room.userId !== memberUserId);
+        },
+
+        // ---- 방명록 ----
+        async fetchGuestbook(ownerUserId) {
+            const snapshot = await db.collection('userHomeRooms').doc(ownerUserId)
+                .collection('guestbook')
+                .where('blinded', '==', false)
+                .orderBy('createdAt', 'desc')
+                .limit(30)
+                .get();
+            return snapshot.docs.map(doc => doc.data());
+        },
+        async writeGuestbook(ownerUserId, text) {
+            const callable = functionsInstance.httpsCallable('writeHousingGuestbook');
+            try {
+                await callable({ memberUserId, ownerUserId, text });
+            } catch (error) {
+                const messages = {
+                    'functions/failed-precondition': '나쁜 말이 들어 있어요! 고운 말로 다시 써 주세요. 😊',
+                    'functions/permission-denied': '지금은 방명록을 쓸 수 없어요.',
+                    'functions/invalid-argument': '글은 1~80자로 써 주세요.',
+                    'functions/not-found': '친구 방을 찾지 못했어요.'
+                };
+                throw new Error(messages[error?.code] || '방명록 저장에 실패했어요. 잠시 후 다시 해 보세요.');
+            }
+        },
+        async reportGuestbook(ownerUserId, entryId) {
+            const callable = functionsInstance.httpsCallable('reportHousingGuestbookEntry');
+            await callable({ memberUserId, ownerUserId, entryId });
+        }
     };
 
     let ownedCounts = {};        // shopItems 문서 ID → 보유 수량
@@ -57,7 +100,12 @@
         if (snapshot.empty) return null;
         const doc = snapshot.docs[0];
         const data = doc.data() || {};
-        return { userId: doc.id, nickname: data.nickname || data.name || '' };
+        const suspendedUntil = data.housingSuspendedUntil?.toMillis ? data.housingSuspendedUntil.toMillis() : 0;
+        return {
+            userId: doc.id,
+            nickname: data.nickname || data.name || '',
+            suspendedUntil: suspendedUntil > Date.now() ? suspendedUntil : 0
+        };
     }
 
     // ---- 초기 데이터 로드 ----
@@ -82,10 +130,20 @@
 
     function subscribeCoin() {
         db.collection('userEconomy').doc(memberUserId).onSnapshot(doc => {
-            const coin = Number(doc.data()?.djCoin);
+            const data = doc.data() || {};
+            const coin = Number(data.djCoin);
+            const coupons = Number(data.housingCoupons);
             api.djCoin = Number.isFinite(coin) ? coin : 0;
+            api.coupons = Number.isFinite(coupons) && coupons > 0 ? Math.round(coupons) : 0;
             notifyCoin();
         }, () => { /* 구독 실패해도 구매 응답으로 갱신됨 */ });
+    }
+
+    // 하우징 진입 시에도 일일 쿠폰 자동 수령 시도 (퀴즈타운 접속 지급의 안전망 — 서버가 중복 방지)
+    function claimDailyCouponSilently() {
+        try {
+            functionsInstance.httpsCallable('claimHousingDailyCoupon')({ memberUserId }).catch(() => {});
+        } catch (e) { /* 무시 */ }
     }
 
     // ---- 서버 구매 ----
@@ -98,16 +156,19 @@
         'functions/invalid-argument': '구매 요청이 올바르지 않아요.'
     };
 
-    async function purchase(itemId) {
+    async function purchase(itemId, options = {}) {
         if (api.mode !== 'online') throw new Error('guest-mode');
         const callable = functionsInstance.httpsCallable('purchaseHousingItem');
         try {
-            const result = await callable({ memberUserId, itemId });
+            const result = await callable({ memberUserId, itemId, useCoupon: options.useCoupon === true });
             const data = result?.data || {};
             if (Number.isFinite(Number(data.nextDjCoin))) {
                 api.djCoin = Number(data.nextDjCoin);
-                notifyCoin();
             }
+            if (Number.isFinite(Number(data.nextCoupons))) {
+                api.coupons = Math.max(0, Number(data.nextCoupons));
+            }
+            notifyCoin();
             ownedCounts[itemId] = Number(data.quantity) || (ownedCounts[itemId] || 0) + 1;
             return data;
         } catch (error) {
@@ -171,12 +232,20 @@
         const member = await resolveMember(user.uid);
         if (!member) { api.mode = 'guest'; return { mode: 'guest' }; }
 
+        // 이용 일시정지 상태 (관리자 소통 관리에서 부여) — 화면 차단 + 서버 함수도 별도 차단
+        if (member.suspendedUntil) {
+            api.mode = 'suspended';
+            api.suspendedUntil = member.suspendedUntil;
+            return { mode: 'suspended' };
+        }
+
         memberUserId = member.userId;
         api.member = member;
         api.mode = 'online';
 
         await Promise.all([loadOwnedItems(), loadRoomDoc()]);
         subscribeCoin();
+        claimDailyCouponSilently();
         return { mode: 'online' };
     }
 

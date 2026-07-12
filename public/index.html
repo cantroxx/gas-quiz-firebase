@@ -243,6 +243,7 @@
         <button type="button" data-place="shop">상점</button>
         <button type="button" data-place="ranking">랭킹 광장</button>
         <button type="button" data-place="event">이벤트 광장</button>
+        <button type="button" id="btn-open-inquiry">📮 문의하기</button>
       </nav>
 
       <aside class="player-status" aria-live="polite">
@@ -275,6 +276,7 @@
 
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
       <div class="home-detail-toggle-grid" aria-label="내 집 상세 메뉴">
+        <a class="home-detail-toggle home-housing-link" href="/housing/">🏠 우리집 꾸미기</a>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="ranking" aria-expanded="false">내 랭킹 기록</button>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="titles" aria-expanded="false">보유 칭호</button>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="badges" aria-expanded="false">뱃지·연습 현황</button>
@@ -1246,6 +1248,7 @@
         <button class="admin-section-tab" type="button" data-admin-section-target="quiz-quality" data-super-admin-only>문제 점검</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="student-economy">학생 재화</button>
+        <button class="admin-section-tab" type="button" data-admin-section-target="communications">소통 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
         <button class="admin-section-tab" type="button" data-admin-section-target="season-events" data-super-admin-only>시즌 이벤트</button>
@@ -1433,6 +1436,26 @@
           <p id="admin-student-economy-status" class="admin-status" aria-live="polite"></p>
           <div id="admin-student-economy-summary" class="admin-summary"></div>
           <div id="admin-student-economy-list" class="admin-member-list"></div>
+        </div>
+      </section>
+
+      <section id="admin-section-communications" class="admin-section" aria-labelledby="admin-communications-heading">
+        <button class="admin-section-toggle" type="button" data-admin-section-target="communications" aria-expanded="false">
+          <span>
+            <span class="eyebrow">Communications</span>
+            <strong id="admin-communications-heading">소통 관리 (문의·방명록 신고)</strong>
+          </span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="admin-section-body">
+          <div class="admin-toolbar">
+            <button id="admin-communications-refresh" class="button primary" type="button">새로 불러오기</button>
+          </div>
+          <p id="admin-communications-status" class="admin-status" aria-live="polite">'새로 불러오기'를 눌러 목록을 확인하세요.</p>
+          <h3 style="margin:12px 0 6px">📮 학생 문의</h3>
+          <div id="admin-inquiry-list" class="admin-member-list"></div>
+          <h3 style="margin:16px 0 6px">🚨 신고된 방명록 (블라인드 중)</h3>
+          <div id="admin-report-list" class="admin-member-list"></div>
         </div>
       </section>
 
@@ -1808,6 +1831,24 @@
       <div id="modal-actions" class="modal-actions" aria-label="준비 중인 기능"></div>
       <p id="modal-status" class="modal-status">각 장소에서 현재 연결된 기능을 확인할 수 있습니다.</p>
       <button class="button primary modal-action" type="button" data-close-modal>닫기</button>
+    </section>
+  </div>
+
+  <div id="inquiry-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-inquiry></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="inquiry-title">
+      <button class="modal-close" type="button" data-close-inquiry aria-label="닫기">×</button>
+      <div class="place-panel-header">
+        <div class="modal-icon" aria-hidden="true">📮</div>
+        <div>
+          <p class="modal-kicker">Inquiry</p>
+          <h2 id="inquiry-title">선생님께 문의하기</h2>
+          <p>불편한 점, 궁금한 점, 아바타 성별을 잘못 골랐을 때 등 무엇이든 써 주세요.</p>
+        </div>
+      </div>
+      <textarea id="inquiry-text" maxlength="300" rows="5" placeholder="문의 내용을 써 주세요. (300자까지)" style="width:100%;border-radius:12px;padding:12px;font:inherit;border:1px solid rgba(47,125,68,0.25);resize:vertical;"></textarea>
+      <p id="inquiry-status" class="modal-status" aria-live="polite"></p>
+      <button id="inquiry-submit" class="button primary modal-action" type="button">보내기</button>
     </section>
   </div>
 
@@ -2811,7 +2852,8 @@
         return;
       }
       if(placeId === 'shop') {
-        showShopView();
+        // 상점은 하우징(내 방 꾸미기) 상점으로 통합됨 — 기존 DJ48 상점 화면(showShopView)은 보존만
+        window.location.href = '/housing/?shop=1';
         return;
       }
       if(placeId === 'event') {
@@ -5071,7 +5113,150 @@
       const destination = window.DJ48AccountData.getRestoredMemberDestination(profile);
       if(destination === 'admin') showAdminView();
       else if(destination === 'town') showTownView();
+      claimHousingDailyCouponSilently(profile);
     }
+
+    // 하우징 일일 쿠폰: 퀴즈타운에 접속하면 자동 지급 (하루 1장, 중복은 서버가 방지)
+    // 실패해도 앱 이용에 지장 없도록 조용히 넘어간다
+    function claimHousingDailyCouponSilently(profile) {
+      try {
+        const memberUserId = profile?.userId || window.DJ48AccountState.getCurrentMemberUserId?.();
+        const functions = getFirebaseFunctions();
+        if(!memberUserId || !functions) return;
+        functions.httpsCallable('claimHousingDailyCoupon')({ memberUserId }).catch(() => {});
+      } catch (error) { /* 무시 */ }
+    }
+
+    // ---- 문의하기 (학생 → 선생님, 관리자 센터 '소통 관리'에서 확인) ----
+    function bindInquiryUi() {
+      const openBtn = document.getElementById('btn-open-inquiry');
+      const modal = document.getElementById('inquiry-modal');
+      if(!openBtn || !modal) return;
+      openBtn.addEventListener('click', () => {
+        const memberUserId = window.DJ48AccountState.getCurrentMemberUserId?.();
+        if(!memberUserId) { alert('로그인(계정 연결) 후에 문의할 수 있어요.'); return; }
+        document.getElementById('inquiry-status').textContent = '';
+        modal.hidden = false;
+      });
+      modal.querySelectorAll('[data-close-inquiry]').forEach(el => {
+        el.addEventListener('click', () => { modal.hidden = true; });
+      });
+      document.getElementById('inquiry-submit').addEventListener('click', async () => {
+        const memberUserId = window.DJ48AccountState.getCurrentMemberUserId?.();
+        const text = document.getElementById('inquiry-text').value.trim();
+        const status = document.getElementById('inquiry-status');
+        if(!memberUserId) { status.textContent = '로그인 후에 보낼 수 있어요.'; return; }
+        if(!text) { status.textContent = '내용을 써 주세요.'; return; }
+        const submitBtn = document.getElementById('inquiry-submit');
+        submitBtn.disabled = true;
+        status.textContent = '보내는 중…';
+        try {
+          await getFirebaseFunctions().httpsCallable('submitMemberInquiry')({ memberUserId, text });
+          status.textContent = '보냈어요! 선생님이 확인할 거예요. 😊';
+          document.getElementById('inquiry-text').value = '';
+          setTimeout(() => { modal.hidden = true; }, 1200);
+        } catch (error) {
+          status.textContent = '보내기에 실패했어요. 잠시 후 다시 해 보세요.';
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    }
+    bindInquiryUi();
+
+    // ---- 관리자 소통 관리 (문의 + 방명록 신고) ----
+    function bindCommunicationsAdminUi() {
+      const refreshBtn = document.getElementById('admin-communications-refresh');
+      if(!refreshBtn) return;
+      const statusEl = document.getElementById('admin-communications-status');
+      const inquiryList = document.getElementById('admin-inquiry-list');
+      const reportList = document.getElementById('admin-report-list');
+
+      function row(children) {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:10px 12px;border:1px solid rgba(47,125,68,0.15);border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,0.85);';
+        children.forEach(child => div.appendChild(child));
+        return div;
+      }
+      function textSpan(text, bold) {
+        const span = document.createElement('span');
+        span.textContent = text;
+        if(bold) span.style.fontWeight = '800';
+        return span;
+      }
+      function actionBtn(label, onClick) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mini-pill-button';
+        btn.style.marginLeft = '6px';
+        btn.textContent = label;
+        btn.addEventListener('click', onClick);
+        return btn;
+      }
+
+      async function loadCommunications() {
+        statusEl.textContent = '불러오는 중…';
+        try {
+          const result = await getFirebaseFunctions().httpsCallable('adminListCommunications')({});
+          const data = result?.data || {};
+          inquiryList.innerHTML = '';
+          reportList.innerHTML = '';
+
+          const inquiries = data.inquiries || [];
+          if(!inquiries.length) inquiryList.textContent = '문의가 없습니다.';
+          inquiries.forEach(item => {
+            const done = item.status === 'done';
+            const info = textSpan(`[${done ? '완료' : '대기'}] ${item.authorName} (${item.memberUserId}) — `, !done);
+            const body = textSpan(item.text);
+            const when = textSpan(item.createdAt ? '  ·  ' + item.createdAt.slice(0, 10) : '');
+            const children = [info, body, when];
+            if(!done) {
+              children.push(actionBtn('처리 완료', async (event) => {
+                event.target.disabled = true;
+                try { await getFirebaseFunctions().httpsCallable('adminResolveInquiry')({ inquiryId: item.inquiryId, status: 'done' }); loadCommunications(); }
+                catch (error) { alert('처리에 실패했습니다.'); event.target.disabled = false; }
+              }));
+            }
+            inquiryList.appendChild(row(children));
+          });
+
+          const reports = data.reports || [];
+          if(!reports.length) reportList.textContent = '신고된 방명록이 없습니다.';
+          reports.forEach(item => {
+            const info = textSpan(`${item.authorName} (${item.authorUserId}) → ${item.ownerUserId}네 방  ·  신고: ${item.reportedBy}`, true);
+            const body = document.createElement('div');
+            body.textContent = `"${item.text}"`;
+            const actions = document.createElement('div');
+            actions.style.marginTop = '6px';
+            actions.appendChild(actionBtn('글 삭제', async () => {
+              if(!confirm('이 방명록 글을 완전히 삭제할까요?')) return;
+              try { await getFirebaseFunctions().httpsCallable('adminModerateGuestbook')({ ownerUserId: item.ownerUserId, entryId: item.entryId, action: 'delete' }); loadCommunications(); }
+              catch (error) { alert('삭제에 실패했습니다.'); }
+            }));
+            actions.appendChild(actionBtn('문제없음 (복구)', async () => {
+              try { await getFirebaseFunctions().httpsCallable('adminModerateGuestbook')({ ownerUserId: item.ownerUserId, entryId: item.entryId, action: 'restore' }); loadCommunications(); }
+              catch (error) { alert('복구에 실패했습니다.'); }
+            }));
+            actions.appendChild(actionBtn('작성자 하우징 정지', async () => {
+              const days = Number(prompt('며칠 동안 정지할까요? (0 = 해제)', '7'));
+              if(!Number.isFinite(days) || days < 0) return;
+              try {
+                await getFirebaseFunctions().httpsCallable('adminSetHousingSuspension')({ memberUserId: item.authorUserId, days });
+                alert(days > 0 ? `${item.authorUserId} 하우징 ${days}일 정지 적용` : '정지를 해제했습니다.');
+              } catch (error) { alert('정지 처리에 실패했습니다.'); }
+            }));
+            reportList.appendChild(row([info, body, actions]));
+          });
+
+          statusEl.textContent = `문의 ${inquiries.length}건 · 신고 ${reports.length}건 (마지막 갱신: ${new Date().toLocaleTimeString()})`;
+        } catch (error) {
+          statusEl.textContent = '목록을 불러오지 못했습니다. 다시 시도해 주세요.';
+        }
+      }
+
+      refreshBtn.addEventListener('click', loadCommunications);
+    }
+    bindCommunicationsAdminUi();
 
     function initializeAuthUser() {
       return window.DJ48AccountUsecases.initializeAuthUserLifecycle({
