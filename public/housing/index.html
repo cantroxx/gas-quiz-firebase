@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 방 꾸미기 (하우징 체험판)</title>
+    <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+    <div id="hotel-viewport">
+        <canvas id="room-canvas"></canvas>
+
+        <div id="chat-bubbles-container"></div>
+
+        <!-- 좌측 상단: 크레딧 / 방 이름 -->
+        <div id="top-status-bar">
+            <div class="status-box">
+                <span class="label">크레딧</span>
+                <span id="credits-count" class="value">2,000</span>
+            </div>
+            <div class="status-box">
+                <span class="label">방 이름</span>
+                <span class="value">나의 첫 번째 방</span>
+            </div>
+            <button id="btn-reset" class="reset-btn" title="방을 처음 상태로 되돌립니다">처음부터</button>
+        </div>
+
+        <!-- 교육용 고지 배지 -->
+        <div id="edu-notice" title="본 프로젝트는 학급 교육용이며 상업적으로 사용하지 않습니다. 가구·아바타 이미지 출처: habboassets.com / imager.habboon.pw — 원저작권 Habbo Hotel © Sulake Oy">
+            🎓 교육용·비상업 체험판 — 이미지: Habbo © Sulake
+        </div>
+
+        <!-- 가구 조작 패널 -->
+        <div id="furniture-control-panel" class="hidden">
+            <div class="panel-header">
+                <h3 id="selected-furni-name">가구 이름</h3>
+                <button id="close-panel-btn">×</button>
+            </div>
+            <div class="panel-body">
+                <img id="selected-furni-preview" src="" alt="미리보기">
+                <p id="selected-furni-desc">설명</p>
+                <div class="action-buttons">
+                    <button id="action-sit" class="control-btn accent hidden">🪑 여기 앉기</button>
+                    <button id="action-lay" class="control-btn accent hidden">🛏️ 여기 눕기</button>
+                    <button id="action-use" class="control-btn accent hidden">⚡ 작동하기</button>
+                    <button id="action-rotate" class="control-btn">🔄 돌리기 (R)</button>
+                    <button id="action-move" class="control-btn">✋ 옮기기</button>
+                    <button id="action-pickup" class="control-btn warning">🎒 가방에 넣기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 바 -->
+        <div id="bottom-navigation-bar">
+            <div class="left-actions">
+                <button id="btn-catalog" class="nav-btn">
+                    <span class="emoji">🛒</span>
+                    <span>상점</span>
+                </button>
+                <button id="btn-inventory" class="nav-btn">
+                    <span class="emoji">🎒</span>
+                    <span>가방 (<span id="inventory-count">0</span>)</span>
+                </button>
+                <button id="btn-room" class="nav-btn">
+                    <span class="emoji">🏠</span>
+                    <span>방 모양</span>
+                </button>
+            </div>
+
+            <div class="center-chat">
+                <input type="text" id="chat-input" placeholder="하고 싶은 말을 쓰고 Enter!" autocomplete="off" maxlength="60">
+                <button id="chat-send-btn">말하기</button>
+            </div>
+
+            <div class="right-actions">
+                <div class="avatar-profile-circle" id="btn-profile" title="내 이름 바꾸기">
+                    <!-- 시작 시 refreshAvatarFigure()가 실제 아바타로 교체함 -->
+                    <img src="" alt="나">
+                </div>
+            </div>
+        </div>
+
+        <!-- 상점 모달 -->
+        <div id="catalog-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🛒 가구 상점</h2>
+                    <button class="modal-close-btn" id="close-catalog">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-tabs">
+                        <button class="tab-btn active" data-category="seat">🪑 의자·소파</button>
+                        <button class="tab-btn" data-category="bed">🛏️ 침대</button>
+                        <button class="tab-btn" data-category="table">🍽️ 테이블·책상</button>
+                        <button class="tab-btn" data-category="storage">📚 수납·칸막이</button>
+                        <button class="tab-btn" data-category="school">🏫 학교</button>
+                        <button class="tab-btn" data-category="diner">🍔 식당</button>
+                        <button class="tab-btn" data-category="plant">🌱 식물·자연</button>
+                        <button class="tab-btn" data-category="rug">🟩 러그·장판</button>
+                        <button class="tab-btn" data-category="light">💡 조명</button>
+                        <button class="tab-btn" data-category="elec">📺 가전</button>
+                        <button class="tab-btn" data-category="fun">🎂 장식·음식</button>
+                        <button class="tab-btn" data-category="rare">💎 레어</button>
+                        <button class="tab-btn" data-category="paper">🎨 벽지·바닥</button>
+                    </div>
+                    <div class="modal-item-display">
+                        <div class="item-grid" id="catalog-grid"></div>
+                        <div class="item-detail-view" id="catalog-detail">
+                            <h3 id="catalog-detail-name">가구를 골라 보세요</h3>
+                            <div class="detail-preview-box">
+                                <img id="catalog-detail-img" src="" alt="">
+                            </div>
+                            <p id="catalog-detail-desc">왼쪽에서 가구를 누르면 자세한 설명이 나와요.</p>
+                            <div class="purchase-box">
+                                <span class="cost"><span id="catalog-detail-price">0</span> 크레딧</span>
+                                <button id="btn-buy-item" class="buy-btn disabled" disabled>사기</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 가방 모달 -->
+        <div id="inventory-modal" class="modal hidden">
+            <div class="modal-content small">
+                <div class="modal-header">
+                    <h2>🎒 내 가방</h2>
+                    <button class="modal-close-btn" id="close-inventory">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="inventory-container">
+                        <div class="inventory-grid" id="inventory-grid"></div>
+                        <div class="inventory-placeholder" id="inventory-empty-msg">
+                            가방이 비었어요. 상점에서 가구를 사 보세요!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 아바타 꾸미기 모달 -->
+        <div id="avatar-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🧑 내 아바타 꾸미기</h2>
+                    <button class="modal-close-btn" id="close-avatar">×</button>
+                </div>
+                <div class="modal-body avatar-editor">
+                    <div class="avatar-preview-pane">
+                        <div class="gender-toggle" id="gender-toggle">
+                            <button class="gender-btn" data-g="M">👦 남자</button>
+                            <button class="gender-btn" data-g="F">👧 여자</button>
+                        </div>
+                        <img id="avatar-preview-img" src="" alt="내 아바타">
+                        <label for="player-name-input">이름</label>
+                        <input type="text" id="player-name-input" maxlength="10" placeholder="이름 (10글자까지)" autocomplete="off">
+                    </div>
+                    <div class="avatar-edit-pane">
+                        <div class="avatar-tabs" id="avatar-tabs"></div>
+                        <div class="avatar-options" id="avatar-options"></div>
+                        <div class="avatar-colors" id="avatar-colors"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 방 모양 선택 모달 -->
+        <div id="room-modal" class="modal hidden">
+            <div class="modal-content small">
+                <div class="modal-header">
+                    <h2>🏠 방 모양 고르기</h2>
+                    <button class="modal-close-btn" id="close-room">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="room-model-container">
+                        <p class="room-model-hint">진짜 하보 호텔의 기본 방 모양이에요. 주황색이 문!</p>
+                        <div class="room-model-grid" id="room-model-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 배치 도우미 툴팁 -->
+        <div id="placement-helper-tooltip" class="hidden">
+            <p><strong>배치 모드</strong> — 놓고 싶은 칸을 눌러요.</p>
+            <p><kbd>R</kbd> 돌리기 | <kbd>Esc</kbd> 취소</p>
+        </div>
+    </div>
+
+    <!-- Firebase (로그인 세션 공유 + Storage 에셋 잠금 확인용) — 로컬 개발 시엔 없어도 동작 -->
+    <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+    <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/10.12.2/firebase-storage-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="assets-loader.js?v=1"></script>
+    <script src="app.js?v=2"></script>
+</body>
+</html>

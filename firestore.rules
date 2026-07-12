@@ -517,6 +517,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // 익명 로그인 ↔ 학급 계정 연결 명부 (서버 함수 전용 — Storage 규칙의 firestore.exists() 조회용)
+    match /authLinks/{authUid} {
+      allow read, write: if false;
+    }
+
     match /memberPasswordSetupState/{userId} {
       allow read, write: if false;
     }

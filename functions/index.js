@@ -2993,6 +2993,21 @@ function createSetupSessionId() {
   return crypto.randomBytes(24).toString("hex");
 }
 
+// authLinks/{authUid} = { memberUserId } 명부 유지 (서버 전용, 클라이언트 접근 금지)
+// Storage 보안 규칙이 firestore.exists()로 "이 로그인은 학급 계정과 연결됐는가"를
+// 확인할 때 쓴다 (하우징 에셋 잠금). users.authUid가 바뀌는 모든 곳에서 호출할 것.
+function mirrorAuthLinkInTransaction(transaction, { authUid, memberUserId, previousAuthUid = "" }) {
+  if (!authUid || !memberUserId) return;
+  if (previousAuthUid && previousAuthUid !== authUid) {
+    transaction.delete(db.collection("authLinks").doc(previousAuthUid));
+  }
+  transaction.set(db.collection("authLinks").doc(authUid), {
+    authUid,
+    memberUserId,
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
 exports.verifyMemberAccessCode = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = getMemberPayload(request.data);
@@ -3059,6 +3074,12 @@ exports.linkMemberAuthUid = onCall({ region: REGION }, async request => {
       if (action !== "unchanged") {
         transaction.set(verified.memberRef, updateData, { merge: true });
       }
+      // unchanged여도 명부를 다시 써서 과거 누락을 자가 복구한다
+      mirrorAuthLinkInTransaction(transaction, {
+        authUid,
+        memberUserId: verified.memberUserId,
+        previousAuthUid: action === "relinked" ? memberData.authUid : ""
+      });
 
       return {
         action,
@@ -3257,6 +3278,11 @@ exports.setMemberPassword = onCall({ region: REGION }, async request => {
         authLinkVersion: 4,
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
+      mirrorAuthLinkInTransaction(transaction, {
+        authUid,
+        memberUserId,
+        previousAuthUid: memberData.authUid && memberData.authUid !== authUid ? memberData.authUid : ""
+      });
       transaction.set(sessionRef, {
         used: true,
         usedAt: FieldValue.serverTimestamp(),
@@ -3362,6 +3388,11 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
         authLinkVersion: 4,
         updatedAt: FieldValue.serverTimestamp()
       }, { merge: true });
+      mirrorAuthLinkInTransaction(transaction, {
+        authUid,
+        memberUserId,
+        previousAuthUid: memberData.authUid && memberData.authUid !== authUid ? memberData.authUid : ""
+      });
 
       return {
         memberUserId,
@@ -3436,6 +3467,7 @@ exports.registerNewMember = onCall({ region: REGION }, async request => {
 
       const memberData = buildMemberProfileForRegistration(identity, nickname, authUid, memberUserId);
       transaction.set(memberRef, memberData, { merge: false });
+      mirrorAuthLinkInTransaction(transaction, { authUid, memberUserId });
       transaction.set(credentialsRef, {
         memberUserId,
         ...createPasswordHash(password),

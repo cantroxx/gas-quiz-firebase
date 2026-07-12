@@ -14,6 +14,15 @@ service firebase.storage {
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
 
+    // 하우징 가구 에셋 묶음 (Habbo © Sulake — 교육용, 학급 구성원 한정 제공)
+    // 익명 로그인만으로는 부족하고, 학급 계정과 연결된 로그인(authLinks 명부에 존재)이어야 읽을 수 있다.
+    // 업로드는 교사 관리 스크립트(Admin SDK)만 — 클라이언트 쓰기 금지.
+    match /housingAssets/{fileName} {
+      allow read: if isSignedIn()
+        && firestore.exists(/databases/(default)/documents/authLinks/$(request.auth.uid));
+      allow write: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }
