@@ -8948,6 +8948,113 @@ exports.purchaseShopItem = onCall({ region: REGION }, async request => {
   };
 });
 
+// 하우징(내 방 꾸미기) 전용 구매 — purchaseShopItem과 같지만 같은 가구를 여러 개 살 수 있게
+// 보유 문서를 quantity 증가 방식으로 기록한다. room_ 접두사 아이템만 허용.
+exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const itemId = normalizeId(payload.itemId, "itemId");
+
+  if (!itemId.startsWith("room_")) {
+    throw new HttpsError("invalid-argument", "Not a housing shop item.");
+  }
+
+  const result = await db.runTransaction(async transaction => {
+    const flags = await getFeatureFlags(transaction);
+    const memberData = await assertLinkedPurchasingMemberAuth(transaction, memberUserId, authUid);
+
+    const itemRef = db.collection("shopItems").doc(itemId);
+    const economyRef = db.collection("userEconomy").doc(memberUserId);
+    const inventoryRef = db.collection("userInventory").doc(memberUserId).collection("items").doc(itemId);
+    const purchaseLogRef = db.collection("purchaseLogs").doc();
+
+    const [itemSnapshot, economySnapshot, inventorySnapshot] = await Promise.all([
+      transaction.get(itemRef),
+      transaction.get(economyRef),
+      transaction.get(inventoryRef)
+    ]);
+
+    if (!itemSnapshot.exists) {
+      throw new HttpsError("not-found", "Shop item not found.");
+    }
+
+    const item = itemSnapshot.data() || {};
+    assertFeatureEnabledForMember(flags, "shopEnabled", memberData, "Shop is disabled.");
+    if (item.enabled !== true) {
+      throw new HttpsError("failed-precondition", "Shop item is disabled.");
+    }
+    if (item.priceType && item.priceType !== "djCoin") {
+      throw new HttpsError("failed-precondition", "Unsupported price type.");
+    }
+
+    const price = Number(item.price);
+    if (!Number.isFinite(price) || price < 0) {
+      throw new HttpsError("failed-precondition", "Invalid shop item price.");
+    }
+
+    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
+    const djCoin = Number(economy.djCoin ?? economy.coin ?? 0);
+    if (!Number.isFinite(djCoin) || djCoin < price) {
+      throw new HttpsError("failed-precondition", "Not enough DJ coins.");
+    }
+
+    const previousQuantity = inventorySnapshot.exists
+      ? Math.max(0, Math.round(Number(inventorySnapshot.data()?.quantity) || 1))
+      : 0;
+    const nextQuantity = previousQuantity + 1;
+
+    transaction.set(economyRef, {
+      userId: memberUserId,
+      djCoin: djCoin - price,
+      totalSpent: FieldValue.increment(price),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(inventoryRef, {
+      userId: memberUserId,
+      itemId,
+      assetId: item.assetId || "",
+      source: "housingPurchaseFunction",
+      quantity: nextQuantity,
+      lastPricePaid: price,
+      priceType: "djCoin",
+      acquiredAt: inventorySnapshot.exists ? inventorySnapshot.data()?.acquiredAt || FieldValue.serverTimestamp() : FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(purchaseLogRef, {
+      logId: purchaseLogRef.id,
+      userId: memberUserId,
+      memberUserId,
+      authUid,
+      itemId,
+      assetId: item.assetId || "",
+      coinDelta: -price,
+      pricePaid: price,
+      priceType: "djCoin",
+      quantityAfter: nextQuantity,
+      inventoryPath: inventoryRef.path,
+      serverVerified: true,
+      source: "housing_purchase_function",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+
+    return {
+      itemId,
+      pricePaid: price,
+      nextDjCoin: djCoin - price,
+      quantity: nextQuantity,
+      inventoryPath: inventoryRef.path,
+      purchaseLogPath: purchaseLogRef.path
+    };
+  });
+
+  return {
+    success: true,
+    memberUserId,
+    ...result
+  };
+});
+
 exports.grantPracticeReward = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};

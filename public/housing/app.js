@@ -615,26 +615,57 @@ function preloadAvatarSprites() {
 }
 
 function saveGame() {
+    const payload = {
+        credits: state.credits,
+        playerName: state.playerName,
+        roomModel: state.roomModel,
+        wallTheme: state.wallTheme,
+        floorTheme: state.floorTheme,
+        look: state.avatar.look,
+        inventory: state.inventory,
+        placedItems: state.placedItems
+    };
+    // 온라인 모드: 코인·가방은 서버(userEconomy·userInventory)가 관리하므로 방 상태만 저장
+    if (window.HousingData?.mode === 'online') {
+        HousingData.saveRoom(payload);
+        return;
+    }
     try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({
-            credits: state.credits,
-            playerName: state.playerName,
-            roomModel: state.roomModel,
-            wallTheme: state.wallTheme,
-            floorTheme: state.floorTheme,
-            look: state.avatar.look,
-            inventory: state.inventory,
-            placedItems: state.placedItems
-        }));
+        localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
     } catch (e) { /* 저장 실패는 무시 (사파리 시크릿 모드 등) */ }
 }
 
 function loadGame() {
+    // 온라인 모드: Firestore 방 문서 + 서버 보유 목록에서 복원
+    if (window.HousingData?.mode === 'online') {
+        state.credits = HousingData.djCoin;
+        const nickname = HousingData.member?.nickname;
+        if (nickname) state.playerName = String(nickname).slice(0, 10);
+        if (HousingData.roomData) applySavedData(HousingData.roomData);
+        // 가방 = 서버 보유 수량 − 방에 배치된 수량 (배치/회수는 이 관계를 그대로 유지함)
+        const placedCount = {};
+        state.placedItems.forEach(i => { placedCount[i.classname] = (placedCount[i.classname] || 0) + 1; });
+        state.inventory = [];
+        CATALOG_ITEMS.forEach(item => {
+            const owned = HousingData.ownedCount(HousingData.furniItemId(item.classname));
+            const inBag = owned - (placedCount[item.classname] || 0);
+            for (let k = 0; k < inBag; k++) state.inventory.push(item.classname);
+        });
+        return;
+    }
     try {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return;
         const data = JSON.parse(raw);
         if (typeof data.credits === 'number') state.credits = data.credits;
+        if (Array.isArray(data.inventory)) state.inventory = data.inventory.filter(c => getModel(c));
+        applySavedData(data);
+    } catch (e) { /* 손상된 저장 데이터는 무시 */ }
+}
+
+// 저장 데이터(로컬/Firestore 공용)를 검증하며 state에 반영
+function applySavedData(data) {
+    try {
         if (typeof data.playerName === 'string') state.playerName = data.playerName;
         if (typeof data.roomModel === 'string' && ROOM_MODELS[data.roomModel]) state.roomModel = data.roomModel;
         if (typeof data.wallTheme === 'number' && WALL_THEMES[data.wallTheme]) state.wallTheme = data.wallTheme;
@@ -661,7 +692,6 @@ function loadGame() {
             if (CLOTH_COLORS.some(c => c.id === data.look.lgColor)) l.lgColor = data.look.lgColor;
             if (CLOTH_COLORS.some(c => c.id === data.look.shColor)) l.shColor = data.look.shColor;
         }
-        if (Array.isArray(data.inventory)) state.inventory = data.inventory.filter(c => getModel(c));
         if (Array.isArray(data.placedItems)) state.placedItems = data.placedItems.filter(i => getModel(i.classname));
     } catch (e) { /* 손상된 저장 데이터는 무시 */ }
 }
@@ -1958,17 +1988,41 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-document.getElementById('btn-buy-item').addEventListener('click', () => {
+document.getElementById('btn-buy-item').addEventListener('click', async () => {
     const item = state.selectedCatalogItem;
     if (!item) return;
-    if (state.credits < item.cost) {
-        alert("크레딧이 부족해요! 😢");
-        return;
+    const online = window.HousingData?.mode === 'online';
+    const coinName = online ? 'DJ코인' : '크레딧';
+    const buyBtn = document.getElementById('btn-buy-item');
+
+    // 온라인 결제: 서버 함수가 코인 차감·보유 기록까지 처리 (성공하면 true)
+    async function payOnline(itemId) {
+        buyBtn.disabled = true;
+        buyBtn.innerText = '사는 중…';
+        try {
+            await HousingData.purchase(itemId);
+            return true;
+        } catch (e) {
+            alert(e.message);
+            return false;
+        } finally {
+            buyBtn.disabled = false;
+            buyBtn.innerText = '사기';
+        }
     }
 
-    // 벽지·바닥: 사면 방에 바로 발라짐 (가방에 안 들어감)
+    // 벽지·바닥: 한 번 사면 계속 보유 — 이미 산 색은 무료로 다시 적용
     if (item.paper) {
-        state.credits -= item.cost;
+        const paperId = online ? HousingData.paperItemId(item.paper, item.themeId) : null;
+        const alreadyOwned = online && HousingData.ownedCount(paperId) > 0;
+        if (!alreadyOwned) {
+            if (state.credits < item.cost) { alert(`${coinName}이 부족해요! 😢`); return; }
+            if (online) {
+                if (!await payOnline(paperId)) return;
+            } else {
+                state.credits -= item.cost;
+            }
+        }
         if (item.paper === 'wall') state.wallTheme = item.themeId;
         else state.floorTheme = item.themeId;
         saveGame();
@@ -1977,8 +2031,17 @@ document.getElementById('btn-buy-item').addEventListener('click', () => {
         return;
     }
 
+    if (state.credits < item.cost) {
+        alert(`${coinName}이 부족해요! 😢`);
+        return;
+    }
+
     // 결제는 여기서 딱 한 번
-    state.credits -= item.cost;
+    if (online) {
+        if (!await payOnline(HousingData.furniItemId(item.classname))) return;
+    } else {
+        state.credits -= item.cost;
+    }
     state.inventory.push(item.classname);
     saveGame();
     updateUI();
@@ -2286,6 +2349,20 @@ function makeSwatch(hex, isSelected, onClick) {
 }
 
 document.getElementById('btn-reset').addEventListener('click', () => {
+    // 온라인 모드: 방 배치만 초기화 (DJ코인·산 가구는 서버에 그대로)
+    if (window.HousingData?.mode === 'online') {
+        if (confirm("방을 처음 상태로 되돌릴까요?\n가구는 모두 가방으로 들어가고, DJ코인과 산 물건은 그대로예요.")) {
+            cancelPlacement(); // 배치·이동 중이면 취소 + 가구 패널 닫기
+            state.placedItems.forEach(i => state.inventory.push(i.classname));
+            state.placedItems = [];
+            state.wallTheme = 0;
+            state.floorTheme = 0;
+            applyRoomModel(state.roomModel); // 아바타를 문으로 (앉은 상태 등 해제)
+            saveGame();
+            updateUI();
+        }
+        return;
+    }
     if (confirm("정말 처음부터 다시 할까요?\n방, 가구, 크레딧이 모두 초기화돼요.")) {
         localStorage.removeItem(SAVE_KEY);
         location.reload();
@@ -2378,20 +2455,37 @@ function renderRoomModelGrid() {
 }
 
 // 17. 시작!
-loadGame();
-applyRoomModel(state.roomModel); // 문 위치에 아바타 배치 + 화면 중앙 정렬 + 저장 데이터 검증
-refreshAvatarFigure();           // look → figure 문자열 생성 + 프로필 아이콘 갱신
-updateUI();
+(async () => {
+    // 온라인/게스트 모드 판정과 서버 데이터(코인·보유·방)를 기다린 뒤 시작
+    if (window.HousingData) {
+        try { await HousingData.ready; } catch (e) { /* 실패 시 게스트 모드 */ }
+    }
 
-// 저장된 방의 가구는 즉시, 나머지 카탈로그는 유휴 시간에 미리 로딩(원본 스프라이트 팝인 방지)
-state.placedItems.forEach(i => loadFurni(i.classname));
-const preloadIdle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
-let preloadIdx = 0;
-function preloadNextFurni() {
-    if (preloadIdx >= CATALOG_ITEMS.length) return;
-    loadFurni(CATALOG_ITEMS[preloadIdx++].classname);
+    loadGame();
+    applyRoomModel(state.roomModel); // 문 위치에 아바타 배치 + 화면 중앙 정렬 + 저장 데이터 검증
+    refreshAvatarFigure();           // look → figure 문자열 생성 + 프로필 아이콘 갱신
+
+    // 온라인 모드: 화폐 라벨을 DJ코인으로, 잔액은 서버 구독으로 실시간 갱신
+    if (window.HousingData?.mode === 'online') {
+        const coinLabel = document.querySelector('#top-status-bar .status-box .label');
+        if (coinLabel) coinLabel.innerText = 'DJ코인';
+        HousingData.onCoinChange(coin => {
+            state.credits = coin;
+            updateUI();
+        });
+    }
+    updateUI();
+
+    // 저장된 방의 가구는 즉시, 나머지 카탈로그는 유휴 시간에 미리 로딩(원본 스프라이트 팝인 방지)
+    state.placedItems.forEach(i => loadFurni(i.classname));
+    const preloadIdle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
+    let preloadIdx = 0;
+    function preloadNextFurni() {
+        if (preloadIdx >= CATALOG_ITEMS.length) return;
+        loadFurni(CATALOG_ITEMS[preloadIdx++].classname);
+        preloadIdle(preloadNextFurni);
+    }
     preloadIdle(preloadNextFurni);
-}
-preloadIdle(preloadNextFurni);
 
-requestAnimationFrame(drawRoom);
+    requestAnimationFrame(drawRoom);
+})();

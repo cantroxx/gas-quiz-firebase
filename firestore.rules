@@ -581,6 +581,12 @@ service cloud.firestore {
       allow read, write: if canAccessUserScopedData(userId);
     }
 
+    // 하우징(내 방 꾸미기) 방 상태 — 가구 배치·벽지·아바타 모습. 본인만 읽기/쓰기.
+    // 코인·보유 가구는 여기 없음 (userEconomy·userInventory가 서버 함수로만 변경됨)
+    match /userHomeRooms/{userId} {
+      allow read, write: if canAccessUserScopedData(userId);
+    }
+
     match /dailyUsage/{recordId} {
       allow read: if isSignedIn()
         && recordId.matches('.*__.*')
