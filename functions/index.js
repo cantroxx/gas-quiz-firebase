@@ -9131,7 +9131,7 @@ exports.adminResolveInquiry = onCall({ region: REGION }, async request => {
 
   await db.collection("inquiries").doc(inquiryId).set({
     status,
-    resolvedBy: status === "done" ? adminMember.userId : "",
+    resolvedBy: status === "done" ? adminMember.memberUserId : "",
     resolvedAt: status === "done" ? FieldValue.serverTimestamp() : null
   }, { merge: true });
 
@@ -9154,7 +9154,7 @@ exports.adminModerateGuestbook = onCall({ region: REGION }, async request => {
     await entryRef.set({
       blinded: false,
       blindReason: "",
-      moderatedBy: adminMember.userId,
+      moderatedBy: adminMember.memberUserId,
       moderatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
   }
@@ -9173,7 +9173,7 @@ exports.adminSetHousingSuspension = onCall({ region: REGION }, async request => 
   const until = days > 0 ? Timestamp.fromMillis(Date.now() + days * 24 * 60 * 60 * 1000) : null;
   await db.collection("users").doc(memberUserId).set({
     housingSuspendedUntil: until,
-    housingSuspensionSetBy: adminMember.userId,
+    housingSuspensionSetBy: adminMember.memberUserId,
     housingSuspensionSetAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp()
   }, { merge: true });
