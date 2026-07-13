@@ -116,6 +116,7 @@
                         <button class="tab-btn" data-category="diner">🍔 식당</button>
                         <button class="tab-btn" data-category="plant">🌱 식물·자연</button>
                         <button class="tab-btn" data-category="rug">🟩 러그·장판</button>
+                        <button class="tab-btn" data-category="wall">🖼️ 벽 꾸미기</button>
                         <button class="tab-btn" data-category="light">💡 조명</button>
                         <button class="tab-btn" data-category="elec">📺 가전</button>
                         <button class="tab-btn" data-category="fun">🎂 장식·음식</button>
@@ -228,7 +229,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="room-model-container">
-                        <p class="room-model-hint">진짜 하보 호텔의 기본 방 모양이에요. 주황색이 문!</p>
+                        <p class="room-model-hint">주황색이 문! 🔒 표시가 있는 방은 코인으로 사서 열 수 있어요.</p>
                         <div class="room-model-grid" id="room-model-grid"></div>
                     </div>
                 </div>
@@ -240,6 +241,13 @@
             <p><strong>배치 모드</strong> — 놓고 싶은 칸을 눌러요.</p>
             <p><kbd>R</kbd> 돌리기 | <kbd>Esc</kbd> 취소</p>
         </div>
+
+        <!-- 벽지·바닥 발라보기 확인 바 -->
+        <div id="paper-trial-bar" class="hidden">
+            <span id="paper-trial-label">발라보는 중</span>
+            <button id="paper-trial-buy">💰 이대로 사기</button>
+            <button id="paper-trial-cancel">원래대로</button>
+        </div>
     </div>
 
     <!-- Firebase (로그인 세션 공유 + Storage 에셋 잠금 + DJ코인 상점·방 저장) — 로컬 개발 시엔 없어도 동작 -->
@@ -249,8 +257,8 @@
     <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
-    <script src="assets-loader.js?v=1"></script>
+    <script src="assets-loader.js?v=2"></script>
     <script src="housing-data.js?v=1"></script>
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

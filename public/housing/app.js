@@ -247,7 +247,43 @@ CATALOG_ITEMS.push(
     { classname: "stand_polyfon_z",     name: "Z 선반",          category: "storage", cost: 15, desc: "지그재그 선반." },
 
     // 침대 추가
-    { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." }
+    { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." },
+
+    // ---- 벽 꾸미기 (wall) — 2026-07-13 추가 34종: 하보 벽형 가구 ----
+    { classname: "attic15_window", name: "다락방 창문", category: "wall", cost: 45, desc: "따뜻한 빛이 드는 큰 창문." },
+    { classname: "lon_window", name: "런던 창문", category: "wall", cost: 40, desc: "비 오는 날이 어울리는 창." },
+    { classname: "room_hall15_window", name: "홀 창문", category: "wall", cost: 40, desc: "복도풍 세로 창문." },
+    { classname: "diner_poster", name: "식당 포스터", category: "wall", cost: 20, desc: "오늘의 메뉴는 뭘까?" },
+    { classname: "easy_poster", name: "이젤 포스터", category: "wall", cost: 20, desc: "그림 전시 중!" },
+    { classname: "wildwest_wanted_poster", name: "현상수배 포스터", category: "wall", cost: 25, desc: "수배 중! 범인을 찾아라." },
+    { classname: "horse_fin_poster", name: "말 포스터 A", category: "wall", cost: 20, desc: "멋진 말 그림." },
+    { classname: "horse_fin_poster2", name: "말 포스터 B", category: "wall", cost: 20, desc: "달리는 말 그림." },
+    { classname: "horse_fin_poster3", name: "말 포스터 C", category: "wall", cost: 20, desc: "점프하는 말 그림." },
+    { classname: "hrella_poster_1", name: "우산 포스터 A", category: "wall", cost: 20, desc: "알록달록 우산 광고." },
+    { classname: "hrella_poster_2", name: "우산 포스터 B", category: "wall", cost: 20, desc: "우산 광고 두 번째." },
+    { classname: "hrella_poster_3", name: "우산 포스터 C", category: "wall", cost: 20, desc: "우산 광고 세 번째." },
+    { classname: "pixel_mirror", name: "픽셀 거울", category: "wall", cost: 35, desc: "내 모습이 비칠까?" },
+    { classname: "room_wl15_mirror", name: "앤티크 거울", category: "wall", cost: 40, desc: "고풍스러운 벽거울." },
+    { classname: "pframe", name: "사진 액자", category: "wall", cost: 25, desc: "추억을 담는 액자." },
+    { classname: "noticeboard", name: "게시판", category: "wall", cost: 45, desc: "우리 반 알림판처럼!" },
+    { classname: "classic1_wall1", name: "클래식 가벽 A", category: "wall", cost: 30, desc: "방을 나누는 하얀 가벽." },
+    { classname: "classic1_wall2", name: "클래식 가벽 B", category: "wall", cost: 30, desc: "모서리용 가벽." },
+    { classname: "classic2_wall", name: "클래식 가벽 C", category: "wall", cost: 30, desc: "깔끔한 가벽." },
+    { classname: "classic5_wall", name: "클래식 가벽 D", category: "wall", cost: 30, desc: "문이 있는 가벽." },
+    { classname: "classic6_wall", name: "클래식 가벽 E", category: "wall", cost: 30, desc: "창문형 가벽." },
+    { classname: "classic7_wall", name: "클래식 가벽 F", category: "wall", cost: 30, desc: "낮은 가벽." },
+    { classname: "lidowall1", name: "리조트 담장 A", category: "wall", cost: 30, desc: "수영장 느낌 담장." },
+    { classname: "lidowall2", name: "리조트 담장 B", category: "wall", cost: 30, desc: "리조트풍 담장." },
+    { classname: "lidowall3", name: "리조트 담장 C", category: "wall", cost: 30, desc: "모서리 담장." },
+    { classname: "wall_china", name: "만리장성 벽", category: "wall", cost: 50, desc: "역사 여행 온 기분!" },
+    { classname: "theatre_wall", name: "극장 벽", category: "wall", cost: 45, desc: "무대 배경 같은 벽." },
+    { classname: "wildwest_saloonwall", name: "서부 살룬 벽", category: "wall", cost: 45, desc: "카우보이 마을 벽." },
+    { classname: "vikings_wall_g", name: "바이킹 벽 (초록)", category: "wall", cost: 45, desc: "바이킹 요새의 벽." },
+    { classname: "vikings_wall_r", name: "바이킹 벽 (빨강)", category: "wall", cost: 45, desc: "바이킹 요새의 벽." },
+    { classname: "sand_cstl_wall", name: "모래성 벽", category: "wall", cost: 40, desc: "여름 해변의 모래성." },
+    { classname: "jungle_c16_wall", name: "정글 벽", category: "wall", cost: 40, desc: "덩굴이 우거진 벽." },
+    { classname: "val14_b_wall", name: "하트 벽 (파랑)", category: "wall", cost: 35, desc: "하트가 콕콕 박힌 벽." },
+    { classname: "anc_sunset_wall", name: "노을 벽", category: "wall", cost: 50, desc: "노을이 지는 풍경 벽." }
 );
 
 CATALOG_ITEMS.forEach(item => {
@@ -299,6 +335,8 @@ const FURNI_DIMS = {
 
 // 2026-07-09 확장분(102종) — 신규 다운로드한 furni JSON에서 추출
 Object.assign(FURNI_DIMS, {
+    // 벽 꾸미기 34종
+    attic15_window: [2, 2, 0], lon_window: [1, 2, 3], room_hall15_window: [1, 2, 0.000001], diner_poster: [1, 1, 1], easy_poster: [1, 1, 1], wildwest_wanted_poster: [1, 1, 1], horse_fin_poster: [2, 1, 0], horse_fin_poster2: [2, 1, 0], horse_fin_poster3: [2, 1, 0], hrella_poster_1: [1, 1, 1], hrella_poster_2: [1, 1, 1], hrella_poster_3: [1, 1, 1], pixel_mirror: [1, 10, 2], room_wl15_mirror: [1, 1, 0.000001], pframe: [1, 1, 1], noticeboard: [3, 1, 3], classic1_wall1: [1, 2, 4.2], classic1_wall2: [1, 2, 4.2], classic2_wall: [2, 1, 4], classic5_wall: [2, 1, 4], classic6_wall: [2, 1, 4.9], classic7_wall: [2, 1, 4.2], lidowall1: [4, 1, 0], lidowall2: [4, 1, 0], lidowall3: [4, 1, 0], wall_china: [1, 1, 3], theatre_wall: [1, 1, 0], wildwest_saloonwall: [2, 1, 2], vikings_wall_g: [2, 1, 3.5], vikings_wall_r: [2, 1, 3.5], sand_cstl_wall: [2, 1, 1], jungle_c16_wall: [1, 2, 0.000001], val14_b_wall: [2, 1, 0], anc_sunset_wall: [3, 1, 3],
     school_floor: [2, 2, 0.001],
     bathroom_floortile1: [2, 2, 0.1],
     bathroom_floortile2: [2, 2, 0.1],
@@ -500,6 +538,64 @@ const ROOM_MODELS = {
     model_f: {
         label: "계단 모양 방", door: { x: 2, y: 5, dir: 2 },
         map: "xxxxxxxxxxxx|xxxxxxx0000x|xxxxxxx0000x|xxx00000000x|xxx00000000x|xxx00000000x|xxx00000000x|x0000000000x|x0000000000x|x0000000000x|x0000000000x|xxxxxxxxxxxx|xxxxxxxxxxxx|xxxxxxxxxxxx|xxxxxxxxxxxx|xxxxxxxxxxxx"
+    },
+
+    // ---- 구매로 여는 방 (price 코인) — 2026-07-13 추가 14종 ----
+    model_g: {
+        label: "ㄷ자 방", price: 80, door: { x: 1, y: 3, dir: 2 },
+        map: "xxxxxxxxxxx|xx00000000x|xx00xxxxxxx|xx00xxxxxxx|xx00xxxxxxx|xx00000000x|xxxxxxxxxxx"
+    },
+    model_h: {
+        label: "십자 광장", price: 80, door: { x: 1, y: 5, dir: 2 },
+        map: "xxxxxxxxxxxx|xxxxx000xxxx|xxxxx000xxxx|xxxxx000xxxx|xx000000000x|xx000000000x|xx000000000x|xxxxx000xxxx|xxxxx000xxxx|xxxxx000xxxx|xxxxxxxxxxxx"
+    },
+    model_i: {
+        label: "지그재그 방", price: 80, door: { x: 3, y: 5, dir: 2 },
+        map: "xxxxxxxxxxxx|xx00000xxxxx|xx00000xxxxx|xx00000xxxxx|xxxx00000xxx|xxxx00000xxx|xxxx00000xxx|xxxxxx00000x|xxxxxx00000x|xxxxxx00000x|xxxxxxxxxxxx"
+    },
+    model_s: {
+        label: "다이아몬드 방", price: 80, door: { x: 1, y: 6, dir: 2 },
+        map: "xxxxxxxxxxxxxx|xxxxxxx0xxxxxx|xxxxxx000xxxxx|xxxxx00000xxxx|xxxx0000000xxx|xxx000000000xx|xx00000000000x|xxx000000000xx|xxxx0000000xxx|xxxxx00000xxxx|xxxxxx000xxxxx|xxxxxxx0xxxxxx|xxxxxxxxxxxxxx"
+    },
+    model_j: {
+        label: "정사각 광장", price: 150, door: { x: 1, y: 6, dir: 2 },
+        map: "xxxxxxxxxxxxx|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xx0000000000x|xxxxxxxxxxxxx"
+    },
+    model_k: {
+        label: "T자 방", price: 150, door: { x: 5, y: 6, dir: 2 },
+        map: "xxxxxxxxxxxxxxx|xx000000000000x|xx000000000000x|xx000000000000x|xxxxxx0000xxxxx|xxxxxx0000xxxxx|xxxxxx0000xxxxx|xxxxxx0000xxxxx|xxxxxx0000xxxxx|xxxxxx0000xxxxx|xxxxxx0000xxxxx|xxxxxxxxxxxxxxx"
+    },
+    model_l: {
+        label: "도넛 방", price: 150, door: { x: 1, y: 6, dir: 2 },
+        map: "xxxxxxxxxxxxx|xx0000000000x|xx0000000000x|xx0000000000x|xx000xxxx000x|xx000xxxx000x|xx000xxxx000x|xx000xxxx000x|xx0000000000x|xx0000000000x|xx0000000000x|xxxxxxxxxxxxx"
+    },
+    model_t: {
+        label: "복도 딸린 방", price: 150, door: { x: 1, y: 7, dir: 2 },
+        map: "xxxxxxxxxxxx|xx00xxxxxxxx|xx00xxxxxxxx|xx00xxxxxxxx|xx00xxxxxxxx|xx00xxxxxxxx|xx000000000x|xx000000000x|xx000000000x|xx000000000x|xx000000000x|xx000000000x|xx000000000x|xx000000000x|xxxxxxxxxxxx"
+    },
+    model_n: {
+        label: "대형 홀", price: 300, door: { x: 1, y: 7, dir: 2 },
+        map: "xxxxxxxxxxxxxxx|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xxxxxxxxxxxxxxx"
+    },
+    model_o: {
+        label: "긴 갤러리", price: 300, door: { x: 1, y: 9, dir: 2 },
+        map: "xxxxxxxx|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xx00000x|xxxxxxxx"
+    },
+    model_p: {
+        label: "쌍둥이 방", price: 300, door: { x: 1, y: 4, dir: 2 },
+        map: "xxxxxxxxxxxxxxxx|xx00000xxx00000x|xx00000xxx00000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx00000xxx00000x|xx00000xxx00000x|xxxxxxxxxxxxxxxx"
+    },
+    model_q: {
+        label: "초대형 광장", price: 500, door: { x: 1, y: 8, dir: 2 },
+        map: "xxxxxxxxxxxxxxxxx|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xxxxxxxxxxxxxxxxx"
+    },
+    model_r: {
+        label: "저택 로비", price: 500, door: { x: 1, y: 7, dir: 2 },
+        map: "xxxxxxxxxxxxxxxx|xxxx000000000xxx|xxx00000000000xx|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xx0000000000000x|xxx00000000000xx|xxxx000000000xxx|xxxxxxxxxxxxxxxx"
+    },
+    model_m: {
+        label: "계단식 넓은 방", price: 150, door: { x: 1, y: 6, dir: 2 },
+        map: "xxxxxxxxxxxxxxx|xx000000xxxxxxx|xx000000xxxxxxx|xx000000xxxxxxx|xx000000xxxxxxx|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xxxxxxxxxxxxxxx"
     }
 };
 
@@ -566,6 +662,8 @@ let state = {
     selectedCatalogItem: null,
     selectedPlacedItem: null,
     visiting: null,       // 친구집 방문 중이면 { ownerId, ownerName } — 구경 전용
+    trialPaper: null,     // 벽지·바닥 발라보기 중이면 { paper: 'wall'|'floor', themeId, item }
+    unlockedModels: [],   // 게스트 모드에서 구매한 방 모양 (온라인은 서버 보유 목록 사용)
 
     mode: 'normal',       // 'normal' | 'placing' | 'moving'
     placementItem: null,  // 배치 중인 가구 모델
@@ -638,6 +736,7 @@ function saveGame() {
         look: state.avatar.look,
         genderLocked: state.avatar.genderLocked === true,
         inventory: state.inventory,
+        unlockedModels: state.unlockedModels,
         placedItems: state.placedItems.filter(i => !i.trial) // 배치 테스트품은 저장하지 않음
     };
     if (state.visiting) return; // 친구집 구경 중에는 아무것도 저장하지 않음
@@ -710,6 +809,7 @@ function applySavedData(data) {
             if (CLOTH_COLORS.some(c => c.id === data.look.shColor)) l.shColor = data.look.shColor;
         }
         if (Array.isArray(data.placedItems)) state.placedItems = data.placedItems.filter(i => getModel(i.classname));
+        if (Array.isArray(data.unlockedModels)) state.unlockedModels = data.unlockedModels.filter(n => ROOM_MODELS[n]);
         if (data.genderLocked === true) state.avatar.genderLocked = true;
     } catch (e) { /* 손상된 저장 데이터는 무시 */ }
 }
@@ -1045,8 +1145,15 @@ function paperSwatchURL(p) {
 }
 
 // 현재 방의 벽/바닥 색 (state가 아직 없을 수 있어 함수로)
-function currentWallHex()  { return (WALL_THEMES[state.wallTheme]  || WALL_THEMES[0]).hex; }
-function currentFloorHex() { return (FLOOR_THEMES[state.floorTheme] || FLOOR_THEMES[0]).hex; }
+// 발라보기(구매 전 미리보기) 중이면 그 색을 우선 보여줌
+function currentWallHex()  {
+    const id = (state.trialPaper && state.trialPaper.paper === 'wall') ? state.trialPaper.themeId : state.wallTheme;
+    return (WALL_THEMES[id] || WALL_THEMES[0]).hex;
+}
+function currentFloorHex() {
+    const id = (state.trialPaper && state.trialPaper.paper === 'floor') ? state.trialPaper.themeId : state.floorTheme;
+    return (FLOOR_THEMES[id] || FLOOR_THEMES[0]).hex;
+}
 
 // 4. 캔버스 설정과 등각투영 수학
 const canvas = document.getElementById('room-canvas');
@@ -2049,23 +2156,14 @@ document.getElementById('btn-buy-item').addEventListener('click', async () => {
         }
     }
 
-    // 벽지·바닥: 한 번 사면 계속 보유 — 이미 산 색은 무료로 다시 적용
+    // 벽지·바닥: 한 번 사면 계속 보유 — 이미 산 색은 무료로 다시 적용 (공통 함수 사용)
     if (item.paper) {
-        const paperId = online ? HousingData.paperItemId(item.paper, item.themeId) : null;
-        const alreadyOwned = online && HousingData.ownedCount(paperId) > 0;
-        if (!alreadyOwned) {
-            if (state.credits < item.cost) { alert(`${coinName}이 부족해요! 😢`); return; }
-            if (online) {
-                if (!await payOnline(paperId)) return;
-            } else {
-                state.credits -= item.cost;
-            }
+        buyBtn.disabled = true;
+        try {
+            if (await purchasePaperAndApply(item)) catalogModal.classList.add('hidden');
+        } finally {
+            buyBtn.disabled = false;
         }
-        if (item.paper === 'wall') state.wallTheme = item.themeId;
-        else state.floorTheme = item.themeId;
-        saveGame();
-        updateUI();
-        catalogModal.classList.add('hidden');
         return;
     }
 
@@ -2143,15 +2241,11 @@ function selectCatalogItem(item) {
     buyBtn.classList.remove('disabled');
     buyBtn.removeAttribute('disabled');
 
-    // 배치해보기: 가구만 가능 (벽지·바닥은 사면 바로 발라지므로 의미 없음)
+    // 배치해보기(가구) / 발라보기(벽지·바닥) — 사기 전에 미리 보기
     const tryBtn = document.getElementById('btn-try-item');
-    if (item.paper) {
-        tryBtn.classList.add('disabled');
-        tryBtn.setAttribute('disabled', '');
-    } else {
-        tryBtn.classList.remove('disabled');
-        tryBtn.removeAttribute('disabled');
-    }
+    tryBtn.innerText = item.paper ? '발라보기' : '배치해보기';
+    tryBtn.classList.remove('disabled');
+    tryBtn.removeAttribute('disabled');
 
     // 쿠폰으로 받기: 온라인 + 쿠폰 보유 + 50코인 이하 (이미 가진 벽지는 제외)
     const couponBtn = document.getElementById('btn-coupon-item');
@@ -2193,10 +2287,65 @@ document.getElementById('btn-coupon-item').addEventListener('click', async () =>
     }
 });
 
-// 배치해보기: 돈 안 내고 방에 반투명으로 놓아보기 (최대 5개, 저장 안 됨)
+// 벽지·바닥 결제 공통 (이미 가진 색은 무료 적용) — 성공하면 true
+async function purchasePaperAndApply(item) {
+    const online = window.HousingData?.mode === 'online';
+    const coinName = online ? 'DJ코인' : '크레딧';
+    const paperId = online ? HousingData.paperItemId(item.paper, item.themeId) : null;
+    const alreadyOwned = online && HousingData.ownedCount(paperId) > 0;
+
+    if (!alreadyOwned) {
+        if (state.credits < item.cost) { alert(`${coinName}이 부족해요! 😢`); return false; }
+        if (online) {
+            try { await HousingData.purchase(paperId); }
+            catch (e) { alert(e.message); return false; }
+        } else {
+            state.credits -= item.cost;
+        }
+    }
+    if (item.paper === 'wall') state.wallTheme = item.themeId;
+    else state.floorTheme = item.themeId;
+    endPaperTrial(); // 발라보기 중이었다면 확정으로 종료
+    saveGame();
+    updateUI();
+    return true;
+}
+
+// 발라보기: 돈 안 내고 벽·바닥에 임시로 발라보기 (저장 안 됨)
+function startPaperTrial(item) {
+    state.trialPaper = { paper: item.paper, themeId: item.themeId, item };
+    const online = window.HousingData?.mode === 'online';
+    const owned = online && HousingData.ownedCount(HousingData.paperItemId(item.paper, item.themeId)) > 0;
+    document.getElementById('paper-trial-label').innerText =
+        `${item.paper === 'wall' ? '벽지' : '바닥'} '${item.name}' 발라보는 중`;
+    document.getElementById('paper-trial-buy').innerText = owned ? '✅ 무료로 적용' : `💰 이대로 사기 (${item.cost})`;
+    document.getElementById('paper-trial-bar').classList.remove('hidden');
+    catalogModal.classList.add('hidden');
+}
+
+function endPaperTrial() {
+    state.trialPaper = null;
+    document.getElementById('paper-trial-bar').classList.add('hidden');
+}
+
+document.getElementById('paper-trial-buy').addEventListener('click', async () => {
+    const item = state.trialPaper && state.trialPaper.item;
+    if (!item) return;
+    const btn = document.getElementById('paper-trial-buy');
+    btn.disabled = true;
+    try { await purchasePaperAndApply(item); }
+    finally { btn.disabled = false; }
+});
+document.getElementById('paper-trial-cancel').addEventListener('click', endPaperTrial);
+
+// 배치해보기(가구) / 발라보기(벽지·바닥): 돈 안 내고 미리 보기 (저장 안 됨)
 document.getElementById('btn-try-item').addEventListener('click', () => {
     const item = state.selectedCatalogItem;
-    if (!item || item.paper) return;
+    if (!item) return;
+    if (item.paper) {
+        startPaperTrial(item);
+        return;
+    }
     catalogModal.classList.add('hidden');
     enterPlacementMode(item, { type: 'trial' });
 });
@@ -2551,13 +2700,47 @@ function drawModelPreview(canvasEl, modelName) {
     });
 }
 
+// 방 모양이 열려 있는지 (무료거나 구매함)
+function isModelUnlocked(modelName) {
+    const def = ROOM_MODELS[modelName];
+    if (!def.price) return true; // 기본 6종은 무료
+    if (window.HousingData?.mode === 'online') {
+        return HousingData.ownedCount(`room_model_${modelName}`) > 0;
+    }
+    return state.unlockedModels.includes(modelName);
+}
+
+// 잠긴 방 모양 구매 → 성공하면 true
+async function purchaseRoomModel(modelName) {
+    const def = ROOM_MODELS[modelName];
+    const online = window.HousingData?.mode === 'online';
+    const coinName = online ? 'DJ코인' : '크레딧';
+    if (state.credits < def.price) { alert(`${coinName}이 부족해요! 😢`); return false; }
+    if (!confirm(`'${def.label}'을 ${def.price}${coinName}에 살까요?\n한 번 사면 계속 쓸 수 있어요!`)) return false;
+
+    if (online) {
+        try { await HousingData.purchase(`room_model_${modelName}`); }
+        catch (e) { alert(e.message); return false; }
+    } else {
+        state.credits -= def.price;
+        state.unlockedModels.push(modelName);
+    }
+    saveGame();
+    updateUI();
+    return true;
+}
+
 function renderRoomModelGrid() {
     const grid = document.getElementById('room-model-grid');
     grid.innerHTML = "";
 
     Object.keys(ROOM_MODELS).forEach(modelName => {
+        const def = ROOM_MODELS[modelName];
+        const unlocked = isModelUnlocked(modelName);
         const card = document.createElement('div');
-        card.className = "room-model-card" + (state.roomModel === modelName ? " selected" : "");
+        card.className = "room-model-card"
+            + (state.roomModel === modelName ? " selected" : "")
+            + (unlocked ? "" : " locked");
 
         const cv = document.createElement('canvas');
         cv.width = 140;
@@ -2565,12 +2748,16 @@ function renderRoomModelGrid() {
         drawModelPreview(cv, modelName);
 
         const label = document.createElement('span');
-        label.textContent = ROOM_MODELS[modelName].label;
+        label.textContent = unlocked ? def.label : `🔒 ${def.label} — ${def.price}`;
 
         card.appendChild(cv);
         card.appendChild(label);
 
-        card.addEventListener('click', () => {
+        card.addEventListener('click', async () => {
+            if (!isModelUnlocked(modelName)) {
+                if (!await purchaseRoomModel(modelName)) return;
+                renderRoomModelGrid(); // 잠금 해제 반영
+            }
             if (state.roomModel === modelName) {
                 roomModal.classList.add('hidden');
                 return;

@@ -37,6 +37,12 @@ function extractPushBlock(source) {
   return source.slice(start, end + 3);
 }
 
+function extractObjectBlock(source, constName) {
+  const match = source.match(new RegExp(`const ${constName} = \\{[\\s\\S]*?\\n\\};`));
+  if (!match) throw new Error(`${constName} 객체 블록을 찾을 수 없습니다`);
+  return match[0];
+}
+
 function loadHousingCatalog() {
   const source = fs.readFileSync(APP_JS_PATH, 'utf8');
   // 벽지 목록(PAPER_ITEMS)은 WALL/FLOOR_THEMES를 참조하므로 함께 추출해 격리 실행
@@ -46,7 +52,8 @@ function loadHousingCatalog() {
     extractBlock(source, 'CATALOG_ITEMS'),
     extractPushBlock(source),
     extractBlock(source, 'PAPER_ITEMS'),
-    'result = { CATALOG_ITEMS, PAPER_ITEMS };'
+    extractObjectBlock(source, 'ROOM_MODELS'),
+    'result = { CATALOG_ITEMS, PAPER_ITEMS, ROOM_MODELS };'
   ].join('\n');
   const sandbox = { result: null };
   vm.createContext(sandbox);
@@ -54,7 +61,7 @@ function loadHousingCatalog() {
   return sandbox.result;
 }
 
-function buildShopDocs({ CATALOG_ITEMS, PAPER_ITEMS }) {
+function buildShopDocs({ CATALOG_ITEMS, PAPER_ITEMS, ROOM_MODELS }) {
   const docs = [];
   CATALOG_ITEMS.forEach((item, index) => {
     docs.push({
@@ -92,6 +99,25 @@ function buildShopDocs({ CATALOG_ITEMS, PAPER_ITEMS }) {
       }
     });
   });
+  // 방 모양 (price가 있는 것만 판매 — 기본 6종은 무료라 등록 안 함)
+  Object.entries(ROOM_MODELS || {}).forEach(([modelName, def], index) => {
+    if (!def.price) return;
+    docs.push({
+      id: `room_model_${modelName}`,
+      data: {
+        itemId: `room_model_${modelName}`,
+        name: `방 모양 — ${def.label}`,
+        desc: '방 모양 잠금 해제 (한 번 사면 계속 사용)',
+        price: Number(def.price) || 0,
+        category: '방 가구',
+        priceType: 'djCoin',
+        housing: true,
+        housingType: 'roomModel',
+        modelName,
+        sortOrder: 2000 + index
+      }
+    });
+  });
   return docs;
 }
 
@@ -99,7 +125,7 @@ async function main() {
   const commit = process.argv.includes('--commit');
   const docs = buildShopDocs(loadHousingCatalog());
 
-  console.log(`등록 대상: 가구 ${docs.filter(d => d.data.housingType === 'furni').length}종 + 벽지·바닥 ${docs.filter(d => d.data.housingType === 'paper').length}종 = 총 ${docs.length}건`);
+  console.log(`등록 대상: 가구 ${docs.filter(d => d.data.housingType === 'furni').length}종 + 벽지·바닥 ${docs.filter(d => d.data.housingType === 'paper').length}종 + 방 모양 ${docs.filter(d => d.data.housingType === 'roomModel').length}종 = 총 ${docs.length}건`);
   docs.slice(0, 5).forEach(d => console.log(`  (예시) ${d.id} — ${d.data.name}, ${d.data.price}코인`));
 
   if (!commit) {

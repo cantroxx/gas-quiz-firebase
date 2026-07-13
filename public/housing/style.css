@@ -1012,6 +1012,11 @@ body, html {
     border-color: #0284c7;
 }
 
+/* 아직 안 산 방 모양 — 흐리게 + 자물쇠 표시는 라벨에 */
+.room-model-card.locked { opacity: 0.55; }
+.room-model-card.locked:hover { opacity: 0.8; }
+.room-model-card.locked span { color: #fbbf24; }
+
 .room-model-card span {
     font-size: 13px;
     font-weight: 600;
@@ -1024,6 +1029,34 @@ body, html {
 }
 
 /* 배치 툴팁 */
+/* 벽지·바닥 발라보기 확인 바 */
+#paper-trial-bar {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #a78bfa;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 13px;
+    z-index: 200;
+}
+#paper-trial-bar.hidden { display: none; }
+#paper-trial-bar button {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+#paper-trial-buy { background: #10b981; color: #fff; }
+#paper-trial-cancel { background: #475569; color: #e2e8f0; }
+
 #placement-helper-tooltip {
     position: absolute;
     top: 16px;
