@@ -2714,6 +2714,10 @@ function isModelUnlocked(modelName) {
 async function purchaseRoomModel(modelName) {
     const def = ROOM_MODELS[modelName];
     const online = window.HousingData?.mode === 'online';
+    if (online && HousingData.shopEnabled === false) {
+        alert('지금은 상점이 쉬는 시간이라 방 모양도 살 수 없어요.');
+        return false;
+    }
     const coinName = online ? 'DJ코인' : '크레딧';
     if (state.credits < def.price) { alert(`${coinName}이 부족해요! 😢`); return false; }
     if (!confirm(`'${def.label}'을 ${def.price}${coinName}에 살까요?\n한 번 사면 계속 쓸 수 있어요!`)) return false;
@@ -2920,6 +2924,21 @@ document.getElementById('guestbook-send').addEventListener('click', async () => 
         return;
     }
 
+    // 연결이 풀렸거나 확인 실패 (운영에서는 게스트 시뮬 대신 재로그인 안내)
+    if (window.HousingData?.mode === 'locked') {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;'
+            + 'align-items:center;justify-content:center;gap:16px;background:#0b1120;color:#e2e8f0;'
+            + 'font-size:18px;text-align:center;padding:24px;line-height:1.6;';
+        overlay.innerHTML = `
+            <div style="font-size:44px">🔑</div>
+            <div>로그인이 풀렸어요.<br>퀴즈타운에서 다시 로그인한 뒤 와 주세요!</div>
+            <a href="/" style="background:#0284c7;color:#fff;padding:12px 22px;border-radius:12px;
+                text-decoration:none;font-weight:700">퀴즈타운으로 가기</a>`;
+        document.body.appendChild(overlay);
+        return;
+    }
+
     loadGame();
 
     // 친구집 방문 모드 (?visit=회원ID): 방 요소만 친구 것, 아바타·이름은 내 것 유지
@@ -2970,9 +2989,19 @@ document.getElementById('guestbook-send').addEventListener('click', async () => 
     }
     updateUI();
 
+    // 관리자가 상점을 닫아뒀으면: 상점 버튼 숨김 + 자동 열기 무시
+    const shopClosed = window.HousingData?.mode === 'online' && HousingData.shopEnabled === false;
+    if (shopClosed) {
+        document.getElementById('btn-catalog').style.display = 'none';
+    }
+
     // 퀴즈타운 상점에서 넘어온 경우 (?shop=1): 상점을 바로 열어줌
     if (new URLSearchParams(location.search).get('shop') === '1') {
-        document.getElementById('btn-catalog').click();
+        if (shopClosed) {
+            alert('지금은 상점이 쉬는 시간이에요. 나중에 다시 와 주세요!');
+        } else {
+            document.getElementById('btn-catalog').click();
+        }
     }
 
     // 저장된 방의 가구는 즉시, 나머지 카탈로그는 유휴 시간에 미리 로딩(원본 스프라이트 팝인 방지)

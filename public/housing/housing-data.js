@@ -31,6 +31,7 @@
         member: null,
         djCoin: 0,
         coupons: 0,          // 일일 무료 쿠폰 (50코인 이하 아이템 교환)
+        shopEnabled: true,   // 관리자 기능 관리의 상점 열림/닫힘 (appSettings/featureFlags)
         roomData: null,
         furniItemId,
         paperItemId,
@@ -128,6 +129,14 @@
         api.roomData = doc.exists ? doc.data() : null;
     }
 
+    // 관리자가 상점을 닫아뒀는지 (실패하면 열림으로 간주 — 서버 구매 함수가 최종 차단)
+    async function loadShopFlag() {
+        try {
+            const doc = await db.collection('appSettings').doc('featureFlags').get();
+            api.shopEnabled = !(doc.exists && doc.data()?.shopEnabled === false);
+        } catch (e) { api.shopEnabled = true; }
+    }
+
     function subscribeCoin() {
         db.collection('userEconomy').doc(memberUserId).onSnapshot(doc => {
             const data = doc.data() || {};
@@ -214,23 +223,29 @@
     // ---- 초기화 ----
 
     async function init() {
-        if (isLocalDev || !window.firebase?.apps?.length || !window.firebase.firestore) {
+        // 게스트(가짜 크레딧) 모드는 로컬 개발 전용 — 운영에서 문제가 생기면 'locked'로 안내
+        if (isLocalDev) {
             api.mode = 'guest';
             return { mode: 'guest' };
+        }
+        if (!window.firebase?.apps?.length || !window.firebase.firestore) {
+            api.mode = 'locked';
+            return { mode: 'locked' };
         }
 
         const auth = window.firebase.auth();
         const user = await new Promise(resolve => {
             const unsub = auth.onAuthStateChanged(u => { unsub(); resolve(u); });
         });
-        if (!user) { api.mode = 'guest'; return { mode: 'guest' }; }
-        // (로그인이 없으면 assets-loader가 이미 잠금 화면을 띄우므로 여기 오지 않음)
+        if (!user) { api.mode = 'locked'; return { mode: 'locked' }; }
 
         db = window.firebase.firestore();
         functionsInstance = window.firebase.app().functions(REGION);
 
         const member = await resolveMember(user.uid);
-        if (!member) { api.mode = 'guest'; return { mode: 'guest' }; }
+        // 연결이 풀린 계정: 예전엔 게스트로 조용히 넘어갔지만(가짜 2,000코인 혼란),
+        // 이제는 다시 로그인하라는 안내 화면을 띄운다
+        if (!member) { api.mode = 'locked'; return { mode: 'locked' }; }
 
         // 이용 일시정지 상태 (관리자 소통 관리에서 부여) — 화면 차단 + 서버 함수도 별도 차단
         if (member.suspendedUntil) {
@@ -243,12 +258,15 @@
         api.member = member;
         api.mode = 'online';
 
-        await Promise.all([loadOwnedItems(), loadRoomDoc()]);
+        await Promise.all([loadOwnedItems(), loadRoomDoc(), loadShopFlag()]);
         subscribeCoin();
         claimDailyCouponSilently();
         return { mode: 'online' };
     }
 
-    api.ready = init().catch(() => { api.mode = 'guest'; return { mode: 'guest' }; });
+    api.ready = init().catch(() => {
+        api.mode = isLocalDev ? 'guest' : 'locked';
+        return { mode: api.mode };
+    });
     window.HousingData = api;
 })();
