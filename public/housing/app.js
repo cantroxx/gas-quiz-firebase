@@ -3105,6 +3105,19 @@ function exitSimMode(timeUp) {
 document.getElementById('btn-sim').addEventListener('click', enterSimMode);
 document.getElementById('sim-exit').addEventListener('click', () => exitSimMode(false));
 
+// 16-3-1. 하우징 가이드 — 언제든 ❓버튼으로, 처음 온 사람에겐 자동으로 한 번
+const GUIDE_SEEN_KEY = 'housingGuideSeen_v1';
+
+function openGuide() {
+    document.getElementById('guide-modal').classList.remove('hidden');
+    try { localStorage.setItem(GUIDE_SEEN_KEY, '1'); } catch (e) {}
+}
+
+document.getElementById('btn-guide').addEventListener('click', openGuide);
+document.getElementById('close-guide').addEventListener('click', () => {
+    document.getElementById('guide-modal').classList.add('hidden');
+});
+
 // 16-4. 즐겨찾기 — 방 문서에 저장, 상점 ⭐탭에서 모아보고 구매
 function addFavorite(itemId) {
     if (state.favorites.includes(itemId)) return true;
@@ -3278,6 +3291,11 @@ document.getElementById('action-fav').addEventListener('click', () => {
             document.getElementById('btn-catalog').click();
         }
     }
+
+    // 처음 온 학생에게는 가이드를 자동으로 한 번 보여줌 (그 뒤로는 ❓버튼으로)
+    let guideSeen = false;
+    try { guideSeen = localStorage.getItem(GUIDE_SEEN_KEY) === '1'; } catch (e) {}
+    if (!guideSeen) openGuide();
 
     // 저장된 방의 가구는 즉시, 나머지 카탈로그는 유휴 시간에 미리 로딩(원본 스프라이트 팝인 방지)
     state.placedItems.forEach(i => loadFurni(i.classname));

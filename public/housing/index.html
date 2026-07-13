@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기 (하우징 체험판)</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -88,6 +88,10 @@
                 <button id="btn-go-home" class="nav-btn" style="display:none">
                     <span class="emoji">🏠</span>
                     <span>내 방으로</span>
+                </button>
+                <button id="btn-guide" class="nav-btn">
+                    <span class="emoji">❓</span>
+                    <span>가이드</span>
                 </button>
             </div>
 
@@ -256,6 +260,78 @@
             <button id="paper-trial-cancel">원래대로</button>
         </div>
 
+        <!-- 하우징 가이드 모달 -->
+        <div id="guide-modal" class="modal hidden">
+            <div class="modal-content small">
+                <div class="modal-header">
+                    <h2>❓ 내 방 꾸미기 가이드</h2>
+                    <button class="modal-close-btn" id="close-guide">×</button>
+                </div>
+                <div class="modal-body guide-body">
+                    <section>
+                        <h3>🏠 여기는 나만의 방!</h3>
+                        <ul>
+                            <li>퀴즈를 풀어서 모은 <b>DJ코인</b>으로 가구를 사서 방을 꾸미는 곳이에요.</li>
+                            <li><b>바닥을 누르면</b> 내 캐릭터가 걸어가요. <b>가구를 누르면</b> 앉기·돌리기·옮기기·가방에 넣기를 할 수 있어요.</li>
+                            <li>꾸민 방은 <b>자동으로 저장</b>돼요. 저장 버튼은 없어요!</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>🛒 상점에서 사기</h3>
+                        <ul>
+                            <li>가구·벽지·바닥을 DJ코인으로 살 수 있어요. 산 물건은 <b>가방</b>에 들어가요.</li>
+                            <li>사기 전에 <b>배치해보기</b>(가구)나 <b>발라보기</b>(벽지·바닥)로 미리 확인해 보세요. 공짜예요!</li>
+                            <li>매일 처음 접속하면 <b>🎟️ 쿠폰 1장</b>을 받아요. 50코인 이하 물건과 바꿀 수 있어요.</li>
+                            <li>상점은 <b>선생님이 열어 줄 때만</b> 이용할 수 있어요.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>🧪 연습 모드 (하루 10분)</h3>
+                        <ul>
+                            <li>연습 버튼을 누르면 <b>모든 가구·벽지·방 모양이 공짜</b>! 마음껏 꾸며 보세요.</li>
+                            <li>다만 연습이 끝나면 방이 <b>원래 모습으로 돌아가요.</b> 진짜 저장은 안 돼요.</li>
+                            <li>연습에서 써 본 가구는 끝날 때 <b>⭐ 즐겨찾기에 한 번에 담을 수 있어요.</b></li>
+                            <li>연습 시간은 하루에 딱 <b>10분</b>이에요. 자정이 지나면 다시 10분!</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>⭐ 즐겨찾기 (위시리스트)</h3>
+                        <ul>
+                            <li>지금 코인이 모자라도, 갖고 싶은 물건은 <b>⭐ 즐겨찾기</b>를 눌러 담아 두세요. (최대 50개)</li>
+                            <li>상점의 <b>⭐탭</b>에서 담은 물건과 <b>전부 사려면 얼마인지</b> 볼 수 있어요.</li>
+                            <li>물건을 사면 즐겨찾기에서 저절로 빠져요.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>🚪 친구집 놀러 가기</h3>
+                        <ul>
+                            <li><b>친구집</b> 버튼으로 친구 방에 놀러 갈 수 있어요. 🎲 랜덤 방문도 돼요!</li>
+                            <li>친구집에서는 구경만 할 수 있어요. 친구 가구는 만지거나 가져올 수 없어요.</li>
+                            <li>친구집의 멋진 가구를 누르면 <b>가격을 보고 ⭐ 담아 둘 수</b> 있어요.</li>
+                            <li><b>📖 방명록</b>에 인사를 남겨 보세요. 글은 1~80자, <b>내 이름이 함께 남아요.</b></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>🎨 방 모양 바꾸기</h3>
+                        <ul>
+                            <li><b>방 모양</b> 버튼에서 방의 크기와 생김새를 바꿀 수 있어요. 기본 6종은 무료!</li>
+                            <li>🔒가 붙은 방 모양은 코인으로 사요. <b>한 번 사면 계속</b> 쓸 수 있어요.</li>
+                            <li>벽지와 바닥 색은 상점의 <b>🎨 벽지·바닥 탭</b>에서 바꿔요.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>🤝 우리의 약속</h3>
+                        <ul>
+                            <li>방명록에는 <b>고운 말</b>만 써요. 나쁜 말은 자동으로 막히고, 기록이 남아요.</li>
+                            <li>이상한 글을 봤다면 <b>🚨 신고</b> 버튼을 눌러 주세요. 선생님이 확인해요.</li>
+                            <li>궁금한 것, 불편한 것은 퀴즈타운 메인의 <b>📮 문의하기</b>로 알려 주세요.</li>
+                            <li>약속을 지키지 않으면 방 꾸미기 이용이 잠시 멈출 수 있어요.</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+
         <!-- 연습(시뮬레이션) 모드 배너 -->
         <div id="sim-banner" class="hidden">
             <span>🧪 연습 모드 — 뭐든 무료! 저장은 안 돼요</span>
@@ -273,6 +349,6 @@
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
     <script src="housing-data.js?v=4"></script>
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
 </body>
 </html>
