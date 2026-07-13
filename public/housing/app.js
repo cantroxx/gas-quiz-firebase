@@ -2029,8 +2029,12 @@ function openAvatarEditor() {
 }
 
 // 아바타(나) 클릭: 성별 미확정이면 편집기부터(확정 강제), 확정했으면 '내 정보' 카드
+// 단, '내 정보' 카드(A단계)는 지금 관리자 미리보기(또는 로컬 게스트) 전용 — 학생은 기존대로 편집기
+function homeCardPreviewAllowed() {
+    return window.HousingData?.member?.isAdmin === true || window.HousingData?.mode === 'guest';
+}
 document.getElementById('btn-profile').addEventListener('click', () => {
-    if (!state.avatar.genderLocked) openAvatarEditor();
+    if (!state.avatar.genderLocked || !homeCardPreviewAllowed()) openAvatarEditor();
     else openProfileCard();
 });
 

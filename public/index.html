@@ -2842,8 +2842,13 @@
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
-        // 내 집 = 내 방(하우징)으로 바로 입장. 상세 대시보드는 방 안 '내 정보 → 자세히 보기'로 연결
-        window.location.href = '/housing/';
+        // A단계(하보식: 내 집 = 내 방 바로 입장)는 지금 관리자 미리보기 전용.
+        // 학생은 기존 대시보드 그대로. 전체 공개하려면 이 관리자 조건만 제거하면 됨.
+        if(isCurrentAdminMember()) {
+          window.location.href = '/housing/';
+          return;
+        }
+        showHomeView();
         return;
       }
       if(placeId === 'school') {
@@ -5136,13 +5141,11 @@
 
     function openRestoredMemberDestination(profile) {
       const destination = window.DJ48AccountData.getRestoredMemberDestination(profile);
-      if(destination === 'admin') showAdminView();
-      // 하우징 '내 정보 → 자세히 보기'에서 넘어온 경우(?view=home): 타운 대신 내 집 상세로
-      else if(destination === 'town') {
-        const wantsHome = new URLSearchParams(window.location.search).get('view') === 'home';
-        if(wantsHome && !isCurrentAdminMember()) showHomeView();
-        else showTownView();
-      }
+      // 하우징 '내 정보 → 자세히 보기'에서 넘어온 경우(?view=home): 내 집 상세 대시보드로
+      const wantsHome = new URLSearchParams(window.location.search).get('view') === 'home';
+      if(wantsHome) showHomeView();
+      else if(destination === 'admin') showAdminView();
+      else if(destination === 'town') showTownView();
       claimHousingDailyCouponSilently(profile);
     }
 
