@@ -2016,15 +2016,53 @@ const AVATAR_TABS = [
     { key: 'sh', label: '👟 신발' }
 ];
 
-document.getElementById('btn-profile').addEventListener('click', () => {
+// 아바타 편집기 열기 (성별 게이트 진입·내 정보 카드의 '꾸미기'에서 공용 호출)
+function openAvatarEditor() {
     nameInput.value = state.playerName;
     // 온라인 모드: 이름은 퀴즈타운 닉네임과 자동 연동 — 여기서는 못 바꿈
     const online = window.HousingData?.mode === 'online';
     nameInput.readOnly = online;
     document.getElementById('name-sync-hint').classList.toggle('hidden', !online);
+    document.getElementById('profile-modal').classList.add('hidden');
     avatarModal.classList.remove('hidden');
     renderAvatarEditor();
+}
+
+// 아바타(나) 클릭: 성별 미확정이면 편집기부터(확정 강제), 확정했으면 '내 정보' 카드
+document.getElementById('btn-profile').addEventListener('click', () => {
+    if (!state.avatar.genderLocked) openAvatarEditor();
+    else openProfileCard();
 });
+
+document.getElementById('profile-edit-avatar').addEventListener('click', openAvatarEditor);
+document.getElementById('close-profile').addEventListener('click', () => {
+    document.getElementById('profile-modal').classList.add('hidden');
+});
+
+// 내 정보 카드: 프로필 요약을 불러와 표시 (온라인=실데이터, 게스트=가상계정)
+async function openProfileCard() {
+    const modal = document.getElementById('profile-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('profile-info-avatar').src =
+        imagerUrl(`figure=${state.avatar.figure}&size=l&direction=2&head_direction=2&action=std`);
+    document.getElementById('profile-info-nickname').innerText = state.playerName || '나';
+    // 나머지는 비동기 로드 (로딩 중엔 이전 값 유지 → 깜빡임 최소화)
+    let p;
+    try { p = await HousingData.getProfileSummary(); }
+    catch (e) { p = null; }
+    if (!p) return;
+    document.getElementById('profile-info-nickname').innerText = p.nickname || state.playerName || '나';
+    document.getElementById('profile-info-title').innerText = p.selectedTitleName || '아직 대표 칭호가 없어요';
+    document.getElementById('profile-info-level').innerText = `Lv.${p.level} ${tierLabel(p.tier)}`;
+    document.getElementById('profile-info-coin').innerText = (p.djCoin || 0).toLocaleString();
+    document.getElementById('profile-info-coupon').innerText = p.coupons || 0;
+    document.getElementById('profile-info-titles').innerText = p.titleCount || 0;
+    document.getElementById('profile-info-badges').innerText = p.badgeCount || 0;
+}
+
+function tierLabel(tier) {
+    return ({ bronze: '🥉브론즈', silver: '🥈실버', gold: '🥇골드', platinum: '💎플래티넘', diamond: '💠다이아' })[tier] || '';
+}
 
 document.getElementById('close-avatar').addEventListener('click', () => {
     // 이름 직접 바꾸기는 게스트(로컬 체험) 모드에서만 — 온라인은 닉네임 연동
@@ -2743,7 +2781,7 @@ document.getElementById('action-fav').addEventListener('click', () => {
     let guideSeen = false;
     try { guideSeen = localStorage.getItem(GUIDE_SEEN_KEY) === '1'; } catch (e) {}
     if (needGender) {
-        document.getElementById('btn-profile').click(); // 성별 게이트 상태로 열림
+        openAvatarEditor(); // 성별 게이트 상태로 편집기 바로 열기 (내 정보 카드가 아니라)
     } else if (!guideSeen) {
         openGuide();
     }

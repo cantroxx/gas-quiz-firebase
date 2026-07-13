@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기 (하우징 체험판)</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -266,6 +266,36 @@
             <button id="paper-trial-cancel">원래대로</button>
         </div>
 
+        <!-- 내 정보 카드 (아바타 클릭 → 내 정보) -->
+        <div id="profile-modal" class="modal hidden">
+            <div class="modal-content small">
+                <div class="modal-header">
+                    <h2>👤 내 정보</h2>
+                    <button class="modal-close-btn" id="close-profile">×</button>
+                </div>
+                <div class="modal-body profile-info-body">
+                    <div class="profile-info-top">
+                        <img id="profile-info-avatar" src="" alt="내 아바타">
+                        <div class="profile-info-name">
+                            <p id="profile-info-title" class="profile-info-title">칭호</p>
+                            <h3 id="profile-info-nickname">닉네임</h3>
+                            <p id="profile-info-level" class="profile-info-level">레벨</p>
+                        </div>
+                    </div>
+                    <div class="profile-info-stats">
+                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-coin">0</span><span class="profile-stat-label">DJ코인</span></div>
+                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-coupon">0</span><span class="profile-stat-label">🎟️ 쿠폰</span></div>
+                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-titles">0</span><span class="profile-stat-label">칭호</span></div>
+                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-badges">0</span><span class="profile-stat-label">뱃지</span></div>
+                    </div>
+                    <div class="profile-info-actions">
+                        <button id="profile-edit-avatar" class="profile-action-btn">👕 아바타 꾸미기</button>
+                        <a id="profile-detail-link" class="profile-action-btn" href="/?view=home">📋 자세히 보기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 하우징 가이드 모달 -->
         <div id="guide-modal" class="modal hidden">
             <div class="modal-content small">
@@ -354,8 +384,8 @@
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
-    <script src="housing-data.js?v=6"></script>
+    <script src="housing-data.js?v=7"></script>
     <script src="housing-catalog.js?v=2"></script>
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
 </body>
 </html>

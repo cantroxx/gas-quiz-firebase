@@ -1128,6 +1128,72 @@ body, html {
 /* 방 이름: 눌러서 바꾸기 */
 #room-name-box { cursor: pointer; }
 #room-name-box:hover { outline: 2px solid rgba(255, 255, 255, 0.25); }
+
+/* 내 정보 카드 (아바타 클릭) */
+.modal-body.profile-info-body {
+    display: block;
+    padding: 20px 22px;
+    overflow-y: auto;
+}
+
+.profile-info-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+#profile-info-avatar {
+    width: 80px;
+    height: 110px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.profile-info-title { color: #fbbf24; font-size: 13px; margin-bottom: 2px; }
+.profile-info-name h3 { font-size: 22px; font-weight: 800; }
+.profile-info-level { color: #7dd3fc; font-size: 14px; margin-top: 4px; }
+
+.profile-info-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.profile-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 4px;
+    text-align: center;
+}
+
+.profile-stat-num { display: block; font-size: 20px; font-weight: 800; color: #fff; }
+.profile-stat-label { font-size: 11px; color: #94a3b8; }
+
+.profile-info-actions { display: flex; flex-direction: column; gap: 10px; }
+
+.profile-action-btn {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    padding: 13px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #0284c7;
+    color: #fff;
+}
+
+.profile-action-btn:hover { background: #0369a1; }
+#profile-detail-link { background: rgba(255, 255, 255, 0.1); }
+#profile-detail-link:hover { background: rgba(255, 255, 255, 0.18); }
 #sim-timer { font-size: 16px; color: #fde68a; }
 #sim-exit {
     border: none;

@@ -66,6 +66,54 @@
             }
         },
 
+        // ---- 내 정보 카드 (아바타 클릭 → 프로필 요약) ----
+        // 온라인: 내 문서들을 병렬로 읽어 요약. 게스트(로컬): 화면 테스트용 가상 프로필.
+        async getProfileSummary() {
+            if (api.mode !== 'online') {
+                // 로컬 개발용 가상 계정 (실제 데이터 형태와 같은 모양)
+                return {
+                    nickname: api.member?.nickname || '체험 학생',
+                    profileImageUrl: '',
+                    selectedTitleName: '퀴즈 꿈나무',
+                    djCoin: api.djCoin || 2000,
+                    coupons: api.coupons || 1,
+                    level: 7, tier: 'silver', rankIconUrl: '',
+                    xp: 120, nextLevelXp: 200,
+                    titleCount: 3, badgeCount: 5
+                };
+            }
+            const [userDoc, levelDoc, titlesSnap, badgesSnap] = await Promise.all([
+                db.collection('users').doc(memberUserId).get().catch(() => null),
+                db.collection('userLevelSummary').doc(memberUserId).get().catch(() => null),
+                db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null),
+                db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null)
+            ]);
+            const u = (userDoc && userDoc.exists) ? userDoc.data() : {};
+            const lv = (levelDoc && levelDoc.exists) ? levelDoc.data() : {};
+
+            // 대표 칭호 이름 (선택돼 있으면 titleCatalog에서 이름만 조회)
+            let selectedTitleName = '';
+            if (u.selectedTitleId) {
+                const titleDoc = await db.collection('titleCatalog').doc(u.selectedTitleId).get().catch(() => null);
+                selectedTitleName = (titleDoc && titleDoc.exists) ? (titleDoc.data()?.name || '') : '';
+            }
+
+            return {
+                nickname: u.nickname || u.name || api.member?.nickname || '',
+                profileImageUrl: u.profileImageUrl || '',
+                selectedTitleName,
+                djCoin: api.djCoin,
+                coupons: api.coupons,
+                level: Number(lv.level) || 1,
+                tier: lv.tier || 'bronze',
+                rankIconUrl: lv.rankIconUrl || '',
+                xp: Number(lv.xp) || 0,
+                nextLevelXp: Number(lv.nextLevelXp) || 0,
+                titleCount: titlesSnap ? titlesSnap.size : 0,
+                badgeCount: badgesSnap ? badgesSnap.size : 0
+            };
+        },
+
         // ---- 친구집 방문 ----
         async loadVisitRoom(ownerUserId) {
             const doc = await db.collection('userHomeRooms').doc(ownerUserId).get();

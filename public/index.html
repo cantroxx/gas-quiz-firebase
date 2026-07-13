@@ -2842,7 +2842,8 @@
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
-        showHomeView();
+        // 내 집 = 내 방(하우징)으로 바로 입장. 상세 대시보드는 방 안 '내 정보 → 자세히 보기'로 연결
+        window.location.href = '/housing/';
         return;
       }
       if(placeId === 'school') {
@@ -5136,7 +5137,12 @@
     function openRestoredMemberDestination(profile) {
       const destination = window.DJ48AccountData.getRestoredMemberDestination(profile);
       if(destination === 'admin') showAdminView();
-      else if(destination === 'town') showTownView();
+      // 하우징 '내 정보 → 자세히 보기'에서 넘어온 경우(?view=home): 타운 대신 내 집 상세로
+      else if(destination === 'town') {
+        const wantsHome = new URLSearchParams(window.location.search).get('view') === 'home';
+        if(wantsHome && !isCurrentAdminMember()) showHomeView();
+        else showTownView();
+      }
       claimHousingDailyCouponSilently(profile);
     }
 
