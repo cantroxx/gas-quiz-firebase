@@ -2255,15 +2255,16 @@ function makeSwatch(hex, isSelected, onClick) {
 }
 
 document.getElementById('btn-reset').addEventListener('click', () => {
-    // 온라인 모드: 방 배치만 초기화 (DJ코인·산 가구는 서버에 그대로)
+    // 온라인 모드: 기본 방으로 되돌리기 (DJ코인·산 가구는 서버에 그대로)
     if (window.HousingData?.mode === 'online') {
-        if (confirm("방을 처음 상태로 되돌릴까요?\n가구는 모두 가방으로 들어가고, DJ코인과 산 물건은 그대로예요.")) {
+        if (confirm("방을 기본 방으로 되돌릴까요?\n지금 놓인 가구는 가방으로 들어가고, 기본 가구가 놓인 처음 방으로 돌아가요.\n방 모양·벽지도 기본으로 바뀌고, DJ코인과 산 물건은 그대로예요.")) {
             cancelPlacement(); // 배치·이동 중이면 취소 + 가구 패널 닫기
-            state.placedItems.forEach(i => state.inventory.push(i.classname));
-            state.placedItems = [];
+            state.placedItems.forEach(i => state.inventory.push(i.classname)); // 놓였던 가구는 가방으로 (안 잃음)
+            state.roomModel = 'model_a';
             state.wallTheme = 0;
             state.floorTheme = 0;
-            applyRoomModel(state.roomModel); // 아바타를 문으로 (앉은 상태 등 해제)
+            applyStarterRoom();              // 기본 가구 다시 배치 (신규 학생과 같은 방)
+            applyRoomModel(state.roomModel); // 아바타를 문으로 + 화면 정렬
             saveGame();
             updateUI();
         }
