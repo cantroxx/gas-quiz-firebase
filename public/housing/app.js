@@ -1454,8 +1454,39 @@ function selectPlacedItem(item) {
         favBtn.disabled = faved;
     }
 
+    // 기능 가구(옷장·방명록·문): '✨ 사용하기' 버튼 (내 방에서만, 테스트품 제외)
+    const func = (!visiting && !item.trial) ? FUNCTIONAL_FURNI[item.classname] : null;
+    const funcBtn = document.getElementById('action-func');
+    funcBtn.classList.toggle('hidden', !func);
+    if (func) funcBtn.innerText = `${func.emoji} ${func.label}`;
+
     controlPanel.classList.remove('hidden');
 }
+
+// 기본 방 가구 배치 (신규 학생용 STARTER_LAYOUT 적용)
+function applyStarterRoom() {
+    state.placedItems = STARTER_LAYOUT
+        .filter(it => getModel(it.classname))
+        .map((it, idx) => ({ id: Date.now() + idx, classname: it.classname, x: it.x, y: it.y, z: 0, rot: it.rot || 0 }));
+}
+
+// 기능 가구: 특정 가구를 누르면 기능이 열림 (기본 방에 미리 놓여 있음)
+const FUNCTIONAL_FURNI = {
+    shelves_norja: { emoji: '👕', label: '옷 갈아입기', action: 'wardrobe' },
+    bookpile:      { emoji: '📖', label: '방명록 열기', action: 'guestbook' },
+    country_gate:  { emoji: '🚪', label: '타운으로 나가기', action: 'exit' }
+};
+
+document.getElementById('action-func').addEventListener('click', () => {
+    const item = state.selectedPlacedItem;
+    if (!item) return;
+    const func = FUNCTIONAL_FURNI[item.classname];
+    if (!func) return;
+    closeFurnitureControlPanel();
+    if (func.action === 'wardrobe') openAvatarEditor();
+    else if (func.action === 'guestbook') document.getElementById('btn-guestbook').click();
+    else if (func.action === 'exit') { if (confirm('퀴즈타운으로 나갈까요?')) location.href = '/'; }
+});
 
 // 작동하기: 다음 상태로 전환 (꺼짐↔켜짐, 주사위 눈금 등)
 useBtn.addEventListener('click', () => {
@@ -2029,12 +2060,8 @@ function openAvatarEditor() {
 }
 
 // 아바타(나) 클릭: 성별 미확정이면 편집기부터(확정 강제), 확정했으면 '내 정보' 카드
-// 단, '내 정보' 카드(A단계)는 지금 관리자 미리보기(또는 로컬 게스트) 전용 — 학생은 기존대로 편집기
-function homeCardPreviewAllowed() {
-    return window.HousingData?.member?.isAdmin === true || window.HousingData?.mode === 'guest';
-}
 document.getElementById('btn-profile').addEventListener('click', () => {
-    if (!state.avatar.genderLocked || !homeCardPreviewAllowed()) openAvatarEditor();
+    if (!state.avatar.genderLocked) openAvatarEditor();
     else openProfileCard();
 });
 
@@ -2043,10 +2070,28 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
 });
 
+// 내 집 기본 화면 설정 (타운에서 '내 집'을 누르면 방/대시보드 중 어디로 갈지) — 사이트 공유 localStorage
+const HOME_STYLE_KEY = 'dj48HomeViewStyle';
+function getHomeStyle() {
+    try { return localStorage.getItem(HOME_STYLE_KEY) || 'room'; } catch (e) { return 'room'; }
+}
+function reflectHomeStyle() {
+    const style = getHomeStyle();
+    document.getElementById('home-style-room').classList.toggle('active', style !== 'dashboard');
+    document.getElementById('home-style-dashboard').classList.toggle('active', style === 'dashboard');
+}
+document.querySelectorAll('.home-style-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        try { localStorage.setItem(HOME_STYLE_KEY, btn.dataset.style); } catch (e) {}
+        reflectHomeStyle();
+    });
+});
+
 // 내 정보 카드: 프로필 요약을 불러와 표시 (온라인=실데이터, 게스트=가상계정)
 async function openProfileCard() {
     const modal = document.getElementById('profile-modal');
     modal.classList.remove('hidden');
+    reflectHomeStyle();
     document.getElementById('profile-info-avatar').src =
         imagerUrl(`figure=${state.avatar.figure}&size=l&direction=2&head_direction=2&action=std`);
     document.getElementById('profile-info-nickname').innerText = state.playerName || '나';
@@ -2708,6 +2753,16 @@ document.getElementById('action-fav').addEventListener('click', () => {
     }
 
     loadGame();
+
+    // 기본 방: 방 기록이 없는 신규 학생은 기본 가구가 놓인 방으로 시작 (기존 방은 그대로 둠)
+    const _online = window.HousingData?.mode === 'online';
+    const _willVisit = _online && new URLSearchParams(location.search).get('visit');
+    let _isNewRoom = false;
+    try { _isNewRoom = _online ? !HousingData.roomData : !localStorage.getItem(SAVE_KEY); } catch (e) {}
+    if (_isNewRoom && !_willVisit) {
+        applyStarterRoom();
+        saveGame(); // 처음 한 번 저장 → 다음부터는 '기존 방'으로 취급되어 다시 안 깔림
+    }
 
     // 친구집 방문 모드 (?visit=회원ID): 방 요소만 친구 것, 아바타·이름은 내 것 유지
     if (window.HousingData?.mode === 'online') {

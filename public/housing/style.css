@@ -1194,6 +1194,33 @@ body, html {
 .profile-action-btn:hover { background: #0369a1; }
 #profile-detail-link { background: rgba(255, 255, 255, 0.1); }
 #profile-detail-link:hover { background: rgba(255, 255, 255, 0.18); }
+
+.home-style-setting {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.home-style-label { font-size: 13px; color: #94a3b8; margin-bottom: 8px; text-align: center; }
+.home-style-toggle { display: flex; gap: 8px; }
+
+.home-style-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.home-style-btn.active {
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+    color: #fff;
+}
 #sim-timer { font-size: 16px; color: #fde68a; }
 #sim-exit {
     border: none;

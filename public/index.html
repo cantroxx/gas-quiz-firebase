@@ -2842,13 +2842,15 @@
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
-        // A단계(하보식: 내 집 = 내 방 바로 입장)는 지금 관리자 미리보기 전용.
-        // 학생은 기존 대시보드 그대로. 전체 공개하려면 이 관리자 조건만 제거하면 됨.
-        if(isCurrentAdminMember()) {
+        // 내 집 기본 화면은 각자 설정을 따름 (기본값 = 하보형 내 방).
+        // 'dashboard'로 정한 사람만 기존 대시보드로. 설정은 localStorage(사이트 공유).
+        let style = 'room';
+        try { style = window.localStorage.getItem('dj48HomeViewStyle') || 'room'; } catch(e) {}
+        if(style === 'dashboard') {
+          showHomeView();
+        } else {
           window.location.href = '/housing/';
-          return;
         }
-        showHomeView();
         return;
       }
       if(placeId === 'school') {

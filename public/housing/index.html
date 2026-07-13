@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기 (하우징 체험판)</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -47,6 +47,7 @@
                 <p id="selected-furni-desc">설명</p>
                 <div class="action-buttons">
                     <button id="action-fav" class="control-btn accent hidden">⭐ 즐겨찾기에 담기</button>
+                    <button id="action-func" class="control-btn accent hidden">✨ 사용하기</button>
                     <button id="action-buy-trial" class="control-btn accent hidden">💰 이대로 사기</button>
                     <button id="action-sit" class="control-btn accent hidden">🪑 여기 앉기</button>
                     <button id="action-lay" class="control-btn accent hidden">🛏️ 여기 눕기</button>
@@ -292,6 +293,13 @@
                         <button id="profile-edit-avatar" class="profile-action-btn">👕 아바타 꾸미기</button>
                         <a id="profile-detail-link" class="profile-action-btn" href="/?view=home">📋 자세히 보기</a>
                     </div>
+                    <div class="home-style-setting">
+                        <p class="home-style-label">타운에서 '내 집'을 누르면?</p>
+                        <div class="home-style-toggle">
+                            <button id="home-style-room" data-style="room" class="home-style-btn">🏠 내 방</button>
+                            <button id="home-style-dashboard" data-style="dashboard" class="home-style-btn">📋 대시보드</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -307,9 +315,25 @@
                     <section>
                         <h3>🏠 여기는 나만의 방!</h3>
                         <ul>
-                            <li>퀴즈를 풀어서 모은 <b>DJ코인</b>으로 가구를 사서 방을 꾸미는 곳이에요.</li>
+                            <li>타운에서 <b>내 집</b>을 누르면 바로 이 방으로 들어와요. 퀴즈로 모은 <b>DJ코인</b>으로 가구를 사서 꾸며요.</li>
                             <li><b>바닥을 누르면</b> 내 캐릭터가 걸어가요. <b>가구를 누르면</b> 앉기·돌리기·옮기기·가방에 넣기를 할 수 있어요.</li>
                             <li>꾸민 방은 <b>자동으로 저장</b>돼요. 저장 버튼은 없어요!</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>👤 내 정보 보기</h3>
+                        <ul>
+                            <li>오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 내 정보 카드가 열려요 — 대표 칭호, 레벨, DJ코인, 칭호·뱃지 개수를 볼 수 있어요.</li>
+                            <li>카드에서 <b>👕 아바타 꾸미기</b>로 옷을 바꾸고, <b>📋 자세히 보기</b>로 내 랭킹·칭호·뱃지를 자세히 볼 수 있어요.</li>
+                            <li><b>타운에서 '내 집'을 누르면?</b> 설정으로 <b>내 방</b>과 <b>대시보드</b> 중 무엇으로 들어갈지 고를 수 있어요.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>✨ 기능 가구</h3>
+                        <ul>
+                            <li>방에 놓인 <b>옷장</b>을 누르면 <b>옷을 갈아입고</b>, <b>책 더미</b>를 누르면 <b>방명록</b>이 열려요.</li>
+                            <li><b>문</b>을 누르면 <b>퀴즈타운으로 나갈</b> 수 있어요.</li>
+                            <li>처음 방에는 침대·테이블·옷장 같은 기본 가구가 놓여 있어요. 마음대로 옮기거나 바꿔도 돼요!</li>
                         </ul>
                     </section>
                     <section>
@@ -385,7 +409,7 @@
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
     <script src="housing-data.js?v=7"></script>
-    <script src="housing-catalog.js?v=2"></script>
-    <script src="app.js?v=14"></script>
+    <script src="housing-catalog.js?v=3"></script>
+    <script src="app.js?v=15"></script>
 </body>
 </html>

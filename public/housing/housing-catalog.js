@@ -596,3 +596,17 @@ const PAPER_ITEMS = [
     ...WALL_THEMES.map(t => ({ paper: 'wall', themeId: t.id, name: t.name, cost: 25, hex: t.hex, desc: "벽 색을 바꿔요. 사면 바로 발라져요!" })),
     ...FLOOR_THEMES.map(t => ({ paper: 'floor', themeId: t.id, name: t.name, cost: 25, hex: t.hex, desc: "바닥 색을 바꿔요. 사면 바로 깔려요!" }))
 ];
+
+// 기본 방(신규 학생용) — 방 문서가 없는 학생이 처음 들어오면 이 가구들이 놓인 방으로 시작.
+// model_a(바닥 x:4~11, y:1~13)에 배치. 기능 가구(옷장·책 더미·문) 포함.
+// 좌표·회전은 로컬에서 canPlace로 검증한 값. (기존에 방을 만든 학생에게는 적용 안 됨)
+const STARTER_LAYOUT = [
+    { classname: 'carpet_standard', x: 7, y: 5, rot: 0 },   // 러그(밟고 지나갈 수 있음)
+    { classname: 'bed_budget_one',  x: 5, y: 2, rot: 0 },   // 침대
+    { classname: 'shelves_norja',   x: 10, y: 1, rot: 0 },  // 옷장(옷 갈아입기)
+    { classname: 'table_norja_med', x: 5, y: 10, rot: 0 },  // 테이블
+    { classname: 'chair_norja',     x: 5, y: 12, rot: 0 },  // 의자
+    { classname: 'bookpile',        x: 10, y: 10, rot: 0 }, // 책 더미(방명록)
+    { classname: 'country_gate',    x: 4, y: 7, rot: 0 },   // 문(입구 쪽, 타운으로 나가기)
+    { classname: 'plant_yukka',     x: 11, y: 13, rot: 0 }  // 화분
+];
