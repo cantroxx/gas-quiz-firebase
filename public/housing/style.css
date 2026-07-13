@@ -1124,6 +1124,10 @@ body, html {
     opacity: 0.7;
     cursor: not-allowed;
 }
+
+/* 방 이름: 눌러서 바꾸기 */
+#room-name-box { cursor: pointer; }
+#room-name-box:hover { outline: 2px solid rgba(255, 255, 255, 0.25); }
 #sim-timer { font-size: 16px; color: #fde68a; }
 #sim-exit {
     border: none;

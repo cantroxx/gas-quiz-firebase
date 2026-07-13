@@ -56,6 +56,7 @@ const SAVE_KEY = "housing_save_v1";
 let state = {
     credits: 2000,
     playerName: "나",
+    roomName: "",         // 방 이름 (온라인은 서버 금칙어 필터를 거쳐 저장)
     roomModel: "model_a",
     wallTheme: 0,         // 벽지 (WALL_THEMES id)
     floorTheme: 0,        // 바닥 (FLOOR_THEMES id)
@@ -135,6 +136,7 @@ function saveGame() {
     const payload = {
         credits: state.credits,
         playerName: state.playerName,
+        roomName: state.roomName,
         roomModel: state.roomModel,
         wallTheme: state.wallTheme,
         floorTheme: state.floorTheme,
@@ -202,6 +204,7 @@ function loadGame() {
 function applySavedData(data) {
     try {
         if (typeof data.playerName === 'string') state.playerName = data.playerName;
+        if (typeof data.roomName === 'string') state.roomName = data.roomName.slice(0, 12);
         if (typeof data.roomModel === 'string' && ROOM_MODELS[data.roomModel]) state.roomModel = data.roomModel;
         if (typeof data.wallTheme === 'number' && WALL_THEMES[data.wallTheme]) state.wallTheme = data.wallTheme;
         if (typeof data.floorTheme === 'number' && FLOOR_THEMES[data.floorTheme]) state.floorTheme = data.floorTheme;
@@ -1705,7 +1708,9 @@ function selectCatalogItem(item) {
     syncFavButton(item);
 
     // 배치해보기(가구) / 발라보기(벽지·바닥) — 사기 전에 미리 보기
+    // 연습 모드 중에는 어차피 다 무료라 숨김 ('무료로 해보기' 한 길만)
     const tryBtn = document.getElementById('btn-try-item');
+    tryBtn.classList.toggle('hidden', !!state.simMode);
     tryBtn.innerText = item.paper ? '발라보기' : '배치해보기';
     tryBtn.classList.remove('disabled');
     tryBtn.removeAttribute('disabled');
@@ -1911,7 +1916,42 @@ function renderInventoryGrid() {
 function updateUI() {
     document.getElementById('credits-count').innerText = state.credits.toLocaleString();
     document.getElementById('inventory-count').innerText = state.inventory.length;
+    updateRoomNameLabel();
 }
+
+// 방 이름 표시: 지은 이름 > "OO의 방" > 기본 문구 (친구집 구경 중엔 친구 방 이름)
+function updateRoomNameLabel() {
+    const label = document.getElementById('room-name-label');
+    if (state.visiting) {
+        label.innerText = state.visiting.roomName || `${state.visiting.ownerName}네 방`;
+        return;
+    }
+    label.innerText = state.roomName
+        || (state.playerName && state.playerName !== '나' ? `${state.playerName}의 방` : '나의 첫 번째 방');
+}
+
+// 방 이름 바꾸기 (온라인: 서버 금칙어 필터 통과 후 저장)
+document.getElementById('room-name-box').addEventListener('click', async () => {
+    if (state.visiting) return; // 친구집에서는 구경만
+    const current = state.roomName || '';
+    const input = prompt('방 이름을 지어 주세요! (1~12자)', current);
+    if (input === null) return;
+    const name = input.trim().slice(0, 12);
+    if (!name || name === current) return;
+
+    if (window.HousingData?.mode === 'online') {
+        try {
+            state.roomName = await HousingData.setRoomName(name);
+        } catch (e) {
+            alert(e.message);
+            return;
+        }
+    } else {
+        state.roomName = name;
+    }
+    saveGame();
+    updateRoomNameLabel();
+});
 
 // 14. 채팅 말풍선
 const chatInput = document.getElementById('chat-input');
@@ -2008,6 +2048,8 @@ document.querySelectorAll('#gender-toggle .gender-btn').forEach(btn => {
         state.avatar.genderLocked = true;
         saveGame();
         renderAvatarEditor();
+        // 성별을 정하면 (아직 못 봤다면) 하우징 가이드로 자연스럽게 이어줌
+        try { if (localStorage.getItem(GUIDE_SEEN_KEY) !== '1') openGuide(); } catch (e) {}
     });
 });
 
@@ -2289,8 +2331,7 @@ function setupSocialUI() {
         document.querySelector('.avatar-profile-circle').style.display = 'none';
         document.getElementById('btn-go-home').style.display = '';
         document.getElementById('btn-guestbook').style.display = '';
-        document.querySelector('#top-status-bar .status-box:last-of-type .value').innerText =
-            `${state.visiting.ownerName}네 방`;
+        updateRoomNameLabel(); // 친구 방 이름(지은 이름 우선) 표시
     } else {
         document.getElementById('btn-visit').style.display = '';
         document.getElementById('btn-guestbook').style.display = '';
@@ -2313,7 +2354,7 @@ document.getElementById('btn-visit').addEventListener('click', async () => {
         rooms.forEach(room => {
             const btn = document.createElement('button');
             btn.className = 'friend-btn';
-            btn.innerText = room.playerName;
+            btn.innerText = room.roomName ? `${room.playerName} — ${room.roomName}` : room.playerName;
             btn.title = room.userId;
             btn.addEventListener('click', () => { location.href = `/housing/?visit=${encodeURIComponent(room.userId)}`; });
             listEl.appendChild(btn);
@@ -2633,7 +2674,11 @@ document.getElementById('action-fav').addEventListener('click', () => {
             try {
                 const visitData = await HousingData.loadVisitRoom(visitId);
                 if (visitData) {
-                    state.visiting = { ownerId: visitId, ownerName: visitData.playerName || visitId };
+                    state.visiting = {
+                        ownerId: visitId,
+                        ownerName: visitData.playerName || visitId,
+                        roomName: typeof visitData.roomName === 'string' ? visitData.roomName.slice(0, 12) : ''
+                    };
                     if (typeof visitData.roomModel === 'string' && ROOM_MODELS[visitData.roomModel]) state.roomModel = visitData.roomModel;
                     if (typeof visitData.wallTheme === 'number' && WALL_THEMES[visitData.wallTheme]) state.wallTheme = visitData.wallTheme;
                     if (typeof visitData.floorTheme === 'number' && FLOOR_THEMES[visitData.floorTheme]) state.floorTheme = visitData.floorTheme;
@@ -2692,10 +2737,16 @@ document.getElementById('action-fav').addEventListener('click', () => {
         }
     }
 
-    // 처음 온 학생에게는 가이드를 자동으로 한 번 보여줌 (그 뒤로는 ❓버튼으로)
+    // 아바타(성별) 확정이 최우선: 미확정이면 하우징을 쓰기 전에 아바타 창부터 (매 접속마다)
+    // 확정한 뒤에는, 처음 온 학생에게 가이드를 자동으로 한 번 보여줌 (그 뒤로는 ❓버튼으로)
+    const needGender = window.HousingData?.mode === 'online' && !state.visiting && !state.avatar.genderLocked;
     let guideSeen = false;
     try { guideSeen = localStorage.getItem(GUIDE_SEEN_KEY) === '1'; } catch (e) {}
-    if (!guideSeen) openGuide();
+    if (needGender) {
+        document.getElementById('btn-profile').click(); // 성별 게이트 상태로 열림
+    } else if (!guideSeen) {
+        openGuide();
+    }
 
     // 저장된 방의 가구는 즉시, 나머지 카탈로그는 유휴 시간에 미리 로딩(원본 스프라이트 팝인 방지)
     state.placedItems.forEach(i => loadFurni(i.classname));

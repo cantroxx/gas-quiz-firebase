@@ -9055,6 +9055,32 @@ exports.reportHousingGuestbookEntry = onCall({ region: REGION }, async request =
   return { success: true };
 });
 
+// 방 이름 바꾸기 — 방명록과 같은 금칙어 필터 + 정지 검사 (친구들에게 보이는 텍스트라서)
+exports.setHousingRoomName = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const roomName = String(payload.roomName || "").trim();
+
+  if (!roomName || roomName.length > 12) {
+    throw new HttpsError("invalid-argument", "Room name must be 1-12 characters.");
+  }
+  if (findBannedWord(roomName)) {
+    throw new HttpsError("failed-precondition", "Room name contains a banned word.");
+  }
+
+  await db.runTransaction(async transaction => {
+    const memberData = await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    assertHousingNotSuspended(memberData);
+    transaction.set(db.collection("userHomeRooms").doc(memberUserId), {
+      userId: memberUserId,
+      roomName
+    }, { merge: true });
+  });
+
+  return { success: true, roomName };
+});
+
 // 문의하기 — 학생이 선생님(관리자)에게 보내는 글 (관리자 센터 '소통 관리'에서 확인)
 exports.submitMemberInquiry = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);

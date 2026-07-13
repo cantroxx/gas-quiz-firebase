@@ -50,6 +50,22 @@
                 .catch(() => { /* 일시 실패 — 다음 담기에서 다시 시도됨 */ });
         },
 
+        // ---- 방 이름 (서버에서 금칙어 필터 후 저장) ----
+        async setRoomName(roomName) {
+            const callable = functionsInstance.httpsCallable('setHousingRoomName');
+            try {
+                const result = await callable({ memberUserId, roomName });
+                return result?.data?.roomName || roomName;
+            } catch (error) {
+                const messages = {
+                    'functions/failed-precondition': '나쁜 말이 들어 있어요! 고운 이름으로 다시 지어 주세요. 😊',
+                    'functions/invalid-argument': '방 이름은 1~12자로 지어 주세요.',
+                    'functions/permission-denied': '지금은 방 이름을 바꿀 수 없어요.'
+                };
+                throw new Error(messages[error?.code] || '방 이름 저장에 실패했어요. 잠시 후 다시 해 보세요.');
+            }
+        },
+
         // ---- 친구집 방문 ----
         async loadVisitRoom(ownerUserId) {
             const doc = await db.collection('userHomeRooms').doc(ownerUserId).get();
@@ -59,7 +75,11 @@
             // 방을 만든 학급 구성원 목록 (방문 대상 선택·랜덤용)
             const snapshot = await db.collection('userHomeRooms').get();
             return snapshot.docs
-                .map(doc => ({ userId: doc.id, playerName: doc.data()?.playerName || doc.id }))
+                .map(doc => ({
+                    userId: doc.id,
+                    playerName: doc.data()?.playerName || doc.id,
+                    roomName: doc.data()?.roomName || ''
+                }))
                 .filter(room => room.userId !== memberUserId);
         },
 
@@ -216,6 +236,7 @@
         db.collection('userHomeRooms').doc(memberUserId).set({
             userId: memberUserId,
             playerName: payload.playerName || '',
+            roomName: payload.roomName || '',  // merge:false 저장이라 빼먹으면 지워짐
             roomModel: payload.roomModel || 'model_a',
             wallTheme: payload.wallTheme ?? 0,
             floorTheme: payload.floorTheme ?? 0,

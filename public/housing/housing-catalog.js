@@ -257,40 +257,6 @@ CATALOG_ITEMS.push(
     { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." },
 
     // ---- 벽 꾸미기 (wall) — 2026-07-13 추가 34종: 하보 벽형 가구 ----
-    { classname: "attic15_window", name: "다락방 창문", category: "wall", cost: 45, desc: "따뜻한 빛이 드는 큰 창문." },
-    { classname: "lon_window", name: "런던 창문", category: "wall", cost: 40, desc: "비 오는 날이 어울리는 창." },
-    { classname: "room_hall15_window", name: "홀 창문", category: "wall", cost: 40, desc: "복도풍 세로 창문." },
-    { classname: "diner_poster", name: "식당 포스터", category: "wall", cost: 20, desc: "오늘의 메뉴는 뭘까?" },
-    { classname: "easy_poster", name: "이젤 포스터", category: "wall", cost: 20, desc: "그림 전시 중!" },
-    { classname: "wildwest_wanted_poster", name: "현상수배 포스터", category: "wall", cost: 25, desc: "수배 중! 범인을 찾아라." },
-    { classname: "horse_fin_poster", name: "말 포스터 A", category: "wall", cost: 20, desc: "멋진 말 그림." },
-    { classname: "horse_fin_poster2", name: "말 포스터 B", category: "wall", cost: 20, desc: "달리는 말 그림." },
-    { classname: "horse_fin_poster3", name: "말 포스터 C", category: "wall", cost: 20, desc: "점프하는 말 그림." },
-    { classname: "hrella_poster_1", name: "우산 포스터 A", category: "wall", cost: 20, desc: "알록달록 우산 광고." },
-    { classname: "hrella_poster_2", name: "우산 포스터 B", category: "wall", cost: 20, desc: "우산 광고 두 번째." },
-    { classname: "hrella_poster_3", name: "우산 포스터 C", category: "wall", cost: 20, desc: "우산 광고 세 번째." },
-    { classname: "pixel_mirror", name: "픽셀 거울", category: "wall", cost: 35, desc: "내 모습이 비칠까?" },
-    { classname: "room_wl15_mirror", name: "앤티크 거울", category: "wall", cost: 40, desc: "고풍스러운 벽거울." },
-    { classname: "pframe", name: "사진 액자", category: "wall", cost: 25, desc: "추억을 담는 액자." },
-    { classname: "noticeboard", name: "게시판", category: "wall", cost: 45, desc: "우리 반 알림판처럼!" },
-    { classname: "classic1_wall1", name: "클래식 가벽 A", category: "wall", cost: 30, desc: "방을 나누는 하얀 가벽." },
-    { classname: "classic1_wall2", name: "클래식 가벽 B", category: "wall", cost: 30, desc: "모서리용 가벽." },
-    { classname: "classic2_wall", name: "클래식 가벽 C", category: "wall", cost: 30, desc: "깔끔한 가벽." },
-    { classname: "classic5_wall", name: "클래식 가벽 D", category: "wall", cost: 30, desc: "문이 있는 가벽." },
-    { classname: "classic6_wall", name: "클래식 가벽 E", category: "wall", cost: 30, desc: "창문형 가벽." },
-    { classname: "classic7_wall", name: "클래식 가벽 F", category: "wall", cost: 30, desc: "낮은 가벽." },
-    { classname: "lidowall1", name: "리조트 담장 A", category: "wall", cost: 30, desc: "수영장 느낌 담장." },
-    { classname: "lidowall2", name: "리조트 담장 B", category: "wall", cost: 30, desc: "리조트풍 담장." },
-    { classname: "lidowall3", name: "리조트 담장 C", category: "wall", cost: 30, desc: "모서리 담장." },
-    { classname: "wall_china", name: "만리장성 벽", category: "wall", cost: 50, desc: "역사 여행 온 기분!" },
-    { classname: "theatre_wall", name: "극장 벽", category: "wall", cost: 45, desc: "무대 배경 같은 벽." },
-    { classname: "wildwest_saloonwall", name: "서부 살룬 벽", category: "wall", cost: 45, desc: "카우보이 마을 벽." },
-    { classname: "vikings_wall_g", name: "바이킹 벽 (초록)", category: "wall", cost: 45, desc: "바이킹 요새의 벽." },
-    { classname: "vikings_wall_r", name: "바이킹 벽 (빨강)", category: "wall", cost: 45, desc: "바이킹 요새의 벽." },
-    { classname: "sand_cstl_wall", name: "모래성 벽", category: "wall", cost: 40, desc: "여름 해변의 모래성." },
-    { classname: "jungle_c16_wall", name: "정글 벽", category: "wall", cost: 40, desc: "덩굴이 우거진 벽." },
-    { classname: "val14_b_wall", name: "하트 벽 (파랑)", category: "wall", cost: 35, desc: "하트가 콕콕 박힌 벽." },
-    { classname: "anc_sunset_wall", name: "노을 벽", category: "wall", cost: 50, desc: "노을이 지는 풍경 벽." }
 );
 
 CATALOG_ITEMS.forEach(item => {
@@ -342,7 +308,6 @@ const FURNI_DIMS = {
 
 // 2026-07-09 확장분(102종) — 신규 다운로드한 furni JSON에서 추출
 Object.assign(FURNI_DIMS, {
-    // 벽 꾸미기 34종
     attic15_window: [2, 2, 0], lon_window: [1, 2, 3], room_hall15_window: [1, 2, 0.000001], diner_poster: [1, 1, 1], easy_poster: [1, 1, 1], wildwest_wanted_poster: [1, 1, 1], horse_fin_poster: [2, 1, 0], horse_fin_poster2: [2, 1, 0], horse_fin_poster3: [2, 1, 0], hrella_poster_1: [1, 1, 1], hrella_poster_2: [1, 1, 1], hrella_poster_3: [1, 1, 1], pixel_mirror: [1, 10, 2], room_wl15_mirror: [1, 1, 0.000001], pframe: [1, 1, 1], noticeboard: [3, 1, 3], classic1_wall1: [1, 2, 4.2], classic1_wall2: [1, 2, 4.2], classic2_wall: [2, 1, 4], classic5_wall: [2, 1, 4], classic6_wall: [2, 1, 4.9], classic7_wall: [2, 1, 4.2], lidowall1: [4, 1, 0], lidowall2: [4, 1, 0], lidowall3: [4, 1, 0], wall_china: [1, 1, 3], theatre_wall: [1, 1, 0], wildwest_saloonwall: [2, 1, 2], vikings_wall_g: [2, 1, 3.5], vikings_wall_r: [2, 1, 3.5], sand_cstl_wall: [2, 1, 1], jungle_c16_wall: [1, 2, 0.000001], val14_b_wall: [2, 1, 0], anc_sunset_wall: [3, 1, 3],
     school_floor: [2, 2, 0.001],
     bathroom_floortile1: [2, 2, 0.1],

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기 (하우징 체험판)</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -23,9 +23,9 @@
                 <span class="label">🎟️ 오늘의 쿠폰</span>
                 <span id="coupon-count" class="value">0</span>
             </div>
-            <div class="status-box">
-                <span class="label">방 이름</span>
-                <span class="value">나의 첫 번째 방</span>
+            <div class="status-box" id="room-name-box" title="눌러서 방 이름 바꾸기">
+                <span class="label">방 이름 ✏️</span>
+                <span class="value" id="room-name-label">나의 첫 번째 방</span>
             </div>
             <button id="btn-reset" class="reset-btn" title="방을 처음 상태로 되돌립니다">처음부터</button>
             <a id="btn-town" class="town-btn" href="/" title="퀴즈타운 메인으로 돌아갑니다">🏘️ 퀴즈타운</a>
@@ -125,7 +125,6 @@
                         <button class="tab-btn" data-category="diner">🍔 식당</button>
                         <button class="tab-btn" data-category="plant">🌱 식물·자연</button>
                         <button class="tab-btn" data-category="rug">🟩 러그·장판</button>
-                        <button class="tab-btn" data-category="wall">🖼️ 벽 꾸미기</button>
                         <button class="tab-btn" data-category="light">💡 조명</button>
                         <button class="tab-btn" data-category="elec">📺 가전</button>
                         <button class="tab-btn" data-category="fun">🎂 장식·음식</button>
@@ -355,8 +354,8 @@
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
-    <script src="housing-data.js?v=5"></script>
-    <script src="housing-catalog.js?v=1"></script>
-    <script src="app.js?v=11"></script>
+    <script src="housing-data.js?v=6"></script>
+    <script src="housing-catalog.js?v=2"></script>
+    <script src="app.js?v=12"></script>
 </body>
 </html>
