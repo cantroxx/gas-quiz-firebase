@@ -5121,7 +5121,8 @@
     async function openHousingShopRespectingFlag() {
       try {
         const db = getFirestoreDb();
-        if(db) {
+        // 관리자(교사)는 상점 닫힘과 무관하게 항상 입장 (하우징·서버 함수도 같은 예외)
+        if(db && !isCurrentAdminMember()) {
           const snapshot = await db.collection('appSettings').doc('featureFlags').get();
           if(snapshot.exists && snapshot.data()?.shopEnabled === false) {
             alert('지금은 상점이 쉬는 시간이에요. 나중에 다시 와 주세요!');

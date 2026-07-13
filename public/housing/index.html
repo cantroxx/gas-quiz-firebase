@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기 (하우징 체험판)</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -101,7 +101,7 @@
             </div>
 
             <div class="right-actions">
-                <div class="avatar-profile-circle" id="btn-profile" title="내 이름 바꾸기">
+                <div class="avatar-profile-circle" id="btn-profile" title="내 아바타 꾸미기">
                     <!-- 시작 시 refreshAvatarFigure()가 실제 아바타로 교체함 -->
                     <img src="" alt="나">
                 </div>
@@ -188,8 +188,15 @@
                         <img id="avatar-preview-img" src="" alt="내 아바타">
                         <label for="player-name-input">이름</label>
                         <input type="text" id="player-name-input" maxlength="10" placeholder="이름 (10글자까지)" autocomplete="off">
+                        <small id="name-sync-hint" class="hidden">퀴즈타운 닉네임과 자동으로 연동돼요</small>
                     </div>
                     <div class="avatar-edit-pane">
+                        <div id="gender-gate" class="hidden">
+                            <div class="gate-emoji">👦👧</div>
+                            <p><b>먼저 남자/여자를 정해 주세요!</b></p>
+                            <p>왼쪽의 남자·여자 버튼 중 하나를 골라야<br>옷을 고를 수 있어요.</p>
+                            <p class="gate-warn">⚠️ 한 번 정하면 바꿀 수 없으니 신중하게!</p>
+                        </div>
                         <div class="avatar-tabs" id="avatar-tabs"></div>
                         <div class="avatar-options" id="avatar-options"></div>
                         <div class="avatar-colors" id="avatar-colors"></div>
@@ -348,7 +355,7 @@
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
-    <script src="housing-data.js?v=4"></script>
-    <script src="app.js?v=9"></script>
+    <script src="housing-data.js?v=5"></script>
+    <script src="app.js?v=10"></script>
 </body>
 </html>

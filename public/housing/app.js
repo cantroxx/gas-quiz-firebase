@@ -771,9 +771,10 @@ function loadGame() {
     // 온라인 모드: Firestore 방 문서 + 서버 보유 목록에서 복원
     if (window.HousingData?.mode === 'online') {
         state.credits = HousingData.djCoin;
+        if (HousingData.roomData) applySavedData(HousingData.roomData);
+        // 이름은 항상 퀴즈타운 닉네임이 이김 (저장된 옛 이름을 덮어씀 — 자동 연동)
         const nickname = HousingData.member?.nickname;
         if (nickname) state.playerName = String(nickname).slice(0, 10);
-        if (HousingData.roomData) applySavedData(HousingData.roomData);
         // 가방 = 서버 보유 수량 − 방에 배치된 수량 (배치/회수는 이 관계를 그대로 유지함)
         const placedCount = {};
         state.placedItems.forEach(i => { placedCount[i.classname] = (placedCount[i.classname] || 0) + 1; });
@@ -2599,13 +2600,20 @@ const AVATAR_TABS = [
 
 document.getElementById('btn-profile').addEventListener('click', () => {
     nameInput.value = state.playerName;
+    // 온라인 모드: 이름은 퀴즈타운 닉네임과 자동 연동 — 여기서는 못 바꿈
+    const online = window.HousingData?.mode === 'online';
+    nameInput.readOnly = online;
+    document.getElementById('name-sync-hint').classList.toggle('hidden', !online);
     avatarModal.classList.remove('hidden');
     renderAvatarEditor();
 });
 
 document.getElementById('close-avatar').addEventListener('click', () => {
-    const name = nameInput.value.trim();
-    if (name) state.playerName = name.slice(0, 10);
+    // 이름 직접 바꾸기는 게스트(로컬 체험) 모드에서만 — 온라인은 닉네임 연동
+    if (window.HousingData?.mode !== 'online') {
+        const name = nameInput.value.trim();
+        if (name) state.playerName = name.slice(0, 10);
+    }
     avatarModal.classList.add('hidden');
     saveGame();
 });
@@ -2638,13 +2646,20 @@ function updateAvatarPreview() {
 }
 
 function renderAvatarEditor() {
+    // 성별 우선 게이트: 남/여를 확정하기 전에는 옷 고르기를 막고 안내만 표시
+    const locked = state.avatar.genderLocked;
+    document.getElementById('gender-gate').classList.toggle('hidden', locked);
+    ['avatar-tabs', 'avatar-options', 'avatar-colors'].forEach(id => {
+        document.getElementById(id).style.display = locked ? '' : 'none';
+    });
+
     // 성별 토글 (M/F 필터 — 공용 부품은 양쪽 다 표시)
     // 확정 후에는 고른 쪽만 남기고 반대쪽 버튼은 숨김
     document.querySelectorAll('#gender-toggle .gender-btn').forEach(btn => {
         const mine = btn.dataset.g === (state.avatar.look.gender || 'M');
         btn.classList.toggle('active', mine);
         btn.style.display = (state.avatar.genderLocked && !mine) ? 'none' : '';
-        if (state.avatar.genderLocked && mine) btn.innerText = (btn.dataset.g === 'M' ? '👦 남자' : '👧 여자') + ' ✔';
+        btn.innerText = (btn.dataset.g === 'M' ? '👦 남자' : '👧 여자') + (state.avatar.genderLocked && mine ? ' ✔' : '');
     });
 
     // 탭 버튼
@@ -2816,7 +2831,7 @@ async function purchaseRoomModel(modelName) {
     if (state.simMode) return true; // 연습 모드: 뭐든 무료 (나가면 원상복구)
     const def = ROOM_MODELS[modelName];
     const online = window.HousingData?.mode === 'online';
-    if (online && HousingData.shopEnabled === false) {
+    if (shopClosedForMe()) {
         alert('지금은 상점이 쉬는 시간이라 방 모양도 살 수 없어요.');
         return false;
     }
@@ -3002,6 +3017,13 @@ document.getElementById('guestbook-send').addEventListener('click', async () => 
     }
 });
 
+// 상점이 '나에게' 닫혀 있는지 — 관리자(교사)는 항상 입장 가능 (서버 함수도 같은 예외)
+function shopClosedForMe() {
+    return window.HousingData?.mode === 'online'
+        && HousingData.shopEnabled === false
+        && !HousingData.member?.isAdmin;
+}
+
 // 16-3. 연습(시뮬레이션) 모드 — 10분/일, 뭐든 무료, 나가면 원상복구
 const SIM_DAILY_LIMIT = 600; // 초 (10분)
 
@@ -3094,7 +3116,7 @@ function exitSimMode(timeUp) {
     document.getElementById('sim-banner').classList.add('hidden');
     catalogModal.classList.add('hidden');
     // 상점 닫힘 상태였다면 버튼 다시 숨김
-    if (window.HousingData?.mode === 'online' && HousingData.shopEnabled === false) {
+    if (shopClosedForMe()) {
         document.getElementById('btn-catalog').style.display = 'none';
     }
     saveGame();
@@ -3277,8 +3299,8 @@ document.getElementById('action-fav').addEventListener('click', () => {
     // 🧪 연습 모드 버튼: 내 방에서만 (친구집 구경 중엔 숨김)
     if (!state.visiting) document.getElementById('btn-sim').style.display = '';
 
-    // 관리자가 상점을 닫아뒀으면: 상점 버튼 숨김 + 자동 열기 무시
-    const shopClosed = window.HousingData?.mode === 'online' && HousingData.shopEnabled === false;
+    // 관리자가 상점을 닫아뒀으면: 상점 버튼 숨김 + 자동 열기 무시 (관리자 본인은 예외)
+    const shopClosed = shopClosedForMe();
     if (shopClosed) {
         document.getElementById('btn-catalog').style.display = 'none';
     }

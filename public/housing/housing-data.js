@@ -114,6 +114,8 @@
         return {
             userId: doc.id,
             nickname: data.nickname || data.name || '',
+            // 관리자(교사)는 상점 닫힘의 예외 — 서버 함수와 같은 판정 기준
+            isAdmin: data.role === 'admin' || !!String(data.adminLevel || '').trim(),
             suspendedUntil: suspendedUntil > Date.now() ? suspendedUntil : 0
         };
     }
