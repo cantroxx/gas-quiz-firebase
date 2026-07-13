@@ -9083,6 +9083,54 @@ exports.submitMemberInquiry = onCall({ region: REGION }, async request => {
   return { success: true, ...result };
 });
 
+// 비로그인 문의 — 입장(로그인) 화면에서 학년·반만 적어 접수 (익명 계정당 하루 3건 제한)
+exports.submitAnonymousInquiry = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request); // 익명 로그인 계정
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const grade = Math.round(Number(payload.grade) || 0);
+  const classNumber = Math.round(Number(payload.classNumber) || 0);
+  const text = String(payload.text || "").trim();
+
+  if (grade < 1 || grade > 6 || classNumber < 1 || classNumber > 20) {
+    throw new HttpsError("invalid-argument", "Grade/class out of range.");
+  }
+  if (!text || text.length > 300) {
+    throw new HttpsError("invalid-argument", "Inquiry text must be 1-300 characters.");
+  }
+
+  const dateKey = getKstDateKey();
+  const capRef = db.collection("anonInquiryCaps").doc(`${authUid}__${dateKey}`);
+
+  const result = await db.runTransaction(async transaction => {
+    const capSnapshot = await transaction.get(capRef);
+    const used = capSnapshot.exists ? Number(capSnapshot.data()?.count) || 0 : 0;
+    if (used >= 3) {
+      throw new HttpsError("resource-exhausted", "Daily anonymous inquiry limit reached.");
+    }
+    transaction.set(capRef, {
+      authUid,
+      dateKey,
+      count: used + 1,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    const inquiryRef = db.collection("inquiries").doc();
+    transaction.set(inquiryRef, {
+      inquiryId: inquiryRef.id,
+      memberUserId: "",
+      anonymous: true,
+      authUid,
+      authorName: `(비로그인) ${grade}학년 ${classNumber}반`,
+      text,
+      status: "open",
+      createdAt: FieldValue.serverTimestamp()
+    }, { merge: false });
+    return { inquiryId: inquiryRef.id };
+  });
+
+  return { success: true, ...result };
+});
+
 // 관리자: 소통 관리 목록 (문의 + 신고된 방명록)
 exports.adminListCommunications = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);

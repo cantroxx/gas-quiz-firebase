@@ -75,6 +75,23 @@ body, html {
     transition: all 0.2s;
 }
 
+/* 퀴즈타운 메인으로 돌아가기 (방 저장은 이탈 시 자동) */
+.town-btn {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(2, 132, 199, 0.18);
+    border: 1px solid rgba(2, 132, 199, 0.5);
+    color: #7dd3fc;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.town-btn:hover { background: rgba(2, 132, 199, 0.35); color: #fff; }
+
 .reset-btn:hover {
     background: rgba(239, 68, 68, 0.3);
     color: #fff;
