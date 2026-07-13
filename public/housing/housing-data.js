@@ -114,6 +114,36 @@
             };
         },
 
+        // ---- 내 정보 상세 (랭킹·칭호·뱃지) ----
+        async getMyTitles() {
+            if (api.mode !== 'online') return [];
+            const snap = await db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null);
+            return snap ? snap.docs.map(d => ({ id: d.id, ...d.data() })) : [];
+        },
+        async getMyBadges() {
+            if (api.mode !== 'online') return [];
+            const snap = await db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null);
+            return snap ? snap.docs.map(d => ({ id: d.id, ...d.data() })) : [];
+        },
+        async getRankingSummary() {
+            if (api.mode !== 'online') return null;
+            const doc = await db.collection('userRankingSummary').doc(memberUserId).get().catch(() => null);
+            return (doc && doc.exists) ? doc.data() : null;
+        },
+        async getSelectedTitleId() {
+            if (api.mode !== 'online') return '';
+            const doc = await db.collection('users').doc(memberUserId).get().catch(() => null);
+            return (doc && doc.exists) ? (doc.data()?.selectedTitleId || '') : '';
+        },
+        // 대표 칭호 설정 — 연결 회원 본인이 selectedTitleId만 수정 (보안 규칙 허용 범위)
+        async setSelectedTitle(titleId) {
+            if (api.mode !== 'online') return;
+            await db.collection('users').doc(memberUserId).set({
+                selectedTitleId: titleId || '',
+                updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        },
+
         // ---- 친구집 방문 ----
         async loadVisitRoom(ownerUserId) {
             const doc = await db.collection('userHomeRooms').doc(ownerUserId).get();

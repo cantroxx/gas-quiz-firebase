@@ -86,6 +86,7 @@ let state = {
         stepTimer: 0,
         sitting: null,    // { itemId, pose: 'sit'|'lay', dir, z }
         pendingPose: null,// 도착하면 앉거나 누울 예약 { itemId, pose }
+        pendingExit: false,// 입구(문 타일)로 걸어가는 중 — 도착하면 '나갈까요?'
         // 아바타 생김새 (부품별 선택값) — figure 문자열은 여기서 만들어짐
         look: { gender: 'M', skin: 1, hd: 180, hr: 100, ha: 0, haColor: 61, ea: 0, fa: 0, cc: 0, ccColor: 64, ca: 0, wa: 0, ch: 225, chColor: 82, lg: 270, lgColor: 64, sh: 290, shColor: 61 },
         genderLocked: false, // 남/여를 한 번 정하면 true — 이후 변경 불가 (구제는 문의하기)
@@ -1209,6 +1210,12 @@ function updateAvatar() {
             avatar.stepTimer -= 1.0; // 남은 시간을 다음 타일로 이월해 속도 일정 유지
             if (avatar.path.length === 0) avatar.stepTimer = 0;
 
+            // 입구(문 타일)에 도착 → 타운으로 나갈지 물어봄
+            if (avatar.path.length === 0 && avatar.pendingExit) {
+                avatar.pendingExit = false;
+                if (isDoorTile(avatar.x, avatar.y)) askLeaveToTown();
+            }
+
             // 목적지 도착 → 예약된 앉기/눕기 실행
             if (avatar.path.length === 0 && avatar.pendingPose) {
                 const item = state.placedItems.find(i => i.id === avatar.pendingPose.itemId);
@@ -1293,8 +1300,14 @@ function walkToward(tx, ty) {
 
     if (path.length > 0) {
         a.pendingPose = null;
+        a.pendingExit = false; // 문 나가기 예약은 문 클릭에서만 다시 켬
         a.path = path;
     }
+}
+
+// 입구에서 타운으로 나가기 (문 클릭/도착 시)
+function askLeaveToTown() {
+    if (confirm('퀴즈타운으로 나갈까요?')) location.href = '/';
 }
 
 canvas.addEventListener('click', function (e) {
@@ -1307,6 +1320,15 @@ canvas.addEventListener('click', function (e) {
         if (clickedItem) {
             // 친구집에서는 구경 카드(이름·가격·⭐담기)만 열림
             selectPlacedItem(clickedItem);
+        } else if (isDoorTile(grid.x, grid.y) && !state.visiting) {
+            // 입구(문)를 누르면 그쪽으로 걸어가 도착 시 '나갈까요?' — 이미 문에 서 있으면 바로 물어봄
+            closeFurnitureControlPanel();
+            if (state.avatar.x === grid.x && state.avatar.y === grid.y) {
+                askLeaveToTown();
+            } else {
+                walkToward(grid.x, grid.y);
+                state.avatar.pendingExit = true;
+            }
         } else if (isFloorTile(grid.x, grid.y)) {
             closeFurnitureControlPanel();
             walkToward(grid.x, grid.y);
@@ -1473,8 +1495,8 @@ function applyStarterRoom() {
 // 기능 가구: 특정 가구를 누르면 기능이 열림 (기본 방에 미리 놓여 있음)
 const FUNCTIONAL_FURNI = {
     shelves_norja: { emoji: '👕', label: '옷 갈아입기', action: 'wardrobe' },
-    bookpile:      { emoji: '📖', label: '방명록 열기', action: 'guestbook' },
-    country_gate:  { emoji: '🚪', label: '타운으로 나가기', action: 'exit' }
+    bookpile:      { emoji: '📖', label: '방명록 열기', action: 'guestbook' }
+    // 나가기는 가구가 아니라 '입구(문 타일)로 걸어가면' 물어보는 방식으로 대체됨
 };
 
 document.getElementById('action-func').addEventListener('click', () => {
@@ -1485,7 +1507,6 @@ document.getElementById('action-func').addEventListener('click', () => {
     closeFurnitureControlPanel();
     if (func.action === 'wardrobe') openAvatarEditor();
     else if (func.action === 'guestbook') document.getElementById('btn-guestbook').click();
-    else if (func.action === 'exit') { if (confirm('퀴즈타운으로 나갈까요?')) location.href = '/'; }
 });
 
 // 작동하기: 다음 상태로 전환 (꺼짐↔켜짐, 주사위 눈금 등)
@@ -2059,11 +2080,13 @@ function openAvatarEditor() {
     renderAvatarEditor();
 }
 
-// 아바타(나) 클릭: 성별 미확정이면 편집기부터(확정 강제), 확정했으면 '내 정보' 카드
-document.getElementById('btn-profile').addEventListener('click', () => {
+// 아바타(나) 클릭·하단 '내 정보' 버튼: 성별 미확정이면 편집기부터(확정 강제), 확정했으면 '내 정보' 카드
+function openMyInfo() {
     if (!state.avatar.genderLocked) openAvatarEditor();
     else openProfileCard();
-});
+}
+document.getElementById('btn-profile').addEventListener('click', openMyInfo);
+document.getElementById('btn-myinfo').addEventListener('click', openMyInfo);
 
 document.getElementById('profile-edit-avatar').addEventListener('click', openAvatarEditor);
 document.getElementById('close-profile').addEventListener('click', () => {
@@ -2086,6 +2109,96 @@ document.querySelectorAll('.home-style-btn').forEach(btn => {
         reflectHomeStyle();
     });
 });
+
+// ---- 내 정보 상세: 랭킹·칭호·뱃지 (방 안에서 바로 보기) ----
+const infoListModal = document.getElementById('info-list-modal');
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+document.getElementById('close-info-list').addEventListener('click', () => infoListModal.classList.add('hidden'));
+document.getElementById('profile-open-ranking').addEventListener('click', () => openInfoList('ranking'));
+document.getElementById('profile-open-titles').addEventListener('click', () => openInfoList('titles'));
+document.getElementById('profile-open-badges').addEventListener('click', () => openInfoList('badges'));
+
+async function openInfoList(type) {
+    const titles = { ranking: '🏆 내 랭킹', titles: '🏅 내 칭호', badges: '🎖️ 내 뱃지' };
+    document.getElementById('info-list-title').innerText = titles[type];
+    const box = document.getElementById('info-list-content');
+    box.innerHTML = '<p class="info-list-empty">불러오는 중…</p>';
+    infoListModal.classList.remove('hidden');
+    try {
+        if (type === 'titles') await renderMyTitles(box);
+        else if (type === 'badges') await renderMyBadges(box);
+        else await renderMyRanking(box);
+    } catch (e) {
+        box.innerHTML = '<p class="info-list-empty">정보를 불러오지 못했어요. 잠시 후 다시 해 보세요.</p>';
+    }
+}
+
+async function renderMyTitles(box) {
+    const [titles, selectedId] = await Promise.all([HousingData.getMyTitles(), HousingData.getSelectedTitleId()]);
+    if (!titles.length) { box.innerHTML = '<p class="info-list-empty">아직 얻은 칭호가 없어요.<br>퀴즈·연습으로 칭호를 모아 보세요!</p>'; return; }
+    box.innerHTML = '<p class="info-list-hint">칭호를 누르면 <b>대표 칭호</b>로 정할 수 있어요 (랭킹에 표시돼요).</p>';
+    titles.forEach(t => {
+        const isSel = t.id === selectedId;
+        const card = document.createElement('div');
+        card.className = 'info-title-card' + (isSel ? ' selected' : '');
+        card.innerHTML = `<div class="info-title-name">${escapeHtml(t.titleName || t.titleId)}${isSel ? ' <span class="info-badge-star">대표</span>' : ''}</div>`
+            + `<div class="info-title-desc">${escapeHtml(t.description || t.conditionText || '')}</div>`;
+        card.addEventListener('click', async () => {
+            try {
+                await HousingData.setSelectedTitle(isSel ? '' : t.id); // 다시 누르면 해제
+                document.getElementById('profile-info-title').innerText = isSel ? '아직 대표 칭호가 없어요' : (t.titleName || '');
+                renderMyTitles(box);
+            } catch (e) { alert('대표 칭호를 바꾸지 못했어요.'); }
+        });
+        box.appendChild(card);
+    });
+}
+
+async function renderMyBadges(box) {
+    const badges = await HousingData.getMyBadges();
+    if (!badges.length) { box.innerHTML = '<p class="info-list-empty">아직 얻은 뱃지가 없어요.<br>연습을 하면 뱃지가 쌓여요!</p>'; return; }
+    // 완주(별 있는)한 뱃지를 앞에, 별 많은 순
+    badges.sort((a, b) => (b.starCount || 0) - (a.starCount || 0) || (b.completed === true) - (a.completed === true));
+    const grid = document.createElement('div');
+    grid.className = 'info-badge-grid';
+    badges.forEach(b => {
+        const stars = '⭐'.repeat(Math.max(0, Math.min(5, Math.round(b.starCount || 0))));
+        const cell = document.createElement('div');
+        cell.className = 'info-badge-cell' + (b.completed ? ' done' : '');
+        cell.innerHTML = `<div class="info-badge-label">${escapeHtml(b.label || b.badgeId)}</div>`
+            + `<div class="info-badge-stars">${stars || '·'}</div>`;
+        grid.appendChild(cell);
+    });
+    box.innerHTML = '';
+    box.appendChild(grid);
+}
+
+async function renderMyRanking(box) {
+    const summary = await HousingData.getRankingSummary();
+    const rows = [];
+    const byMode = summary && summary.byMode;
+    if (byMode) {
+        Object.values(byMode).forEach(mode => {
+            const byCat = mode && mode.byCategory;
+            if (byCat) Object.values(byCat).forEach(r => {
+                if (r && (r.rank || r.score !== undefined)) rows.push(r);
+            });
+        });
+    }
+    if (!rows.length) { box.innerHTML = '<p class="info-list-empty">아직 랭킹 기록이 없어요.<br>랭킹전에 참여해 보세요!</p>'; return; }
+    rows.sort((a, b) => (a.rank || 999) - (b.rank || 999));
+    box.innerHTML = '<p class="info-list-hint">지금까지의 랭킹 기록이에요. 자세한 순위는 <b>자세히 보기</b>에서!</p>';
+    rows.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'info-rank-row';
+        row.innerHTML = `<span class="info-rank-cat">${escapeHtml(r.category || '')}</span>`
+            + `<span class="info-rank-rank">${r.rank ? r.rank + '등' : '-'}</span>`
+            + `<span class="info-rank-score">${r.score ?? 0}/${r.total ?? 0}</span>`;
+        box.appendChild(row);
+    });
+}
 
 // 내 정보 카드: 프로필 요약을 불러와 표시 (온라인=실데이터, 게스트=가상계정)
 async function openProfileCard() {
@@ -2413,7 +2526,7 @@ function setupSocialUI() {
 
     if (state.visiting) {
         // 친구집: 편집 관련 버튼 전부 숨기고 구경 전용으로
-        ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-reset'].forEach(id => {
+        ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-reset', 'btn-myinfo'].forEach(id => {
             document.getElementById(id).style.display = 'none';
         });
         document.querySelector('.avatar-profile-circle').style.display = 'none';

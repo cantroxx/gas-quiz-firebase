@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 방 꾸미기 (하우징 체험판)</title>
+    <title>내 방 꾸미기</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -89,6 +89,10 @@
                 <button id="btn-go-home" class="nav-btn" style="display:none">
                     <span class="emoji">🏠</span>
                     <span>내 방으로</span>
+                </button>
+                <button id="btn-myinfo" class="nav-btn">
+                    <span class="emoji">📋</span>
+                    <span>내 정보</span>
                 </button>
                 <button id="btn-guide" class="nav-btn">
                     <span class="emoji">❓</span>
@@ -289,6 +293,11 @@
                         <div class="profile-stat"><span class="profile-stat-num" id="profile-info-titles">0</span><span class="profile-stat-label">칭호</span></div>
                         <div class="profile-stat"><span class="profile-stat-num" id="profile-info-badges">0</span><span class="profile-stat-label">뱃지</span></div>
                     </div>
+                    <div class="profile-info-detail-btns">
+                        <button id="profile-open-ranking" class="profile-detail-btn">🏆 랭킹</button>
+                        <button id="profile-open-titles" class="profile-detail-btn">🏅 칭호</button>
+                        <button id="profile-open-badges" class="profile-detail-btn">🎖️ 뱃지</button>
+                    </div>
                     <div class="profile-info-actions">
                         <button id="profile-edit-avatar" class="profile-action-btn">👕 아바타 꾸미기</button>
                         <a id="profile-detail-link" class="profile-action-btn" href="/?view=home">📋 자세히 보기</a>
@@ -300,6 +309,19 @@
                             <button id="home-style-dashboard" data-style="dashboard" class="home-style-btn">📋 대시보드</button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 내 정보 상세 (랭킹·칭호·뱃지) 공용 모달 -->
+        <div id="info-list-modal" class="modal hidden">
+            <div class="modal-content small">
+                <div class="modal-header">
+                    <h2 id="info-list-title">내 정보</h2>
+                    <button class="modal-close-btn" id="close-info-list">×</button>
+                </div>
+                <div class="modal-body info-list-body">
+                    <div id="info-list-content"></div>
                 </div>
             </div>
         </div>
@@ -323,8 +345,8 @@
                     <section>
                         <h3>👤 내 정보 보기</h3>
                         <ul>
-                            <li>오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 내 정보 카드가 열려요 — 대표 칭호, 레벨, DJ코인, 칭호·뱃지 개수를 볼 수 있어요.</li>
-                            <li>카드에서 <b>👕 아바타 꾸미기</b>로 옷을 바꾸고, <b>📋 자세히 보기</b>로 내 랭킹·칭호·뱃지를 자세히 볼 수 있어요.</li>
+                            <li>하단 <b>📋 내 정보</b> 버튼이나 오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 내 정보 카드가 열려요 — 대표 칭호, 레벨, DJ코인, 칭호·뱃지 개수를 볼 수 있어요.</li>
+                            <li>카드에서 <b>🏆 랭킹·🏅 칭호·🎖️ 뱃지</b>를 방 안에서 바로 보고, <b>👕 아바타 꾸미기</b>로 옷을 바꿔요. <b>📋 자세히 보기</b>로 전체 대시보드도 열 수 있어요.</li>
                             <li><b>타운에서 '내 집'을 누르면?</b> 설정으로 <b>내 방</b>과 <b>대시보드</b> 중 무엇으로 들어갈지 고를 수 있어요.</li>
                         </ul>
                     </section>
@@ -332,7 +354,7 @@
                         <h3>✨ 기능 가구</h3>
                         <ul>
                             <li>방에 놓인 <b>옷장</b>을 누르면 <b>옷을 갈아입고</b>, <b>책 더미</b>를 누르면 <b>방명록</b>이 열려요.</li>
-                            <li><b>문</b>을 누르면 <b>퀴즈타운으로 나갈</b> 수 있어요.</li>
+                            <li><b>입구(문)로 걸어가면</b> "퀴즈타운으로 나갈까요?"라고 물어봐요. (위쪽 🏘️퀴즈타운 버튼으로도 나갈 수 있어요.)</li>
                             <li>처음 방에는 침대·테이블·옷장 같은 기본 가구가 놓여 있어요. 마음대로 옮기거나 바꿔도 돼요!</li>
                         </ul>
                     </section>
@@ -408,8 +430,8 @@
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
-    <script src="housing-data.js?v=7"></script>
-    <script src="housing-catalog.js?v=3"></script>
-    <script src="app.js?v=16"></script>
+    <script src="housing-data.js?v=8"></script>
+    <script src="housing-catalog.js?v=4"></script>
+    <script src="app.js?v=17"></script>
 </body>
 </html>

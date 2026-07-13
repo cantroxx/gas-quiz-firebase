@@ -5,7 +5,7 @@
 // app.js보다 먼저 로드되어야 한다 (index.html의 script 순서).
 // 상점 시드 스크립트(scripts/seed/seed-housing-shop-items.js)가 이 파일을 읽어 목록을 추출한다.
 
-// ==================== 내 방 꾸미기 (하우징 체험판) ====================
+// ==================== 내 방 꾸미기 ====================
 // 교육용·비상업 프로젝트. 이미지 출처: habboassets.com / imager.habboon.pw (© Sulake Oy)
 
 // 1. 가구 카탈로그 (2026-07-09 기준 CDN에 실제 존재 확인된 20종)
@@ -607,6 +607,5 @@ const STARTER_LAYOUT = [
     { classname: 'table_norja_med', x: 5, y: 10, rot: 0 },  // 테이블
     { classname: 'chair_norja',     x: 5, y: 12, rot: 0 },  // 의자
     { classname: 'bookpile',        x: 10, y: 10, rot: 0 }, // 책 더미(방명록)
-    { classname: 'country_gate',    x: 4, y: 7, rot: 0 },   // 문(입구 쪽, 타운으로 나가기)
     { classname: 'plant_yukka',     x: 11, y: 13, rot: 0 }  // 화분
 ];

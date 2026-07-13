@@ -741,7 +741,9 @@ body, html {
     font-weight: 700;
     cursor: pointer;
 }
-.guestbook-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+/* 방명록 모달은 목록이 전체 폭을 쓰도록 (기본 .modal-body의 flex-row 상속 제거) */
+#guestbook-modal .modal-body { display: block; padding: 18px 22px; overflow-y: auto; }
+.guestbook-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-height: 320px; overflow-y: auto; }
 .guestbook-entry {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
@@ -1175,7 +1177,58 @@ body, html {
 .profile-stat-num { display: block; font-size: 20px; font-weight: 800; color: #fff; }
 .profile-stat-label { font-size: 11px; color: #94a3b8; }
 
+.profile-info-detail-btns { display: flex; gap: 8px; margin-bottom: 14px; }
+.profile-detail-btn {
+    flex: 1;
+    padding: 12px 4px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.profile-detail-btn:hover { border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); }
+
 .profile-info-actions { display: flex; flex-direction: column; gap: 10px; }
+
+/* 랭킹·칭호·뱃지 공용 모달 */
+#info-list-modal .modal-body.info-list-body { display: block; padding: 18px 22px; overflow-y: auto; }
+.info-list-empty { color: #94a3b8; text-align: center; padding: 24px 0; line-height: 1.6; }
+.info-list-hint { color: #94a3b8; font-size: 12px; margin-bottom: 12px; text-align: center; }
+.info-list-hint b, .info-title-desc b { color: #7dd3fc; }
+
+.info-title-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+.info-title-card:hover { border-color: rgba(56, 189, 248, 0.5); }
+.info-title-card.selected { border-color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
+.info-title-name { font-weight: 700; font-size: 15px; color: #fff; }
+.info-title-desc { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+.info-badge-star { background: #fbbf24; color: #1a2235; font-size: 11px; padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
+
+.info-badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.info-badge-cell {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+}
+.info-badge-cell.done { border-color: rgba(251, 191, 36, 0.5); background: rgba(251, 191, 36, 0.08); }
+.info-badge-label { font-size: 12px; color: #dbe4f0; margin-bottom: 4px; }
+.info-badge-stars { font-size: 12px; }
+
+.info-rank-row { display: flex; align-items: center; gap: 8px; padding: 10px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.info-rank-cat { flex: 1; font-size: 14px; color: #dbe4f0; }
+.info-rank-rank { color: #fbbf24; font-weight: 700; }
+.info-rank-score { color: #94a3b8; font-size: 13px; min-width: 48px; text-align: right; }
 
 .profile-action-btn {
     display: block;
