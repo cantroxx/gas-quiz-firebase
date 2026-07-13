@@ -3110,13 +3110,23 @@ function addFavorite(itemId) {
     if (state.favorites.includes(itemId)) return true;
     if (state.favorites.length >= 50) { alert('즐겨찾기는 50개까지만 담을 수 있어요!'); return false; }
     state.favorites.push(itemId);
-    saveGame();
+    persistFavorites();
     return true;
 }
 
 function removeFavorite(itemId) {
+    if (!state.favorites.includes(itemId)) return;
     state.favorites = state.favorites.filter(id => id !== itemId);
-    saveGame();
+    persistFavorites();
+}
+
+// 친구집 구경 중에는 saveGame이 통째로 꺼져 있어서(내 방 보호) 즐겨찾기만 따로 저장
+function persistFavorites() {
+    if (state.visiting) {
+        if (window.HousingData?.saveFavorites) HousingData.saveFavorites([...state.favorites]);
+    } else {
+        saveGame();
+    }
 }
 
 function catalogItemFavId(item) {

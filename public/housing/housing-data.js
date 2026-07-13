@@ -41,6 +41,15 @@
         saveRoom,
         flushRoomSave,
 
+        // 즐겨찾기만 부분 저장 — 친구집 구경 중에는 방 전체 저장이 막혀 있어서
+        // (친구 방으로 내 방을 덮어쓰지 않기 위함) 이 경로로만 저장한다
+        saveFavorites(favorites) {
+            if (api.mode !== 'online') return;
+            db.collection('userHomeRooms').doc(memberUserId)
+                .set({ userId: memberUserId, favorites: favorites || [] }, { merge: true })
+                .catch(() => { /* 일시 실패 — 다음 담기에서 다시 시도됨 */ });
+        },
+
         // ---- 친구집 방문 ----
         async loadVisitRoom(ownerUserId) {
             const doc = await db.collection('userHomeRooms').doc(ownerUserId).get();
