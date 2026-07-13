@@ -36,6 +36,7 @@ function runNodeCheck(filePath) {
 function checkJavaScriptFiles() {
   const files = [
     ...listFiles(path.join(ROOT, 'public', 'js'), file => file.endsWith('.js')),
+    ...listFiles(path.join(ROOT, 'public', 'housing'), file => file.endsWith('.js')), // 하우징(내 방 꾸미기)도 문법 검사
     ...listFiles(path.join(ROOT, 'scripts'), file => file.endsWith('.js')),
     path.join(ROOT, 'functions', 'index.js')
   ];

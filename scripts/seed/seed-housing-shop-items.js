@@ -5,7 +5,7 @@
 // - 아이템 ID는 room_ 접두사 (가구: room_<classname>, 벽지·바닥: room_paper_<wall|floor>_<id>)
 //   ※ room_ 접두사와 '방 가구' 카테고리는 퀴즈타운 메인 상점 화면에서 자동으로 숨겨진다
 //   (shop-data.js의 isRetiredShopCatalogItem 필터) — 하우징 안에서만 팔리게 하는 의도된 재활용.
-// - 목록·가격은 public/housing/app.js의 CATALOG_ITEMS·PAPER_ITEMS에서 그대로 추출한다.
+// - 목록·가격은 public/housing/housing-catalog.js의 CATALOG_ITEMS·PAPER_ITEMS에서 그대로 추출한다.
 // - 이미 있는 문서는 가격·이름·정렬만 갱신(merge)하고 enabled 등 교사가 바꾼 값은 유지한다.
 //
 // 사용법:
@@ -18,7 +18,8 @@ const vm = require('node:vm');
 const { initializeApp, applicationDefault, getApps } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
-const APP_JS_PATH = path.resolve(__dirname, '..', '..', 'public', 'housing', 'app.js');
+// 2026-07-13 데이터가 app.js에서 housing-catalog.js로 분리됨
+const APP_JS_PATH = path.resolve(__dirname, '..', '..', 'public', 'housing', 'housing-catalog.js');
 
 function extractBlock(source, constName) {
   const start = source.indexOf(`const ${constName} = [`);
