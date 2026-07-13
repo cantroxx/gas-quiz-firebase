@@ -209,6 +209,9 @@
             wallTheme: payload.wallTheme ?? 0,
             floorTheme: payload.floorTheme ?? 0,
             look: payload.look || null,
+            genderLocked: payload.genderLocked === true,
+            favorites: payload.favorites || [],
+            simUsage: payload.simUsage || null,
             placedItems: payload.placedItems || [],
             updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: false }).catch(() => { /* 일시 실패 — 다음 저장에서 다시 시도됨 */ });

@@ -1029,6 +1029,53 @@ body, html {
 }
 
 /* 배치 툴팁 */
+/* 연습(시뮬레이션) 모드 배너 */
+#sim-banner {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(124, 58, 237, 0.92);
+    border: 1px solid #c4b5fd;
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    z-index: 210;
+}
+#sim-banner.hidden { display: none; }
+#sim-timer { font-size: 16px; color: #fde68a; }
+#sim-exit {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background: #fff;
+    color: #6d28d9;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* 즐겨찾기 버튼 (상점 상세) — 노랑 */
+.buy-btn.fav-btn { background: #f59e0b; color: #1e293b; }
+.buy-btn.fav-btn:hover { background: #d97706; }
+.buy-btn.fav-btn.faved { background: #fde68a; }
+
+/* 즐겨찾기 탭의 위시리스트 합계 */
+.fav-summary {
+    grid-column: 1 / -1;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #fcd34d;
+    font-size: 13px;
+    font-weight: 700;
+}
+
 /* 벽지·바닥 발라보기 확인 바 */
 #paper-trial-bar {
     position: absolute;

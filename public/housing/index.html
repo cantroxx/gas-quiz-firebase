@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기 (하우징 체험판)</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -46,6 +46,7 @@
                 <img id="selected-furni-preview" src="" alt="미리보기">
                 <p id="selected-furni-desc">설명</p>
                 <div class="action-buttons">
+                    <button id="action-fav" class="control-btn accent hidden">⭐ 즐겨찾기에 담기</button>
                     <button id="action-buy-trial" class="control-btn accent hidden">💰 이대로 사기</button>
                     <button id="action-sit" class="control-btn accent hidden">🪑 여기 앉기</button>
                     <button id="action-lay" class="control-btn accent hidden">🛏️ 여기 눕기</button>
@@ -71,6 +72,10 @@
                 <button id="btn-room" class="nav-btn">
                     <span class="emoji">🏠</span>
                     <span>방 모양</span>
+                </button>
+                <button id="btn-sim" class="nav-btn" style="display:none">
+                    <span class="emoji">🧪</span>
+                    <span>연습</span>
                 </button>
                 <button id="btn-visit" class="nav-btn" style="display:none">
                     <span class="emoji">🚪</span>
@@ -122,6 +127,7 @@
                         <button class="tab-btn" data-category="fun">🎂 장식·음식</button>
                         <button class="tab-btn" data-category="rare">💎 레어</button>
                         <button class="tab-btn" data-category="paper">🎨 벽지·바닥</button>
+                        <button class="tab-btn" data-category="fav">⭐ 즐겨찾기</button>
                     </div>
                     <div class="modal-item-display">
                         <div class="item-grid" id="catalog-grid"></div>
@@ -133,6 +139,7 @@
                             <p id="catalog-detail-desc">왼쪽에서 가구를 누르면 자세한 설명이 나와요.</p>
                             <div class="purchase-box">
                                 <span class="cost"><span id="catalog-detail-price">0</span> <span id="catalog-price-unit">크레딧</span></span>
+                                <button id="btn-fav-item" class="buy-btn fav-btn">⭐ 즐겨찾기</button>
                                 <button id="btn-try-item" class="buy-btn try-btn disabled" disabled>배치해보기</button>
                                 <button id="btn-coupon-item" class="buy-btn coupon-btn hidden">🎟️ 쿠폰으로 받기</button>
                                 <button id="btn-buy-item" class="buy-btn disabled" disabled>사기</button>
@@ -248,6 +255,13 @@
             <button id="paper-trial-buy">💰 이대로 사기</button>
             <button id="paper-trial-cancel">원래대로</button>
         </div>
+
+        <!-- 연습(시뮬레이션) 모드 배너 -->
+        <div id="sim-banner" class="hidden">
+            <span>🧪 연습 모드 — 뭐든 무료! 저장은 안 돼요</span>
+            <strong id="sim-timer">10:00</strong>
+            <button id="sim-exit">연습 끝내기</button>
+        </div>
     </div>
 
     <!-- Firebase (로그인 세션 공유 + Storage 에셋 잠금 + DJ코인 상점·방 저장) — 로컬 개발 시엔 없어도 동작 -->
@@ -258,7 +272,7 @@
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=2"></script>
-    <script src="housing-data.js?v=2"></script>
-    <script src="app.js?v=6"></script>
+    <script src="housing-data.js?v=3"></script>
+    <script src="app.js?v=7"></script>
 </body>
 </html>

@@ -664,6 +664,9 @@ let state = {
     visiting: null,       // 친구집 방문 중이면 { ownerId, ownerName } — 구경 전용
     trialPaper: null,     // 벽지·바닥 발라보기 중이면 { paper: 'wall'|'floor', themeId, item }
     unlockedModels: [],   // 게스트 모드에서 구매한 방 모양 (온라인은 서버 보유 목록 사용)
+    simMode: null,        // 연습 모드 중이면 { snapshot, remaining, usedBefore, startedAt, timer }
+    simUsage: null,       // 오늘 연습 사용 시간 { dateKey: 'YYYY-MM-DD', seconds }
+    favorites: [],        // 즐겨찾기 상품 ID 목록 (room_<cn> / room_paper_...) 최대 50개
 
     mode: 'normal',       // 'normal' | 'placing' | 'moving'
     placementItem: null,  // 배치 중인 가구 모델
@@ -737,9 +740,22 @@ function saveGame() {
         genderLocked: state.avatar.genderLocked === true,
         inventory: state.inventory,
         unlockedModels: state.unlockedModels,
+        favorites: state.favorites,
+        simUsage: state.simUsage,
         placedItems: state.placedItems.filter(i => !i.trial) // 배치 테스트품은 저장하지 않음
     };
     if (state.visiting) return; // 친구집 구경 중에는 아무것도 저장하지 않음
+
+    // 연습 모드 중에는 방 내용은 진입 전 스냅샷을 저장 (연습 결과물이 새어나가지 않게)
+    // — 즐겨찾기·연습 사용 시간은 현재 값 그대로 저장됨
+    if (state.simMode) {
+        const s = state.simMode.snapshot;
+        payload.roomModel = s.roomModel;
+        payload.wallTheme = s.wallTheme;
+        payload.floorTheme = s.floorTheme;
+        payload.inventory = s.inventory;
+        payload.placedItems = s.placedItems;
+    }
 
     // 온라인 모드: 코인·가방은 서버(userEconomy·userInventory)가 관리하므로 방 상태만 저장
     if (window.HousingData?.mode === 'online') {
@@ -810,6 +826,10 @@ function applySavedData(data) {
         }
         if (Array.isArray(data.placedItems)) state.placedItems = data.placedItems.filter(i => getModel(i.classname));
         if (Array.isArray(data.unlockedModels)) state.unlockedModels = data.unlockedModels.filter(n => ROOM_MODELS[n]);
+        if (Array.isArray(data.favorites)) state.favorites = data.favorites.filter(id => typeof id === 'string').slice(0, 50);
+        if (data.simUsage && typeof data.simUsage.dateKey === 'string' && typeof data.simUsage.seconds === 'number') {
+            state.simUsage = { dateKey: data.simUsage.dateKey, seconds: Math.max(0, data.simUsage.seconds) };
+        }
         if (data.genderLocked === true) state.avatar.genderLocked = true;
     } catch (e) { /* 손상된 저장 데이터는 무시 */ }
 }
@@ -1902,10 +1922,10 @@ canvas.addEventListener('click', function (e) {
     if (state.mode === 'normal') {
         const clickedItem = itemAt(grid.x, grid.y);
 
-        if (clickedItem && !state.visiting) {
+        if (clickedItem) {
+            // 친구집에서는 구경 카드(이름·가격·⭐담기)만 열림
             selectPlacedItem(clickedItem);
         } else if (isFloorTile(grid.x, grid.y)) {
-            // 친구집에서는 가구를 만질 수 없고 구경(걷기)만
             closeFurnitureControlPanel();
             walkToward(grid.x, grid.y);
         }
@@ -2026,19 +2046,31 @@ function selectPlacedItem(item) {
     state.selectedPlacedItem = item;
     const model = getModel(item.classname);
     if (!model) return;
+    const visiting = !!state.visiting;
 
     document.getElementById('selected-furni-name').innerText = item.trial ? `${model.name} (테스트 중)` : model.name;
     document.getElementById('selected-furni-desc').innerText = item.trial
         ? '배치 테스트 중이에요. 마음에 들면 사고, 아니면 치워요!'
-        : model.desc;
+        : (visiting ? `상점 가격 ${model.cost}${window.HousingData?.mode === 'online' ? ' DJ코인' : ' 크레딧'} — 마음에 들면 ⭐ 담아 두세요!` : model.desc);
     setFurniIcon(document.getElementById('selected-furni-preview'), item.classname);
 
     // 테스트품은 앉기·작동 불가 (아직 산 게 아니라서), 대신 '이대로 사기' 버튼 표시
-    sitBtn.classList.toggle('hidden', !!item.trial || !model.canSit);
-    layBtn.classList.toggle('hidden', !!item.trial || !model.canLay);
-    useBtn.classList.toggle('hidden', !!item.trial || !isUsable(item.classname)); // 작동 가능한 가전만
-    document.getElementById('action-buy-trial').classList.toggle('hidden', !item.trial);
+    // 친구집에서는 구경만 — ⭐담기 말고는 전부 숨김
+    sitBtn.classList.toggle('hidden', visiting || !!item.trial || !model.canSit);
+    layBtn.classList.toggle('hidden', visiting || !!item.trial || !model.canLay);
+    useBtn.classList.toggle('hidden', visiting || !!item.trial || !isUsable(item.classname)); // 작동 가능한 가전만
+    document.getElementById('action-buy-trial').classList.toggle('hidden', visiting || !item.trial);
+    ['action-rotate', 'action-move', 'action-pickup'].forEach(id =>
+        document.getElementById(id).classList.toggle('hidden', visiting));
     document.getElementById('action-pickup').innerText = item.trial ? '🧹 치우기' : '🎒 가방에 넣기';
+
+    const favBtn = document.getElementById('action-fav');
+    favBtn.classList.toggle('hidden', !visiting);
+    if (visiting) {
+        const faved = state.favorites.includes(`room_${item.classname}`);
+        favBtn.innerText = faved ? '★ 이미 담았어요' : '⭐ 즐겨찾기에 담기';
+        favBtn.disabled = faved;
+    }
 
     controlPanel.classList.remove('hidden');
 }
@@ -2167,6 +2199,15 @@ document.getElementById('btn-buy-item').addEventListener('click', async () => {
         return;
     }
 
+    // 연습 모드: 결제 없이 가방에 넣고 바로 배치 (나가면 원상복구)
+    if (state.simMode) {
+        state.inventory.push(item.classname);
+        updateUI();
+        catalogModal.classList.add('hidden');
+        enterPlacementMode(item, { type: 'inventory' });
+        return;
+    }
+
     if (state.credits < item.cost) {
         alert(`${coinName}이 부족해요! 😢`);
         return;
@@ -2178,6 +2219,7 @@ document.getElementById('btn-buy-item').addEventListener('click', async () => {
     } else {
         state.credits -= item.cost;
     }
+    removeFavorite(`room_${item.classname}`); // 샀으면 즐겨찾기에서 제거
     state.inventory.push(item.classname);
     saveGame();
     updateUI();
@@ -2190,6 +2232,46 @@ document.getElementById('btn-buy-item').addEventListener('click', async () => {
 function renderCatalogGrid(category) {
     const grid = document.getElementById('catalog-grid');
     grid.innerHTML = "";
+
+    // ⭐ 즐겨찾기 탭: 담아 둔 가구·벽지 모아보기 + 전부 사면 얼마인지 합계
+    if (category === 'fav') {
+        const items = state.favorites.map(findItemByFavId).filter(Boolean);
+        if (items.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'fav-summary';
+            empty.innerText = '아직 담은 물건이 없어요.\n마음에 드는 물건에서 ⭐ 즐겨찾기를 눌러 보세요!';
+            grid.appendChild(empty);
+            return;
+        }
+        const online = window.HousingData?.mode === 'online';
+        const total = items.reduce((sum, it) => {
+            // 이미 산 벽지·바닥은 무료 적용이라 합계에서 뺌
+            const owned = online && it.paper
+                && HousingData.ownedCount(HousingData.paperItemId(it.paper, it.themeId)) > 0;
+            return sum + (owned ? 0 : it.cost);
+        }, 0);
+        const summary = document.createElement('div');
+        summary.className = 'fav-summary';
+        summary.innerText = `⭐ ${items.length}개 담김 — 전부 사려면 ${total}${online ? ' DJ코인' : ' 크레딧'} (지금 ${state.credits})`;
+        grid.appendChild(summary);
+
+        items.forEach(it => {
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            const img = document.createElement('img');
+            img.alt = it.name;
+            if (it.paper) img.src = paperSwatchURL(it);
+            else setFurniIcon(img, it.classname);
+            card.appendChild(img);
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#catalog-grid .item-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectCatalogItem(it);
+            });
+            grid.appendChild(card);
+        });
+        return;
+    }
 
     // 벽지·바닥 탭: 가구가 아니라 '방 속성' 상품 (색 견본 카드)
     if (category === 'paper') {
@@ -2240,6 +2322,8 @@ function selectCatalogItem(item) {
     const buyBtn = document.getElementById('btn-buy-item');
     buyBtn.classList.remove('disabled');
     buyBtn.removeAttribute('disabled');
+    buyBtn.innerText = state.simMode ? '🧪 무료로 해보기' : '사기';
+    syncFavButton(item);
 
     // 배치해보기(가구) / 발라보기(벽지·바닥) — 사기 전에 미리 보기
     const tryBtn = document.getElementById('btn-try-item');
@@ -2252,7 +2336,7 @@ function selectCatalogItem(item) {
     const online = window.HousingData?.mode === 'online';
     const paperOwned = online && item.paper
         && HousingData.ownedCount(HousingData.paperItemId(item.paper, item.themeId)) > 0;
-    const couponOk = online && HousingData.coupons > 0 && item.cost <= 50 && !paperOwned;
+    const couponOk = online && HousingData.coupons > 0 && item.cost <= 50 && !paperOwned && !state.simMode;
     couponBtn.classList.toggle('hidden', !couponOk);
 }
 
@@ -2289,6 +2373,14 @@ document.getElementById('btn-coupon-item').addEventListener('click', async () =>
 
 // 벽지·바닥 결제 공통 (이미 가진 색은 무료 적용) — 성공하면 true
 async function purchasePaperAndApply(item) {
+    // 연습 모드: 결제 없이 바로 적용 (나가면 원상복구됨)
+    if (state.simMode) {
+        if (item.paper === 'wall') state.wallTheme = item.themeId;
+        else state.floorTheme = item.themeId;
+        endPaperTrial();
+        updateUI();
+        return true;
+    }
     const online = window.HousingData?.mode === 'online';
     const coinName = online ? 'DJ코인' : '크레딧';
     const paperId = online ? HousingData.paperItemId(item.paper, item.themeId) : null;
@@ -2305,6 +2397,7 @@ async function purchasePaperAndApply(item) {
     }
     if (item.paper === 'wall') state.wallTheme = item.themeId;
     else state.floorTheme = item.themeId;
+    removeFavorite(`room_paper_${item.paper}_${item.themeId}`); // 샀으면 즐겨찾기에서 제거
     endPaperTrial(); // 발라보기 중이었다면 확정으로 종료
     saveGame();
     updateUI();
@@ -2358,6 +2451,14 @@ document.getElementById('action-buy-trial').addEventListener('click', async () =
     if (!model) return;
     const online = window.HousingData?.mode === 'online';
     const coinName = online ? 'DJ코인' : '크레딧';
+
+    // 연습 모드: 테스트품도 결제 없이 그대로 승격 (나가면 원상복구)
+    if (state.simMode) {
+        delete item.trial;
+        selectPlacedItem(item);
+        updateUI();
+        return;
+    }
 
     if (state.credits < model.cost) { alert(`${coinName}이 부족해요! 😢`); return; }
 
@@ -2712,6 +2813,7 @@ function isModelUnlocked(modelName) {
 
 // 잠긴 방 모양 구매 → 성공하면 true
 async function purchaseRoomModel(modelName) {
+    if (state.simMode) return true; // 연습 모드: 뭐든 무료 (나가면 원상복구)
     const def = ROOM_MODELS[modelName];
     const online = window.HousingData?.mode === 'online';
     if (online && HousingData.shopEnabled === false) {
@@ -2900,6 +3002,166 @@ document.getElementById('guestbook-send').addEventListener('click', async () => 
     }
 });
 
+// 16-3. 연습(시뮬레이션) 모드 — 10분/일, 뭐든 무료, 나가면 원상복구
+const SIM_DAILY_LIMIT = 600; // 초 (10분)
+
+function kstDateKey() {
+    return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function simUsedToday() {
+    const u = state.simUsage;
+    return (u && u.dateKey === kstDateKey()) ? u.seconds : 0;
+}
+
+function commitSimUsage() {
+    if (!state.simMode) return;
+    const elapsed = Math.floor((Date.now() - state.simMode.startedAt) / 1000);
+    state.simUsage = { dateKey: kstDateKey(), seconds: state.simMode.usedBefore + elapsed };
+    saveGame(); // 연습 중 저장은 방 내용 대신 스냅샷 + 최신 사용 시간을 기록
+}
+
+function enterSimMode() {
+    if (state.simMode || state.visiting) return;
+    const used = simUsedToday();
+    if (used >= SIM_DAILY_LIMIT - 3) {
+        alert('오늘의 연습 시간(10분)을 다 썼어요.\n내일 다시 연습할 수 있어요!');
+        return;
+    }
+    cancelPlacement();
+    endPaperTrial();
+
+    state.simMode = {
+        snapshot: {
+            roomModel: state.roomModel,
+            wallTheme: state.wallTheme,
+            floorTheme: state.floorTheme,
+            inventory: [...state.inventory],
+            placedItems: JSON.parse(JSON.stringify(state.placedItems))
+        },
+        usedBefore: used,
+        startedAt: Date.now(),
+        timer: null
+    };
+
+    // 상점이 닫혀 있어도 연습 중에는 열어줌 (돈을 안 쓰는 모드라서)
+    document.getElementById('btn-catalog').style.display = '';
+    document.getElementById('sim-banner').classList.remove('hidden');
+    updateSimTimer();
+    state.simMode.timer = setInterval(() => {
+        updateSimTimer();
+        const total = state.simMode.usedBefore + Math.floor((Date.now() - state.simMode.startedAt) / 1000);
+        if (total % 15 === 0) commitSimUsage(); // 15초마다 사용 시간 기록
+        if (total >= SIM_DAILY_LIMIT) exitSimMode(true);
+    }, 1000);
+}
+
+function updateSimTimer() {
+    if (!state.simMode) return;
+    const total = state.simMode.usedBefore + Math.floor((Date.now() - state.simMode.startedAt) / 1000);
+    const left = Math.max(0, SIM_DAILY_LIMIT - total);
+    document.getElementById('sim-timer').innerText =
+        `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+}
+
+function exitSimMode(timeUp) {
+    if (!state.simMode) return;
+    clearInterval(state.simMode.timer);
+    cancelPlacement();
+    endPaperTrial();
+    commitSimUsage();
+
+    // 연습에서 새로 놓아본 가구 → 즐겨찾기 일괄 담기 제안
+    const before = new Set(state.simMode.snapshot.placedItems.map(i => i.classname));
+    const newOnes = [...new Set(state.placedItems.filter(i => !before.has(i.classname)).map(i => i.classname))];
+    if (newOnes.length > 0) {
+        const total = newOnes.reduce((s, cn) => s + (getModel(cn)?.cost || 0), 0);
+        if (confirm(`연습에서 새로 놓아본 가구 ${newOnes.length}종을 즐겨찾기에 담을까요?\n(전부 사려면 ${total}${window.HousingData?.mode === 'online' ? 'DJ코인' : '크레딧'})`)) {
+            newOnes.forEach(cn => addFavorite(`room_${cn}`));
+        }
+    }
+
+    // 방 원상복구
+    const s = state.simMode.snapshot;
+    state.simMode = null;
+    state.roomModel = s.roomModel;
+    state.wallTheme = s.wallTheme;
+    state.floorTheme = s.floorTheme;
+    state.inventory = s.inventory;
+    state.placedItems = s.placedItems;
+    applyRoomModel(state.roomModel);
+
+    document.getElementById('sim-banner').classList.add('hidden');
+    catalogModal.classList.add('hidden');
+    // 상점 닫힘 상태였다면 버튼 다시 숨김
+    if (window.HousingData?.mode === 'online' && HousingData.shopEnabled === false) {
+        document.getElementById('btn-catalog').style.display = 'none';
+    }
+    saveGame();
+    updateUI();
+    if (timeUp) alert('⏱ 오늘의 연습 시간 10분이 끝났어요!\n방은 원래 모습으로 돌아갔어요. 내일 또 연습해요!');
+}
+
+document.getElementById('btn-sim').addEventListener('click', enterSimMode);
+document.getElementById('sim-exit').addEventListener('click', () => exitSimMode(false));
+
+// 16-4. 즐겨찾기 — 방 문서에 저장, 상점 ⭐탭에서 모아보고 구매
+function addFavorite(itemId) {
+    if (state.favorites.includes(itemId)) return true;
+    if (state.favorites.length >= 50) { alert('즐겨찾기는 50개까지만 담을 수 있어요!'); return false; }
+    state.favorites.push(itemId);
+    saveGame();
+    return true;
+}
+
+function removeFavorite(itemId) {
+    state.favorites = state.favorites.filter(id => id !== itemId);
+    saveGame();
+}
+
+function catalogItemFavId(item) {
+    return item.paper ? `room_paper_${item.paper}_${item.themeId}` : `room_${item.classname}`;
+}
+
+// 즐겨찾기 ID → 카탈로그 항목 찾기
+function findItemByFavId(favId) {
+    if (favId.startsWith('room_paper_')) {
+        const m = favId.match(/^room_paper_(wall|floor)_(\d+)$/);
+        return m ? PAPER_ITEMS.find(p => p.paper === m[1] && p.themeId === Number(m[2])) : null;
+    }
+    const cn = favId.replace(/^room_/, '');
+    return CATALOG_ITEMS.find(i => i.classname === cn) || null;
+}
+
+function syncFavButton(item) {
+    const btn = document.getElementById('btn-fav-item');
+    const faved = state.favorites.includes(catalogItemFavId(item));
+    btn.classList.toggle('faved', faved);
+    btn.innerText = faved ? '★ 담김 — 눌러서 빼기' : '⭐ 즐겨찾기';
+}
+
+document.getElementById('btn-fav-item').addEventListener('click', () => {
+    const item = state.selectedCatalogItem;
+    if (!item) return;
+    const favId = catalogItemFavId(item);
+    if (state.favorites.includes(favId)) removeFavorite(favId);
+    else addFavorite(favId);
+    syncFavButton(item);
+    // ⭐탭을 보고 있었다면 목록 갱신
+    if (document.querySelector('.tab-btn.active')?.dataset.category === 'fav') renderCatalogGrid('fav');
+});
+
+// 친구집에서 가구 구경 → ⭐만 담을 수 있는 카드
+document.getElementById('action-fav').addEventListener('click', () => {
+    const item = state.selectedPlacedItem;
+    if (!item) return;
+    if (addFavorite(`room_${item.classname}`)) {
+        const favBtn = document.getElementById('action-fav');
+        favBtn.innerText = '★ 담았어요!';
+        favBtn.disabled = true;
+    }
+});
+
 // 17. 시작!
 (async () => {
     // 온라인/게스트 모드 판정과 서버 데이터(코인·보유·방)를 기다린 뒤 시작
@@ -2988,6 +3250,9 @@ document.getElementById('guestbook-send').addEventListener('click', async () => 
         });
     }
     updateUI();
+
+    // 🧪 연습 모드 버튼: 내 방에서만 (친구집 구경 중엔 숨김)
+    if (!state.visiting) document.getElementById('btn-sim').style.display = '';
 
     // 관리자가 상점을 닫아뒀으면: 상점 버튼 숨김 + 자동 열기 무시
     const shopClosed = window.HousingData?.mode === 'online' && HousingData.shopEnabled === false;
