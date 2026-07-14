@@ -483,6 +483,8 @@ function drawFurniLayer(item, fd, layerKey, isGhost) {
 function wallItemAnchor(item) {
     const room = currentRoom;
     let base, dir;
+    // 벽면별 스프라이트 방향 (하보 벽 아이템 규약): 서쪽 벽 = 2, 북쪽 벽 = 4.
+    // (반대로 넣으면 벽 아이템이 벽면과 어긋나 기울어 보인다 — 검증 완료)
     if (item.side === 'w') {
         const x = room.rowMinX[item.idx];
         if (x === undefined) return null;

@@ -257,7 +257,7 @@ CATALOG_ITEMS.push(
     { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." },
 
     // ---- 벽 꾸미기 (wall) — 하보 벽형 가구 34종. wall:true = 바닥이 아니라 벽에 붙임 ----
-    { classname: "attic15_window",        name: "다락 창문",     category: "wall", cost: 80, desc: "햇빛이 쏟아지는 큰 창문.", wall: true },
+    { classname: "attic15_window",        name: "다락 천창",     category: "wall", cost: 80, desc: "비스듬한 지붕 천창. 햇빛이 쏟아져요.", wall: true },
     { classname: "lon_window",            name: "런던 창문",     category: "wall", cost: 70, desc: "고풍스러운 창문.", wall: true },
     { classname: "room_hall15_window",    name: "홀 창문",       category: "wall", cost: 70, desc: "넓은 홀에 어울리는 창문.", wall: true },
     { classname: "noticeboard",           name: "게시판",        category: "wall", cost: 45, desc: "쪽지를 잔뜩 붙인 게시판.", wall: true },
@@ -789,17 +789,17 @@ const LOBBY_DECOR = [
     { classname: 'anc_comfy_tree',  x: 13, y: 1 }
 ];
 const LOBBY_WALL = [
-    { classname: 'attic15_window', side: 'n', idx: 5 },
-    { classname: 'attic15_window', side: 'n', idx: 9 },
+    { classname: 'room_hall15_window', side: 'n', idx: 5 },
+    { classname: 'room_hall15_window', side: 'n', idx: 9 },
     { classname: 'noticeboard',    side: 'w', idx: 8 }
 ];
 
 // [실험] 카페 데모 — 벽 부착 아이템. side: 'w'=서쪽(왼쪽) 벽, 'n'=북쪽(오른쪽) 벽
 // idx: 'w'면 행 y, 'n'이면 열 x
 const CAFE_WALL = [
-    { classname: 'attic15_window', side: 'n', idx: 4 },
-    { classname: 'attic15_window', side: 'n', idx: 7 },
-    { classname: 'attic15_window', side: 'w', idx: 4 },
+    { classname: 'room_hall15_window', side: 'n', idx: 4 },
+    { classname: 'room_hall15_window', side: 'n', idx: 7 },
+    { classname: 'room_hall15_window', side: 'w', idx: 4 },
     { classname: 'diner_poster',   side: 'n', idx: 12 },
     { classname: 'pframe',         side: 'n', idx: 14 },
     { classname: 'noticeboard',    side: 'w', idx: 10 }
