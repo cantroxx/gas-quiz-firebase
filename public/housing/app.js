@@ -2113,20 +2113,27 @@ function openAvatarEditor() {
     renderAvatarEditor();
 }
 
-// 아바타(나) 클릭·하단 '내 정보' 버튼: 성별 미확정이면 편집기부터(확정 강제), 확정했으면 '내 정보' 카드
-function openMyInfo() {
+// 캐릭터(아바타 동그라미) 클릭 → 바로 꾸미기 편집기 (게임처럼 직관적)
+document.getElementById('btn-profile').addEventListener('click', openAvatarEditor);
+// 하단 '내 정보' 버튼 → 정보 카드 (단, 성별 미확정이면 편집기부터 = 성별 우선 규칙)
+document.getElementById('btn-myinfo').addEventListener('click', () => {
     if (!state.avatar.genderLocked) openAvatarEditor();
     else openProfileCard();
-}
-document.getElementById('btn-profile').addEventListener('click', openMyInfo);
-document.getElementById('btn-myinfo').addEventListener('click', openMyInfo);
-
-document.getElementById('profile-edit-avatar').addEventListener('click', openAvatarEditor);
+});
 document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').classList.add('hidden');
 });
 
-// 내 집 기본 화면 설정 (타운에서 '내 집'을 누르면 방/대시보드 중 어디로 갈지) — 사이트 공유 localStorage
+// ⚙️ 설정 모달 (내 집 첫 화면 고르기) — 내 정보 카드에서 분리
+const settingsModal = document.getElementById('settings-modal');
+document.getElementById('profile-open-settings').addEventListener('click', () => {
+    document.getElementById('profile-modal').classList.add('hidden');
+    reflectHomeStyle();
+    settingsModal.classList.remove('hidden');
+});
+document.getElementById('close-settings').addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+// 내 집 기본 화면 설정 (타운에서 '내 집'을 누르면 방/정보화면 중 어디로 갈지) — 사이트 공유 localStorage
 const HOME_STYLE_KEY = 'dj48HomeViewStyle';
 function getHomeStyle() {
     try { return localStorage.getItem(HOME_STYLE_KEY) || 'room'; } catch (e) { return 'room'; }
@@ -2237,7 +2244,6 @@ async function renderMyRanking(box) {
 async function openProfileCard() {
     const modal = document.getElementById('profile-modal');
     modal.classList.remove('hidden');
-    reflectHomeStyle();
     document.getElementById('profile-info-avatar').src =
         imagerUrl(`figure=${state.avatar.figure}&size=l&direction=2&head_direction=2&action=std`);
     document.getElementById('profile-info-nickname').innerText = state.playerName || '나';

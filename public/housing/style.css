@@ -1092,6 +1092,40 @@ body, html {
 
 .guide-body b { color: #7dd3fc; }
 
+/* 가이드 퀵스타트 (초간단 4장) */
+.guide-quick { margin-top: 6px; }
+.guide-quick-title { font-size: 18px; color: #fbbf24; text-align: center; margin-bottom: 14px; }
+.gq-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+}
+.gq-emoji { font-size: 34px; flex-shrink: 0; }
+.gq-item p { font-size: 15px; color: #fff; line-height: 1.45; margin: 0; }
+.gq-item b { color: #7dd3fc; }
+
+/* 가이드 '더 알아보기' 접기 */
+.guide-more { margin-top: 8px; }
+.guide-more > summary {
+    list-style: none;
+    cursor: pointer;
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #7dd3fc;
+    font-weight: 700;
+    font-size: 14px;
+}
+.guide-more > summary::-webkit-details-marker { display: none; }
+.guide-more[open] > summary { margin-bottom: 4px; }
+
 /* 성별 우선 확정 게이트 (아바타 편집기) */
 #gender-gate {
     flex: 1;
@@ -1248,32 +1282,37 @@ body, html {
 #profile-detail-link { background: rgba(255, 255, 255, 0.1); }
 #profile-detail-link:hover { background: rgba(255, 255, 255, 0.18); }
 
-.home-style-setting {
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.home-style-label { font-size: 13px; color: #94a3b8; margin-bottom: 8px; text-align: center; }
-.home-style-toggle { display: flex; gap: 8px; }
+/* 설정 모달 */
+.modal-body.settings-body { display: block; padding: 22px; overflow-y: auto; }
+.home-style-label { font-size: 15px; color: #dbe4f0; margin-bottom: 12px; text-align: center; }
+.home-style-label b { color: #7dd3fc; }
+.home-style-toggle { display: flex; gap: 10px; }
+.settings-hint { margin-top: 12px; font-size: 12px; color: #94a3b8; text-align: center; }
+.settings-hint b { color: #7dd3fc; }
 
 .home-style-btn {
     flex: 1;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 14px 8px;
+    border-radius: 12px;
     border: 2px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.04);
     color: #94a3b8;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 800;
     cursor: pointer;
+    line-height: 1.4;
 }
+.home-style-btn small { display: block; margin-top: 3px; font-size: 11px; font-weight: 600; opacity: 0.85; }
 
 .home-style-btn.active {
     border-color: #38bdf8;
     background: rgba(56, 189, 248, 0.15);
     color: #fff;
 }
+
+/* 내 정보 카드의 '⚙️ 설정' 보조 버튼 */
+.profile-action-btn.secondary { background: rgba(255, 255, 255, 0.1); }
+.profile-action-btn.secondary:hover { background: rgba(255, 255, 255, 0.18); }
 #sim-timer { font-size: 16px; color: #fde68a; }
 #sim-exit {
     border: none;

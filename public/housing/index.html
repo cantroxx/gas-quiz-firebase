@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -106,7 +106,7 @@
             </div>
 
             <div class="right-actions">
-                <div class="avatar-profile-circle" id="btn-profile" title="내 아바타 꾸미기">
+                <div class="avatar-profile-circle" id="btn-profile" title="👕 옷 갈아입기">
                     <!-- 시작 시 refreshAvatarFigure()가 실제 아바타로 교체함 -->
                     <img src="" alt="나">
                 </div>
@@ -299,15 +299,28 @@
                         <button id="profile-open-badges" class="profile-detail-btn">🎖️ 뱃지</button>
                     </div>
                     <div class="profile-info-actions">
-                        <button id="profile-edit-avatar" class="profile-action-btn">👕 아바타 꾸미기</button>
-                        <a id="profile-detail-link" class="profile-action-btn" href="/?view=home">📋 자세히 보기</a>
+                        <a id="profile-detail-link" class="profile-action-btn" href="/?view=home">📋 정보 화면 보기</a>
+                        <button id="profile-open-settings" class="profile-action-btn secondary">⚙️ 설정</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 모달 (내 집 첫 화면 고르기) -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content small">
+                <div class="modal-header">
+                    <h2>⚙️ 설정</h2>
+                    <button class="modal-close-btn" id="close-settings">×</button>
+                </div>
+                <div class="modal-body settings-body">
                     <div class="home-style-setting">
-                        <p class="home-style-label">타운에서 '내 집'을 누르면?</p>
+                        <p class="home-style-label">타운에서 <b>'내 집'</b>을 누르면 어디로 갈까요?</p>
                         <div class="home-style-toggle">
-                            <button id="home-style-room" data-style="room" class="home-style-btn">🏠 내 방</button>
-                            <button id="home-style-dashboard" data-style="dashboard" class="home-style-btn">📋 정보 화면</button>
+                            <button id="home-style-room" data-style="room" class="home-style-btn">🏠 내 방<br><small>방을 꾸며요</small></button>
+                            <button id="home-style-dashboard" data-style="dashboard" class="home-style-btn">📋 정보 화면<br><small>랭킹·칭호를 봐요</small></button>
                         </div>
+                        <p class="settings-hint">지금은 <b>내 방</b>이 기본이에요. 언제든 바꿀 수 있어요.</p>
                     </div>
                 </div>
             </div>
@@ -334,6 +347,15 @@
                     <button class="modal-close-btn" id="close-guide">×</button>
                 </div>
                 <div class="modal-body guide-body">
+                    <div class="guide-quick">
+                        <h3 class="guide-quick-title">🎮 이것만 알면 돼요!</h3>
+                        <div class="gq-item"><span class="gq-emoji">🚶</span><p><b>바닥</b>을 누르면 내 캐릭터가 걸어가요.</p></div>
+                        <div class="gq-item"><span class="gq-emoji">🛒</span><p><b>상점</b>에서 DJ코인으로 가구를 사서 방을 꾸며요.</p></div>
+                        <div class="gq-item"><span class="gq-emoji">👕</span><p>오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 옷을 갈아입어요.</p></div>
+                        <div class="gq-item"><span class="gq-emoji">🏘️</span><p>위쪽 <b>퀴즈타운</b> 버튼이나 방 <b>입구(문)</b>로 가면 나가요.</p></div>
+                    </div>
+                    <details class="guide-more">
+                        <summary>➕ 더 알아보기 (연습·즐겨찾기·친구집 등)</summary>
                     <section>
                         <h3>🏠 여기는 나만의 방!</h3>
                         <ul>
@@ -343,11 +365,11 @@
                         </ul>
                     </section>
                     <section>
-                        <h3>👤 내 정보 보기</h3>
+                        <h3>👤 내 정보 · 아바타 · 설정</h3>
                         <ul>
-                            <li>하단 <b>📋 내 정보</b> 버튼이나 오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 내 정보 카드가 열려요 — 대표 칭호, 레벨, DJ코인, 칭호·뱃지 개수를 볼 수 있어요.</li>
-                            <li>카드에서 <b>🏆 랭킹·🏅 칭호·🎖️ 뱃지</b>를 방 안에서 바로 보고, <b>👕 아바타 꾸미기</b>로 옷을 바꿔요. <b>📋 자세히 보기</b>로 전체 정보 화면도 열 수 있어요.</li>
-                            <li><b>타운에서 '내 집'을 누르면?</b> 설정으로 <b>내 방</b>과 <b>정보 화면</b> 중 무엇으로 들어갈지 고를 수 있어요.</li>
+                            <li><b>👕 옷 갈아입기</b>: 오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 꾸미기 화면이 열려요.</li>
+                            <li><b>📋 내 정보</b>(하단 버튼): 대표 칭호·레벨·DJ코인과 <b>🏆 랭킹·🏅 칭호·🎖️ 뱃지</b>를 방 안에서 봐요. <b>정보 화면 보기</b>로 전체 화면도 열어요.</li>
+                            <li><b>⚙️ 설정</b>(내 정보 카드 안): 타운에서 '내 집'을 누르면 <b>내 방</b>과 <b>정보 화면</b> 중 어디로 갈지 고를 수 있어요.</li>
                         </ul>
                     </section>
                     <section>
@@ -410,6 +432,7 @@
                             <li>약속을 지키지 않으면 방 꾸미기 이용이 잠시 멈출 수 있어요.</li>
                         </ul>
                     </section>
+                    </details>
                 </div>
             </div>
         </div>
@@ -432,6 +455,6 @@
     <script src="assets-loader.js?v=2"></script>
     <script src="housing-data.js?v=9"></script>
     <script src="housing-catalog.js?v=5"></script>
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
 </body>
 </html>
