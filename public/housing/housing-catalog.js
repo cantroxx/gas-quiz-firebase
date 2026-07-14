@@ -257,6 +257,12 @@ CATALOG_ITEMS.push(
     { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." },
 
     // ---- 벽 꾸미기 (wall) — 2026-07-13 추가 34종: 하보 벽형 가구 ----
+
+    // ---- 트로피·시상대 (2026-07-14 추가: 명예의 전당용) ----
+    { classname: "anc_trophy_marble",   name: "대리석 기념비",   category: "rare", cost: 400, desc: "명예의 전당에 어울리는 웅장한 대리석 기념비!", scale: 0.85, offsetY: 12 },
+    { classname: "anc_trophy_obsidian", name: "흑요석 기념비",   category: "rare", cost: 350, desc: "묵직하고 멋진 흑요석 기념비.",           scale: 0.85, offsetY: 12 },
+    { classname: "anc_trophy_sstone",   name: "사암 기념비",     category: "rare", cost: 300, desc: "따뜻한 색의 사암 기념비.",              scale: 0.85, offsetY: 12 },
+    { classname: "classic5_stage",      name: "시상대",          category: "rare", cost: 250, desc: "위에 올라서서 뽐낼 수 있는 시상대.",    walkable: true, scale: 1.0, offsetY: 6 }
 );
 
 CATALOG_ITEMS.forEach(item => {
@@ -303,7 +309,8 @@ const FURNI_DIMS = {
     table_plasto_round: [2, 2, 1.2], table_plasto_square: [1, 1, 0.9], table_polyfon_med: [2, 2, 0.7],
     table_polyfon_small: [2, 2, 1.0], table_silo_small: [1, 1, 1.0], throne: [1, 1, 1.0],
     toy1: [1, 1, 0.0], toy2: [1, 1, 0.0], tv_luxus: [1, 3, 1.0],
-    typingmachine: [1, 1, 0.0], wcandleset: [1, 1, 0.0], wood_tv: [1, 2, 1.9]
+    typingmachine: [1, 1, 0.0], wcandleset: [1, 1, 0.0], wood_tv: [1, 2, 1.9],
+    anc_trophy_marble: [1, 1, 1.0], anc_trophy_obsidian: [1, 1, 1.0], anc_trophy_sstone: [1, 1, 1.0], classic5_stage: [2, 2, 0.3]
 };
 
 // 2026-07-09 확장분(102종) — 신규 다운로드한 furni JSON에서 추출
@@ -634,7 +641,9 @@ const HALL_DECOR = [
     { classname: 'carpet_standard', x: 7,  y: 3,  rot: 0 },  // 레드카펫
     { classname: 'rare_fountain',   x: 8,  y: 12, rot: 0 },  // 중앙 분수
     { classname: 'plant_yukka',     x: 2,  y: 1,  rot: 0 },  // 화분(좌)
-    { classname: 'plant_yukka',     x: 15, y: 1,  rot: 0 }   // 화분(우)
+    { classname: 'plant_yukka',     x: 15, y: 1,  rot: 0 },  // 화분(우)
+    { classname: 'anc_trophy_marble',   x: 6,  y: 2,  rot: 0 },  // 왕좌 왼쪽 기념비
+    { classname: 'anc_trophy_obsidian', x: 10, y: 2,  rot: 0 }   // 왕좌 오른쪽 기념비
 ];
 
 // 아바타(look)가 없는 학생을 세울 때 쓰는 기본 아바타 figure
