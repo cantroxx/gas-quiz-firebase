@@ -568,6 +568,11 @@ const ROOM_MODELS = {
     model_m: {
         label: "계단식 넓은 방", price: 150, door: { x: 1, y: 6, dir: 2 },
         map: "xxxxxxxxxxxxxxx|xx000000xxxxxxx|xx000000xxxxxxx|xx000000xxxxxxx|xx000000xxxxxxx|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xx000000000000x|xxxxxxxxxxxxxxx"
+    },
+    // 명예의 전당 전용 방 (구매 불가 — ?hall=1 모드에서만 사용). 바닥 x:2~15, y:1~14
+    model_hall: {
+        label: "명예의 전당", door: { x: 1, y: 8, dir: 2 },
+        map: "xxxxxxxxxxxxxxxxx|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xxxxxxxxxxxxxxxxx"
     }
 };
 
@@ -609,3 +614,27 @@ const STARTER_LAYOUT = [
     { classname: 'bookpile',        x: 10, y: 10, rot: 0 }, // 책 더미(방명록)
     { classname: 'plant_yukka',     x: 11, y: 13, rot: 0 }  // 화분
 ];
+
+// ===== 명예의 전당(하보식 랭킹 홀) =====
+// 7명의 왕이 서는 자리(존). model_hall 바닥 좌표 기준(x:2~15, y:1~14).
+const HALL_ZONES = [
+    { rankId: 'quiz_king',     label: '퀴즈왕',   emoji: '👑', medal: '🏆', x: 8,  y: 4 },
+    { rankId: 'korean_king',   label: '국어왕',   emoji: '📚', medal: '🥇', x: 4,  y: 7 },
+    { rankId: 'math_king',     label: '수학왕',   emoji: '➗', medal: '🥇', x: 7,  y: 7 },
+    { rankId: 'social_king',   label: '사회왕',   emoji: '🏛️', medal: '🥇', x: 10, y: 7 },
+    { rankId: 'science_king',  label: '과학왕',   emoji: '🔬', medal: '🥇', x: 13, y: 7 },
+    { rankId: 'tiniping_king', label: '티니핑왕', emoji: '💗', medal: '🥇', x: 6,  y: 10 },
+    { rankId: 'pokemon_king',  label: '포켓몬왕', emoji: '⚡', medal: '🥇', x: 11, y: 10 }
+];
+
+// 전당에 고정으로 놓는 장식 가구 (왕좌·분수·화분·레드카펫)
+const HALL_DECOR = [
+    { classname: 'throne',          x: 8,  y: 2,  rot: 0 },  // 퀴즈왕 왕좌 (뒤)
+    { classname: 'carpet_standard', x: 7,  y: 3,  rot: 0 },  // 레드카펫
+    { classname: 'rare_fountain',   x: 8,  y: 12, rot: 0 },  // 중앙 분수
+    { classname: 'plant_yukka',     x: 2,  y: 1,  rot: 0 },  // 화분(좌)
+    { classname: 'plant_yukka',     x: 15, y: 1,  rot: 0 }   // 화분(우)
+];
+
+// 아바타(look)가 없는 학생을 세울 때 쓰는 기본 아바타 figure
+const DEFAULT_HALL_FIGURE = 'hd-180-1.hr-100-61.ch-225-82.lg-270-64.sh-290-61';

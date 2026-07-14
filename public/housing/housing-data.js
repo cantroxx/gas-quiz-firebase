@@ -144,6 +144,81 @@
             }, { merge: true });
         },
 
+        // ---- 명예의 전당(랭킹 홀): 7명의 왕 + 각자 아바타 look ----
+        async getRankingHall() {
+            const SETS = {
+                korean_king:   { label: '국어왕',   emoji: '📚', keys: ['맞춤법', '단어다의어-동형이의어', '국어띄어쓰기', '국어속담', '국어사자성어', '독서지엠오-아이', '독서시간가게'] },
+                math_king:     { label: '수학왕',   emoji: '➗', keys: ['수학곱셈과-나눗셈', '수학분수', '수학분수-기초'] },
+                social_king:   { label: '사회왕',   emoji: '🏛️', keys: ['사회삼국지', '사회고대사-삼국시대', '사회통일신라-발해'] },
+                science_king:  { label: '과학왕',   emoji: '🔬', keys: ['과학과학-상식'] },
+                tiniping_king: { label: '티니핑왕', emoji: '💗', keys: ['티니핑', '인물티니핑', '인기이모지-티니핑'] },
+                pokemon_king:  { label: '포켓몬왕', emoji: '⚡', keys: ['포켓몬1세대', '포켓몬2세대', '포켓몬3세대', '포켓몬4세대', '포켓몬5세대', '포켓몬6세대', '포켓몬7세대', '포켓몬8세대', '포켓몬9세대', '포켓몬쉬움', '포켓몬보통', '포켓몬어려움', '포켓몬헬'] }
+            };
+            if (api.mode !== 'online') {
+                // 게스트(로컬 테스트): 목업 7왕 (아바타는 기본)
+                const mock = (rankId, label, emoji, nick) => ({ rankId, label, emoji, nickname: nick, userId: 'MOCK', score: 100, look: null, top: [{ rank: 1, nickname: nick, score: 100 }, { rank: 2, nickname: '친구A', score: 80 }] });
+                return {
+                    quiz_king: mock('quiz_king', '퀴즈왕', '👑', '체험 왕'),
+                    korean_king: mock('korean_king', '국어왕', '📚', '국어짱'),
+                    math_king: mock('math_king', '수학왕', '➗', '수학짱'),
+                    social_king: mock('social_king', '사회왕', '🏛️', '사회짱'),
+                    science_king: mock('science_king', '과학왕', '🔬', '과학짱'),
+                    tiniping_king: mock('tiniping_king', '티니핑왕', '💗', '티니핑짱'),
+                    pokemon_king: mock('pokemon_king', '포켓몬왕', '⚡', '포켓몬짱')
+                };
+            }
+            const snap = await db.collection('quizKingSummary').get();
+            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const result = {};
+
+            // 퀴즈왕: 전체 순위(rank) 1위
+            const ranked = docs.filter(d => Number.isFinite(Number(d.rank))).sort((a, b) => Number(a.rank) - Number(b.rank));
+            const king = ranked[0];
+            result.quiz_king = king ? {
+                rankId: 'quiz_king', label: '퀴즈왕', emoji: '👑',
+                nickname: king.displayName || king.userId, userId: king.userId || king.id, score: null,
+                top: ranked.slice(0, 5).map((d, i) => ({ rank: i + 1, nickname: d.displayName || d.userId, score: null }))
+            } : null;
+
+            // 분야별 왕: quizKingSummary.categories[]에서 해당 분야 키 최고 점수 학생
+            for (const rankId in SETS) {
+                const cfg = SETS[rankId];
+                const keySet = new Set(cfg.keys);
+                const bestByUser = {};
+                docs.forEach(d => {
+                    const uid = d.userId || d.memberUserId || d.id;
+                    (d.categories || []).forEach(c => {
+                        if (!keySet.has(c.categoryKey)) return;
+                        const score = Number(c.score) || 0;
+                        const elapsed = Number(c.elapsedSeconds) || 1e9;
+                        const cur = bestByUser[uid];
+                        if (!cur || score > cur.score || (score === cur.score && elapsed < cur.elapsed)) {
+                            bestByUser[uid] = { score, elapsed, nickname: d.displayName || uid };
+                        }
+                    });
+                });
+                const list = Object.keys(bestByUser).map(uid => ({ userId: uid, ...bestByUser[uid] }))
+                    .sort((a, b) => b.score - a.score || a.elapsed - b.elapsed);
+                const w = list[0];
+                result[rankId] = w ? {
+                    rankId, label: cfg.label, emoji: cfg.emoji,
+                    nickname: w.nickname, userId: w.userId, score: w.score,
+                    top: list.slice(0, 5).map((r, i) => ({ rank: i + 1, nickname: r.nickname, score: r.score }))
+                } : null;
+            }
+
+            // 각 왕의 아바타 look 병렬 조회 (userHomeRooms — 학급 구성원 읽기 허용)
+            const winners = Object.values(result).filter(Boolean);
+            const uids = [...new Set(winners.map(w => w.userId).filter(Boolean))];
+            const lookByUid = {};
+            await Promise.all(uids.map(async uid => {
+                const room = await db.collection('userHomeRooms').doc(uid).get().catch(() => null);
+                lookByUid[uid] = (room && room.exists) ? (room.data()?.look || null) : null;
+            }));
+            winners.forEach(w => { w.look = lookByUid[w.userId] || null; });
+            return result;
+        },
+
         // ---- 친구집 방문 ----
         async loadVisitRoom(ownerUserId) {
             const doc = await db.collection('userHomeRooms').doc(ownerUserId).get();

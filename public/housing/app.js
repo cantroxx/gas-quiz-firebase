@@ -70,6 +70,8 @@ let state = {
     simMode: null,        // 연습 모드 중이면 { snapshot, remaining, usedBefore, startedAt, timer }
     simUsage: null,       // 오늘 연습 사용 시간 { dateKey: 'YYYY-MM-DD', seconds }
     favorites: [],        // 즐겨찾기 상품 ID 목록 (room_<cn> / room_paper_...) 최대 50개
+    hallMode: false,      // 명예의 전당(?hall=1) 모드
+    hallWinners: null,    // 전당의 7왕 [{x,y,figure,label,emoji,nickname,userId,top,dir}]
 
     mode: 'normal',       // 'normal' | 'placing' | 'moving'
     placementItem: null,  // 배치 중인 가구 모델
@@ -1066,6 +1068,13 @@ function drawRoom() {
     }
     renderQueue.push({ type: 'avatar', depth: avatarDepth, ax, ay, az });
 
+    // (4-2) 명예의 전당: 왕들의 아바타(고정)를 각 자리에 추가
+    if (state.hallMode && state.hallWinners) {
+        state.hallWinners.forEach(w => {
+            renderQueue.push({ type: 'guest', depth: w.x + w.y + 0.2, gx: w.x, gy: w.y, gz: 0, av: w });
+        });
+    }
+
     // (5) 깊이 정렬 후 그리기
     renderQueue.sort((a, b) => a.depth - b.depth);
 
@@ -1078,8 +1087,11 @@ function drawRoom() {
             if (gfd) drawFurniGhost(el.item, gfd);
             else drawFurniture(el.item, el.model, true);
         }
+        else if (el.type === 'guest') drawAvatar(el.gx, el.gy, el.gz, el.av);
         else drawAvatar(el.ax, el.ay, el.az);
     }
+
+    if (state.hallMode) updateHallLabels();
 
     requestAnimationFrame(drawRoom);
 }
@@ -1133,8 +1145,8 @@ function drawFurniture(item, model, isGhost) {
     ctx.restore();
 }
 
-function drawAvatar(x, y, z) {
-    const avatar = state.avatar;
+function drawAvatar(x, y, z, av) {
+    const avatar = av || state.avatar; // av 전달 시 전당의 '왕' 아바타(고정), 없으면 내 아바타
     const screen = gridToScreen(x, y, z);
 
     // 발밑 그림자
@@ -1315,6 +1327,19 @@ canvas.addEventListener('click', function (e) {
     if (grid.x < 0 || grid.x >= currentRoom.w || grid.y < 0 || grid.y >= currentRoom.h) return;
 
     if (state.mode === 'normal') {
+        // 명예의 전당: 왕(라벨 자리) 클릭 → 순위 팝업, 바닥 클릭 → 걷기, 가구는 만지지 않음
+        if (state.hallMode) {
+            const w = state.hallWinners && state.hallWinners.find(win => win.x === grid.x && win.y === grid.y);
+            if (w) { openHallPopup(w); return; }
+            if (isDoorTile(grid.x, grid.y)) {
+                if (state.avatar.x === grid.x && state.avatar.y === grid.y) askLeaveToTown();
+                else { walkToward(grid.x, grid.y); state.avatar.pendingExit = true; }
+            } else if (isFloorTile(grid.x, grid.y)) {
+                walkToward(grid.x, grid.y);
+            }
+            return;
+        }
+
         const clickedItem = itemAt(grid.x, grid.y);
 
         if (clickedItem) {
@@ -2827,6 +2852,92 @@ document.getElementById('action-fav').addEventListener('click', () => {
     }
 });
 
+// ===== 명예의 전당 (하보식 랭킹 홀) =====
+const HALL_BASE_LOOK = { gender: 'M', skin: 1, hd: 180, hr: 100, ha: 0, haColor: 61, ea: 0, fa: 0, cc: 0, ccColor: 64, ca: 0, wa: 0, ch: 225, chColor: 82, lg: 270, lgColor: 64, sh: 290, shColor: 61 };
+
+function hideHallEditUI() {
+    ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-sim', 'btn-visit', 'btn-guestbook', 'btn-go-home', 'btn-myinfo', 'btn-guide', 'btn-reset'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    const av = document.querySelector('.avatar-profile-circle'); if (av) av.style.display = 'none';
+    const chat = document.querySelector('.center-chat'); if (chat) chat.style.display = 'none';
+    const coupon = document.getElementById('coupon-box'); if (coupon) coupon.style.display = 'none';
+    const credits = document.querySelector('#top-status-bar .status-box'); if (credits) credits.style.display = 'none';
+    const roomNameBox = document.getElementById('room-name-box'); if (roomNameBox) roomNameBox.style.cursor = 'default';
+    document.getElementById('room-name-label').innerText = '명예의 전당';
+    const lbl = document.querySelector('#room-name-box .label'); if (lbl) lbl.innerText = '🏆 Hall of Fame';
+}
+
+async function enterRankingHall() {
+    state.hallMode = true;
+    state.roomModel = 'model_hall';
+    state.wallTheme = 3; state.floorTheme = 1;
+    state.placedItems = HALL_DECOR.filter(d => getModel(d.classname)).map((d, i) => ({ id: 90000 + i, classname: d.classname, x: d.x, y: d.y, z: 0, rot: d.rot || 0 }));
+    state.inventory = [];
+    hideHallEditUI();
+    refreshAvatarFigure();          // 내 아바타(걸어다님)
+    applyRoomModel('model_hall');   // 문 위치에 내 아바타 + 화면 정렬
+
+    let hall = {};
+    try { hall = await HousingData.getRankingHall(); } catch (e) { hall = {}; }
+    state.hallWinners = HALL_ZONES.map(z => {
+        const w = hall[z.rankId];
+        const look = w && w.look;
+        const figure = look ? buildFigure({ ...HALL_BASE_LOOK, ...look }) : DEFAULT_HALL_FIGURE;
+        return {
+            x: z.x, y: z.y, dir: 2, isWalking: false, sitting: null,
+            figure, rankId: z.rankId, label: z.label, emoji: z.emoji, medal: z.medal,
+            nickname: (w && w.nickname) || '아직 없음', userId: (w && w.userId) || null, top: (w && w.top) || []
+        };
+    });
+    createHallLabels();
+    state.placedItems.forEach(i => loadFurni(i.classname));
+    updateUI();
+    requestAnimationFrame(drawRoom);
+}
+
+let hallLabelEls = [];
+function createHallLabels() {
+    const host = document.getElementById('hotel-viewport');
+    hallLabelEls.forEach(el => el.remove());
+    hallLabelEls = state.hallWinners.map(w => {
+        const el = document.createElement('div');
+        el.className = 'hall-label';
+        el.innerHTML = `<div class="hall-label-cat">${w.medal} ${w.emoji} ${escapeHtml(w.label)}</div><div class="hall-label-name">${escapeHtml(w.nickname)}</div>`;
+        el.addEventListener('click', () => openHallPopup(w));
+        host.appendChild(el);
+        return el;
+    });
+}
+function updateHallLabels() {
+    if (!hallLabelEls.length) return;
+    state.hallWinners.forEach((w, i) => {
+        const el = hallLabelEls[i]; if (!el) return;
+        const s = gridToScreen(w.x, w.y, 0);
+        el.style.left = s.x + 'px';
+        el.style.top = (s.y - 120) + 'px';
+    });
+}
+
+function openHallPopup(w) {
+    const modal = document.getElementById('info-list-modal');
+    document.getElementById('info-list-title').innerText = `${w.emoji} ${w.label}`;
+    const box = document.getElementById('info-list-content');
+    if (!w.top || !w.top.length) {
+        box.innerHTML = '<p class="info-list-empty">아직 이 분야 랭킹 기록이 없어요.</p>';
+    } else {
+        box.innerHTML = `<p class="info-list-hint">${w.medal} <b>${escapeHtml(w.nickname)}</b> 왕! 이 분야 순위예요.</p>`;
+        w.top.forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'info-rank-row';
+            const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `${r.rank}위`;
+            row.innerHTML = `<span class="info-rank-rank">${medal}</span><span class="info-rank-cat">${escapeHtml(r.nickname)}</span><span class="info-rank-score">${r.score != null ? r.score + '점' : ''}</span>`;
+            box.appendChild(row);
+        });
+    }
+    modal.classList.remove('hidden');
+}
+
 // 17. 시작!
 (async () => {
     // 온라인/게스트 모드 판정과 서버 데이터(코인·보유·방)를 기다린 뒤 시작
@@ -2867,6 +2978,12 @@ document.getElementById('action-fav').addEventListener('click', () => {
     }
 
     loadGame();
+
+    // 명예의 전당 (?hall=1): 내 방 대신 랭킹 홀을 로드하고 여기서 종료
+    if (new URLSearchParams(location.search).get('hall') === '1') {
+        await enterRankingHall();
+        return;
+    }
 
     // 기본 방: 방 기록이 없는 신규 학생은 기본 가구가 놓인 방으로 시작 (기존 방은 그대로 둠)
     const _online = window.HousingData?.mode === 'online';
