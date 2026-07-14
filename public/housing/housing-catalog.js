@@ -303,23 +303,18 @@ CATALOG_ITEMS.push(
     { classname: "statue",     name: "여신상",      category: "rare", cost: 280, desc: "받침대 위에 선 멋진 여신 조각상.",     scale: 1.2, offsetY: 12 },
     { classname: "tiki_torch", name: "횃불",        category: "rare", cost: 90,  desc: "활활 타오르는 횃불. 신전을 밝혀요.",  scale: 1.1, offsetY: 12 },
 
-    // ---- 카페/인테리어 세트 (2026-07-14, 실험용 카페 방 데모) ----
-    { classname: "attic15_sofa",       name: "다락 소파",     category: "seat",    cost: 70,  desc: "포근한 원목 소파." },
+    // ---- 카페/인테리어 세트 (2026-07-14) ----
+    // ⚠️ attic15_* 세트는 '버려진 다락'(흰 천·거미줄) 컨셉이라 카페용으로 부적합 → 제외함
+    { classname: "anna_sofa",          name: "포근한 소파",   category: "seat",    cost: 70,  desc: "둘이 앉는 포근한 소파." },
+    { classname: "anna_chair",         name: "카페 의자",     category: "seat",    cost: 30,  desc: "카페에 놓는 편한 의자.", canSit: true },
+    { classname: "anna_stool",         name: "동그란 스툴",   category: "seat",    cost: 25,  desc: "동그란 앉을 자리.", canSit: true },
     { classname: "boutique_sofa1",     name: "카페 안락의자", category: "seat",    cost: 60,  desc: "카페에 놓는 폭신한 1인 의자." },
-    { classname: "attic15_chair",      name: "다락 의자",     category: "seat",    cost: 30,  desc: "원목 카페 의자." },
-    { classname: "attic15_table",      name: "카페 원탁",     category: "table",   cost: 40,  desc: "작은 원형 카페 테이블.", canStandOn: true },
-    { classname: "attic15_bigtable",   name: "카페 큰 테이블", category: "table",  cost: 60,  desc: "여럿이 앉는 큰 테이블.", canStandOn: true },
+    { classname: "anna_table",         name: "카페 테이블",   category: "table",   cost: 45,  desc: "둘러앉는 카페 테이블.", canStandOn: true },
+    { classname: "bartable_armas",     name: "바 테이블",     category: "table",   cost: 55,  desc: "길쭉한 바 테이블.", canStandOn: true },
     { classname: "boutique_counter",   name: "카페 카운터",   category: "table",   cost: 90,  desc: "주문을 받는 카운터." },
     { classname: "boutique_cashreg",   name: "금전등록기",    category: "elec",    cost: 40,  desc: "계산할 때 쓰는 금전등록기." },
-    { classname: "attic15_bigshelf",   name: "다락 큰 선반",  category: "storage", cost: 70,  desc: "물건을 잔뜩 올리는 큰 선반." },
-    { classname: "attic15_shelf",      name: "다락 선반",     category: "storage", cost: 40,  desc: "아담한 원목 선반." },
-    { classname: "attic15_cabinet",    name: "다락 수납장",   category: "storage", cost: 55,  desc: "원목 수납장." },
     { classname: "army_c15_bookshelf", name: "높은 책장",     category: "storage", cost: 80,  desc: "천장까지 닿는 큰 책장." },
-    { classname: "attic15_divider",    name: "다락 칸막이",   category: "storage", cost: 45,  desc: "공간을 나누는 칸막이." },
-    { classname: "attic15_lamp",       name: "다락 조명",     category: "light",   cost: 35,  desc: "따뜻한 원목 조명." },
-    { classname: "attic15_clock",      name: "벽시계",        category: "fun",     cost: 30,  desc: "똑딱똑딱 벽시계." },
-    { classname: "attic15_paintingfloor", name: "세워둔 그림", category: "fun",    cost: 35,  desc: "바닥에 기대 놓는 그림." },
-    { classname: "attic15_carpet",     name: "다락 카펫",     category: "rug",     cost: 40,  desc: "포근한 원목풍 카펫.", walkable: true },
+    { classname: "anna_lamp",          name: "카페 조명",     category: "light",   cost: 35,  desc: "은은한 스탠드 조명." },
     { classname: "anc_comfy_tree",     name: "실내 나무",     category: "plant",   cost: 60,  desc: "카페에 두는 키 큰 화분 나무." },
     { classname: "bc_block_redbrick",  name: "벽돌 블록",     category: "rare",    cost: 20,  desc: "쌓아서 벽돌 기둥을 만들어요." },
     { classname: "bc_glasspanel",      name: "유리 패널",     category: "rare",    cost: 25,  desc: "쌓아서 통유리 벽을 만들어요." }
@@ -373,10 +368,8 @@ const FURNI_DIMS = {
     anc_trophy_marble: [1, 1, 1.0], anc_trophy_obsidian: [1, 1, 1.0], anc_trophy_sstone: [1, 1, 1.0], classic5_stage: [2, 2, 0.3],
     pillar: [1, 1, 3.5], statue: [1, 1, 0.4375], tiki_torch: [1, 1, 0.0],
     // 카페 세트 (2026-07-14)
-    attic15_bigshelf: [2, 1, 1], attic15_bigtable: [2, 1, 0.9], attic15_cabinet: [2, 1, 1],
-    attic15_carpet: [3, 2, 0.05], attic15_chair: [1, 1, 1.2], attic15_clock: [1, 1, 1],
-    attic15_divider: [2, 1, 1], attic15_lamp: [1, 1, 1], attic15_shelf: [1, 1, 1],
-    attic15_sofa: [2, 1, 1], attic15_table: [1, 1, 1], attic15_paintingfloor: [1, 1, 1],
+    anna_sofa: [2, 1, 1.1], anna_chair: [1, 1, 1.2], anna_stool: [1, 1, 1.2],
+    anna_table: [2, 2, 1], anna_lamp: [1, 1, 1], bartable_armas: [1, 3, 1.4],
     boutique_counter: [2, 1, 1.4], boutique_cashreg: [1, 1, 1], boutique_sofa1: [1, 1, 0.7],
     bc_block_redbrick: [1, 1, 1], bc_glasspanel: [1, 1, 2],
     anc_comfy_tree: [1, 1, 3.18], army_c15_bookshelf: [2, 1, 3.1]
@@ -815,11 +808,9 @@ const CAFE_WALL = [
 // 카페 데모 배치 — z를 주면 그 높이에 쌓임(벽돌 기둥)
 const CAFE_DECOR = [
     // 카운터 구역 (오른쪽 뒤)
-    { classname: 'boutique_counter', x: 11, y: 2 },
-    { classname: 'boutique_cashreg', x: 13, y: 2 },
+    { classname: 'boutique_counter',   x: 11, y: 2 },
+    { classname: 'boutique_cashreg',   x: 13, y: 2 },
     { classname: 'army_c15_bookshelf', x: 15, y: 2 },
-    { classname: 'attic15_bigshelf', x: 15, y: 5 },
-    { classname: 'attic15_clock',    x: 13, y: 1 },
     // 벽돌 기둥 2개 (블록 3단 쌓기)
     { classname: 'bc_block_redbrick', x: 9, y: 5, z: 0 },
     { classname: 'bc_block_redbrick', x: 9, y: 5, z: 1 },
@@ -828,25 +819,24 @@ const CAFE_DECOR = [
     { classname: 'bc_block_redbrick', x: 9, y: 10, z: 1 },
     { classname: 'bc_block_redbrick', x: 9, y: 10, z: 2 },
     // 카페 테이블 3세트 (왼쪽)
-    { classname: 'attic15_table', x: 4, y: 4 },
-    { classname: 'attic15_chair', x: 3, y: 4, rot: 2 },
-    { classname: 'attic15_chair', x: 5, y: 4 },
-    { classname: 'attic15_table', x: 4, y: 8 },
-    { classname: 'attic15_chair', x: 3, y: 8, rot: 2 },
-    { classname: 'attic15_chair', x: 5, y: 8 },
-    { classname: 'attic15_bigtable', x: 6, y: 11 },
-    { classname: 'attic15_chair', x: 5, y: 11, rot: 2 },
-    // 라운지 (오른쪽 아래, 카펫 + 소파)
-    { classname: 'attic15_carpet',  x: 11, y: 7 },
-    { classname: 'attic15_sofa',    x: 11, y: 7 },
-    { classname: 'boutique_sofa1',  x: 14, y: 8 },
-    { classname: 'attic15_lamp',    x: 11, y: 9 },
+    { classname: 'anna_table', x: 3, y: 4 },
+    { classname: 'anna_chair', x: 2, y: 4, rot: 2 },
+    { classname: 'anna_chair', x: 6, y: 4 },
+    { classname: 'anna_table', x: 3, y: 8 },
+    { classname: 'anna_chair', x: 2, y: 8, rot: 2 },
+    { classname: 'anna_chair', x: 6, y: 8 },
+    { classname: 'bartable_armas', x: 6, y: 11 },
+    { classname: 'anna_stool',  x: 5, y: 11, rot: 2 },
+    { classname: 'anna_stool',  x: 7, y: 12 },
+    // 라운지 (오른쪽, 카펫 + 소파)
+    { classname: 'carpet_soft',    x: 11, y: 7 },
+    { classname: 'anna_sofa',      x: 11, y: 7 },
+    { classname: 'boutique_sofa1', x: 14, y: 8 },
+    { classname: 'anna_lamp',      x: 11, y: 9 },
     // 식물
     { classname: 'anc_comfy_tree',  x: 2,  y: 1 },
     { classname: 'anc_comfy_tree',  x: 12, y: 5 },
-    { classname: 'ashtree',         x: 2,  y: 13 },
-    // 벽 장식
-    { classname: 'attic15_paintingfloor', x: 16, y: 8 }
+    { classname: 'anc_comfy_tree',  x: 2,  y: 13 }
 ];
 
 // 아바타(look)가 없는 학생을 세울 때 쓰는 기본 아바타 figure

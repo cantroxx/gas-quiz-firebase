@@ -477,21 +477,38 @@ function drawFurniLayer(item, fd, layerKey, isGhost) {
 // 벽은 이미 칸 단위로 그려진다: 서쪽 벽 = 행 y (x=rowMinX[y]), 북쪽 벽 = 열 x (y=colMinY[x]).
 // 벽 아이템은 그 칸의 밑점을 기준으로 스프라이트를 붙인다 (dir 2=서쪽 벽, 4=북쪽 벽).
 // item: { id, classname, side: 'w'|'n', idx }
-// 하보 원본 벽 아이템 오프셋과 우리 벽 밑점 기준의 차이를 메우는 보정값 (아래로 내림)
-const WALL_ITEM_DY = 40;
-
+// 벽 아이템의 붙는 지점.
+// 하보 원본은 벽 평면 안 임의 높이에 두지만(사용자가 드래그), 우리는 아이템마다
+// '벽 세로 한가운데'에 자동 정렬한다 — 그래야 창문·포스터·액자가 모두 벽 안에 들어온다.
 function wallItemAnchor(item) {
     const room = currentRoom;
+    let base, dir;
     if (item.side === 'w') {
         const x = room.rowMinX[item.idx];
         if (x === undefined) return null;
-        const p = gridToScreen(x, item.idx, 0);
-        return { p: { x: p.x, y: p.y + WALL_ITEM_DY }, dir: 2 };
+        base = gridToScreen(x, item.idx, 0);
+        dir = 2;
+    } else {
+        const y = room.colMinY[item.idx];
+        if (y === undefined) return null;
+        base = gridToScreen(item.idx, y, 0);
+        dir = 4;
     }
-    const y = room.colMinY[item.idx];
-    if (y === undefined) return null;
-    const p = gridToScreen(item.idx, y, 0);
-    return { p: { x: p.x, y: p.y + WALL_ITEM_DY }, dir: 4 };
+    const wallH = wallHeightAt(item.side, item.idx);
+
+    // 본체 레이어(a)의 크기로, 스프라이트가 벽 한가운데 오도록 앵커 y를 역산.
+    // (모든 레이어에 같은 앵커를 써야 창문 빛줄기 같은 부속이 붙어 따라온다)
+    let anchorY = base.y;
+    const fd = furniReady(item.classname);
+    if (fd) {
+        const res = furniAssetForDir(fd, 'a', dir, 0);
+        if (res) {
+            const sp = tintedFrame(fd, res.frameName, null);
+            const wantTop = base.y - wallH / 2 - sp.height / 2; // 벽 세로 중앙
+            anchorY = wantTop + res.y;
+        }
+    }
+    return { p: { x: base.x, y: anchorY }, dir };
 }
 
 function drawWallItem(item) {
