@@ -256,7 +256,41 @@ CATALOG_ITEMS.push(
     // 침대 추가
     { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." },
 
-    // ---- 벽 꾸미기 (wall) — 2026-07-13 추가 34종: 하보 벽형 가구 ----
+    // ---- 벽 꾸미기 (wall) — 하보 벽형 가구 34종. wall:true = 바닥이 아니라 벽에 붙임 ----
+    { classname: "attic15_window",        name: "다락 창문",     category: "wall", cost: 80, desc: "햇빛이 쏟아지는 큰 창문.", wall: true },
+    { classname: "lon_window",            name: "런던 창문",     category: "wall", cost: 70, desc: "고풍스러운 창문.", wall: true },
+    { classname: "room_hall15_window",    name: "홀 창문",       category: "wall", cost: 70, desc: "넓은 홀에 어울리는 창문.", wall: true },
+    { classname: "noticeboard",           name: "게시판",        category: "wall", cost: 45, desc: "쪽지를 잔뜩 붙인 게시판.", wall: true },
+    { classname: "pframe",                name: "액자",          category: "wall", cost: 25, desc: "작은 그림 액자.", wall: true },
+    { classname: "pixel_mirror",          name: "픽셀 거울",     category: "wall", cost: 40, desc: "길쭉한 벽 거울.", wall: true },
+    { classname: "room_wl15_mirror",      name: "벽 거울",       category: "wall", cost: 35, desc: "동그란 벽 거울.", wall: true },
+    { classname: "diner_poster",          name: "식당 포스터",   category: "wall", cost: 25, desc: "알록달록 식당 포스터.", wall: true },
+    { classname: "easy_poster",           name: "기본 포스터",   category: "wall", cost: 20, desc: "심플한 포스터.", wall: true },
+    { classname: "wildwest_wanted_poster", name: "현상수배 포스터", category: "wall", cost: 25, desc: "서부극 현상수배 벽보.", wall: true },
+    { classname: "horse_fin_poster",      name: "말 포스터 1",   category: "wall", cost: 25, desc: "말 그림 포스터.", wall: true },
+    { classname: "horse_fin_poster2",     name: "말 포스터 2",   category: "wall", cost: 25, desc: "말 그림 포스터.", wall: true },
+    { classname: "horse_fin_poster3",     name: "말 포스터 3",   category: "wall", cost: 25, desc: "말 그림 포스터.", wall: true },
+    { classname: "hrella_poster_1",       name: "그림 포스터 1", category: "wall", cost: 25, desc: "예쁜 그림 포스터.", wall: true },
+    { classname: "hrella_poster_2",       name: "그림 포스터 2", category: "wall", cost: 25, desc: "예쁜 그림 포스터.", wall: true },
+    { classname: "hrella_poster_3",       name: "그림 포스터 3", category: "wall", cost: 25, desc: "예쁜 그림 포스터.", wall: true },
+    { classname: "classic1_wall1",        name: "클래식 벽판 1", category: "wall", cost: 40, desc: "벽 한 칸을 덮는 장식 벽판.", wall: true },
+    { classname: "classic1_wall2",        name: "클래식 벽판 2", category: "wall", cost: 40, desc: "벽 한 칸을 덮는 장식 벽판.", wall: true },
+    { classname: "classic2_wall",         name: "클래식 벽판 3", category: "wall", cost: 40, desc: "벽 한 칸을 덮는 장식 벽판.", wall: true },
+    { classname: "classic5_wall",         name: "클래식 벽판 4", category: "wall", cost: 40, desc: "벽 한 칸을 덮는 장식 벽판.", wall: true },
+    { classname: "classic6_wall",         name: "클래식 벽판 5", category: "wall", cost: 40, desc: "벽 한 칸을 덮는 장식 벽판.", wall: true },
+    { classname: "classic7_wall",         name: "클래식 벽판 6", category: "wall", cost: 40, desc: "벽 한 칸을 덮는 장식 벽판.", wall: true },
+    { classname: "lidowall1",             name: "수영장 벽 1",   category: "wall", cost: 35, desc: "물결무늬 수영장 벽.", wall: true },
+    { classname: "lidowall2",             name: "수영장 벽 2",   category: "wall", cost: 35, desc: "물결무늬 수영장 벽.", wall: true },
+    { classname: "lidowall3",             name: "수영장 벽 3",   category: "wall", cost: 35, desc: "물결무늬 수영장 벽.", wall: true },
+    { classname: "wall_china",            name: "중국풍 벽",     category: "wall", cost: 40, desc: "동양풍 무늬 벽.", wall: true },
+    { classname: "theatre_wall",          name: "극장 벽",       category: "wall", cost: 40, desc: "붉은 극장 벽.", wall: true },
+    { classname: "wildwest_saloonwall",   name: "서부 술집 벽",  category: "wall", cost: 40, desc: "서부극 살롱 벽.", wall: true },
+    { classname: "vikings_wall_g",        name: "바이킹 벽(초록)", category: "wall", cost: 40, desc: "바이킹 방패 벽.", wall: true },
+    { classname: "vikings_wall_r",        name: "바이킹 벽(빨강)", category: "wall", cost: 40, desc: "바이킹 방패 벽.", wall: true },
+    { classname: "sand_cstl_wall",        name: "모래성 벽",     category: "wall", cost: 35, desc: "모래성 무늬 벽.", wall: true },
+    { classname: "jungle_c16_wall",       name: "정글 벽",       category: "wall", cost: 40, desc: "덩굴이 우거진 벽.", wall: true },
+    { classname: "val14_b_wall",          name: "하트 벽",       category: "wall", cost: 35, desc: "하트 무늬 벽.", wall: true },
+    { classname: "anc_sunset_wall",       name: "노을 벽",       category: "wall", cost: 45, desc: "노을이 지는 풍경 벽.", wall: true },
 
     // ---- 트로피·시상대 (2026-07-14 추가: 명예의 전당용) ----
     { classname: "anc_trophy_marble",   name: "대리석 기념비",   category: "rare", cost: 400, desc: "명예의 전당에 어울리는 웅장한 대리석 기념비!", scale: 0.85, offsetY: 12 },
@@ -267,7 +301,23 @@ CATALOG_ITEMS.push(
     // ---- 신전 장식 (2026-07-14 추가: 명예의 전당용) ----
     { classname: "pillar",     name: "대리석 기둥", category: "rare", cost: 200, desc: "신전 느낌을 내는 웅장한 대리석 기둥.", scale: 1.4, offsetY: 12 },
     { classname: "statue",     name: "여신상",      category: "rare", cost: 280, desc: "받침대 위에 선 멋진 여신 조각상.",     scale: 1.2, offsetY: 12 },
-    { classname: "tiki_torch", name: "횃불",        category: "rare", cost: 90,  desc: "활활 타오르는 횃불. 신전을 밝혀요.",  scale: 1.1, offsetY: 12 }
+    { classname: "tiki_torch", name: "횃불",        category: "rare", cost: 90,  desc: "활활 타오르는 횃불. 신전을 밝혀요.",  scale: 1.1, offsetY: 12 },
+
+    // ---- 카페/인테리어 세트 (2026-07-14) ----
+    // ⚠️ attic15_* 세트는 '버려진 다락'(흰 천·거미줄) 컨셉이라 카페용으로 부적합 → 제외함
+    { classname: "anna_sofa",          name: "포근한 소파",   category: "seat",    cost: 70,  desc: "둘이 앉는 포근한 소파." },
+    { classname: "anna_chair",         name: "카페 의자",     category: "seat",    cost: 30,  desc: "카페에 놓는 편한 의자.", canSit: true },
+    { classname: "anna_stool",         name: "동그란 스툴",   category: "seat",    cost: 25,  desc: "동그란 앉을 자리.", canSit: true },
+    { classname: "boutique_sofa1",     name: "카페 안락의자", category: "seat",    cost: 60,  desc: "카페에 놓는 폭신한 1인 의자." },
+    { classname: "anna_table",         name: "카페 테이블",   category: "table",   cost: 45,  desc: "둘러앉는 카페 테이블.", canStandOn: true },
+    { classname: "bartable_armas",     name: "바 테이블",     category: "table",   cost: 55,  desc: "길쭉한 바 테이블.", canStandOn: true },
+    { classname: "boutique_counter",   name: "카페 카운터",   category: "table",   cost: 90,  desc: "주문을 받는 카운터." },
+    { classname: "boutique_cashreg",   name: "금전등록기",    category: "elec",    cost: 40,  desc: "계산할 때 쓰는 금전등록기." },
+    { classname: "army_c15_bookshelf", name: "높은 책장",     category: "storage", cost: 80,  desc: "천장까지 닿는 큰 책장." },
+    { classname: "anna_lamp",          name: "카페 조명",     category: "light",   cost: 35,  desc: "은은한 스탠드 조명." },
+    { classname: "anc_comfy_tree",     name: "실내 나무",     category: "plant",   cost: 60,  desc: "카페에 두는 키 큰 화분 나무." },
+    { classname: "bc_block_redbrick",  name: "벽돌 블록",     category: "rare",    cost: 20,  desc: "쌓아서 벽돌 기둥을 만들어요." },
+    { classname: "bc_glasspanel",      name: "유리 패널",     category: "rare",    cost: 25,  desc: "쌓아서 통유리 벽을 만들어요." }
 );
 
 CATALOG_ITEMS.forEach(item => {
@@ -316,7 +366,13 @@ const FURNI_DIMS = {
     toy1: [1, 1, 0.0], toy2: [1, 1, 0.0], tv_luxus: [1, 3, 1.0],
     typingmachine: [1, 1, 0.0], wcandleset: [1, 1, 0.0], wood_tv: [1, 2, 1.9],
     anc_trophy_marble: [1, 1, 1.0], anc_trophy_obsidian: [1, 1, 1.0], anc_trophy_sstone: [1, 1, 1.0], classic5_stage: [2, 2, 0.3],
-    pillar: [1, 1, 3.5], statue: [1, 1, 0.4375], tiki_torch: [1, 1, 0.0]
+    pillar: [1, 1, 3.5], statue: [1, 1, 0.4375], tiki_torch: [1, 1, 0.0],
+    // 카페 세트 (2026-07-14)
+    anna_sofa: [2, 1, 1.1], anna_chair: [1, 1, 1.2], anna_stool: [1, 1, 1.2],
+    anna_table: [2, 2, 1], anna_lamp: [1, 1, 1], bartable_armas: [1, 3, 1.4],
+    boutique_counter: [2, 1, 1.4], boutique_cashreg: [1, 1, 1], boutique_sofa1: [1, 1, 0.7],
+    bc_block_redbrick: [1, 1, 1], bc_glasspanel: [1, 1, 2],
+    anc_comfy_tree: [1, 1, 3.18], army_c15_bookshelf: [2, 1, 3.1]
 };
 
 // 2026-07-09 확장분(102종) — 신규 다운로드한 furni JSON에서 추출
@@ -669,6 +725,118 @@ const HALL_DECOR = [
     { classname: 'tiki_torch',      x: 13, y: 10, rot: 0, state: 1 },
     // 중앙 분수 (앞쪽)
     { classname: 'rare_fountain',   x: 10, y: 16, rot: 0 }
+];
+
+// ===== [실험] 카페 데모 방 (?demo=cafe) — 레퍼런스 재현 테스트용, 학생 상점 비노출 =====
+// 오른쪽 아래가 대각선으로 잘린 각진 방 (레퍼런스 카페의 꺾인 외곽선)
+ROOM_MODELS.model_cafe = {
+    hidden: true,
+    label: "카페 (실험)", door: { x: 1, y: 8, dir: 2 },
+    map: [
+        "xxxxxxxxxxxxxxxxxx",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx000000000000000x",
+        "xx00000000000000xx",
+        "xx0000000000000xxx",
+        "xx000000000000xxxx",
+        "xx00000000000xxxxx",
+        "xx0000000000xxxxxx",
+        "xxxxxxxxxxxxxxxxxx"
+    ].join("|")
+};
+
+// ===== [실험] 단차 데모 방 (?demo=lobby) — 맵 문자 0~9 = 타일 높이 =====
+// 가운데 낮은 광장(0), 계단(1), 양옆 단 올라간 라운지(2). 레퍼런스 로비의 층진 바닥 테스트.
+ROOM_MODELS.model_lobby = {
+    hidden: true,
+    label: "로비 (실험)", door: { x: 1, y: 7, dir: 2 },
+    map: [
+        "xxxxxxxxxxxxxxxx",
+        "xx222211111122xx",
+        "xx222211111122xx",
+        "xx222211111122xx",
+        "xx111111111111xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx111111111111xx",
+        "xx222222222222xx",
+        "xx222222222222xx",
+        "xxxxxxxxxxxxxxxx"
+    ].join("|")
+};
+
+const LOBBY_DECOR = [
+    { classname: 'throne',          x: 7,  y: 1 },
+    { classname: 'pillar',          x: 3,  y: 1 },
+    { classname: 'pillar',          x: 12, y: 1 },
+    { classname: 'rare_fountain',   x: 7,  y: 7 },
+    { classname: 'carpet_standard', x: 6,  y: 5 },
+    { classname: 'club_sofa',       x: 3,  y: 11 },
+    { classname: 'club_sofa',       x: 11, y: 11 },
+    { classname: 'plant_yukka',     x: 2,  y: 11 },
+    { classname: 'plant_yukka',     x: 13, y: 11 },
+    { classname: 'anc_comfy_tree',  x: 2,  y: 1 },
+    { classname: 'anc_comfy_tree',  x: 13, y: 1 }
+];
+const LOBBY_WALL = [
+    { classname: 'attic15_window', side: 'n', idx: 5 },
+    { classname: 'attic15_window', side: 'n', idx: 9 },
+    { classname: 'noticeboard',    side: 'w', idx: 8 }
+];
+
+// [실험] 카페 데모 — 벽 부착 아이템. side: 'w'=서쪽(왼쪽) 벽, 'n'=북쪽(오른쪽) 벽
+// idx: 'w'면 행 y, 'n'이면 열 x
+const CAFE_WALL = [
+    { classname: 'attic15_window', side: 'n', idx: 4 },
+    { classname: 'attic15_window', side: 'n', idx: 7 },
+    { classname: 'attic15_window', side: 'w', idx: 4 },
+    { classname: 'diner_poster',   side: 'n', idx: 12 },
+    { classname: 'pframe',         side: 'n', idx: 14 },
+    { classname: 'noticeboard',    side: 'w', idx: 10 }
+];
+
+// 카페 데모 배치 — z를 주면 그 높이에 쌓임(벽돌 기둥)
+const CAFE_DECOR = [
+    // 카운터 구역 (오른쪽 뒤)
+    { classname: 'boutique_counter',   x: 11, y: 2 },
+    { classname: 'boutique_cashreg',   x: 13, y: 2 },
+    { classname: 'army_c15_bookshelf', x: 15, y: 2 },
+    // 벽돌 기둥 2개 (블록 3단 쌓기)
+    { classname: 'bc_block_redbrick', x: 9, y: 5, z: 0 },
+    { classname: 'bc_block_redbrick', x: 9, y: 5, z: 1 },
+    { classname: 'bc_block_redbrick', x: 9, y: 5, z: 2 },
+    { classname: 'bc_block_redbrick', x: 9, y: 10, z: 0 },
+    { classname: 'bc_block_redbrick', x: 9, y: 10, z: 1 },
+    { classname: 'bc_block_redbrick', x: 9, y: 10, z: 2 },
+    // 카페 테이블 3세트 (왼쪽)
+    { classname: 'anna_table', x: 3, y: 4 },
+    { classname: 'anna_chair', x: 2, y: 4, rot: 2 },
+    { classname: 'anna_chair', x: 6, y: 4 },
+    { classname: 'anna_table', x: 3, y: 8 },
+    { classname: 'anna_chair', x: 2, y: 8, rot: 2 },
+    { classname: 'anna_chair', x: 6, y: 8 },
+    { classname: 'bartable_armas', x: 6, y: 11 },
+    { classname: 'anna_stool',  x: 5, y: 11, rot: 2 },
+    { classname: 'anna_stool',  x: 7, y: 12 },
+    // 라운지 (오른쪽, 카펫 + 소파)
+    { classname: 'carpet_soft',    x: 11, y: 7 },
+    { classname: 'anna_sofa',      x: 11, y: 7 },
+    { classname: 'boutique_sofa1', x: 14, y: 8 },
+    { classname: 'anna_lamp',      x: 11, y: 9 },
+    // 식물
+    { classname: 'anc_comfy_tree',  x: 2,  y: 1 },
+    { classname: 'anc_comfy_tree',  x: 12, y: 5 },
+    { classname: 'anc_comfy_tree',  x: 2,  y: 13 }
 ];
 
 // 아바타(look)가 없는 학생을 세울 때 쓰는 기본 아바타 figure

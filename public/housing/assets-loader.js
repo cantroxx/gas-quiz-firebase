@@ -10,7 +10,7 @@
 (function () {
     'use strict';
 
-    const BUNDLE_VERSION = 4; // 가구를 추가·수정해 새 묶음을 올릴 때마다 1씩 올린다
+    const BUNDLE_VERSION = 6; // 가구를 추가·수정해 새 묶음을 올릴 때마다 1씩 올린다
     const BUNDLE_FILE = `furni-bundle-v${BUNDLE_VERSION}.json.gz`;
     const STORAGE_PATH = `housingAssets/${BUNDLE_FILE}`;
     const IDB_NAME = 'housing-assets';

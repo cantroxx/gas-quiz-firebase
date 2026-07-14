@@ -9,14 +9,19 @@ function parseRoomModel(modelName) {
     const w = rows[0].length;
 
     const floor = [];       // floor[y][x] = true (문 타일 포함)
+    const height = [];      // [단차] height[y][x] = 타일 높이 (맵 문자 0~9 → 0~9층). 기존 방은 전부 0
     const rowMinX = {};     // 각 행의 첫 바닥 x (벽 그리기용, 문 제외)
     const colMinY = {};     // 각 열의 첫 바닥 y (벽 그리기용, 문 제외)
 
     for (let y = 0; y < h; y++) {
         floor[y] = [];
+        height[y] = [];
         for (let x = 0; x < w; x++) {
-            const isF = rows[y][x] !== 'x';
+            const ch = rows[y][x];
+            const isF = ch !== 'x';
             floor[y][x] = isF;
+            // '0'~'9' = 높이 0~9. 그 외 문자는 높이 0으로 취급 (기존 맵 호환)
+            height[y][x] = (isF && ch >= '0' && ch <= '9') ? (ch.charCodeAt(0) - 48) : 0;
             if (isF) {
                 if (rowMinX[y] === undefined) rowMinX[y] = x;
                 if (colMinY[x] === undefined) colMinY[x] = y;
@@ -24,8 +29,14 @@ function parseRoomModel(modelName) {
         }
     }
 
-    // 문 타일도 걸을 수 있는 바닥으로 추가
+    // 문 타일도 걸을 수 있는 바닥으로 추가 (문 높이는 인접 바닥과 같게)
     floor[def.door.y][def.door.x] = true;
+    if (height[def.door.y][def.door.x] === undefined) height[def.door.y][def.door.x] = 0;
+
+    let maxHeight = 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        if (floor[y][x]) maxHeight = Math.max(maxHeight, height[y][x]);
+    }
 
     // 방을 화면 중앙에 놓기 위한 등각투영 좌표 범위
     let isoXMin = Infinity, isoXMax = -Infinity, isoYMin = Infinity, isoYMax = -Infinity;
@@ -37,7 +48,14 @@ function parseRoomModel(modelName) {
         }
     }
 
-    return { name: modelName, def, w, h, floor, rowMinX, colMinY, isoXMin, isoXMax, isoYMin, isoYMax, door: def.door };
+    return { name: modelName, def, w, h, floor, height, maxHeight, rowMinX, colMinY, isoXMin, isoXMax, isoYMin, isoYMax, door: def.door };
+}
+
+// [단차] 그 칸의 바닥 높이 (바닥이 아니면 0)
+function floorHeight(x, y) {
+    const r = currentRoom;
+    if (!r.floor[y] || !r.floor[y][x]) return 0;
+    return r.height[y][x] || 0;
 }
 
 let currentRoom = parseRoomModel("model_a");
@@ -62,6 +80,7 @@ let state = {
     floorTheme: 0,        // 바닥 (FLOOR_THEMES id)
     inventory: [],        // classname 배열
     placedItems: [],      // { id, classname, x, y, rot }
+    wallItems: [],        // [실험] 벽 부착 아이템 { id, classname, side:'w'|'n', idx }
     selectedCatalogItem: null,
     selectedPlacedItem: null,
     visiting: null,       // 친구집 방문 중이면 { ownerId, ownerName } — 구경 전용
@@ -137,6 +156,7 @@ function preloadAvatarSprites() {
 }
 
 function saveGame() {
+    if (state.demoMode) return; // [실험] 데모 방(?demo=)은 절대 저장하지 않음 — 학생 방 데이터 보호
     const payload = {
         credits: state.credits,
         playerName: state.playerName,
@@ -150,7 +170,8 @@ function saveGame() {
         unlockedModels: state.unlockedModels,
         favorites: state.favorites,
         simUsage: state.simUsage,
-        placedItems: state.placedItems.filter(i => !i.trial) // 배치 테스트품은 저장하지 않음
+        placedItems: state.placedItems.filter(i => !i.trial), // 배치 테스트품은 저장하지 않음
+        wallItems: state.wallItems || []                      // [실험] 벽에 붙인 아이템
     };
     if (state.visiting) return; // 친구집 구경 중에는 아무것도 저장하지 않음
 
@@ -236,6 +257,12 @@ function applySavedData(data) {
             if (CLOTH_COLORS.some(c => c.id === data.look.shColor)) l.shColor = data.look.shColor;
         }
         if (Array.isArray(data.placedItems)) state.placedItems = data.placedItems.filter(i => getModel(i.classname));
+        // [실험] 벽에 붙인 아이템
+        if (Array.isArray(data.wallItems)) {
+            state.wallItems = data.wallItems.filter(w =>
+                w && getModel(w.classname) && (w.side === 'w' || w.side === 'n') && Number.isInteger(w.idx));
+            state.wallItems.forEach(w => loadFurni(w.classname));
+        }
         if (Array.isArray(data.unlockedModels)) state.unlockedModels = data.unlockedModels.filter(n => ROOM_MODELS[n]);
         if (Array.isArray(data.favorites)) state.favorites = data.favorites.filter(id => typeof id === 'string').slice(0, 50);
         if (data.simUsage && typeof data.simUsage.dateKey === 'string' && typeof data.simUsage.seconds === 'number') {
@@ -446,6 +473,76 @@ function drawFurniLayer(item, fd, layerKey, isGhost) {
     ctx.restore();
 }
 
+// ── [실험] 벽 부착 아이템 ────────────────────────────────────────
+// 벽은 이미 칸 단위로 그려진다: 서쪽 벽 = 행 y (x=rowMinX[y]), 북쪽 벽 = 열 x (y=colMinY[x]).
+// 벽 아이템은 그 칸의 밑점을 기준으로 스프라이트를 붙인다 (dir 2=서쪽 벽, 4=북쪽 벽).
+// item: { id, classname, side: 'w'|'n', idx }
+// 벽 아이템의 붙는 지점.
+// 하보 원본은 벽 평면 안 임의 높이에 두지만(사용자가 드래그), 우리는 아이템마다
+// '벽 세로 한가운데'에 자동 정렬한다 — 그래야 창문·포스터·액자가 모두 벽 안에 들어온다.
+function wallItemAnchor(item) {
+    const room = currentRoom;
+    let base, dir;
+    if (item.side === 'w') {
+        const x = room.rowMinX[item.idx];
+        if (x === undefined) return null;
+        base = gridToScreen(x, item.idx, 0);
+        dir = 2;
+    } else {
+        const y = room.colMinY[item.idx];
+        if (y === undefined) return null;
+        base = gridToScreen(item.idx, y, 0);
+        dir = 4;
+    }
+    const wallH = wallHeightAt(item.side, item.idx);
+
+    // 본체 레이어(a)의 크기로, 스프라이트가 벽 한가운데 오도록 앵커 y를 역산.
+    // (모든 레이어에 같은 앵커를 써야 창문 빛줄기 같은 부속이 붙어 따라온다)
+    let anchorY = base.y;
+    const fd = furniReady(item.classname);
+    if (fd) {
+        const res = furniAssetForDir(fd, 'a', dir, 0);
+        if (res) {
+            const sp = tintedFrame(fd, res.frameName, null);
+            const wantTop = base.y - wallH / 2 - sp.height / 2; // 벽 세로 중앙
+            anchorY = wantTop + res.y;
+        }
+    }
+    return { p: { x: base.x, y: anchorY }, dir };
+}
+
+function drawWallItem(item) {
+    const fd = furniReady(item.classname);
+    if (!fd) return;
+    const a = wallItemAnchor(item);
+    if (!a) return;
+
+    const viz = fd.def.visualization;
+    const lc = (viz && viz.layerCount) || 1;
+    const colorLayers = furniDefaultColors(fd);
+
+    for (let i = 0; i < lc; i++) {
+        const layerKey = String.fromCharCode(97 + i);
+        const res = furniAssetForDir(fd, layerKey, a.dir, frameForLayer(fd, item, i));
+        if (!res) continue;
+
+        const colorInt = (colorLayers && colorLayers[i] && colorLayers[i].color !== undefined)
+            ? colorLayers[i].color : null;
+        const sprite = tintedFrame(fd, res.frameName, colorInt);
+
+        ctx.save();
+        const lp = viz.layers && viz.layers[i];
+        if (lp && lp.ink === 'ADD') ctx.globalCompositeOperation = 'lighter'; // 창문 빛줄기 등
+        if (res.flipH) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(sprite, -(a.p.x + res.x), a.p.y - res.y);
+        } else {
+            ctx.drawImage(sprite, a.p.x - res.x, a.p.y - res.y);
+        }
+        ctx.restore();
+    }
+}
+
 // 배치 미리보기(유령)용: 그림자+전 레이어를 한 번에
 function drawFurniGhost(item, fd) {
     drawFurniLayer(item, fd, 'sd', true);
@@ -571,6 +668,9 @@ const ctx = canvas.getContext('2d');
 
 const TILE_WIDTH = 64;
 const TILE_HEIGHT = 32;
+// [실험] 벽 높이 — 하보 원본 벽 아이템(창문 등)의 오프셋 기준에 맞춘 값.
+// 예전 값 120은 너무 낮아 벽 아이템이 벽 위로 삐져나갔다.
+const WALL_HEIGHT = 200;
 const HALF_WIDTH = TILE_WIDTH / 2;
 const HALF_HEIGHT = TILE_HEIGHT / 2;
 const Z_SCALE = 30;
@@ -584,7 +684,9 @@ function resizeCanvas() {
     // 현재 방 모델의 바닥 범위를 기준으로 방을 화면 중앙에 배치
     const r = currentRoom;
     originX = canvas.width / 2 - ((r.isoXMin + r.isoXMax) / 2) * HALF_WIDTH;
-    originY = canvas.height / 2 - ((r.isoYMin + r.isoYMax) / 2) * HALF_HEIGHT + 30;
+    // [단차] 층이 높으면 방이 위로 커지므로, 그만큼 아래로 밀어 화면 중앙을 유지
+    originY = canvas.height / 2 - ((r.isoYMin + r.isoYMax) / 2) * HALF_HEIGHT + 30
+            + ((r.maxHeight || 0) * Z_SCALE) / 2;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
@@ -673,6 +775,66 @@ function spriteAlphaHit(item, fd, layerKey, dir, px, py) {
     }
 }
 
+// ── [실험] 벽 칸 클릭 판정 ────────────────────────────────────────
+// 볼록 사각형 안에 점이 있는지 (벽 한 칸 = 평행사변형)
+function pointInQuad(px, py, q) {
+    let sign = 0;
+    for (let i = 0; i < 4; i++) {
+        const a = q[i], b = q[(i + 1) % 4];
+        const cross = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
+        if (cross === 0) continue;
+        const s = cross > 0 ? 1 : -1;
+        if (sign === 0) sign = s;
+        else if (sign !== s) return false;
+    }
+    return true;
+}
+
+// 벽 한 칸의 화면 사각형 (밑변 두 점 + WALL_HEIGHT만큼 위로)
+function wallSegmentQuad(side, idx) {
+    const room = currentRoom;
+    let p1, p2;
+    if (side === 'w') {
+        const x = room.rowMinX[idx];
+        if (x === undefined) return null;
+        p1 = gridToScreen(x, idx, 0);
+        p2 = gridToScreen(x, idx + 1, 0);
+    } else {
+        const y = room.colMinY[idx];
+        if (y === undefined) return null;
+        p1 = gridToScreen(idx, y, 0);
+        p2 = gridToScreen(idx + 1, y, 0);
+    }
+    const wh = wallHeightAt(side, idx); // [단차] 바닥이 높으면 벽도 높음
+    return [
+        { x: p1.x, y: p1.y },
+        { x: p2.x, y: p2.y },
+        { x: p2.x, y: p2.y - wh },
+        { x: p1.x, y: p1.y - wh }
+    ];
+}
+
+// 클릭 지점의 벽 칸 → { side, idx } (없으면 null)
+function wallSegmentAt(px, py) {
+    const room = currentRoom;
+    for (let y = 0; y < room.h; y++) {
+        if (room.rowMinX[y] === undefined) continue;
+        const q = wallSegmentQuad('w', y);
+        if (q && pointInQuad(px, py, q)) return { side: 'w', idx: y };
+    }
+    for (let x = 0; x < room.w; x++) {
+        if (room.colMinY[x] === undefined) continue;
+        const q = wallSegmentQuad('n', x);
+        if (q && pointInQuad(px, py, q)) return { side: 'n', idx: x };
+    }
+    return null;
+}
+
+// 그 벽 칸에 이미 붙어 있는 아이템
+function wallItemAt(side, idx) {
+    return (state.wallItems || []).find(w => w.side === side && w.idx === idx) || null;
+}
+
 // 클릭 지점에 그려진 가구 중 화면상 '가장 위'에 있는 것 (뷰어에 가까운 순으로 검사)
 function furniPixelAt(px, py) {
     const items = state.placedItems.slice().sort((a, b) => furniDepthBase(b) - furniDepthBase(a));
@@ -728,7 +890,7 @@ function furniDepthBase(item) {
 // (x,y) 칸에 새 물건을 올릴 때의 바닥 높이. 못 올리면 -1.
 // 러그(walkable)=높이0 위 허용, 테이블(canStandOn)=그 윗면 높이 위 허용, 그 외 가구=막힘.
 function surfaceHeightAt(x, y, ignoreId) {
-    let z = 0, blocked = false;
+    let z = floorHeight(x, y), blocked = false; // [단차] 바닥 자체의 높이에서 시작
     for (const it of state.placedItems) {
         if (ignoreId !== undefined && it.id === ignoreId) continue;
         if (!footprintCovers(it, x, y)) continue;
@@ -796,6 +958,8 @@ function findPath(startX, startY, endX, endY, allowEndBlocked = false) {
 
         for (let n of neighbors) {
             if (!isFloorTile(n.x, n.y)) continue;
+            // [단차] 한 걸음에 오르내릴 수 있는 높이는 1층까지 (그보다 크면 낭떠러지 → 못 감)
+            if (Math.abs(floorHeight(n.x, n.y) - floorHeight(curr.x, curr.y)) > 1) continue;
             if (closedList.has(`${n.x},${n.y}`)) continue;
             if (blocked(n.x, n.y)) continue;
 
@@ -841,16 +1005,25 @@ function seatZ(classname) {
 }
 
 // 서쪽 벽 한 조각(면+걸레받이+상단 캡)을 그림. 배경 벽 루프와 문 앞 조각(렌더 큐) 양쪽에서 사용.
+// [단차] 그 벽 칸의 실제 높이 — 바닥이 높으면 벽도 그만큼 더 높게 세워 땅에 붙어 있게 한다
+function wallHeightAt(side, idx) {
+    const room = currentRoom;
+    const h = (side === 'w')
+        ? floorHeight(room.rowMinX[idx], idx)
+        : floorHeight(idx, room.colMinY[idx]);
+    return WALL_HEIGHT + h * Z_SCALE;
+}
+
 function drawWestWallSegment(x, y) {
-    const WALL_HEIGHT = 120;
     const WALL_DEPTH = 6;
+    const wh = WALL_HEIGHT + floorHeight(x, y) * Z_SCALE; // [단차] 바닥 높이만큼 벽도 높게
     const p1 = gridToScreen(x, y, 0);       // N(x,y)
     const p2 = gridToScreen(x, y + 1, 0);   // N(x,y+1)
 
     // 벽면
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
-    ctx.lineTo(p2.x, p2.y - WALL_HEIGHT); ctx.lineTo(p1.x, p1.y - WALL_HEIGHT);
+    ctx.lineTo(p2.x, p2.y - wh); ctx.lineTo(p1.x, p1.y - wh);
     ctx.closePath();
     ctx.fillStyle = currentWallHex();
     ctx.fill();
@@ -865,9 +1038,9 @@ function drawWestWallSegment(x, y) {
 
     // 벽 상단 두께 캡
     ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y - WALL_HEIGHT); ctx.lineTo(p2.x, p2.y - WALL_HEIGHT);
-    ctx.lineTo(p2.x - WALL_DEPTH, p2.y - WALL_HEIGHT - WALL_DEPTH / 2);
-    ctx.lineTo(p1.x - WALL_DEPTH, p1.y - WALL_HEIGHT - WALL_DEPTH / 2);
+    ctx.moveTo(p1.x, p1.y - wh); ctx.lineTo(p2.x, p2.y - wh);
+    ctx.lineTo(p2.x - WALL_DEPTH, p2.y - wh - WALL_DEPTH / 2);
+    ctx.lineTo(p1.x - WALL_DEPTH, p1.y - wh - WALL_DEPTH / 2);
     ctx.closePath();
     ctx.fillStyle = shadeHex(currentWallHex(), 1.28);
     ctx.fill();
@@ -878,63 +1051,69 @@ function drawRoom() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false; // 레트로 픽셀 유지
 
-    // (1) 바닥 타일 — heightmap의 바닥('0')과 문 타일만 그림
+    // (1) 바닥 타일 — [단차] 타일을 자기 높이만큼 올려 그리고,
+    //     이웃과의 높이 차만큼 옆면(=단/계단)을 세운다. 뒤→앞 순서로 그려야 겹침이 맞는다.
     const room = currentRoom;
+    const PLATFORM_HEIGHT = 8; // 방 바깥 가장자리의 기본 바닥 두께
+
+    const tiles = [];
     for (let y = 0; y < room.h; y++) {
         for (let x = 0; x < room.w; x++) {
-            if (!room.floor[y][x]) continue;
-            const screen = gridToScreen(x, y, 0);
+            if (room.floor[y][x]) tiles.push({ x, y, h: floorHeight(x, y) });
+        }
+    }
+    tiles.sort((a, b) => (a.x + a.y) - (b.x + b.y)); // 뒤 → 앞
+
+    for (const t of tiles) {
+        const s = gridToScreen(t.x, t.y, t.h);
+        const N = { x: s.x, y: s.y };
+        const E = { x: s.x + HALF_WIDTH, y: s.y + HALF_HEIGHT };
+        const S = { x: s.x, y: s.y + TILE_HEIGHT };
+        const W = { x: s.x - HALF_WIDTH, y: s.y + HALF_HEIGHT };
+
+        // 윗면
+        ctx.beginPath();
+        ctx.moveTo(N.x, N.y); ctx.lineTo(E.x, E.y); ctx.lineTo(S.x, S.y); ctx.lineTo(W.x, W.y);
+        ctx.closePath();
+        ctx.fillStyle = (t.x + t.y) % 2 === 0 ? currentFloorHex() : shadeHex(currentFloorHex(), 0.94);
+        ctx.fill();
+        ctx.strokeStyle = shadeHex(currentFloorHex(), 0.8);
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // 옆면(남동): 이웃이 없으면 기본 두께, 있으면 높이 차만큼
+        const seNb = isFloorTile(t.x + 1, t.y);
+        const seDrop = seNb ? (t.h - floorHeight(t.x + 1, t.y)) * Z_SCALE : PLATFORM_HEIGHT;
+        if (seDrop > 0) {
             ctx.beginPath();
-            ctx.moveTo(screen.x, screen.y);
-            ctx.lineTo(screen.x + HALF_WIDTH, screen.y + HALF_HEIGHT);
-            ctx.lineTo(screen.x, screen.y + TILE_HEIGHT);
-            ctx.lineTo(screen.x - HALF_WIDTH, screen.y + HALF_HEIGHT);
+            ctx.moveTo(E.x, E.y); ctx.lineTo(S.x, S.y);
+            ctx.lineTo(S.x, S.y + seDrop); ctx.lineTo(E.x, E.y + seDrop);
             ctx.closePath();
-            ctx.fillStyle = (x + y) % 2 === 0 ? currentFloorHex() : shadeHex(currentFloorHex(), 0.94);
+            ctx.fillStyle = shadeHex(currentFloorHex(), 0.7);
             ctx.fill();
-            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.8);
-            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.5);
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        // 옆면(남서)
+        const swNb = isFloorTile(t.x, t.y + 1);
+        const swDrop = swNb ? (t.h - floorHeight(t.x, t.y + 1)) * Z_SCALE : PLATFORM_HEIGHT;
+        if (swDrop > 0) {
+            ctx.beginPath();
+            ctx.moveTo(W.x, W.y); ctx.lineTo(S.x, S.y);
+            ctx.lineTo(S.x, S.y + swDrop); ctx.lineTo(W.x, W.y + swDrop);
+            ctx.closePath();
+            ctx.fillStyle = shadeHex(currentFloorHex(), 0.58);
+            ctx.fill();
+            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.5);
+            ctx.lineWidth = 1;
             ctx.stroke();
         }
     }
 
-    // (1-1) 바닥 단상 옆면 — 바닥의 남동/남서쪽 가장자리마다 두께를 그림
-    const PLATFORM_HEIGHT = 8;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = shadeHex(currentFloorHex(), 0.5);
-    for (let y = 0; y < room.h; y++) {
-        for (let x = 0; x < room.w; x++) {
-            if (!room.floor[y][x]) continue;
-            const s = gridToScreen(x, y, 0);
-            const N = { x: s.x, y: s.y };
-            const E = { x: s.x + HALF_WIDTH, y: s.y + HALF_HEIGHT };
-            const S = { x: s.x, y: s.y + TILE_HEIGHT };
-            const W = { x: s.x - HALF_WIDTH, y: s.y + HALF_HEIGHT };
-
-            // 남동쪽(오른쪽 아래)에 바닥 없음 → 옆면
-            if (!isFloorTile(x + 1, y)) {
-                ctx.beginPath();
-                ctx.moveTo(E.x, E.y); ctx.lineTo(S.x, S.y);
-                ctx.lineTo(S.x, S.y + PLATFORM_HEIGHT); ctx.lineTo(E.x, E.y + PLATFORM_HEIGHT);
-                ctx.closePath();
-                ctx.fillStyle = shadeHex(currentFloorHex(), 0.7);
-                ctx.fill(); ctx.stroke();
-            }
-            // 남서쪽(왼쪽 아래)에 바닥 없음 → 옆면 (더 어두운 그림자 톤)
-            if (!isFloorTile(x, y + 1)) {
-                ctx.beginPath();
-                ctx.moveTo(W.x, W.y); ctx.lineTo(S.x, S.y);
-                ctx.lineTo(S.x, S.y + PLATFORM_HEIGHT); ctx.lineTo(W.x, W.y + PLATFORM_HEIGHT);
-                ctx.closePath();
-                ctx.fillStyle = shadeHex(currentFloorHex(), 0.58);
-                ctx.fill(); ctx.stroke();
-            }
-        }
-    }
 
     // (1-2) 벽면 — Habbo 방식: 각 행의 첫 바닥 타일 서쪽에, 각 열의 첫 바닥 타일 북쪽에 벽.
     // 방 모양이 계단식이면 벽도 따라 꺾임 (model_b, model_f 등)
-    const WALL_HEIGHT = 120;
     const WALL_DEPTH = 6;
     const DOOR_HEIGHT = 90;
 
@@ -975,12 +1154,13 @@ function drawRoom() {
         const my = room.colMinY[x];
         if (my === undefined) continue;
 
+        const wh = WALL_HEIGHT + floorHeight(x, my) * Z_SCALE; // [단차]
         const p1 = gridToScreen(x, my, 0);
         const p2 = gridToScreen(x + 1, my, 0);
 
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
-        ctx.lineTo(p2.x, p2.y - WALL_HEIGHT); ctx.lineTo(p1.x, p1.y - WALL_HEIGHT);
+        ctx.lineTo(p2.x, p2.y - wh); ctx.lineTo(p1.x, p1.y - wh);
         ctx.closePath();
         ctx.fillStyle = shadeHex(currentWallHex(), 0.82);
         ctx.fill();
@@ -993,12 +1173,17 @@ function drawRoom() {
         ctx.fill();
 
         ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y - WALL_HEIGHT); ctx.lineTo(p2.x, p2.y - WALL_HEIGHT);
-        ctx.lineTo(p2.x + WALL_DEPTH, p2.y - WALL_HEIGHT - WALL_DEPTH / 2);
-        ctx.lineTo(p1.x + WALL_DEPTH, p1.y - WALL_HEIGHT - WALL_DEPTH / 2);
+        ctx.moveTo(p1.x, p1.y - wh); ctx.lineTo(p2.x, p2.y - wh);
+        ctx.lineTo(p2.x + WALL_DEPTH, p2.y - wh - WALL_DEPTH / 2);
+        ctx.lineTo(p1.x + WALL_DEPTH, p1.y - wh - WALL_DEPTH / 2);
         ctx.closePath();
         ctx.fillStyle = shadeHex(currentWallHex(), 1.12);
         ctx.fill();
+    }
+
+    // (1-3) [실험] 벽 부착 아이템 — 벽 바로 위에, 바닥 가구보다 뒤에 그린다
+    if (state.wallItems && state.wallItems.length) {
+        state.wallItems.forEach(drawWallItem);
     }
 
     // (2) 렌더 큐 구성 (가구 + 아바타를 깊이 순으로)
@@ -1055,8 +1240,28 @@ function drawRoom() {
         }
     }
 
+    // (3-0) [실험] 벽 아이템 배치 중 — 붙일 수 있는 벽 칸을 초록으로 표시 (바닥 가이드 대신)
+    if (state.mode === 'placing' && state.placementItem && state.placementItem.wall) {
+        const paint = (side, idx) => {
+            const q = wallSegmentQuad(side, idx);
+            if (!q) return;
+            const taken = !!wallItemAt(side, idx);
+            ctx.beginPath();
+            ctx.moveTo(q[0].x, q[0].y);
+            for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y);
+            ctx.closePath();
+            ctx.fillStyle = taken ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)';
+            ctx.fill();
+            ctx.strokeStyle = taken ? '#ef4444' : '#10b981';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        };
+        for (let y = 0; y < room.h; y++) if (room.rowMinX[y] !== undefined) paint('w', y);
+        for (let x = 0; x < room.w; x++) if (room.colMinY[x] !== undefined) paint('n', x);
+    }
+
     // (3) 배치 모드 가이드 — 가구 footprint 전체를 초록(가능)/빨강(불가)으로 표시
-    if ((state.mode === 'placing' || state.mode === 'moving') && state.placementItem) {
+    else if ((state.mode === 'placing' || state.mode === 'moving') && state.placementItem) {
         const x = state.placementX;
         const y = state.placementY;
         const cn = state.placementItem.classname;
@@ -1065,7 +1270,7 @@ function drawRoom() {
 
         for (const t of footprintTiles({ classname: cn, x, y, rot: state.placementRot })) {
             if (!isFloorTile(t.x, t.y)) continue;
-            const screen = gridToScreen(t.x, t.y, 0);
+            const screen = gridToScreen(t.x, t.y, floorHeight(t.x, t.y)); // [단차]
             ctx.beginPath();
             ctx.moveTo(screen.x, screen.y);
             ctx.lineTo(screen.x + HALF_WIDTH, screen.y + HALF_HEIGHT);
@@ -1141,10 +1346,11 @@ function drawRoom() {
 
 // 해당 칸을 밟았을 때의 높이 (러그 위 등)
 function tileHeight(x, y) {
+    const base = floorHeight(x, y); // [단차] 바닥 자체의 높이
     const item = itemAt(x, y);
-    if (!item) return 0;
+    if (!item) return base;
     const model = getModel(item.classname);
-    return (model && model.walkable) ? 0.02 : 0;
+    return base + ((model && model.walkable) ? 0.02 : 0);
 }
 
 function drawFurniture(item, model, isGhost) {
@@ -1418,7 +1624,17 @@ canvas.addEventListener('click', function (e) {
         if (clickedItem) {
             // 친구집에서는 구경 카드(이름·가격·⭐담기)만 열림
             selectPlacedItem(clickedItem);
-        } else if (inBounds && isDoorTile(grid.x, grid.y) && !state.visiting) {
+            return;
+        }
+
+        // [실험] 벽에 붙은 아이템 클릭 → 선택 (바닥 가구가 안 잡혔을 때만)
+        {
+            const seg = wallSegmentAt(e.clientX, e.clientY);
+            const wi = seg && wallItemAt(seg.side, seg.idx);
+            if (wi) { selectWallItem(wi); return; }
+        }
+
+        if (inBounds && isDoorTile(grid.x, grid.y) && !state.visiting) {
             // 입구(문)를 누르면 그쪽으로 걸어가 도착 시 '나갈까요?' — 이미 문에 서 있으면 바로 물어봄
             closeFurnitureControlPanel();
             if (state.avatar.x === grid.x && state.avatar.y === grid.y) {
@@ -1431,6 +1647,25 @@ canvas.addEventListener('click', function (e) {
             closeFurnitureControlPanel();
             walkToward(grid.x, grid.y);
         }
+        return;
+    }
+
+    // [실험] 벽 아이템 배치 — 바닥 칸이 아니라 '벽 칸'을 클릭해서 붙인다
+    if (state.mode === 'placing' && state.placementItem && state.placementItem.wall) {
+        const seg = wallSegmentAt(e.clientX, e.clientY);
+        if (!seg) return;                              // 벽이 아닌 곳 → 무시
+        if (wallItemAt(seg.side, seg.idx)) {
+            alert('이 벽 칸에는 이미 뭔가 붙어 있어요. 다른 칸을 골라 보세요!');
+            return;
+        }
+        const cn = state.placementItem.classname;
+        const bagIdx = state.inventory.indexOf(cn);
+        if (bagIdx !== -1) state.inventory.splice(bagIdx, 1);
+        state.wallItems.push({ id: Date.now(), classname: cn, side: seg.side, idx: seg.idx });
+        loadFurni(cn);
+        finishPlacement();
+        saveGame();
+        updateUI();
         return;
     }
 
@@ -1622,8 +1857,32 @@ useBtn.addEventListener('click', () => {
     saveGame();
 });
 
+// [실험] 벽에 붙은 아이템 선택 — 돌리기·옮기기·앉기 없이 '가방에 넣기'만
+function selectWallItem(item) {
+    state.selectedPlacedItem = null;
+    state.selectedWallItem = item;
+    const model = getModel(item.classname);
+    if (!model) return;
+    const visiting = !!state.visiting;
+
+    document.getElementById('selected-furni-name').innerText = model.name;
+    document.getElementById('selected-furni-desc').innerText = visiting
+        ? `상점 가격 ${model.cost}${window.HousingData?.mode === 'online' ? ' DJ코인' : ' 크레딧'}`
+        : model.desc;
+    setFurniIcon(document.getElementById('selected-furni-preview'), item.classname);
+
+    ['action-sit', 'action-lay', 'action-use', 'action-buy-trial', 'action-rotate', 'action-move', 'action-func', 'action-fav']
+        .forEach(id => document.getElementById(id).classList.add('hidden'));
+    const pickup = document.getElementById('action-pickup');
+    pickup.classList.toggle('hidden', visiting);
+    pickup.innerText = '🎒 가방에 넣기';
+
+    controlPanel.classList.remove('hidden');
+}
+
 function closeFurnitureControlPanel() {
     state.selectedPlacedItem = null;
+    state.selectedWallItem = null;
     controlPanel.classList.add('hidden');
 }
 document.getElementById('close-panel-btn').addEventListener('click', closeFurnitureControlPanel);
@@ -1663,6 +1922,16 @@ document.getElementById('action-move').addEventListener('click', () => {
 });
 
 document.getElementById('action-pickup').addEventListener('click', () => {
+    // [실험] 벽 아이템 회수
+    if (state.selectedWallItem) {
+        const w = state.selectedWallItem;
+        state.wallItems = state.wallItems.filter(i => i.id !== w.id);
+        state.inventory.push(w.classname);
+        closeFurnitureControlPanel();
+        saveGame();
+        updateUI();
+        return;
+    }
     if (!state.selectedPlacedItem) return;
     const item = state.selectedPlacedItem;
 
@@ -2948,6 +3217,31 @@ document.getElementById('action-fav').addEventListener('click', () => {
 // ===== 명예의 전당 (하보식 랭킹 홀) =====
 const HALL_BASE_LOOK = { gender: 'M', skin: 1, hd: 180, hr: 100, ha: 0, haColor: 61, ea: 0, fa: 0, cc: 0, ccColor: 64, ca: 0, wa: 0, ch: 225, chColor: 82, lg: 270, lgColor: 64, sh: 290, shColor: 61 };
 
+// [실험] 카페 데모 방 — 레퍼런스(하보 카페) 재현 테스트.
+// 저장하지 않고(state.demoMode), 학생 방 문서/데이터를 전혀 건드리지 않는다.
+function enterDemoRoom(modelName, roomName, decor, wallDecor) {
+    state.demoMode = true;
+    state.roomName = roomName;
+    applyRoomModel(modelName);
+    state.placedItems = decor.filter(d => getModel(d.classname)).map((d, i) => ({
+        id: 95000 + i,
+        classname: d.classname,
+        x: d.x, y: d.y,
+        // [단차] z를 안 주면 그 칸의 바닥 높이 위에 놓는다
+        z: (d.z !== undefined) ? d.z : floorHeight(d.x, d.y),
+        rot: d.rot || 0,
+        state: d.state
+    }));
+    state.wallItems = (wallDecor || []).map((w, i) => ({
+        id: 96000 + i, classname: w.classname, side: w.side, idx: w.idx
+    }));
+    refreshAvatarFigure();
+    state.placedItems.forEach(i => loadFurni(i.classname));
+    state.wallItems.forEach(i => loadFurni(i.classname));
+    updateUI();
+    requestAnimationFrame(drawRoom);
+}
+
 function hideHallEditUI() {
     ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-sim', 'btn-visit', 'btn-guestbook', 'btn-go-home', 'btn-myinfo', 'btn-guide', 'btn-reset', 'btn-info-screen'].forEach(id => {
         const el = document.getElementById(id); if (el) el.style.display = 'none';
@@ -3094,6 +3388,11 @@ function closeHallDrop() {
         await enterRankingHall();
         return;
     }
+
+    // [실험] 데모 방 (?demo=cafe|lobby): 레퍼런스 재현 테스트. 저장 안 함 — 학생 방 데이터와 무관
+    const demo = new URLSearchParams(location.search).get('demo');
+    if (demo === 'cafe') { enterDemoRoom('model_cafe', '카페 (실험)', CAFE_DECOR, CAFE_WALL); return; }
+    if (demo === 'lobby') { enterDemoRoom('model_lobby', '로비 (실험)', LOBBY_DECOR, LOBBY_WALL); return; }
 
     // 기본 방: 방 기록이 없는 신규 학생은 기본 가구가 놓인 방으로 시작 (기존 방은 그대로 둠)
     const _online = window.HousingData?.mode === 'online';
