@@ -759,6 +759,48 @@ ROOM_MODELS.model_cafe = {
     ].join("|")
 };
 
+// ===== [실험] 단차 데모 방 (?demo=lobby) — 맵 문자 0~9 = 타일 높이 =====
+// 가운데 낮은 광장(0), 계단(1), 양옆 단 올라간 라운지(2). 레퍼런스 로비의 층진 바닥 테스트.
+ROOM_MODELS.model_lobby = {
+    hidden: true,
+    label: "로비 (실험)", door: { x: 1, y: 7, dir: 2 },
+    map: [
+        "xxxxxxxxxxxxxxxx",
+        "xx222211111122xx",
+        "xx222211111122xx",
+        "xx222211111122xx",
+        "xx111111111111xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx111111111111xx",
+        "xx222222222222xx",
+        "xx222222222222xx",
+        "xxxxxxxxxxxxxxxx"
+    ].join("|")
+};
+
+const LOBBY_DECOR = [
+    { classname: 'throne',          x: 7,  y: 1 },
+    { classname: 'pillar',          x: 3,  y: 1 },
+    { classname: 'pillar',          x: 12, y: 1 },
+    { classname: 'rare_fountain',   x: 7,  y: 7 },
+    { classname: 'carpet_standard', x: 6,  y: 5 },
+    { classname: 'club_sofa',       x: 3,  y: 11 },
+    { classname: 'club_sofa',       x: 11, y: 11 },
+    { classname: 'plant_yukka',     x: 2,  y: 11 },
+    { classname: 'plant_yukka',     x: 13, y: 11 },
+    { classname: 'anc_comfy_tree',  x: 2,  y: 1 },
+    { classname: 'anc_comfy_tree',  x: 13, y: 1 }
+];
+const LOBBY_WALL = [
+    { classname: 'attic15_window', side: 'n', idx: 5 },
+    { classname: 'attic15_window', side: 'n', idx: 9 },
+    { classname: 'noticeboard',    side: 'w', idx: 8 }
+];
+
 // [실험] 카페 데모 — 벽 부착 아이템. side: 'w'=서쪽(왼쪽) 벽, 'n'=북쪽(오른쪽) 벽
 // idx: 'w'면 행 y, 'n'이면 열 x
 const CAFE_WALL = [
