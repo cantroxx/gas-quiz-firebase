@@ -1348,6 +1348,13 @@ canvas.addEventListener('click', function (e) {
             return;
         }
 
+        // 내 방에서 내 캐릭터(선 자리)를 누르면 바로 아바타 꾸미기 (접근성)
+        if (!state.visiting && state.avatar.x === grid.x && state.avatar.y === grid.y) {
+            closeFurnitureControlPanel();
+            openAvatarEditor();
+            return;
+        }
+
         const clickedItem = itemAt(grid.x, grid.y);
 
         if (clickedItem) {
@@ -2101,6 +2108,18 @@ const AVATAR_TABS = [
     { key: 'sh', label: '👟 신발' }
 ];
 
+// 기본 아바타 look (초기값과 동일) — '기본으로 되돌리기'에서 사용
+const DEFAULT_AVATAR_LOOK = { skin: 1, hd: 180, hr: 100, ha: 0, haColor: 61, ea: 0, fa: 0, cc: 0, ccColor: 64, ca: 0, wa: 0, ch: 225, chColor: 82, lg: 270, lgColor: 64, sh: 290, shColor: 61 };
+
+document.getElementById('avatar-reset').addEventListener('click', () => {
+    if (!confirm('아바타를 기본 모습으로 되돌릴까요?\n옷·머리·색이 처음으로 돌아가요. (성별은 그대로예요.)')) return;
+    const gender = state.avatar.look.gender;
+    state.avatar.look = { ...DEFAULT_AVATAR_LOOK, gender }; // 성별은 유지
+    refreshAvatarFigure();
+    renderAvatarEditor();
+    saveGame();
+});
+
 // 아바타 편집기 열기 (성별 게이트 진입·내 정보 카드의 '꾸미기'에서 공용 호출)
 function openAvatarEditor() {
     nameInput.value = state.playerName;
@@ -2565,7 +2584,7 @@ function setupSocialUI() {
 
     if (state.visiting) {
         // 친구집: 편집 관련 버튼 전부 숨기고 구경 전용으로
-        ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-reset', 'btn-myinfo'].forEach(id => {
+        ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-reset', 'btn-myinfo', 'btn-info-screen'].forEach(id => {
             document.getElementById(id).style.display = 'none';
         });
         document.querySelector('.avatar-profile-circle').style.display = 'none';
@@ -2870,7 +2889,7 @@ document.getElementById('action-fav').addEventListener('click', () => {
 const HALL_BASE_LOOK = { gender: 'M', skin: 1, hd: 180, hr: 100, ha: 0, haColor: 61, ea: 0, fa: 0, cc: 0, ccColor: 64, ca: 0, wa: 0, ch: 225, chColor: 82, lg: 270, lgColor: 64, sh: 290, shColor: 61 };
 
 function hideHallEditUI() {
-    ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-sim', 'btn-visit', 'btn-guestbook', 'btn-go-home', 'btn-myinfo', 'btn-guide', 'btn-reset'].forEach(id => {
+    ['btn-catalog', 'btn-inventory', 'btn-room', 'btn-sim', 'btn-visit', 'btn-guestbook', 'btn-go-home', 'btn-myinfo', 'btn-guide', 'btn-reset', 'btn-info-screen'].forEach(id => {
         const el = document.getElementById(id); if (el) el.style.display = 'none';
     });
     const av = document.querySelector('.avatar-profile-circle'); if (av) av.style.display = 'none';

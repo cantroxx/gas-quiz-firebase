@@ -1282,6 +1282,21 @@ body, html {
 #profile-detail-link { background: rgba(255, 255, 255, 0.1); }
 #profile-detail-link:hover { background: rgba(255, 255, 255, 0.18); }
 
+/* 아바타 편집기 — 기본으로 되돌리기 버튼 */
+.avatar-reset-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 9px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.avatar-reset-btn:hover { background: rgba(248, 113, 113, 0.15); border-color: rgba(248, 113, 113, 0.5); color: #fff; }
+
 /* 설정 모달 */
 .modal-body.settings-body { display: block; padding: 22px; overflow-y: auto; }
 .home-style-label { font-size: 15px; color: #dbe4f0; margin-bottom: 12px; text-align: center; }

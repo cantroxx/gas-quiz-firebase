@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -28,6 +28,7 @@
                 <span class="value" id="room-name-label">나의 첫 번째 방</span>
             </div>
             <button id="btn-reset" class="reset-btn" title="방을 처음 상태로 되돌립니다">처음부터</button>
+            <a id="btn-info-screen" class="town-btn" href="/?view=home" title="내 랭킹·칭호·뱃지 전체 화면">📋 정보 화면</a>
             <a id="btn-town" class="town-btn" href="/" title="퀴즈타운 메인으로 돌아갑니다">🏘️ 퀴즈타운</a>
         </div>
 
@@ -193,6 +194,7 @@
                         <label for="player-name-input">이름</label>
                         <input type="text" id="player-name-input" maxlength="10" placeholder="이름 (10글자까지)" autocomplete="off">
                         <small id="name-sync-hint" class="hidden">퀴즈타운 닉네임과 자동으로 연동돼요</small>
+                        <button id="avatar-reset" class="avatar-reset-btn">↩️ 기본 아바타로 되돌리기</button>
                     </div>
                     <div class="avatar-edit-pane">
                         <div id="gender-gate" class="hidden">
@@ -299,7 +301,6 @@
                         <button id="profile-open-badges" class="profile-detail-btn">🎖️ 뱃지</button>
                     </div>
                     <div class="profile-info-actions">
-                        <a id="profile-detail-link" class="profile-action-btn" href="/?view=home">📋 정보 화면 보기</a>
                         <button id="profile-open-settings" class="profile-action-btn secondary">⚙️ 설정</button>
                     </div>
                 </div>
@@ -455,6 +456,6 @@
     <script src="assets-loader.js?v=2"></script>
     <script src="housing-data.js?v=9"></script>
     <script src="housing-catalog.js?v=5"></script>
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=21"></script>
 </body>
 </html>
