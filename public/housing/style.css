@@ -377,7 +377,7 @@ body, html {
 /* 가구 조작 패널 */
 #furniture-control-panel {
     position: absolute;
-    right: 16px;
+    left: 16px;              /* 오른쪽 세로 독과 겹치지 않게 왼쪽으로 */
     top: 76px;
     width: 260px;
     background: rgba(15, 23, 42, 0.88);
