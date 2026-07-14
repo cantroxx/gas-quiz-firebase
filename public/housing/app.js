@@ -428,6 +428,9 @@ function drawFurniLayer(item, fd, layerKey, isGhost) {
     if (isGhost) ctx.globalAlpha = 0.5;
     if (item.trial && !isGhost && layerKey !== 'sd') ctx.globalAlpha = 0.55; // 배치 테스트품은 반투명
     if (layerKey === 'sd') ctx.globalAlpha = (isGhost ? 0.15 : 0.3); // 그림자는 반투명
+    // 가산합성(ink:ADD) 레이어 = 불꽃·발광 등 → 검은 사각형 대신 빛으로 합성
+    const layerProps = (layerKey !== 'sd') ? (fd.def.visualization.layers && fd.def.visualization.layers[layerIdx]) : null;
+    if (layerProps && layerProps.ink === 'ADD') ctx.globalCompositeOperation = 'lighter';
     if (!isGhost && state.selectedPlacedItem && state.selectedPlacedItem.id === item.id && layerKey !== 'sd') {
         ctx.shadowColor = '#38bdf8';
         ctx.shadowBlur = 12;
@@ -1107,6 +1110,18 @@ function tileHeight(x, y) {
 
 function drawFurniture(item, model, isGhost) {
     if (!model) return;
+
+    // 진짜 고해상도 스프라이트가 준비됐으면 그것으로 그린다 (아이콘 확대 대신 → 훨씬 선명).
+    // 그림자(sd) + 레이어 a~를 순서대로 쌓는다. 배치 미리보기와 같은 렌더 경로라 위치가 일치함.
+    const fd = furniReady(item.classname);
+    if (fd) {
+        drawFurniLayer(item, fd, 'sd', isGhost);
+        const lc = (fd.def.visualization && fd.def.visualization.layerCount) || 1;
+        for (let i = 0; i < lc; i++) drawFurniLayer(item, fd, String.fromCharCode(97 + i), isGhost);
+        return;
+    }
+
+    // 폴백: 아직 스프라이트 로딩 전이면 아이콘을 확대해 임시로 그린다 (로딩되면 위 경로로 교체됨)
     const screen = gridToScreen(item.x, item.y, 0);
 
     if (!isGhost) {
@@ -2894,6 +2909,8 @@ function hideHallEditUI() {
     });
     const av = document.querySelector('.avatar-profile-circle'); if (av) av.style.display = 'none';
     const chat = document.querySelector('.center-chat'); if (chat) chat.style.display = 'none';
+    const dock = document.getElementById('side-dock'); if (dock) dock.style.display = 'none';       // 빈 독 상자 숨김
+    const botbar = document.getElementById('bottom-navigation-bar'); if (botbar) botbar.style.display = 'none';
     const coupon = document.getElementById('coupon-box'); if (coupon) coupon.style.display = 'none';
     const credits = document.querySelector('#top-status-bar .status-box'); if (credits) credits.style.display = 'none';
     const roomNameBox = document.getElementById('room-name-box'); if (roomNameBox) roomNameBox.style.cursor = 'default';
@@ -2905,7 +2922,7 @@ async function enterRankingHall() {
     state.hallMode = true;
     state.roomModel = 'model_hall';
     state.wallTheme = 3; state.floorTheme = 1;
-    state.placedItems = HALL_DECOR.filter(d => getModel(d.classname)).map((d, i) => ({ id: 90000 + i, classname: d.classname, x: d.x, y: d.y, z: 0, rot: d.rot || 0 }));
+    state.placedItems = HALL_DECOR.filter(d => getModel(d.classname)).map((d, i) => ({ id: 90000 + i, classname: d.classname, x: d.x, y: d.y, z: 0, rot: d.rot || 0, state: d.state }));
     state.inventory = [];
     hideHallEditUI();
     refreshAvatarFigure();          // 내 아바타(걸어다님)

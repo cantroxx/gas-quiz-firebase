@@ -18,7 +18,7 @@ const zlib = require('node:zlib');
 const crypto = require('node:crypto');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const BUNDLE_VERSION = 3;
+const BUNDLE_VERSION = 4;
 const OUT_DIR = path.join(ROOT, 'private', 'housing-assets');
 const DEV_DIR = path.join(ROOT, 'public', 'housing', 'dev-assets');
 

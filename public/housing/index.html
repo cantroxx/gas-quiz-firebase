@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 방 꾸미기</title>
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -60,57 +60,47 @@
             </div>
         </div>
 
-        <!-- 하단 바 -->
-        <div id="bottom-navigation-bar">
-            <div class="left-actions">
-                <button id="btn-catalog" class="nav-btn">
-                    <span class="emoji">🛒</span>
-                    <span>상점</span>
-                </button>
-                <button id="btn-inventory" class="nav-btn">
-                    <span class="emoji">🎒</span>
-                    <span>가방 (<span id="inventory-count">0</span>)</span>
-                </button>
-                <button id="btn-room" class="nav-btn">
-                    <span class="emoji">🏠</span>
-                    <span>방 모양</span>
-                </button>
-                <button id="btn-sim" class="nav-btn" style="display:none">
-                    <span class="emoji">🧪</span>
-                    <span>연습</span>
-                </button>
-                <button id="btn-visit" class="nav-btn" style="display:none">
-                    <span class="emoji">🚪</span>
-                    <span>친구집</span>
-                </button>
-                <button id="btn-guestbook" class="nav-btn" style="display:none">
-                    <span class="emoji">📖</span>
-                    <span>방명록</span>
-                </button>
-                <button id="btn-go-home" class="nav-btn" style="display:none">
-                    <span class="emoji">🏠</span>
-                    <span>내 방으로</span>
-                </button>
-                <button id="btn-myinfo" class="nav-btn">
-                    <span class="emoji">📋</span>
-                    <span>내 정보</span>
-                </button>
-                <button id="btn-guide" class="nav-btn">
-                    <span class="emoji">❓</span>
-                    <span>가이드</span>
-                </button>
+        <!-- 오른쪽 세로 독: 아바타(옷 갈아입기) + 기능 버튼 (하단 가로바 폭 초과로 잘리는 문제 해결) -->
+        <div id="side-dock">
+            <div class="avatar-profile-circle" id="btn-profile" title="👕 옷 갈아입기">
+                <!-- 시작 시 refreshAvatarFigure()가 실제 아바타로 교체함 -->
+                <img src="" alt="나">
+                <span class="dock-avatar-label">옷 갈아입기</span>
             </div>
+            <button id="btn-catalog" class="nav-btn">
+                <span class="emoji">🛒</span><span>상점</span>
+            </button>
+            <button id="btn-inventory" class="nav-btn">
+                <span class="emoji">🎒</span><span>가방 (<span id="inventory-count">0</span>)</span>
+            </button>
+            <button id="btn-room" class="nav-btn">
+                <span class="emoji">🏠</span><span>방 모양</span>
+            </button>
+            <button id="btn-sim" class="nav-btn" style="display:none">
+                <span class="emoji">🧪</span><span>연습</span>
+            </button>
+            <button id="btn-visit" class="nav-btn" style="display:none">
+                <span class="emoji">🚪</span><span>친구집</span>
+            </button>
+            <button id="btn-guestbook" class="nav-btn" style="display:none">
+                <span class="emoji">📖</span><span>방명록</span>
+            </button>
+            <button id="btn-go-home" class="nav-btn" style="display:none">
+                <span class="emoji">🏠</span><span>내 방으로</span>
+            </button>
+            <button id="btn-myinfo" class="nav-btn">
+                <span class="emoji">📋</span><span>내 정보</span>
+            </button>
+            <button id="btn-guide" class="nav-btn">
+                <span class="emoji">❓</span><span>가이드</span>
+            </button>
+        </div>
 
+        <!-- 하단 바: 채팅만 -->
+        <div id="bottom-navigation-bar">
             <div class="center-chat">
                 <input type="text" id="chat-input" placeholder="하고 싶은 말을 쓰고 Enter!" autocomplete="off" maxlength="60">
                 <button id="chat-send-btn">말하기</button>
-            </div>
-
-            <div class="right-actions">
-                <div class="avatar-profile-circle" id="btn-profile" title="👕 옷 갈아입기">
-                    <!-- 시작 시 refreshAvatarFigure()가 실제 아바타로 교체함 -->
-                    <img src="" alt="나">
-                </div>
             </div>
         </div>
 
@@ -352,7 +342,7 @@
                         <h3 class="guide-quick-title">🎮 이것만 알면 돼요!</h3>
                         <div class="gq-item"><span class="gq-emoji">🚶</span><p><b>바닥</b>을 누르면 내 캐릭터가 걸어가요.</p></div>
                         <div class="gq-item"><span class="gq-emoji">🛒</span><p><b>상점</b>에서 DJ코인으로 가구를 사서 방을 꾸며요.</p></div>
-                        <div class="gq-item"><span class="gq-emoji">👕</span><p>오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 옷을 갈아입어요.</p></div>
+                        <div class="gq-item"><span class="gq-emoji">👕</span><p>오른쪽 <b>옷 갈아입기</b> 단추(내 얼굴 동그라미)를 누르면 옷을 갈아입어요.</p></div>
                         <div class="gq-item"><span class="gq-emoji">🏘️</span><p>위쪽 <b>퀴즈타운</b> 버튼이나 방 <b>입구(문)</b>로 가면 나가요.</p></div>
                     </div>
                     <details class="guide-more">
@@ -368,7 +358,7 @@
                     <section>
                         <h3>👤 내 정보 · 아바타 · 설정</h3>
                         <ul>
-                            <li><b>👕 옷 갈아입기</b>: 오른쪽 아래 <b>내 캐릭터(동그라미)</b>를 누르면 꾸미기 화면이 열려요.</li>
+                            <li><b>👕 옷 갈아입기</b>: 오른쪽 세로줄 맨 위 <b>옷 갈아입기</b> 단추를 누르면 꾸미기 화면이 열려요.</li>
                             <li><b>📋 내 정보</b>(하단 버튼): 대표 칭호·레벨·DJ코인과 <b>🏆 랭킹·🏅 칭호·🎖️ 뱃지</b>를 방 안에서 봐요. <b>정보 화면 보기</b>로 전체 화면도 열어요.</li>
                             <li><b>⚙️ 설정</b>(내 정보 카드 안): 타운에서 '내 집'을 누르면 <b>내 방</b>과 <b>정보 화면</b> 중 어디로 갈지 고를 수 있어요.</li>
                         </ul>
@@ -453,9 +443,9 @@
     <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
-    <script src="assets-loader.js?v=3"></script>
+    <script src="assets-loader.js?v=4"></script>
     <script src="housing-data.js?v=9"></script>
-    <script src="housing-catalog.js?v=8"></script>
-    <script src="app.js?v=21"></script>
+    <script src="housing-catalog.js?v=10"></script>
+    <script src="app.js?v=24"></script>
 </body>
 </html>

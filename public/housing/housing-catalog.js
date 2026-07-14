@@ -262,7 +262,12 @@ CATALOG_ITEMS.push(
     { classname: "anc_trophy_marble",   name: "대리석 기념비",   category: "rare", cost: 400, desc: "명예의 전당에 어울리는 웅장한 대리석 기념비!", scale: 0.85, offsetY: 12 },
     { classname: "anc_trophy_obsidian", name: "흑요석 기념비",   category: "rare", cost: 350, desc: "묵직하고 멋진 흑요석 기념비.",           scale: 0.85, offsetY: 12 },
     { classname: "anc_trophy_sstone",   name: "사암 기념비",     category: "rare", cost: 300, desc: "따뜻한 색의 사암 기념비.",              scale: 0.85, offsetY: 12 },
-    { classname: "classic5_stage",      name: "시상대",          category: "rare", cost: 250, desc: "위에 올라서서 뽐낼 수 있는 시상대.",    walkable: true, scale: 1.0, offsetY: 6 }
+    { classname: "classic5_stage",      name: "시상대",          category: "rare", cost: 250, desc: "위에 올라서서 뽐낼 수 있는 시상대.",    walkable: true, scale: 1.0, offsetY: 6 },
+
+    // ---- 신전 장식 (2026-07-14 추가: 명예의 전당용) ----
+    { classname: "pillar",     name: "대리석 기둥", category: "rare", cost: 200, desc: "신전 느낌을 내는 웅장한 대리석 기둥.", scale: 1.4, offsetY: 12 },
+    { classname: "statue",     name: "여신상",      category: "rare", cost: 280, desc: "받침대 위에 선 멋진 여신 조각상.",     scale: 1.2, offsetY: 12 },
+    { classname: "tiki_torch", name: "횃불",        category: "rare", cost: 90,  desc: "활활 타오르는 횃불. 신전을 밝혀요.",  scale: 1.1, offsetY: 12 }
 );
 
 CATALOG_ITEMS.forEach(item => {
@@ -310,7 +315,8 @@ const FURNI_DIMS = {
     table_polyfon_small: [2, 2, 1.0], table_silo_small: [1, 1, 1.0], throne: [1, 1, 1.0],
     toy1: [1, 1, 0.0], toy2: [1, 1, 0.0], tv_luxus: [1, 3, 1.0],
     typingmachine: [1, 1, 0.0], wcandleset: [1, 1, 0.0], wood_tv: [1, 2, 1.9],
-    anc_trophy_marble: [1, 1, 1.0], anc_trophy_obsidian: [1, 1, 1.0], anc_trophy_sstone: [1, 1, 1.0], classic5_stage: [2, 2, 0.3]
+    anc_trophy_marble: [1, 1, 1.0], anc_trophy_obsidian: [1, 1, 1.0], anc_trophy_sstone: [1, 1, 1.0], classic5_stage: [2, 2, 0.3],
+    pillar: [1, 1, 3.5], statue: [1, 1, 0.4375], tiki_torch: [1, 1, 0.0]
 };
 
 // 2026-07-09 확장분(102종) — 신규 다운로드한 furni JSON에서 추출
@@ -579,8 +585,9 @@ const ROOM_MODELS = {
     },
     // 명예의 전당 전용 방 (구매 불가 — ?hall=1 모드에서만 사용). 바닥 x:2~15, y:1~14
     model_hall: {
-        label: "명예의 전당", door: { x: 1, y: 8, dir: 2 },
-        map: "xxxxxxxxxxxxxxxxx|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xx00000000000000x|xxxxxxxxxxxxxxxxx"
+        // 신전형 명예의 전당 — 사용 바닥 x:2~18, y:1~17 (17×17). 문은 왼쪽 가운데.
+        label: "명예의 전당", door: { x: 1, y: 9, dir: 2 },
+        map: "xxxxxxxxxxxxxxxxxxxx|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xx00000000000000000x|xxxxxxxxxxxxxxxxxxxx"
     }
 };
 
@@ -626,24 +633,40 @@ const STARTER_LAYOUT = [
 // ===== 명예의 전당(하보식 랭킹 홀) =====
 // 7명의 왕이 서는 자리(존). model_hall 바닥 좌표 기준(x:2~15, y:1~14).
 const HALL_ZONES = [
-    { rankId: 'quiz_king',     label: '퀴즈왕',   emoji: '👑', medal: '🏆', x: 8,  y: 4 },
-    { rankId: 'korean_king',   label: '국어왕',   emoji: '📚', medal: '🥇', x: 4,  y: 7 },
-    { rankId: 'math_king',     label: '수학왕',   emoji: '➗', medal: '🥇', x: 7,  y: 7 },
-    { rankId: 'social_king',   label: '사회왕',   emoji: '🏛️', medal: '🥇', x: 10, y: 7 },
-    { rankId: 'science_king',  label: '과학왕',   emoji: '🔬', medal: '🥇', x: 13, y: 7 },
-    { rankId: 'tiniping_king', label: '티니핑왕', emoji: '💗', medal: '🥇', x: 6,  y: 10 },
-    { rankId: 'pokemon_king',  label: '포켓몬왕', emoji: '⚡', medal: '🥇', x: 11, y: 10 }
+    { rankId: 'quiz_king',     label: '퀴즈왕',   emoji: '👑', medal: '🏆', x: 10, y: 3 },  // 챔피언(전체1위) 중앙 뒤
+    { rankId: 'korean_king',   label: '국어왕',   emoji: '📚', medal: '🥇', x: 5,  y: 7 },
+    { rankId: 'math_king',     label: '수학왕',   emoji: '➗', medal: '🥇', x: 10, y: 7 },
+    { rankId: 'social_king',   label: '사회왕',   emoji: '🏛️', medal: '🥇', x: 15, y: 7 },
+    { rankId: 'science_king',  label: '과학왕',   emoji: '🔬', medal: '🥇', x: 5,  y: 12 },
+    { rankId: 'tiniping_king', label: '티니핑왕', emoji: '💗', medal: '🥇', x: 10, y: 12 },
+    { rankId: 'pokemon_king',  label: '포켓몬왕', emoji: '⚡', medal: '🥇', x: 15, y: 12 }
 ];
 
-// 전당에 고정으로 놓는 장식 가구 (왕좌·분수·화분·레드카펫)
+// 전당에 고정으로 놓는 장식 가구 — 신전 분위기(기둥 열주·여신상·횃불·왕좌·중앙 레드카펫·분수)
 const HALL_DECOR = [
-    { classname: 'throne',          x: 8,  y: 2,  rot: 0 },  // 퀴즈왕 왕좌 (뒤)
-    { classname: 'carpet_standard', x: 7,  y: 3,  rot: 0 },  // 레드카펫
-    { classname: 'rare_fountain',   x: 8,  y: 12, rot: 0 },  // 중앙 분수
-    { classname: 'plant_yukka',     x: 2,  y: 1,  rot: 0 },  // 화분(좌)
-    { classname: 'plant_yukka',     x: 15, y: 1,  rot: 0 },  // 화분(우)
-    { classname: 'anc_trophy_marble',   x: 6,  y: 2,  rot: 0 },  // 왕좌 왼쪽 기념비
-    { classname: 'anc_trophy_obsidian', x: 10, y: 2,  rot: 0 }   // 왕좌 오른쪽 기념비
+    // 왕좌 + 좌우 여신상 (맨 뒤 중앙)
+    { classname: 'throne',          x: 10, y: 1,  rot: 0 },
+    { classname: 'statue',          x: 8,  y: 1,  rot: 0 },
+    { classname: 'statue',          x: 12, y: 1,  rot: 0 },
+    // 중앙 레드카펫 통로 (3×5 두 장)
+    { classname: 'carpet_standard', x: 9,  y: 2,  rot: 0 },
+    { classname: 'carpet_standard', x: 9,  y: 8,  rot: 0 },
+    // 좌우 기둥 열주 (신전 느낌)
+    { classname: 'pillar',          x: 3,  y: 2,  rot: 0 },
+    { classname: 'pillar',          x: 3,  y: 7,  rot: 0 },
+    { classname: 'pillar',          x: 3,  y: 12, rot: 0 },
+    { classname: 'pillar',          x: 3,  y: 16, rot: 0 },
+    { classname: 'pillar',          x: 17, y: 2,  rot: 0 },
+    { classname: 'pillar',          x: 17, y: 7,  rot: 0 },
+    { classname: 'pillar',          x: 17, y: 12, rot: 0 },
+    { classname: 'pillar',          x: 17, y: 16, rot: 0 },
+    // 횃불 (통로 양옆)
+    { classname: 'tiki_torch',      x: 7,  y: 5,  rot: 0, state: 1 },
+    { classname: 'tiki_torch',      x: 13, y: 5,  rot: 0, state: 1 },
+    { classname: 'tiki_torch',      x: 7,  y: 10, rot: 0, state: 1 },
+    { classname: 'tiki_torch',      x: 13, y: 10, rot: 0, state: 1 },
+    // 중앙 분수 (앞쪽)
+    { classname: 'rare_fountain',   x: 10, y: 16, rot: 0 }
 ];
 
 // 아바타(look)가 없는 학생을 세울 때 쓰는 기본 아바타 figure
