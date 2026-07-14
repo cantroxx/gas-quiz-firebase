@@ -649,6 +649,44 @@ function itemAt(x, y) {
     return null;
 }
 
+// ── 픽셀(스프라이트) 클릭 판정 ──────────────────────────────────
+// 바닥 타일이 아니라 '실제로 그려진 가구 그림'을 눌러 선택할 수 있게 한다.
+// (키 큰 선반·침대의 몸통 아무 데나 눌러도 잡힘)
+// 한 레이어 스프라이트의 클릭 지점 픽셀이 불투명하면 true.
+function spriteAlphaHit(item, fd, layerKey, dir, px, py) {
+    const res = furniAssetForDir(fd, layerKey, dir, 0);
+    if (!res) return false;
+    const sprite = tintedFrame(fd, res.frameName, null); // 알파는 색과 무관 → 무색 프레임으로 검사
+    const s = gridToScreen(item.x, item.y, item.z || 0);
+    const ax = s.x;
+    const ay = s.y + FURNI_ANCHOR_DY;
+    // drawFurniLayer의 배치식을 그대로 역산 (flipH면 좌우 반전)
+    const lx = res.flipH ? ((ax + res.x) - px) : (px - (ax - res.x));
+    const ly = py - (ay - res.y);
+    if (lx < 0 || ly < 0 || lx >= sprite.width || ly >= sprite.height) return false;
+    try {
+        const alpha = sprite.getContext('2d').getImageData(Math.floor(lx), Math.floor(ly), 1, 1).data[3];
+        return alpha > 20; // 거의 투명한 가장자리는 무시
+    } catch (e) {
+        return true; // getImageData 불가 시 박스 판정으로 대체
+    }
+}
+
+// 클릭 지점에 그려진 가구 중 화면상 '가장 위'에 있는 것 (뷰어에 가까운 순으로 검사)
+function furniPixelAt(px, py) {
+    const items = state.placedItems.slice().sort((a, b) => furniDepthBase(b) - furniDepthBase(a));
+    for (const item of items) {
+        const fd = furniReady(item.classname);
+        if (!fd) continue; // 로딩 전 가구는 호출부에서 타일 판정으로 폴백
+        const dir = rotToDir(item.rot);
+        const lc = (fd.def.visualization && fd.def.visualization.layerCount) || 1;
+        for (let i = lc - 1; i >= 0; i--) {
+            if (spriteAlphaHit(item, fd, String.fromCharCode(97 + i), dir, px, py)) return item;
+        }
+    }
+    return null;
+}
+
 // 바닥이 없거나(void) 걸을 수 없는 가구가 덮고 있으면 true
 function isBlocked(x, y) {
     if (!isFloorTile(x, y)) return true;
@@ -1347,11 +1385,14 @@ function askLeaveToTown() {
 
 canvas.addEventListener('click', function (e) {
     const grid = screenToGrid(e.clientX, e.clientY);
-    if (grid.x < 0 || grid.x >= currentRoom.w || grid.y < 0 || grid.y >= currentRoom.h) return;
+    // 그리드는 '바닥면' 투영이라, 키 큰 가구 몸통을 누르면 방 밖 좌표가 나올 수 있다.
+    // → 경계 밖이라고 바로 끊지 말고, 아래에서 가구 픽셀 판정을 먼저 한다.
+    const inBounds = grid.x >= 0 && grid.x < currentRoom.w && grid.y >= 0 && grid.y < currentRoom.h;
 
     if (state.mode === 'normal') {
         // 명예의 전당: 왕(라벨 자리) 클릭 → 순위 팝업, 바닥 클릭 → 걷기, 가구는 만지지 않음
         if (state.hallMode) {
+            if (!inBounds) return;
             const w = state.hallWinners && state.hallWinners.find(win => win.x === grid.x && win.y === grid.y);
             if (w) { openHallDrop(w); return; }
             if (isDoorTile(grid.x, grid.y)) {
@@ -1364,18 +1405,19 @@ canvas.addEventListener('click', function (e) {
         }
 
         // 내 방에서 내 캐릭터(선 자리)를 누르면 바로 아바타 꾸미기 (접근성)
-        if (!state.visiting && state.avatar.x === grid.x && state.avatar.y === grid.y) {
+        if (!state.visiting && inBounds && state.avatar.x === grid.x && state.avatar.y === grid.y) {
             closeFurnitureControlPanel();
             openAvatarEditor();
             return;
         }
 
-        const clickedItem = itemAt(grid.x, grid.y);
+        // 그려진 가구 그림을 직접 눌러 선택(픽셀 판정, 경계 무관) → 안 잡히면 바닥 타일 판정으로 폴백
+        const clickedItem = furniPixelAt(e.clientX, e.clientY) || (inBounds ? itemAt(grid.x, grid.y) : null);
 
         if (clickedItem) {
             // 친구집에서는 구경 카드(이름·가격·⭐담기)만 열림
             selectPlacedItem(clickedItem);
-        } else if (isDoorTile(grid.x, grid.y) && !state.visiting) {
+        } else if (inBounds && isDoorTile(grid.x, grid.y) && !state.visiting) {
             // 입구(문)를 누르면 그쪽으로 걸어가 도착 시 '나갈까요?' — 이미 문에 서 있으면 바로 물어봄
             closeFurnitureControlPanel();
             if (state.avatar.x === grid.x && state.avatar.y === grid.y) {
@@ -1384,14 +1426,15 @@ canvas.addEventListener('click', function (e) {
                 walkToward(grid.x, grid.y);
                 state.avatar.pendingExit = true;
             }
-        } else if (isFloorTile(grid.x, grid.y)) {
+        } else if (inBounds && isFloorTile(grid.x, grid.y)) {
             closeFurnitureControlPanel();
             walkToward(grid.x, grid.y);
         }
         return;
     }
 
-    // 배치/이동 모드
+    // 배치/이동 모드 (방 안에서만)
+    if (!inBounds) return;
     if (state.mode === 'placing' || state.mode === 'moving') {
         // 이 가구의 footprint 전체가 놓일 수 있어야 함. 반환값 = 배치 높이 z (테이블 위면 그 높이)
         const cn = state.placementItem.classname;
