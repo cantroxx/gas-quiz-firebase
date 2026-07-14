@@ -1360,6 +1360,39 @@ kbd {
     color: #38bdf8;
 }
 
+/* 명예의 전당 — 순위 드롭 패널 (위에서 내려옴) */
+.hall-drop {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -110%);
+    width: min(360px, 92vw);
+    background: rgba(15, 23, 42, 0.95);
+    border: 2px solid #fbbf24;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    padding: 16px 18px 14px;
+    transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    opacity: 0;
+    pointer-events: none;
+}
+.hall-drop.open { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.hall-drop-close {
+    position: absolute; top: 8px; right: 12px;
+    background: none; border: none; color: #94a3b8; font-size: 22px; cursor: pointer;
+}
+.hall-drop-close:hover { color: #fff; }
+.hall-drop-title { font-size: 18px; font-weight: 800; color: #fbbf24; margin-bottom: 6px; }
+.hall-drop-king { font-size: 13px; color: #dbe4f0; margin-bottom: 10px; }
+.hall-drop-king b { color: #7dd3fc; }
+.hall-drop-empty { color: #94a3b8; text-align: center; padding: 14px 0; }
+.hall-drop-row { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.hall-drop-row .hd-rank { min-width: 34px; font-weight: 800; color: #fbbf24; }
+.hall-drop-row .hd-name { flex: 1; color: #fff; font-size: 14px; }
+.hall-drop-row .hd-score { color: #94a3b8; font-size: 13px; }
+
 /* 명예의 전당 — 왕 머리 위 라벨 */
 .hall-label {
     position: absolute;

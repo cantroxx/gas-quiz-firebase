@@ -72,6 +72,7 @@ let state = {
     favorites: [],        // 즐겨찾기 상품 ID 목록 (room_<cn> / room_paper_...) 최대 50개
     hallMode: false,      // 명예의 전당(?hall=1) 모드
     hallWinners: null,    // 전당의 7왕 [{x,y,figure,label,emoji,nickname,userId,top,dir}]
+    hallActiveKing: null, // 지금 순위가 드롭돼 있는 왕 rankId (클릭/접근 시)
 
     mode: 'normal',       // 'normal' | 'placing' | 'moving'
     placementItem: null,  // 배치 중인 가구 모델
@@ -1242,6 +1243,13 @@ function updateAvatar() {
                 }
                 avatar.pendingPose = null;
             }
+
+            // 명예의 전당: 왕 옆에 도착하면 그 분야 순위가 드롭, 멀어지면 닫힘
+            if (avatar.path.length === 0 && state.hallMode && state.hallWinners) {
+                const near = state.hallWinners.find(w => Math.max(Math.abs(w.x - avatar.x), Math.abs(w.y - avatar.y)) <= 1);
+                if (near) openHallDrop(near);
+                else if (state.hallActiveKing) closeHallDrop();
+            }
         } else {
             const next = avatar.path[0];
             if (next) {
@@ -1330,7 +1338,7 @@ canvas.addEventListener('click', function (e) {
         // 명예의 전당: 왕(라벨 자리) 클릭 → 순위 팝업, 바닥 클릭 → 걷기, 가구는 만지지 않음
         if (state.hallMode) {
             const w = state.hallWinners && state.hallWinners.find(win => win.x === grid.x && win.y === grid.y);
-            if (w) { openHallPopup(w); return; }
+            if (w) { openHallDrop(w); return; }
             if (isDoorTile(grid.x, grid.y)) {
                 if (state.avatar.x === grid.x && state.avatar.y === grid.y) askLeaveToTown();
                 else { walkToward(grid.x, grid.y); state.avatar.pendingExit = true; }
@@ -2891,6 +2899,7 @@ async function enterRankingHall() {
         };
     });
     createHallLabels();
+    createHallDrop();
     state.placedItems.forEach(i => loadFurni(i.classname));
     updateUI();
     requestAnimationFrame(drawRoom);
@@ -2904,7 +2913,7 @@ function createHallLabels() {
         const el = document.createElement('div');
         el.className = 'hall-label';
         el.innerHTML = `<div class="hall-label-cat">${w.medal} ${w.emoji} ${escapeHtml(w.label)}</div><div class="hall-label-name">${escapeHtml(w.nickname)}</div>`;
-        el.addEventListener('click', () => openHallPopup(w));
+        el.addEventListener('click', () => openHallDrop(w));
         host.appendChild(el);
         return el;
     });
@@ -2919,23 +2928,37 @@ function updateHallLabels() {
     });
 }
 
-function openHallPopup(w) {
-    const modal = document.getElementById('info-list-modal');
-    document.getElementById('info-list-title').innerText = `${w.emoji} ${w.label}`;
-    const box = document.getElementById('info-list-content');
+// 전당의 순위 '드롭' 패널 — 왕을 클릭하거나 왕에게 걸어가면 위에서 내려옴
+let hallDropEl = null;
+function createHallDrop() {
+    if (hallDropEl) hallDropEl.remove();
+    hallDropEl = document.createElement('div');
+    hallDropEl.className = 'hall-drop';
+    hallDropEl.innerHTML = '<button class="hall-drop-close">×</button><div class="hall-drop-body"></div>';
+    document.getElementById('hotel-viewport').appendChild(hallDropEl);
+    hallDropEl.querySelector('.hall-drop-close').addEventListener('click', closeHallDrop);
+}
+function openHallDrop(w) {
+    if (!hallDropEl || !w) return;
+    if (state.hallActiveKing === w.rankId && hallDropEl.classList.contains('open')) return; // 이미 열림
+    state.hallActiveKing = w.rankId;
+    const body = hallDropEl.querySelector('.hall-drop-body');
+    let html = `<div class="hall-drop-title">${w.emoji} ${escapeHtml(w.label)}</div>`;
     if (!w.top || !w.top.length) {
-        box.innerHTML = '<p class="info-list-empty">아직 이 분야 랭킹 기록이 없어요.</p>';
+        html += '<p class="hall-drop-empty">아직 이 분야 랭킹 기록이 없어요.</p>';
     } else {
-        box.innerHTML = `<p class="info-list-hint">${w.medal} <b>${escapeHtml(w.nickname)}</b> 왕! 이 분야 순위예요.</p>`;
+        html += `<p class="hall-drop-king">${w.medal} <b>${escapeHtml(w.nickname)}</b> 왕! 이 분야 순위예요.</p>`;
         w.top.forEach(r => {
-            const row = document.createElement('div');
-            row.className = 'info-rank-row';
             const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : `${r.rank}위`;
-            row.innerHTML = `<span class="info-rank-rank">${medal}</span><span class="info-rank-cat">${escapeHtml(r.nickname)}</span><span class="info-rank-score">${r.score != null ? r.score + '점' : ''}</span>`;
-            box.appendChild(row);
+            html += `<div class="hall-drop-row"><span class="hd-rank">${medal}</span><span class="hd-name">${escapeHtml(r.nickname)}</span><span class="hd-score">${r.score != null ? r.score + '점' : ''}</span></div>`;
         });
     }
-    modal.classList.remove('hidden');
+    body.innerHTML = html;
+    hallDropEl.classList.add('open');
+}
+function closeHallDrop() {
+    if (hallDropEl) hallDropEl.classList.remove('open');
+    state.hallActiveKing = null;
 }
 
 // 17. 시작!

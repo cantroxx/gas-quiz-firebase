@@ -194,6 +194,15 @@ h2 {
   filter: brightness(1.04);
 }
 
+/* 랭킹 광장 → 하보형 명예의 전당 진입 (기존 대시보드가 메인, 이건 체험용 별도 버튼) */
+.hall-of-fame-link {
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+  color: #3a2a05;
+  font-weight: 700;
+  border-bottom-color: rgba(120, 80, 0, 0.45);
+}
+.hall-of-fame-link:hover { filter: brightness(1.07); color: #3a2a05; }
+
 .button:active {
   transform: translateY(2px);
   border-bottom-width: 2px;
