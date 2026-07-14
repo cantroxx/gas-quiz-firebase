@@ -209,7 +209,8 @@ function applySavedData(data) {
     try {
         if (typeof data.playerName === 'string') state.playerName = data.playerName;
         if (typeof data.roomName === 'string') state.roomName = data.roomName.slice(0, 12);
-        if (typeof data.roomModel === 'string' && ROOM_MODELS[data.roomModel]) state.roomModel = data.roomModel;
+        // hidden(전당 등 전용 방)은 학생 방이 될 수 없음 — 저장값이 그래도 들어오면 무시
+        if (typeof data.roomModel === 'string' && ROOM_MODELS[data.roomModel] && !ROOM_MODELS[data.roomModel].hidden) state.roomModel = data.roomModel;
         if (typeof data.wallTheme === 'number' && WALL_THEMES[data.wallTheme]) state.wallTheme = data.wallTheme;
         if (typeof data.floorTheme === 'number' && FLOOR_THEMES[data.floorTheme]) state.floorTheme = data.floorTheme;
         if (data.look && typeof data.look === 'object') {
@@ -2594,6 +2595,7 @@ function renderRoomModelGrid() {
 
     Object.keys(ROOM_MODELS).forEach(modelName => {
         const def = ROOM_MODELS[modelName];
+        if (def.hidden) return; // 전당 등 전용 방은 학생 상점에 노출 안 함
         const unlocked = isModelUnlocked(modelName);
         const card = document.createElement('div');
         card.className = "room-model-card"
