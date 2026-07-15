@@ -1305,9 +1305,15 @@ function drawRoom() {
     if (avatar.path.length > 0) {
         const next = avatar.path[0];
         const nextZ = tileHeight(next.x, next.y);
-        ax = avatar.x + (next.x - avatar.x) * avatar.stepTimer;
-        ay = avatar.y + (next.y - avatar.y) * avatar.stepTimer;
-        az = avatar.z + (nextZ - avatar.z) * avatar.stepTimer;
+        const t = avatar.stepTimer;
+        ax = avatar.x + (next.x - avatar.x) * t;
+        ay = avatar.y + (next.y - avatar.y) * t;
+        // [단차] 높이는 x,y와 달리 '막판'에 바꾼다 → 계단 밑까지 평지로 걷다가 단 위로 올라서는 느낌.
+        // (선형으로 올리면 절벽 위 허공에 뜬 것처럼 보임)
+        const RISE_START = 0.55;
+        const zt = (nextZ === avatar.z) ? t
+                 : (t <= RISE_START ? 0 : (t - RISE_START) / (1 - RISE_START));
+        az = avatar.z + (nextZ - avatar.z) * zt;
     }
 
     // 앉아 있을 땐 그 좌석 가구 기준 깊이 + ε — 다칸 소파에서도 아바타가 좌석 위에 그려지게
