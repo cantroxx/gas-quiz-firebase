@@ -754,44 +754,49 @@ ROOM_MODELS.model_cafe = {
 
 // ===== [실험] 단차 데모 방 (?demo=lobby) — 맵 문자 0~9 = 타일 높이 =====
 // 가운데 낮은 광장(0), 계단(1), 양옆 단 올라간 라운지(2). 레퍼런스 로비의 층진 바닥 테스트.
+// 가운데가 한 단 움푹 들어간 광장(0층) + 둘러싼 높은 라운지(1층). 문으로 들어와 광장으로 내려감.
 ROOM_MODELS.model_lobby = {
     hidden: true,
-    label: "로비 (실험)", door: { x: 1, y: 7, dir: 2 },
+    label: "로비 (실험)", door: { x: 1, y: 6, dir: 2 },
     map: [
         "xxxxxxxxxxxxxxxx",
-        "xx222211111122xx",
-        "xx222211111122xx",
-        "xx222211111122xx",
         "xx111111111111xx",
-        "xx000000000000xx",
-        "xx000000000000xx",
-        "xx000000000000xx",
-        "xx000000000000xx",
-        "xx000000000000xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
+        "xx110000000011xx",
         "xx111111111111xx",
-        "xx222222222222xx",
-        "xx222222222222xx",
         "xxxxxxxxxxxxxxxx"
     ].join("|")
 };
 
 const LOBBY_DECOR = [
-    { classname: 'throne',          x: 7,  y: 1 },
-    { classname: 'pillar',          x: 3,  y: 1 },
-    { classname: 'pillar',          x: 12, y: 1 },
-    { classname: 'rare_fountain',   x: 7,  y: 7 },
-    { classname: 'carpet_standard', x: 6,  y: 5 },
-    { classname: 'club_sofa',       x: 3,  y: 11 },
-    { classname: 'club_sofa',       x: 11, y: 11 },
-    { classname: 'plant_yukka',     x: 2,  y: 11 },
-    { classname: 'plant_yukka',     x: 13, y: 11 },
-    { classname: 'anc_comfy_tree',  x: 2,  y: 1 },
-    { classname: 'anc_comfy_tree',  x: 13, y: 1 }
+    // 뒤쪽 높은 라운지(1층): 왕좌 + 기둥 + 나무
+    { classname: 'throne',         x: 7,  y: 1 },
+    { classname: 'pillar',         x: 4,  y: 1 },
+    { classname: 'pillar',         x: 11, y: 1 },
+    { classname: 'anc_comfy_tree', x: 2,  y: 1 },
+    { classname: 'anc_comfy_tree', x: 13, y: 1 },
+    // 양옆 높은 라운지에 소파
+    { classname: 'club_sofa',      x: 2,  y: 4 },
+    { classname: 'club_sofa',      x: 2,  y: 7 },
+    { classname: 'club_sofa',      x: 13, y: 4, rot: 2 },
+    { classname: 'club_sofa',      x: 13, y: 7, rot: 2 },
+    // 앞쪽 높은 라운지에 화분
+    { classname: 'plant_yukka',    x: 3,  y: 10 },
+    { classname: 'plant_yukka',    x: 12, y: 10 },
+    // 움푹 들어간 광장(0층): 레드카펫 + 분수
+    { classname: 'carpet_standard', x: 5, y: 4 },
+    { classname: 'rare_fountain',   x: 7, y: 6 }
 ];
 const LOBBY_WALL = [
     { classname: 'room_hall15_window', side: 'n', idx: 5 },
     { classname: 'room_hall15_window', side: 'n', idx: 9 },
-    { classname: 'noticeboard',    side: 'w', idx: 8 }
+    { classname: 'noticeboard',        side: 'w', idx: 5 }
 ];
 
 // [실험] 카페 데모 — 벽 부착 아이템. side: 'w'=서쪽(왼쪽) 벽, 'n'=북쪽(오른쪽) 벽
