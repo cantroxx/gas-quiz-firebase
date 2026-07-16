@@ -746,6 +746,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── 특산물 마블 (1:1 무역 대전) — 낱말대전과 동일한 v1 방식 ──────
+    // 방 상태 전체(공유 게임판·시장)를 한 문서에 담고 트랜잭션으로 진행한다.
+    // 숨김 정보가 없어 secret/hands 하위 문서는 쓰지 않는다.
+    match /marbleRooms/{code} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();   // v1: 참가·진행을 클라이언트 트랜잭션으로 처리
+      allow delete: if false;                    // 방 삭제는 콘솔에서만
+    }
+
+    // 특산물 마블 랭크 점수 기록 (각자 자기 문서만 씀 — v1: 클라이언트 신뢰)
+    match /marbleRanking/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
