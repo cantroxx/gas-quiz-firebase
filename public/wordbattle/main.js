@@ -18,6 +18,8 @@
       if (isLocal && global.firebase && global.firebase.apps && global.firebase.apps.length) {
         global.firebase.firestore().useEmulator('localhost', 8181);
         global.firebase.auth().useEmulator('http://localhost:9191', { disableWarnings: true });
+        // 뽑기 서버 함수(wbDraw)도 에뮬레이터로
+        try { global.firebase.app().functions('asia-northeast3').useEmulator('localhost', 5001); } catch (e) {}
         // 테스트용: 탭마다 다른 익명 계정이 되도록 로그인 유지를 끈다(로컬 전용).
         try { global.firebase.auth().setPersistence(global.firebase.auth.Auth.Persistence.NONE); } catch (e) {}
         console.log('[낱말대전] Firebase 에뮬레이터에 연결됨 (로컬 테스트)');

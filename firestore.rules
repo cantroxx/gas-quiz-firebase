@@ -730,10 +730,10 @@ service cloud.firestore {
       allow delete: if false;                    // 방 삭제는 콘솔에서만
 
       match /secret/{doc} {
-        // 뽑기(draw)·시간초과는 클라이언트 트랜잭션에서 남은 봉지를 읽어야 하므로 로그인 시 읽기 허용.
-        // (초4 학급용 v1: 클라이언트 신뢰. 정석은 뽑기를 Cloud Function으로 옮겨 서버만 봉지를 읽는 것)
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
+        // 남은 봉지는 미리 못 봄(공정성). 뽑기·시간초과는 서버 함수 wbDraw가
+        // Admin SDK(규칙 무시)로 처리하므로 클라이언트 읽기는 완전 차단.
+        allow read: if false;
+        allow write: if isSignedIn();   // 게임 시작 시 방장이 봉지를 만들어 저장
       }
       match /hands/{uid} {
         allow read: if isSignedIn() && request.auth.uid == uid;  // 본인 손패만 읽기

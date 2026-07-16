@@ -3,11 +3,13 @@
 > 이 문서는 원래 "적용 전 제안" 메모였고, 현재는 `firestore.rules` 에 **반영·배포된 상태**다.
 > 실제 규칙은 `../../firestore.rules` 의 `wordbattleRooms` / `wordbattleRanking` 블록을 보라.
 >
-> **변경점(중요)**: 아래 제안에서 `secret/{doc}` 을 `read: if false` 로 두었으나,
-> 뽑기(draw)·시간초과가 **클라이언트 트랜잭션에서 남은 봉지를 직접 읽어야** 해서
-> `Missing or insufficient permissions` 오류가 났다. → 실제 규칙에서는
-> `allow read: if isSignedIn()` 로 완화했다(v1 클라이언트 신뢰). 정석은 뽑기를
-> Cloud Function으로 옮겨 서버만 봉지를 읽는 것(다음 단계 TODO).
+> **변경 이력(중요)**:
+> 1. 처음엔 아래 제안대로 `secret/{doc}` 을 `read: if false` 로 배포했으나, 당시 뽑기가
+>    **클라이언트 트랜잭션에서 봉지를 직접 읽는 구조**라 `Missing or insufficient permissions`
+>    오류가 났다 → 임시로 `isSignedIn()` 으로 완화했었다.
+> 2. 이후 **뽑기·시간초과를 서버 함수 `wbDraw`(functions/index.js)로 이전**하면서
+>    `read: if false` 로 되돌렸다(서버 Admin SDK만 봉지를 읽음 — 공정성 확보, 현재 상태).
+>    오래된 방 정리도 스케줄 함수 `wbCleanupOldRooms` 가 매일 자동 수행한다.
 
 아래는 기록용 원본 제안이다(과거 시점).
 (기존 학생 데이터 컬렉션은 건드리지 않고, `wordbattleRooms` 컬렉션만 새로 엽니다.)

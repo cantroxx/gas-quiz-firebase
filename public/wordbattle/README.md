@@ -123,7 +123,9 @@ gameScore = 만든 낱말 수 ×10  +  낸 자모 수 ×2  −  힌트 ×3  − 
 공통 인터페이스: `getRoom() / viewerId() / currentHand() / isMyTurn() / onChange(cb) / start() / commit(words) / draw(kind) / propose(text) / agree() / useHint() / leave(surrender) / recordRank()`.
 → `ui.js`는 어떤 모드인지 몰라도 이 인터페이스만 보고 동일하게 그린다.
 
-**동시성 안전(온라인)**: 모든 액션은 `runTransaction` 안에서 `room` 문서를 읽어 `WBRoom.리듀서`를 적용하고 다시 쓴다. 봉지를 안 읽는 액션(낱말 내기)에선 `poolC/poolV`를 원래 값으로 보존해 0으로 덮이는 것을 막는다.
+**동시성 안전(온라인)**: 낱말 내기·제안·동의 등은 클라이언트 `runTransaction` 안에서 `room` 문서를 읽어 `WBRoom.리듀서`를 적용하고 다시 쓴다. 이때 `poolC/poolV`는 원래 값으로 보존해 0으로 덮이는 것을 막는다.
+
+**뽑기·시간초과는 서버 함수(`wbDraw`)가 처리**: 남은 봉지(`secret/deck`)는 규칙이 `read: false`로 완전 차단돼 있고, `functions/index.js`의 `wbDraw` callable(리전 asia-northeast3)이 Admin SDK로만 읽는다 → 학생이 개발자도구로 남은 타일을 훔쳐볼 수 없다. `net.js`의 `OnlineNet.draw/timeout`이 이 함수를 호출한다. 오래된 방 정리는 스케줄 함수 `wbCleanupOldRooms`(매일 04:00 KST, 6시간 지난 방을 하위 문서까지 삭제)가 맡는다.
 
 ---
 

@@ -84,8 +84,21 @@
   // ── 온라인 모드 (Firestore) ───────────────────────────────
   // 문서 구조:
   //   wordbattleRooms/{code}                → 공개 방 상태(room)
-  //   wordbattleRooms/{code}/secret/deck    → 남은 봉지(bag)  ※교실용 v1: 규칙으로 접근 제한
+  //   wordbattleRooms/{code}/secret/deck    → 남은 봉지(bag)  ※규칙 read:false — 서버 함수만 읽음
   //   wordbattleRooms/{code}/hands/{uid}    → 각자 손패 (본인만 읽기)
+  // 뽑기·시간초과는 봉지를 읽어야 해서 서버 함수(wbDraw)가 처리한다(공정성: 봉지 훔쳐보기 방지).
+  const FN_REGION = 'asia-northeast3';
+  function callWbDraw(data) {
+    try {
+      const fns = global.firebase.app().functions(FN_REGION);
+      return fns.httpsCallable('wbDraw')(data)
+        .then(function (res) { return (res && res.data) || { ok: true }; })
+        .catch(function (e) { return { ok: false, error: e.message || '뽑기에 실패했어요.' }; });
+    } catch (e) {
+      return Promise.resolve({ ok: false, error: '뽑기 서버에 연결하지 못했어요. 새로고침 해보세요.' });
+    }
+  }
+
   function OnlineNet(opts) {
     const db = opts.db;
     const FieldValue = opts.FieldValue;
@@ -168,11 +181,11 @@
         }).catch(function (e) { return e.appResult || { ok: false, error: e.message }; });
       },
       commit: function (words) { return runAction(function (g) { return R.commitTurn(g, me, { words: words }); }, false); },
-      draw: function (kind) { return runAction(function (g) { return R.draw(g, me, { kind: kind }); }, true); },
+      draw: function (kind) { return callWbDraw({ code: code, action: 'draw', kind: kind }); },
       propose: function (text) { return runAction(function (g) { return R.propose(g, me, { text: text }); }, false); },
       agree: function () { return runAction(function (g) { return R.agree(g, me); }, false); },
       cancelProposal: function () { return runAction(function (g) { return R.cancelProposal(g, me); }, false); },
-      timeout: function () { return runAction(function (g) { return R.timeout(g, me); }, true); },
+      timeout: function () { return callWbDraw({ code: code, action: 'timeout' }); },
       requestPause: function () { return runAction(function (g) { return R.requestPause(g, me); }, false); },
       agreePause: function () { return runAction(function (g) { return R.agreePause(g, me); }, false); },
       cancelPause: function () { return runAction(function (g) { return R.cancelPause(g, me); }, false); },

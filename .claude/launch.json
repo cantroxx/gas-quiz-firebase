@@ -6,6 +6,12 @@
       "runtimeExecutable": "firebase",
       "runtimeArgs": ["emulators:start", "--only", "hosting"],
       "port": 5000
+    },
+    {
+      "name": "emulators-full",
+      "runtimeExecutable": "firebase",
+      "runtimeArgs": ["emulators:start", "--only", "hosting,firestore,auth,functions"],
+      "port": 5313
     }
   ]
 }

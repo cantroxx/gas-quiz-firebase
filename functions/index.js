@@ -10157,3 +10157,115 @@ exports.setSelectedMemberTitle = onCall({ region: REGION }, async request => {
     ...result
   };
 });
+
+// ─────────────────────────────────────────────────────────────
+// 낱말 대전 (public/wordbattle/) 서버 로직
+//  - wbDraw: 타일 뽑기·시간초과를 서버에서 처리. 남은 봉지(secret/deck)는
+//    보안 규칙에서 read:false 로 막고, Admin SDK(규칙 무시)로만 읽는다 → 학생이
+//    개발자도구로 남은 타일을 훔쳐볼 수 없음(공정성).
+//  - wbCleanupOldRooms: 매일 새벽, 만든 지 오래된 방 문서를 하위(secret/hands)까지 정리.
+// 진행 규칙 상수는 클라이언트 room.js 와 같은 값을 쓴다.
+// ─────────────────────────────────────────────────────────────
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+
+const WB_TURN_MS = 120000;                       // 한 턴 최대 2분 (room.js TURN_MS와 동일)
+const WB_CLEANUP_AGE_MS = 6 * 60 * 60 * 1000;    // 6시간 지난 방 정리 (일시정지 50분+게임시간 여유)
+
+function wbLog(room, msg) {
+  room.log = Array.isArray(room.log) ? room.log : [];
+  room.log.push(msg);
+  if (room.log.length > 30) room.log.shift();
+}
+
+// room.js nextTurn 과 동일: 다음 '살아있는' 플레이어로 턴을 넘기고 타이머를 새로 건다.
+function wbNextTurn(room) {
+  const n = room.players.length;
+  let i = room.players.findIndex(p => p.id === room.turn);
+  for (let k = 0; k < n; k++) {
+    i = (i + 1) % n;
+    if (!room.players[i].out) {
+      room.turn = room.players[i].id;
+      room.turnEndsAt = Date.now() + WB_TURN_MS;
+      return;
+    }
+  }
+}
+
+exports.wbDraw = onCall({ region: REGION }, async request => {
+  const uid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const code = String(payload.code || "").trim();
+  const action = payload.action === "timeout" ? "timeout" : "draw";
+  if (!code) throw new HttpsError("invalid-argument", "방 번호가 없어요.");
+
+  const roomRef = db.collection("wordbattleRooms").doc(code);
+  const deckRef = roomRef.collection("secret").doc("deck");
+  const handRef = roomRef.collection("hands").doc(uid);
+
+  return db.runTransaction(async tx => {
+    const [roomSnap, deckSnap, handSnap] = await Promise.all([
+      tx.get(roomRef), tx.get(deckRef), tx.get(handRef)
+    ]);
+    if (!roomSnap.exists) throw new HttpsError("not-found", "방이 없어졌어요.");
+    const room = roomSnap.data();
+    if (room.status !== "playing") throw new HttpsError("failed-precondition", "게임 중이 아니에요.");
+    if (room.paused) throw new HttpsError("failed-precondition", "일시정지 중이에요.");
+    if (room.turn !== uid) throw new HttpsError("failed-precondition", "아직 내 차례가 아니에요.");
+    const me = (room.players || []).find(p => p.id === uid);
+    if (!me || me.out) throw new HttpsError("failed-precondition", "참가자가 아니에요.");
+
+    const bag = (deckSnap.exists && deckSnap.data().bag) || { consonants: [], vowels: [] };
+    bag.consonants = Array.isArray(bag.consonants) ? bag.consonants : [];
+    bag.vowels = Array.isArray(bag.vowels) ? bag.vowels : [];
+    const tiles = (handSnap.exists && handSnap.data().tiles) || [];
+
+    let tile = null;
+    if (action === "draw") {
+      const kind = payload.kind === "C" ? "C" : "V";
+      const pile = kind === "C" ? bag.consonants : bag.vowels;
+      if (!pile.length) {
+        throw new HttpsError("failed-precondition", (kind === "C" ? "자음" : "모음") + " 봉지가 비었어요.");
+      }
+      tile = pile.pop();
+      wbLog(room, me.name + " 님이 " + (kind === "C" ? "자음" : "모음") + " 타일을 뽑았어요.");
+    } else {
+      // 시간초과: 진짜로 시간이 지났는지 서버가 확인(조작 방지, 시계 오차 2초 허용)
+      if (room.turnEndsAt && Date.now() < room.turnEndsAt - 2000) {
+        throw new HttpsError("failed-precondition", "아직 시간이 남았어요.");
+      }
+      const kind = bag.consonants.length >= bag.vowels.length ? "C" : "V";
+      tile = (kind === "C" ? bag.consonants : bag.vowels).pop()
+          || (kind === "C" ? bag.vowels : bag.consonants).pop()
+          || null;
+      room.proposal = null;
+      wbLog(room, "⏰ " + me.name + " 님 시간 초과! 타일 한 장 받고 넘어가요.");
+    }
+    if (tile) tiles.push(tile);
+
+    me.handCount = tiles.length;
+    room.poolC = bag.consonants.length;
+    room.poolV = bag.vowels.length;
+    wbNextTurn(room);
+    const next = (room.players || []).find(p => p.id === room.turn);
+    if (next) wbLog(room, "다음 차례: " + next.name + " 님");
+
+    tx.set(roomRef, room);
+    tx.set(deckRef, { bag });
+    tx.set(handRef, { tiles });
+    return { ok: true };
+  });
+});
+
+// 매일 새벽 4시(한국): 만든 지 6시간 넘은 방을 하위 문서(secret/hands)까지 삭제
+exports.wbCleanupOldRooms = onSchedule(
+  { region: REGION, schedule: "0 4 * * *", timeZone: "Asia/Seoul" },
+  async () => {
+    const cutoff = Date.now() - WB_CLEANUP_AGE_MS;
+    const snap = await db.collection("wordbattleRooms")
+      .where("createdAt", "<", cutoff).limit(200).get();
+    for (const doc of snap.docs) {
+      await db.recursiveDelete(doc.ref);
+    }
+    console.log(`wbCleanupOldRooms: ${snap.size}개 방 정리 완료`);
+  }
+);
