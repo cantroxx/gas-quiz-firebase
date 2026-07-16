@@ -1,7 +1,15 @@
-# 낱말 대전 — Firestore 보안 규칙 제안 (⚠️ 아직 적용 안 함)
+# 낱말 대전 — Firestore 보안 규칙 (✅ 적용·배포 완료)
 
-온라인 대전을 켜려면 `firestore.rules` 에 아래 규칙을 **추가**해야 합니다.
-운영 DB의 안전 규칙 변경이므로, **내용 확인 후** 선생님이 승인하면 그때 반영·배포합니다.
+> 이 문서는 원래 "적용 전 제안" 메모였고, 현재는 `firestore.rules` 에 **반영·배포된 상태**다.
+> 실제 규칙은 `../../firestore.rules` 의 `wordbattleRooms` / `wordbattleRanking` 블록을 보라.
+>
+> **변경점(중요)**: 아래 제안에서 `secret/{doc}` 을 `read: if false` 로 두었으나,
+> 뽑기(draw)·시간초과가 **클라이언트 트랜잭션에서 남은 봉지를 직접 읽어야** 해서
+> `Missing or insufficient permissions` 오류가 났다. → 실제 규칙에서는
+> `allow read: if isSignedIn()` 로 완화했다(v1 클라이언트 신뢰). 정석은 뽑기를
+> Cloud Function으로 옮겨 서버만 봉지를 읽는 것(다음 단계 TODO).
+
+아래는 기록용 원본 제안이다(과거 시점).
 (기존 학생 데이터 컬렉션은 건드리지 않고, `wordbattleRooms` 컬렉션만 새로 엽니다.)
 
 ## 추가할 규칙
