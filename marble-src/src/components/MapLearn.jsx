@@ -196,56 +196,71 @@ function ProductDetail({ product, onPick }) {
   )
 }
 
-// ── 퀴즈 모드 ──────────────────────────────────
+// ── 퀴즈 모드 (점수 없음 · 2단계 학습형) ─────────
+//  1단계: "감자는 어느 지역?" → 전국 지도에서 지역 클릭
+//  2단계: 맞으면 그 지역으로 확대 → "강원 어디?" → 고장 이름 핀(정선·인제…) 클릭
+//  틀려도 감점 없이 다시 시도. (지도 대체(SVG) 상황에선 1단계만)
 function QuizMode({ mapFailed, onMapFail }) {
   const [questions, setQuestions] = useState(() => shuffle(ALL_PRODUCT_IDS).slice(0, 10))
   const [index, setIndex] = useState(0)
-  const [score, setScore] = useState(0)
-  const [feedback, setFeedback] = useState(null) // { region, correct }
-  const [locked, setLocked] = useState(false) // 정답 맞힌 뒤 잠깐 잠금
+  const [stage, setStage] = useState(1) // 1=지역 찾기, 2=고장 찾기
+  const [feedback, setFeedback] = useState(null) // 1단계 {region,correct} / 2단계 {origin,correct}
+  const [locked, setLocked] = useState(false)
   const [showLabels, setShowLabels] = useState(true)
 
   const finished = index >= questions.length
   const currentId = questions[index]
   const product = currentId ? PRODUCTS[currentId] : null
 
-  function handleClick(regionKey) {
-    if (locked || finished) return
+  function nextQuestion() {
+    setFeedback(null)
+    setLocked(false)
+    setStage(1)
+    setIndex((i) => i + 1)
+  }
+
+  // 1단계: 지역 클릭
+  function handleRegionClick(regionKey) {
+    if (locked || finished || stage !== 1) return
     const correct = product.region === regionKey
     setFeedback({ region: regionKey, correct })
     if (correct) {
-      setScore((s) => s + 1)
       setLocked(true)
       setTimeout(() => {
         setFeedback(null)
         setLocked(false)
-        setIndex((i) => i + 1)
-      }, 1000)
+        if (mapFailed) nextQuestion() // SVG 대체 지도는 확대가 안 돼 1단계까지만
+        else setStage(2)
+      }, 900)
+    }
+  }
+
+  // 2단계: 고장 이름 클릭
+  function handleOriginClick(origin) {
+    if (locked || finished || stage !== 2) return
+    const correct = product.origin === origin
+    setFeedback({ origin, correct })
+    if (correct) {
+      setLocked(true)
+      setTimeout(nextQuestion, 1400)
     }
   }
 
   function restart() {
     setQuestions(shuffle(ALL_PRODUCT_IDS).slice(0, 10))
     setIndex(0)
-    setScore(0)
+    setStage(1)
     setFeedback(null)
     setLocked(false)
   }
 
   if (finished) {
-    const total = questions.length
     return (
       <div className="panel" style={{ textAlign: 'center' }}>
         <h2>🎉 퀴즈 끝!</h2>
-        <div className="grade" style={{ fontSize: 72 }}>
-          {score} / {total}
-        </div>
+        <div className="grade" style={{ fontSize: 72 }}>👏</div>
         <p style={{ fontSize: 20 }}>
-          {score === total
-            ? '완벽해요! 특산물 박사님 👑'
-            : score >= total * 0.7
-              ? '잘했어요! 조금만 더 💪'
-              : '다시 도전해 볼까요? 🙂'}
+          우리나라 특산물이 <b>어느 지역, 어느 고장</b>에서 나는지 알아봤어요!
         </p>
         <button className="btn btn-primary" onClick={restart}>
           🔄 다시 풀기
@@ -257,16 +272,27 @@ function QuizMode({ mapFailed, onMapFail }) {
   return (
     <div className="map-layout">
       <div className="panel map-panel">
-        <RegionMap
-          mapFailed={mapFailed}
-          onMapFail={onMapFail}
-          onRegionClick={handleClick}
-          feedback={feedback}
-          showLabels={showLabels}
-          clickableOnlyProducts
-        />
-        {/* '지역 이름 보기'는 SVG 지도일 때만 의미가 있어요(지도 핀은 항상 이름 표시) */}
-        {mapFailed && (
+        {stage === 1 ? (
+          <RegionMap
+            mapFailed={mapFailed}
+            onMapFail={onMapFail}
+            onRegionClick={handleRegionClick}
+            feedback={feedback}
+            showLabels={showLabels}
+            clickableOnlyProducts
+          />
+        ) : (
+          <RegionMap
+            key={`origin-${product.region}-${index}`}
+            mapFailed={mapFailed}
+            onMapFail={onMapFail}
+            markerMode="origin"
+            focusRegion={product.region}
+            onRegionClick={handleOriginClick}
+            feedback={feedback}
+          />
+        )}
+        {stage === 1 && mapFailed && (
           <label className="label-toggle">
             <input
               type="checkbox"
@@ -279,25 +305,37 @@ function QuizMode({ mapFailed, onMapFail }) {
       </div>
 
       <div className="panel">
-        <div className="quiz-progress">
-          문제 {index + 1} / {questions.length} · 점수 {score}
-        </div>
+        <div className="quiz-progress">문제 {index + 1} / {questions.length}</div>
         <div className="event-box">
           <div className="event-title" style={{ fontSize: 48 }}>
             {product.emoji}
           </div>
-          <div className="event-text" style={{ fontSize: 20 }}>
-            <b>{product.name}</b> 은(는) 어느 지역의 특산물일까요?
-            <br />
-            지도에서 찾아 눌러 보세요!
-          </div>
+          {stage === 1 ? (
+            <div className="event-text" style={{ fontSize: 20 }}>
+              <b>{product.name}</b> 은(는) 어느 <b>지역</b>의 특산물일까요?
+              <br />
+              지도에서 찾아 눌러 보세요!
+            </div>
+          ) : (
+            <div className="event-text" style={{ fontSize: 20 }}>
+              🎯 맞아요, <b>{product.region}</b>! 그럼 {product.region}의{' '}
+              <b>어느 고장</b>에서 유명할까요?
+              <br />
+              고장 이름 핀을 눌러 보세요!
+            </div>
+          )}
         </div>
 
         {feedback && !feedback.correct && (
           <p className="quiz-feedback wrong">❌ 아쉬워요. 다시 한 번 눌러 보세요!</p>
         )}
-        {feedback && feedback.correct && (
+        {feedback && feedback.correct && stage === 1 && (
           <p className="quiz-feedback right">🎯 정답! {product.region} 특산물이에요.</p>
+        )}
+        {feedback && feedback.correct && stage === 2 && (
+          <p className="quiz-feedback right">
+            🌟 완벽해요! {product.name}은(는) <b>{product.region} {product.origin}</b>!
+          </p>
         )}
       </div>
     </div>

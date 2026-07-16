@@ -8,12 +8,15 @@ import {
   rollDice,
   RANK_WIN,
   RANK_LOSE,
+  BOT_RANK_WIN,
+  BOT_RANK_LOSE,
+  TURN_LIMIT_MS,
   TURNS_PER_PLAYER,
 } from '../battleLogic.js'
 import { CONFIG } from '../data.js'
 import BattleBoard from './BattleBoard.jsx'
 import BattleActionPanel from './BattleActionPanel.jsx'
-import { firebaseReady, prepare, createRoom, joinRoom, listRooms, OnlineSession } from '../online.js'
+import { firebaseReady, prepare, createRoom, joinRoom, listRooms, OnlineSession, recordRankPoints } from '../online.js'
 
 export default function Battle() {
   const [config, setConfig] = useState(null) // null=메뉴 / {mode,...}
@@ -27,7 +30,14 @@ export default function Battle() {
 // ── 모드 선택 메뉴 ──────────────────────────────
 function BattleMenu({ onStart }) {
   const [myName, setMyName] = useState('나')
-  const [foeName, setFoeName] = useState('친구')
+
+  // 퀴즈타운에서 열었으면 로그인된 학생 이름을 자동으로 가져와요
+  useEffect(() => {
+    if (!firebaseReady()) return
+    prepare()
+      .then((deps) => deps.me.name && setMyName(deps.me.name))
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="panel" style={{ maxWidth: 560, margin: '0 auto' }}>
@@ -49,19 +59,7 @@ function BattleMenu({ onStart }) {
         style={{ marginBottom: 10 }}
         onClick={() => onStart({ mode: 'bot', names: [myName || '나', '또박이 봇'] })}
       >
-        🤖 봇과 대전 (혼자 연습)
-      </button>
-
-      <div style={{ margin: '10px 0 6px', color: '#8d6e63' }}>또는 한 컴퓨터에서 둘이 번갈아:</div>
-      <label className="battle-label" style={{ marginBottom: 8 }}>
-        친구 이름
-        <input className="battle-input" value={foeName} onChange={(e) => setFoeName(e.target.value)} maxLength={6} />
-      </label>
-      <button
-        className="btn btn-green"
-        onClick={() => onStart({ mode: 'local', names: [myName || '나', foeName || '친구'] })}
-      >
-        👫 둘이 대전 (번갈아 하기)
+        🤖 봇과 대전{firebaseReady() ? ' (랭크전 · 점수 절반)' : ' (혼자 연습)'}
       </button>
 
       <OnlineMenu myName={myName} onStart={onStart} />
@@ -191,7 +189,13 @@ function OnlineBattleGame({ config, onExit }) {
     const foe = room.seats[1]
     return (
       <div className="panel" style={{ maxWidth: 520, margin: '0 auto', textAlign: 'center' }}>
-        <button className="btn btn-gray back-btn" onClick={onExit} style={{ float: 'left' }}>
+        <button
+          className="btn btn-gray back-btn"
+          onClick={() => {
+            session.leaveWaiting().finally(onExit)
+          }}
+          style={{ float: 'left' }}
+        >
           ← 나가기
         </button>
         <h2>🌐 대기실</h2>
@@ -228,7 +232,17 @@ function OnlineBattleGame({ config, onExit }) {
   return (
     <div>
       <div className="battle-topbar">
-        <button className="btn btn-gray back-btn" onClick={onExit}>
+        <button
+          className="btn btn-gray back-btn"
+          onClick={() => {
+            if (battle.phase !== 'ended') {
+              if (!window.confirm('나가면 항복이 되어 상대가 승리해요. 나갈까요?')) return
+              session.surrender().finally(onExit)
+            } else {
+              onExit()
+            }
+          }}
+        >
           ← 나가기
         </button>
         <div className="battle-players">
@@ -242,6 +256,7 @@ function OnlineBattleGame({ config, onExit }) {
             </div>
           ))}
         </div>
+        {battle.phase !== 'ended' && <TurnTimer session={session} room={room} isMyTurn={isMyTurn} />}
       </div>
 
       <div className="map-layout" style={{ marginTop: 12 }}>
@@ -253,7 +268,9 @@ function OnlineBattleGame({ config, onExit }) {
             ) : (
               <div className="panel">
                 <h2>⏳ 상대 차례</h2>
-                <p style={{ color: '#616161' }}>{battle.players[battle.current].name}이(가) 두는 중…</p>
+                <p style={{ color: '#616161' }}>
+                  {battle.players[battle.current].name}이(가) 두는 중… (90초가 지나면 자동으로 넘어와요)
+                </p>
               </div>
             ))}
           <div className="panel">
@@ -285,8 +302,22 @@ function BattleGame({ config, onExit }) {
   const [state, dispatch] = useReducer(battleReducer, undefined, () =>
     createBattleState(config.names, config.mode),
   )
+  const [recorded, setRecorded] = useState(false)
 
   const isBotTurn = config.mode === 'bot' && state.current === 1
+
+  // 봇전 랭크 기록: 온라인의 절반 (승 +15 / 패 +3 / 무 +9) — 퀴즈타운 로그인 시에만
+  useEffect(() => {
+    if (config.mode !== 'bot' || state.phase !== 'ended' || recorded) return
+    setRecorded(true)
+    if (!firebaseReady()) return
+    const draw = state.winner === 'draw'
+    const won = state.winner === 0
+    const pts = draw ? Math.round((BOT_RANK_WIN + BOT_RANK_LOSE) / 2) : won ? BOT_RANK_WIN : BOT_RANK_LOSE
+    prepare()
+      .then((deps) => recordRankPoints(deps, pts, won))
+      .catch(() => {})
+  }, [config.mode, state.phase, state.winner, recorded])
 
   // 봇 자동 진행 (한 동작씩, 볼 수 있게 약간의 딜레이)
   useEffect(() => {
@@ -362,7 +393,15 @@ function BattleGame({ config, onExit }) {
       </div>
 
       {state.phase === 'ended' && (
-        <BattleResult state={state} config={config} onRestart={() => dispatch({ type: 'RESTART' })} onExit={onExit} />
+        <BattleResult
+          state={state}
+          config={config}
+          onRestart={() => {
+            setRecorded(false)
+            dispatch({ type: 'RESTART' })
+          }}
+          onExit={onExit}
+        />
       )}
     </div>
   )
@@ -371,9 +410,11 @@ function BattleGame({ config, onExit }) {
 function BattleResult({ state, config, onRestart, onExit, seat = 0 }) {
   const draw = state.winner === 'draw'
   const winnerName = draw ? null : state.players[state.winner].name
-  // 나(온라인=내 좌석, 봇/연습=플레이어0) 기준 승패 랭크 점수
+  // 나(온라인=내 좌석, 봇=플레이어0) 기준 승패 랭크 점수 (봇전은 온라인의 절반)
   const iWon = state.winner === seat
-  const rankPts = draw ? Math.round((RANK_WIN + RANK_LOSE) / 2) : iWon ? RANK_WIN : RANK_LOSE
+  const W = config.mode === 'bot' ? BOT_RANK_WIN : RANK_WIN
+  const L = config.mode === 'bot' ? BOT_RANK_LOSE : RANK_LOSE
+  const rankPts = draw ? Math.round((W + L) / 2) : iWon ? W : L
 
   return (
     <div className="result-overlay">
@@ -385,9 +426,12 @@ function BattleResult({ state, config, onRestart, onExit, seat = 0 }) {
           {state.players[1].cash.toLocaleString()}원
         </div>
         <p style={{ fontSize: 18 }}>
-          {config.mode === 'bot' ? '내 랭크 점수' : `${state.players[0].name} 랭크 점수`}: <b>+{rankPts}</b>
+          내 랭크 점수: <b>+{rankPts}</b>
+          {config.mode === 'bot' && <span style={{ fontSize: 14 }}> (봇전은 절반)</span>}
           <br />
-          <span style={{ fontSize: 14, color: '#8d6e63' }}>(온라인 대전에서는 랭킹에 누적돼요)</span>
+          <span style={{ fontSize: 14, color: '#8d6e63' }}>
+            {firebaseReady() ? '랭킹 광장 · 특산물 마블 탭에 기록돼요' : '퀴즈타운에서 하면 랭킹에 기록돼요'}
+          </span>
         </p>
         <button className="btn btn-primary" onClick={onRestart} style={{ marginBottom: 8 }}>
           🔄 다시 대전
@@ -396,6 +440,32 @@ function BattleResult({ state, config, onRestart, onExit, seat = 0 }) {
           나가기
         </button>
       </div>
+    </div>
+  )
+}
+
+
+// 턴 타이머: 남은 시간을 보여주고, 90초가 지나면 차례를 자동으로 넘긴다.
+// (시간 기준은 서버에 기록된 turnStartedAt — 양쪽 화면이 같은 시계를 봐요)
+function TurnTimer({ session, room, isMyTurn }) {
+  const [leftSec, setLeftSec] = useState(90)
+
+  useEffect(() => {
+    const tick = () => {
+      const started = room.turnStartedAt || 0
+      const left = Math.max(0, Math.ceil((started + TURN_LIMIT_MS - Date.now()) / 1000))
+      setLeftSec(left)
+      // 시간이 다 되면 누구든 차례를 넘긴다 (트랜잭션이 서버 시간 기준으로 재확인)
+      if (left <= 0) session.forceTimeout()
+    }
+    tick()
+    const t = setInterval(tick, 1000)
+    return () => clearInterval(t)
+  }, [session, room.turnStartedAt])
+
+  return (
+    <div className={`turn-timer${leftSec <= 15 ? ' urgent' : ''}`}>
+      ⏰ {leftSec}초{isMyTurn ? ' (내 차례!)' : ''}
     </div>
   )
 }

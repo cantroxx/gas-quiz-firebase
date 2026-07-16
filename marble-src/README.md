@@ -46,7 +46,8 @@ firebase deploy --only hosting          # (규칙 바꿨으면 ,firestore:rules 
 | `marbleRooms/{code}` | 방+대전 상태 전체(숨김 정보 없음) | 로그인 read/create/update, delete 금지 |
 | `marbleRanking/{uid}` | 랭크 누적(name·total·games·wins) | read 로그인, write 본인만 |
 
-- 랭크 점수: 승 +30 / 패 +5 / 무승부 +18 (`battleLogic.js` RANK_WIN/RANK_LOSE)
+- 랭크 점수: 온라인 승 +30 / 패 +5 / 무 +18 · **봇전은 절반**(승 +15 / 패 +3 / 무 +9) — 로그인 시에만 기록
+- 온라인 안전장치: 한 턴 90초 제한(초과 시 자동 턴 넘김), 중간 나가기 = 항복(상대 승리)
 - v1 은 낱말대전과 같은 클라이언트 트랜잭션 방식. 서버 검증(Functions)은 다음 단계.
 
 ## 5. 게임 규칙 요약

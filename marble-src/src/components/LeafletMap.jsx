@@ -12,7 +12,7 @@ export default function LeafletMap({
   selected = null,
   feedback = null,
   clickableOnlyProducts = false,
-  markerMode = 'region', // 'region' = 지역 핀 6개 / 'product' = 특산물 핀(실제 산지 위치)
+  markerMode = 'region', // 'region'=지역 핀 / 'product'=특산물 핀 / 'origin'=고장 이름 핀(퀴즈 2단계)
   focusRegion = null, // 이 권역으로 확대 + 그 권역 특산물만 표시(드릴다운 2단계)
   onFail,
 }) {
@@ -87,8 +87,42 @@ export default function LeafletMap({
 
     if (markerMode === 'product') {
       drawProductMarkers(map)
+    } else if (markerMode === 'origin') {
+      drawOriginMarkers(map)
     } else {
       drawRegionMarkers(map)
+    }
+
+    // 퀴즈 2단계: 그 권역의 "고장 이름" 핀 (같은 고장은 하나로 합침, 특산물 힌트 없음)
+    function drawOriginMarkers(map) {
+      const seen = {}
+      Object.values(PRODUCTS).forEach((p) => {
+        if (p.lat == null) return
+        if (focusRegion && p.region !== focusRegion) return
+        if (seen[p.origin]) return
+        seen[p.origin] = true
+
+        let bg = '#7E57C2'
+        if (feedback && feedback.origin === p.origin) {
+          bg = feedback.correct ? '#2e7d32' : '#c62828'
+        }
+
+        const html =
+          `<div class="origin-pin" style="background:${bg}">` +
+          `<span class="op-label">📍 ${p.origin}</span>` +
+          `</div>`
+
+        const icon = L.divIcon({
+          className: 'region-pin-wrap',
+          html,
+          iconSize: [72, 30],
+          iconAnchor: [36, 30],
+        })
+
+        const marker = L.marker([p.lat, p.lng], { icon }).addTo(map)
+        marker.on('click', () => cbRef.current && cbRef.current(p.origin))
+        markersRef.current.push(marker)
+      })
     }
 
     function drawRegionMarkers(map) {

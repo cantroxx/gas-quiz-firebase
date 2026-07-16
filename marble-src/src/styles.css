@@ -862,3 +862,38 @@ button {
   font-family: 'Jua', sans-serif;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
 }
+
+/* 퀴즈 2단계: 고장 이름 핀 */
+.origin-pin {
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: #fff;
+  font-family: 'Jua', sans-serif;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.28);
+  border: 3px solid #fff;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+.origin-pin:hover {
+  transform: scale(1.08);
+}
+.origin-pin .op-label {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* 온라인 턴 타이머 */
+.turn-timer {
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 17px;
+  box-shadow: var(--shadow);
+  color: #2b2b2b;
+  white-space: nowrap;
+}
+.turn-timer.urgent {
+  background: #ffebee;
+  color: #c62828;
+}

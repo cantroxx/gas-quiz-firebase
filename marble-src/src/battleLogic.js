@@ -23,8 +23,11 @@ import {
 
 export const TURNS_PER_PLAYER = 15
 const BOARD_SIZE = BOARD.length
-export const RANK_WIN = 30 // 승리 시 랭크 점수
-export const RANK_LOSE = 5 // 패배 시 랭크 점수
+export const RANK_WIN = 30 // 온라인 승리 랭크 점수
+export const RANK_LOSE = 5 // 온라인 패배 랭크 점수
+export const BOT_RANK_WIN = 15 // 봇전은 온라인의 절반
+export const BOT_RANK_LOSE = 3
+export const TURN_LIMIT_MS = 90 * 1000 // 온라인 한 턴 제한(90초)
 
 // 랜덤 도우미(리듀서 밖에서 호출) — planMove/rollDice 는 gameLogic 재사용
 export { rollDice }
@@ -195,6 +198,12 @@ export function battleReducer(state, action) {
       if (s.activeMarket) s = battleReducer(s, { type: 'SELL_ALL' })
       if (s.pendingQuiz) s = battleReducer(s, { type: 'ANSWER_QUIZ', choice: s.pendingQuiz.answer })
       return advanceTurn(s)
+    }
+
+    // 시간 초과: 어느 단계에 있든 이번 차례를 끝내고 다음 사람에게 (온라인 90초 제한)
+    case 'TIMEOUT': {
+      if (state.phase === 'ended') return state
+      return advanceTurn({ ...state, log: addLog(state, `⏰ ${state.players[state.current].name} 시간 초과 — 차례를 넘겨요.`) })
     }
 
     case 'RESTART': {

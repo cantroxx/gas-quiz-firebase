@@ -9,7 +9,7 @@
 //
 //  Firebase compat SDK(window.firebase)는 퀴즈타운 Hosting에서 자동 주입(/__/firebase/*).
 //  Vercel 단독 배포에선 그 스크립트가 없어 firebaseReady()=false → 온라인 숨김, 봇/연습만.
-import { battleReducer, createBattleState, RANK_WIN, RANK_LOSE } from './battleLogic.js'
+import { battleReducer, createBattleState, RANK_WIN, RANK_LOSE, TURN_LIMIT_MS } from './battleLogic.js'
 
 function fb() {
   return typeof window !== 'undefined' ? window.firebase : null
@@ -66,6 +66,26 @@ function fallbackName(user) {
 
 function genCode() {
   return String(Math.floor(1000 + Math.random() * 9000))
+}
+
+// 랭크 점수 기록 (marbleRanking/{내uid} 에 누적, 본인만) — 온라인/봇전 공용
+export function recordRankPoints(deps, points, won) {
+  const inc = deps.FieldValue.increment
+  return deps.db
+    .collection('marbleRanking')
+    .doc(deps.me.uid)
+    .set(
+      {
+        name: deps.me.name,
+        total: inc(points),
+        games: inc(1),
+        wins: inc(won ? 1 : 0),
+        updatedAt: Date.now(),
+      },
+      { merge: true },
+    )
+    .then(() => ({ ok: true, points }))
+    .catch((e) => ({ ok: false, error: e.message }))
 }
 
 // deps 준비: { db, FieldValue, me:{uid,name} }
@@ -160,8 +180,10 @@ export function OnlineSession(deps, code) {
           if (r.status !== 'playing' || !r.battle) return
           const seat = (r.seats || []).findIndex((s) => s && s.uid === deps.me.uid)
           if (r.battle.current !== seat) return // 내 차례 아님
+          const prevTurnNo = r.battle.turnNo
           const nextBattle = battleReducer(r.battle, action)
           r.battle = nextBattle
+          if (nextBattle.turnNo !== prevTurnNo) r.turnStartedAt = Date.now() // 다음 사람 시계 시작
           if (nextBattle.phase === 'ended') r.status = 'ended'
           tx.set(ref, r)
         }),
@@ -179,6 +201,7 @@ export function OnlineSession(deps, code) {
           if (r.seats[0].uid !== deps.me.uid) throw new Error('방장만 시작할 수 있어요.')
           r.battle = createBattleState([r.seats[0].name, r.seats[1].name], 'online')
           r.status = 'playing'
+          r.turnStartedAt = Date.now()
           tx.set(ref, r)
         }),
       )
@@ -194,21 +217,68 @@ export function OnlineSession(deps, code) {
     const won = b.winner === seat
     const draw = b.winner === 'draw'
     const pts = draw ? Math.round((RANK_WIN + RANK_LOSE) / 2) : won ? RANK_WIN : RANK_LOSE
-    const inc = deps.FieldValue.increment
+    return recordRankPoints(deps, pts, won)
+  }
+
+  // 대전 중 나가기 = 항복 (남은 사람 승리로 즉시 종료) — 내 차례가 아니어도 가능
+  function surrender() {
     return deps.db
-      .collection('marbleRanking')
-      .doc(deps.me.uid)
-      .set(
-        {
-          name: deps.me.name,
-          total: inc(pts),
-          games: inc(1),
-          wins: inc(won ? 1 : 0),
-          updatedAt: Date.now(),
-        },
-        { merge: true },
+      .runTransaction((tx) =>
+        tx.get(ref).then((snap) => {
+          if (!snap.exists) return
+          const r = snap.data()
+          if (r.status !== 'playing' || !r.battle) return
+          const seat = (r.seats || []).findIndex((s) => s && s.uid === deps.me.uid)
+          if (seat < 0) return
+          const other = seat === 0 ? 1 : 0
+          r.battle = {
+            ...r.battle,
+            phase: 'ended',
+            winner: other,
+            log: [
+              { turnNo: r.battle.turnNo, who: seat, message: `🏳️ ${r.battle.players[seat].name} 항복 — ${r.battle.players[other].name} 승리!` },
+              ...(r.battle.log || []),
+            ].slice(0, 10),
+          }
+          r.status = 'ended'
+          tx.set(ref, r)
+        }),
       )
-      .then(() => ({ ok: true, points: pts }))
+      .catch((e) => ({ ok: false, error: e.message }))
+  }
+
+  // 상대가 90초 넘게 아무것도 안 하면 누구든 차례를 강제로 넘길 수 있음
+  function forceTimeout() {
+    return deps.db
+      .runTransaction((tx) =>
+        tx.get(ref).then((snap) => {
+          if (!snap.exists) return
+          const r = snap.data()
+          if (r.status !== 'playing' || !r.battle) return
+          if (Date.now() - (r.turnStartedAt || 0) < TURN_LIMIT_MS) return // 아직 시간 안 지남
+          const prevTurnNo = r.battle.turnNo
+          r.battle = battleReducer(r.battle, { type: 'TIMEOUT' })
+          if (r.battle.turnNo !== prevTurnNo) r.turnStartedAt = Date.now()
+          if (r.battle.phase === 'ended') r.status = 'ended'
+          tx.set(ref, r)
+        }),
+      )
+      .catch((e) => ({ ok: false, error: e.message }))
+  }
+
+  // 대기실에서 나가기: 방장이면 방을 닫고, 참가자면 자리를 비움
+  function leaveWaiting() {
+    return deps.db
+      .runTransaction((tx) =>
+        tx.get(ref).then((snap) => {
+          if (!snap.exists) return
+          const r = snap.data()
+          if (r.status !== 'waiting') return
+          if (r.seats[0] && r.seats[0].uid === deps.me.uid) r.status = 'closed'
+          else if (r.seats[1] && r.seats[1].uid === deps.me.uid) r.seats[1] = null
+          tx.set(ref, r)
+        }),
+      )
       .catch((e) => ({ ok: false, error: e.message }))
   }
 
@@ -220,6 +290,10 @@ export function OnlineSession(deps, code) {
     act,
     start,
     recordRank,
+    surrender,
+    forceTimeout,
+    leaveWaiting,
+    getTurnStartedAt: () => (room ? room.turnStartedAt || 0 : 0),
     leave: () => {
       unsub && unsub()
     },
