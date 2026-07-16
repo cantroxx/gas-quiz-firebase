@@ -9838,3 +9838,32 @@ h2 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 학교 → 온라인 대전(낱말대전) 진입 버튼 */
+.online-battle-entry {
+  display: flex; align-items: center; gap: 14px;
+  margin: 14px auto; max-width: 640px; padding: 16px 18px;
+  background: linear-gradient(135deg, #7a5cff, #ff5a8a); color: #fff;
+  border-radius: 18px; text-decoration: none;
+  box-shadow: 0 8px 22px rgba(122, 92, 255, .35);
+  transition: transform .08s ease;
+}
+.online-battle-entry:active { transform: scale(.98); }
+.online-battle-entry .obe-emoji { font-size: 34px; }
+.online-battle-entry .obe-text { display: flex; flex-direction: column; flex: 1; line-height: 1.4; }
+.online-battle-entry .obe-text b { font-size: 18px; }
+.online-battle-entry .obe-text small { font-size: 13px; opacity: .92; }
+.online-battle-entry .obe-go { font-size: 20px; font-weight: 800; }
+
+/* 랭킹 광장 → 온라인 대전(낱말대전) 탭 패널 안의 순위 목록 */
+.wb-rank-root { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.wb-rank-row {
+  display: grid; grid-template-columns: 48px 1fr auto auto; align-items: center; gap: 10px;
+  padding: 12px 14px; background: #fff; border: 1px solid #eee; border-radius: 14px;
+}
+.wb-rank-row.top { background: #f6f3ff; border-color: #ddd3f7; }
+.wb-rank-pos { font-size: 18px; text-align: center; font-weight: 800; color: #888; }
+.wb-rank-name { font-weight: 800; color: #333; }
+.wb-rank-meta { font-size: 12px; color: #999; }
+.wb-rank-total { font-weight: 800; color: #7a5cff; font-size: 16px; min-width: 56px; text-align: right; }
+.wb-rank-empty { color: #aaa; font-size: 14px; padding: 14px; text-align: center; }

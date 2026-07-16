@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Jua&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
   <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=3">
 </head>
 <body>
   <main class="shell">
@@ -340,6 +340,7 @@
       </div>
 
       <div id="ranking-card-grid" class="ranking-card-grid" aria-label="명예의 전당 랭킹 카드"></div>
+      <!-- 온라인 대전(낱말대전) 탭은 wb-ranking-plaza.js 가 아래 탭 줄에 끼워 넣는다 -->
       <div id="ranking-board-root" class="ranking-board-root" aria-label="랭킹 상세 목록"></div>
     </section>
 
@@ -1748,6 +1749,16 @@
         </div>
       </div>
 
+      <!-- 온라인 대전(낱말대전 랭크전) 진입 — /wordbattle/ 독립 페이지로 이동 (로그인 그대로 유지) -->
+      <a class="online-battle-entry" href="/wordbattle/">
+        <span class="obe-emoji" aria-hidden="true">🧩</span>
+        <span class="obe-text">
+          <b>온라인 대전 · 낱말 대전</b>
+          <small>자음·모음으로 낱말 만들기 (랭크전) — 친구들과 실시간 대결!</small>
+        </span>
+        <span class="obe-go" aria-hidden="true">▶</span>
+      </a>
+
       <div class="school-scene">
         <span class="school-scene-title" aria-hidden="true">퀴즈 학교</span>
         <span class="school-board">오늘의 수업</span>
@@ -1923,6 +1934,7 @@
   <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script src="/js/app.bundle.js"></script>
+  <script src="/js/wb-ranking-plaza.js?v=4"></script>
   <script>
     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
 

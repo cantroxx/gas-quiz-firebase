@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>낱말 대전 · 퀴즈타운</title>
+  <link rel="stylesheet" href="style.css?v=19">
+</head>
+<body>
+  <div id="app"><div class="loading">불러오는 중…</div></div>
+
+  <!-- 퀴즈타운 메인과 같은 Firebase 자동 설정 (온라인 대전용).
+       로컬(python 서버) 테스트에선 이 파일들이 없어 온라인 모드만 비활성화되고, 연습 모드는 정상 동작. -->
+  <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+  <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
+
+  <!-- 게임 코드 (의존 순서대로) -->
+  <script src="hangul.js?v=19"></script>
+  <script src="words-data.js?v=19"></script>
+  <script src="words.js?v=19"></script>
+  <script src="engine.js?v=19"></script>
+  <script src="room.js?v=19"></script>
+  <script src="net.js?v=19"></script>
+  <script src="tutorial.js?v=19"></script>
+  <script src="ui.js?v=19"></script>
+  <script src="main.js?v=19"></script>
+</body>
+</html>
