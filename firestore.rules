@@ -730,7 +730,9 @@ service cloud.firestore {
       allow delete: if false;                    // 방 삭제는 콘솔에서만
 
       match /secret/{doc} {
-        allow read: if false;                    // 남은 봉지는 미리 못 봄(공정성)
+        // 뽑기(draw)·시간초과는 클라이언트 트랜잭션에서 남은 봉지를 읽어야 하므로 로그인 시 읽기 허용.
+        // (초4 학급용 v1: 클라이언트 신뢰. 정석은 뽑기를 Cloud Function으로 옮겨 서버만 봉지를 읽는 것)
+        allow read: if isSignedIn();
         allow write: if isSignedIn();
       }
       match /hands/{uid} {
