@@ -257,9 +257,10 @@ CATALOG_ITEMS.push(
     { classname: "bed_silo_two",        name: "사일로 2인 침대", category: "bed", cost: 60, desc: "모던한 2인 침대." },
 
     // ---- 벽 꾸미기 (wall) — 하보 벽형 가구 34종. wall:true = 바닥이 아니라 벽에 붙임 ----
-    { classname: "attic15_window",        name: "다락 천창",     category: "wall", cost: 80, desc: "비스듬한 지붕 천창. 햇빛이 쏟아져요.", wall: true },
-    { classname: "lon_window",            name: "런던 창문",     category: "wall", cost: 70, desc: "고풍스러운 창문.", wall: true },
-    { classname: "room_hall15_window",    name: "홀 창문",       category: "wall", cost: 70, desc: "넓은 홀에 어울리는 창문.", wall: true },
+    // 창문류는 하보 원본이 "벽 구멍 마스크"와 함께 쓰는 에셋이라 마스크 미지원인 현재는 어색 → 상점 보류
+    // { classname: "attic15_window",        name: "다락 천창",     category: "wall", cost: 80, desc: "비스듬한 지붕 천창. 햇빛이 쏟아져요.", wall: true },
+    // { classname: "lon_window",            name: "런던 창문",     category: "wall", cost: 70, desc: "고풍스러운 창문.", wall: true },
+    // { classname: "room_hall15_window",    name: "홀 창문",       category: "wall", cost: 70, desc: "넓은 홀에 어울리는 창문.", wall: true },
     { classname: "noticeboard",           name: "게시판",        category: "wall", cost: 45, desc: "쪽지를 잔뜩 붙인 게시판.", wall: true },
     { classname: "pframe",                name: "액자",          category: "wall", cost: 25, desc: "작은 그림 액자.", wall: true },
     { classname: "pixel_mirror",          name: "픽셀 거울",     category: "wall", cost: 40, desc: "길쭉한 벽 거울.", wall: true },
@@ -755,59 +756,59 @@ ROOM_MODELS.model_cafe = {
 // ===== [실험] 단차 데모 방 (?demo=lobby) — 맵 문자 0~9 = 타일 높이 =====
 // 가운데 낮은 광장(0), 계단(1), 양옆 단 올라간 라운지(2). 레퍼런스 로비의 층진 바닥 테스트.
 // 가운데가 한 단 움푹 들어간 광장(0층) + 둘러싼 높은 라운지(1층). 문으로 들어와 광장으로 내려감.
+// 무대형(계단식): 뒤가 높고 앞이 낮음 — 아이소메트릭 카메라에서는 남동/남서를 향한
+// 단 옆면만 보이므로, 높이가 "카메라 쪽으로 갈수록 낮아지게" 설계해야 단차가 눈에 보인다.
+// (앞쪽이 더 높으면 옆면이 카메라 반대라 안 보여 캐릭터만 붕 뜬 것처럼 보임 — 검증됨)
 ROOM_MODELS.model_lobby = {
     hidden: true,
-    label: "로비 (실험)", door: { x: 1, y: 6, dir: 2 },
+    label: "로비 (실험)", door: { x: 1, y: 8, dir: 2 },
     map: [
         "xxxxxxxxxxxxxxxx",
+        "xx222222222222xx",
+        "xx222222222222xx",
         "xx111111111111xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
-        "xx110000000011xx",
         "xx111111111111xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
+        "xx000000000000xx",
         "xxxxxxxxxxxxxxxx"
     ].join("|")
 };
 
 const LOBBY_DECOR = [
-    // 뒤쪽 높은 라운지(1층): 왕좌 + 기둥 + 나무
+    // 맨 위 무대(2층): 왕좌 + 기둥 + 나무
     { classname: 'throne',         x: 7,  y: 1 },
     { classname: 'pillar',         x: 4,  y: 1 },
     { classname: 'pillar',         x: 11, y: 1 },
     { classname: 'anc_comfy_tree', x: 2,  y: 1 },
     { classname: 'anc_comfy_tree', x: 13, y: 1 },
-    // 양옆 높은 라운지에 소파
-    { classname: 'club_sofa',      x: 2,  y: 4 },
-    { classname: 'club_sofa',      x: 2,  y: 7 },
-    { classname: 'club_sofa',      x: 13, y: 4, rot: 2 },
-    { classname: 'club_sofa',      x: 13, y: 7, rot: 2 },
-    // 앞쪽 높은 라운지에 화분
-    { classname: 'plant_yukka',    x: 3,  y: 10 },
-    { classname: 'plant_yukka',    x: 12, y: 10 },
-    // 움푹 들어간 광장(0층): 레드카펫 + 분수
-    { classname: 'carpet_standard', x: 5, y: 4 },
-    { classname: 'rare_fountain',   x: 7, y: 6 }
+    // 중간 단(1층): 소파 라운지
+    { classname: 'sofa_polyfon',  x: 3,  y: 3 },
+    { classname: 'sofa_polyfon',  x: 11, y: 3 },
+    { classname: 'plant_yukka',    x: 2,  y: 4 },
+    { classname: 'plant_yukka',    x: 13, y: 4 },
+    // 아래 광장(0층): 레드카펫 + 분수
+    { classname: 'carpet_standard', x: 6, y: 5 },
+    { classname: 'rare_fountain',   x: 7, y: 8 }
 ];
 const LOBBY_WALL = [
-    { classname: 'room_hall15_window', side: 'n', idx: 5 },
-    { classname: 'room_hall15_window', side: 'n', idx: 9 },
-    { classname: 'noticeboard',        side: 'w', idx: 5 }
+    { classname: 'noticeboard',  side: 'n', idx: 7 },
+    { classname: 'diner_poster', side: 'n', idx: 11 },
+    { classname: 'hrella_poster_1', side: 'w', idx: 6 }
 ];
 
 // [실험] 카페 데모 — 벽 부착 아이템. side: 'w'=서쪽(왼쪽) 벽, 'n'=북쪽(오른쪽) 벽
 // idx: 'w'면 행 y, 'n'이면 열 x
 const CAFE_WALL = [
-    { classname: 'room_hall15_window', side: 'n', idx: 4 },
-    { classname: 'room_hall15_window', side: 'n', idx: 7 },
-    { classname: 'room_hall15_window', side: 'w', idx: 4 },
-    { classname: 'diner_poster',   side: 'n', idx: 12 },
-    { classname: 'pframe',         side: 'n', idx: 14 },
-    { classname: 'noticeboard',    side: 'w', idx: 10 }
+    // 창문류는 마스크 미지원으로 보류 → 포스터·게시판·액자 위주
+    { classname: 'hrella_poster_2', side: 'n', idx: 4 },
+    { classname: 'hrella_poster_3', side: 'n', idx: 7 },
+    { classname: 'diner_poster',    side: 'n', idx: 12 },
+    { classname: 'pframe',          side: 'n', idx: 14 },
+    { classname: 'noticeboard',     side: 'w', idx: 10 },
+    { classname: 'wall_china',      side: 'w', idx: 4 }
 ];
 
 // 카페 데모 배치 — z를 주면 그 높이에 쌓임(벽돌 기둥)

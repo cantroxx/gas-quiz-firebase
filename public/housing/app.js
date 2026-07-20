@@ -506,7 +506,10 @@ function wallItemAnchor(item) {
         const res = furniAssetForDir(fd, 'a', dir, 0);
         if (res) {
             const sp = tintedFrame(fd, res.frameName, null);
-            const wantTop = base.y - wallH / 2 - sp.height / 2; // 벽 세로 중앙
+            // [단차] 벽이 높은 바닥 위에 서 있으면, '바닥 위로 보이는 벽면'의 중앙에 정렬
+            // (전체 벽 높이 중앙으로 하면 단차 칸에서 아이템이 아래로 처짐)
+            const floorTopY = base.y - (wallH - WALL_HEIGHT); // 그 칸 바닥 윗면의 화면 y
+            const wantTop = floorTopY - WALL_HEIGHT / 2 - sp.height / 2;
             anchorY = wantTop + res.y;
         }
     }
@@ -1083,7 +1086,8 @@ function drawRoom() {
         ctx.lineWidth = 0.5;
         ctx.stroke();
 
-        // 옆면(남동): 이웃이 없으면 기본 두께, 있으면 높이 차만큼
+        // 옆면(남동): 이웃이 없으면 기본 두께, 있으면 높이 차만큼.
+        // 단차 옆면(이웃이 낮은 바닥)은 방 가장자리보다 진하게 칠해 계단이 또렷이 보이게 한다.
         const seNb = isFloorTile(t.x + 1, t.y);
         const seDrop = seNb ? (t.h - floorHeight(t.x + 1, t.y)) * Z_SCALE : PLATFORM_HEIGHT;
         if (seDrop > 0) {
@@ -1091,9 +1095,9 @@ function drawRoom() {
             ctx.moveTo(E.x, E.y); ctx.lineTo(S.x, S.y);
             ctx.lineTo(S.x, S.y + seDrop); ctx.lineTo(E.x, E.y + seDrop);
             ctx.closePath();
-            ctx.fillStyle = shadeHex(currentFloorHex(), 0.7);
+            ctx.fillStyle = shadeHex(currentFloorHex(), seNb ? 0.62 : 0.7);
             ctx.fill();
-            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.5);
+            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.45);
             ctx.lineWidth = 1;
             ctx.stroke();
         }
@@ -1105,9 +1109,9 @@ function drawRoom() {
             ctx.moveTo(W.x, W.y); ctx.lineTo(S.x, S.y);
             ctx.lineTo(S.x, S.y + swDrop); ctx.lineTo(W.x, W.y + swDrop);
             ctx.closePath();
-            ctx.fillStyle = shadeHex(currentFloorHex(), 0.58);
+            ctx.fillStyle = shadeHex(currentFloorHex(), swNb ? 0.5 : 0.58);
             ctx.fill();
-            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.5);
+            ctx.strokeStyle = shadeHex(currentFloorHex(), 0.45);
             ctx.lineWidth = 1;
             ctx.stroke();
         }
@@ -1305,15 +1309,12 @@ function drawRoom() {
     if (avatar.path.length > 0) {
         const next = avatar.path[0];
         const nextZ = tileHeight(next.x, next.y);
-        const t = avatar.stepTimer;
-        ax = avatar.x + (next.x - avatar.x) * t;
-        ay = avatar.y + (next.y - avatar.y) * t;
-        // [단차] 높이는 x,y와 달리 '막판'에 바꾼다 → 계단 밑까지 평지로 걷다가 단 위로 올라서는 느낌.
-        // (선형으로 올리면 절벽 위 허공에 뜬 것처럼 보임)
-        const RISE_START = 0.55;
-        const zt = (nextZ === avatar.z) ? t
-                 : (t <= RISE_START ? 0 : (t - RISE_START) / (1 - RISE_START));
-        az = avatar.z + (nextZ - avatar.z) * zt;
+        ax = avatar.x + (next.x - avatar.x) * avatar.stepTimer;
+        ay = avatar.y + (next.y - avatar.y) * avatar.stepTimer;
+        // [단차] 높이도 x,y와 같이 선형 보간 (하보와 동일). 단, 방 설계가 "뒤가 높고
+        // 앞이 낮은" 무대형이어야 단 옆면이 보여 자연스럽다 — 앞이 높으면 옆면이
+        // 카메라 반대라 안 보여 캐릭터가 허공에 뜬 것처럼 보임 (막판몰기 눈속임은 역효과라 제거)
+        az = avatar.z + (nextZ - avatar.z) * avatar.stepTimer;
     }
 
     // 앉아 있을 땐 그 좌석 가구 기준 깊이 + ε — 다칸 소파에서도 아바타가 좌석 위에 그려지게
