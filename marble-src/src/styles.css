@@ -897,3 +897,53 @@ button {
   background: #ffebee;
   color: #c62828;
 }
+
+/* 퀴즈타운으로 돌아가기 링크 */
+.town-link {
+  display: block;
+  text-align: center;
+  margin: -8px 0 12px;
+  color: #1565c0;
+  font-size: 15px;
+  text-decoration: none;
+}
+.town-link:hover {
+  text-decoration: underline;
+}
+
+/* 게임판 칸: 클릭 가능 표시 */
+.cell.clickable {
+  cursor: pointer;
+}
+
+/* 칸 설명 카드 */
+.cell-info-card {
+  text-align: left;
+  max-width: 400px;
+}
+.cell-info-lines {
+  margin: 10px 0 16px;
+  padding-left: 18px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #4e342e;
+}
+
+/* 산지 고장 뱃지 / 전문 시장 뱃지 */
+.origin-tag {
+  font-size: 12px;
+  background: #e3f2fd;
+  color: #1565c0;
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: middle;
+}
+.special-tag {
+  font-size: 12px;
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffb74d;
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: middle;
+}

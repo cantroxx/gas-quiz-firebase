@@ -18,6 +18,7 @@ import {
   planMove,
   rollDice,
   buildSources,
+  buildMarkets,
   initStock,
 } from './gameLogic.js'
 
@@ -28,6 +29,8 @@ export const RANK_LOSE = 5 // 온라인 패배 랭크 점수
 export const BOT_RANK_WIN = 15 // 봇전은 온라인의 절반
 export const BOT_RANK_LOSE = 3
 export const TURN_LIMIT_MS = 90 * 1000 // 온라인 한 턴 제한(90초)
+// 후공 보너스: 공유 시장에서 먼저 사는 선공이 유리하므로, 후공이 +400원으로 시작(공평!)
+export const SECOND_PLAYER_BONUS = 400
 
 // 랜덤 도우미(리듀서 밖에서 호출) — planMove/rollDice 는 gameLogic 재사용
 export { rollDice }
@@ -39,7 +42,7 @@ function pickRandom(arr) {
 // 대전용 이동 계획 (현재 플레이어 위치 기준). gameLogic.planMove 재사용
 export function planBattleMove(state, steps) {
   const pos = state.players[state.current].position
-  return planMove({ position: pos }, steps)
+  return planMove({ position: pos, markets: state.markets }, steps)
 }
 
 // ── 초기 상태 ──────────────────────────────────
@@ -47,9 +50,9 @@ export function planBattleMove(state, steps) {
 export function createBattleState(names = ['플레이어1', '플레이어2'], mode = 'bot') {
   return {
     mode,
-    players: names.map((name) => ({
+    players: names.map((name, i) => ({
       name,
-      cash: CONFIG.startCash,
+      cash: CONFIG.startCash + (i === 1 ? SECOND_PLAYER_BONUS : 0),
       cargo: [],
       position: 0,
       laps: 0,
@@ -59,6 +62,7 @@ export function createBattleState(names = ['플레이어1', '플레이어2'], mo
     turnNo: 1, // 1..30
     // 공유 시장/보드
     sources: buildSources(),
+    markets: buildMarkets(),
     stock: initStock(),
     glut: {},
     surgeProducts: {},
@@ -251,7 +255,7 @@ function applyBattleMove(state, plan) {
   if (cell.type === 'source') {
     next.activeSource = state.sources[plan.to] || { region: cell.region, productIds: PRODUCTS_BY_REGION[cell.region] || [] }
   } else if (cell.type === 'market') {
-    next.activeMarket = { multiplier: plan.marketMultiplier, isBig: false }
+    next.activeMarket = { ...plan.market, isBig: false }
   } else if (cell.type === 'corner') {
     next = applyCorner(next, cell, plan)
   } else if (cell.type === 'golden') {
@@ -264,7 +268,7 @@ function applyCorner(state, cell, plan) {
   const me = state.current
   switch (cell.subtype) {
     case 'bigmarket':
-      return { ...state, activeMarket: { multiplier: plan.marketMultiplier, isBig: true } }
+      return { ...state, activeMarket: { ...plan.market, isBig: true } }
     case 'storm':
       return {
         ...state,
@@ -362,21 +366,23 @@ function advanceTurn(state) {
     pendingQuiz: null,
   }
 
-  // 즉시 승리: 목표액 도달
-  if (state.players[me].cash >= CONFIG.goal) {
-    return finish(base, me, `🏆 ${state.players[me].name} 목표 달성! 승리!`)
+  // 목표 달성 판정 — 공정하게 "두 사람이 같은 횟수의 턴"을 마친 뒤 현금 비교.
+  //  (선공이 먼저 달성해도 후공에게 같은 차례가 보장돼 선공 유리가 없어요)
+  const anyReached = state.players.some((p) => p.cash >= CONFIG.goal)
+  if (anyReached && me === 1) {
+    return finishByCash(base)
+  }
+  if (anyReached && me === 0) {
+    base.log = addLog(
+      { ...base, current: me },
+      `🎯 목표 달성! ${state.players[1].name}에게 마지막 차례가 주어져요.`,
+    )
   }
 
   // 다음 차례로
   const nextTurnNo = state.turnNo + 1
   if (nextTurnNo > TURNS_PER_PLAYER * 2) {
-    // 30턴 종료 → 현금 비교
-    const [a, b] = state.players
-    let winner
-    if (a.cash > b.cash) winner = 0
-    else if (b.cash > a.cash) winner = 1
-    else winner = 'draw'
-    return finish(base, winner, winner === 'draw' ? '무승부!' : `🏆 ${state.players[winner].name} 승리!`)
+    return finishByCash(base) // 30턴 종료 → 현금 비교
   }
 
   return {
@@ -388,6 +394,16 @@ function advanceTurn(state) {
 
 function finish(state, winner, message) {
   return { ...state, phase: 'ended', winner, log: addLog({ ...state, current: state.current }, message) }
+}
+
+// 현금이 많은 쪽 승리 (같으면 무승부)
+function finishByCash(state) {
+  const [a, b] = state.players
+  let winner
+  if (a.cash > b.cash) winner = 0
+  else if (b.cash > a.cash) winner = 1
+  else winner = 'draw'
+  return finish(state, winner, winner === 'draw' ? '🤝 무승부!' : `🏆 ${state.players[winner].name} 승리!`)
 }
 
 // ── 봇(AI) 의사결정 (순수 힌트 함수) ─────────────

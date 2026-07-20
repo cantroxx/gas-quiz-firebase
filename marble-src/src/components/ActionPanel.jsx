@@ -7,7 +7,10 @@ import {
   estimateMarketRange,
   getStock,
   isBuyPriceUp,
+  isSpecialtyMatch,
+  getMarketMultiplier,
 } from '../gameLogic.js'
+import { MARKET_TYPE_BY_KEY } from '../data.js'
 
 export default function ActionPanel({ state, actions }) {
   // 1) 준비 단계: 주사위 굴리기 (폭풍이면 쉬기)
@@ -94,6 +97,8 @@ function SourceView({ state, actions }) {
         🌱 {region} 산지 — 매입
       </h2>
       <div className="compare">
+        {ids.map((id) => `${PRODUCTS[id].name}은(는) ${PRODUCTS[id].origin}`).join(', ')}에서 유명해요!
+        <br />
         여기서 <b>산지가</b>로 싸게 사서, <b>시장</b>에서 비싸게 팔면 이윤이 남아요!
         <div style={{ marginTop: 4, fontSize: 13 }}>
           🔎 많이 사면 <b>재고가 줄어</b> 값이 올라가요(📈). 재고는 매 턴 다시 채워져요.
@@ -114,6 +119,7 @@ function SourceView({ state, actions }) {
               <div className="item-info">
                 <span className="item-name">
                   {p.emoji} {p.name}{' '}
+                  <span className="origin-tag">📍{p.origin}</span>{' '}
                   <span className={`stock-tag${stock <= 2 ? ' low' : ''}`}>
                     재고 {stock}/{CONFIG.baseStock}
                   </span>
@@ -140,17 +146,25 @@ function SourceView({ state, actions }) {
 
 // ── 시장/큰장: 판매 화면 ────────────────────────
 function MarketView({ state, actions }) {
-  const isBig = state.activeMarket.isBig
-  const mult = state.activeMarket.multiplier
+  const am = state.activeMarket
+  const isBig = am.isBig
+  const mt = !isBig ? MARKET_TYPE_BY_KEY[am.typeKey] : null
 
   return (
     <>
       <h2>
-        {isBig ? '🎪 큰장 — 판매' : '🏪 시장 — 판매'}
+        {isBig ? '🎪 큰장 — 판매' : `${mt.emoji} ${mt.name} — 판매`}
       </h2>
       <div className="compare">
-        오늘 시장 배수는 <b>×{mult}</b> {isBig && '(큰장은 더 비싸게 팔려요!)'} · 산 가격보다
-        비싸면 이윤이 남아요.
+        {isBig ? (
+          <>가장 큰 장! 모든 물건을 <b>×{am.multiplier}</b>로 최고가에 사줘요.</>
+        ) : mt.specialty ? (
+          <>
+            {mt.desc} <b>{mt.specialty}</b>은 <b>×{am.multMatch}</b> 📈, 다른 물건은 ×{am.multOther}.
+          </>
+        ) : (
+          <>{mt.desc} 모든 물건 <b>×{am.multiplier}</b>.</>
+        )}
         <div style={{ marginTop: 4, fontSize: 13 }}>
           🔎 같은 특산물을 <b>많이 팔면</b> 값이 내려가요(📉). 종류를 나눠 파는 게 유리해요!
         </div>
@@ -167,11 +181,12 @@ function MarketView({ state, actions }) {
               const profit = sell - item.buyPrice
               const plus = profit >= 0
               const glutted = ((state.glut && state.glut[item.productId]) || 0) > 0
+              const special = isSpecialtyMatch(state.activeMarket, item.productId)
               return (
                 <div key={i} className="item-row">
                   <div className="item-info">
                     <span className="item-name">
-                      {p.emoji} {p.name}
+                      {p.emoji} {p.name} {special && <span className="special-tag">전문 ×{state.activeMarket.multMatch} 📈</span>}
                     </span>
                     <span className="item-price">
                       산 값 {item.buyPrice.toLocaleString()}원 → 판매가{' '}

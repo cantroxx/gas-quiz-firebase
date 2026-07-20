@@ -17,9 +17,11 @@ import {
   GOLDEN_EVENTS,
   QUIZZES,
   CONFIG,
+  MARKET_TYPES,
+  MARKET_TYPE_BY_KEY,
 } from './data.js'
 
-const STORAGE_KEY = 'specialty-marble-save-v2'
+const STORAGE_KEY = 'specialty-marble-save-v3'
 const BOARD_SIZE = BOARD.length // 20
 
 // ── 도우미: 랜덤 (리듀서 밖에서만 호출) ──────────────
@@ -67,19 +69,35 @@ export function isBuyPriceUp(state, productId) {
 //  - 같은 특산물을 많이 팔면(glut↑) 값이 내려갑니다. (수요·공급)
 export function getSellPrice(state, productId) {
   const p = PRODUCTS[productId]
-  const marketMult = state.activeMarket ? state.activeMarket.multiplier : 0
+  const marketMult = getMarketMultiplier(state.activeMarket, productId)
   const surge = state.surgeProducts[productId] ? CONFIG.surgeMultiplier : 1
   const glut = (state.glut && state.glut[productId]) || 0
   const glutFactor = Math.max(CONFIG.glutMinFactor, 1 - glut * CONFIG.glutStep)
   return Math.round(p.basePrice * marketMult * surge * glutFactor)
 }
 
+// 이 시장에서 이 특산물에 적용되는 배수 (전문 분야면 match, 아니면 other)
+export function getMarketMultiplier(activeMarket, productId) {
+  if (!activeMarket) return 0
+  if (activeMarket.multMatch == null) return activeMarket.multiplier // 큰장·직거래(단일 배수)
+  const mt = MARKET_TYPE_BY_KEY[activeMarket.typeKey]
+  const match = mt && mt.specialty && PRODUCTS[productId].category === mt.specialty
+  return match ? activeMarket.multMatch : activeMarket.multOther
+}
+
+// 이 시장에서 전문 분야(비싸게 사주는 분류)인지 — UI 강조용
+export function isSpecialtyMatch(activeMarket, productId) {
+  if (!activeMarket || activeMarket.multMatch == null) return false
+  const mt = MARKET_TYPE_BY_KEY[activeMarket.typeKey]
+  return !!(mt && mt.specialty && PRODUCTS[productId].category === mt.specialty)
+}
+
 // 산지 칸에서 안내용으로 보여줄 "예상 시장가" 범위
 export function estimateMarketRange(productId) {
   const base = PRODUCTS[productId].basePrice
   return {
-    low: Math.round(base * CONFIG.marketMin),
-    high: Math.round(base * CONFIG.marketMax),
+    low: Math.round(base * CONFIG.otherMin),
+    high: Math.round(base * CONFIG.matchMax),
   }
 }
 
@@ -94,9 +112,20 @@ export function planMove(state, steps) {
   const plan = { steps, to, passedStart, cellType: cell.type }
 
   if (cell.type === 'market') {
-    plan.marketMultiplier = roundMult(randBetween(CONFIG.marketMin, CONFIG.marketMax))
+    // 이 칸에 배치된 시장 종류에 따라 배수를 뽑는다
+    const typeKey = (state.markets && state.markets[to]) || 'direct'
+    const mt = MARKET_TYPE_BY_KEY[typeKey]
+    if (mt && mt.specialty) {
+      plan.market = {
+        typeKey,
+        multMatch: roundMult(randBetween(CONFIG.matchMin, CONFIG.matchMax)),
+        multOther: roundMult(randBetween(CONFIG.otherMin, CONFIG.otherMax)),
+      }
+    } else {
+      plan.market = { typeKey, multiplier: roundMult(randBetween(CONFIG.directMin, CONFIG.directMax)) }
+    }
   } else if (cell.type === 'corner' && cell.subtype === 'bigmarket') {
-    plan.marketMultiplier = roundMult(randBetween(CONFIG.bigMarketMin, CONFIG.bigMarketMax))
+    plan.market = { typeKey: 'big', multiplier: roundMult(randBetween(CONFIG.bigMarketMin, CONFIG.bigMarketMax)) }
   } else if (cell.type === 'corner' && cell.subtype === 'festival') {
     // 축제: 랜덤 특산물 수요 폭등
     plan.festivalProduct = pickRandom(Object.keys(PRODUCTS))
@@ -158,6 +187,17 @@ export function buildSources() {
   return assign
 }
 
+// 게임 시작마다 시장 칸 5개에 시장 5종을 랜덤 배치
+export function buildMarkets() {
+  const marketIdx = BOARD.map((c, i) => (c.type === 'market' ? i : -1)).filter((i) => i >= 0)
+  const types = shuffleArr(MARKET_TYPES.map((m) => m.key))
+  const assign = {}
+  marketIdx.forEach((idx, k) => {
+    assign[idx] = types[k % types.length]
+  })
+  return assign
+}
+
 export function createInitialState() {
   return {
     cash: CONFIG.startCash,
@@ -166,6 +206,7 @@ export function createInitialState() {
     laps: 0,
     cargo: [], // [{ productId, buyPrice }]
     sources: buildSources(), // { 보드칸index: { region, productIds } }  매판 랜덤
+    markets: buildMarkets(), // { 보드칸index: 시장종류key }  매판 랜덤
     stock: initStock(), // { productId: 남은 재고 }  매입하면 줄고 값이 오름
     glut: {}, // { productId: 공급 과잉도 }  많이 팔면 늘고 값이 내림
     surgeProducts: {}, // { productId: true }  수요 폭등(판매가 2배)
@@ -371,11 +412,11 @@ function applyMove(state, plan) {
       (state.sources && state.sources[plan.to]) ||
       { region: cell.region, productIds: PRODUCTS_BY_REGION[cell.region] || [] }
   } else if (cell.type === 'market') {
-    next.activeMarket = { multiplier: plan.marketMultiplier, isBig: false }
+    next.activeMarket = { ...plan.market, isBig: false }
   } else if (cell.type === 'corner') {
     switch (cell.subtype) {
       case 'bigmarket':
-        next.activeMarket = { multiplier: plan.marketMultiplier, isBig: true }
+        next.activeMarket = { ...plan.market, isBig: true }
         break
       case 'storm':
         // 폭풍: 다음 턴 쉼. 이번 턴은 별다른 행동 없이 종료 버튼만.

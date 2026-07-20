@@ -1,7 +1,8 @@
 // BattleActionPanel.jsx — 대전에서 "지금 차례인 사람"의 행동 화면
 import { CONFIG, PRODUCTS } from '../data.js'
-import { getBuyPrice, getSellPrice, getStock, isBuyPriceUp } from '../gameLogic.js'
+import { getBuyPrice, getSellPrice, getStock, isBuyPriceUp, isSpecialtyMatch } from '../gameLogic.js'
 import { estimateMarketRange } from '../gameLogic.js'
+import { MARKET_TYPE_BY_KEY } from '../data.js'
 
 export default function BattleActionPanel({ state, actions }) {
   const me = state.players[state.current]
@@ -78,7 +79,10 @@ function BuyView({ state, me, actions }) {
   return (
     <>
       <h2>🌱 {region} 산지 — 매입</h2>
-      <div className="compare">많이 사면 재고↓·값↑(📈). 상대와 시장을 나눠 쓰니 눈치싸움!</div>
+      <div className="compare">
+        {ids.map((id) => `${PRODUCTS[id].name}은(는) ${PRODUCTS[id].origin}`).join(', ')}에서 유명해요!
+        <br />많이 사면 재고↓·값↑(📈). 상대와 시장을 나눠 쓰니 눈치싸움!
+      </div>
       <div className="item-list">
         {ids.map((id) => {
           const p = PRODUCTS[id]
@@ -89,7 +93,7 @@ function BuyView({ state, me, actions }) {
             <div key={id} className="item-row">
               <div className="item-info">
                 <span className="item-name">
-                  {p.emoji} {p.name}{' '}
+                  {p.emoji} {p.name} <span className="origin-tag">📍{p.origin}</span>{' '}
                   <span className={`stock-tag${stock <= 2 ? ' low' : ''}`}>재고 {stock}</span>
                 </span>
                 <span className="item-price">
@@ -113,12 +117,20 @@ function BuyView({ state, me, actions }) {
 }
 
 function SellView({ state, me, actions }) {
-  const mult = state.activeMarket.multiplier
-  const isBig = state.activeMarket.isBig
+  const am = state.activeMarket
+  const isBig = am.isBig
+  const mt = !isBig ? MARKET_TYPE_BY_KEY[am.typeKey] : null
   return (
     <>
-      <h2>{isBig ? '🎪 큰장 — 판매' : '🏪 시장 — 판매'}</h2>
-      <div className="compare">시장 배수 ×{mult}. 같은 걸 많이 팔면 값↓(📉)</div>
+      <h2>{isBig ? '🎪 큰장 — 판매' : `${mt.emoji} ${mt.name} — 판매`}</h2>
+      <div className="compare">
+        {isBig
+          ? `모든 물건 ×${am.multiplier} 최고가!`
+          : mt.specialty
+            ? `${mt.specialty} ×${am.multMatch} 📈 / 다른 물건 ×${am.multOther}`
+            : `모든 물건 ×${am.multiplier}`}{' '}
+        · 같은 걸 많이 팔면 값↓(📉)
+      </div>
       {me.cargo.length === 0 ? (
         <p style={{ color: '#616161' }}>팔 특산물이 없어요.</p>
       ) : (
@@ -128,11 +140,12 @@ function SellView({ state, me, actions }) {
               const p = PRODUCTS[item.productId]
               const sell = getSellPrice(state, item.productId)
               const profit = sell - item.buyPrice
+              const special = isSpecialtyMatch(state.activeMarket, item.productId)
               return (
                 <div key={i} className="item-row">
                   <div className="item-info">
                     <span className="item-name">
-                      {p.emoji} {p.name}
+                      {p.emoji} {p.name} {special && <span className="special-tag">전문 📈</span>}
                     </span>
                     <span className="item-price">
                       산 값 {item.buyPrice.toLocaleString()} → {sell.toLocaleString()}원{' '}

@@ -51,6 +51,11 @@ export default function App() {
     <div className="app">
       <h1 className="app-title">🧑‍🌾 특산물 부루마블 무역 게임 🚢</h1>
 
+      {/* 퀴즈타운 안(/marble/)에서 열렸을 때만 돌아가기 링크 표시 */}
+      {typeof window !== 'undefined' && window.location.pathname.startsWith('/marble') && (
+        <a className="town-link" href="/">🏘️ 퀴즈타운으로 돌아가기</a>
+      )}
+
       {/* 상단 탭: 무역 게임 / 지도로 배우기 */}
       <div className="main-tabs">
         <button

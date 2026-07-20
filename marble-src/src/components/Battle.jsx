@@ -43,8 +43,8 @@ function BattleMenu({ onStart }) {
     <div className="panel" style={{ maxWidth: 560, margin: '0 auto' }}>
       <h2>⚔️ 특산물 대전 — 1:1</h2>
       <div className="compare">
-        같은 게임판·시장에서 번갈아 <b>{TURNS_PER_PLAYER}턴</b>씩! 먼저 목표 <b>{CONFIG.goal.toLocaleString()}원</b>{' '}
-        도달하거나, 끝났을 때 현금이 많으면 승리! 🏆
+        같은 게임판·시장에서 번갈아 <b>{TURNS_PER_PLAYER}턴</b>씩! 목표 <b>{CONFIG.goal.toLocaleString()}원</b>을
+        달성하면 그 바퀴까지 마치고, <b>현금이 많은 쪽이 승리</b>! 🏆 (뒤에 두는 사람은 +400원 보너스로 시작 — 공평하게!)
       </div>
 
       <div style={{ margin: '14px 0' }}>
