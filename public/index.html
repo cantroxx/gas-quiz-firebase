@@ -1749,25 +1749,8 @@
         </div>
       </div>
 
-      <!-- 온라인 대전(낱말대전 랭크전) 진입 — /wordbattle/ 독립 페이지로 이동 (로그인 그대로 유지) -->
-      <a class="online-battle-entry" href="/wordbattle/">
-        <span class="obe-emoji" aria-hidden="true">🧩</span>
-        <span class="obe-text">
-          <b>온라인 대전 · 낱말 대전</b>
-          <small>자음·모음으로 낱말 만들기 (랭크전) — 친구들과 실시간 대결!</small>
-        </span>
-        <span class="obe-go" aria-hidden="true">▶</span>
-      </a>
-
-      <!-- 특산물 마블(1:1 무역 대전) 진입 — /marble/ 독립 페이지로 이동 (로그인 그대로 유지) -->
-      <a class="online-battle-entry" href="/marble/">
-        <span class="obe-emoji" aria-hidden="true">🧑‍🌾</span>
-        <span class="obe-text">
-          <b>온라인 대전 · 특산물 마블</b>
-          <small>싸게 사서 비싸게 팔기! 특산물 무역 1:1 대결 (랭크전)</small>
-        </span>
-        <span class="obe-go" aria-hidden="true">▶</span>
-      </a>
+      <!-- 온라인 대전 진입: js/battle-hub.js 가 학교 퀴즈 카드 줄에 '온라인 대전' 카드를
+           과목 카드와 같은 모양으로 끼워 넣는다 (클릭 → 낱말 대전/특산물 마블 선택 화면) -->
 
       <div class="school-scene">
         <span class="school-scene-title" aria-hidden="true">퀴즈 학교</span>
@@ -1945,7 +1928,8 @@
   <script src="/__/firebase/init.js"></script>
   <script src="/js/app.bundle.js"></script>
   <script src="/js/wb-ranking-plaza.js?v=4"></script>
-  <script src="/js/mb-ranking-plaza.js?v=1"></script>
+  <script src="/js/mb-ranking-plaza.js?v=2"></script>
+  <script src="/js/battle-hub.js?v=1"></script>
   <script>
     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
 

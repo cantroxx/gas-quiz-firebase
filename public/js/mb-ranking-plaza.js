@@ -1,11 +1,12 @@
-/* mb-ranking-plaza.js — 랭킹 광장에 "특산물 마블" 탭을 끼워 넣는다.
- *  wb-ranking-plaza.js(낱말대전)와 동일한 방식. marbleRanking 컬렉션만 따로 읽어 표시.
- *  퀴즈타운 public/js/ 에 두고, index.html 에서 wb-ranking-plaza.js 옆에 개별 <script> 로 로드.
- *  기존 랭킹 로직/데이터는 건드리지 않는다.
+/* mb-ranking-plaza.js — 랭킹 광장 "온라인 대전" 탭(낱말대전이 만든 보드) 안에
+ *  '특산물 마블' 하위 탭을 끼워 넣는다. (별도 상단 탭을 만들지 않음)
+ *  하위 탭 전환은 기존 위임 핸들러(data-ranking-sub-group-id)가 그대로 처리.
+ *  데이터는 marbleRanking 컬렉션만 읽는다 (기존 랭킹 코드/데이터 불변).
  */
 (function () {
   'use strict';
-  var BOARD_ID = 'marble';
+  var PARENT_BOARD = 'wordbattle'; // wb-ranking-plaza.js 가 만든 "온라인 대전" 보드
+  var SUB_ID = 'marble-rank';
   var ROOT_ID = 'marble-ranking-root';
 
   function esc(s) {
@@ -20,7 +21,7 @@
     var root = document.getElementById(ROOT_ID);
     if (!root) return;
     if (!rows || !rows.length) {
-      root.innerHTML = '<p class="wb-rank-empty">아직 특산물 마블 기록이 없어요. 학교 → 특산물 마블에서 한 판 해보세요!</p>';
+      root.innerHTML = '<p class="wb-rank-empty">아직 특산물 마블 기록이 없어요. 학교 → 온라인 대전에서 한 판 해보세요!</p>';
       return;
     }
     root.innerHTML = rows.map(function (r, i) {
@@ -53,37 +54,32 @@
       });
   }
 
-  function injectTab(root) {
-    if (!root) return;
-    var tabs = root.querySelector('.ranking-board-tabs');
-    var panels = root.querySelector('.ranking-board-panels');
-    if (!tabs || !panels) return;
-    if (tabs.querySelector('[data-ranking-board-id="' + BOARD_ID + '"]')) return; // 이미 있음
+  // "온라인 대전" 보드 패널 안에 '특산물 마블' 하위 탭 + 순위 패널 주입
+  function injectSubTab() {
+    var panel = document.querySelector('[data-ranking-board-panel="' + PARENT_BOARD + '"]');
+    if (!panel) return;
+    var tabs = panel.querySelector('.ranking-sub-tabs');
+    if (!tabs) return;
+    if (tabs.querySelector('[data-ranking-sub-group-id="' + SUB_ID + '"]')) return; // 이미 있음
 
-    var tab = document.createElement('button');
-    tab.type = 'button';
-    tab.className = 'ranking-board-tab';
-    tab.dataset.rankingBoardId = BOARD_ID;
-    tab.textContent = '특산물 마블';
-    tabs.appendChild(tab);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ranking-sub-tab';
+    btn.dataset.rankingSubGroupId = SUB_ID;
+    btn.dataset.rankingParentBoardId = PARENT_BOARD;
+    btn.textContent = '특산물 마블';
+    tabs.appendChild(btn);
 
-    var panel = document.createElement('section');
-    panel.className = 'ranking-board-panel';
-    panel.dataset.rankingBoardPanel = BOARD_ID;
-    panel.hidden = true;
-    panel.innerHTML =
-      '<div class="ranking-board-header">' +
-        '<h3>🧑‍🌾 특산물 마블</h3>' +
-        '<p>1:1 특산물 무역 대전의 랭크 순위입니다. (승 +30 / 패 +5)</p>' +
-      '</div>' +
-      '<div class="ranking-sub-tabs">' +
-        '<button type="button" class="ranking-sub-tab is-active" ' +
-          'data-ranking-sub-group-id="marble-rank" data-ranking-parent-board-id="' + BOARD_ID + '">마블 대전</button>' +
-      '</div>' +
-      '<div class="ranking-sub-panel" data-ranking-sub-panel="marble-rank">' +
-        '<div id="' + ROOT_ID + '" class="wb-rank-root"></div>' +
-      '</div>';
-    panels.appendChild(panel);
+    var sub = document.createElement('div');
+    sub.className = 'ranking-sub-panel';
+    sub.dataset.rankingSubPanel = SUB_ID;
+    sub.hidden = true; // 처음엔 낱말 대전 탭이 활성
+    sub.innerHTML = '<div id="' + ROOT_ID + '" class="wb-rank-root"></div>';
+    panel.appendChild(sub);
+
+    // 보드 머리글 설명을 두 게임 모두로 넓힘
+    var head = panel.querySelector('.ranking-board-header p');
+    if (head) head.textContent = '낱말 대전과 특산물 마블 — 온라인 대전 랭크 순위입니다.';
 
     if (cachedRows) renderList(cachedRows); else load();
   }
@@ -93,9 +89,10 @@
     var root = document.getElementById('ranking-board-root');
     if (!root) { setTimeout(init, 800); return; }
 
-    injectTab(root);
+    injectSubTab();
+    // 랭킹 보드가 다시 그려지거나 낱말대전 탭이 늦게 주입돼도 따라 붙는다
     if (window.MutationObserver) {
-      new MutationObserver(function () { injectTab(root); }).observe(root, { childList: true });
+      new MutationObserver(function () { injectSubTab(); }).observe(root, { childList: true, subtree: true });
     }
     window.firebase.auth().onAuthStateChanged(function (u) { if (u) { loading = false; load(); } });
     if (window.firebase.auth().currentUser) load();
