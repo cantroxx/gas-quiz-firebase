@@ -10,7 +10,7 @@
 
 ## 폴더 구조
 - `public/` — 운영 프론트엔드 (주 소스 `public/index.html`, 전역 스타일 `public/styles.css`)
-- `marble-src/` — 특산물 마블(1:1 무역 대전) 소스(React+Vite). `npm run build` → `public/marble/` 출력. `public/marble/`은 직접 수정 금지, 자세한 건 `marble-src/README.md`
+- `marble-src/` — 특산물 마블(2~4인 무역 대전) 소스(React+Vite). `npm run build` → `public/marble/` 출력. `public/marble/`은 직접 수정 금지, 자세한 건 `marble-src/README.md`
 - `functions/index.js` — Firebase Functions (관리자 callable, 서버 집계)
 - `scripts/` — 운영 보조 스크립트 (audit / maintenance / migration / seed / smoke 하위 분류)
 - `docs/` — 장기 문서 (architecture / migration / operations / product / seeding / snippets) — 문서 위치를 모르면 `docs/README.md`부터 확인

@@ -12,9 +12,10 @@ import {
   BOT_RANK_LOSE,
   TURN_LIMIT_MS,
   TURNS_PER_PLAYER,
+  nextActiveSeat,
 } from '../battleLogic.js'
 import { CONFIG } from '../data.js'
-import BattleBoard from './BattleBoard.jsx'
+import BattleBoard, { SEAT_TOKENS } from './BattleBoard.jsx'
 import BattleActionPanel from './BattleActionPanel.jsx'
 import { firebaseReady, prepare, createRoom, joinRoom, listRooms, OnlineSession, recordRankPoints } from '../online.js'
 
@@ -41,10 +42,10 @@ function BattleMenu({ onStart }) {
 
   return (
     <div className="panel" style={{ maxWidth: 560, margin: '0 auto' }}>
-      <h2>⚔️ 특산물 대전 — 1:1</h2>
+      <h2>⚔️ 특산물 대전 — 2~4인</h2>
       <div className="compare">
         같은 게임판·시장에서 번갈아 <b>{TURNS_PER_PLAYER}턴</b>씩! 목표 <b>{CONFIG.goal.toLocaleString()}원</b>을
-        달성하면 그 바퀴까지 마치고, <b>현금이 많은 쪽이 승리</b>! 🏆 (뒤에 두는 사람은 +400원 보너스로 시작 — 공평하게!)
+        달성하면 그 바퀴까지 마치고, <b>현금이 가장 많은 사람이 승리</b>! 🏆 (뒤 순서일수록 시작 보너스를 받아 공평하게!)
       </div>
 
       <div style={{ margin: '14px 0' }}>
@@ -135,7 +136,7 @@ function OnlineMenu({ myName, onStart }) {
         ) : (
           rooms.map((r) => (
             <button key={r.code} className="room-item" disabled={busy} onClick={() => go((d) => joinRoom(d, r.code))}>
-              {r.title} · {r.count}/2 · {r.code}
+              {r.title} · {r.count}/4 · {r.code}
             </button>
           ))
         )}
@@ -183,10 +184,12 @@ function OnlineBattleGame({ config, onExit }) {
   const seat = session.mySeat()
   const battle = room.battle
 
-  // 대기실
+  // 대기실 (2~4명)
   if (room.status === 'waiting') {
     const isHost = seat === 0
-    const foe = room.seats[1]
+    const seatsView = [...(room.seats || [])]
+    while (seatsView.length < 4) seatsView.push(null) // 옛 2인 방 호환
+    const filled = seatsView.filter(Boolean)
     return (
       <div className="panel" style={{ maxWidth: 520, margin: '0 auto', textAlign: 'center' }}>
         <button
@@ -200,14 +203,17 @@ function OnlineBattleGame({ config, onExit }) {
         </button>
         <h2>🌐 대기실</h2>
         <div className="room-code">방 번호 <b>{room.code}</b></div>
-        <p>친구에게 이 번호를 알려주고 "입장"하라고 하세요!</p>
-        <div className="seat-row">
-          <div className="seat">🧑‍🌾 {room.seats[0].name}</div>
-          <div className="seat">{foe ? `🧑‍🍳 ${foe.name}` : '⌛ 기다리는 중…'}</div>
+        <p>친구에게 이 번호를 알려주고 "입장"하라고 하세요! (2~4명이 함께 해요)</p>
+        <div className="seat-row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+          {seatsView.map((s, i) => (
+            <div key={i} className="seat" style={s ? undefined : { opacity: 0.55 }}>
+              {s ? `${SEAT_TOKENS[i]} ${s.name}` : '⌛ 빈 자리'}
+            </div>
+          ))}
         </div>
         {isHost ? (
-          <button className="btn btn-primary" disabled={!foe} onClick={() => session.start()}>
-            {foe ? '⚔️ 대전 시작!' : '상대를 기다려요…'}
+          <button className="btn btn-primary" disabled={filled.length < 2} onClick={() => session.start()}>
+            {filled.length < 2 ? '친구를 기다려요… (2명부터 시작)' : `⚔️ ${filled.length}명이서 대전 시작!`}
           </button>
         ) : (
           <p style={{ color: '#616161' }}>방장이 시작하기를 기다리는 중…</p>
@@ -236,7 +242,7 @@ function OnlineBattleGame({ config, onExit }) {
           className="btn btn-gray back-btn"
           onClick={() => {
             if (battle.phase !== 'ended') {
-              if (!window.confirm('나가면 항복이 되어 상대가 승리해요. 나갈까요?')) return
+              if (!window.confirm('나가면 항복(탈락)이 돼요. 남은 친구가 1명이면 그 친구가 승리해요. 나갈까요?')) return
               session.surrender().finally(onExit)
             } else {
               onExit()
@@ -247,16 +253,27 @@ function OnlineBattleGame({ config, onExit }) {
         </button>
         <div className="battle-players">
           {battle.players.map((p, i) => (
-            <div key={i} className={`battle-pcard${battle.current === i && battle.phase !== 'ended' ? ' active' : ''}`}>
+            <div
+              key={i}
+              className={`battle-pcard${battle.current === i && battle.phase !== 'ended' ? ' active' : ''}`}
+              style={p.out ? { opacity: 0.45 } : undefined}
+            >
               <div className="bp-name">
-                {i === seat ? '⭐' : '🧑'} {p.name}
+                {p.out ? '🏳️' : i === seat ? '⭐' : SEAT_TOKENS[i] || '🧑'} {p.name}
               </div>
               <div className="bp-cash">{p.cash.toLocaleString()}원</div>
               <div className="bp-cargo">🎒 {p.cargo.length}/{CONFIG.cargoLimit}</div>
             </div>
           ))}
         </div>
-        {battle.phase !== 'ended' && <TurnTimer session={session} room={room} isMyTurn={isMyTurn} />}
+        {battle.phase !== 'ended' && (
+          <TurnTimer
+            session={session}
+            room={room}
+            isMyTurn={isMyTurn}
+            amMarshal={seat === nextActiveSeat(battle.players, battle.current)}
+          />
+        )}
       </div>
 
       <div className="map-layout" style={{ marginTop: 12 }}>
@@ -422,8 +439,9 @@ function BattleResult({ state, config, onRestart, onExit, seat = 0 }) {
         <div className="grade">{draw ? '🤝' : '🏆'}</div>
         <h2>{draw ? '무승부!' : `${winnerName} 승리!`}</h2>
         <div className="result-cash">
-          {state.players[0].name} {state.players[0].cash.toLocaleString()}원 · {state.players[1].name}{' '}
-          {state.players[1].cash.toLocaleString()}원
+          {state.players
+            .map((p) => `${p.out ? '🏳️' : ''}${p.name} ${p.cash.toLocaleString()}원`)
+            .join(' · ')}
         </div>
         <p style={{ fontSize: 18 }}>
           내 랭크 점수: <b>+{rankPts}</b>
@@ -447,7 +465,7 @@ function BattleResult({ state, config, onRestart, onExit, seat = 0 }) {
 
 // 턴 타이머: 남은 시간을 보여주고, 90초가 지나면 차례를 자동으로 넘긴다.
 // (시간 기준은 서버에 기록된 turnStartedAt — 양쪽 화면이 같은 시계를 봐요)
-function TurnTimer({ session, room, isMyTurn }) {
+function TurnTimer({ session, room, isMyTurn, amMarshal }) {
   const [leftSec, setLeftSec] = useState(90)
 
   useEffect(() => {
@@ -455,13 +473,14 @@ function TurnTimer({ session, room, isMyTurn }) {
       const started = room.turnStartedAt || 0
       const left = Math.max(0, Math.ceil((started + TURN_LIMIT_MS - Date.now()) / 1000))
       setLeftSec(left)
-      // 시간이 다 되면 누구든 차례를 넘긴다 (트랜잭션이 서버 시간 기준으로 재확인)
-      if (left <= 0) session.forceTimeout()
+      // 시간이 다 되면 '다음 차례인 사람' 화면에서만 넘긴다
+      // (여러 화면이 동시에 트랜잭션을 쏘면 충돌·재시도로 버벅여서 한 명만 담당)
+      if (left <= 0 && amMarshal) session.forceTimeout()
     }
     tick()
     const t = setInterval(tick, 1000)
     return () => clearInterval(t)
-  }, [session, room.turnStartedAt])
+  }, [session, room.turnStartedAt, amMarshal])
 
   return (
     <div className={`turn-timer${leftSec <= 15 ? ' urgent' : ''}`}>

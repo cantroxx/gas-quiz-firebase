@@ -29,8 +29,16 @@ export const RANK_LOSE = 5 // 온라인 패배 랭크 점수
 export const BOT_RANK_WIN = 15 // 봇전은 온라인의 절반
 export const BOT_RANK_LOSE = 3
 export const TURN_LIMIT_MS = 90 * 1000 // 온라인 한 턴 제한(90초)
-// 후공 보너스: 공유 시장에서 먼저 사는 선공이 유리하므로, 후공이 +400원으로 시작(공평!)
-export const SECOND_PLAYER_BONUS = 400
+export const MAX_PLAYERS = 4
+// 순서 보너스: 공유 시장을 먼저 쓰는 앞 순서가 유리해서, 뒤 순서일수록 시작 현금을 보정.
+// 값은 봇 시뮬 3000판(scripts/simulate-balance.mjs)으로 좌석별 승률 ±2%p 이내로 맞춘 결과.
+// (시작 현금은 장사 밑천이라 복리로 불어나서, 명목 격차의 절반쯤만 보정해야 균형이 맞는다)
+export const ORDER_BONUS = {
+  2: [0, 225],
+  3: [0, 220, 420],
+  4: [0, 240, 440, 660],
+}
+export const SECOND_PLAYER_BONUS = 225 // (구) 2인 전용 상수 — 호환용
 
 // 랜덤 도우미(리듀서 밖에서 호출) — planMove/rollDice 는 gameLogic 재사용
 export { rollDice }
@@ -46,19 +54,22 @@ export function planBattleMove(state, steps) {
 }
 
 // ── 초기 상태 ──────────────────────────────────
-// names: [내이름, 상대이름], mode: 'local' | 'bot' | 'online'
+// names: 참가자 이름 배열(2~4명), mode: 'local' | 'bot' | 'online'
 export function createBattleState(names = ['플레이어1', '플레이어2'], mode = 'bot') {
+  const bonus = ORDER_BONUS[names.length] || ORDER_BONUS[2]
   return {
     mode,
     players: names.map((name, i) => ({
       name,
-      cash: CONFIG.startCash + (i === 1 ? SECOND_PLAYER_BONUS : 0),
+      cash: CONFIG.startCash + (bonus[i] || 0),
       cargo: [],
       position: 0,
       laps: 0,
       skipNext: false,
+      out: false, // 중도 이탈(항복) 여부
+      turnsTaken: 0, // 마친 턴 수 (모두 같은 턴 수를 마쳐야 공정한 판정)
     })),
-    current: 0, // 이번 차례 (0 또는 1)
+    current: 0, // 이번 차례 (좌석 번호)
     turnNo: 1, // 1..30
     // 공유 시장/보드
     sources: buildSources(),
@@ -210,6 +221,34 @@ export function battleReducer(state, action) {
       return advanceTurn({ ...state, log: addLog(state, `⏰ ${state.players[state.current].name} 시간 초과 — 차례를 넘겨요.`) })
     }
 
+    // 항복/중도 이탈: 그 사람은 탈락 처리, 남은 사람이 1명이면 그 사람 승리
+    case 'SURRENDER': {
+      const seat = action.seat
+      if (state.phase === 'ended') return state
+      if (!state.players[seat] || state.players[seat].out) return state
+      const players = setPlayer(state.players, seat, { out: true })
+      const s = { ...state, players, log: addLog(state, `🏳️ ${state.players[seat].name} 항복!`) }
+      const active = activeSeats(players)
+      if (active.length === 1) {
+        return finish(s, active[0], `🏆 ${players[active[0]].name} 승리!`)
+      }
+      if (state.current === seat) {
+        // 항복한 사람 차례였으면 그 차례를 정리하고 다음 사람에게
+        return {
+          ...s,
+          phase: 'ready',
+          dice: null,
+          moveOptions: [],
+          activeMarket: null,
+          activeSource: null,
+          activeEvent: null,
+          pendingQuiz: null,
+          current: nextActiveSeat(players, seat),
+        }
+      }
+      return s
+    }
+
     case 'RESTART': {
       return createBattleState(
         state.players.map((p) => p.name),
@@ -338,6 +377,21 @@ function applyGolden(state, event) {
   }
 }
 
+// 탈락하지 않은 좌석 번호 목록
+export function activeSeats(players) {
+  return players.map((p, i) => (p.out ? -1 : i)).filter((i) => i >= 0)
+}
+
+// 다음 차례(탈락자 건너뛰기)
+export function nextActiveSeat(players, from) {
+  const n = players.length
+  for (let k = 1; k <= n; k++) {
+    const i = (from + k) % n
+    if (!players[i].out) return i
+  }
+  return from
+}
+
 // 턴 마무리 → 승패/턴 판정 후 다음 사람에게
 function advanceTurn(state) {
   const me = state.current
@@ -353,8 +407,10 @@ function advanceTurn(state) {
     if (g > 0) glut[id] = g
   })
 
+  const players = setPlayer(state.players, me, { turnsTaken: (state.players[me].turnsTaken || 0) + 1 })
   const base = {
     ...state,
+    players,
     stock,
     glut,
     phase: 'ready',
@@ -366,29 +422,27 @@ function advanceTurn(state) {
     pendingQuiz: null,
   }
 
-  // 목표 달성 판정 — 공정하게 "두 사람이 같은 횟수의 턴"을 마친 뒤 현금 비교.
-  //  (선공이 먼저 달성해도 후공에게 같은 차례가 보장돼 선공 유리가 없어요)
-  const anyReached = state.players.some((p) => p.cash >= CONFIG.goal)
-  if (anyReached && me === 1) {
-    return finishByCash(base)
+  // 공정한 판정: "남은 사람 모두가 같은 횟수의 턴"을 마친 순간에만 결과를 낸다.
+  //  (누가 먼저 목표를 달성해도 나머지에게 같은 차례가 보장돼 순서 유리가 없어요)
+  const active = activeSeats(players)
+  const counts = active.map((i) => players[i].turnsTaken || 0)
+  const roundDone = counts.every((c) => c === counts[0])
+  const anyReached = active.some((i) => players[i].cash >= CONFIG.goal)
+
+  if (roundDone && (anyReached || counts[0] >= TURNS_PER_PLAYER)) {
+    return finishByCash(base) // 목표 달성 or 정해진 턴 모두 소진 → 현금 비교
   }
-  if (anyReached && me === 0) {
+  if (anyReached) {
     base.log = addLog(
       { ...base, current: me },
-      `🎯 목표 달성! ${state.players[1].name}에게 마지막 차례가 주어져요.`,
+      '🎯 목표 달성! 남은 친구들이 같은 차례를 마치면 결과가 나와요.',
     )
-  }
-
-  // 다음 차례로
-  const nextTurnNo = state.turnNo + 1
-  if (nextTurnNo > TURNS_PER_PLAYER * 2) {
-    return finishByCash(base) // 30턴 종료 → 현금 비교
   }
 
   return {
     ...base,
-    turnNo: nextTurnNo,
-    current: (nextTurnNo - 1) % 2,
+    turnNo: state.turnNo + 1,
+    current: nextActiveSeat(players, me),
   }
 }
 
@@ -396,13 +450,12 @@ function finish(state, winner, message) {
   return { ...state, phase: 'ended', winner, log: addLog({ ...state, current: state.current }, message) }
 }
 
-// 현금이 많은 쪽 승리 (같으면 무승부)
+// 현금이 가장 많은 사람 승리 (공동 1등이면 무승부)
 function finishByCash(state) {
-  const [a, b] = state.players
-  let winner
-  if (a.cash > b.cash) winner = 0
-  else if (b.cash > a.cash) winner = 1
-  else winner = 'draw'
+  const active = activeSeats(state.players)
+  const top = Math.max(...active.map((i) => state.players[i].cash))
+  const winners = active.filter((i) => state.players[i].cash === top)
+  const winner = winners.length === 1 ? winners[0] : 'draw'
   return finish(state, winner, winner === 'draw' ? '🤝 무승부!' : `🏆 ${state.players[winner].name} 승리!`)
 }
 

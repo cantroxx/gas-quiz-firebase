@@ -10,7 +10,8 @@ const CORNER_COLORS = {
   storm: '#42a5f5',
   festival: '#ec407a',
 }
-const TOKENS = ['🧑‍🌾', '🤖'] // 플레이어0, 플레이어1
+export const SEAT_TOKENS = ['🧑‍🌾', '🧑‍🍳', '🧑‍🎨', '🧑‍🚀'] // 좌석 0~3 말
+const TOKENS_BOT = ['🧑‍🌾', '🤖'] // 봇전은 사람 vs 로봇
 
 function cellColor(cell) {
   if (cell.type === 'corner') return CORNER_COLORS[cell.subtype] || CELL_COLORS.corner
@@ -36,7 +37,9 @@ export default function BattleBoard({ state }) {
             style={{ gridRow: cell.grid[0], gridColumn: cell.grid[1], background: cellColor(cell) }}
           >
             {here.length > 0 && (
-              <span className="token">{here.map((idx) => TOKENS[idx]).join('')}</span>
+              <span className="token">
+                {here.map((idx) => (state.mode === 'bot' ? TOKENS_BOT : SEAT_TOKENS)[idx] || '🙂').join('')}
+              </span>
             )}
             <span className="cell-emoji">
               {cell.type === 'source' ? srcIds.map((id) => PRODUCTS[id].emoji).join('') : mt ? mt.emoji : cell.emoji || ''}
@@ -57,7 +60,7 @@ export default function BattleBoard({ state }) {
 
       <div className="board-center">
         <div className="turn-badge">
-          {Math.ceil(state.turnNo / 2)} / {TURNS_PER_PLAYER} 턴
+          {Math.min(TURNS_PER_PLAYER, (state.players[state.current]?.turnsTaken || 0) + 1)} / {TURNS_PER_PLAYER} 턴
         </div>
         <div className="big-dice">{state.dice ? diceFace(state.dice) : '🎲'}</div>
         <div className="goal">🎯 {(10000).toLocaleString()}원</div>

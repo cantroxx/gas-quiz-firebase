@@ -18,10 +18,16 @@ import ActionPanel from './components/ActionPanel.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
 import MapLearn from './components/MapLearn.jsx'
 import Battle from './components/Battle.jsx'
+import { startPresenceHeartbeat } from './online.js'
 
 export default function App() {
   // 화면 탭: 'game'(무역 게임) | 'map'(지도로 배우기)
   const [tab, setTab] = useState('game')
+
+  // 접속 도장: 마블을 여는 동안 홈타운 '우리 반 친구' 목록에 게임중으로 표시
+  useEffect(() => {
+    startPresenceHeartbeat()
+  }, [])
 
   // 저장된 게임이 있으면 이어서, 없으면 새 게임으로 시작
   const [state, dispatch] = useReducer(reducer, undefined, () => loadState() || createInitialState())

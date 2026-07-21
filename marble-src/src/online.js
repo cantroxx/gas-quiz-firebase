@@ -9,7 +9,7 @@
 //
 //  Firebase compat SDK(window.firebase)는 퀴즈타운 Hosting에서 자동 주입(/__/firebase/*).
 //  Vercel 단독 배포에선 그 스크립트가 없어 firebaseReady()=false → 온라인 숨김, 봇/연습만.
-import { battleReducer, createBattleState, RANK_WIN, RANK_LOSE, TURN_LIMIT_MS } from './battleLogic.js'
+import { battleReducer, createBattleState, RANK_WIN, RANK_LOSE, TURN_LIMIT_MS, MAX_PLAYERS } from './battleLogic.js'
 
 function fb() {
   return typeof window !== 'undefined' ? window.firebase : null
@@ -43,7 +43,7 @@ export function ensureAuth() {
   })
 }
 
-// 퀴즈타운 users 문서에서 진짜 이름 찾기 (낱말대전과 동일)
+// 퀴즈타운 users 문서에서 진짜 이름 + 학번(users 문서 id) 찾기 (낱말대전과 동일)
 export function lookupNickname(db, user) {
   return db
     .collection('users')
@@ -54,11 +54,11 @@ export function lookupNickname(db, user) {
       if (!snap.empty) {
         const d = snap.docs[0].data() || {}
         const nick = d.nickname || d.name || d.displayNickname
-        if (nick) return String(nick)
+        return { name: nick ? String(nick) : fallbackName(user), memberUserId: snap.docs[0].id }
       }
-      return fallbackName(user)
+      return { name: fallbackName(user), memberUserId: '' }
     })
-    .catch(() => fallbackName(user))
+    .catch(() => ({ name: fallbackName(user), memberUserId: '' }))
 }
 function fallbackName(user) {
   return user.displayName || '친구' + String(user.uid).slice(-4)
@@ -88,16 +88,40 @@ export function recordRankPoints(deps, points, won) {
     .catch((e) => ({ ok: false, error: e.message }))
 }
 
-// deps 준비: { db, FieldValue, me:{uid,name} }
+// deps 준비: { db, FieldValue, me:{uid,name,memberUserId} }
 export function prepare() {
   return ensureAuth().then((user) => {
     const db = fb().firestore()
-    return lookupNickname(db, user).then((name) => ({
+    return lookupNickname(db, user).then((info) => ({
       db,
       FieldValue: fb().firestore.FieldValue,
-      me: { uid: user.uid, name },
+      me: { uid: user.uid, name: info.name, memberUserId: info.memberUserId },
     }))
   })
+}
+
+// ── 접속 도장 (홈타운 '우리 반 친구' 목록과 공유) ──────────────
+// 마블을 여는 동안에도 타운 접속자 목록에 '특산물 마블 하는 중'으로 보이게
+// 1분마다 presence/{내uid} 에 도장을 찍는다. 퀴즈타운 로그인이 없으면 찍지 않는다.
+let _presenceTimer = null
+export function startPresenceHeartbeat() {
+  if (_presenceTimer || !firebaseReady()) return
+  prepare()
+    .then((deps) => {
+      if (!deps.me.memberUserId) return // 퀴즈타운 회원이 아니면 명단에 올리지 않음
+      const beat = () =>
+        deps.db
+          .collection('presence')
+          .doc(deps.me.uid)
+          .set(
+            { name: deps.me.name, memberUserId: deps.me.memberUserId, where: 'marble', lastSeen: Date.now() },
+            { merge: true },
+          )
+          .catch(() => {})
+      beat()
+      _presenceTimer = setInterval(beat, 60 * 1000)
+    })
+    .catch(() => {})
 }
 
 // 방 만들기 → code 반환
@@ -108,7 +132,7 @@ export function createRoom(deps, title) {
     title: title || `${deps.me.name}의 방`,
     status: 'waiting',
     createdAt: Date.now(),
-    seats: [{ uid: deps.me.uid, name: deps.me.name }, null],
+    seats: [{ uid: deps.me.uid, name: deps.me.name }, null, null, null], // 최대 4명
     battle: null,
   }
   return deps.db.collection('marbleRooms').doc(code).set(room).then(() => code)
@@ -126,7 +150,7 @@ export function listRooms(deps) {
       snap.forEach((d) => {
         const r = d.data()
         const seated = (r.seats || []).filter(Boolean).length
-        if ((r.createdAt || 0) >= cutoff && seated < 2) {
+        if ((r.createdAt || 0) >= cutoff && seated < MAX_PLAYERS) {
           rooms.push({ code: r.code, title: r.title, count: seated, createdAt: r.createdAt || 0 })
         }
       })
@@ -135,7 +159,7 @@ export function listRooms(deps) {
     })
 }
 
-// 방 참가 (빈 2번 자리에 앉기)
+// 방 참가 (앞에서부터 빈 자리에 앉기, 최대 4명)
 export function joinRoom(deps, code) {
   const ref = deps.db.collection('marbleRooms').doc(code)
   return deps.db
@@ -143,9 +167,14 @@ export function joinRoom(deps, code) {
       tx.get(ref).then((snap) => {
         if (!snap.exists) throw new Error('그런 방 번호가 없어요.')
         const room = snap.data()
-        if (room.seats[1]) throw new Error('방이 꽉 찼어요.')
-        if (room.seats[0] && room.seats[0].uid === deps.me.uid) return // 내가 만든 방
-        room.seats[1] = { uid: deps.me.uid, name: deps.me.name }
+        if (room.status !== 'waiting') throw new Error('이미 시작한 방이에요.')
+        const seats = room.seats || []
+        while (seats.length < MAX_PLAYERS) seats.push(null) // 옛 2인 방 호환
+        if (seats.some((s) => s && s.uid === deps.me.uid)) return // 이미 앉아 있음
+        const empty = seats.findIndex((s) => !s)
+        if (empty < 0) throw new Error('방이 꽉 찼어요. (최대 4명)')
+        seats[empty] = { uid: deps.me.uid, name: deps.me.name }
+        room.seats = seats
         tx.set(ref, room)
       }),
     )
@@ -191,15 +220,17 @@ export function OnlineSession(deps, code) {
       .catch((e) => ({ ok: false, error: e.message }))
   }
 
-  // 방장이 대전 시작 (두 자리 다 찼을 때)
+  // 방장이 대전 시작 (2명 이상 모이면 가능, 최대 4명)
   function start() {
     return deps.db
       .runTransaction((tx) =>
         tx.get(ref).then((snap) => {
           const r = snap.data()
-          if (!r.seats[0] || !r.seats[1]) throw new Error('상대가 아직 안 들어왔어요.')
-          if (r.seats[0].uid !== deps.me.uid) throw new Error('방장만 시작할 수 있어요.')
-          r.battle = createBattleState([r.seats[0].name, r.seats[1].name], 'online')
+          const filled = (r.seats || []).filter(Boolean)
+          if (filled.length < 2) throw new Error('친구가 아직 안 들어왔어요. (2명부터 시작)')
+          if (filled[0].uid !== deps.me.uid) throw new Error('방장만 시작할 수 있어요.')
+          r.seats = filled // 빈 자리를 정리해 좌석 번호 = 플레이어 번호로 맞춘다
+          r.battle = createBattleState(filled.map((s) => s.name), 'online')
           r.status = 'playing'
           r.turnStartedAt = Date.now()
           tx.set(ref, r)
@@ -220,7 +251,8 @@ export function OnlineSession(deps, code) {
     return recordRankPoints(deps, pts, won)
   }
 
-  // 대전 중 나가기 = 항복 (남은 사람 승리로 즉시 종료) — 내 차례가 아니어도 가능
+  // 대전 중 나가기 = 항복(탈락) — 내 차례가 아니어도 가능.
+  // 남은 사람이 1명이면 그 사람 승리로 끝나고, 2명 이상이면 게임은 계속된다.
   function surrender() {
     return deps.db
       .runTransaction((tx) =>
@@ -230,17 +262,10 @@ export function OnlineSession(deps, code) {
           if (r.status !== 'playing' || !r.battle) return
           const seat = (r.seats || []).findIndex((s) => s && s.uid === deps.me.uid)
           if (seat < 0) return
-          const other = seat === 0 ? 1 : 0
-          r.battle = {
-            ...r.battle,
-            phase: 'ended',
-            winner: other,
-            log: [
-              { turnNo: r.battle.turnNo, who: seat, message: `🏳️ ${r.battle.players[seat].name} 항복 — ${r.battle.players[other].name} 승리!` },
-              ...(r.battle.log || []),
-            ].slice(0, 10),
-          }
-          r.status = 'ended'
+          const wasCurrent = r.battle.current === seat
+          r.battle = battleReducer(r.battle, { type: 'SURRENDER', seat })
+          if (wasCurrent) r.turnStartedAt = Date.now() // 차례가 넘어갔으면 시계 재시작
+          if (r.battle.phase === 'ended') r.status = 'ended'
           tx.set(ref, r)
         }),
       )
@@ -274,8 +299,11 @@ export function OnlineSession(deps, code) {
           if (!snap.exists) return
           const r = snap.data()
           if (r.status !== 'waiting') return
-          if (r.seats[0] && r.seats[0].uid === deps.me.uid) r.status = 'closed'
-          else if (r.seats[1] && r.seats[1].uid === deps.me.uid) r.seats[1] = null
+          if (r.seats[0] && r.seats[0].uid === deps.me.uid) {
+            r.status = 'closed' // 방장이 나가면 방을 닫는다
+          } else {
+            r.seats = (r.seats || []).map((s) => (s && s.uid === deps.me.uid ? null : s))
+          }
           tx.set(ref, r)
         }),
       )
