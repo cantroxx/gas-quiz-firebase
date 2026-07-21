@@ -95,36 +95,46 @@ export async function joinClass(deps, { code, nickname }) {
   return cls
 }
 
-// 게임이 끝나면 내 최고 기록 저장 (더 잘했을 때만 최고 기록 갱신)
-export function saveRecord(deps, profile, { cash, titleName }) {
+// 게임이 끝나면 기록 저장:
+//  - 최고 소지금은 더 잘했을 때만 갱신
+//  - 도감은 여러 판에 걸쳐 "누적"으로 합쳐요 (진도 랭킹의 기준!)
+export function saveRecord(deps, profile, { cash, titleName, codex }) {
   const ref = deps.db.collection('geosangRanking').doc(deps.me.uid)
   return deps.db.runTransaction(async (tx) => {
     const snap = await tx.get(ref)
     const prev = snap.exists ? snap.data() : {}
     const best = Math.max(prev.bestCash || 0, cash)
+    const mergedCodex = { ...(prev.codex || {}), ...(codex || {}) }
     tx.set(ref, {
       classCode: profile.classCode,
       nickname: profile.nickname,
       bestCash: best,
       bestTitle: cash >= (prev.bestCash || 0) ? titleName : prev.bestTitle || titleName,
       games: (prev.games || 0) + 1,
+      codex: mergedCodex,
+      codexCount: Object.keys(mergedCodex).length,
       updatedAt: Date.now(),
     })
   })
 }
 
-// 우리 반 랭킹 (문서 수가 적어 화면에서 정렬)
+// 우리 반 랭킹 — 도감(진도) 많이 모은 순 (문서 수가 적어 화면에서 정렬)
 export async function fetchClassRanking(db, code) {
   const snap = await db.collection('geosangRanking').where('classCode', '==', code).get()
   const rows = []
   snap.forEach((d) => rows.push({ uid: d.id, ...d.data() }))
-  rows.sort((a, b) => (b.bestCash || 0) - (a.bestCash || 0))
+  rows.sort(
+    (a, b) =>
+      (b.codexCount || 0) - (a.codexCount || 0) ||
+      (b.games || 0) - (a.games || 0) ||
+      (b.bestCash || 0) - (a.bestCash || 0),
+  )
   return rows.slice(0, 50)
 }
 
-// 전국 랭킹 (상위 50명)
+// 전국 랭킹 — 도감(진도) 많이 모은 순 상위 50명
 export async function fetchGlobalRanking(db) {
-  const snap = await db.collection('geosangRanking').orderBy('bestCash', 'desc').limit(50).get()
+  const snap = await db.collection('geosangRanking').orderBy('codexCount', 'desc').limit(50).get()
   const rows = []
   snap.forEach((d) => rows.push({ uid: d.id, ...d.data() }))
   return rows

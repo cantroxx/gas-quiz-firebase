@@ -834,7 +834,12 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn()
         && request.auth.uid == userUid
-        && request.resource.data.keys().hasOnly(['classCode', 'nickname', 'bestCash', 'bestTitle', 'games', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['classCode', 'nickname', 'bestCash', 'bestTitle', 'games', 'codex', 'codexCount', 'updatedAt'])
+        && (!('codex' in request.resource.data) || request.resource.data.codex is map)
+        && (!('codexCount' in request.resource.data)
+          || (request.resource.data.codexCount is int
+            && request.resource.data.codexCount >= 0
+            && request.resource.data.codexCount <= 200))
         && request.resource.data.bestCash is int
         && request.resource.data.bestCash >= 0
         && request.resource.data.bestCash <= 100000000

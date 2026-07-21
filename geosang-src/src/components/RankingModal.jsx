@@ -1,6 +1,10 @@
-// RankingModal.jsx — 랭킹 창 (우리 반 / 전국 탭)
+// RankingModal.jsx — 진도(도감) 랭킹 창 (우리 반 / 전국 탭)
+//  경쟁보다 학습 진도! 도감을 많이 모은 순서로 보여줍니다.
 import { useEffect, useState } from 'react'
+import { PRODUCTS } from '../data.js'
 import { fetchClassRanking, fetchGlobalRanking } from '../online.js'
+
+const TOTAL = Object.keys(PRODUCTS).length
 
 export default function RankingModal({ deps, profile, onClose }) {
   const [tab, setTab] = useState(profile ? 'class' : 'global')
@@ -25,10 +29,10 @@ export default function RankingModal({ deps, profile, onClose }) {
     <div className="overlay" onClick={onClose}>
       <div className="region-modal" onClick={(e) => e.stopPropagation()}>
         <div className="here-head">
-          <span className="here-emoji">🏆</span>
+          <span className="here-emoji">📖</span>
           <div>
-            <p className="here-name">최고 부자 랭킹</p>
-            <p className="here-sub">한 판이 끝나면 최고 소지금이 기록돼요</p>
+            <p className="here-name">특산물 도감 진도</p>
+            <p className="here-sub">여러 판을 하면서 모은 도감이 쌓여요 (전체 {TOTAL}종)</p>
           </div>
           <button className="close-btn" onClick={onClose} aria-label="닫기">✕</button>
         </div>
@@ -44,21 +48,31 @@ export default function RankingModal({ deps, profile, onClose }) {
           </button>
         </div>
 
-        {rows === null && <p className="market-empty">랭킹을 불러오는 중…</p>}
-        {rows && rows.length === 0 && <p className="market-empty">아직 기록이 없어요. 첫 기록의 주인공이 되어 보세요!</p>}
+        {rows === null && <p className="market-empty">진도를 불러오는 중…</p>}
+        {rows && rows.length === 0 && <p className="market-empty">아직 기록이 없어요. 한 판 끝까지 해보면 도감이 기록돼요!</p>}
         {rows && rows.length > 0 && (
           <div className="rank-list">
-            {rows.map((r, i) => (
-              <div className={`rank-row ${profile && r.nickname === profile.nickname && r.classCode === profile.classCode ? 'me' : ''}`} key={r.uid}>
-                <span className="rank-no">{i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span>
-                <span className="rank-name">
-                  {r.nickname}
-                  {tab === 'global' && <small> · {r.classCode}</small>}
-                </span>
-                <span className="rank-title">{r.bestTitle || ''}</span>
-                <span className="rank-cash">{(r.bestCash || 0).toLocaleString()}원</span>
-              </div>
-            ))}
+            {rows.map((r, i) => {
+              const n = r.codexCount || 0
+              const pct = Math.min(100, Math.round((n / TOTAL) * 100))
+              const isMe =
+                profile && r.nickname === profile.nickname && r.classCode === profile.classCode
+              return (
+                <div className={`rank-row ${isMe ? 'me' : ''}`} key={r.uid}>
+                  <span className="rank-no">{i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span>
+                  <span className="rank-name">
+                    {r.nickname}
+                    {tab === 'global' && <small> · {r.classCode}</small>}
+                    <span className="rank-bar">
+                      <span className="rank-bar-fill" style={{ width: `${pct}%` }} />
+                    </span>
+                  </span>
+                  <span className="rank-progress">📖 {n}/{TOTAL}</span>
+                  <span className="rank-title">{r.bestTitle || ''}</span>
+                  <span className="rank-games">{r.games || 0}판</span>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

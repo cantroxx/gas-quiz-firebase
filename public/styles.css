@@ -7971,6 +7971,14 @@ h2 {
 }
 .school-quiz-card-battle h3 { color: #8f3418; }
 
+/* 팔도 특산물 대상인 카드 — 교실 가운데 위쪽 빈 자리에 배치 */
+.school-quiz-card-geosang {
+  left: 44%;
+  top: 6%;
+  border-color: #d99000;
+}
+.school-quiz-card-geosang h3 { color: #8a5b00; }
+
 .school-quiz-card-external {
   right: 3%;
   top: 38%;

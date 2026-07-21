@@ -268,6 +268,13 @@ body {
 .rank-name small { color: #A1887F; font-weight: 400; }
 .rank-title { font-size: 12px; color: #7E57C2; font-weight: 700; }
 .rank-cash { font-weight: 800; color: #E65100; }
+.rank-bar {
+  display: block; height: 8px; background: #EFEBE9; border-radius: 999px;
+  margin-top: 4px; overflow: hidden;
+}
+.rank-bar-fill { display: block; height: 100%; background: #FFB300; border-radius: 999px; }
+.rank-progress { font-size: 13px; font-weight: 800; color: #E65100; white-space: nowrap; }
+.rank-games { font-size: 12px; color: #A1887F; white-space: nowrap; }
 .mini-del {
   border: none; background: #FFEBEE; color: #C62828; border-radius: 8px;
   padding: 5px 9px; font-size: 12px; font-weight: 800; font-family: inherit; cursor: pointer;

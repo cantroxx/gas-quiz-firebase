@@ -74,7 +74,11 @@ export default function App() {
     }
     if (savedRef.current || !deps || !session) return
     savedRef.current = true
-    saveRecord(deps, session.profile, { cash: game.cash, titleName: `${title.emoji} ${title.name}` })
+    saveRecord(deps, session.profile, {
+      cash: game.cash,
+      titleName: `${title.emoji} ${title.name}`,
+      codex: game.codex,
+    })
       .then(() => setSaved(true))
       .catch(() => {})
     // eslint-disable-next-line react-hooks/exhaustive-deps
