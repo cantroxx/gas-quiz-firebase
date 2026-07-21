@@ -208,6 +208,7 @@ body {
   display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: 0.65;
 }
 .codex-item.found { background: #FFF3E0; border: 1.5px solid #FFB300; opacity: 1; }
+.codex-item.known { background: #E8F5E9; border: 1.5px solid #A5D6A7; opacity: 0.95; cursor: pointer; }
 .ci-emoji { font-size: 22px; }
 .ci-name { font-size: 12px; font-weight: 800; }
 .codex-item small { font-size: 10px; color: #A1887F; min-height: 12px; }

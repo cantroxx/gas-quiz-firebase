@@ -162,6 +162,33 @@ function addLog(state, text) {
   return [{ day: state.day, text }, ...state.log].slice(0, 40)
 }
 
+// ── 이어하기: 기기에 저장된 판 불러오기 ────────────
+// 데이터가 옛 버전이거나 깨졌으면 조용히 버리고 새 판을 시작합니다.
+export function loadSavedGame() {
+  try {
+    const raw = localStorage.getItem('geosang_save')
+    if (!raw) return null
+    const s = JSON.parse(raw)
+    if (!s || s.over) return null
+    if (typeof s.day !== 'number' || typeof s.cash !== 'number') return null
+    if (!REGION_BY_KEY[s.pos]) return null
+    if (!s.quest || !PRODUCTS[s.quest.id] || !REGION_BY_KEY[s.quest.to]) return null
+    if (!s.news || !PRODUCTS[s.news.id] || !REGION_BY_KEY[s.news.region]) return null
+    if (!CARTS[s.cartLevel]) return null
+    for (const id of Object.keys(s.bag || {})) {
+      if (!PRODUCTS[id]) return null
+    }
+    s.bag = s.bag || {}
+    s.visited = s.visited || { [s.pos]: true }
+    s.codex = s.codex || {}
+    s.log = Array.isArray(s.log) ? s.log : []
+    if (s.localEvent === undefined) s.localEvent = null
+    return s
+  } catch (e) {
+    return null
+  }
+}
+
 export function reducer(state, action) {
   switch (action.type) {
     case 'TRAVEL': {

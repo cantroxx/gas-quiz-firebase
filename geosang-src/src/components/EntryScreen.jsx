@@ -14,6 +14,13 @@ import {
   deleteClass,
 } from '../online.js'
 
+// 바르고 고운 말 필터 (닉네임·학급 이름 1차 차단 — 최종 관리는 교사 삭제 기능으로)
+const BAD_WORDS = ['바보', '멍청', '시발', '씨발', 'ㅅㅂ', 'ㅂㅅ', '병신', '새끼', '존나', '미친', '멍충', '개새', 'fuck', 'shit', 'sex']
+function isCleanName(text) {
+  const t = String(text || '').toLowerCase().replace(/\s/g, '')
+  return !BAD_WORDS.some((w) => t.includes(w))
+}
+
 export default function EntryScreen({ deps, onGuest, onLogin }) {
   const [view, setView] = useState('menu') // menu | join | create | manage
   const [busy, setBusy] = useState(false)
@@ -46,6 +53,7 @@ export default function EntryScreen({ deps, onGuest, onLogin }) {
       const n = nick.trim()
       if (!c) throw new Error('학급코드를 입력해 주세요.')
       if (!n || n.length > 12) throw new Error('닉네임은 1~12글자로 지어 주세요.')
+      if (!isCleanName(n)) throw new Error('바르고 고운 닉네임으로 지어 주세요 😊')
       const cls = await joinClass(deps, { code: c, nickname: n })
       localStorage.setItem('geosang_code', c)
       localStorage.setItem('geosang_nick', n)
@@ -56,6 +64,7 @@ export default function EntryScreen({ deps, onGuest, onLogin }) {
     run(async () => {
       const c = code.trim()
       if (!/^[A-Za-z0-9가-힣]{2,12}$/.test(c)) throw new Error('학급코드는 2~12글자(한글·영어·숫자)로 정해 주세요.')
+      if (!isCleanName(c) || !isCleanName(clsName)) throw new Error('바르고 고운 이름으로 정해 주세요 😊')
       if (pw.length < 4) throw new Error('관리 비밀번호는 4글자 이상으로 해 주세요.')
       await createClass(deps, { code: c, name: clsName.trim(), pw })
       setMsg(`✅ 학급 "${c}"를 만들었어요! 학생들에게 이 코드를 알려 주세요.`)

@@ -7,7 +7,7 @@ import RegionPreview from './components/RegionPreview.jsx'
 import ProductCard from './components/ProductCard.jsx'
 import EntryScreen from './components/EntryScreen.jsx'
 import RankingModal from './components/RankingModal.jsx'
-import { firebaseReady, prepare, saveRecord } from './online.js'
+import { firebaseReady, prepare, saveRecord, fetchMyRecord } from './online.js'
 import {
   REGIONS,
   REGION_BY_KEY,
@@ -17,10 +17,11 @@ import {
   TITLES,
   CONFIG,
 } from './data.js'
-import { initGame, reducer, buyPrice, sellPrice, bagCount } from './gameLogic.js'
+import { initGame, reducer, buyPrice, sellPrice, bagCount, loadSavedGame } from './gameLogic.js'
 
 export default function App() {
-  const [game, dispatch] = useReducer(reducer, undefined, initGame)
+  // 저장된 판이 있으면 이어서, 없으면 새로 시작
+  const [game, dispatch] = useReducer(reducer, undefined, () => loadSavedGame() || initGame())
   const [showCodex, setShowCodex] = useState(false)
   const [showRanking, setShowRanking] = useState(false)
   const [selected, setSelected] = useState(null) // 지도에서 누른 지역
@@ -38,6 +39,28 @@ export default function App() {
       prepare().then(setDeps).catch(() => setDeps(null))
     }
   }, [])
+
+  // 이어하기: 판이 바뀔 때마다 기기에 저장 (끝나면 지움)
+  useEffect(() => {
+    try {
+      if (game.over) localStorage.removeItem('geosang_save')
+      else localStorage.setItem('geosang_save', JSON.stringify(game))
+    } catch (e) {
+      /* 저장 공간이 없어도 게임은 계속 */
+    }
+  }, [game])
+
+  // 누적 도감 (학급으로 들어왔을 때만, 랭킹 문서에서)
+  const [cumCodex, setCumCodex] = useState(null)
+  useEffect(() => {
+    if (deps && session) {
+      fetchMyRecord(deps.db, deps.me.uid)
+        .then((rec) => setCumCodex(rec?.codex || {}))
+        .catch(() => setCumCodex(null))
+    } else {
+      setCumCodex(null)
+    }
+  }, [deps, session, saved])
 
   const here = REGION_BY_KEY[game.pos]
   const visitedCount = Object.keys(game.visited).length
@@ -122,6 +145,17 @@ export default function App() {
               🏆 랭킹
             </button>
           )}
+          <button
+            className="stat codex-btn"
+            title="처음부터 다시 시작"
+            onClick={() => {
+              if (window.confirm('처음부터 다시 시작할까요? 지금 하던 판은 사라져요!')) {
+                dispatch({ type: 'RESET' })
+              }
+            }}
+          >
+            🆕
+          </button>
           <button className="stat user-chip" onClick={() => setStage('entry')} title="시작 화면으로">
             {session ? `🏫 ${session.profile.nickname}` : '🙋 손님'} ⏏
           </button>
@@ -294,19 +328,31 @@ export default function App() {
         <div className="overlay" onClick={() => setShowCodex(false)}>
           <div className="codex-card" onClick={(e) => e.stopPropagation()}>
             <p className="end-title">📖 특산물 도감 ({codexCount}/{totalProducts})</p>
-            <p className="codex-hint">특산물을 한 번이라도 사면 도감에 실려요!</p>
+            <p className="codex-hint">
+              특산물을 한 번이라도 사면 도감에 실려요!
+              {cumCodex && (
+                <>
+                  <br />🏫 여러 판 누적 진도: <b>{Object.keys(cumCodex).length}/{totalProducts}</b> — 연둣빛은 지난 판에 모은 것!
+                </>
+              )}
+            </p>
             <div className="codex-grid">
-              {Object.values(PRODUCTS).map((p) => (
-                <div
-                  className={`codex-item ${game.codex[p.id] ? 'found' : ''}`}
-                  key={p.id}
-                  onClick={game.codex[p.id] ? () => setInfoProduct(p.id) : undefined}
-                >
-                  <span className="ci-emoji">{game.codex[p.id] ? p.emoji : '❓'}</span>
-                  <span className="ci-name">{game.codex[p.id] ? p.name : '???'}</span>
-                  <small>{game.codex[p.id] ? `${p.origin} (${p.region})` : ''}</small>
-                </div>
-              ))}
+              {Object.values(PRODUCTS).map((p) => {
+                const now = !!game.codex[p.id]
+                const known = !now && cumCodex && cumCodex[p.id] // 지난 판들에서 모은 것
+                const show = now || known
+                return (
+                  <div
+                    className={`codex-item ${now ? 'found' : ''} ${known ? 'known' : ''}`}
+                    key={p.id}
+                    onClick={show ? () => setInfoProduct(p.id) : undefined}
+                  >
+                    <span className="ci-emoji">{show ? p.emoji : '❓'}</span>
+                    <span className="ci-name">{show ? p.name : '???'}</span>
+                    <small>{show ? `${p.origin} (${p.region})` : ''}</small>
+                  </div>
+                )
+              })}
             </div>
             <button className="restart-btn" onClick={() => setShowCodex(false)}>닫기</button>
           </div>

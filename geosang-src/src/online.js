@@ -118,6 +118,12 @@ export function saveRecord(deps, profile, { cash, titleName, codex }) {
   })
 }
 
+// 내 누적 기록 (도감 진도 표시용)
+export async function fetchMyRecord(db, uid) {
+  const snap = await db.collection('geosangRanking').doc(uid).get()
+  return snap.exists ? snap.data() : null
+}
+
 // 우리 반 랭킹 — 도감(진도) 많이 모은 순 (문서 수가 적어 화면에서 정렬)
 export async function fetchClassRanking(db, code) {
   const snap = await db.collection('geosangRanking').where('classCode', '==', code).get()
