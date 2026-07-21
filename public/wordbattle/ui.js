@@ -23,6 +23,7 @@
     let hintText = '';       // 힌트로 추천된 낱말 (없으면 '')
     let ticker = null;       // 타이머 인터벌
     let lastTimeoutTry = 0;  // 시간초과 처리 재시도 간격 조절
+    let busy = false;        // 서버 응답 대기 중 (버튼 연타·중복 요청 방지)
     let recorded = false;    // 랭크 점수 서버 기록을 한 번만 하기 위한 가드
     let recordMsg = '랭크 점수를 기록하는 중…';
 
@@ -238,7 +239,7 @@
       }
 
       const paused = !!room.paused;
-      const canAct = myTurn && !paused;
+      const canAct = myTurn && !paused && !busy;
 
       // 일시정지 제안 배너
       let pauseHtml = '';
@@ -326,9 +327,12 @@
       // 확인(턴 확정)
       const commit = document.getElementById('btn-commit');
       if (commit) commit.onclick = function () {
+        if (busy) return;
         pruneEmpty();
         const words = ws.words.filter(function (w) { return w.length > 0; }).map(function (w) { return w.map(function (t) { return t.id; }); });
+        busy = true; notice = '확인하는 중…'; render();
         session.commit(words).then(function (r) {
+          busy = false;
           notice = r.ok ? '' : (r.error + (r.results ? ' — 빨간 낱말을 고쳐 주세요.' : ''));
           render();
         });
@@ -391,7 +395,13 @@
     }
 
     function doDraw(kind) {
-      session.draw(kind).then(function (r) { notice = r.ok ? '' : r.error; render(); });
+      if (busy) return;
+      busy = true; notice = '🎁 타일을 뽑는 중… 잠깐만요!'; render();
+      session.draw(kind).then(function (r) {
+        busy = false;
+        notice = r.ok ? '' : r.error;
+        render();
+      });
     }
 
     function stopTicker() { if (ticker) { clearInterval(ticker); ticker = null; } }
@@ -410,9 +420,14 @@
         el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
         el.classList.toggle('urgent', s <= 15);
       }
-      // 시간 초과 → 현재 차례인 사람(나)의 화면에서 자동 처리.
+      // 시간 초과 → 우선 현재 차례인 사람(나)의 화면에서 자동 처리.
+      // 그 사람이 튕겼을 수 있으니, 온라인에선 10초가 더 지나면 다른 참가자 화면이 대신 넘긴다
+      // (서버 wbDraw가 시간을 다시 확인하니 여러 명이 눌러도 한 번만 처리됨).
       // 실패해도 3초마다 다시 시도(가드가 영구히 막지 않도록).
-      if (remain <= -800 && session.isMyTurn() && Date.now() - lastTimeoutTry > 3000) {
+      const overdue = session.isMyTurn()
+        ? remain <= -800
+        : (session.mode === 'online' && remain <= -10800);
+      if (overdue && Date.now() - lastTimeoutTry > 3000) {
         lastTimeoutTry = Date.now();
         session.timeout().then(function (r) { render(); });
       }
