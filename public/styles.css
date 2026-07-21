@@ -7958,6 +7958,19 @@ h2 {
   top: 16%;
 }
 
+.school-quiz-card-science {
+  left: 2%;
+  top: 4%;
+}
+
+/* 온라인 대전 카드 — 교실 가운데 아래 빈 바닥에 배치 */
+.school-quiz-card-battle {
+  left: 43%;
+  bottom: 8%;
+  border-color: #c0563a;
+}
+.school-quiz-card-battle h3 { color: #8f3418; }
+
 .school-quiz-card-external {
   right: 3%;
   top: 38%;
@@ -9868,29 +9881,3 @@ h2 {
 .wb-rank-total { font-weight: 800; color: #7a5cff; font-size: 16px; min-width: 56px; text-align: right; }
 .wb-rank-empty { color: #aaa; font-size: 14px; padding: 14px; text-align: center; }
 
-/* ── 온라인 대전 선택 화면 (battle-hub.js) ── */
-.battle-hub-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 1200;
-}
-.battle-hub-overlay[hidden] { display: none; }
-.battle-hub-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 22px 20px;
-  max-width: 480px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35);
-}
-.battle-hub-title { margin: 0; font-size: 1.35rem; }
-.battle-hub-desc { margin: 0 0 4px; color: #64748b; font-size: 0.95rem; }
-.battle-hub-close { align-self: center; margin-top: 4px; }

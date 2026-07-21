@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>온라인 대전 — DJ48 퀴즈타운</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <style>
+    /* 독립 페이지 — 퀴즈타운 톤에 맞춘 자체 스타일 (styles.css 비의존) */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Gowun Dodum', 'Jua', sans-serif;
+      background: linear-gradient(160deg, #f3f8ef, #e8f2e2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #2f2a24;
+    }
+    .card {
+      background: #fffdf6;
+      border: 3px solid #7a5a3a;
+      border-radius: 24px;
+      padding: 28px 24px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 16px 40px rgba(80, 58, 43, 0.25);
+    }
+    h1 { font-family: 'Jua', sans-serif; margin: 0 0 6px; font-size: 1.8rem; color: #4a6b2a; }
+    .sub { margin: 0 0 18px; color: #6b6257; font-size: 0.98rem; }
+    .entry {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 2px solid #d9c9a8;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      background: #fff;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .entry:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(80, 58, 43, 0.18); }
+    .e-emoji { font-size: 2rem; }
+    .e-text b { display: block; font-size: 1.12rem; font-family: 'Jua', sans-serif; }
+    .e-text small { color: #6b6257; }
+    .e-go { margin-left: auto; color: #4a6b2a; font-weight: bold; }
+    .back {
+      display: inline-block;
+      margin-top: 8px;
+      color: #1565c0;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>⚔️ 온라인 대전</h1>
+    <p class="sub">친구들과 실시간으로 겨루는 랭크전! 어떤 대전을 할까요?</p>
+
+    <a class="entry" href="/wordbattle/">
+      <span class="e-emoji" aria-hidden="true">🧩</span>
+      <span class="e-text">
+        <b>낱말 대전</b>
+        <small>자음·모음 타일로 낱말 만들기 — 한글판 루미큐브</small>
+      </span>
+      <span class="e-go" aria-hidden="true">▶</span>
+    </a>
+
+    <a class="entry" href="/marble/">
+      <span class="e-emoji" aria-hidden="true">🧑‍🌾</span>
+      <span class="e-text">
+        <b>특산물 마블</b>
+        <small>싸게 사서 비싸게 팔기! 특산물 무역 1:1 대결</small>
+      </span>
+      <span class="e-go" aria-hidden="true">▶</span>
+    </a>
+
+    <a class="back" href="/">🏫 퀴즈타운으로 돌아가기</a>
+  </main>
+</body>
+</html>
