@@ -9881,3 +9881,126 @@ h2 {
 .wb-rank-total { font-weight: 800; color: #7a5cff; font-size: 16px; min-width: 56px; text-align: right; }
 .wb-rank-empty { color: #aaa; font-size: 14px; padding: 14px; text-align: center; }
 
+
+/* ── 홈타운 소통: 접속중 친구 표시 + 스탬프 쪽지 ───────────────── */
+.town-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.town-friends-button {
+  position: relative;
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid #9fd3ae;
+  border-radius: 999px;
+  background: #eefbf1;
+  color: #22643a;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.town-friends-button:hover,
+.town-friends-button:focus-visible {
+  background: #ddf5e4;
+  border-color: rgba(40, 114, 74, 0.4);
+  outline: none;
+}
+
+.notes-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.friends-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+
+.friends-tab.active {
+  border-color: rgba(40, 114, 74, 0.5);
+  background: #eafbef;
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.friends-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(47, 125, 68, 0.15);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.friends-row .friends-name {
+  font-weight: 800;
+}
+
+.friends-note-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.friends-note-row .note-meta {
+  font-size: 0.8rem;
+  color: #6b7c6f;
+}
+
+.friends-note-row.unread {
+  border-color: #e5484d;
+  background: #fff5f5;
+}
+
+.friends-phrase-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.friends-phrase-list button {
+  min-height: 52px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(47, 125, 68, 0.25);
+  background: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.friends-phrase-list button:hover,
+.friends-phrase-list button:focus-visible {
+  background: #eafbef;
+  outline: none;
+}
+
+@media (max-width: 560px) {
+  .friends-phrase-list {
+    grid-template-columns: 1fr;
+  }
+}

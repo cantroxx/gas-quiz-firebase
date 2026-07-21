@@ -164,17 +164,42 @@
    * 보안 규칙이 "내 authUid 로 내 문서 찾기"를 허용하므로 아래 조회가 가능하다.
    * 퀴즈타운에 로그인하지 않고 바로 들어온 경우엔 찾을 수 없어 임시 이름을 쓴다.
    */
-  function lookupNickname(db, user) {
+  function lookupNicknameWithId(db, user) {
     return db.collection('users').where('authUid', '==', user.uid).limit(1).get()
       .then(function (snap) {
         if (!snap.empty) {
           const d = snap.docs[0].data() || {};
           const nick = d.nickname || d.name || d.displayNickname;
-          if (nick) return String(nick);
+          return { name: nick ? String(nick) : fallbackName(user), memberUserId: snap.docs[0].id };
         }
-        return fallbackName(user);
+        return { name: fallbackName(user), memberUserId: '' };
       })
-      .catch(function () { return fallbackName(user); });
+      .catch(function () { return { name: fallbackName(user), memberUserId: '' }; });
+  }
+
+  function lookupNickname(db, user) {
+    return lookupNicknameWithId(db, user).then(function (info) { return info.name; });
+  }
+
+  // ── 접속 도장 (홈타운 '우리 반 친구' 목록과 공유) ──────────────
+  // 낱말대전을 여는 동안에도 타운 접속자 목록에 '낱말대전 하는 중'으로 보이게
+  // 1분마다 presence/{내uid} 에 도장을 찍는다. 퀴즈타운 로그인이 없으면 찍지 않는다.
+  function startPresenceBeat() {
+    if (!firebaseReady()) return;
+    ensureAuth().then(function (user) {
+      if (!user) return;
+      const db = global.firebase.firestore();
+      return lookupNicknameWithId(db, user).then(function (info) {
+        if (!info.memberUserId) return; // 퀴즈타운 회원이 아니면 명단에 올리지 않음
+        function beat() {
+          db.collection('presence').doc(user.uid).set({
+            name: info.name, memberUserId: info.memberUserId, where: 'wordbattle', lastSeen: Date.now()
+          }, { merge: true }).catch(function () {});
+        }
+        beat();
+        setInterval(beat, 60 * 1000);
+      });
+    }).catch(function () {});
   }
 
   function fallbackName(user) {
@@ -184,4 +209,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderHome);
   else renderHome();
+  startPresenceBeat();
 })(typeof window !== 'undefined' ? window : this);

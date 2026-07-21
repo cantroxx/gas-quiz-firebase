@@ -764,6 +764,88 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── 홈타운 소통: 접속자 표시 + 스탬프 쪽지 ──────────────────
+    // presence/{authUid}: 접속 중인 학생이 주기적으로 자기 문서에 '살아있음'을 기록.
+    // 목록 창은 '최근 몇 분 내 기록'만 접속중으로 보여준다 (하트비트 방식).
+    match /presence/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // notes/{noteId}: 정해진 문구+스탬프만 고르는 쪽지 (자유 입력 없음 — 괴롭힘 예방).
+    // 읽기는 보낸이·받는이·선생님(관리자)만, 수정은 받는이의 '읽음' 표시만.
+    match /notes/{noteId} {
+      allow create: if isSignedIn()
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['fromUid', 'fromName', 'toUid', 'toName', 'phraseId', 'stamp', 'createdAt', 'readAt'])
+        && request.resource.data.phraseId is int
+        && request.resource.data.phraseId >= 0
+        && request.resource.data.phraseId < 50
+        && request.resource.data.stamp is string
+        && request.resource.data.stamp.size() <= 8
+        && request.resource.data.fromName is string
+        && request.resource.data.fromName.size() <= 20
+        && request.resource.data.toName is string
+        && request.resource.data.toName.size() <= 20
+        && request.resource.data.readAt == null;
+      allow read: if isAdmin()
+        || (isSignedIn()
+          && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid));
+      allow update: if isSignedIn()
+        && resource.data.toUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']);
+      allow delete: if isAdmin();
+    }
+
+    // ── 팔도 특산물 대상인 (/geosang/) ──────────────────────────
+    // geosangClasses/{학급코드}: 교사가 만드는 학급 문서.
+    //  - create 는 "그 코드 문서가 없을 때"만 성공 → 학급코드 중복 등록이 규칙 차원에서 막힌다.
+    //  - 관리(수정)는 만든 교사(ownerUid) 또는 퀴즈타운 관리자(isAdmin)만.
+    match /geosangClasses/{classCode} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && classCode.size() >= 2
+        && classCode.size() <= 12
+        && request.resource.data.keys().hasOnly(['name', 'linkEnabled', 'pwHash', 'ownerUid', 'createdAt'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 30
+        && request.resource.data.linkEnabled is bool
+        && request.resource.data.pwHash is string;
+      allow update: if (isAdmin() || (isSignedIn() && resource.data.ownerUid == request.auth.uid))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'linkEnabled', 'pwHash']);
+      allow delete: if isAdmin();
+    }
+
+    // geosangProfiles/{uid}: 학생의 학급코드·닉네임 (본인만 쓰기)
+    match /geosangProfiles/{userUid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userUid
+        && request.resource.data.keys().hasOnly(['classCode', 'nickname', 'updatedAt'])
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() >= 1
+        && request.resource.data.nickname.size() <= 12;
+      allow delete: if isSignedIn() && (request.auth.uid == userUid || isAdmin());
+    }
+
+    // geosangRanking/{uid}: 최고 기록 (본인만 쓰기, 삭제는 본인·학급 교사·관리자)
+    match /geosangRanking/{userUid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && request.auth.uid == userUid
+        && request.resource.data.keys().hasOnly(['classCode', 'nickname', 'bestCash', 'bestTitle', 'games', 'updatedAt'])
+        && request.resource.data.bestCash is int
+        && request.resource.data.bestCash >= 0
+        && request.resource.data.bestCash <= 100000000
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() <= 12;
+      allow delete: if isSignedIn()
+        && (request.auth.uid == userUid
+          || isAdmin()
+          || get(/databases/$(database)/documents/geosangClasses/$(resource.data.classCode)).data.ownerUid == request.auth.uid);
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

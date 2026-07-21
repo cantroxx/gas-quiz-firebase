@@ -109,7 +109,10 @@
           <h2 id="town-title">퀴즈타운 지도</h2>
           <p>지도에서 장소를 선택해 퀴즈, 랭킹, 상점, 내 집으로 이동합니다.</p>
         </div>
-        <button id="global-refresh-button" class="global-refresh-button" type="button" title="서버의 최신 정보를 다시 불러옵니다.">최신 정보</button>
+        <div class="town-header-actions">
+          <button id="town-friends-button" class="town-friends-button" type="button" title="지금 접속중인 친구와 내 쪽지함을 봅니다." hidden>👥 접속중 <span id="town-friends-count">0</span>명<span id="town-notes-badge" class="notes-badge" hidden>0</span></button>
+          <button id="global-refresh-button" class="global-refresh-button" type="button" title="서버의 최신 정보를 다시 불러옵니다.">최신 정보</button>
+        </div>
       </div>
 
       <section id="daily-notice-drop" class="daily-notice-drop" aria-label="오늘 알림" hidden>
@@ -244,6 +247,7 @@
         <button type="button" data-place="shop">상점</button>
         <button type="button" data-place="ranking">랭킹 광장</button>
         <button type="button" data-place="event">이벤트 광장</button>
+        <button type="button" id="btn-open-friends">💌 친구·쪽지</button>
         <button type="button" id="btn-open-inquiry">📮 문의하기</button>
       </nav>
 
@@ -1459,6 +1463,8 @@
           <div id="admin-inquiry-list" class="admin-member-list"></div>
           <h3 style="margin:16px 0 6px">🚨 신고된 방명록 (블라인드 중)</h3>
           <div id="admin-report-list" class="admin-member-list"></div>
+          <h3 style="margin:16px 0 6px">💌 학생 쪽지 (최근 50개)</h3>
+          <div id="admin-notes-list" class="admin-member-list"></div>
         </div>
       </section>
 
@@ -1860,6 +1866,37 @@
       <textarea id="inquiry-text" maxlength="300" rows="5" placeholder="문의 내용을 써 주세요. (300자까지)" style="width:100%;border-radius:12px;padding:12px;font:inherit;border:1px solid rgba(47,125,68,0.25);resize:vertical;"></textarea>
       <p id="inquiry-status" class="modal-status" aria-live="polite"></p>
       <button id="inquiry-submit" class="button primary modal-action" type="button">보내기</button>
+    </section>
+  </div>
+
+  <div id="friends-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close-friends></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="friends-title">
+      <button class="modal-close" type="button" data-close-friends aria-label="닫기">×</button>
+      <div class="place-panel-header">
+        <div class="modal-icon" aria-hidden="true">👥</div>
+        <div>
+          <p class="modal-kicker">Friends</p>
+          <h2 id="friends-title">우리 반 친구 · 내 쪽지함</h2>
+          <p>반 친구에게 응원 쪽지를 보낼 수 있어요. 🟢는 지금 접속중! 쪽지는 선생님도 볼 수 있어요.</p>
+        </div>
+      </div>
+      <div class="friends-tabs">
+        <button id="friends-tab-online" class="button secondary friends-tab active" type="button">👥 우리 반</button>
+        <button id="friends-tab-inbox" class="button secondary friends-tab" type="button">💌 내 쪽지함<span id="friends-inbox-badge" class="notes-badge" hidden>0</span></button>
+      </div>
+      <div id="friends-online-panel">
+        <div id="friends-online-list" class="friends-list">불러오는 중…</div>
+      </div>
+      <div id="friends-inbox-panel" hidden>
+        <div id="friends-inbox-list" class="friends-list">쪽지를 불러오는 중…</div>
+      </div>
+      <div id="friends-send-panel" hidden>
+        <p style="margin:6px 0 10px"><b id="friends-send-target">친구</b>에게 보낼 쪽지를 골라 누르면 바로 보내져요.</p>
+        <div id="friends-phrase-list" class="friends-phrase-list"></div>
+        <button id="friends-send-cancel" class="button secondary" type="button">← 친구 목록으로</button>
+      </div>
+      <p id="friends-status" class="modal-status" aria-live="polite"></p>
     </section>
   </div>
 
@@ -5157,6 +5194,7 @@
       else if(destination === 'admin') showAdminView();
       else if(destination === 'town') showTownView();
       claimHousingDailyCouponSilently(profile);
+      startTownSocial();
     }
 
     // 하우징 일일 쿠폰: 퀴즈타운에 접속하면 자동 지급 (하루 1장, 중복은 서버가 방지)
@@ -5224,6 +5262,270 @@
       });
     }
     bindInquiryUi();
+
+    // ---- 홈타운 소통: 접속중 친구 표시 + 스탬프 쪽지 ----
+    // presence/{내uid}에 2분마다 '살아있음'을 기록하고(하트비트),
+    // 창을 열면 '최근 5분 내 기록이 있는 친구'를 접속중으로 보여준다.
+    // 쪽지는 정해진 문구+스탬프만 골라 보낸다(자유 입력 없음 — 괴롭힘 예방).
+    const TOWN_SOCIAL = {
+      HEARTBEAT_MS: 60 * 1000,            // 1분마다 접속 도장
+      ONLINE_WINDOW_MS: 2.5 * 60 * 1000,  // 최근 2.5분 내 도장 = 접속중 (도장 주기의 2배+여유)
+      SEND_COOLDOWN_MS: 60 * 1000,
+      WHERE_LABEL: { wordbattle: '낱말대전', marble: '특산물 마블' },
+      PHRASES: [
+        { id: 0, stamp: '🎮', text: '같이 낱말대전 하자!' },
+        { id: 1, stamp: '🎲', text: '같이 특산물 마블 하자!' },
+        { id: 2, stamp: '🏠', text: '내 방 구경하러 와!' },
+        { id: 3, stamp: '🎉', text: '축하해!' },
+        { id: 4, stamp: '🙏', text: '고마워!' },
+        { id: 5, stamp: '😊', text: '안녕! 반가워!' },
+        { id: 6, stamp: '📚', text: '퀴즈 같이 풀래?' },
+        { id: 7, stamp: '💪', text: '힘내! 응원할게!' }
+      ]
+    };
+    let townSocialTimer = null;
+    let lastNoteSentAt = 0;
+
+    function getTownSocialIdentity() {
+      const user = window.DJ48Firebase.getFirebaseAuth?.()?.currentUser;
+      const memberUserId = window.DJ48AccountState.getCurrentMemberUserId?.();
+      if(!user || !memberUserId) return null;
+      const profile = window.DJ48AccountState.getCurrentMemberProfile?.() || {};
+      const name = String(profile.nickname || profile.name || 'DJ48 친구').slice(0, 20);
+      return { uid: user.uid, name, memberUserId };
+    }
+
+    function updateTownSocialButton(onlineCount, unreadCount) {
+      const button = document.getElementById('town-friends-button');
+      if(!button) return;
+      button.hidden = false;
+      if(onlineCount != null) document.getElementById('town-friends-count').textContent = onlineCount;
+      if(unreadCount == null) return;
+      [document.getElementById('town-notes-badge'), document.getElementById('friends-inbox-badge')].forEach(el => {
+        if(!el) return;
+        el.hidden = !unreadCount;
+        el.textContent = unreadCount > 9 ? '9+' : String(unreadCount || 0);
+      });
+    }
+
+    async function townSocialHeartbeat() {
+      const me = getTownSocialIdentity();
+      if(!me) return;
+      try {
+        const db = getFirestoreDb();
+        // 도장 문서는 지우지 않고 쌓여서 '우리 반 명단' 역할도 한다 (memberUserId로 중복 합침)
+        await db.collection('presence').doc(me.uid).set({
+          name: me.name, memberUserId: me.memberUserId, where: 'town', lastSeen: Date.now()
+        }, { merge: true });
+        // 버튼 숫자 갱신: 접속중 수 + 안 읽은 쪽지 수
+        // (이 SDK 버전엔 count() 집계가 없어 일반 조회 사용 — 두 쿼리 모두 해당 문서만 돌려줘 규모가 작다)
+        const cutoff = Date.now() - TOWN_SOCIAL.ONLINE_WINDOW_MS;
+        const [onlineCount, unreadCount] = await Promise.all([
+          db.collection('presence').where('lastSeen', '>', cutoff).get()
+            .then(snap => snap.size).catch(() => null),
+          db.collection('notes').where('toUid', '==', me.uid).where('readAt', '==', null).get()
+            .then(snap => snap.size).catch(() => null)
+        ]);
+        updateTownSocialButton(onlineCount, unreadCount);
+      } catch (error) { /* 소통 기능 실패는 앱 이용을 막지 않는다 */ }
+    }
+
+    function startTownSocial() {
+      if(townSocialTimer || !getTownSocialIdentity()) return;
+      townSocialHeartbeat();
+      townSocialTimer = setInterval(townSocialHeartbeat, TOWN_SOCIAL.HEARTBEAT_MS);
+    }
+
+    function bindFriendsUi() {
+      const modal = document.getElementById('friends-modal');
+      if(!modal) return;
+      const statusEl = document.getElementById('friends-status');
+      const panels = {
+        online: document.getElementById('friends-online-panel'),
+        inbox: document.getElementById('friends-inbox-panel'),
+        send: document.getElementById('friends-send-panel')
+      };
+      let sendTarget = null;
+
+      function showPanel(name) {
+        Object.entries(panels).forEach(([key, el]) => { el.hidden = key !== name; });
+        document.getElementById('friends-tab-online').classList.toggle('active', name !== 'inbox');
+        document.getElementById('friends-tab-inbox').classList.toggle('active', name === 'inbox');
+        statusEl.textContent = '';
+      }
+
+      // 우리 반 전체 목록: 도장(presence) 문서 전부를 읽어 학번(memberUserId)으로 중복을 합치고,
+      // 최근 도장이면 🟢 접속중(게임중이면 게임 이름), 아니면 ⚪ 로 표시한다. 쪽지는 누구에게나 보낼 수 있다.
+      async function loadOnlineFriends() {
+        const me = getTownSocialIdentity();
+        if(!me) return;
+        const listEl = document.getElementById('friends-online-list');
+        listEl.textContent = '불러오는 중…';
+        try {
+          const cutoff = Date.now() - TOWN_SOCIAL.ONLINE_WINDOW_MS;
+          const snap = await getFirestoreDb().collection('presence').get();
+          const byKey = new Map();
+          snap.forEach(doc => {
+            const d = doc.data() || {};
+            const entry = {
+              uid: doc.id,
+              name: String(d.name || '친구'),
+              lastSeen: d.lastSeen || 0,
+              where: d.where || ''
+            };
+            // 기기를 바꿔 로그인하면 uid가 달라져 도장이 두 개 생긴다 → 학번(없으면 이름)으로 최신 것만 남김
+            const key = d.memberUserId || entry.name;
+            const prev = byKey.get(key);
+            if(!prev || entry.lastSeen > prev.lastSeen) byKey.set(key, entry);
+          });
+          const friends = [...byKey.values()];
+          friends.forEach(f => { f.online = f.lastSeen > cutoff; });
+          friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name, 'ko'));
+          listEl.innerHTML = '';
+          document.getElementById('town-friends-count').textContent = friends.filter(f => f.online).length;
+          if(!friends.length) { listEl.textContent = '아직 목록에 친구가 없어요. 친구들이 접속하면 여기에 쌓여요!'; return; }
+          friends.forEach(friend => {
+            const isMe = friend.uid === me.uid;
+            const row = document.createElement('div');
+            row.className = 'friends-row';
+            if(!friend.online) row.style.opacity = '0.6';
+            const name = document.createElement('span');
+            name.className = 'friends-name';
+            const gameLabel = friend.online ? TOWN_SOCIAL.WHERE_LABEL[friend.where] : '';
+            const icon = isMe ? '⭐' : friend.online ? (gameLabel ? '🎮' : '🟢') : '⚪';
+            name.textContent = icon + ' ' + friend.name
+              + (gameLabel ? ' · ' + gameLabel + ' 하는 중' : '')
+              + (isMe ? ' (나)' : '');
+            row.appendChild(name);
+            if(!isMe) {
+              const sendBtn = document.createElement('button');
+              sendBtn.type = 'button';
+              sendBtn.className = 'button secondary';
+              sendBtn.textContent = '💌 쪽지 보내기';
+              sendBtn.addEventListener('click', () => openSendPanel(friend));
+              row.appendChild(sendBtn);
+            }
+            listEl.appendChild(row);
+          });
+        } catch (error) {
+          listEl.textContent = '친구 목록을 불러오지 못했어요. 잠시 후 다시 해 보세요.';
+        }
+      }
+
+      function openSendPanel(friend) {
+        sendTarget = friend;
+        document.getElementById('friends-send-target').textContent = friend.name;
+        const phraseList = document.getElementById('friends-phrase-list');
+        phraseList.innerHTML = '';
+        TOWN_SOCIAL.PHRASES.forEach(phrase => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = phrase.stamp + ' ' + phrase.text;
+          btn.addEventListener('click', () => sendNote(phrase));
+          phraseList.appendChild(btn);
+        });
+        panels.online.hidden = true;
+        panels.inbox.hidden = true;
+        panels.send.hidden = false;
+        statusEl.textContent = '';
+      }
+
+      async function sendNote(phrase) {
+        const me = getTownSocialIdentity();
+        if(!me || !sendTarget) return;
+        if(Date.now() - lastNoteSentAt < TOWN_SOCIAL.SEND_COOLDOWN_MS) {
+          statusEl.textContent = '쪽지는 1분에 한 장만 보낼 수 있어요. 조금만 기다려요!';
+          return;
+        }
+        statusEl.textContent = '보내는 중…';
+        try {
+          await getFirestoreDb().collection('notes').add({
+            fromUid: me.uid,
+            fromName: me.name,
+            toUid: sendTarget.uid,
+            toName: String(sendTarget.name).slice(0, 20),
+            phraseId: phrase.id,
+            stamp: phrase.stamp,
+            createdAt: Date.now(),
+            readAt: null
+          });
+          lastNoteSentAt = Date.now();
+          statusEl.textContent = sendTarget.name + ' 님에게 쪽지를 보냈어요! 💌';
+          setTimeout(() => {
+            if(!modal.hidden && !panels.send.hidden) { showPanel('online'); loadOnlineFriends(); }
+          }, 900);
+        } catch (error) {
+          statusEl.textContent = '쪽지를 보내지 못했어요. 잠시 후 다시 해 보세요.';
+        }
+      }
+
+      function formatNoteTime(millis) {
+        if(!millis) return '';
+        const date = new Date(millis);
+        return (date.getMonth() + 1) + '월 ' + date.getDate() + '일 '
+          + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+      }
+
+      async function loadInbox() {
+        const me = getTownSocialIdentity();
+        if(!me) return;
+        const listEl = document.getElementById('friends-inbox-list');
+        listEl.textContent = '쪽지를 불러오는 중…';
+        try {
+          const db = getFirestoreDb();
+          const snap = await db.collection('notes')
+            .where('toUid', '==', me.uid)
+            .orderBy('createdAt', 'desc')
+            .limit(30)
+            .get();
+          const notes = [];
+          snap.forEach(doc => notes.push({ id: doc.id, ...(doc.data() || {}) }));
+          listEl.innerHTML = '';
+          if(!notes.length) { listEl.textContent = '아직 받은 쪽지가 없어요.'; return; }
+          notes.forEach(note => {
+            const phrase = TOWN_SOCIAL.PHRASES.find(p => p.id === note.phraseId);
+            const row = document.createElement('div');
+            row.className = 'friends-row friends-note-row' + (note.readAt ? '' : ' unread');
+            const body = document.createElement('div');
+            body.className = 'friends-name';
+            body.textContent = (note.stamp || '💌') + ' ' + (phrase ? phrase.text : '응원 쪽지');
+            const meta = document.createElement('div');
+            meta.className = 'note-meta';
+            meta.textContent = (note.fromName || '친구') + ' · ' + formatNoteTime(note.createdAt);
+            row.appendChild(body);
+            row.appendChild(meta);
+            listEl.appendChild(row);
+          });
+          // 열어 본 쪽지는 모두 '읽음' 처리 → 빨간 숫자 내리기
+          const unread = notes.filter(note => !note.readAt);
+          await Promise.all(unread.map(note =>
+            db.collection('notes').doc(note.id).update({ readAt: Date.now() }).catch(() => {})));
+          if(unread.length) updateTownSocialButton(null, 0);
+        } catch (error) {
+          listEl.textContent = '쪽지를 불러오지 못했어요. 잠시 후 다시 해 보세요.';
+        }
+      }
+
+      function openFriendsModal() {
+        if(!getTownSocialIdentity()) return;
+        modal.hidden = false;
+        showPanel('online');
+        townSocialHeartbeat();
+        loadOnlineFriends();
+      }
+
+      ['town-friends-button', 'btn-open-friends'].forEach(id => {
+        const btn = document.getElementById(id);
+        if(btn) btn.addEventListener('click', openFriendsModal);
+      });
+      modal.querySelectorAll('[data-close-friends]').forEach(el => {
+        el.addEventListener('click', () => { modal.hidden = true; });
+      });
+      document.getElementById('friends-tab-online').addEventListener('click', () => { showPanel('online'); loadOnlineFriends(); });
+      document.getElementById('friends-tab-inbox').addEventListener('click', () => { showPanel('inbox'); loadInbox(); });
+      document.getElementById('friends-send-cancel').addEventListener('click', () => { showPanel('online'); loadOnlineFriends(); });
+    }
+    bindFriendsUi();
 
     // ---- 관리자 소통 관리 (문의 + 방명록 신고) ----
     function bindCommunicationsAdminUi() {
@@ -5313,6 +5615,36 @@
           statusEl.textContent = `문의 ${inquiries.length}건 · 신고 ${reports.length}건 (마지막 갱신: ${new Date().toLocaleTimeString()})`;
         } catch (error) {
           statusEl.textContent = '목록을 불러오지 못했습니다. 다시 시도해 주세요.';
+        }
+        loadRecentNotes();
+      }
+
+      // 학생 쪽지 최근 50개 (생활지도용 — 서버 함수 adminListNotes 경유)
+      async function loadRecentNotes() {
+        const notesList = document.getElementById('admin-notes-list');
+        if(!notesList) return;
+        notesList.textContent = '불러오는 중…';
+        try {
+          const result = await getFirebaseFunctions().httpsCallable('adminListNotes')({});
+          const notes = result?.data?.notes || [];
+          notesList.innerHTML = '';
+          if(!notes.length) { notesList.textContent = '주고받은 쪽지가 없습니다.'; return; }
+          notes.forEach(note => {
+            const phrase = (TOWN_SOCIAL.PHRASES.find(p => p.id === note.phraseId) || {}).text || '(알 수 없는 문구)';
+            const info = textSpan(`${note.fromName || '?'} → ${note.toName || '?'}  ·  ${new Date(note.createdAt || 0).toLocaleString()}${note.read ? '' : '  ·  안 읽음'}`, true);
+            const body = document.createElement('div');
+            body.textContent = `${note.stamp || '💌'} ${phrase}`;
+            const actions = document.createElement('div');
+            actions.style.marginTop = '6px';
+            actions.appendChild(actionBtn('삭제', async () => {
+              if(!confirm('이 쪽지를 삭제할까요?')) return;
+              try { await getFirebaseFunctions().httpsCallable('adminDeleteNote')({ noteId: note.noteId }); loadRecentNotes(); }
+              catch (error) { alert('삭제에 실패했습니다.'); }
+            }));
+            notesList.appendChild(row([info, body, actions]));
+          });
+        } catch (error) {
+          notesList.textContent = '쪽지를 불러오지 못했습니다.';
         }
       }
 
@@ -8517,6 +8849,7 @@
         viewId: 'town-view'
       });
       showDailyNoticeDropOnce();
+      startTownSocial();
     }
 
     function showLoginView() {
