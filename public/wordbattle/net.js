@@ -159,6 +159,7 @@
 
     return {
       mode: 'online',
+      code: code,   // 방 번호 (튕김 복구용으로 기기에 저장)
       getRoom: function () { return room; },
       viewerId: function () { return me.id; },
       currentHand: function () { return myHand; },

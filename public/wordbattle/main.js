@@ -39,6 +39,7 @@
       '<div class="screen"><div class="card">' +
         '<h1 class="title">낱말 대전</h1>' +
         '<p class="subtitle">자음·모음 타일로 낱말을 만들어 먼저 다 내려놓으면 승리! (한글판 루미큐브)</p>' +
+        '<div id="resume-slot"></div>' +
 
         '<div class="section"><h3>방 만들기</h3>' +
           '<div class="join-row">' +
@@ -94,7 +95,50 @@
     };
     const refreshBtn = document.getElementById('btn-refresh');
     if (refreshBtn) refreshBtn.onclick = loadRooms;
-    if (online) loadRooms();
+    if (online) { loadRooms(); maybeShowResume(); }
+  }
+
+  // ── 튕김 복구: 하던 게임으로 돌아가기 ──────────────────────
+  // 방에 들어갈 때 방 번호를 기기에 저장해 두고, 첫 화면에서 그 방이
+  // 아직 대기/진행 중이고 내가 참가자(항복 안 함)면 복귀 버튼을 보여준다.
+  // 같은 기기는 로그인 계정이 유지되므로 방 구독만 다시 연결하면 손패까지 그대로 살아난다.
+  const LAST_ROOM_KEY = 'wb.lastRoom';
+
+  function rememberRoom(code) {
+    try { localStorage.setItem(LAST_ROOM_KEY, String(code || '')); } catch (e) {}
+  }
+  function forgetRoom() {
+    try { localStorage.removeItem(LAST_ROOM_KEY); } catch (e) {}
+  }
+
+  function maybeShowResume() {
+    const slot = document.getElementById('resume-slot');
+    if (!slot || !firebaseReady()) return;
+    let code = '';
+    try { code = localStorage.getItem(LAST_ROOM_KEY) || ''; } catch (e) {}
+    if (!code) return;
+    ensureAuth().then(function (user) {
+      const db = global.firebase.firestore();
+      return db.collection('wordbattleRooms').doc(code).get().then(function (snap) {
+        const r = snap.exists ? snap.data() : null;
+        const meIn = r && (r.players || []).find(function (p) { return p.id === user.uid; });
+        const alive = r && meIn && !meIn.out && (r.status === 'waiting' || r.status === 'playing');
+        if (!alive) { forgetRoom(); return; }
+        slot.innerHTML =
+          '<button class="big-btn primary" id="btn-resume-room">🔁 하던 게임으로 돌아가기 — ' +
+          esc(r.title || code + '번 방') + '</button>';
+        document.getElementById('btn-resume-room').onclick = function () {
+          app.innerHTML = '<div class="loading">게임으로 돌아가는 중…</div>';
+          lookupNickname(db, user).then(function (name) {
+            const session = global.WBNet.OnlineNet({
+              db: db, FieldValue: global.firebase.firestore.FieldValue,
+              me: { id: user.uid, name: name }, code: code
+            });
+            global.WBUI.attach(session);
+          });
+        };
+      });
+    }).catch(function () {});
   }
 
   // 대기 중인 방 목록을 불러와 그린다 (제목 클릭 → 입장)
@@ -151,7 +195,10 @@
         const p = (kind === 'create')
           ? global.WBNet.createOnlineRoom(deps, opts.title)
           : global.WBNet.joinOnlineRoom(deps, opts.code);
-        return p.then(function (session) { global.WBUI.attach(session); });
+        return p.then(function (session) {
+          if (session.code) rememberRoom(session.code);   // 튕겨도 돌아올 수 있게 기록
+          global.WBUI.attach(session);
+        });
       });
     }).catch(function (e) {
       app.innerHTML = '<div class="screen"><div class="card"><h2>연결 실패</h2><p>' + esc(e.message || e) +

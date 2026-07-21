@@ -167,7 +167,15 @@ export function joinRoom(deps, code) {
       tx.get(ref).then((snap) => {
         if (!snap.exists) throw new Error('그런 방 번호가 없어요.')
         const room = snap.data()
-        if (room.status !== 'waiting') throw new Error('이미 시작한 방이에요.')
+        if (room.status === 'playing') {
+          // 튕김 복구: 진행 중인 방이라도 내 자리가 있으면(항복 안 했으면) 다시 접속만 하면 이어진다
+          const mySeat = (room.seats || []).findIndex((s) => s && s.uid === deps.me.uid)
+          if (mySeat < 0) throw new Error('이미 시작한 방이에요.')
+          const meP = room.battle && room.battle.players && room.battle.players[mySeat]
+          if (meP && meP.out) throw new Error('이미 항복한 방이에요.')
+          return
+        }
+        if (room.status !== 'waiting') throw new Error('이미 끝난 방이에요.')
         const seats = room.seats || []
         while (seats.length < MAX_PLAYERS) seats.push(null) // 옛 2인 방 호환
         if (seats.some((s) => s && s.uid === deps.me.uid)) return // 이미 앉아 있음

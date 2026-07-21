@@ -75,6 +75,7 @@ function OnlineMenu({ myName, onStart }) {
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [resume, setResume] = useState(null) // 튕김 복구: {code, title}
 
   const refresh = () => {
     prepare()
@@ -85,6 +86,26 @@ function OnlineMenu({ myName, onStart }) {
   useEffect(() => {
     if (ready) refresh()
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready])
+
+  // 튕김 복구: 마지막에 들어갔던 방이 아직 대기/진행 중이고 내가 항복 안 했으면 복귀 버튼 표시
+  useEffect(() => {
+    if (!ready) return
+    let saved = ''
+    try { saved = localStorage.getItem('marble.lastRoom') || '' } catch { /* 무시 */ }
+    if (!saved) return
+    prepare()
+      .then((deps) =>
+        deps.db.collection('marbleRooms').doc(saved).get().then((snap) => {
+          const r = snap.exists ? snap.data() : null
+          const seat = r ? (r.seats || []).findIndex((s) => s && s.uid === deps.me.uid) : -1
+          const meP = r && r.battle && r.battle.players && r.battle.players[seat]
+          const alive = r && seat >= 0 && !(meP && meP.out) && (r.status === 'waiting' || r.status === 'playing')
+          if (alive) setResume({ code: saved, title: r.title || '' })
+          else try { localStorage.removeItem('marble.lastRoom') } catch { /* 무시 */ }
+        }),
+      )
+      .catch(() => {})
   }, [ready])
 
   if (!ready) {
@@ -99,7 +120,12 @@ function OnlineMenu({ myName, onStart }) {
     setBusy(true)
     setErr('')
     prepare()
-      .then((deps) => fn(deps).then((c) => onStart({ mode: 'online', code: c })))
+      .then((deps) =>
+        fn(deps).then((c) => {
+          try { localStorage.setItem('marble.lastRoom', String(c)) } catch { /* 무시 */ }
+          onStart({ mode: 'online', code: c })
+        }),
+      )
       .catch((e) => {
         setErr(e.message || '연결 실패')
         setBusy(false)
@@ -109,6 +135,16 @@ function OnlineMenu({ myName, onStart }) {
   return (
     <div className="online-box">
       <h3 style={{ margin: '4px 0' }}>🌐 온라인 대전 (친구와 각자 기기에서)</h3>
+      {resume && (
+        <button
+          className="btn btn-green"
+          disabled={busy}
+          style={{ marginBottom: 8 }}
+          onClick={() => onStart({ mode: 'online', code: resume.code })}
+        >
+          🔁 하던 게임으로 돌아가기 — {resume.title || `${resume.code}번 방`}
+        </button>
+      )}
       <button className="btn btn-primary" disabled={busy} onClick={() => go((d) => createRoom(d, `${myName}의 방`))}>
         ➕ 방 만들기
       </button>
