@@ -280,7 +280,7 @@ export function OnlineSession(deps, code) {
       .catch((e) => ({ ok: false, error: e.message }))
   }
 
-  // 상대가 90초 넘게 아무것도 안 하면 누구든 차례를 강제로 넘길 수 있음
+  // 차례인 사람이 제한시간(120초)을 넘기면 다음 차례 화면이 대신 넘김
   function forceTimeout() {
     return deps.db
       .runTransaction((tx) =>

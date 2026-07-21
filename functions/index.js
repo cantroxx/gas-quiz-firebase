@@ -10228,6 +10228,8 @@ function wbNextTurn(room) {
 exports.wbDraw = onCall({ region: REGION }, async request => {
   const uid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
+  // 예열(ping): 낱말대전 페이지를 열 때 미리 호출해 콜드 스타트를 게임 시작 전에 치러 둔다
+  if (payload.action === "ping") return { ok: true, warm: true };
   const code = String(payload.code || "").trim();
   const action = payload.action === "timeout" ? "timeout" : "draw";
   if (!code) throw new HttpsError("invalid-argument", "방 번호가 없어요.");

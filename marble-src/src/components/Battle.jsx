@@ -187,6 +187,7 @@ function OnlineBattleGame({ config, onExit }) {
   const [session, setSession] = useState(null)
   const [room, setRoom] = useState(null)
   const [recorded, setRecorded] = useState(false)
+  const [acting, setActing] = useState(false) // 서버 처리 중 (연타·중복 요청 방지)
 
   // 세션 준비 + 구독
   useEffect(() => {
@@ -260,15 +261,21 @@ function OnlineBattleGame({ config, onExit }) {
 
   // 진행/종료
   const isMyTurn = battle && battle.current === seat && battle.phase !== 'ended'
+  // 서버 응답을 기다리는 동안 버튼을 잠가 연타(중복 트랜잭션 충돌)를 막는다
+  const guard = (fn) => (...args) => {
+    if (acting) return
+    setActing(true)
+    Promise.resolve(fn(...args)).finally(() => setActing(false))
+  }
   const oactions = {
-    roll: () => session.act({ type: 'ROLL', dice: rollDice() }),
-    move: (steps) => session.act({ type: 'MOVE', plan: planBattleMove(battle, steps) }),
-    buy: (id) => session.act({ type: 'BUY', productId: id }),
-    sell: (i) => session.act({ type: 'SELL', index: i }),
-    sellAll: () => session.act({ type: 'SELL_ALL' }),
-    answerQuiz: (c) => session.act({ type: 'ANSWER_QUIZ', choice: c }),
-    endTurn: () => session.act({ type: 'END_TURN' }),
-    skipTurn: () => session.act({ type: 'SKIP_TURN' }),
+    roll: guard(() => session.act({ type: 'ROLL', dice: rollDice() })),
+    move: guard((steps) => session.act({ type: 'MOVE', plan: planBattleMove(battle, steps) })),
+    buy: guard((id) => session.act({ type: 'BUY', productId: id })),
+    sell: guard((i) => session.act({ type: 'SELL', index: i })),
+    sellAll: guard(() => session.act({ type: 'SELL_ALL' })),
+    answerQuiz: guard((c) => session.act({ type: 'ANSWER_QUIZ', choice: c })),
+    endTurn: guard(() => session.act({ type: 'END_TURN' })),
+    skipTurn: guard(() => session.act({ type: 'SKIP_TURN' })),
   }
 
   return (
@@ -317,12 +324,17 @@ function OnlineBattleGame({ config, onExit }) {
         <div>
           {battle.phase !== 'ended' &&
             (isMyTurn ? (
-              <BattleActionPanel state={battle} actions={oactions} />
+              <div style={acting ? { opacity: 0.6, pointerEvents: 'none' } : undefined}>
+                {acting && (
+                  <p style={{ margin: '4px 0', fontWeight: 700, color: '#8d6e63' }}>⏳ 처리 중… 잠깐만요!</p>
+                )}
+                <BattleActionPanel state={battle} actions={oactions} />
+              </div>
             ) : (
               <div className="panel">
                 <h2>⏳ 상대 차례</h2>
                 <p style={{ color: '#616161' }}>
-                  {battle.players[battle.current].name}이(가) 두는 중… (90초가 지나면 자동으로 넘어와요)
+                  {battle.players[battle.current].name}이(가) 두는 중… (120초가 지나면 자동으로 넘어와요)
                 </p>
               </div>
             ))}
@@ -499,10 +511,10 @@ function BattleResult({ state, config, onRestart, onExit, seat = 0 }) {
 }
 
 
-// 턴 타이머: 남은 시간을 보여주고, 90초가 지나면 차례를 자동으로 넘긴다.
+// 턴 타이머: 남은 시간을 보여주고, 제한시간(120초)이 지나면 차례를 자동으로 넘긴다.
 // (시간 기준은 서버에 기록된 turnStartedAt — 양쪽 화면이 같은 시계를 봐요)
 function TurnTimer({ session, room, isMyTurn, amMarshal }) {
-  const [leftSec, setLeftSec] = useState(90)
+  const [leftSec, setLeftSec] = useState(TURN_LIMIT_MS / 1000)
 
   useEffect(() => {
     const tick = () => {

@@ -254,7 +254,20 @@
     return '친구' + String(user.uid).slice(-4);
   }
 
+  // 뽑기 서버 예열: 페이지를 여는 순간 미리 깨워 두면(콜드 스타트 약 2초),
+  // 게임 중 첫 뽑기·시간초과가 밀리지 않는다. 실패해도 조용히 무시.
+  function warmUpDrawServer() {
+    if (!firebaseReady()) return;
+    ensureAuth().then(function () {
+      try {
+        global.firebase.app().functions('asia-northeast3').httpsCallable('wbDraw')({ action: 'ping' })
+          .catch(function () {});
+      } catch (e) { /* 무시 */ }
+    });
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderHome);
   else renderHome();
   startPresenceBeat();
+  warmUpDrawServer();
 })(typeof window !== 'undefined' ? window : this);

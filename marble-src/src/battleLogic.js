@@ -28,7 +28,7 @@ export const RANK_WIN = 30 // 온라인 승리 랭크 점수
 export const RANK_LOSE = 5 // 온라인 패배 랭크 점수
 export const BOT_RANK_WIN = 15 // 봇전은 온라인의 절반
 export const BOT_RANK_LOSE = 3
-export const TURN_LIMIT_MS = 90 * 1000 // 온라인 한 턴 제한(90초)
+export const TURN_LIMIT_MS = 120 * 1000 // 온라인 한 턴 제한(120초 — 교실 와이파이 로딩 밀림 + 초4 결정 시간 감안)
 export const MAX_PLAYERS = 4
 // 순서 보너스: 공유 시장을 먼저 쓰는 앞 순서가 유리해서, 뒤 순서일수록 시작 현금을 보정.
 // 값은 봇 시뮬 3000판(scripts/simulate-balance.mjs)으로 좌석별 승률 ±2%p 이내로 맞춘 결과.
@@ -215,7 +215,7 @@ export function battleReducer(state, action) {
       return advanceTurn(s)
     }
 
-    // 시간 초과: 어느 단계에 있든 이번 차례를 끝내고 다음 사람에게 (온라인 90초 제한)
+    // 시간 초과: 어느 단계에 있든 이번 차례를 끝내고 다음 사람에게 (온라인 120초 제한)
     case 'TIMEOUT': {
       if (state.phase === 'ended') return state
       return advanceTurn({ ...state, log: addLog(state, `⏰ ${state.players[state.current].name} 시간 초과 — 차례를 넘겨요.`) })
