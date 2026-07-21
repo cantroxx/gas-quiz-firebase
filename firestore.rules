@@ -814,7 +814,7 @@ service cloud.firestore {
         && request.resource.data.pwHash is string;
       allow update: if (isAdmin() || (isSignedIn() && resource.data.ownerUid == request.auth.uid))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'linkEnabled', 'pwHash']);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.ownerUid == request.auth.uid);
     }
 
     // geosangProfiles/{uid}: 학생의 학급코드·닉네임 (본인만 쓰기)
