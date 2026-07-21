@@ -9236,6 +9236,40 @@ exports.adminModerateGuestbook = onCall({ region: REGION }, async request => {
   return { success: true, entryId, action };
 });
 
+// 관리자: 학생 쪽지 최근 목록 (생활지도용 열람 — 학생 토큰엔 admin 클레임이 없어 서버 경유)
+exports.adminListNotes = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+
+  const snapshot = await db.collection("notes").orderBy("createdAt", "desc").limit(50).get();
+  return {
+    success: true,
+    notes: snapshot.docs.map(doc => {
+      const data = doc.data() || {};
+      return {
+        noteId: doc.id,
+        fromName: data.fromName || "",
+        toName: data.toName || "",
+        phraseId: typeof data.phraseId === "number" ? data.phraseId : -1,
+        stamp: data.stamp || "",
+        createdAt: data.createdAt || 0,
+        read: !!data.readAt
+      };
+    })
+  };
+});
+
+// 관리자: 학생 쪽지 삭제
+exports.adminDeleteNote = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  await getAdminMemberForAuth(authUid);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const noteId = normalizeId(payload.noteId, "noteId");
+
+  await db.collection("notes").doc(noteId).delete();
+  return { success: true, noteId };
+});
+
 // 관리자: 하우징 이용 일시정지 (days 0 = 해제)
 exports.adminSetHousingSuspension = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
@@ -10200,19 +10234,26 @@ exports.wbDraw = onCall({ region: REGION }, async request => {
 
   const roomRef = db.collection("wordbattleRooms").doc(code);
   const deckRef = roomRef.collection("secret").doc("deck");
-  const handRef = roomRef.collection("hands").doc(uid);
 
   return db.runTransaction(async tx => {
-    const [roomSnap, deckSnap, handSnap] = await Promise.all([
-      tx.get(roomRef), tx.get(deckRef), tx.get(handRef)
+    const [roomSnap, deckSnap] = await Promise.all([
+      tx.get(roomRef), tx.get(deckRef)
     ]);
     if (!roomSnap.exists) throw new HttpsError("not-found", "방이 없어졌어요.");
     const room = roomSnap.data();
     if (room.status !== "playing") throw new HttpsError("failed-precondition", "게임 중이 아니에요.");
     if (room.paused) throw new HttpsError("failed-precondition", "일시정지 중이에요.");
-    if (room.turn !== uid) throw new HttpsError("failed-precondition", "아직 내 차례가 아니에요.");
-    const me = (room.players || []).find(p => p.id === uid);
-    if (!me || me.out) throw new HttpsError("failed-precondition", "참가자가 아니에요.");
+    const caller = (room.players || []).find(p => p.id === uid);
+    if (!caller || caller.out) throw new HttpsError("failed-precondition", "참가자가 아니에요.");
+    if (action === "draw" && room.turn !== uid) {
+      throw new HttpsError("failed-precondition", "아직 내 차례가 아니에요.");
+    }
+    // 타일을 받는 사람은 항상 '지금 차례인 플레이어'.
+    // (시간초과는 그 사람이 튕겨서 못 누를 때 다른 참가자가 대신 눌러줄 수 있음)
+    const me = (room.players || []).find(p => p.id === room.turn);
+    if (!me || me.out) throw new HttpsError("failed-precondition", "차례인 참가자를 찾을 수 없어요.");
+    const handRef = roomRef.collection("hands").doc(room.turn);
+    const handSnap = await tx.get(handRef);
 
     const bag = (deckSnap.exists && deckSnap.data().bag) || { consonants: [], vowels: [] };
     bag.consonants = Array.isArray(bag.consonants) ? bag.consonants : [];
@@ -10230,7 +10271,9 @@ exports.wbDraw = onCall({ region: REGION }, async request => {
       wbLog(room, me.name + " 님이 " + (kind === "C" ? "자음" : "모음") + " 타일을 뽑았어요.");
     } else {
       // 시간초과: 진짜로 시간이 지났는지 서버가 확인(조작 방지, 시계 오차 2초 허용)
-      if (room.turnEndsAt && Date.now() < room.turnEndsAt - 2000) {
+      // 다른 참가자가 대신 넘기는 경우엔 8초를 더 기다려 본인 화면의 처리에 우선권을 준다
+      const grace = room.turn === uid ? -2000 : 8000;
+      if (room.turnEndsAt && Date.now() < room.turnEndsAt + grace) {
         throw new HttpsError("failed-precondition", "아직 시간이 남았어요.");
       }
       const kind = bag.consonants.length >= bag.vowels.length ? "C" : "V";
