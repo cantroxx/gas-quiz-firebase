@@ -29,7 +29,7 @@
     var title = document.createElement('h3');
     title.textContent = '온라인 대전';
     var desc = document.createElement('p');
-    desc.textContent = '낱말 대전 · 특산물 마블 — 친구와 실시간 대결 (랭크전)';
+    desc.textContent = '낱말 대전 · 특산물 마블 · 특산물 대상인 — 대결과 무역 여행';
     var button = document.createElement('button');
     button.className = 'school-ready-button';
     button.type = 'button';

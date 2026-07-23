@@ -84,6 +84,10 @@
     sub.innerHTML = '<div id="' + ROOT_ID + '" class="wb-rank-root"></div>';
     panel.appendChild(sub);
 
+    // 보드 머리글을 세 게임 기준으로 갱신
+    var head = panel.querySelector('.ranking-board-header p');
+    if (head) head.textContent = '낱말 대전·특산물 마블은 대전 랭크, 특산물 대상인은 도감 진도 순위입니다.';
+
     if (cachedRows) renderList(cachedRows); else load();
   }
 
