@@ -153,6 +153,113 @@
       ],
     },
 
+    // 역사 모드 주인공: 한복 입은 학생
+    hanbok: {
+      palette: {
+        h: '#2f2015', // 머리
+        s: '#ffd9b3', // 피부
+        e: '#33291f', // 눈
+        j: '#f5f0e6', // 저고리(흰색)
+        g: '#c62828', // 깃·고름(빨강)
+        b: '#3949ab', // 바지(남색)
+        k: '#5d4037', // 신발
+      },
+      rows: [
+        '....hhhh....',
+        '..hhhhhhhh..',
+        '.hhhhhhhhhh.',
+        '.hssssssssh.',
+        '.hseesseesh.',
+        '.hssssssssh.',
+        '..ssssssss..',
+        '...jjjjjj...',
+        '..jjgjjgjj..',
+        '.ssjjjjjjss.',
+        '.ssjjggjjss.',
+        '..jjjjjjjj..',
+        '...bbbbbb...',
+        '...bb..bb...',
+        '...bb..bb...',
+        '..kk....kk..',
+      ],
+    },
+
+    // 역사 몬스터 1: 도깨비
+    dokkaebi: {
+      palette: { r: '#c1594a', d: '#a03e30', w: '#fff3e0', y: '#ffd54f' },
+      rows: [
+        '.....ww.....',
+        '.....ww.....',
+        '..rrrrrrrr..',
+        '.rrrrrrrrrr.',
+        '.rryyrryyrr.',
+        '.rrrrrrrrrr.',
+        'rrrrrwwrrrrr',
+        'rrrrrrrrrrrr',
+        '.rrdddddrrr.',
+        '.rrr.rr.rrr.',
+        '..rr....rr..',
+      ],
+    },
+
+    // 역사 몬스터 2: 저승사자
+    jeoseung: {
+      palette: { g: '#111111', s: '#e8e0d0', e: '#c62828', k: '#263238' },
+      rows: [
+        '....gggg....',
+        '....gggg....',
+        '.gggggggggg.',
+        '..ssssssss..',
+        '..seessees..',
+        '..ssssssss..',
+        '..kkkkkkkk..',
+        '.kkkkkkkkkk.',
+        '.kkkkkkkkkk.',
+        '.kkkkkkkkkk.',
+        '.kkkkkkkkkk.',
+        '.k.kk.kk.k..',
+      ],
+    },
+
+    // 역사 중간보스: 구미호
+    gumiho: {
+      palette: { o: '#ef6c00', c: '#ffe0b2', e: '#4e342e', w: '#fff8e1' },
+      rows: [
+        '.oo........oo.',
+        '.ooo......ooo.',
+        '..oooooooooo..',
+        '..oeeooooeeo..',
+        '..oooowwoooo..',
+        '...ooowwooo...',
+        '..coooooooc...',
+        '.ccooooooooc..',
+        'ccooooooooocc.',
+        'cc.oooooooocc.',
+        '....oo..oo....',
+      ],
+    },
+
+    // 역사 최종보스: 시간도둑 대마왕 (시계 괴물)
+    clockboss: {
+      palette: { b: '#5d4037', w: '#fdf6e3', k: '#37474f', e: '#c62828', m: '#37474f' },
+      rows: [
+        '....bbbbbb....',
+        '..bbwwwwwwbb..',
+        '.bwwwwwwwwwwb.',
+        'bwweewwwweewwb',
+        'bwwwwwkwwwwwwb',
+        'bwwwwwkwwwwwwb',
+        'bwwwwwkkkwwwwb',
+        'bwwwwwwwwwwwwb',
+        'bwwmmwwwwmmwwb',
+        '.bwwmmmmmmwwb.',
+        '.bwwwwwwwwwwb.',
+        '..bbwwwwwwbb..',
+        '....bbbbbb....',
+        '...bb....bb...',
+      ],
+    },
+
     // 최종보스: 시험지 대마왕
     examboss: {
       palette: {

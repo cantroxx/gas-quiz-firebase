@@ -19,6 +19,8 @@
     hpFill: $('hudHpFill'), hpText: $('hudHpText'), xpFill: $('hudXpFill'),
     bossBar: $('bossBar'), bossFill: $('bossFill'), bossName: $('bossName'),
     start: $('startScreen'), gradeGrid: $('gradeGrid'), subjectRow: $('subjectRow'),
+    modeRow: $('modeRow'), subjectPick: $('subjectPick'),
+    codex: $('codexModal'), codexBody: $('codexBody'),
     levelup: $('levelupModal'), upgradeList: $('upgradeList'),
     quiz: $('quizModal'), quizUnit: $('quizUnit'), quizWhy: $('quizWhy'),
     quizText: $('quizText'), quizChoices: $('quizChoices'), quizFeedback: $('quizFeedback'),
@@ -57,6 +59,57 @@
     return cv;
   })();
 
+  // 역사 모드 시대별 바닥 (고조선 들판 / 삼국 산성 돌 / 고려 청자빛 / 조선 궁궐 마당)
+  const eraTiles = (function () {
+    const size = 192;
+    function make(fn) {
+      const cv = document.createElement('canvas');
+      cv.width = size; cv.height = size;
+      fn(cv.getContext('2d'));
+      return cv;
+    }
+    const rand = (seed) => { let s = seed; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; };
+    return [
+      make((c) => { // 고조선: 풀밭 + 고인돌
+        c.fillStyle = '#a5c96a'; c.fillRect(0, 0, size, size);
+        const r = rand(7);
+        c.fillStyle = '#93b95c';
+        for (let i = 0; i < 40; i++) c.fillRect(r() * size, r() * size, 4, 4);
+        c.fillStyle = '#9e9e9e'; c.fillRect(30, 40, 10, 26); c.fillRect(56, 40, 10, 26);
+        c.fillStyle = '#8d8d8d'; c.fillRect(24, 32, 48, 10);
+      }),
+      make((c) => { // 삼국시대: 산성 돌바닥
+        c.fillStyle = '#b3ac9e'; c.fillRect(0, 0, size, size);
+        const r = rand(13);
+        for (let y = 0; y < size; y += 32) {
+          for (let x = 0; x < size; x += 48) {
+            const off = (y / 32) % 2 ? 24 : 0;
+            c.fillStyle = r() < 0.5 ? '#a89f8f' : '#bdb5a6';
+            c.fillRect(x + off + 2, y + 2, 44, 28);
+          }
+        }
+      }),
+      make((c) => { // 고려: 청자빛 + 상감 무늬
+        c.fillStyle = '#a7ccc2'; c.fillRect(0, 0, size, size);
+        const r = rand(21);
+        c.strokeStyle = '#c4ded6'; c.lineWidth = 3;
+        for (let i = 0; i < 7; i++) {
+          c.beginPath();
+          c.arc(r() * size, r() * size, 8 + r() * 10, 0, Math.PI * 2);
+          c.stroke();
+        }
+      }),
+      make((c) => { // 조선: 궁궐 마당 모래
+        c.fillStyle = '#e3cfa5'; c.fillRect(0, 0, size, size);
+        const r = rand(31);
+        c.fillStyle = '#d6bf90';
+        for (let i = 0; i < 30; i++) c.fillRect(r() * size, r() * size, 5, 3);
+        c.fillStyle = '#c9b283';
+        for (let i = 0; i < 10; i++) c.fillRect(r() * size, r() * size, 8, 4);
+      }),
+    ];
+  })();
+
   // ---------- 입력 ----------
   const keys = {};
   window.addEventListener('keydown', (e) => {
@@ -90,8 +143,76 @@
     return len > 0 ? { x: dx / len, y: dy / len } : { x: 0, y: 0 };
   }
 
-  // ---------- 과목 선택 (여러 개 가능, 최소 1개) ----------
+  // ---------- 게임 모드: 교실 생존 / 역사 시간여행 ----------
   const B = window.MS_Bank;
+  const MODES = {
+    classic: { name: '교실 생존', icon: '🏫', desc: '고른 과목의 문제가 나와요' },
+    history: { name: '역사 시간여행', icon: '🏯', desc: '고조선→삼국→고려→조선! 시대별 역사 문제' },
+  };
+  let mode = localStorage.getItem('ms.mode') || 'classic';
+  if (!MODES[mode]) mode = 'classic';
+
+  // 역사 모드의 시대 (시간이 지나면 다음 시대로 — 보스가 시대의 문지기)
+  const ERAS = [
+    { name: '고조선', icon: '🗿', from: 0 },
+    { name: '삼국시대', icon: '⚔️', from: 180 },
+    { name: '고려', icon: '🏺', from: 360 },
+    { name: '조선', icon: '🏯', from: 600 },
+  ];
+  function eraIdx(t) {
+    for (let i = ERAS.length - 1; i >= 0; i--) if (t >= ERAS[i].from) return i;
+    return 0;
+  }
+
+  function buildModeRow() {
+    ui.modeRow.innerHTML = '';
+    for (const id in MODES) {
+      const m = MODES[id];
+      const btn = document.createElement('button');
+      btn.className = 'mode-chip' + (mode === id ? ' sel' : '');
+      btn.innerHTML = `<b>${m.icon} ${m.name}</b><small>${m.desc}</small>`;
+      btn.onclick = () => {
+        mode = id;
+        localStorage.setItem('ms.mode', id);
+        buildModeRow();
+        drawTitleSprite();
+        // 역사 모드에선 과목 선택이 의미 없어 흐리게
+        ui.subjectPick.classList.toggle('dimmed', mode === 'history');
+      };
+      ui.modeRow.appendChild(btn);
+    }
+  }
+
+  // ---------- 각성 (무기 진화) ----------
+  const EVOLVE = {
+    pencil: { icon: '🖋️', evoName: '만년필 미사일', desc: '더 빠르고 아픈 잉크 미사일!', cond: '연필 Lv.5 + 한 판에 문제 10개 정답' },
+    notebook: { icon: '📖', evoName: '백과사전 부메랑', desc: '두꺼운 지식의 방패가 2권 더!', cond: '공책 Lv.5 + 급식빵 3개 먹기' },
+    chalk: { icon: '🔦', evoName: '레이저 포인터', desc: '적을 줄줄이 태우는 빛줄기!', cond: '분필 Lv.5 + 몬스터 120마리 처치' },
+  };
+  let codexUnlocks;
+  try { codexUnlocks = JSON.parse(localStorage.getItem('ms.codex') || '{}'); } catch (e) { codexUnlocks = {}; }
+  function unlockCodex(key) {
+    if (codexUnlocks[key]) return;
+    codexUnlocks[key] = true;
+    localStorage.setItem('ms.codex', JSON.stringify(codexUnlocks));
+  }
+  function evolveReady(key) {
+    if (key === 'pencil') return quizStats.correct >= 10;
+    if (key === 'notebook') return breadEaten >= 3;
+    return killCount >= 120;
+  }
+  function checkEvolve() {
+    for (const key of ['pencil', 'notebook', 'chalk']) {
+      const w = player.weapons[key];
+      if (w.lv >= 5 && !w.evolved && evolveReady(key)) {
+        w.evolved = true;
+        unlockCodex(key);
+        addFloat(player.x, player.y - 50, `✨ 각성! ${EVOLVE[key].evoName}!!`, '#f9a825');
+      }
+    }
+  }
+
+  // ---------- 과목 선택 (여러 개 가능, 최소 1개) ----------
   let subjects;
   try { subjects = JSON.parse(localStorage.getItem('ms.subjects') || '["math"]'); } catch (e) { subjects = ['math']; }
   if (!Array.isArray(subjects) || !subjects.length || subjects.some((s) => !B.SUBJECTS[s])) subjects = ['math'];
@@ -116,8 +237,13 @@
     }
   }
 
-  // 켜진 과목 중에서 문제 하나 만들기 (수학=자동 생성, 나머지=내장 문제은행)
+  // 문제 하나 만들기: 역사 모드=지금 시대의 역사 문제, 교실 모드=켜진 과목 중 랜덤
   function makeProblem() {
+    if (mode === 'history') {
+      const p = B.serveHistory(ERAS[eraIdx(elapsed)].name);
+      p.subject = '역사';
+      return p;
+    }
     const sid = subjects[Math.floor(Math.random() * subjects.length)];
     if (sid === 'math') {
       const p = P.generate(grade);
@@ -156,7 +282,7 @@
   let player, enemies, bullets, gems, items, floats, elapsed, killCount, spawnTimer, lastTime;
   let starTimer, bossSpawned, finalSpawned, bossQuizDelay, flashTimer, orbitAngle;
   let quizStats, currentQuiz, quizAfter, quizFail, quizOneShot, quizWhyText;
-  let reviveUsed, wrongList;
+  let reviveUsed, wrongList, breadEaten, lastEra;
 
   function newPlayer() {
     return {
@@ -179,7 +305,7 @@
     bossSpawned = { 180: false, 360: false }; finalSpawned = false;
     bossQuizDelay = 0; flashTimer = 0; orbitAngle = 0;
     quizStats = { correct: 0, total: 0, by: {} };
-    reviveUsed = false; wrongList = [];
+    reviveUsed = false; wrongList = []; breadEaten = 0; lastEra = 0;
     state = 'play';
     ui.start.classList.add('hidden');
     ui.end.classList.add('hidden');
@@ -189,10 +315,22 @@
     updateHud();
   }
 
-  // ---------- 무기 수치 ----------
-  const pencilStats = (lv) => ({ interval: 1.05 * Math.pow(0.93, lv - 1), count: Math.ceil(lv / 2), dmg: 8 + 5 * lv });
-  const notebookStats = (lv) => ({ count: Math.min(lv + 1, 6), radius: 58, dmg: 6 + 4 * lv });
-  const chalkStats = (lv) => ({ interval: 1.7 * Math.pow(0.9, lv - 1), dmg: 9 + 5 * lv });
+  // ---------- 무기 수치 (각성하면 크게 강해진다) ----------
+  function pencilStats(w) {
+    const s = { interval: 1.05 * Math.pow(0.93, w.lv - 1), count: Math.ceil(w.lv / 2), dmg: 8 + 5 * w.lv };
+    if (w.evolved) { s.interval *= 0.75; s.count += 1; s.dmg = Math.round(s.dmg * 1.8); }
+    return s;
+  }
+  function notebookStats(w) {
+    const s = { count: Math.min(w.lv + 1, 6), radius: 58, dmg: 6 + 4 * w.lv };
+    if (w.evolved) { s.count += 2; s.radius = 72; s.dmg = Math.round(s.dmg * 1.8); }
+    return s;
+  }
+  function chalkStats(w) {
+    const s = { interval: 1.7 * Math.pow(0.9, w.lv - 1), dmg: 9 + 5 * w.lv };
+    if (w.evolved) { s.interval *= 0.7; s.dmg = Math.round(s.dmg * 1.8); }
+    return s;
+  }
 
   // ---------- 몬스터 ----------
   function spawnEnemy() {
@@ -212,6 +350,7 @@
       type, x: player.x + Math.cos(ang) * dist, y: player.y + Math.sin(ang) * dist,
       hp: stat.hp, maxHp: stat.hp, speed: stat.speed, dmg: stat.dmg, xp: stat.xp, r: stat.r,
       wobble: Math.random() * Math.PI * 2, orbitCd: 0,
+      sprite: mode === 'history' ? (type === 'slime' ? 'dokkaebi' : 'jeoseung') : type,
     });
   }
 
@@ -228,26 +367,34 @@
 
   function spawnMidBoss(which) {
     const min = elapsed / 60;
+    const history = mode === 'history';
+    const name = history
+      ? (which === 180 ? '👑 대왕 도깨비' : '👑 구미호')
+      : (which === 180 ? '👑 숙제 유령 대왕' : '👑 지우개 대마왕');
     enemies.push({
       type: 'ghost', boss: 'mid', scale: 2.2,
+      sprite: history ? (which === 180 ? 'dokkaebi' : 'gumiho') : 'ghost',
       x: player.x + (Math.random() < 0.5 ? -1 : 1) * (W / 2 + 60), y: player.y,
       hp: which === 180 ? 380 : 950, maxHp: which === 180 ? 380 : 950,
       speed: 46 + min * 2, dmg: 20, xp: 0, r: 34, wobble: 0, orbitCd: 0,
-      name: which === 180 ? '👑 숙제 유령 대왕' : '👑 지우개 대마왕',
+      name,
     });
-    addFloat(player.x, player.y - 60, '👑 중간보스 등장!', '#7b1fa2');
+    addFloat(player.x, player.y - 60, `${name} 등장!`, '#7b1fa2');
   }
 
   function spawnFinalBoss() {
+    const history = mode === 'history';
+    const name = history ? '👑 시간도둑 대마왕' : '👑 시험지 대마왕';
     enemies.push({
       type: 'examboss', boss: 'final', scale: 2,
+      sprite: history ? 'clockboss' : 'examboss',
       x: player.x, y: player.y - H / 2 - 80,
       hp: 1300, maxHp: 1300, speed: 42, dmg: 25, xp: 0, r: 40, wobble: 0, orbitCd: 0,
       shield: true, shieldTimer: 0, summonTimer: 5,
-      name: '👑 시험지 대마왕',
+      name,
     });
     bossQuizDelay = 1.0;
-    addFloat(player.x, player.y - 60, '👑 시험지 대마왕 등장!!', '#c62828');
+    addFloat(player.x, player.y - 60, `${name} 등장!!`, '#c62828');
   }
 
   const anyBoss = () => enemies.some((e) => e.boss);
@@ -272,7 +419,9 @@
   }
   function nextProblem() {
     currentQuiz = makeProblem();
-    ui.quizUnit.textContent = `${P.GRADES[grade].name} · ${currentQuiz.unit}`;
+    ui.quizUnit.textContent = currentQuiz.unit.startsWith('역사')
+      ? currentQuiz.unit
+      : `${P.GRADES[grade].name} · ${currentQuiz.unit}`;
     ui.quizWhy.textContent = quizWhyText;
     ui.quizText.textContent = currentQuiz.text;
     ui.quizFeedback.textContent = '';
@@ -370,6 +519,7 @@
   function useItem(type) {
     if (type === 'bread') {
       player.hp = Math.min(player.maxHp, player.hp + 40);
+      breadEaten++;
       addFloat(player.x, player.y - 34, '+40 🍞', '#43a047');
     } else if (type === 'magnet') {
       for (const g of gems) g.pull = true;
@@ -435,6 +585,16 @@
     if (!bossSpawned[180] && elapsed >= 180) { bossSpawned[180] = true; spawnMidBoss(180); }
     if (!bossSpawned[360] && elapsed >= 360) { bossSpawned[360] = true; spawnMidBoss(360); }
     if (!finalSpawned && elapsed >= GAME_SECONDS) { finalSpawned = true; spawnFinalBoss(); }
+
+    // 역사 모드: 시대가 바뀌면 알려주기 (배경도 자동으로 바뀜)
+    if (mode === 'history') {
+      const ei = eraIdx(elapsed);
+      if (ei !== lastEra) {
+        lastEra = ei;
+        addFloat(player.x, player.y - 70, `${ERAS[ei].icon} ${ERAS[ei].name} 시대에 도착!`, '#1565c0');
+      }
+    }
+    checkEvolve(); // 각성 조건 확인
 
     // 플레이어 이동
     const iv = inputVector();
@@ -523,7 +683,7 @@
 
     // ---- 무기 1: 연필 미사일 (가까운 적 자동 조준) ----
     const wp = player.weapons;
-    const ps = pencilStats(wp.pencil.lv);
+    const ps = pencilStats(wp.pencil);
     wp.pencil.timer -= dt;
     if (wp.pencil.timer <= 0 && enemies.length) {
       const targets = enemies
@@ -543,7 +703,7 @@
 
     // ---- 무기 2: 공책 부메랑 (주위를 도는 공책) ----
     if (wp.notebook.lv > 0) {
-      const ns = notebookStats(wp.notebook.lv);
+      const ns = notebookStats(wp.notebook);
       orbitAngle += dt * 2.4;
       for (let k = 0; k < ns.count; k++) {
         const a = orbitAngle + (Math.PI * 2 * k) / ns.count;
@@ -560,7 +720,7 @@
 
     // ---- 무기 3: 분필 관통샷 ----
     if (wp.chalk.lv > 0) {
-      const cs = chalkStats(wp.chalk.lv);
+      const cs = chalkStats(wp.chalk);
       wp.chalk.timer -= dt;
       if (wp.chalk.timer <= 0 && enemies.length) {
         let near = null, nd = Infinity;
@@ -645,11 +805,12 @@
   function draw() {
     const camX = player.x - W / 2, camY = player.y - H / 2;
 
-    const ts = floorTile.width;
+    const tile = mode === 'history' ? eraTiles[eraIdx(elapsed)] : floorTile;
+    const ts = tile.width;
     const startX = Math.floor(camX / ts) * ts, startY = Math.floor(camY / ts) * ts;
     for (let x = startX; x < camX + W; x += ts) {
       for (let y = startY; y < camY + H; y += ts) {
-        ctx.drawImage(floorTile, x - camX, y - camY);
+        ctx.drawImage(tile, x - camX, y - camY);
       }
     }
 
@@ -664,7 +825,7 @@
     }
 
     for (const e of enemies) {
-      const sp = S[e.type];
+      const sp = S[e.sprite || e.type];
       const sc = e.scale || 1;
       const w = sp.width * sc, h = sp.height * sc;
       const bounce = Math.sin(e.wobble) * 2;
@@ -703,7 +864,7 @@
 
     // 공책 부메랑
     if (player.weapons.notebook.lv > 0) {
-      const ns = notebookStats(player.weapons.notebook.lv);
+      const ns = notebookStats(player.weapons.notebook);
       for (let k = 0; k < ns.count; k++) {
         const a = orbitAngle + (Math.PI * 2 * k) / ns.count;
         const bx = W / 2 + Math.cos(a) * ns.radius;
@@ -717,8 +878,8 @@
       }
     }
 
-    // 플레이어
-    const sp = S.student;
+    // 플레이어 (역사 모드는 한복 학생)
+    const sp = mode === 'history' ? S.hanbok : S.student;
     const px = W / 2, py = H / 2;
     drawShadow(px, py + sp.height / 2, sp.width * 0.42);
     if (!(player.invuln > 0 && Math.floor(player.invuln * 10) % 2 === 0)) {
@@ -776,6 +937,10 @@
       const m = Math.floor(remain / 60), s = Math.floor(remain % 60);
       ui.timer.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
+    if (mode === 'history') {
+      const era = ERAS[eraIdx(elapsed)];
+      ui.grade.textContent = `${era.icon} ${era.name}`;
+    }
     ui.acc.textContent = quizStats.total
       ? `📝 ${Math.round((quizStats.correct / quizStats.total) * 100)}%`
       : '📝 -';
@@ -796,9 +961,13 @@
   // ---------- 일시정지 / 종료 ----------
   function weaponsHtml() {
     const w = player.weapons;
-    const rows = [`✏️ 연필 미사일 Lv.${w.pencil.lv}`];
-    if (w.notebook.lv) rows.push(`📚 공책 부메랑 Lv.${w.notebook.lv}`);
-    if (w.chalk.lv) rows.push(`🖍️ 분필 관통샷 Lv.${w.chalk.lv}`);
+    const label = (key, icon, name) => {
+      const wp = w[key];
+      return wp.evolved ? `✨${EVOLVE[key].icon} ${EVOLVE[key].evoName}` : `${icon} ${name} Lv.${wp.lv}`;
+    };
+    const rows = [label('pencil', '✏️', '연필 미사일')];
+    if (w.notebook.lv) rows.push(label('notebook', '📚', '공책 부메랑'));
+    if (w.chalk.lv) rows.push(label('chalk', '🖍️', '분필 관통샷'));
     return rows.join(' · ');
   }
   function statsHtml() {
@@ -862,7 +1031,9 @@
     lastVictory = victory;
     ui.hud.classList.add('hidden');
     ui.quiz.classList.add('hidden');
-    ui.endTitle.textContent = victory ? '🎉 시험지 대마왕을 물리쳤다!' : '💫 쓰러졌다…';
+    ui.endTitle.textContent = victory
+      ? (mode === 'history' ? '🎉 시간도둑을 물리치고 역사를 지켰다!' : '🎉 시험지 대마왕을 물리쳤다!')
+      : '💫 쓰러졌다…';
     ui.endStats.innerHTML = statsHtml();
     ui.endWrong.innerHTML = wrongListHtml();
     ui.endNetMsg.textContent = '';
@@ -872,7 +1043,7 @@
       window.MS_Net.recordScore({
         grade, score: score(), survived: Math.floor(elapsed), level: player.level,
         kills: killCount, correct: quizStats.correct, total: quizStats.total, victory,
-        bySubject: quizStats.by,
+        bySubject: quizStats.by, mode,
       }).then((msg) => { ui.endNetMsg.textContent = msg; })
         .catch(() => { ui.endNetMsg.textContent = ''; });
     }
@@ -914,17 +1085,99 @@
   };
   $('btnHall').onclick = openHall;
   $('btnHallClose').onclick = () => ui.hall.classList.add('hidden');
+  $('btnCodex').onclick = openCodex;
+  $('btnCodexPause').onclick = openCodex;
+  $('btnCodexClose').onclick = () => ui.codex.classList.add('hidden');
 
-  // 시작 화면에 주인공 크게 보여주기
-  (function () {
+  // 시작 화면에 주인공 크게 보여주기 (모드에 따라 교복/한복)
+  function drawTitleSprite() {
+    const box = $('titleSprite');
+    box.innerHTML = '';
+    const src = mode === 'history' ? S.hanbok : S.student;
     const big = document.createElement('canvas');
-    const src = S.student;
     big.width = src.width * 2; big.height = src.height * 2;
     const c = big.getContext('2d');
     c.imageSmoothingEnabled = false;
     c.drawImage(src, 0, 0, big.width, big.height);
-    $('titleSprite').appendChild(big);
-  })();
+    box.appendChild(big);
+  }
+  drawTitleSprite();
+  buildModeRow();
+  ui.subjectPick.classList.toggle('dimmed', mode === 'history');
+
+  // ---------- 도감 ----------
+  function thumb(name, scale) {
+    const src = S[name];
+    const cv = document.createElement('canvas');
+    const k = scale || 1.5;
+    cv.width = src.width * k; cv.height = src.height * k;
+    const c = cv.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    c.drawImage(src, 0, 0, cv.width, cv.height);
+    cv.className = 'codex-thumb';
+    return cv;
+  }
+  function codexRow(iconOrSprite, title, desc, isSprite) {
+    const row = document.createElement('div');
+    row.className = 'codex-row';
+    if (isSprite) row.appendChild(thumb(iconOrSprite));
+    else {
+      const ic = document.createElement('span');
+      ic.className = 'codex-icon'; ic.textContent = iconOrSprite;
+      row.appendChild(ic);
+    }
+    const txt = document.createElement('span');
+    txt.innerHTML = `<b>${title}</b><small>${desc}</small>`;
+    row.appendChild(txt);
+    return row;
+  }
+  function codexSection(title) {
+    const h = document.createElement('div');
+    h.className = 'codex-section'; h.textContent = title;
+    return h;
+  }
+  function openCodex() {
+    const body = ui.codexBody;
+    body.innerHTML = '';
+    body.appendChild(codexSection('⚔️ 무기와 각성'));
+    body.appendChild(codexRow('✏️', '연필 미사일', '가까운 적을 자동 조준. 레벨이 오르면 개수도 늘어남'));
+    body.appendChild(codexRow('📚', '공책 부메랑', '내 주위를 빙글빙글 도는 지식 방패'));
+    body.appendChild(codexRow('🖍️', '분필 관통샷', '적을 줄줄이 꿰뚫는 관통 공격'));
+    for (const key of ['pencil', 'notebook', 'chalk']) {
+      const e = EVOLVE[key];
+      if (codexUnlocks[key]) {
+        body.appendChild(codexRow(e.icon, `✨ ${e.evoName}`, e.desc + ' (각성 달성!)'));
+      } else {
+        body.appendChild(codexRow('❓', '??? (각성 무기)', `조건: ${e.cond}`));
+      }
+    }
+    body.appendChild(codexSection('🎁 아이템'));
+    body.appendChild(codexRow('gem', '지식 보석', '몬스터가 떨어뜨림. 모으면 레벨업!', true));
+    body.appendChild(codexRow('magnet', '자석', '화면의 모든 보석을 한 번에 끌어옴', true));
+    body.appendChild(codexRow('bomb', '폭탄', '화면 전체 몬스터에게 큰 피해', true));
+    body.appendChild(codexRow('bread', '급식빵', '체력 +40 회복', true));
+    body.appendChild(codexRow('star', '별 몬스터', '잡으면 보너스 문제! 맞히면 아이템', true));
+    body.appendChild(codexSection('🏫 교실 몬스터'));
+    body.appendChild(codexRow('slime', '지우개 가루 슬라임', '느리지만 떼로 몰려온다', true));
+    body.appendChild(codexRow('ghost', '숙제 유령', '1분 30초부터 나타나는 빠른 유령', true));
+    body.appendChild(codexRow('examboss', '시험지 대마왕', '10분에 등장! 방어막은 문제로 깨자', true));
+    body.appendChild(codexSection('🏯 역사 몬스터'));
+    body.appendChild(codexRow('dokkaebi', '도깨비', '옛이야기 속 장난꾸러기 (3분 대왕 도깨비!)', true));
+    body.appendChild(codexRow('jeoseung', '저승사자', '검은 갓을 쓴 무서운 추격자', true));
+    body.appendChild(codexRow('gumiho', '구미호', '꼬리 아홉 여우 — 6분의 문지기', true));
+    body.appendChild(codexRow('clockboss', '시간도둑 대마왕', '역사를 뒤죽박죽 만든 최종보스', true));
+    body.appendChild(codexSection('📜 역사 시간여행의 시대'));
+    for (const era of ERAS) {
+      const descs = {
+        '고조선': '단군왕검의 첫 나라 — 고인돌 들판 (시작~3분)',
+        '삼국시대': '고구려·백제·신라 — 산성 돌바닥 (3~6분)',
+        '고려': '고려청자의 나라 — 청자빛 들판 (6~10분)',
+        '조선': '한글과 과학의 나라 — 궁궐 마당 (최종보스전)',
+      };
+      body.appendChild(codexRow(era.icon, era.name, descs[era.name]));
+    }
+    ui.codex.classList.remove('hidden');
+  }
 
   // 시험용 디버그 훅: 로컬 개발 환경에서만 켜진다.
   // (운영 사이트에서 켜져 있으면 콘솔로 점수를 조작해 랭킹을 어지럽힐 수 있음)
@@ -942,6 +1195,7 @@
       return currentQuiz.text;
     },
     setElapsed(t) { elapsed = t; },
+    setMode(m) { mode = m; },
     pull() { // 시험용: 모든 보스를 플레이어 옆으로
       for (const e of enemies) if (e.boss) { e.x = player.x + 120; e.y = player.y; }
     },

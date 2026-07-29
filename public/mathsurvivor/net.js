@@ -91,6 +91,7 @@
               quizTotal: (prev.quizTotal || 0) + r.total,
               bestScore: isBest ? r.score : prev.bestScore,
               bestGrade: isBest ? r.grade : (prev.bestGrade || r.grade),
+              bestMode: isBest ? (r.mode || 'classic') : (prev.bestMode || r.mode || 'classic'),
               bestSurvived: isBest ? r.survived : (prev.bestSurvived || 0),
               bestLevel: isBest ? r.level : (prev.bestLevel || 1),
               bestVictory: !!(prev.bestVictory || r.victory),

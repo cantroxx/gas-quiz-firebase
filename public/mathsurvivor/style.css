@@ -125,6 +125,36 @@ html, body {
 .upgrade-card .name { font-size: 19px; color: #4e342e; }
 .upgrade-card .desc { font-size: 14px; color: #8d6e63; }
 
+/* 모드 선택 */
+.mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.mode-chip {
+  font-family: inherit; text-align: left;
+  background: #fff; border: 3px solid #bcaaa4; border-radius: 14px;
+  padding: 8px 12px; cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,.1);
+}
+.mode-chip b { display: block; font-size: 17px; color: #4e342e; }
+.mode-chip small { font-size: 11px; color: #8d6e63; line-height: 1.3; }
+.mode-chip.sel { border-color: #fb8c00; background: #fff3e0; box-shadow: 0 3px 0 #ffb74d; }
+#subjectPick.dimmed { opacity: .35; pointer-events: none; }
+.btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 도감 */
+.codex-body { max-height: 55vh; overflow-y: auto; text-align: left; }
+.codex-section {
+  font-size: 17px; color: #e65100; margin: 12px 0 4px;
+  border-bottom: 2px dashed #ffcc80; padding-bottom: 3px;
+}
+.codex-row {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 2px solid #d7ccc8; border-radius: 12px;
+  padding: 7px 12px; margin-top: 6px;
+}
+.codex-row b { display: block; font-size: 16px; color: #4e342e; }
+.codex-row small { font-size: 13px; color: #8d6e63; }
+.codex-icon { font-size: 26px; width: 36px; text-align: center; }
+.codex-thumb { image-rendering: pixelated; width: 36px; flex: none; }
+
 /* 과목 선택 */
 .pick-label { font-size: 15px; color: #6d4c41; margin: 4px 0 6px; text-align: left; }
 .subject-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }

@@ -7,7 +7,7 @@
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 <!-- 퀴즈타운 Firebase 재사용 (Firebase Hosting 에서만 로드됨. 로컬 시험 서버에선 없어도 게임은 동작) -->
 <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
@@ -45,12 +45,19 @@
     <div class="title-sprite" id="titleSprite"></div>
     <h1>퀴즈 서바이버</h1>
     <p class="subtitle">우리 반 지식을 훔쳐간 시험지 대마왕!<br>문제를 풀어 힘을 되찾고 10분을 버텨라 🏃</p>
-    <p class="pick-label">📖 출제 과목 — 여러 개 골라도 돼요!</p>
-    <div class="subject-row" id="subjectRow"></div>
+    <p class="pick-label">🎮 모드 선택</p>
+    <div class="mode-row" id="modeRow"></div>
+    <div id="subjectPick">
+      <p class="pick-label">📖 출제 과목 — 여러 개 골라도 돼요!</p>
+      <div class="subject-row" id="subjectRow"></div>
+    </div>
     <p class="pick-label">🎒 학년 (수학·사회·과학 문제 수준, 1학기)</p>
     <div class="grade-grid" id="gradeGrid"></div>
     <button class="big-btn" id="btnStart">🚀 모험 시작!</button>
-    <button class="sub-btn" id="btnHall">🏆 명예의 전당</button>
+    <div class="btn-pair">
+      <button class="sub-btn" id="btnHall">🏆 명예의 전당</button>
+      <button class="sub-btn" id="btnCodex">📖 도감</button>
+    </div>
     <p class="help-text">⌨️ 방향키/WASD 이동 · 📱 화면을 끌어서 이동<br>
       💎 보석으로 레벨업 → 📖 문제를 맞히면 강화! · ⭐ 별을 잡으면 보너스 문제!</p>
   </div>
@@ -81,6 +88,7 @@
     <h2>⏸ 잠깐 쉬는 중</h2>
     <div id="pauseStats" class="stats"></div>
     <button class="big-btn" id="btnResume">▶ 계속하기</button>
+    <button class="sub-btn" id="btnCodexPause">📖 도감 보기</button>
     <button class="sub-btn" id="btnQuit">🏠 그만하기</button>
   </div>
 </div>
@@ -105,11 +113,20 @@
   </div>
 </div>
 
+<!-- 도감 -->
+<div id="codexModal" class="overlay hidden">
+  <div class="panel">
+    <h2>📖 도감</h2>
+    <div id="codexBody" class="codex-body"></div>
+    <button class="sub-btn" id="btnCodexClose">닫기</button>
+  </div>
+</div>
+
 <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 (학생 브라우저 캐시 갱신용) -->
-<script src="sprites.js?v=3"></script>
-<script src="problems.js?v=3"></script>
-<script src="bank.js?v=3"></script>
-<script src="net.js?v=3"></script>
-<script src="game.js?v=3"></script>
+<script src="sprites.js?v=4"></script>
+<script src="problems.js?v=4"></script>
+<script src="bank.js?v=4"></script>
+<script src="net.js?v=4"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>
