@@ -1,0 +1,219 @@
+/* 수학 서바이버 — 독립 스타일 (퀴즈타운 본체 styles.css와 분리) */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Jua', 'Pretendard', sans-serif;
+  background: #cfe8c9;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+}
+
+#game { display: block; width: 100vw; height: 100vh; image-rendering: pixelated; }
+
+.hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+#hud {
+  position: fixed; inset: 0 0 auto 0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 10px 12px;
+  pointer-events: none;
+  z-index: 10;
+}
+.hud-left, .hud-right { display: flex; flex-direction: column; gap: 6px; }
+.hud-center { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+
+.chip {
+  background: #fff7e8;
+  border: 3px solid #8d6e63;
+  border-radius: 14px;
+  padding: 3px 14px;
+  font-size: 18px;
+  color: #5d4037;
+  box-shadow: 0 3px 0 rgba(0,0,0,.15);
+  width: fit-content;
+}
+.chip-timer { font-size: 26px; padding: 2px 22px; }
+.chip-btn { pointer-events: auto; cursor: pointer; font-family: inherit; }
+.chip-btn:active { transform: translateY(2px); box-shadow: none; }
+
+.hpbar, .xpbar {
+  position: relative;
+  background: #fff7e8;
+  border: 3px solid #8d6e63;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.hpbar { width: min(300px, 44vw); height: 22px; }
+.hpbar-fill { height: 100%; width: 100%; background: linear-gradient(#ff8a80, #f4511e); transition: width .2s; }
+.hpbar span {
+  position: absolute; inset: 0;
+  text-align: center; font-size: 15px; line-height: 17px; color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+}
+.xpbar { width: min(300px, 44vw); height: 12px; border-radius: 8px; }
+.xpbar-fill { height: 100%; width: 0%; background: linear-gradient(#81d4fa, #039be5); transition: width .2s; }
+
+/* ---------- 오버레이 화면 ---------- */
+.overlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(60, 40, 20, .45);
+  z-index: 20;
+  padding: 16px;
+}
+.panel {
+  background: #fffbef;
+  border: 4px solid #8d6e63;
+  border-radius: 24px;
+  box-shadow: 0 8px 0 rgba(0,0,0,.2);
+  padding: 26px 30px;
+  max-width: 440px; width: 100%;
+  max-height: 92vh; overflow-y: auto;
+  text-align: center;
+}
+.panel h1 { font-size: 40px; color: #e65100; text-shadow: 2px 2px 0 #ffe0b2; margin-bottom: 6px; }
+.panel h2 { font-size: 30px; color: #5d4037; margin-bottom: 10px; }
+.subtitle { font-size: 17px; color: #6d4c41; line-height: 1.5; margin-bottom: 14px; }
+.dim { color: #a1887f; font-size: 14px; }
+.notice {
+  background: #fff3e0; border: 2px dashed #ffb74d; border-radius: 12px;
+  font-size: 15px; color: #e65100; padding: 8px 10px; margin-bottom: 16px;
+}
+.help-text { font-size: 14px; color: #8d6e63; margin-top: 12px; }
+
+.title-sprite { display: flex; justify-content: center; margin-bottom: 8px; }
+.title-sprite canvas { image-rendering: pixelated; }
+
+.big-btn {
+  display: block; width: 100%;
+  font-family: inherit; font-size: 24px; color: #fff;
+  background: linear-gradient(#ffb300, #fb8c00);
+  border: 3px solid #e65100; border-radius: 18px;
+  padding: 12px; margin-top: 8px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #bf360c;
+}
+.big-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #bf360c; }
+
+.sub-btn {
+  display: block; width: 100%;
+  font-family: inherit; font-size: 18px; color: #6d4c41;
+  background: #efebe9;
+  border: 3px solid #a1887f; border-radius: 14px;
+  padding: 9px; margin-top: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #8d6e63;
+}
+.sub-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #8d6e63; }
+
+/* 레벨업 강화 카드 */
+.upgrade-card {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  font-family: inherit;
+  background: #fff; border: 3px solid #bcaaa4; border-radius: 16px;
+  padding: 10px 14px; margin-top: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,.12);
+}
+.upgrade-card:hover { border-color: #fb8c00; background: #fff8e1; }
+.upgrade-card:active { transform: translateY(3px); box-shadow: none; }
+.upgrade-card .icon { font-size: 30px; }
+.upgrade-card .name { font-size: 19px; color: #4e342e; }
+.upgrade-card .desc { font-size: 14px; color: #8d6e63; }
+
+/* 과목 선택 */
+.pick-label { font-size: 15px; color: #6d4c41; margin: 4px 0 6px; text-align: left; }
+.subject-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.subject-chip {
+  font-family: inherit; font-size: 17px; color: #6d4c41;
+  background: #fff; border: 3px solid #bcaaa4; border-radius: 20px;
+  padding: 5px 14px; cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,.1);
+}
+.subject-chip.sel { border-color: #fb8c00; background: #fff3e0; color: #e65100; box-shadow: 0 3px 0 #ffb74d; }
+.subject-chip:active { transform: translateY(2px); box-shadow: none; }
+
+/* 학년 선택 */
+.grade-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 14px;
+}
+.grade-card {
+  font-family: inherit; text-align: left;
+  background: #fff; border: 3px solid #bcaaa4; border-radius: 14px;
+  padding: 8px 12px; cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,.1);
+}
+.grade-card b { display: block; font-size: 20px; color: #4e342e; }
+.grade-card small { font-size: 12px; color: #8d6e63; }
+.grade-card.sel { border-color: #fb8c00; background: #fff3e0; box-shadow: 0 3px 0 #ffb74d; }
+
+/* 문제 모달 */
+.quiz-unit {
+  display: inline-block;
+  background: #e3f2fd; border: 2px solid #64b5f6; border-radius: 10px;
+  color: #1565c0; font-size: 15px; padding: 3px 12px; margin-bottom: 8px;
+}
+.quiz-why { font-size: 15px; color: #6d4c41; margin-bottom: 12px; }
+.quiz-text {
+  background: #fff; border: 3px solid #bcaaa4; border-radius: 16px;
+  font-size: 26px; color: #3e2723; padding: 18px 12px; margin-bottom: 14px;
+}
+.quiz-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quiz-choice {
+  font-family: inherit; font-size: 21px; color: #4e342e;
+  background: #fff; border: 3px solid #bcaaa4; border-radius: 14px;
+  padding: 12px 6px; cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,.12);
+}
+.quiz-choice:active { transform: translateY(3px); box-shadow: none; }
+.quiz-choice.right { border-color: #43a047; background: #e8f5e9; }
+.quiz-choice.wrong { border-color: #e53935; background: #ffebee; opacity: .7; }
+.quiz-feedback { min-height: 24px; font-size: 18px; color: #e65100; margin-top: 10px; }
+
+/* 보스 체력바 */
+.bossbar {
+  width: min(360px, 60vw); margin-top: 4px;
+  background: #fff7e8; border: 3px solid #6a1b9a; border-radius: 12px;
+  padding: 3px 10px 6px;
+}
+.bossbar span { font-size: 14px; color: #6a1b9a; }
+.bossbar-track { height: 10px; background: #e1bee7; border-radius: 6px; overflow: hidden; }
+.bossbar-fill { height: 100%; width: 100%; background: linear-gradient(#ab47bc, #6a1b9a); transition: width .2s; }
+
+/* 명예의 전당 */
+.hall-list { max-height: 50vh; overflow-y: auto; margin-bottom: 10px; }
+.hall-row {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border: 2px solid #d7ccc8; border-radius: 12px;
+  padding: 8px 12px; margin-top: 8px; font-size: 18px; color: #4e342e;
+}
+.hall-rank { width: 44px; text-align: center; }
+.hall-name { flex: 1; text-align: left; }
+.hall-score { color: #e65100; }
+.hall-empty { font-size: 16px; color: #8d6e63; padding: 16px 0; }
+.net-msg { min-height: 20px; font-size: 15px; color: #2e7d32; margin: 4px 0 6px; }
+.by-subject { font-size: 14px; color: #8d6e63; }
+
+/* 오답 다시보기 */
+.wrong-list { max-height: 30vh; overflow-y: auto; text-align: left; }
+.wrong-title { font-size: 15px; color: #6d4c41; margin: 8px 0 4px; text-align: center; }
+.wrong-row {
+  background: #fff; border: 2px solid #ffcdd2; border-radius: 10px;
+  padding: 6px 10px; margin-top: 6px;
+  font-size: 14px; color: #4e342e;
+}
+.wrong-row .wrong-q { display: block; }
+.wrong-row .wrong-a { display: block; color: #2e7d32; font-size: 13px; }
+
+/* 결과/일시정지 통계 */
+.stats {
+  background: #fff; border: 2px solid #d7ccc8; border-radius: 14px;
+  padding: 12px; margin: 10px 0 6px;
+  font-size: 18px; color: #5d4037; line-height: 1.8;
+}
+.stats b { color: #e65100; }

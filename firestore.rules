@@ -764,6 +764,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // 수학 서바이버 랭크 점수 기록 (각자 자기 문서만 씀 — 낱말대전·마블과 동일 방식)
+    match /mathsurvivorRanking/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
     // ── 홈타운 소통: 접속자 표시 + 스탬프 쪽지 ──────────────────
     // presence/{authUid}: 접속 중인 학생이 주기적으로 자기 문서에 '살아있음'을 기록.
     // 목록 창은 '최근 몇 분 내 기록'만 접속중으로 보여준다 (하트비트 방식).

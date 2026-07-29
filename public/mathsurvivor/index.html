@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>퀴즈 서바이버 — DJ48 퀴즈타운</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=3">
+<!-- 퀴즈타운 Firebase 재사용 (Firebase Hosting 에서만 로드됨. 로컬 시험 서버에선 없어도 게임은 동작) -->
+<script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
+<script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
+<script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/__/firebase/init.js"></script>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- 게임 중 HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-left">
+    <div class="chip" id="hudLevel">Lv.1</div>
+    <div class="chip" id="hudKills">⚔️ 0</div>
+  </div>
+  <div class="hud-center">
+    <div class="chip chip-timer" id="hudTimer">10:00</div>
+    <div class="hpbar"><div class="hpbar-fill" id="hudHpFill"></div><span id="hudHpText">100/100</span></div>
+    <div class="xpbar"><div class="xpbar-fill" id="hudXpFill"></div></div>
+    <div class="bossbar hidden" id="bossBar">
+      <span id="bossName">👑 보스</span>
+      <div class="bossbar-track"><div class="bossbar-fill" id="bossFill"></div></div>
+    </div>
+  </div>
+  <div class="hud-right">
+    <button class="chip chip-btn" id="btnPause">⏸ 정지</button>
+    <div class="chip" id="hudGrade">4학년</div>
+    <div class="chip" id="hudAcc">📝 -</div>
+  </div>
+</div>
+
+<!-- 시작 화면 -->
+<div id="startScreen" class="overlay">
+  <div class="panel">
+    <div class="title-sprite" id="titleSprite"></div>
+    <h1>퀴즈 서바이버</h1>
+    <p class="subtitle">우리 반 지식을 훔쳐간 시험지 대마왕!<br>문제를 풀어 힘을 되찾고 10분을 버텨라 🏃</p>
+    <p class="pick-label">📖 출제 과목 — 여러 개 골라도 돼요!</p>
+    <div class="subject-row" id="subjectRow"></div>
+    <p class="pick-label">🎒 학년 (수학·사회·과학 문제 수준, 1학기)</p>
+    <div class="grade-grid" id="gradeGrid"></div>
+    <button class="big-btn" id="btnStart">🚀 모험 시작!</button>
+    <button class="sub-btn" id="btnHall">🏆 명예의 전당</button>
+    <p class="help-text">⌨️ 방향키/WASD 이동 · 📱 화면을 끌어서 이동<br>
+      💎 보석으로 레벨업 → 📖 문제를 맞히면 강화! · ⭐ 별을 잡으면 보너스 문제!</p>
+  </div>
+</div>
+
+<!-- 문제 모달 -->
+<div id="quizModal" class="overlay hidden">
+  <div class="panel">
+    <div class="quiz-unit" id="quizUnit">4학년 · 각도</div>
+    <p class="quiz-why" id="quizWhy"></p>
+    <div class="quiz-text" id="quizText"></div>
+    <div class="quiz-choices" id="quizChoices"></div>
+    <p class="quiz-feedback" id="quizFeedback"></p>
+  </div>
+</div>
+
+<!-- 레벨업 모달 -->
+<div id="levelupModal" class="overlay hidden">
+  <div class="panel">
+    <h2>🎉 정답! 강화를 골라!</h2>
+    <div id="upgradeList"></div>
+  </div>
+</div>
+
+<!-- 일시정지 -->
+<div id="pauseModal" class="overlay hidden">
+  <div class="panel">
+    <h2>⏸ 잠깐 쉬는 중</h2>
+    <div id="pauseStats" class="stats"></div>
+    <button class="big-btn" id="btnResume">▶ 계속하기</button>
+    <button class="sub-btn" id="btnQuit">🏠 그만하기</button>
+  </div>
+</div>
+
+<!-- 결과 화면 -->
+<div id="endScreen" class="overlay hidden">
+  <div class="panel">
+    <h2 id="endTitle">게임 오버</h2>
+    <div id="endStats" class="stats"></div>
+    <div id="endWrong" class="wrong-list"></div>
+    <p class="net-msg" id="endNetMsg"></p>
+    <button class="big-btn" id="btnRetry">🔄 다시 도전!</button>
+  </div>
+</div>
+
+<!-- 명예의 전당 -->
+<div id="hallModal" class="overlay hidden">
+  <div class="panel">
+    <h2>🏆 명예의 전당</h2>
+    <div id="hallList" class="hall-list"></div>
+    <button class="sub-btn" id="btnHallClose">닫기</button>
+  </div>
+</div>
+
+<!-- ?v= 숫자는 파일을 고칠 때마다 올린다 (학생 브라우저 캐시 갱신용) -->
+<script src="sprites.js?v=3"></script>
+<script src="problems.js?v=3"></script>
+<script src="bank.js?v=3"></script>
+<script src="net.js?v=3"></script>
+<script src="game.js?v=3"></script>
+</body>
+</html>
