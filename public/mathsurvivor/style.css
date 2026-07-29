@@ -136,7 +136,7 @@ html, body {
 .mode-chip b { display: block; font-size: 17px; color: #4e342e; }
 .mode-chip small { font-size: 11px; color: #8d6e63; line-height: 1.3; }
 .mode-chip.sel { border-color: #fb8c00; background: #fff3e0; box-shadow: 0 3px 0 #ffb74d; }
-#subjectPick.dimmed { opacity: .35; pointer-events: none; }
+#subjectPick.dimmed, #gradePick.dimmed { opacity: .35; pointer-events: none; }
 .btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* 도감 */

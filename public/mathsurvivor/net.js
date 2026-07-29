@@ -92,6 +92,7 @@
               bestScore: isBest ? r.score : prev.bestScore,
               bestGrade: isBest ? r.grade : (prev.bestGrade || r.grade),
               bestMode: isBest ? (r.mode || 'classic') : (prev.bestMode || r.mode || 'classic'),
+              bestDiff: isBest ? (r.diff || 'normal') : (prev.bestDiff || r.diff || 'normal'),
               bestSurvived: isBest ? r.survived : (prev.bestSurvived || 0),
               bestLevel: isBest ? r.level : (prev.bestLevel || 1),
               bestVictory: !!(prev.bestVictory || r.victory),

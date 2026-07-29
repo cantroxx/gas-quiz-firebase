@@ -7,7 +7,7 @@
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 <!-- 퀴즈타운 Firebase 재사용 (Firebase Hosting 에서만 로드됨. 로컬 시험 서버에선 없어도 게임은 동작) -->
 <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
@@ -47,12 +47,16 @@
     <p class="subtitle">우리 반 지식을 훔쳐간 시험지 대마왕!<br>문제를 풀어 힘을 되찾고 10분을 버텨라 🏃</p>
     <p class="pick-label">🎮 모드 선택</p>
     <div class="mode-row" id="modeRow"></div>
+    <p class="pick-label">💪 난이도</p>
+    <div class="subject-row" id="diffRow"></div>
     <div id="subjectPick">
       <p class="pick-label">📖 출제 과목 — 여러 개 골라도 돼요!</p>
       <div class="subject-row" id="subjectRow"></div>
     </div>
-    <p class="pick-label">🎒 학년 (수학·사회·과학 문제 수준, 1학기)</p>
-    <div class="grade-grid" id="gradeGrid"></div>
+    <div id="gradePick">
+      <p class="pick-label">🎒 학년 (수학·사회·과학 문제 수준, 1학기)</p>
+      <div class="grade-grid" id="gradeGrid"></div>
+    </div>
     <button class="big-btn" id="btnStart">🚀 모험 시작!</button>
     <div class="btn-pair">
       <button class="sub-btn" id="btnHall">🏆 명예의 전당</button>
@@ -123,10 +127,10 @@
 </div>
 
 <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 (학생 브라우저 캐시 갱신용) -->
-<script src="sprites.js?v=4"></script>
-<script src="problems.js?v=4"></script>
-<script src="bank.js?v=4"></script>
-<script src="net.js?v=4"></script>
-<script src="game.js?v=4"></script>
+<script src="sprites.js?v=5"></script>
+<script src="problems.js?v=5"></script>
+<script src="bank.js?v=5"></script>
+<script src="net.js?v=5"></script>
+<script src="game.js?v=5"></script>
 </body>
 </html>

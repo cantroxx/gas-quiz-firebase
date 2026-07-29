@@ -153,6 +153,74 @@
       ],
     },
 
+    // 돌진형(교실): 종이비행기
+    paperplane: {
+      palette: { w: '#fafafa', g: '#bdbdbd' },
+      rows: [
+        'w.........',
+        'www.......',
+        'wwwww.....',
+        'wwwwwwwg..',
+        'wwwwwwwwwg',
+        'wwwwwgg...',
+        'www.......',
+        'w.........',
+      ],
+    },
+
+    // 원거리형(교실): 물감 슬라임 (물감 방울을 던진다)
+    inkslime: {
+      palette: { g: '#b39ddb', d: '#7e57c2', e: '#311b92', w: '#ffffff' },
+      rows: [
+        '....gggg....',
+        '..gggggggg..',
+        '.gggggggggg.',
+        '.ggweggwegg.',
+        '.ggeeggeegg.',
+        'gggggggggggg',
+        'ggggddddgggg',
+        'gggggggggggg',
+        '.gdgggggggd.',
+      ],
+    },
+
+    // 돌진형(역사): 도깨비불
+    wisp: {
+      palette: { b: '#4fc3f7', c: '#0288d1', e: '#01579b' },
+      rows: [
+        '...bb...',
+        '..bbbb..',
+        '.bbbbbb.',
+        '.bbbbbb.',
+        'bbbbbbbb',
+        'bbebbebb',
+        'bbbbbbbb',
+        '.bcbbcb.',
+        '..b..b..',
+      ],
+    },
+
+    // 원거리형(역사): 장승 (나무 구슬을 던진다)
+    jangseung: {
+      palette: { w: '#8d6e63', d: '#5d4037', e: '#fff3e0' },
+      rows: [
+        '.wwwwwwww.',
+        '.wdwwwwdw.',
+        '.wwwwwwww.',
+        '.weewweew.',
+        '.wwwwwwww.',
+        '.wddddddw.',
+        '.wdwwwwdw.',
+        '.wwwwwwww.',
+        '..wwwwww..',
+        '..wwwwww..',
+        '..wwwwww..',
+        '..wdwwdw..',
+        '..wwwwww..',
+        '..dddddd..',
+      ],
+    },
+
     // 역사 모드 주인공: 한복 입은 학생
     hanbok: {
       palette: {

@@ -19,7 +19,7 @@
     hpFill: $('hudHpFill'), hpText: $('hudHpText'), xpFill: $('hudXpFill'),
     bossBar: $('bossBar'), bossFill: $('bossFill'), bossName: $('bossName'),
     start: $('startScreen'), gradeGrid: $('gradeGrid'), subjectRow: $('subjectRow'),
-    modeRow: $('modeRow'), subjectPick: $('subjectPick'),
+    modeRow: $('modeRow'), subjectPick: $('subjectPick'), gradePick: $('gradePick'), diffRow: $('diffRow'),
     codex: $('codexModal'), codexBody: $('codexBody'),
     levelup: $('levelupModal'), upgradeList: $('upgradeList'),
     quiz: $('quizModal'), quizUnit: $('quizUnit'), quizWhy: $('quizWhy'),
@@ -176,10 +176,40 @@
         localStorage.setItem('ms.mode', id);
         buildModeRow();
         drawTitleSprite();
-        // 역사 모드에선 과목 선택이 의미 없어 흐리게
-        ui.subjectPick.classList.toggle('dimmed', mode === 'history');
+        applyModeUi();
       };
       ui.modeRow.appendChild(btn);
+    }
+  }
+  // 역사 모드에선 과목·학년 선택이 문제에 영향을 주지 않아 흐리게 (역사 문제만 나옴)
+  function applyModeUi() {
+    const off = mode === 'history';
+    ui.subjectPick.classList.toggle('dimmed', off);
+    ui.gradePick.classList.toggle('dimmed', off);
+  }
+
+  // ---------- 난이도 ----------
+  const DIFFS = {
+    easy:   { name: '쉬움', icon: '😊', desc: '천천히 배우기', hp: 0.8, spd: 0.85, dmg: 0.8, spawn: 1.25, score: 0.8 },
+    normal: { name: '보통', icon: '🙂', desc: '딱 알맞게', hp: 1, spd: 1, dmg: 1, spawn: 1, score: 1 },
+    hard:   { name: '어려움', icon: '🔥', desc: '점수 1.3배!', hp: 1.3, spd: 1.1, dmg: 1.3, spawn: 0.8, score: 1.3 },
+  };
+  let diff = localStorage.getItem('ms.diff') || 'normal';
+  if (!DIFFS[diff]) diff = 'normal';
+  function buildDiffRow() {
+    ui.diffRow.innerHTML = '';
+    for (const id in DIFFS) {
+      const d = DIFFS[id];
+      const btn = document.createElement('button');
+      btn.className = 'subject-chip' + (diff === id ? ' sel' : '');
+      btn.textContent = `${d.icon} ${d.name}`;
+      btn.title = d.desc;
+      btn.onclick = () => {
+        diff = id;
+        localStorage.setItem('ms.diff', id);
+        buildDiffRow();
+      };
+      ui.diffRow.appendChild(btn);
     }
   }
 
@@ -282,7 +312,7 @@
   let player, enemies, bullets, gems, items, floats, elapsed, killCount, spawnTimer, lastTime;
   let starTimer, bossSpawned, finalSpawned, bossQuizDelay, flashTimer, orbitAngle;
   let quizStats, currentQuiz, quizAfter, quizFail, quizOneShot, quizWhyText;
-  let reviveUsed, wrongList, breadEaten, lastEra;
+  let reviveUsed, wrongList, breadEaten, lastEra, eBullets, waveTimer;
 
   function newPlayer() {
     return {
@@ -306,6 +336,7 @@
     bossQuizDelay = 0; flashTimer = 0; orbitAngle = 0;
     quizStats = { correct: 0, total: 0, by: {} };
     reviveUsed = false; wrongList = []; breadEaten = 0; lastEra = 0;
+    eBullets = []; waveTimer = 60;
     state = 'play';
     ui.start.classList.add('hidden');
     ui.end.classList.add('hidden');
@@ -333,25 +364,43 @@
   }
 
   // ---------- 몬스터 ----------
-  function spawnEnemy() {
-    if (enemies.length >= 150) return;
+  // 유형: slime(직진) / ghost(빠른 직진) / dasher(조준→돌진, 피해야 함) / shooter(원거리 투사체)
+  function spawnEnemy(forceAng) {
+    if (enemies.length >= 170) return;
     const min = elapsed / 60;
-    const type = (elapsed > 90 && Math.random() < 0.35) ? 'ghost' : 'slime';
-    const stat = type === 'slime'
-      ? { hp: 14, speed: 40, dmg: 8, xp: 1, r: 15 }
-      : { hp: 26, speed: 58, dmg: 12, xp: 2, r: 16 };
-    stat.hp = Math.round(stat.hp * (1 + min * 0.35));
-    stat.speed *= 1 + min * 0.04;
-    // 첫 50초는 조작을 익힐 수 있게 약하게
-    if (elapsed < 50) { stat.hp = Math.round(stat.hp * 0.75); stat.speed *= 0.85; }
-    const ang = Math.random() * Math.PI * 2;
+    const roll = Math.random();
+    let type = 'slime';
+    if (elapsed > 120 && roll < 0.14) type = 'dasher';
+    else if (elapsed > 150 && roll < 0.27) type = 'shooter';
+    else if (elapsed > 90 && roll < 0.55) type = 'ghost';
+    const base = {
+      slime:   { hp: 14, speed: 48, dmg: 10, xp: 1, r: 15 },
+      ghost:   { hp: 26, speed: 66, dmg: 15, xp: 2, r: 16 },
+      dasher:  { hp: 20, speed: 42, dmg: 14, xp: 2, r: 13 },
+      shooter: { hp: 22, speed: 46, dmg: 8, xp: 2, r: 14 },
+    }[type];
+    const D = DIFFS[diff];
+    const stat = {
+      hp: Math.round(base.hp * (1 + min * 0.35) * D.hp),
+      speed: base.speed * (1 + min * 0.05) * D.spd,
+      dmg: Math.round(base.dmg * D.dmg),
+    };
+    // 첫 30초만 조작 연습용으로 살짝 약하게
+    if (elapsed < 30) { stat.hp = Math.round(stat.hp * 0.85); stat.speed *= 0.9; }
+    const ang = forceAng !== undefined ? forceAng : Math.random() * Math.PI * 2;
     const dist = Math.hypot(W, H) / 2 + 40;
-    enemies.push({
+    const spriteMap = mode === 'history'
+      ? { slime: 'dokkaebi', ghost: 'jeoseung', dasher: 'wisp', shooter: 'jangseung' }
+      : { slime: 'slime', ghost: 'ghost', dasher: 'paperplane', shooter: 'inkslime' };
+    const e = {
       type, x: player.x + Math.cos(ang) * dist, y: player.y + Math.sin(ang) * dist,
-      hp: stat.hp, maxHp: stat.hp, speed: stat.speed, dmg: stat.dmg, xp: stat.xp, r: stat.r,
+      hp: stat.hp, maxHp: stat.hp, speed: stat.speed, dmg: stat.dmg, xp: base.xp, r: base.r,
       wobble: Math.random() * Math.PI * 2, orbitCd: 0,
-      sprite: mode === 'history' ? (type === 'slime' ? 'dokkaebi' : 'jeoseung') : type,
-    });
+      sprite: spriteMap[type],
+    };
+    if (type === 'dasher') { e.beh = 'dash'; e.ds = 'chase'; e.dashT = 0; e.dashSpeed = 340 * D.spd; e.windupT = 0.8; }
+    if (type === 'shooter') { e.beh = 'shoot'; e.fireT = 1.2; e.shotDmg = Math.round(10 * D.dmg); }
+    enemies.push(e);
   }
 
   function spawnStar() {
@@ -371,13 +420,17 @@
     const name = history
       ? (which === 180 ? '👑 대왕 도깨비' : '👑 구미호')
       : (which === 180 ? '👑 숙제 유령 대왕' : '👑 지우개 대마왕');
+    const D = DIFFS[diff];
+    const hp = Math.round((which === 180 ? 380 : 950) * D.hp);
     enemies.push({
       type: 'ghost', boss: 'mid', scale: 2.2,
       sprite: history ? (which === 180 ? 'dokkaebi' : 'gumiho') : 'ghost',
       x: player.x + (Math.random() < 0.5 ? -1 : 1) * (W / 2 + 60), y: player.y,
-      hp: which === 180 ? 380 : 950, maxHp: which === 180 ? 380 : 950,
-      speed: 46 + min * 2, dmg: 20, xp: 0, r: 34, wobble: 0, orbitCd: 0,
+      hp, maxHp: hp,
+      speed: (46 + min * 2) * D.spd, dmg: Math.round(20 * D.dmg), xp: 0, r: 34, wobble: 0, orbitCd: 0,
       name,
+      // 보스 패턴: 가까워지면 경고 후 돌진 + 부하 소환
+      beh: 'dash', ds: 'chase', dashT: 0, dashSpeed: 300 * D.spd, windupT: 1.0, summonT: 8,
     });
     addFloat(player.x, player.y - 60, `${name} 등장!`, '#7b1fa2');
   }
@@ -385,12 +438,15 @@
   function spawnFinalBoss() {
     const history = mode === 'history';
     const name = history ? '👑 시간도둑 대마왕' : '👑 시험지 대마왕';
+    const D = DIFFS[diff];
+    const hp = Math.round(1300 * D.hp);
     enemies.push({
       type: 'examboss', boss: 'final', scale: 2,
       sprite: history ? 'clockboss' : 'examboss',
       x: player.x, y: player.y - H / 2 - 80,
-      hp: 1300, maxHp: 1300, speed: 42, dmg: 25, xp: 0, r: 40, wobble: 0, orbitCd: 0,
+      hp, maxHp: hp, speed: 42 * D.spd, dmg: Math.round(25 * D.dmg), xp: 0, r: 40, wobble: 0, orbitCd: 0,
       shield: true, shieldTimer: 0, summonTimer: 5,
+      ringT: 4, // 사방으로 투사체를 뿌리는 패턴
       name,
     });
     bossQuizDelay = 1.0;
@@ -609,11 +665,19 @@
     const fb = finalBoss();
     if (!fb) {
       spawnTimer -= dt;
-      const interval = Math.max(0.35, 1.7 - elapsed / 400); // 처음엔 1.7초 간격 → 점점 빨라짐
+      const interval = Math.max(0.3, 1.35 - elapsed / 350) * DIFFS[diff].spawn;
       while (spawnTimer <= 0) { spawnEnemy(); spawnTimer += interval; }
       if (!frozen) {
         starTimer -= dt;
         if (starTimer <= 0) { spawnStar(); starTimer = 45 + Math.random() * 15; }
+        // 몬스터 러시: 한쪽 방향에서 떼로 몰려온다 → 도망 방향을 판단해야 함
+        waveTimer -= dt;
+        if (waveTimer <= 0) {
+          waveTimer = 75;
+          addFloat(player.x, player.y - 70, '⚠️ 몬스터 러시!', '#d84315');
+          const baseAng = Math.random() * Math.PI * 2;
+          for (let k = 0; k < 14; k++) spawnEnemy(baseAng + (Math.random() - 0.5) * 0.9);
+        }
       }
     } else {
       // 방어막 사이클: 문제를 맞히면 12초 동안 공격 가능
@@ -665,16 +729,79 @@
         dx = player.x - e.x; dy = player.y - e.y; d = 430;
         addFloat(e.x, e.y - 50, '👑 순간이동!', '#6a1b9a');
       }
-      e.x += (dx / d) * e.speed * dt;
-      e.y += (dy / d) * e.speed * dt;
-      e.wobble += dt * 6;
+
+      if (e.beh === 'dash') {
+        // 돌진형: 조준(빨간 고리 경고) → 돌진 → 숨 고르기. 경고 때 옆으로 피하자!
+        e.dashT -= dt;
+        if (e.ds === 'windup') {
+          if (e.dashT <= 0) {
+            e.ds = 'dash'; e.dashT = 0.55;
+            e.dvx = (dx / d) * e.dashSpeed; e.dvy = (dy / d) * e.dashSpeed;
+          }
+        } else if (e.ds === 'dash') {
+          e.x += e.dvx * dt; e.y += e.dvy * dt;
+          if (e.dashT <= 0) { e.ds = 'cool'; e.dashT = 1.1; }
+        } else if (e.ds === 'cool') {
+          e.x += (dx / d) * e.speed * 0.5 * dt; e.y += (dy / d) * e.speed * 0.5 * dt;
+          if (e.dashT <= 0) e.ds = 'chase';
+        } else {
+          e.x += (dx / d) * e.speed * dt; e.y += (dy / d) * e.speed * dt;
+          if (d < 300) { e.ds = 'windup'; e.dashT = e.windupT; }
+        }
+      } else if (e.beh === 'shoot') {
+        // 원거리형: 거리를 유지하며 투사체 발사 → 날아오는 걸 피해야 함
+        if (d > 300) { e.x += (dx / d) * e.speed * dt; e.y += (dy / d) * e.speed * dt; }
+        else if (d < 170) { e.x -= (dx / d) * e.speed * 0.8 * dt; e.y -= (dy / d) * e.speed * 0.8 * dt; }
+        else { e.x += (-dy / d) * e.speed * 0.4 * dt; e.y += (dx / d) * e.speed * 0.4 * dt; }
+        e.fireT -= dt;
+        if (e.fireT <= 0 && d < 430) {
+          eBullets.push({ x: e.x, y: e.y, vx: (dx / d) * 180, vy: (dy / d) * 180, life: 3.5, dmg: e.shotDmg });
+          e.fireT = 2.2;
+        }
+      } else {
+        e.x += (dx / d) * e.speed * dt;
+        e.y += (dy / d) * e.speed * dt;
+      }
+
+      // 중간보스: 부하 소환 / 최종보스: 사방 투사체
+      if (e.boss === 'mid') {
+        e.summonT -= dt;
+        if (e.summonT <= 0) { e.summonT = 8; spawnEnemy(); spawnEnemy(); }
+      }
+      if (e.boss === 'final') {
+        e.ringT -= dt;
+        if (e.ringT <= 0) {
+          e.ringT = 6;
+          for (let k = 0; k < 8; k++) {
+            const a = (Math.PI * 2 * k) / 8;
+            eBullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, life: 4, dmg: Math.round(12 * DIFFS[diff].dmg) });
+          }
+        }
+      }
+
+      e.wobble += dt * (e.ds === 'windup' ? 18 : 6);
       if (e.orbitCd > 0) e.orbitCd -= dt;
       if (d < e.r + 12 && player.invuln <= 0) {
         player.hp -= e.dmg;
-        player.invuln = 1.0;
+        player.invuln = 0.8;
         addFloat(player.x, player.y - 30, `-${e.dmg}`, '#e53935');
         if (player.hp <= 0) return playerDown();
       }
+    }
+
+    // 적 투사체 비행 + 명중
+    for (let i = eBullets.length - 1; i >= 0; i--) {
+      const b = eBullets[i];
+      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      let gone = b.life <= 0;
+      if (!gone && Math.hypot(player.x - b.x, player.y - b.y) < 13 && player.invuln <= 0) {
+        player.hp -= b.dmg;
+        player.invuln = 0.8;
+        addFloat(player.x, player.y - 30, `-${b.dmg}`, '#e53935');
+        gone = true;
+        if (player.hp <= 0) return playerDown();
+      }
+      if (gone) eBullets.splice(i, 1);
     }
     // 수명이 다한 별은 사라진다
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -837,6 +964,17 @@
         ctx.strokeStyle = 'rgba(30,136,229,.8)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(e.x - camX, e.y - camY, e.r + 14 + Math.sin(performance.now() / 150) * 3, 0, Math.PI * 2); ctx.stroke();
       }
+      // 돌진 조준 중: 빨간 고리 경고 (지금 피해!)
+      if (e.ds === 'windup') {
+        ctx.strokeStyle = 'rgba(229,57,53,.85)'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(e.x - camX, e.y - camY, e.r + 10 + Math.sin(performance.now() / 60) * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#e53935';
+        ctx.font = "bold 18px 'Jua', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.fillText('!', e.x - camX, e.y - camY - h / 2 - 12);
+      }
       if (!e.boss && e.type !== 'star' && e.hp < e.maxHp) {
         ctx.fillStyle = 'rgba(0,0,0,.35)';
         ctx.fillRect(e.x - camX - w / 2, e.y - camY - h / 2 - 8, w, 4);
@@ -860,6 +998,14 @@
         ctx.beginPath(); ctx.moveTo(5, -3); ctx.lineTo(11, 0); ctx.lineTo(5, 3); ctx.fill();
       }
       ctx.restore();
+    }
+
+    // 적 투사체 (물감 방울 / 나무 구슬)
+    for (const b of eBullets) {
+      ctx.fillStyle = mode === 'history' ? '#6d4c41' : '#5e35b1';
+      ctx.beginPath(); ctx.arc(b.x - camX, b.y - camY, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.6)';
+      ctx.beginPath(); ctx.arc(b.x - camX - 2, b.y - camY - 2, 2, 0, Math.PI * 2); ctx.fill();
     }
 
     // 공책 부메랑
@@ -980,7 +1126,7 @@
       `📈 레벨: <b>Lv.${player.level}</b> · ${weaponsHtml()}<br>` +
       `📝 문제 정답률: <b>${acc}</b>` +
       (bySubj ? `<br><span class="by-subject">${bySubj}</span>` : '') +
-      `<br>🏆 점수: <b>${score()}</b>점`;
+      `<br>🏆 점수: <b>${score()}</b>점 (${DIFFS[diff].icon} ${DIFFS[diff].name})`;
   }
 
   // 이번 판에서 틀렸던 문제 목록 (복습용)
@@ -993,8 +1139,9 @@
   }
   function score() {
     const victoryBonus = (state === 'end' && lastVictory) ? 500 : 0;
-    return killCount * 10 + Math.floor(elapsed) * 5 + (player.level - 1) * 50 +
+    const base = killCount * 10 + Math.floor(elapsed) * 5 + (player.level - 1) * 50 +
       quizStats.correct * 30 + victoryBonus;
+    return Math.round(base * DIFFS[diff].score); // 어려움일수록 점수 보너스
   }
 
   function pauseGame() {
@@ -1043,7 +1190,7 @@
       window.MS_Net.recordScore({
         grade, score: score(), survived: Math.floor(elapsed), level: player.level,
         kills: killCount, correct: quizStats.correct, total: quizStats.total, victory,
-        bySubject: quizStats.by, mode,
+        bySubject: quizStats.by, mode, diff,
       }).then((msg) => { ui.endNetMsg.textContent = msg; })
         .catch(() => { ui.endNetMsg.textContent = ''; });
     }
@@ -1103,7 +1250,8 @@
   }
   drawTitleSprite();
   buildModeRow();
-  ui.subjectPick.classList.toggle('dimmed', mode === 'history');
+  buildDiffRow();
+  applyModeUi();
 
   // ---------- 도감 ----------
   function thumb(name, scale) {
@@ -1160,10 +1308,14 @@
     body.appendChild(codexSection('🏫 교실 몬스터'));
     body.appendChild(codexRow('slime', '지우개 가루 슬라임', '느리지만 떼로 몰려온다', true));
     body.appendChild(codexRow('ghost', '숙제 유령', '1분 30초부터 나타나는 빠른 유령', true));
-    body.appendChild(codexRow('examboss', '시험지 대마왕', '10분에 등장! 방어막은 문제로 깨자', true));
+    body.appendChild(codexRow('paperplane', '종이비행기', '빨간 고리가 보이면 돌진 신호 — 옆으로 피하자!', true));
+    body.appendChild(codexRow('inkslime', '물감 슬라임', '멀리서 물감 방울을 던진다. 방울을 피해!', true));
+    body.appendChild(codexRow('examboss', '시험지 대마왕', '10분에 등장! 방어막은 문제로 깨고, 사방 투사체를 피하자', true));
     body.appendChild(codexSection('🏯 역사 몬스터'));
     body.appendChild(codexRow('dokkaebi', '도깨비', '옛이야기 속 장난꾸러기 (3분 대왕 도깨비!)', true));
     body.appendChild(codexRow('jeoseung', '저승사자', '검은 갓을 쓴 무서운 추격자', true));
+    body.appendChild(codexRow('wisp', '도깨비불', '파란 불꽃 — 조준한 뒤 쌩! 돌진한다', true));
+    body.appendChild(codexRow('jangseung', '장승', '멀리서 나무 구슬을 던지는 마을 지킴이', true));
     body.appendChild(codexRow('gumiho', '구미호', '꼬리 아홉 여우 — 6분의 문지기', true));
     body.appendChild(codexRow('clockboss', '시간도둑 대마왕', '역사를 뒤죽박죽 만든 최종보스', true));
     body.appendChild(codexSection('📜 역사 시간여행의 시대'));
@@ -1185,7 +1337,7 @@
   if (IS_LOCAL) window.MS_debug = {
     start: startGame,
     step(dt, n = 1) { for (let i = 0; i < n && state === 'play'; i++) update(dt); if (state === 'play') draw(); },
-    state: () => ({ state, elapsed, killCount, grade, hp: player && player.hp, level: player && player.level, enemies: enemies && enemies.length, boss: enemies && enemies.filter((e) => e.boss).map((e) => ({ name: e.name, hp: e.hp, shield: e.shield })), gems: gems && gems.length, items: items && items.map((i) => i.type), quiz: quizStats }),
+    state: () => ({ state, elapsed, killCount, grade, hp: player && player.hp, level: player && player.level, enemies: enemies && enemies.length, boss: enemies && enemies.filter((e) => e.boss).map((e) => ({ name: e.name, hp: e.hp, shield: e.shield })), gems: gems && gems.length, eBullets: eBullets && eBullets.length, items: items && items.map((i) => i.type), quiz: quizStats }),
     press(key, down) { keys[key] = down; },
     answerQuiz(ok) {
       if (state !== 'quiz') return 'no quiz';
