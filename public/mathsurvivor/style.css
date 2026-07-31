@@ -217,6 +217,7 @@ html, body {
 .bossbar-fill { height: 100%; width: 100%; background: linear-gradient(#ab47bc, #6a1b9a); transition: width .2s; }
 
 /* 명예의 전당 */
+.hall-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; }
 .hall-list { max-height: 50vh; overflow-y: auto; margin-bottom: 10px; }
 .hall-row {
   display: flex; align-items: center; gap: 10px;

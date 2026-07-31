@@ -83,7 +83,11 @@
                 };
               }
             }
+            const newTotal = (prev.quizTotal || 0) + r.total;
+            const newCorrect = (prev.quizCorrect || 0) + r.correct;
             const data = {
+              // 정답률왕 랭킹용 (10문제 이상 푼 학생만 집계)
+              accPct: newTotal >= 10 ? Math.round((newCorrect / newTotal) * 100) : 0,
               subjects: subjects,
               name: name,
               plays: (prev.plays || 0) + 1,
@@ -118,8 +122,24 @@
           .then(function (snap) {
             return snap.docs.map(function (d) {
               const v = d.data();
-              return { name: v.name || '???', bestScore: v.bestScore || 0, bestVictory: !!v.bestVictory, bestGrade: v.bestGrade };
+              return { name: v.name || '???', bestScore: v.bestScore || 0, bestVictory: !!v.bestVictory, bestGrade: v.bestGrade, bestMode: v.bestMode, bestDiff: v.bestDiff };
             });
+          });
+      });
+    },
+
+    // 정답률왕: 누적 정답률 순 (10문제 이상)
+    topAcc: function (n) {
+      if (!firebaseReady()) return Promise.reject(new Error('offline'));
+      return ensureAuth().then(function () {
+        const db = global.firebase.firestore();
+        return db.collection('mathsurvivorRanking')
+          .orderBy('accPct', 'desc').limit(n || 20).get()
+          .then(function (snap) {
+            return snap.docs.map(function (d) {
+              const v = d.data();
+              return { name: v.name || '???', accPct: v.accPct || 0, quizTotal: v.quizTotal || 0, bestMode: v.bestMode, bestDiff: v.bestDiff };
+            }).filter(function (r) { return r.accPct > 0; });
           });
       });
     },

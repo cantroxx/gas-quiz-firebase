@@ -26,7 +26,7 @@
     quizText: $('quizText'), quizChoices: $('quizChoices'), quizFeedback: $('quizFeedback'),
     pause: $('pauseModal'), pauseStats: $('pauseStats'),
     end: $('endScreen'), endTitle: $('endTitle'), endStats: $('endStats'), endWrong: $('endWrong'), endNetMsg: $('endNetMsg'),
-    hall: $('hallModal'), hallList: $('hallList'),
+    hall: $('hallModal'), hallList: $('hallList'), semRow: $('semRow'),
   };
 
   // ---------- 화면 크기 ----------
@@ -268,6 +268,7 @@
       if (w.lv >= 5 && !w.evolved && evolveReady(key)) {
         w.evolved = true;
         unlockCodex(key);
+        SFX.play('evolve');
         addFloat(player.x, player.y - 50, `✨ 각성! ${EVOLVE[key].evoName}!!`, '#f9a825');
       }
     }
@@ -300,6 +301,16 @@
 
   // 문제 하나 만들기: 역사 모드=지금 시대의 역사 문제, 교실 모드=켜진 과목 중 랜덤
   function makeProblem() {
+    // 오답노트 복습: 노트에 문제가 있으면 30% 확률로 우선 출제
+    const note = loadNote();
+    if (note.length && Math.random() < 0.3) {
+      const it = note[Math.floor(Math.random() * note.length)];
+      const idx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+      return {
+        unit: '📕 복습 · ' + it.unit, subject: it.subject || '복습',
+        text: it.q, choices: idx.map((i) => it.c[i]), answerIndex: idx.indexOf(it.c.indexOf(it.a)),
+      };
+    }
     if (mode === 'history') {
       const p = B.serveHistory(ERAS[eraIdx(elapsed)].name);
       p.subject = '역사';
@@ -307,25 +318,43 @@
     }
     const sid = subjects[Math.floor(Math.random() * subjects.length)];
     if (sid === 'math') {
-      const p = P.generate(grade);
+      const p = P.generate(grade, sem);
       p.unit = '수학 · ' + p.unit;
       p.subject = '수학';
       return p;
     }
-    const p = B.serve(sid, grade);
+    const p = B.serve(sid, grade, sem);
     p.subject = B.SUBJECTS[sid].name;
     return p;
   }
 
-  // ---------- 학년 선택 ----------
+  // ---------- 학년·학기 선택 ----------
   let grade = Number(localStorage.getItem('ms.grade')) || 4;
+  const nowMonth = new Date().getMonth() + 1;
+  let sem = Number(localStorage.getItem('ms.sem')) || ((nowMonth >= 8 || nowMonth <= 1) ? 2 : 1);
+  if (sem !== 1 && sem !== 2) sem = 1;
+  function buildSemRow() {
+    ui.semRow.innerHTML = '';
+    for (const t of [1, 2]) {
+      const btn = document.createElement('button');
+      btn.className = 'subject-chip' + (sem === t ? ' sel' : '');
+      btn.textContent = t === 1 ? '🌸 1학기' : '🍂 2학기';
+      btn.onclick = () => {
+        sem = t;
+        localStorage.setItem('ms.sem', String(t));
+        buildSemRow();
+        buildGradeGrid(); // 학기에 맞는 단원 표시로 갱신
+      };
+      ui.semRow.appendChild(btn);
+    }
+  }
   function buildGradeGrid() {
     ui.gradeGrid.innerHTML = '';
     for (const g of [3, 4, 5, 6]) {
       const info = P.GRADES[g];
       const btn = document.createElement('button');
       btn.className = 'grade-card' + (g === grade ? ' sel' : '');
-      btn.innerHTML = `<b>${info.name}</b><small>${info.units}</small>`;
+      btn.innerHTML = `<b>${info.name}</b><small>${sem === 2 && info.units2 ? info.units2 : info.units}</small>`;
       btn.onclick = () => {
         grade = g;
         localStorage.setItem('ms.grade', String(g));
@@ -336,6 +365,7 @@
   }
   buildGradeGrid();
   buildSubjectRow();
+  buildSemRow();
 
   // ---------- 게임 상태 ----------
   // state: title | play | quiz | levelup | paused | end
@@ -377,7 +407,7 @@
     ui.start.classList.add('hidden');
     ui.end.classList.add('hidden');
     ui.hud.classList.remove('hidden');
-    ui.grade.textContent = P.GRADES[grade].name;
+    ui.grade.textContent = `${P.GRADES[grade].name}·${sem}학기`;
     lastTime = performance.now();
     updateHud();
   }
@@ -428,10 +458,11 @@
       shooter: { hp: 22, speed: 46, dmg: 8, xp: 2, r: 14 },
     }[type];
     const D = DIFFS[diff];
+    const late = Math.max(0, min - 5); // 5분 이후엔 더 가파르게 강해진다 (후반 화력 인플레 대응)
     const stat = {
-      hp: Math.round(base.hp * (1 + min * 0.35) * D.hp),
+      hp: Math.round(base.hp * (1 + min * 0.35) * (1 + late * 0.18) * D.hp),
       speed: base.speed * (1 + min * 0.05) * D.spd,
-      dmg: Math.round(base.dmg * D.dmg),
+      dmg: Math.round(base.dmg * (1 + min * 0.03) * D.dmg),
     };
     // 첫 30초만 조작 연습용으로 살짝 약하게
     if (elapsed < 30) { stat.hp = Math.round(stat.hp * 0.85); stat.speed *= 0.9; }
@@ -448,6 +479,13 @@
     };
     if (type === 'dasher') { e.beh = 'dash'; e.ds = 'chase'; e.dashT = 0; e.dashSpeed = 340 * D.spd; e.windupT = 0.8; }
     if (type === 'shooter') { e.beh = 'shoot'; e.fireT = 1.2; e.shotDmg = Math.round(10 * D.dmg); }
+    // 엘리트: 가끔 크고 튼튼한 놈이 섞여 나온다 (잡으면 아이템 확정!)
+    if (elapsed > 120 && Math.random() < 0.04) {
+      e.elite = true;
+      e.hp = e.maxHp = e.hp * 6;
+      e.r = Math.round(e.r * 1.4); e.scale = 1.5;
+      e.speed *= 0.85; e.dmg = Math.round(e.dmg * 1.5); e.xp = 6;
+    }
     enemies.push(e);
   }
 
@@ -481,6 +519,7 @@
       beh: 'dash', ds: 'chase', dashT: 0, dashSpeed: 300 * D.spd, windupT: 1.0, summonT: 8,
     });
     addFloat(player.x, player.y - 60, `${name} 등장!`, '#7b1fa2');
+    SFX.play('boss');
   }
 
   function spawnFinalBoss() {
@@ -499,10 +538,103 @@
     });
     bossQuizDelay = 1.0;
     addFloat(player.x, player.y - 60, `${name} 등장!!`, '#c62828');
+    SFX.play('boss');
   }
 
   const anyBoss = () => enemies.some((e) => e.boss);
   const finalBoss = () => enemies.find((e) => e.boss === 'final');
+
+  // ---------- 오답노트 (기기에 누적 저장, 최대 50문제) ----------
+  function loadNote() {
+    try { return JSON.parse(localStorage.getItem('ms.note') || '[]'); } catch (e) { return []; }
+  }
+  function saveNote(n) { localStorage.setItem('ms.note', JSON.stringify(n.slice(0, 50))); }
+  function noteAdd(quiz) {
+    const n = loadNote();
+    const found = n.find((it) => it.q === quiz.text);
+    if (found) found.n = (found.n || 1) + 1;
+    else n.unshift({ q: quiz.text, a: quiz.choices[quiz.answerIndex], c: quiz.choices, unit: quiz.unit.replace('📕 복습 · ', ''), subject: quiz.subject, n: 1 });
+    saveNote(n);
+    updateNoteBtn();
+  }
+  function noteResolve(quiz) { // 맞히면 노트에서 졸업
+    const n = loadNote();
+    const idx = n.findIndex((it) => it.q === quiz.text);
+    if (idx >= 0) {
+      n.splice(idx, 1);
+      saveNote(n);
+      updateNoteBtn();
+      if (player) addFloat(player.x, player.y - 46, '📕 오답노트 졸업!', '#6d4c41');
+    }
+  }
+  function updateNoteBtn() {
+    const n = loadNote().length;
+    $('btnNote').textContent = n ? `📕 오답노트 (${n})` : '📕 오답노트';
+  }
+  function openNoteModal() {
+    const n = loadNote();
+    const list = $('noteList');
+    if (!n.length) {
+      list.innerHTML = '<p class="hall-empty">아직 틀린 문제가 없어요. 완벽한데?!</p>';
+    } else {
+      list.innerHTML = n.map((it) =>
+        `<div class="wrong-row"><span class="wrong-q">[${it.unit}] ${it.q} <b>×${it.n}</b></span><span class="wrong-a">정답: ${it.a}</span></div>`
+      ).join('');
+    }
+    $('noteModal').classList.remove('hidden');
+  }
+
+  // ---------- 효과음 (코드로 만드는 8비트 소리, 기본은 꺼짐) ----------
+  const SFX = (function () {
+    let ac = null;
+    let on = localStorage.getItem('ms.sound') === '1';
+    const last = {};
+    function ctx() {
+      if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+      return ac;
+    }
+    function tone(freq, dur, type, gain, delay) {
+      const c = ctx(); if (!c) return;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type || 'square'; o.frequency.value = freq;
+      const t0 = c.currentTime + (delay || 0);
+      g.gain.setValueAtTime(gain || 0.04, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    }
+    const bank = {
+      gem: () => tone(880, 0.06, 'square', 0.02),
+      correct: () => { tone(660, 0.09); tone(880, 0.12, 'square', 0.04, 0.09); },
+      wrong: () => tone(140, 0.25, 'sawtooth', 0.05),
+      levelup: () => { tone(523, 0.09); tone(659, 0.09, 'square', 0.04, 0.09); tone(784, 0.14, 'square', 0.04, 0.18); },
+      item: () => { tone(523, 0.07); tone(784, 0.1, 'square', 0.035, 0.07); },
+      boss: () => { tone(98, 0.4, 'sawtooth', 0.06); tone(82, 0.4, 'sawtooth', 0.06, 0.2); },
+      evolve: () => { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.12, 'square', 0.04, i * 0.1)); },
+      win: () => { [523, 659, 784, 1046, 784, 1046].forEach((f, i) => tone(f, 0.14, 'square', 0.045, i * 0.12)); },
+      lose: () => { [330, 262, 196].forEach((f, i) => tone(f, 0.2, 'sawtooth', 0.05, i * 0.18)); },
+    };
+    return {
+      play(name) {
+        if (!on || !bank[name]) return;
+        const now = performance.now();
+        if (name === 'gem') { if (now - (last.gem || 0) < 80) return; last.gem = now; }
+        bank[name]();
+      },
+      isOn: () => on,
+      toggle() {
+        on = !on;
+        localStorage.setItem('ms.sound', on ? '1' : '0');
+        if (on) bank.item();
+        return on;
+      },
+    };
+  })();
+  function updateSoundBtns() {
+    const label = SFX.isOn() ? '🔊 소리 켜짐' : '🔇 소리 꺼짐';
+    $('btnSound').textContent = label;
+    $('btnSoundPause').textContent = label;
+  }
 
   // ---------- 문제(퀴즈) ----------
   // mode: 'levelup' 강화 선택 전 / 'star' 별 보너스 / 'boss' 보스 방어막 / 'revive' 부활(단 한 번!)
@@ -562,6 +694,8 @@
       quizStats.by[subj].correct++;
       btn.classList.add('right');
       ui.quizFeedback.textContent = '⭕ 정답!';
+      SFX.play('correct');
+      noteResolve(currentQuiz);
       setTimeout(() => {
         ui.quiz.classList.add('hidden');
         const after = quizAfter; quizAfter = null; quizFail = null;
@@ -574,6 +708,8 @@
       if (wrongList.length < 10 && !wrongList.some((w) => w.q === currentQuiz.text)) {
         wrongList.push({ q: currentQuiz.text, a: currentQuiz.choices[currentQuiz.answerIndex], unit: currentQuiz.unit });
       }
+      SFX.play('wrong');
+      noteAdd(currentQuiz); // 오답노트에 누적
       btn.classList.add('wrong');
       btn.disabled = true;
       if (quizOneShot) {
@@ -627,6 +763,7 @@
   }
   function openLevelup() {
     state = 'levelup';
+    SFX.play('levelup');
     const pool = buildUpgradePool();
     const picks = [];
     while (picks.length < 3 && pool.length) {
@@ -650,6 +787,12 @@
   }
 
   // ---------- 아이템 ----------
+  function pickDrop() {
+    const table = [['bread', 30], ['candy', 24], ['clock', 14], ['jokbo', 12], ['bomb', 8], ['magnet', 7], ['clover', 5]];
+    let roll = Math.random() * 100;
+    for (const [ty, wgt] of table) { roll -= wgt; if (roll <= 0) return ty; }
+    return 'bread';
+  }
   function dropItem(type, x, y) {
     items.push({ type, x, y });
   }
@@ -710,12 +853,8 @@
       return;
     }
     gems.push({ x: e.x, y: e.y, xp: e.xp, pull: false });
-    if (Math.random() < 0.035) {
-      const table = [['bread', 30], ['candy', 24], ['clock', 14], ['jokbo', 12], ['bomb', 8], ['magnet', 7], ['clover', 5]];
-      let roll = Math.random() * 100, pickType = 'bread';
-      for (const [ty, wgt] of table) { roll -= wgt; if (roll <= 0) { pickType = ty; break; } }
-      dropItem(pickType, e.x, e.y + 14);
-    }
+    if (e.elite) dropItem(pickDrop(), e.x, e.y + 14); // 엘리트는 확정 드랍
+    else if (Math.random() < 0.035) dropItem(pickDrop(), e.x, e.y + 14);
   }
   function cleanupDead() {
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -1046,6 +1185,7 @@
       if (g.pull) { g.x += (dx / d) * 380 * dt; g.y += (dy / d) * 380 * dt; }
       if (d < 14) {
         gems.splice(i, 1);
+        SFX.play('gem');
         player.xp += g.xp;
         if (player.xp >= player.xpNeed) {
           player.xp -= player.xpNeed;
@@ -1063,6 +1203,7 @@
       if (Math.hypot(player.x - it.x, player.y - it.y) < 24) {
         items.splice(i, 1);
         itemsPicked++;
+        SFX.play('item');
         useItem(it.type);
         if (state !== 'play') return;
       }
@@ -1123,6 +1264,11 @@
       if (e.boss === 'final' && e.shield) {
         ctx.strokeStyle = 'rgba(30,136,229,.8)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(e.x - camX, e.y - camY, e.r + 14 + Math.sin(performance.now() / 150) * 3, 0, Math.PI * 2); ctx.stroke();
+      }
+      // 엘리트: 금색 고리
+      if (e.elite) {
+        ctx.strokeStyle = 'rgba(249,168,37,.9)'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(e.x - camX, e.y - camY, e.r + 8, 0, Math.PI * 2); ctx.stroke();
       }
       // 돌진 조준 중: 빨간 고리 경고 (지금 피해!)
       if (e.ds === 'windup') {
@@ -1351,6 +1497,7 @@
   function endGame(victory) {
     state = 'end';
     lastVictory = victory;
+    SFX.play(victory ? 'win' : 'lose');
     ui.hud.classList.add('hidden');
     ui.quiz.classList.add('hidden');
     ui.endTitle.textContent = victory
@@ -1371,31 +1518,47 @@
     }
   }
 
-  // ---------- 명예의 전당 ----------
-  function openHall() {
+  // ---------- 명예의 전당 (점수왕 / 정답률왕) ----------
+  function hallBadges(r) {
+    const m = r.bestMode === 'history' ? '🏯' : '';
+    const d = r.bestDiff === 'hard' ? '🔥' : (r.bestDiff === 'easy' ? '😊' : '');
+    return m + d;
+  }
+  function openHall(kind) {
+    kind = kind || 'score';
+    $('hallTabScore').classList.toggle('sel', kind === 'score');
+    $('hallTabAcc').classList.toggle('sel', kind === 'acc');
     ui.hallList.innerHTML = '<p class="hall-empty">불러오는 중…</p>';
     ui.hall.classList.remove('hidden');
     if (!window.MS_Net) {
       ui.hallList.innerHTML = '<p class="hall-empty">퀴즈타운 사이트에서 열면 우리 반 랭킹이 보여요!</p>';
       return;
     }
-    window.MS_Net.topList(20).then((rows) => {
+    const medal = ['🥇', '🥈', '🥉'];
+    const p = kind === 'score' ? window.MS_Net.topList(20) : window.MS_Net.topAcc(20);
+    p.then((rows) => {
       if (!rows.length) {
-        ui.hallList.innerHTML = '<p class="hall-empty">아직 기록이 없어요. 첫 용사가 되어 보자!</p>';
+        ui.hallList.innerHTML = kind === 'score'
+          ? '<p class="hall-empty">아직 기록이 없어요. 첫 용사가 되어 보자!</p>'
+          : '<p class="hall-empty">문제를 10개 이상 풀면 정답률왕에 오를 수 있어요!</p>';
         return;
       }
-      const medal = ['🥇', '🥈', '🥉'];
       ui.hallList.innerHTML = rows.map((r, i) =>
         `<div class="hall-row"><span class="hall-rank">${medal[i] || (i + 1) + '위'}</span>` +
-        `<span class="hall-name">${r.name}</span>` +
-        `<span class="hall-score">${r.bestScore.toLocaleString('ko-KR')}점${r.bestVictory ? ' 👑' : ''}</span></div>`
+        `<span class="hall-name">${r.name} ${hallBadges(r)}</span>` +
+        (kind === 'score'
+          ? `<span class="hall-score">${r.bestScore.toLocaleString('ko-KR')}점${r.bestVictory ? ' 👑' : ''}</span>`
+          : `<span class="hall-score">${r.accPct}% <small>(${r.quizTotal}문제)</small></span>`)
       ).join('');
     }).catch(() => {
       ui.hallList.innerHTML = '<p class="hall-empty">퀴즈타운 사이트에서 열면 우리 반 랭킹이 보여요!</p>';
     });
   }
 
-  $('btnStart').onclick = startGame;
+  $('btnStart').onclick = () => {
+    if (!localStorage.getItem('ms.intro')) { $('introModal').classList.remove('hidden'); return; }
+    startGame();
+  };
   $('btnRetry').onclick = startGame;
   $('btnPause').onclick = () => { if (state === 'play') pauseGame(); };
   $('btnResume').onclick = resumeGame;
@@ -1405,8 +1568,22 @@
     ui.start.classList.remove('hidden');
     state = 'title';
   };
-  $('btnHall').onclick = openHall;
+  $('btnHall').onclick = () => openHall('score');
+  $('hallTabScore').onclick = () => openHall('score');
+  $('hallTabAcc').onclick = () => openHall('acc');
   $('btnHallClose').onclick = () => ui.hall.classList.add('hidden');
+  $('btnNote').onclick = openNoteModal;
+  $('btnNoteClose').onclick = () => $('noteModal').classList.add('hidden');
+  $('btnNoteClear').onclick = () => { saveNote([]); updateNoteBtn(); openNoteModal(); };
+  $('btnSound').onclick = () => { SFX.toggle(); updateSoundBtns(); };
+  $('btnSoundPause').onclick = () => { SFX.toggle(); updateSoundBtns(); };
+  $('btnIntroGo').onclick = () => {
+    localStorage.setItem('ms.intro', '1');
+    $('introModal').classList.add('hidden');
+    startGame();
+  };
+  updateNoteBtn();
+  updateSoundBtns();
   $('btnCodex').onclick = openCodex;
   $('btnCodexPause').onclick = openCodex;
   $('btnCodexClose').onclick = () => ui.codex.classList.add('hidden');

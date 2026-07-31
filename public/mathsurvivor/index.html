@@ -7,7 +7,7 @@
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 <!-- 퀴즈타운 Firebase 재사용 (Firebase Hosting 에서만 로드됨. 로컬 시험 서버에선 없어도 게임은 동작) -->
 <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
@@ -54,13 +54,16 @@
       <div class="subject-row" id="subjectRow"></div>
     </div>
     <div id="gradePick">
-      <p class="pick-label">🎒 학년 (수학·사회·과학 문제 수준, 1학기)</p>
+      <p class="pick-label">🎒 학년·학기 (수학·사회·과학 문제 수준)</p>
+      <div class="subject-row" id="semRow"></div>
       <div class="grade-grid" id="gradeGrid"></div>
     </div>
     <button class="big-btn" id="btnStart">🚀 모험 시작!</button>
     <div class="btn-pair">
       <button class="sub-btn" id="btnHall">🏆 명예의 전당</button>
       <button class="sub-btn" id="btnCodex">📖 도감</button>
+      <button class="sub-btn" id="btnNote">📕 오답노트</button>
+      <button class="sub-btn" id="btnSound">🔇 소리 꺼짐</button>
     </div>
     <p class="help-text">⌨️ 방향키/WASD 이동 · 📱 화면을 끌어서 이동<br>
       💎 보석으로 레벨업 → 📖 문제를 맞히면 강화! · ⭐ 별을 잡으면 보너스 문제!</p>
@@ -93,6 +96,7 @@
     <div id="pauseStats" class="stats"></div>
     <button class="big-btn" id="btnResume">▶ 계속하기</button>
     <button class="sub-btn" id="btnCodexPause">📖 도감 보기</button>
+    <button class="sub-btn" id="btnSoundPause">🔇 소리 꺼짐</button>
     <button class="sub-btn" id="btnQuit">🏠 그만하기</button>
   </div>
 </div>
@@ -112,8 +116,38 @@
 <div id="hallModal" class="overlay hidden">
   <div class="panel">
     <h2>🏆 명예의 전당</h2>
+    <div class="hall-tabs">
+      <button class="subject-chip sel" id="hallTabScore">🏆 점수왕</button>
+      <button class="subject-chip" id="hallTabAcc">📝 정답률왕</button>
+    </div>
     <div id="hallList" class="hall-list"></div>
     <button class="sub-btn" id="btnHallClose">닫기</button>
+  </div>
+</div>
+
+<!-- 오답노트 -->
+<div id="noteModal" class="overlay hidden">
+  <div class="panel">
+    <h2>📕 내 오답노트</h2>
+    <p class="subtitle">틀렸던 문제들이에요. 게임 중에 다시 나오고, 맞히면 졸업!</p>
+    <div id="noteList" class="wrong-list" style="max-height:45vh"></div>
+    <button class="sub-btn" id="btnNoteClear">🧹 전부 비우기</button>
+    <button class="sub-btn" id="btnNoteClose">닫기</button>
+  </div>
+</div>
+
+<!-- 처음 안내 (첫 시작 때 1번만) -->
+<div id="introModal" class="overlay hidden">
+  <div class="panel">
+    <h2>🎮 퀴즈 서바이버, 이렇게 놀아요!</h2>
+    <div class="stats" style="text-align:left">
+      🏃 <b>①</b> 움직이기만 하면 돼! 공격은 자동!<br>
+      💎 <b>②</b> 보석을 모으면 레벨 업!<br>
+      📖 <b>③</b> 문제를 맞히면 강화를 골라 강해져!<br>
+      ⭐ <b>④</b> 별 몬스터·아이템을 놓치지 마!<br>
+      💫 <b>⑤</b> 쓰러져도 부활 문제를 맞히면 한 번 더!
+    </div>
+    <button class="big-btn" id="btnIntroGo">알겠어, 출발! 🚀</button>
   </div>
 </div>
 
@@ -127,10 +161,10 @@
 </div>
 
 <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 (학생 브라우저 캐시 갱신용) -->
-<script src="sprites.js?v=6"></script>
-<script src="problems.js?v=6"></script>
-<script src="bank.js?v=6"></script>
-<script src="net.js?v=6"></script>
-<script src="game.js?v=6"></script>
+<script src="sprites.js?v=7"></script>
+<script src="problems.js?v=7"></script>
+<script src="bank.js?v=7"></script>
+<script src="net.js?v=7"></script>
+<script src="game.js?v=7"></script>
 </body>
 </html>
