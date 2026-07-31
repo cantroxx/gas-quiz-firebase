@@ -213,12 +213,43 @@
     }
   }
 
-  // ---------- 각성 (무기 진화) ----------
-  const EVOLVE = {
-    pencil: { icon: '🖋️', evoName: '만년필 미사일', desc: '더 빠르고 아픈 잉크 미사일!', cond: '연필 Lv.5 + 한 판에 문제 10개 정답' },
-    notebook: { icon: '📖', evoName: '백과사전 부메랑', desc: '두꺼운 지식의 방패가 2권 더!', cond: '공책 Lv.5 + 급식빵 3개 먹기' },
-    chalk: { icon: '🔦', evoName: '레이저 포인터', desc: '적을 줄줄이 태우는 빛줄기!', cond: '분필 Lv.5 + 몬스터 120마리 처치' },
+  // ---------- 무기·보조 장비 정의 ----------
+  const WEAPON_DEFS = {
+    pencil:   { icon: '✏️', name: '연필 미사일', desc: '가까운 적을 자동 조준하는 미사일' },
+    notebook: { icon: '📚', name: '공책 부메랑', desc: '내 주위를 빙글빙글 도는 지식 방패' },
+    chalk:    { icon: '🖍️', name: '분필 관통샷', desc: '적을 줄줄이 꿰뚫는 관통 공격' },
+    recorder: { icon: '🎵', name: '리코더 음파', desc: '주기적으로 사방에 퍼지는 충격파' },
+    balloon:  { icon: '💧', name: '물풍선 던지기', desc: '적진에 던져서 펑! 범위 공격' },
   };
+  const PASSIVE_DEFS = {
+    ruler:  { icon: '📏', name: '모눈 자',   desc: '연필이 더 세고 빨라짐', pair: 'pencil' },
+    clip:   { icon: '📎', name: '왕클립',   desc: '공책 궤도가 넓어짐', pair: 'notebook' },
+    glove:  { icon: '🧤', name: '체육 장갑', desc: '분필이 더 아파짐', pair: 'chalk' },
+    sheet:  { icon: '🎼', name: '악보',     desc: '음파가 더 넓게 퍼짐', pair: 'recorder' },
+    bottle: { icon: '🥤', name: '큰 물병',  desc: '물풍선이 더 크게 펑!', pair: 'balloon' },
+    bag:    { icon: '🎒', name: '책가방',   desc: '최대 체력 +15', pair: null },
+    watch:  { icon: '⌚', name: '손목시계', desc: '모든 무기 공격속도 5% 빨라짐', pair: null },
+    shoes:  { icon: '👟', name: '실내화',   desc: '이동 속도 6% 빨라짐', pair: null },
+  };
+  const MAX_WEAPONS = 3, MAX_PASSIVES = 3; // 슬롯 제한: 고른 것만 계속 키우는 빌드 재미
+
+  // ---------- 각성 (무기 진화) ----------
+  // 조합(무기 Lv.5 + 짝꿍 보조 Lv.3) 또는 도전 조건 중 하나만 이뤄도 각성!
+  const EVOLVE = {
+    pencil:   { icon: '🖋️', evoName: '만년필 미사일',  desc: '더 빠르고 아픈 잉크 미사일!', alt: () => quizStats.correct >= 10, altText: '한 판에 문제 10개 정답' },
+    notebook: { icon: '📖', evoName: '백과사전 부메랑', desc: '두꺼운 지식의 방패가 2권 더!', alt: () => breadEaten >= 3, altText: '급식빵(주먹밥) 3개 먹기' },
+    chalk:    { icon: '🔦', evoName: '레이저 포인터',  desc: '적을 줄줄이 태우는 빛줄기!', alt: () => killCount >= 120, altText: '몬스터 120마리 처치' },
+    recorder: { icon: '🎺', evoName: '황금 나팔',      desc: '운동장을 뒤흔드는 응원 파동!', alt: () => waveCount >= 3, altText: '몬스터 러시 3번 맞이하기' },
+    balloon:  { icon: '🌧️', evoName: '소나기 구름',    desc: '물풍선이 두 개씩 펑펑!', alt: () => itemsPicked >= 8, altText: '아이템 8개 줍기' },
+  };
+  function pairKeyOf(weaponKey) {
+    for (const k in PASSIVE_DEFS) if (PASSIVE_DEFS[k].pair === weaponKey) return k;
+    return null;
+  }
+  function evolveCondText(weaponKey) {
+    const pk = pairKeyOf(weaponKey);
+    return `${WEAPON_DEFS[weaponKey].name} Lv.5 + ${PASSIVE_DEFS[pk].name} Lv.3 (또는 ${EVOLVE[weaponKey].altText})`;
+  }
   let codexUnlocks;
   try { codexUnlocks = JSON.parse(localStorage.getItem('ms.codex') || '{}'); } catch (e) { codexUnlocks = {}; }
   function unlockCodex(key) {
@@ -227,12 +258,12 @@
     localStorage.setItem('ms.codex', JSON.stringify(codexUnlocks));
   }
   function evolveReady(key) {
-    if (key === 'pencil') return quizStats.correct >= 10;
-    if (key === 'notebook') return breadEaten >= 3;
-    return killCount >= 120;
+    const pk = pairKeyOf(key);
+    if (pk && player.passives[pk] >= 3) return true; // 조합 각성
+    return EVOLVE[key].alt(); // 도전 각성
   }
   function checkEvolve() {
-    for (const key of ['pencil', 'notebook', 'chalk']) {
+    for (const key in WEAPON_DEFS) {
       const w = player.weapons[key];
       if (w.lv >= 5 && !w.evolved && evolveReady(key)) {
         w.evolved = true;
@@ -312,7 +343,8 @@
   let player, enemies, bullets, gems, items, floats, elapsed, killCount, spawnTimer, lastTime;
   let starTimer, bossSpawned, finalSpawned, bossQuizDelay, flashTimer, orbitAngle;
   let quizStats, currentQuiz, quizAfter, quizFail, quizOneShot, quizWhyText;
-  let reviveUsed, wrongList, breadEaten, lastEra, eBullets, waveTimer;
+  let revivesLeft, wrongList, breadEaten, lastEra, eBullets, waveTimer;
+  let freezeTimer, hintCharges, scoreBonus, itemsPicked, waveCount, effects;
 
   function newPlayer() {
     return {
@@ -324,7 +356,10 @@
         pencil: { lv: 1, timer: 0 },
         notebook: { lv: 0 },
         chalk: { lv: 0, timer: 0 },
+        recorder: { lv: 0, timer: 0 },
+        balloon: { lv: 0, timer: 0 },
       },
+      passives: { ruler: 0, clip: 0, glove: 0, sheet: 0, bottle: 0, bag: 0, watch: 0, shoes: 0 },
     };
   }
 
@@ -335,8 +370,9 @@
     bossSpawned = { 180: false, 360: false }; finalSpawned = false;
     bossQuizDelay = 0; flashTimer = 0; orbitAngle = 0;
     quizStats = { correct: 0, total: 0, by: {} };
-    reviveUsed = false; wrongList = []; breadEaten = 0; lastEra = 0;
+    revivesLeft = 1; wrongList = []; breadEaten = 0; lastEra = 0;
     eBullets = []; waveTimer = 60;
+    freezeTimer = 0; hintCharges = 0; scoreBonus = 0; itemsPicked = 0; waveCount = 0; effects = [];
     state = 'play';
     ui.start.classList.add('hidden');
     ui.end.classList.add('hidden');
@@ -346,20 +382,32 @@
     updateHud();
   }
 
-  // ---------- 무기 수치 (각성하면 크게 강해진다) ----------
+  // ---------- 무기 수치 (보조 장비·각성 반영) ----------
+  const watchF = () => 1 - 0.05 * player.passives.watch; // 손목시계: 공격속도
   function pencilStats(w) {
-    const s = { interval: 1.05 * Math.pow(0.93, w.lv - 1), count: Math.ceil(w.lv / 2), dmg: 8 + 5 * w.lv };
+    const pv = player.passives;
+    const s = { interval: 1.05 * Math.pow(0.93, w.lv - 1) * watchF(), count: Math.ceil(w.lv / 2), dmg: 8 + 5 * w.lv + 3 * pv.ruler, speed: 340 * (1 + 0.12 * pv.ruler) };
     if (w.evolved) { s.interval *= 0.75; s.count += 1; s.dmg = Math.round(s.dmg * 1.8); }
     return s;
   }
   function notebookStats(w) {
-    const s = { count: Math.min(w.lv + 1, 6), radius: 58, dmg: 6 + 4 * w.lv };
-    if (w.evolved) { s.count += 2; s.radius = 72; s.dmg = Math.round(s.dmg * 1.8); }
+    const s = { count: Math.min(w.lv + 1, 6), radius: 58 + 8 * player.passives.clip, dmg: 6 + 4 * w.lv };
+    if (w.evolved) { s.count += 2; s.radius += 14; s.dmg = Math.round(s.dmg * 1.8); }
     return s;
   }
   function chalkStats(w) {
-    const s = { interval: 1.7 * Math.pow(0.9, w.lv - 1), dmg: 9 + 5 * w.lv };
+    const s = { interval: 1.7 * Math.pow(0.9, w.lv - 1) * watchF(), dmg: 9 + 5 * w.lv + 4 * player.passives.glove };
     if (w.evolved) { s.interval *= 0.7; s.dmg = Math.round(s.dmg * 1.8); }
+    return s;
+  }
+  function recorderStats(w) {
+    const s = { interval: 2.6 * Math.pow(0.9, w.lv - 1) * watchF(), dmg: 8 + 4 * w.lv, radius: 90 + 8 * w.lv + 12 * player.passives.sheet };
+    if (w.evolved) { s.interval *= 0.8; s.dmg = Math.round(s.dmg * 1.8); s.radius += 30; }
+    return s;
+  }
+  function balloonStats(w) {
+    const s = { interval: 2.8 * Math.pow(0.92, w.lv - 1) * watchF(), dmg: 12 + 6 * w.lv, radius: 62 + 10 * player.passives.bottle, count: 1 };
+    if (w.evolved) { s.dmg = Math.round(s.dmg * 1.6); s.radius += 25; s.count = 2; }
     return s;
   }
 
@@ -482,13 +530,26 @@
     ui.quizText.textContent = currentQuiz.text;
     ui.quizFeedback.textContent = '';
     ui.quizChoices.innerHTML = '';
+    const btns = [];
     currentQuiz.choices.forEach((c, i) => {
       const btn = document.createElement('button');
       btn.className = 'quiz-choice';
       btn.textContent = c;
       btn.onclick = () => answer(i, btn);
       ui.quizChoices.appendChild(btn);
+      btns.push(btn);
     });
+    // 📜 족보: 오답 보기 2개를 지워 준다
+    if (hintCharges > 0) {
+      hintCharges--;
+      const wrongs = [0, 1, 2, 3].filter((i) => i !== currentQuiz.answerIndex);
+      wrongs.sort(() => Math.random() - 0.5);
+      for (const i of wrongs.slice(0, 2)) {
+        btns[i].disabled = true;
+        btns[i].classList.add('eliminated');
+      }
+      ui.quizWhy.textContent += ' — 📜 족보 발동! 보기 2개 제거!';
+    }
   }
   function answer(i, btn) {
     if (state !== 'quiz') return;
@@ -532,17 +593,37 @@
 
   // ---------- 강화 ----------
   function buildUpgradePool() {
-    const w = player.weapons;
+    const w = player.weapons, pv = player.passives;
     const pool = [];
-    if (w.pencil.lv < 5) pool.push({ icon: '✏️', name: `연필 미사일 Lv.${w.pencil.lv + 1}`, desc: '더 세고, 더 빠르고, 더 많이!', apply: () => { w.pencil.lv++; } });
-    if (w.notebook.lv === 0) pool.push({ icon: '📚', name: '새 무기: 공책 부메랑', desc: '내 주위를 빙글빙글 도는 공책 방패!', apply: () => { w.notebook.lv = 1; } });
-    else if (w.notebook.lv < 5) pool.push({ icon: '📚', name: `공책 부메랑 Lv.${w.notebook.lv + 1}`, desc: '공책이 한 권 더 늘어나!', apply: () => { w.notebook.lv++; } });
-    if (w.chalk.lv === 0) pool.push({ icon: '🖍️', name: '새 무기: 분필 관통샷', desc: '적을 줄줄이 꿰뚫는 분필 조각!', apply: () => { w.chalk.lv = 1; } });
-    else if (w.chalk.lv < 5) pool.push({ icon: '🖍️', name: `분필 관통샷 Lv.${w.chalk.lv + 1}`, desc: '더 세고 더 자주 날아가!', apply: () => { w.chalk.lv++; } });
+    const ownedW = Object.keys(WEAPON_DEFS).filter((k) => w[k].lv > 0).length;
+    const ownedP = Object.keys(PASSIVE_DEFS).filter((k) => pv[k] > 0).length;
+    // 무기: 슬롯이 남을 때만 새 무기 제안, 가진 무기는 레벨업 제안
+    for (const k in WEAPON_DEFS) {
+      const def = WEAPON_DEFS[k];
+      if (w[k].lv === 0 && ownedW < MAX_WEAPONS) {
+        pool.push({ icon: def.icon, name: `새 무기: ${def.name}`, desc: def.desc, apply: () => { w[k].lv = 1; } });
+      } else if (w[k].lv > 0 && w[k].lv < 5) {
+        pool.push({ icon: def.icon, name: `${def.name} Lv.${w[k].lv + 1}`, desc: def.desc, apply: () => { w[k].lv++; } });
+      }
+    }
+    // 보조 장비: 짝꿍 무기 각성의 열쇠 (Lv.3까지)
+    for (const k in PASSIVE_DEFS) {
+      const def = PASSIVE_DEFS[k];
+      const tag = def.pair ? ` (${WEAPON_DEFS[def.pair].name} 짝꿍)` : '';
+      if (pv[k] === 0 && ownedP < MAX_PASSIVES) {
+        pool.push({ icon: def.icon, name: `새 장비: ${def.name}`, desc: def.desc + tag, apply: () => { pv[k] = 1; applyPassive(k); } });
+      } else if (pv[k] > 0 && pv[k] < 3) {
+        pool.push({ icon: def.icon, name: `${def.name} Lv.${pv[k] + 1}`, desc: def.desc + tag, apply: () => { pv[k]++; applyPassive(k); } });
+      }
+    }
+    // 슬롯이 꽉 차고 만렙이어도 뽑을 게 있도록 급식은 항상 등장
     pool.push({ icon: '🍙', name: '급식 든든하게', desc: '최대 체력 +20, 체력 25 회복', apply: () => { player.maxHp += 20; player.hp = Math.min(player.maxHp, player.hp + 25); } });
-    pool.push({ icon: '👟', name: '실내화 끈 조이기', desc: '이동 속도 10% 빨라짐', apply: () => { player.speed *= 1.1; } });
-    pool.push({ icon: '🧲', name: '보석 자석', desc: '보석 끌어오는 범위 40% 커짐', apply: () => { player.magnet *= 1.4; } });
     return pool;
+  }
+  // 즉시 반영이 필요한 보조 효과 (책가방·실내화)
+  function applyPassive(k) {
+    if (k === 'bag') { player.maxHp += 15; player.hp = Math.min(player.maxHp, player.hp + 15); }
+    if (k === 'shoes') { player.speed = 145 * (1 + 0.06 * player.passives.shoes); }
   }
   function openLevelup() {
     state = 'levelup';
@@ -587,6 +668,18 @@
       }
       cleanupDead();
       addFloat(player.x, player.y - 34, '💥 꽝!!', '#e53935');
+    } else if (type === 'clock') {
+      freezeTimer = 3;
+      addFloat(player.x, player.y - 34, '⏰ 3초 얼음!', '#0288d1');
+    } else if (type === 'jokbo') {
+      hintCharges++;
+      addFloat(player.x, player.y - 34, '📜 족보! 다음 문제 보기 2개 제거', '#6d4c41');
+    } else if (type === 'clover') {
+      revivesLeft++;
+      addFloat(player.x, player.y - 34, '🍀 부활 기회 +1!', '#2e7d32');
+    } else if (type === 'candy') {
+      scoreBonus += 100;
+      addFloat(player.x, player.y - 34, '⭐ +100점!', '#f9a825');
     }
   }
 
@@ -601,20 +694,28 @@
         const a = Math.random() * Math.PI * 2, d = 10 + Math.random() * 40;
         gems.push({ x: e.x + Math.cos(a) * d, y: e.y + Math.sin(a) * d, xp: 2, pull: false });
       }
-      dropItem('bread', e.x - 20, e.y);
-      dropItem('magnet', e.x + 20, e.y);
+      dropItem('bread', e.x - 24, e.y);
+      dropItem('magnet', e.x + 24, e.y);
+      dropItem('jokbo', e.x, e.y + 24);
       addFloat(e.x, e.y - 30, '👑 중간보스 격파!', '#7b1fa2');
       return;
     }
     if (e.type === 'star') {
       const sx = e.x, sy = e.y;
       openQuiz('star', () => {
-        dropItem(Math.random() < 0.5 ? 'magnet' : 'bomb', sx, sy);
+        const reward = Math.random() < 0.1 ? 'clover'
+          : ['magnet', 'bomb', 'clock', 'jokbo'][Math.floor(Math.random() * 4)];
+        dropItem(reward, sx, sy);
       });
       return;
     }
     gems.push({ x: e.x, y: e.y, xp: e.xp, pull: false });
-    if (Math.random() < 0.02) dropItem('bread', e.x, e.y + 14);
+    if (Math.random() < 0.035) {
+      const table = [['bread', 30], ['candy', 24], ['clock', 14], ['jokbo', 12], ['bomb', 8], ['magnet', 7], ['clover', 5]];
+      let roll = Math.random() * 100, pickType = 'bread';
+      for (const [ty, wgt] of table) { roll -= wgt; if (roll <= 0) { pickType = ty; break; } }
+      dropItem(pickType, e.x, e.y + 14);
+    }
   }
   function cleanupDead() {
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -675,6 +776,7 @@
         if (waveTimer <= 0) {
           waveTimer = 75;
           addFloat(player.x, player.y - 70, '⚠️ 몬스터 러시!', '#d84315');
+          waveCount++;
           const baseAng = Math.random() * Math.PI * 2;
           for (let k = 0; k < 14; k++) spawnEnemy(baseAng + (Math.random() - 0.5) * 0.9);
         }
@@ -705,8 +807,12 @@
       }
     }
 
+    // 알람시계: 몬스터 전체가 얼어붙는다
+    if (freezeTimer > 0) freezeTimer -= dt;
+
     // 몬스터 이동
     for (const e of enemies) {
+      if (freezeTimer > 0) continue; // 얼어 있는 동안은 움직이지도, 때리지도 못함
       if (e.type === 'star') {
         e.life -= dt;
         e.wander -= dt;
@@ -821,7 +927,7 @@
         const d = t.d || 1;
         bullets.push({
           x: player.x, y: player.y,
-          vx: ((t.e.x - player.x) / d) * 340, vy: ((t.e.y - player.y) / d) * 340,
+          vx: ((t.e.x - player.x) / d) * ps.speed, vy: ((t.e.y - player.y) / d) * ps.speed,
           life: 1.6, dmg: ps.dmg, kind: 'pencil',
         });
       }
@@ -865,10 +971,58 @@
       }
     }
 
+    // ---- 무기 4: 리코더 음파 (내 주변 원형 충격파) ----
+    if (wp.recorder.lv > 0) {
+      const rs = recorderStats(wp.recorder);
+      wp.recorder.timer -= dt;
+      if (wp.recorder.timer <= 0) {
+        for (const e of enemies) {
+          if (Math.hypot(e.x - player.x, e.y - player.y) < rs.radius + e.r) damageEnemy(e, rs.dmg);
+        }
+        effects.push({ kind: 'pulse', x: player.x, y: player.y, max: rs.radius, life: 0.45, full: 0.45 });
+        wp.recorder.timer = rs.interval;
+      }
+    }
+
+    // ---- 무기 5: 물풍선 (적진에 던져서 범위 폭발) ----
+    if (wp.balloon.lv > 0) {
+      const bs = balloonStats(wp.balloon);
+      wp.balloon.timer -= dt;
+      if (wp.balloon.timer <= 0 && enemies.length) {
+        for (let k = 0; k < bs.count; k++) {
+          const t = enemies[Math.floor(Math.random() * enemies.length)];
+          const tx = t.x + (Math.random() - 0.5) * 40, ty = t.y + (Math.random() - 0.5) * 40;
+          const d = Math.hypot(tx - player.x, ty - player.y) || 1;
+          bullets.push({
+            kind: 'balloon', x: player.x, y: player.y, tx, ty,
+            vx: ((tx - player.x) / d) * 260, vy: ((ty - player.y) / d) * 260,
+            life: 3, dmg: bs.dmg, splash: bs.radius,
+          });
+        }
+        wp.balloon.timer = bs.interval;
+      }
+    }
+
+    // 효과(음파·폭발) 수명
+    for (let i = effects.length - 1; i >= 0; i--) {
+      effects[i].life -= dt;
+      if (effects[i].life <= 0) effects.splice(i, 1);
+    }
+
     // 탄환 비행 + 명중
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
       b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+      if (b.kind === 'balloon') {
+        if (Math.hypot(b.tx - b.x, b.ty - b.y) < 14 || b.life <= 0) {
+          for (const e of enemies) {
+            if (Math.hypot(e.x - b.x, e.y - b.y) < b.splash + e.r) damageEnemy(e, b.dmg);
+          }
+          effects.push({ kind: 'boom', x: b.x, y: b.y, max: b.splash, life: 0.35, full: 0.35 });
+          bullets.splice(i, 1);
+        }
+        continue;
+      }
       let remove = b.life <= 0;
       for (const e of enemies) {
         if (b.pierce && b.hit.has(e)) continue;
@@ -908,6 +1062,7 @@
       const it = items[i];
       if (Math.hypot(player.x - it.x, player.y - it.y) < 24) {
         items.splice(i, 1);
+        itemsPicked++;
         useItem(it.type);
         if (state !== 'play') return;
       }
@@ -945,7 +1100,8 @@
       ctx.drawImage(S.gem, g.x - camX - S.gem.width / 2, g.y - camY - S.gem.height / 2);
     }
     for (const it of items) {
-      const sp = S[it.type];
+      const skin = mode === 'history' ? { bread: 'riceball', bomb: 'club' } : {};
+      const sp = S[skin[it.type] || it.type];
       const bob = Math.sin(performance.now() / 200) * 3;
       drawShadow(it.x - camX, it.y - camY + sp.height / 2 + 2, sp.width * 0.4);
       ctx.drawImage(sp, it.x - camX - sp.width / 2, it.y - camY - sp.height / 2 + bob);
@@ -960,6 +1116,10 @@
       if (e.type === 'star' && e.life < 3 && Math.floor(e.life * 6) % 2 === 0) continue;
       drawShadow(e.x - camX, e.y - camY + h / 2, w * 0.4);
       ctx.drawImage(sp, e.x - camX - w / 2, e.y - camY - h / 2 + bounce, w, h);
+      if (freezeTimer > 0) {
+        ctx.fillStyle = 'rgba(120,190,255,.4)';
+        ctx.fillRect(e.x - camX - w / 2, e.y - camY - h / 2 + bounce, w, h);
+      }
       if (e.boss === 'final' && e.shield) {
         ctx.strokeStyle = 'rgba(30,136,229,.8)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(e.x - camX, e.y - camY, e.r + 14 + Math.sin(performance.now() / 150) * 3, 0, Math.PI * 2); ctx.stroke();
@@ -998,6 +1158,18 @@
         ctx.beginPath(); ctx.moveTo(5, -3); ctx.lineTo(11, 0); ctx.lineTo(5, 3); ctx.fill();
       }
       ctx.restore();
+    }
+
+    // 음파(초록 고리)·물풍선 폭발(파란 고리)
+    for (const f of effects) {
+      const t = 1 - f.life / f.full;
+      ctx.strokeStyle = f.kind === 'pulse'
+        ? `rgba(102,187,106,${0.8 * (1 - t)})`
+        : `rgba(41,182,246,${0.8 * (1 - t)})`;
+      ctx.lineWidth = f.kind === 'pulse' ? 4 : 6;
+      ctx.beginPath();
+      ctx.arc(f.x - camX, f.y - camY, f.max * (f.kind === 'pulse' ? t : 0.4 + 0.6 * t), 0, Math.PI * 2);
+      ctx.stroke();
     }
 
     // 적 투사체 (물감 방울 / 나무 구슬)
@@ -1106,14 +1278,17 @@
 
   // ---------- 일시정지 / 종료 ----------
   function weaponsHtml() {
-    const w = player.weapons;
-    const label = (key, icon, name) => {
-      const wp = w[key];
-      return wp.evolved ? `✨${EVOLVE[key].icon} ${EVOLVE[key].evoName}` : `${icon} ${name} Lv.${wp.lv}`;
-    };
-    const rows = [label('pencil', '✏️', '연필 미사일')];
-    if (w.notebook.lv) rows.push(label('notebook', '📚', '공책 부메랑'));
-    if (w.chalk.lv) rows.push(label('chalk', '🖍️', '분필 관통샷'));
+    const rows = [];
+    for (const k in WEAPON_DEFS) {
+      const wp = player.weapons[k];
+      if (!wp.lv) continue;
+      rows.push(wp.evolved
+        ? `✨${EVOLVE[k].icon} ${EVOLVE[k].evoName}`
+        : `${WEAPON_DEFS[k].icon} ${WEAPON_DEFS[k].name} Lv.${wp.lv}`);
+    }
+    for (const k in PASSIVE_DEFS) {
+      if (player.passives[k]) rows.push(`${PASSIVE_DEFS[k].icon} ${PASSIVE_DEFS[k].name} Lv.${player.passives[k]}`);
+    }
     return rows.join(' · ');
   }
   function statsHtml() {
@@ -1140,7 +1315,7 @@
   function score() {
     const victoryBonus = (state === 'end' && lastVictory) ? 500 : 0;
     const base = killCount * 10 + Math.floor(elapsed) * 5 + (player.level - 1) * 50 +
-      quizStats.correct * 30 + victoryBonus;
+      quizStats.correct * 30 + victoryBonus + scoreBonus;
     return Math.round(base * DIFFS[diff].score); // 어려움일수록 점수 보너스
   }
 
@@ -1157,8 +1332,8 @@
 
   // 쓰러졌을 때: 아직 부활을 안 썼으면 부활 문제(한 번뿐), 썼으면 게임 오버
   function playerDown() {
-    if (!reviveUsed) {
-      reviveUsed = true;
+    if (revivesLeft > 0) {
+      revivesLeft--;
       openQuiz('revive',
         () => { // 정답 → 체력 절반으로 부활 + 잠시 무적
           player.hp = Math.ceil(player.maxHp / 2);
@@ -1287,23 +1462,41 @@
   function openCodex() {
     const body = ui.codexBody;
     body.innerHTML = '';
-    body.appendChild(codexSection('⚔️ 무기와 각성'));
-    body.appendChild(codexRow('✏️', '연필 미사일', '가까운 적을 자동 조준. 레벨이 오르면 개수도 늘어남'));
-    body.appendChild(codexRow('📚', '공책 부메랑', '내 주위를 빙글빙글 도는 지식 방패'));
-    body.appendChild(codexRow('🖍️', '분필 관통샷', '적을 줄줄이 꿰뚫는 관통 공격'));
-    for (const key of ['pencil', 'notebook', 'chalk']) {
+    body.appendChild(codexSection('⚔️ 무기 (최대 3개까지 배울 수 있어!)'));
+    for (const k in WEAPON_DEFS) {
+      body.appendChild(codexRow(WEAPON_DEFS[k].icon, WEAPON_DEFS[k].name, WEAPON_DEFS[k].desc));
+    }
+    body.appendChild(codexSection('✨ 각성 무기'));
+    for (const key in WEAPON_DEFS) {
       const e = EVOLVE[key];
       if (codexUnlocks[key]) {
         body.appendChild(codexRow(e.icon, `✨ ${e.evoName}`, e.desc + ' (각성 달성!)'));
       } else {
-        body.appendChild(codexRow('❓', '??? (각성 무기)', `조건: ${e.cond}`));
+        body.appendChild(codexRow('❓', '??? (각성 무기)', `조건: ${evolveCondText(key)}`));
       }
+    }
+    body.appendChild(codexSection('🎒 보조 장비 (최대 3개, Lv.3까지)'));
+    for (const k in PASSIVE_DEFS) {
+      const d = PASSIVE_DEFS[k];
+      const tag = d.pair ? ` · ${WEAPON_DEFS[d.pair].name} 짝꿍!` : '';
+      body.appendChild(codexRow(d.icon, d.name, d.desc + tag));
+    }
+    body.appendChild(codexSection('🔮 각성 조합표'));
+    for (const key in WEAPON_DEFS) {
+      const pk = pairKeyOf(key);
+      body.appendChild(codexRow('🔮',
+        `${WEAPON_DEFS[key].icon} + ${PASSIVE_DEFS[pk].icon} = ${EVOLVE[key].icon}`,
+        `${WEAPON_DEFS[key].name} Lv.5 + ${PASSIVE_DEFS[pk].name} Lv.3 → ${EVOLVE[key].evoName} (또는 ${EVOLVE[key].altText})`));
     }
     body.appendChild(codexSection('🎁 아이템'));
     body.appendChild(codexRow('gem', '지식 보석', '몬스터가 떨어뜨림. 모으면 레벨업!', true));
     body.appendChild(codexRow('magnet', '자석', '화면의 모든 보석을 한 번에 끌어옴', true));
-    body.appendChild(codexRow('bomb', '폭탄', '화면 전체 몬스터에게 큰 피해', true));
-    body.appendChild(codexRow('bread', '급식빵', '체력 +40 회복', true));
+    body.appendChild(codexRow('bomb', '폭탄', '화면 전체 몬스터에게 큰 피해 (역사 모드: 도깨비 방망이)', true));
+    body.appendChild(codexRow('bread', '급식빵', '체력 +40 회복 (역사 모드: 주먹밥)', true));
+    body.appendChild(codexRow('clock', '알람시계', '몬스터 전체를 3초 동안 얼려요', true));
+    body.appendChild(codexRow('jokbo', '시험 족보', '다음 문제에서 보기 2개를 지워 줌', true));
+    body.appendChild(codexRow('clover', '네잎클로버', '부활 기회 +1 (희귀!)', true));
+    body.appendChild(codexRow('candy', '별사탕', '점수 +100', true));
     body.appendChild(codexRow('star', '별 몬스터', '잡으면 보너스 문제! 맞히면 아이템', true));
     body.appendChild(codexSection('🏫 교실 몬스터'));
     body.appendChild(codexRow('slime', '지우개 가루 슬라임', '느리지만 떼로 몰려온다', true));
@@ -1337,7 +1530,7 @@
   if (IS_LOCAL) window.MS_debug = {
     start: startGame,
     step(dt, n = 1) { for (let i = 0; i < n && state === 'play'; i++) update(dt); if (state === 'play') draw(); },
-    state: () => ({ state, elapsed, killCount, grade, hp: player && player.hp, level: player && player.level, enemies: enemies && enemies.length, boss: enemies && enemies.filter((e) => e.boss).map((e) => ({ name: e.name, hp: e.hp, shield: e.shield })), gems: gems && gems.length, eBullets: eBullets && eBullets.length, items: items && items.map((i) => i.type), quiz: quizStats }),
+    state: () => ({ state, elapsed, killCount, grade, hp: player && player.hp, level: player && player.level, enemies: enemies && enemies.length, boss: enemies && enemies.filter((e) => e.boss).map((e) => ({ name: e.name, hp: e.hp, shield: e.shield })), gems: gems && gems.length, eBullets: eBullets && eBullets.length, items: items && items.map((i) => i.type), quiz: quizStats, revives: revivesLeft, freeze: freezeTimer, hints: hintCharges, waves: waveCount, picked: itemsPicked }),
     press(key, down) { keys[key] = down; },
     answerQuiz(ok) {
       if (state !== 'quiz') return 'no quiz';
@@ -1352,9 +1545,11 @@
       for (const e of enemies) if (e.boss) { e.x = player.x + 120; e.y = player.y; }
     },
     buff() { // 보스전 시험용 강화
-      player.weapons.pencil.lv = 5; player.weapons.notebook.lv = 5; player.weapons.chalk.lv = 5;
+      for (const k in player.weapons) player.weapons[k].lv = 5;
       player.maxHp = 500; player.hp = 500; player.speed = 200;
     },
+    give(type) { dropItem(type, player.x + 10, player.y); },
+    setP(key, lv) { player.passives[key] = lv; applyPassive(key); },
   };
 
   // ---------- 메인 루프 ----------

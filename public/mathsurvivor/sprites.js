@@ -328,6 +328,97 @@
       ],
     },
 
+    // 알람시계 (몬스터 얼리기)
+    clock: {
+      palette: { b: '#f9a825', k: '#37474f', w: '#fdf6e3' },
+      rows: [
+        '.bb...bb.',
+        'bbb...bbb',
+        '..kkkkk..',
+        '.kwwwwwk.',
+        'kwwwkwwwk',
+        'kwwwkkwwk',
+        'kwwwwwwwk',
+        '.kwwwwwk.',
+        '..kkkkk..',
+        '.k.....k.',
+      ],
+    },
+
+    // 시험 족보 (보기 2개 제거)
+    jokbo: {
+      palette: { d: '#c9a86a', w: '#fdf6e3', l: '#8d6e63' },
+      rows: [
+        'ddwwwwwwdd',
+        'dwwllllwwd',
+        'dwwwwwwwwd',
+        'dwwllllwwd',
+        'dwwwwwwwwd',
+        'dwwllllwwd',
+        'ddwwwwwwdd',
+      ],
+    },
+
+    // 네잎클로버 (부활 +1)
+    clover: {
+      palette: { g: '#66bb6a', w: '#a5d6a7', s: '#33691e' },
+      rows: [
+        '.gg..gg.',
+        'gwgggwgg',
+        'gggggggg',
+        '.gggggg.',
+        'gggggggg',
+        'gg.ss.gg',
+        '...ss...',
+        '..ss....',
+      ],
+    },
+
+    // 별사탕 (점수 +100)
+    candy: {
+      palette: { y: '#ffd54f', w: '#fff8e1' },
+      rows: [
+        '...y...',
+        '..yyy..',
+        'yyywyyy',
+        '.yywyy.',
+        '..yyy..',
+        '.y...y.',
+      ],
+    },
+
+    // 역사 모드 스킨: 주먹밥 (급식빵 대신)
+    riceball: {
+      palette: { w: '#fdfdf5', k: '#263238' },
+      rows: [
+        '....w....',
+        '...www...',
+        '..wwwww..',
+        '.wwwwwww.',
+        '.wwwwwww.',
+        'wwwkkkwww',
+        'wwwkkkwww',
+        '.wwwwwww.',
+      ],
+    },
+
+    // 역사 모드 스킨: 도깨비 방망이 (폭탄 대신)
+    club: {
+      palette: { d: '#8d6e63', k: '#5d4037', w: '#efebe9' },
+      rows: [
+        '..dddd..',
+        '.dddddd.',
+        '.dwddwd.',
+        '.dddddd.',
+        '.dddddd.',
+        '..dddd..',
+        '...kk...',
+        '...kk...',
+        '...kk...',
+        '...kk...',
+      ],
+    },
+
     // 최종보스: 시험지 대마왕
     examboss: {
       palette: {

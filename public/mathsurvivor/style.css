@@ -203,6 +203,7 @@ html, body {
 .quiz-choice:active { transform: translateY(3px); box-shadow: none; }
 .quiz-choice.right { border-color: #43a047; background: #e8f5e9; }
 .quiz-choice.wrong { border-color: #e53935; background: #ffebee; opacity: .7; }
+.quiz-choice.eliminated { opacity: .25; text-decoration: line-through; }
 .quiz-feedback { min-height: 24px; font-size: 18px; color: #e65100; margin-top: 10px; }
 
 /* 보스 체력바 */
