@@ -311,21 +311,88 @@
         text: it.q, choices: idx.map((i) => it.c[i]), answerIndex: idx.indexOf(it.c.indexOf(it.a)),
       };
     }
-    if (mode === 'history') {
+    if (mode === 'history' && !studyMode) {
       const p = B.serveHistory(ERAS[eraIdx(elapsed)].name);
       p.subject = '역사';
       return p;
     }
-    const sid = subjects[Math.floor(Math.random() * subjects.length)];
-    if (sid === 'math') {
-      const p = P.generate(grade, sem);
-      p.unit = '수학 · ' + p.unit;
-      p.subject = '수학';
-      return p;
+    // 단원 필터를 만족할 때까지 몇 번 다시 뽑는다
+    let p = null;
+    for (let t = 0; t < 12; t++) {
+      const sid = subjects[Math.floor(Math.random() * subjects.length)];
+      // 어려움 모드: 30% 확률로 한 학년 위 문제 (6학년은 그대로)
+      const g = (diff === 'hard' && !studyMode && Math.random() < 0.3) ? Math.min(6, grade + 1) : grade;
+      let rawUnit;
+      if (sid === 'class' && classPool && classPool.length) {
+        const it = classPool[Math.floor(Math.random() * classPool.length)];
+        const idx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+        p = { unit: '우리반 · ' + (it.unit || '퀴즈타운'), subject: '우리반', text: it.q, choices: idx.map((i) => it.c[i]), answerIndex: idx.indexOf(0) };
+        // idx.map 후 정답(원본 0번)의 새 위치
+        p.answerIndex = p.choices.indexOf(it.c[0]);
+        rawUnit = null; // 우리반 문제는 단원 필터 없음
+      } else if (sid === 'math') {
+        p = P.generate(g, sem);
+        rawUnit = p.unit;
+        p.unit = '수학 · ' + p.unit + (g !== grade ? ` (${g}학년!)` : '');
+        p.subject = '수학';
+      } else {
+        p = B.serve(sid, g, sem);
+        rawUnit = p.unit.split(' · ')[1];
+        p.subject = B.SUBJECTS[sid].name;
+      }
+      const allowed = allowedUnits(sid);
+      if (!allowed || !rawUnit || allowed.includes(rawUnit)) return p;
     }
-    const p = B.serve(sid, grade, sem);
-    p.subject = B.SUBJECTS[sid].name;
     return p;
+  }
+
+  // ---------- 단원 골라 풀기 ----------
+  let unitPrefs;
+  try { unitPrefs = JSON.parse(localStorage.getItem('ms.units') || '{}'); } catch (e) { unitPrefs = {}; }
+  function unitKey(sid) { return (sid === 'korean' || sid === 'fun') ? sid : `${sid}|${grade}|${sem}`; }
+  function allowedUnits(sid) {
+    const u = unitPrefs[unitKey(sid)];
+    return (u && u.length) ? u : null;
+  }
+  function sampleUnits(sid) {
+    if (sid === 'math') {
+      const set = new Set();
+      for (let i = 0; i < 60; i++) set.add(P.generate(grade, sem).unit);
+      return [...set];
+    }
+    return B.unitList(sid, grade, sem);
+  }
+  function openUnitModal() {
+    const body = $('unitBody');
+    body.innerHTML = '';
+    const sids = subjects.filter((x) => x !== 'class');
+    for (const sid of sids) {
+      const name = B.SUBJECTS[sid] ? B.SUBJECTS[sid].name : sid;
+      const h = document.createElement('div');
+      h.className = 'codex-section';
+      h.textContent = `${B.SUBJECTS[sid].icon} ${name}`;
+      body.appendChild(h);
+      const row = document.createElement('div');
+      row.className = 'subject-row';
+      const key = unitKey(sid);
+      const selected = unitPrefs[key] || [];
+      for (const u of sampleUnits(sid)) {
+        const chip = document.createElement('button');
+        chip.className = 'subject-chip' + (selected.includes(u) ? ' sel' : '');
+        chip.textContent = u;
+        chip.onclick = () => {
+          let cur = unitPrefs[key] || [];
+          if (cur.includes(u)) cur = cur.filter((x) => x !== u);
+          else cur.push(u);
+          unitPrefs[key] = cur;
+          localStorage.setItem('ms.units', JSON.stringify(unitPrefs));
+          chip.classList.toggle('sel');
+        };
+        row.appendChild(chip);
+      }
+      body.appendChild(row);
+    }
+    $('unitModal').classList.remove('hidden');
   }
 
   // ---------- 학년·학기 선택 ----------
@@ -375,6 +442,11 @@
   let quizStats, currentQuiz, quizAfter, quizFail, quizOneShot, quizWhyText;
   let revivesLeft, wrongList, breadEaten, lastEra, eBullets, waveTimer;
   let freezeTimer, hintCharges, scoreBonus, itemsPicked, waveCount, effects;
+  let quizTimerId = null, quizTimeLeft = 0; // 어려움 모드 문제 제한시간
+  let studyMode = false, studyCount = 0, studyCorrect = 0; // 공부 모드(몬스터 없음)
+  let endless = false, nextEndlessBoss = 0; // 무한 모드
+  let isChallenge = false; // 주간 챌린지로 시작했는지
+  let classPool = null; // 퀴즈타운 '우리 반' 문제 (온라인에서 불러옴)
 
   function newPlayer() {
     return {
@@ -643,6 +715,7 @@
     star: '⭐ 보너스 문제! 맞히면 아이템이 떨어져!',
     boss: '🛡 보스 방어막은 문제를 풀어야 깨져!',
     revive: '💫 부활 문제! 기회는 한 번뿐 — 맞히면 다시 일어난다!',
+    study: '📚 공부 모드 — 몬스터 없이 편하게! 틀린 건 오답노트로.',
   };
   function openQuiz(mode, onCorrect, onFail) {
     state = 'quiz';
@@ -650,59 +723,127 @@
     quizFail = onFail || null;
     quizOneShot = (mode === 'revive'); // 부활 문제는 재도전 없음
     quizWhyText = QUIZ_WHY[mode];
+    $('btnStudyStop').classList.toggle('hidden', mode !== 'study');
     nextProblem();
     ui.quiz.classList.remove('hidden');
   }
+
+  // ---- 어려움 모드: 문제 제한시간 15초 (시간 내 정답 = 남은 초×2점 보너스) ----
+  function stopQuizTimer() {
+    if (quizTimerId) { clearInterval(quizTimerId); quizTimerId = null; }
+    $('quizTimerWrap').classList.add('hidden');
+  }
+  function startQuizTimer() {
+    stopQuizTimer();
+    if (studyMode || diff !== 'hard') { quizTimeLeft = 0; return; }
+    quizTimeLeft = 15;
+    $('quizTimerWrap').classList.remove('hidden');
+    $('quizTimerFill').style.width = '100%';
+    quizTimerId = setInterval(() => {
+      quizTimeLeft -= 0.1;
+      $('quizTimerFill').style.width = `${Math.max(0, quizTimeLeft / 15) * 100}%`;
+      if (quizTimeLeft <= 0) {
+        stopQuizTimer();
+        onQuizTimeout();
+      }
+    }, 100);
+  }
+  function onQuizTimeout() {
+    if (state !== 'quiz') return;
+    answerCore(false, null, true);
+  }
+
+  function updateStudyWhy() {
+    ui.quizWhy.textContent = `📚 공부 모드 · ${studyCount}문제 도전 · ${studyCorrect}개 정답`;
+  }
+
   function nextProblem() {
     currentQuiz = makeProblem();
-    ui.quizUnit.textContent = currentQuiz.unit.startsWith('역사')
+    ui.quizUnit.textContent = currentQuiz.unit.startsWith('역사') || currentQuiz.unit.startsWith('📕') || currentQuiz.unit.startsWith('우리반')
       ? currentQuiz.unit
       : `${P.GRADES[grade].name} · ${currentQuiz.unit}`;
     ui.quizWhy.textContent = quizWhyText;
+    if (studyMode) updateStudyWhy();
     ui.quizText.textContent = currentQuiz.text;
     ui.quizFeedback.textContent = '';
     ui.quizChoices.innerHTML = '';
-    const btns = [];
-    currentQuiz.choices.forEach((c, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'quiz-choice';
-      btn.textContent = c;
-      btn.onclick = () => answer(i, btn);
-      ui.quizChoices.appendChild(btn);
-      btns.push(btn);
-    });
-    // 📜 족보: 오답 보기 2개를 지워 준다
-    if (hintCharges > 0) {
-      hintCharges--;
-      const wrongs = [0, 1, 2, 3].filter((i) => i !== currentQuiz.answerIndex);
-      wrongs.sort(() => Math.random() - 0.5);
-      for (const i of wrongs.slice(0, 2)) {
-        btns[i].disabled = true;
-        btns[i].classList.add('eliminated');
+    // ✍️ 주관식(수학): 정답이 순수한 숫자면 직접 입력
+    const subjectiveOn = localStorage.getItem('ms.subj') === '1';
+    const ansText = currentQuiz.choices[currentQuiz.answerIndex];
+    const isNumeric = /^-?[\d,]+(\.\d+)?$/.test(ansText);
+    const useInput = subjectiveOn && currentQuiz.subject === '수학' && isNumeric;
+    $('quizInputRow').classList.toggle('hidden', !useInput);
+    if (useInput) {
+      const inp = $('quizInput');
+      inp.value = '';
+      setTimeout(() => inp.focus(), 50);
+    } else {
+      const btns = [];
+      currentQuiz.choices.forEach((c, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-choice';
+        btn.textContent = c;
+        btn.onclick = () => answer(i, btn);
+        ui.quizChoices.appendChild(btn);
+        btns.push(btn);
+      });
+      // 📜 족보: 오답 보기 2개를 지워 준다
+      if (hintCharges > 0) {
+        hintCharges--;
+        const wrongs = [0, 1, 2, 3].filter((i) => i !== currentQuiz.answerIndex);
+        wrongs.sort(() => Math.random() - 0.5);
+        for (const i of wrongs.slice(0, 2)) {
+          btns[i].disabled = true;
+          btns[i].classList.add('eliminated');
+        }
+        ui.quizWhy.textContent += ' — 📜 족보 발동! 보기 2개 제거!';
       }
-      ui.quizWhy.textContent += ' — 📜 족보 발동! 보기 2개 제거!';
     }
+    startQuizTimer();
   }
-  function answer(i, btn) {
+
+  function submitSubjective() {
     if (state !== 'quiz') return;
+    const raw = $('quizInput').value.trim();
+    if (!raw) return;
+    const ans = currentQuiz.choices[currentQuiz.answerIndex].replace(/,/g, '');
+    answerCore(Number(raw.replace(/,/g, '')) === Number(ans), null);
+  }
+
+  function answerCore(correct, btn, timedOut) {
+    if (state !== 'quiz') return;
+    stopQuizTimer();
     const subj = currentQuiz.subject || '기타';
     if (!quizStats.by[subj]) quizStats.by[subj] = { correct: 0, total: 0 };
     quizStats.total++;
     quizStats.by[subj].total++;
-    if (i === currentQuiz.answerIndex) {
+    if (correct) {
       quizStats.correct++;
       quizStats.by[subj].correct++;
-      btn.classList.add('right');
-      ui.quizFeedback.textContent = '⭕ 정답!';
+      if (btn) btn.classList.add('right');
       SFX.play('correct');
       noteResolve(currentQuiz);
-      setTimeout(() => {
-        ui.quiz.classList.add('hidden');
-        const after = quizAfter; quizAfter = null; quizFail = null;
-        state = 'play'; lastTime = performance.now();
-        updateHud();
-        if (after) after();
-      }, 550);
+      // 어려움 타이머 보너스: 남은 초 × 2점
+      let bonusTxt = '';
+      if (!studyMode && diff === 'hard' && quizTimeLeft > 0) {
+        const b = Math.ceil(quizTimeLeft) * 2;
+        scoreBonus += b;
+        bonusTxt = ` ⚡빠른 정답 +${b}점!`;
+      }
+      ui.quizFeedback.textContent = '⭕ 정답!' + bonusTxt;
+      if (studyMode) {
+        studyCount++; studyCorrect++;
+        updateStudyWhy();
+        setTimeout(() => { if (state === 'quiz' && studyMode) nextProblem(); }, 700);
+      } else {
+        setTimeout(() => {
+          ui.quiz.classList.add('hidden');
+          const after = quizAfter; quizAfter = null; quizFail = null;
+          state = 'play'; lastTime = performance.now();
+          updateHud();
+          if (after) after();
+        }, 550);
+      }
     } else {
       // 오답 다시보기용 기록 (같은 문제는 한 번만, 최대 10개)
       if (wrongList.length < 10 && !wrongList.some((w) => w.q === currentQuiz.text)) {
@@ -710,21 +851,49 @@
       }
       SFX.play('wrong');
       noteAdd(currentQuiz); // 오답노트에 누적
-      btn.classList.add('wrong');
-      btn.disabled = true;
-      if (quizOneShot) {
-        ui.quizFeedback.textContent = `❌ 정답은 "${currentQuiz.choices[currentQuiz.answerIndex]}"…`;
+      if (btn) { btn.classList.add('wrong'); btn.disabled = true; }
+      const ansTxt = currentQuiz.choices[currentQuiz.answerIndex];
+      const head = timedOut ? '⏰ 시간 초과!' : '❌ 아쉽다!';
+      if (studyMode) {
+        studyCount++;
+        updateStudyWhy();
+        ui.quizFeedback.textContent = `${head} 정답은 "${ansTxt}"`;
+        setTimeout(() => { if (state === 'quiz' && studyMode) nextProblem(); }, 1300);
+      } else if (quizOneShot) {
+        ui.quizFeedback.textContent = `${head} 정답은 "${ansTxt}"…`;
         setTimeout(() => {
           ui.quiz.classList.add('hidden');
           const fail = quizFail; quizAfter = null; quizFail = null;
           if (fail) fail();
         }, 1300);
       } else {
-        ui.quizFeedback.textContent = '❌ 아쉽다! 새 문제로 다시 도전!';
+        ui.quizFeedback.textContent = `${head} 새 문제로 다시 도전!`;
         setTimeout(() => { if (state === 'quiz') nextProblem(); }, 900);
       }
     }
     updateHud();
+  }
+  function answer(i, btn) { answerCore(i === currentQuiz.answerIndex, btn); }
+
+  // ---- 공부 모드: 몬스터 없이 문제만 연속으로 ----
+  function startStudy() {
+    studyMode = true; studyCount = 0; studyCorrect = 0;
+    quizStats = { correct: 0, total: 0, by: {} };
+    wrongList = [];
+    ui.start.classList.add('hidden');
+    openQuiz('study', null, null);
+  }
+  function stopStudy() {
+    studyMode = false;
+    stopQuizTimer();
+    ui.quiz.classList.add('hidden');
+    state = 'title';
+    ui.start.classList.remove('hidden');
+    const acc = studyCount ? Math.round((studyCorrect / studyCount) * 100) : 0;
+    $('studyResult').textContent = studyCount
+      ? `📚 공부 모드 결과: ${studyCount}문제 중 ${studyCorrect}개 정답 (${acc}%)`
+      : '';
+    updateNoteBtn();
   }
 
   // ---------- 강화 ----------
@@ -1391,6 +1560,7 @@
 
   // ---------- HUD ----------
   function updateHud() {
+    if (!player) return; // 공부 모드 등 게임 밖에서는 건너뜀
     ui.level.textContent = `Lv.${player.level}`;
     ui.kills.textContent = `⚔️ ${killCount}`;
     const fb = enemies && finalBoss();
