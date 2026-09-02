@@ -19,10 +19,10 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 | 문화유산 퀴즈 | <https://cantroxx.github.io/seoul-heritage/> | `/Users/kdw/Projects/seoul-heritage-main` | 운영본 저장소. Git 깨끗함 |
 | 외계인 퇴치 퀴즈 | <https://cantroxx.github.io/seoul-math-game/> | `/Users/kdw/Projects/seoul-math-game` | 2026-09-01 원격 저장소에서 복구. 배포본과 파일 해시 일치 |
 | 탐정 게임 | <https://detect-design.vercel.app/> | `/Users/kdw/Projects/black-design/detect-design` | Git 깨끗함. `npm run check` 통과 |
-| 올라타자 게임 | <https://cantroxx.github.io/climb-typing/> | `/Users/kdw/Projects/climb-typing` | 빌드 성공. 린트는 소스와 `docs/assets` 산출물 문제로 실패 |
-| 시장에 가면 게임 | <https://market-game-roan.vercel.app/> | `/Users/kdw/Projects/market-game` | Git 깨끗함. 빌드 성공 |
-| 인생 게임 | <https://dream-class-omega.vercel.app/> | `/Users/kdw/Projects/dream-class` | 소스는 깨끗함. `dist/`, `node_modules/` 미추적 |
-| 수학 방탈출 | <https://math-escape-tan.vercel.app/> | `/Users/kdw/Projects/math-escape` | 문제 데이터에 미커밋 변경. 빌드 성공, 린트 오류 3개 |
+| 올라타자 게임 | <https://cantroxx.github.io/climb-typing/> | `/Users/kdw/Projects/climb-typing` | 생성물 린트 제외·실제 소스 오류 정리 완료. `npm run check` 통과 |
+| 시장에 가면 게임 | <https://market-game-roan.vercel.app/> | `/Users/kdw/Projects/market-game` | README·최소 build smoke 추가. `npm run check` 통과 |
+| 인생 게임 | <https://dream-class-omega.vercel.app/> | `/Users/kdw/Projects/dream-class` | 생성물·환경파일 ignore와 에셋 재사용 금지선 기록. `npm run check` 통과 |
+| 수학 방탈출 | <https://math-escape-tan.vercel.app/> | `/Users/kdw/Projects/math-escape` | 변경 문제 검수·정답 고정 검사·린트·빌드 완료 (`fe5bfff`) |
 
 외부 퀴즈는 링크 모음이다. 독립 게임을 퀴즈타운 저장소 안으로 옮길 필요는 없다.
 
@@ -34,7 +34,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 - 최초 커밋: 2026-08-01 `1745517`
 - 저장소: `cantroxx/battle-school`
 - 운영: <https://battle-school.vercel.app/>
-- 상태: Git 깨끗함, 빌드 성공, 린트 오류 1개
+- 상태: Hook 이름 충돌과 경고 정리 완료. `npm run check` 통과 (`3bf42f7`)
 - 완성 범위: 문제풀이 전투, 장비·상점, 물약, 콤보, 강공격, 무한의 탑, 오답 복습, 업적·칭호, 도감, 저장
 - 마지막 사용자 피드백: “게임이 아직 얕다.”
 - Claude가 제안했지만 구현하지 않은 다음 단계: 직업 4종, 스킬 게이지, 몬스터 과목 약점·특수 패턴, 선택형 장비·펫·퀘스트
@@ -76,7 +76,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 - 위치: `/Users/kdw/Projects/habboasset/housing`
 - 최초 커밋: 2026-07-09
 - 저장소: `cantroxx/quiztown-housing`
-- 상태: 추적 소스는 깨끗하지만 `furni/` 아래 에셋 디렉터리 66개가 미추적
+- 상태: `furni/` 아래 미추적 에셋 66개를 삭제 없이 ignore 처리하고 공개 금지 정책 기록 (`ce8e85d`)
 - 계보: 퀴즈타운 `public/housing/`으로 이식하기 전의 엔진·에셋 실험판이다.
 - Habbo/Sulake 에셋의 교육·비상업 제한과 재배포 위험이 있다. 미추적 에셋을 공개 저장소에 올리지 않는다.
 
@@ -84,7 +84,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 
 - 위치: `/Users/kdw/Projects/quiztown-room-proto`
 - 파일 시각: 2026-07-08 경계
-- 상태: Git 없음. Pixel Salvaje 유료 에셋 기반 초기 프로토타입
+- 상태: 로컬 Git 기준점 `90a2e03` 생성. Pixel Salvaje 유료 `assets/`는 추적 제외
 - 계보: 현재 기준 구현은 `gas-quiz-firebase/public/housing/`이다.
 - 에셋은 재배포 금지이므로 공개 저장소에 포함하지 않는다.
 
@@ -93,11 +93,11 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 | 프로젝트 | 위치 | 상태와 재개 포인트 |
 | --- | --- | --- |
 | 탐정 게임 | `/Users/kdw/Projects/black-design/detect-design` | 5개 사건·5개 엔딩. 순수 HTML/CSS/JS. 구조 검사 통과 |
-| 올라타자 | `/Users/kdw/Projects/climb-typing` | 빌드 성공. 린트 설정이 배포 산출물까지 검사하며 소스에도 React 규칙 위반이 남음 |
-| 꿈의 교실 | `/Users/kdw/Projects/dream-class` | 빌드 성공. 생성물 정리와 테스트·문서 보강 필요 |
-| 시장에 가면 | `/Users/kdw/Projects/market-game` | 빌드 성공. 테스트·README 없음 |
-| 수학 마법학교 탈출 | `/Users/kdw/Projects/math-escape` | `src/data/gameData.js`에 +46/-43 미커밋 문제 교체. 유지 여부와 정답 검수 필요 |
-| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 운영본. 랭킹전과 학습모드 분리. 학생 운영 DB 변경 전 승인 필수 |
+| 올라타자 | `/Users/kdw/Projects/climb-typing` | 린트·빌드 통과. 공유 Firebase 랭킹의 공개 일괄 삭제 경로 제거 (`decd8ad`) |
+| 꿈의 교실 | `/Users/kdw/Projects/dream-class` | build smoke와 README 완료. 출처 미상 아바타는 재사용 보류 |
+| 시장에 가면 | `/Users/kdw/Projects/market-game` | build smoke와 실제 프로젝트 README 완료 |
+| 수학 마법학교 탈출 | `/Users/kdw/Projects/math-escape` | 11개 변경 정답 고정 검사와 린트·빌드 통과 |
+| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 학생 식별정보 공개 읽기·넓은 쓰기 위험을 문서화. UID 기반 전환 전 운영 변경 보류 |
 | 외계인 수학 침공 | `/Users/kdw/Projects/seoul-math-game` | 단일 `index.html`, 4학년 곱셈·나눗셈 기반 서울 지도 탈환. 배포본과 로컬 원본 일치 |
 
 ## 퀴즈타운 내부 게임

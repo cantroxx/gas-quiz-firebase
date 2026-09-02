@@ -8,6 +8,7 @@
  * (완벽한 필터는 불가능하므로 교실에서 교사 지도 하에 이용하세요.)
  *
  * 총 80774개
+ * 상세 출처·라이선스 및 현재 provenance 보류 사항: DICTIONARY_NOTICE.md
  */
 (function (global) {
   'use strict';

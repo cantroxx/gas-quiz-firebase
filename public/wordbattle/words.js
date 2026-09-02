@@ -1,9 +1,10 @@
 /* words.js — 낱말 판정
- *  사전: 국립국어원 「한국어 학습용 어휘 목록」 기반 5,500여 개 (words-data.js)
+ *  사전: 국립국어원 학습용 어휘와 hunspell-dict-ko를 가공한 80,774개 (words-data.js)
  *        명사·동사·형용사·부사·관형사·감탄사·외래어 모두 포함. 난이도 모드는 없앴다.
  *  사전에 없는 낱말은 → 게임 중에 '제안'해서 다른 참가자들이 동의하면 통과한다(방별로 인정).
  *  욕설·성적 낱말은 사전에서 뺐고, '제안'으로도 낼 수 없게 막는다.
  *  window.WBWords 로 노출. words-data.js 가 먼저 로드되어야 함.
+ *  출처·라이선스 점검: DICTIONARY_NOTICE.md
  */
 (function (global) {
   'use strict';
