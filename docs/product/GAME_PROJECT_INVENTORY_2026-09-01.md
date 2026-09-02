@@ -56,10 +56,10 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 - 위치: `/Users/kdw/Projects/life-diary`
 - 파일 작업일: 2026-07-23
 - 운영: <https://life-diary.vercel.app/>
-- 상태: 빌드 성공, **Git 저장소 없음**
+- 상태: 2026-09-02 빌드 성공, 로컬 Git 첫 기준점 `b628d7e` 생성
 - 완성 범위: 초등 6년+중학교 입학, 이벤트 21+1개, 선택 결과 문장, 조건 플래그, 스탯 5종, 저장 슬롯 4개, 엔딩 5종
 - Claude 메모의 “미배포” 상태는 오래된 정보이며 현재는 배포되어 있다.
-- 다음 단계: Git 기준점 생성, `IMAGE_GUIDE.md`에 따른 장면 이미지 투입, 이미지 압축·라이선스 기록
+- 다음 단계: Vercel이 참조하는 원격 저장소·브랜치를 배포 전에 확인하고, `IMAGE_GUIDE.md`에 따른 장면 이미지 투입·압축·라이선스 기록
 
 ### 특산물 부루마블 독립판
 
