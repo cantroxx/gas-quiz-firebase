@@ -521,10 +521,15 @@
   window.MS_Bank = {
     SUBJECTS,
     ERA_NAMES: Object.keys(HISTORY),
-    serve(subjectId, grade, sem) {
+    unitList(subjectId, grade, sem) {
+      return Object.keys(poolFor(subjectId, grade, sem));
+    },
+    serve(subjectId, grade, sem, requestedUnit) {
       const units = poolFor(subjectId, grade, sem);
       const unitNames = Object.keys(units);
-      const unit = unitNames[R(unitNames.length)];
+      const unit = requestedUnit && units[requestedUnit]
+        ? requestedUnit
+        : unitNames[R(unitNames.length)];
       return serveFrom(units[unit], subjectId, SUBJECTS[subjectId].name + ' · ' + unit);
     },
     // 역사 시간여행 모드: 지금 시대의 문제만

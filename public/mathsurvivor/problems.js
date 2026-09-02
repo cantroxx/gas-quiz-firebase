@@ -377,15 +377,47 @@
     6: { name: '6학년', units: '분수·소수 나눗셈 · 비율 · 부피', gens: G6, units2: '분수·소수 나눗셈 · 비례식 · 원의 넓이', gens2: G6_2 },
   };
 
+  function generatorsFor(grade, sem) {
+    const g = GRADES[grade] || GRADES[4];
+    return (sem === 2 && g.gens2) ? g.gens2 : g.gens;
+  }
+
+  const unitGeneratorCache = new Map();
+  function unitGeneratorsFor(grade, sem) {
+    const key = `${GRADES[grade] ? grade : 4}|${sem === 2 ? 2 : 1}`;
+    if (unitGeneratorCache.has(key)) return unitGeneratorCache.get(key);
+    const byUnit = new Map();
+    for (const make of generatorsFor(grade, sem)) {
+      // 한 생성기가 두 단원을 섞어 내는 경우도 있어 여러 번 확인한다.
+      for (let i = 0; i < 40; i++) {
+        const unit = make().unit;
+        if (!byUnit.has(unit)) byUnit.set(unit, []);
+        if (!byUnit.get(unit).includes(make)) byUnit.get(unit).push(make);
+      }
+    }
+    unitGeneratorCache.set(key, byUnit);
+    return byUnit;
+  }
+
+  function unitsFor(grade, sem) {
+    return [...unitGeneratorsFor(grade, sem).keys()];
+  }
+
   window.MS_Problems = {
     GRADES,
-    generate(grade, sem) {
-      const g = GRADES[grade] || GRADES[4];
-      const gens = (sem === 2 && g.gens2) ? g.gens2 : g.gens;
+    unitList: unitsFor,
+    generate(grade, sem, requestedUnit) {
+      const all = generatorsFor(grade, sem);
+      let gens = all;
+      if (requestedUnit) {
+        const matching = unitGeneratorsFor(grade, sem).get(requestedUnit);
+        if (matching && matching.length) gens = matching;
+      }
       // 보기 4개가 안 만들어지는 드문 경우엔 다시 뽑기
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 80; i++) {
         const p = pick(gens)();
-        if (p && p.choices.length === 4 && p.answerIndex >= 0) return p;
+        if (p && p.choices.length === 4 && p.answerIndex >= 0 &&
+            (!requestedUnit || p.unit === requestedUnit)) return p;
       }
       return build('연습', '7 × 8 = ?', 56, nearNum(56));
     },

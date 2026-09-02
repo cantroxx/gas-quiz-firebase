@@ -7,7 +7,7 @@
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 <!-- 퀴즈타운 Firebase 재사용 (Firebase Hosting 에서만 로드됨. 로컬 시험 서버에선 없어도 게임은 동작) -->
 <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
@@ -58,7 +58,13 @@
       <div class="subject-row" id="semRow"></div>
       <div class="grade-grid" id="gradeGrid"></div>
     </div>
+    <div class="learning-tools">
+      <button class="sub-btn" id="btnUnits">🎯 단원 고르기</button>
+      <button class="sub-btn" id="btnSubjective">✍️ 수학 주관식 꺼짐</button>
+    </div>
     <button class="big-btn" id="btnStart">🚀 모험 시작!</button>
+    <button class="sub-btn study-btn" id="btnStudy">📚 몬스터 없이 공부하기</button>
+    <p class="study-result" id="studyResult" aria-live="polite"></p>
     <div class="btn-pair">
       <button class="sub-btn" id="btnHall">🏆 명예의 전당</button>
       <button class="sub-btn" id="btnCodex">📖 도감</button>
@@ -73,11 +79,19 @@
 <!-- 문제 모달 -->
 <div id="quizModal" class="overlay hidden">
   <div class="panel">
+    <div class="quiz-timer hidden" id="quizTimerWrap" aria-label="남은 문제 풀이 시간">
+      <div class="quiz-timer-fill" id="quizTimerFill"></div>
+    </div>
     <div class="quiz-unit" id="quizUnit">4학년 · 각도</div>
     <p class="quiz-why" id="quizWhy"></p>
     <div class="quiz-text" id="quizText"></div>
     <div class="quiz-choices" id="quizChoices"></div>
+    <div class="quiz-input-row hidden" id="quizInputRow">
+      <input id="quizInput" type="text" inputmode="decimal" autocomplete="off" aria-label="주관식 정답">
+      <button id="btnQuizSubmit" type="button">정답 확인</button>
+    </div>
     <p class="quiz-feedback" id="quizFeedback"></p>
+    <button class="sub-btn hidden" id="btnStudyStop">공부 끝내기</button>
   </div>
 </div>
 
@@ -136,6 +150,16 @@
   </div>
 </div>
 
+<!-- 단원 선택 -->
+<div id="unitModal" class="overlay hidden">
+  <div class="panel">
+    <h2>🎯 단원 골라 풀기</h2>
+    <p class="subtitle">고른 단원만 출제합니다. ‘전체’를 고르면 모든 단원이 나와요.<br>어려움의 한 학년 위 문제는 도전 문제로 별도 출제됩니다.</p>
+    <div id="unitBody" class="unit-body"></div>
+    <button class="sub-btn" id="btnUnitClose">선택 완료</button>
+  </div>
+</div>
+
 <!-- 처음 안내 (첫 시작 때 1번만) -->
 <div id="introModal" class="overlay hidden">
   <div class="panel">
@@ -162,9 +186,9 @@
 
 <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 (학생 브라우저 캐시 갱신용) -->
 <script src="sprites.js?v=7"></script>
-<script src="problems.js?v=7"></script>
-<script src="bank.js?v=7"></script>
+<script src="problems.js?v=8"></script>
+<script src="bank.js?v=8"></script>
 <script src="net.js?v=7"></script>
-<script src="game.js?v=7"></script>
+<script src="game.js?v=8"></script>
 </body>
 </html>

@@ -299,11 +299,12 @@
     }
   }
 
-  // 문제 하나 만들기: 역사 모드=지금 시대의 역사 문제, 교실 모드=켜진 과목 중 랜덤
+  // 문제 하나 만들기: 역사 모드=지금 시대의 역사 문제, 교실/공부 모드=켜진 과목 중 랜덤
   function makeProblem() {
     // 오답노트 복습: 노트에 문제가 있으면 30% 확률로 우선 출제
     const note = loadNote();
-    if (note.length && Math.random() < 0.3) {
+    const filteringUnits = subjects.some((sid) => allowedUnits(sid, grade, sem));
+    if (!studyMode && !filteringUnits && note.length && Math.random() < 0.3) {
       const it = note[Math.floor(Math.random() * note.length)];
       const idx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
       return {
@@ -316,32 +317,21 @@
       p.subject = '역사';
       return p;
     }
-    // 단원 필터를 만족할 때까지 몇 번 다시 뽑는다
-    let p = null;
-    for (let t = 0; t < 12; t++) {
-      const sid = subjects[Math.floor(Math.random() * subjects.length)];
-      // 어려움 모드: 30% 확률로 한 학년 위 문제 (6학년은 그대로)
-      const g = (diff === 'hard' && !studyMode && Math.random() < 0.3) ? Math.min(6, grade + 1) : grade;
-      let rawUnit;
-      if (sid === 'class' && classPool && classPool.length) {
-        const it = classPool[Math.floor(Math.random() * classPool.length)];
-        const idx = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
-        p = { unit: '우리반 · ' + (it.unit || '퀴즈타운'), subject: '우리반', text: it.q, choices: idx.map((i) => it.c[i]), answerIndex: idx.indexOf(0) };
-        // idx.map 후 정답(원본 0번)의 새 위치
-        p.answerIndex = p.choices.indexOf(it.c[0]);
-        rawUnit = null; // 우리반 문제는 단원 필터 없음
-      } else if (sid === 'math') {
-        p = P.generate(g, sem);
-        rawUnit = p.unit;
-        p.unit = '수학 · ' + p.unit + (g !== grade ? ` (${g}학년!)` : '');
-        p.subject = '수학';
-      } else {
-        p = B.serve(sid, g, sem);
-        rawUnit = p.unit.split(' · ')[1];
-        p.subject = B.SUBJECTS[sid].name;
-      }
-      const allowed = allowedUnits(sid);
-      if (!allowed || !rawUnit || allowed.includes(rawUnit)) return p;
+    const sid = subjects[Math.floor(Math.random() * subjects.length)];
+    const gradeBased = sid === 'math' || sid === 'social' || sid === 'science';
+    // 어려움 모드: 학년별 과목만 30% 확률로 한 학년 위 문제 (6학년은 그대로)
+    const gradeUp = diff === 'hard' && !studyMode && gradeBased && grade < 6 && Math.random() < 0.3;
+    const g = gradeUp ? grade + 1 : grade;
+    const allowed = allowedUnits(sid, g, sem);
+    const requestedUnit = allowed ? allowed[Math.floor(Math.random() * allowed.length)] : null;
+    let p;
+    if (sid === 'math') {
+      p = P.generate(g, sem, requestedUnit);
+      p.unit = '수학 · ' + p.unit + (gradeUp ? ` (${g}학년 도전!)` : '');
+      p.subject = '수학';
+    } else {
+      p = B.serve(sid, g, sem, requestedUnit);
+      p.subject = B.SUBJECTS[sid].name;
     }
     return p;
   }
@@ -349,34 +339,43 @@
   // ---------- 단원 골라 풀기 ----------
   let unitPrefs;
   try { unitPrefs = JSON.parse(localStorage.getItem('ms.units') || '{}'); } catch (e) { unitPrefs = {}; }
-  function unitKey(sid) { return (sid === 'korean' || sid === 'fun') ? sid : `${sid}|${grade}|${sem}`; }
-  function allowedUnits(sid) {
-    const u = unitPrefs[unitKey(sid)];
-    return (u && u.length) ? u : null;
+  if (!unitPrefs || typeof unitPrefs !== 'object' || Array.isArray(unitPrefs)) unitPrefs = {};
+  function unitKey(sid, g = grade, s = sem) {
+    return (sid === 'korean' || sid === 'fun') ? sid : `${sid}|${g}|${s}`;
   }
-  function sampleUnits(sid) {
-    if (sid === 'math') {
-      const set = new Set();
-      for (let i = 0; i < 60; i++) set.add(P.generate(grade, sem).unit);
-      return [...set];
-    }
-    return B.unitList(sid, grade, sem);
+  function sampleUnits(sid, g = grade, s = sem) {
+    return sid === 'math' ? P.unitList(g, s) : B.unitList(sid, g, s);
+  }
+  function allowedUnits(sid, g = grade, s = sem) {
+    const selected = unitPrefs[unitKey(sid, g, s)];
+    if (!Array.isArray(selected) || !selected.length) return null;
+    const valid = sampleUnits(sid, g, s);
+    const usable = selected.filter((u) => valid.includes(u));
+    return usable.length ? usable : null;
   }
   function openUnitModal() {
     const body = $('unitBody');
     body.innerHTML = '';
-    const sids = subjects.filter((x) => x !== 'class');
-    for (const sid of sids) {
-      const name = B.SUBJECTS[sid] ? B.SUBJECTS[sid].name : sid;
+    for (const sid of subjects) {
+      const subject = B.SUBJECTS[sid];
       const h = document.createElement('div');
       h.className = 'codex-section';
-      h.textContent = `${B.SUBJECTS[sid].icon} ${name}`;
+      h.textContent = `${subject.icon} ${subject.name}`;
       body.appendChild(h);
       const row = document.createElement('div');
       row.className = 'subject-row';
       const key = unitKey(sid);
-      const selected = unitPrefs[key] || [];
-      for (const u of sampleUnits(sid)) {
+      const selected = Array.isArray(unitPrefs[key]) ? unitPrefs[key] : [];
+      const allChip = document.createElement('button');
+      allChip.className = 'subject-chip' + (selected.length ? '' : ' sel');
+      allChip.textContent = '전체';
+      allChip.onclick = () => {
+        delete unitPrefs[key];
+        localStorage.setItem('ms.units', JSON.stringify(unitPrefs));
+        openUnitModal();
+      };
+      row.appendChild(allChip);
+      for (const u of sampleUnits(sid, grade, sem)) {
         const chip = document.createElement('button');
         chip.className = 'subject-chip' + (selected.includes(u) ? ' sel' : '');
         chip.textContent = u;
@@ -384,15 +383,31 @@
           let cur = unitPrefs[key] || [];
           if (cur.includes(u)) cur = cur.filter((x) => x !== u);
           else cur.push(u);
-          unitPrefs[key] = cur;
+          if (cur.length) unitPrefs[key] = cur;
+          else delete unitPrefs[key];
           localStorage.setItem('ms.units', JSON.stringify(unitPrefs));
-          chip.classList.toggle('sel');
+          openUnitModal();
         };
         row.appendChild(chip);
       }
       body.appendChild(row);
     }
     $('unitModal').classList.remove('hidden');
+  }
+
+  // ---------- 수학 주관식 선택 ----------
+  let subjectiveOn = localStorage.getItem('ms.subj') === '1';
+  function updateSubjectiveButton() {
+    $('btnSubjective').textContent = subjectiveOn
+      ? '✍️ 수학 주관식 켜짐'
+      : '✍️ 수학 주관식 꺼짐';
+    $('btnSubjective').classList.toggle('active', subjectiveOn);
+    $('btnSubjective').setAttribute('aria-pressed', String(subjectiveOn));
+  }
+  function toggleSubjective() {
+    subjectiveOn = !subjectiveOn;
+    localStorage.setItem('ms.subj', subjectiveOn ? '1' : '0');
+    updateSubjectiveButton();
   }
 
   // ---------- 학년·학기 선택 ----------
@@ -444,9 +459,7 @@
   let freezeTimer, hintCharges, scoreBonus, itemsPicked, waveCount, effects;
   let quizTimerId = null, quizTimeLeft = 0; // 어려움 모드 문제 제한시간
   let studyMode = false, studyCount = 0, studyCorrect = 0; // 공부 모드(몬스터 없음)
-  let endless = false, nextEndlessBoss = 0; // 무한 모드
-  let isChallenge = false; // 주간 챌린지로 시작했는지
-  let classPool = null; // 퀴즈타운 '우리 반' 문제 (온라인에서 불러옴)
+  let quizAnswered = false;
 
   function newPlayer() {
     return {
@@ -466,6 +479,8 @@
   }
 
   function startGame() {
+    studyMode = false;
+    stopQuizTimer();
     player = newPlayer();
     enemies = []; bullets = []; gems = []; items = []; floats = [];
     elapsed = 0; killCount = 0; spawnTimer = 0.5; starTimer = 38;
@@ -758,6 +773,7 @@
   }
 
   function nextProblem() {
+    quizAnswered = false;
     currentQuiz = makeProblem();
     ui.quizUnit.textContent = currentQuiz.unit.startsWith('역사') || currentQuiz.unit.startsWith('📕') || currentQuiz.unit.startsWith('우리반')
       ? currentQuiz.unit
@@ -767,8 +783,8 @@
     ui.quizText.textContent = currentQuiz.text;
     ui.quizFeedback.textContent = '';
     ui.quizChoices.innerHTML = '';
+    $('btnQuizSubmit').disabled = false;
     // ✍️ 주관식(수학): 정답이 순수한 숫자면 직접 입력
-    const subjectiveOn = localStorage.getItem('ms.subj') === '1';
     const ansText = currentQuiz.choices[currentQuiz.answerIndex];
     const isNumeric = /^-?[\d,]+(\.\d+)?$/.test(ansText);
     const useInput = subjectiveOn && currentQuiz.subject === '수학' && isNumeric;
@@ -811,8 +827,10 @@
   }
 
   function answerCore(correct, btn, timedOut) {
-    if (state !== 'quiz') return;
+    if (state !== 'quiz' || quizAnswered) return;
+    quizAnswered = true;
     stopQuizTimer();
+    $('btnQuizSubmit').disabled = true;
     const subj = currentQuiz.subject || '기타';
     if (!quizStats.by[subj]) quizStats.by[subj] = { correct: 0, total: 0 };
     quizStats.total++;
@@ -877,9 +895,14 @@
 
   // ---- 공부 모드: 몬스터 없이 문제만 연속으로 ----
   function startStudy() {
+    stopQuizTimer();
     studyMode = true; studyCount = 0; studyCorrect = 0;
     quizStats = { correct: 0, total: 0, by: {} };
     wrongList = [];
+    player = null;
+    elapsed = 0;
+    $('studyResult').textContent = '';
+    ui.hud.classList.add('hidden');
     ui.start.classList.add('hidden');
     openQuiz('study', null, null);
   }
@@ -1665,6 +1688,7 @@
 
   let lastVictory = false;
   function endGame(victory) {
+    stopQuizTimer();
     state = 'end';
     lastVictory = victory;
     SFX.play(victory ? 'win' : 'lose');
@@ -1745,6 +1769,15 @@
   $('btnNote').onclick = openNoteModal;
   $('btnNoteClose').onclick = () => $('noteModal').classList.add('hidden');
   $('btnNoteClear').onclick = () => { saveNote([]); updateNoteBtn(); openNoteModal(); };
+  $('btnUnits').onclick = openUnitModal;
+  $('btnUnitClose').onclick = () => $('unitModal').classList.add('hidden');
+  $('btnSubjective').onclick = toggleSubjective;
+  $('btnStudy').onclick = startStudy;
+  $('btnStudyStop').onclick = stopStudy;
+  $('btnQuizSubmit').onclick = submitSubjective;
+  $('quizInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitSubjective();
+  });
   $('btnSound').onclick = () => { SFX.toggle(); updateSoundBtns(); };
   $('btnSoundPause').onclick = () => { SFX.toggle(); updateSoundBtns(); };
   $('btnIntroGo').onclick = () => {
@@ -1754,6 +1787,7 @@
   };
   updateNoteBtn();
   updateSoundBtns();
+  updateSubjectiveButton();
   $('btnCodex').onclick = openCodex;
   $('btnCodexPause').onclick = openCodex;
   $('btnCodexClose').onclick = () => ui.codex.classList.add('hidden');
@@ -1874,17 +1908,49 @@
   // 시험용 디버그 훅: 로컬 개발 환경에서만 켜진다.
   // (운영 사이트에서 켜져 있으면 콘솔로 점수를 조작해 랭킹을 어지럽힐 수 있음)
   const IS_LOCAL = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
-  if (IS_LOCAL) window.MS_debug = {
+  if (IS_LOCAL) {
+    const debugQuizButton = document.createElement('button');
+    debugQuizButton.id = 'msDebugQuiz';
+    debugQuizButton.setAttribute('aria-label', '로컬 퀴즈 테스트');
+    debugQuizButton.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;z-index:99';
+    debugQuizButton.onclick = () => {
+      if (state === 'title' || !player) startGame();
+      if (state === 'play') openQuiz('levelup', () => {});
+    };
+    document.body.appendChild(debugQuizButton);
+    window.MS_debug = {
     start: startGame,
+    startStudy,
+    stopStudy,
+    openQuiz(kind = 'levelup') {
+      if (!quizStats) quizStats = { correct: 0, total: 0, by: {} };
+      if (!wrongList) wrongList = [];
+      openQuiz(kind, () => {}, () => {});
+    },
     step(dt, n = 1) { for (let i = 0; i < n && state === 'play'; i++) update(dt); if (state === 'play') draw(); },
-    state: () => ({ state, elapsed, killCount, grade, hp: player && player.hp, level: player && player.level, enemies: enemies && enemies.length, boss: enemies && enemies.filter((e) => e.boss).map((e) => ({ name: e.name, hp: e.hp, shield: e.shield })), gems: gems && gems.length, eBullets: eBullets && eBullets.length, items: items && items.map((i) => i.type), quiz: quizStats, revives: revivesLeft, freeze: freezeTimer, hints: hintCharges, waves: waveCount, picked: itemsPicked }),
+    state: () => ({ state, elapsed, killCount, grade, sem, diff, subjects: [...subjects], studyMode, studyCount, studyCorrect, quizTimeLeft, currentQuiz, hp: player && player.hp, level: player && player.level, enemies: enemies && enemies.length, boss: enemies && enemies.filter((e) => e.boss).map((e) => ({ name: e.name, hp: e.hp, shield: e.shield })), gems: gems && gems.length, eBullets: eBullets && eBullets.length, items: items && items.map((i) => i.type), quiz: quizStats, revives: revivesLeft, freeze: freezeTimer, hints: hintCharges, waves: waveCount, picked: itemsPicked }),
     press(key, down) { keys[key] = down; },
     answerQuiz(ok) {
       if (state !== 'quiz') return 'no quiz';
+      const question = currentQuiz.text;
+      if (!$('quizInputRow').classList.contains('hidden')) {
+        $('quizInput').value = ok ? currentQuiz.choices[currentQuiz.answerIndex] : '__wrong__';
+        submitSubjective();
+        return question;
+      }
       const btns = ui.quizChoices.querySelectorAll('.quiz-choice');
       const idx = ok ? currentQuiz.answerIndex : (currentQuiz.answerIndex + 1) % btns.length;
       btns[idx].click();
-      return currentQuiz.text;
+      return question;
+    },
+    sampleProblems(n = 100) { return Array.from({ length: n }, () => makeProblem()); },
+    setQuizConfig(config) {
+      if (config.grade && P.GRADES[config.grade]) grade = config.grade;
+      if (config.sem === 1 || config.sem === 2) sem = config.sem;
+      if (config.diff && DIFFS[config.diff]) diff = config.diff;
+      if (Array.isArray(config.subjects) && config.subjects.length && config.subjects.every((s) => B.SUBJECTS[s])) subjects = [...config.subjects];
+      if (typeof config.subjective === 'boolean') subjectiveOn = config.subjective;
+      buildGradeGrid(); buildSemRow(); buildDiffRow(); buildSubjectRow(); updateSubjectiveButton();
     },
     setElapsed(t) { elapsed = t; },
     setMode(m) { mode = m; },
@@ -1897,7 +1963,8 @@
     },
     give(type) { dropItem(type, player.x + 10, player.y); },
     setP(key, lv) { player.passives[key] = lv; applyPassive(key); },
-  };
+    };
+  }
 
   // ---------- 메인 루프 ----------
   function loop(now) {
