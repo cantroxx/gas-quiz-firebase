@@ -10,11 +10,13 @@
 ## 현재 작업 재개 기준
 
 - `docs/operations/PROJECTS_WORK_ROADMAP_2026-09-01.md`: Projects 전체 작업 1~12단계의 실행 순서와 완료 상태 정본
+- `docs/operations/DEFERRED_FOLLOWUPS_AFTER_STEP_12.md`: 9~12단계 완료 뒤 일괄 처리할 안전·보존·출처 보류 목록
 - `docs/operations/WORKSPACE_STATUS_2026-09-01.md`: 작업 가능 여부와 게임별 상태를 이해하기 위한 첫 문서
 - `docs/architecture/RESUME_MEMO_2026-09-01.md`: 현재 Git·운영본과 교차검증한 작업 재개 기준
 - `docs/product/GAME_PROJECT_INVENTORY_2026-09-01.md`: Projects 전체 게임, 외부 퀴즈, 중복 계보
-- `public/mathsurvivor/game.js`의 2026-07-31 미완료 변경은 정상 완성본이 아니다. 재개 메모의 누락 DOM·API·온라인 연동을 복원하기 전 배포하지 않는다.
-- 별도 우선 지시가 없으면 로드맵의 첫 미완료 단계부터 진행하고, 단계 완료 후 상태와 검증 결과를 로드맵에 기록한다.
+- `public/mathsurvivor/game.js`의 2026-07-31 미완료 변경은 복구 작업선에 보존했고, A1·B1·B2·B3 로컬 기능은 로드맵 4단계에서 완성·검증했다. A2·A3·B4·B5는 학생 데이터·랭킹 영향을 별도 승인받기 전 배포하지 않는다.
+- 로드맵 1~12단계는 2026-09-02에 완료했다. 별도 우선 지시가 없으면 `DEFERRED_FOLLOWUPS_AFTER_STEP_12.md`의 `D-01`부터 진행하고 결과를 해당 문서에 기록한다.
+- 보완 목록의 데이터·공개 범위·운영 설정 금지선과 승인 게이트를 유지한다. 읽기 전용 확인과 안전한 로컬 문서 보완을 먼저 하고 삭제·마이그레이션·규칙 배포·원격 공개는 사용자 승인 후 진행한다.
 
 ## 폴더 구조
 

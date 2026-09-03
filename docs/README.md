@@ -15,9 +15,11 @@ Start with `architecture/PARALLEL_WORK_PLAN.md` when planning multiple terminals
 
 ## Current Handoff
 
-- `operations/PROJECTS_WORK_ROADMAP_2026-09-01.md`: Projects 전체 작업 1~12단계의 실행 순서·승인 게이트·완료 기준을 관리하는 정본
+- `operations/PROJECTS_WORK_ROADMAP_2026-09-01.md`: 완료된 Projects 전체 작업 1~12단계의 실행 결과·검증·승인 게이트 정본
 - `operations/WORKSPACE_STATUS_2026-09-01.md`: 작업 가능 여부, 게임별 상태, 현재 미커밋 변경, 안전한 재개 순서를 한 문서로 정리한 시작점
 - `operations/PROJECT_SAFETY_AUDIT_2026-09-02.md`: 유료 에셋·실명·학생 데이터·사전 라이선스의 공개 금지선과 승인 게이트
+- `operations/DEFERRED_FOLLOWUPS_AFTER_STEP_12.md`: 현재 다음 작업인 `D-01`~`D-12` 보존·저작권·운영 보류 항목과 승인 순서
+- `operations/COMMIT_CANDIDATES_AFTER_STEP_12_2026-09-03.md`: 미커밋 기능·README·정본 문서의 저장소별 커밋 후보와 검수 결과
 - `architecture/RESUME_MEMO_2026-09-01.md`: Claude 작업 기록을 현재 Git·운영본과 교차검증한 퀴즈타운 재개 기준
 - `product/GAME_PROJECT_INVENTORY_2026-09-01.md`: `/Users/kdw/Projects`의 독립 게임, 외부 퀴즈 링크, 중복 계보, 재개 상태
 
