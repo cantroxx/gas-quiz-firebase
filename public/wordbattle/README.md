@@ -139,7 +139,7 @@ gameScore = 만든 낱말 수 ×10  +  낸 자모 수 ×2  −  힌트 ×3  − 
 - **사전 판정·욕설필터** → `words.js` / 데이터는 `words-data.js`(자동 생성물, 직접 수정 금지)
 - **보안 규칙** → `../../firestore.rules` 의 `wordbattleRooms` / `wordbattleRanking`
 
-> ⚠️ 운영 사이트엔 학생 실데이터가 있다. Firestore 데이터 직접 수정, 요청 없는 `firebase deploy`는 금지(상위 `CLAUDE.md`).
+> ⚠️ 운영 사이트엔 학생 실데이터가 있다. Firestore 데이터 직접 수정, 요청 없는 `firebase deploy`는 금지(상위 `AGENTS.md`).
 
 ---
 
@@ -147,5 +147,6 @@ gameScore = 만든 낱말 수 ×10  +  낸 자모 수 ×2  −  힌트 ×3  − 
 
 - `words-data.js`의 출처와 가공 상태는 `DICTIONARY_NOTICE.md`에서 관리한다.
 - 국립국어원 「한국어 학습용 어휘 목록」은 공공누리 제1유형 출처 표시 조건을 따른다.
-- `hunspell-dict-ko` 파생 단어는 동일조건변경허락 조건이 포함될 수 있으므로, 사전 데이터만 떼어 무단 재배포하거나 다른 게임에 복사하지 않는다.
-- 현재 생성 스크립트·입력 버전이 보존되지 않아 상류 라이선스 버전을 하나로 확정할 수 없다. 재생성·재배포 전에는 입력 커밋과 생성 절차부터 복구한다.
+- 확장 입력으로 사용한 `hunspell-dict-ko` 0.7.94의 완성 `ko.dic`은 해당 릴리스의 `LICENSE.md`에 따라 GPL-3.0 결합 사전으로 안내한다. 입력 해시와 재현 절차는 `DICTIONARY_NOTICE.md`를 따른다.
+- `LICENSE.GPL-3`에는 상류 0.7.94 릴리스에 포함된 GPL-3.0 전문을 원문 그대로 보존한다.
+- 재생성 도구는 `scripts/audit/wordbattle/`에 있으며 현재 파일을 자동으로 덮어쓰지 않는다.

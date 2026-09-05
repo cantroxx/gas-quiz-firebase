@@ -1,0 +1,102 @@
+# D-01~D-12 일괄 보완 점검 결과
+
+점검일: 2026-09-03
+최종 재검증일: 2026-09-05
+범위: `/Users/kdw/Projects`의 15개 Git 저장소, 로컬 보관 폴더, 공개 배포 주소
+
+## 결론
+
+승인 없이 가능한 Git·배포·에셋·라이선스 읽기 전용 조사와 로컬 자동 검사를 완료했다. 원격에만 있는 새 커밋이나 예상하지 못한 미커밋 파일은 발견되지 않았다. 낱말대전 사전 provenance·GPL 전문과 KBO 장기 운영 규칙은 안전한 로컬 변경으로 보완했다. 2026-09-05 퀴즈타운 전체 검사와 KBO 전체 검사를 다시 통과했다.
+
+운영 데이터, Firebase·Kakao 콘솔, 학생·회원 정보는 조회·수정·삭제하지 않았다. 원격 생성·push·merge·deploy, 파일 이동·삭제, 공개 범위 변경도 실행하지 않았다.
+
+## Git과 원격 보존 상태
+
+`git ls-remote`로 실제 원격 `main`을 조회했으며, 원격에만 존재하는 커밋은 모든 연결 저장소에서 0개였다.
+
+| 저장소 | 현재 작업선 | 실제 원격 대비 | 판단 |
+| --- | --- | --- | --- |
+| `gas-quiz-firebase` | `codex/mathsurvivor-recovery` | `origin/main`보다 6개 앞섬 | 복구 브랜치 병합·push 결정 필요 |
+| `gas-quiz` | `main` | 1개 앞섬 | 지침 커밋 원격 보존 필요 |
+| `battle-school` | `main` | 2개 앞섬 | 기능·문서 원격 보존 필요 |
+| `kbo-owner` | `main` | 3개 앞섬, 이번 보완은 미커밋 | 실명 공개 결정 후 보존 방식 선택 |
+| `life-diary` | `main` | 원격 없음 | 비공개 원격 생성 필요 |
+| `seoul-math-game` | `main` | 1개 앞섬 | README 원격 보존 필요 |
+| `seoul-heritage-main` | `main` | 2개 앞섬 | 운영 보안 전환과 분리해 문서 보존 필요 |
+| `market-game` | `main` | 2개 앞섬 | 기능·README 원격 보존 필요 |
+| `dream-class` | `main` | 2개 앞섬 | 출처 불명 이미지 결정 전 공개 확대 금지 |
+| `special-storage` | `main` | 2개 앞섬 | 기능·README 원격 보존 필요 |
+| `climb-typing` | `main` | 2개 앞섬 | 소스 수정과 Pages 산출물 관계 결정 필요 |
+| `math-escape` | `main` | 2개 앞섬 | 검수 문제·README 원격 보존 필요 |
+| `black-design/detect-design` | `main` | 1개 앞섬 | README 원격 보존 필요 |
+| `habboasset/housing` | `main` | 1개 앞섬 | 에셋 공개 범위를 유지한 채 문서만 보존 필요 |
+| `quiztown-room-proto` | `main` | 원격 없음 | 코드 전용 비공개 원격 여부 결정 필요 |
+
+GitHub 공개 API에서 `battle-school`, `seoul-math-game`, `seoul-heritage`, `market-game`, `dream-class`, `special-marble`, `climb-typing`, `math-escape`, `detect-design`, `gas-quiz-firebase`는 공개 저장소로 확인됐다. `gas-quiz`, `kbo-owner`, `quiztown-housing`은 공개 API에 노출되지 않았으며, 로컬 자격으로는 원격 `main` 조회가 가능했다.
+
+Git 밖의 `/Users/kdw/Projects/AGENTS.md`는 SHA-256 `b70cf0dcada99ac2b07a411cccd8566eabaa0d32910c3dd5532b0f062f579238`로 확인하고 `PROJECTS_COMMON_AGENTS_SNAPSHOT_2026-09-03.md`에 보존했다.
+
+## 공개 배포와 로컬 원본 대조
+
+공개 주소 11개는 모두 HTTP 200으로 응답했다. 로컬 정식 빌드 또는 기준 HTML과 배포 HTML의 해시·번들 이름을 비교했다.
+
+| 프로젝트 | 결과 | 의미 |
+| --- | --- | --- |
+| `market-game` | 현재 로컬 빌드와 일치 | 배포 게임 코드 기준 확인 |
+| `dream-class` | 현재 로컬 빌드와 일치 | 기존 아바타도 현재 공개 배포에 포함됨 |
+| `special-storage` | 현재 로컬 빌드와 일치 | 배포 게임 코드 기준 확인 |
+| `detect-design` | 현재 로컬 기준 HTML과 일치 | `.vercel/project.json`의 프로젝트명도 `detect-design` |
+| `seoul-math-game` | 현재 로컬 `index.html`과 일치 | GitHub Pages 기준 확인 |
+| `seoul-heritage-main` | 현재 로컬 `index.html`과 일치 | 운영 보안 위험도 그대로 존재 |
+| `climb-typing` | 저장소의 기존 `docs/index.html`과 일치 | 새 `dist/`가 아니라 기존 Pages 산출물이 운영 기준 |
+| `battle-school` | 현재 로컬 빌드와 다름 | 9단계 기능은 아직 운영본에 반영되지 않음 |
+| `kbo-owner` | 현재 로컬 빌드와 다름 | 10단계와 이번 장기 규칙은 아직 운영본에 반영되지 않음 |
+| `math-escape` | 현재 로컬 빌드와 다름 | 검수된 문제·린트 수정은 아직 운영본에 반영되지 않음 |
+| `life-diary` | 전혀 다른 영문 Next.js 생활 기록 앱 | 현재 README의 운영 주소는 그림일기 게임 주소가 아님 |
+
+Vercel 대시보드의 저장소·브랜치 연결은 로그인되지 않은 상태라 확인하지 못했다. 설정 변경 없이 읽기 전용 확인을 계속하려면 사용자가 유지해 둔 Vercel 로그인 화면에서 먼저 로그인해야 한다.
+
+## 에셋·유일 원본 점검
+
+- `habboasset/housing`: 추적 가구 폴더 198개와 ignore된 신규 폴더 66개가 그대로 분리돼 있다. 원격은 공개 API에 노출되지 않지만 기존 추적 에셋의 권리 범위는 확인되지 않았다.
+- `quiztown-room-proto`: 유료 에셋 362개, 약 1.6MB가 모두 Git 미추적·ignore 상태다. 코드 저장소에는 에셋이 없다.
+- `asset-archive`: 약 34MB, 124개 파일과 `gas-quiz-firebase-pre-rewrite-20260708.bundle`이 로컬에 있다. 같은 디스크 밖의 2차 백업은 확인되지 않았다.
+- `dream-class`: 아바타 파일 24개는 실제 JPEG 형식의 1024×1024 이미지이며 13개 고유 파일로 구성된다. 두 Git 커밋의 생성 이력은 있으나 원본·생성 도구·사용권 메타데이터와 Claude 세션 기록은 찾지 못했다. 현재 공개 배포에도 포함돼 있다.
+- `life-diary`: 이벤트 23개와 엔딩 8개는 외부 파일 없는 코드 기반 장면, 효과음은 Web Audio 합성이다. 전용 이미지 28개는 아직 만들지 않았다.
+
+## 낱말대전 사전 provenance 복구
+
+Claude 세션에서 다음을 복구했다.
+
+- 국립국어원 2003년 한국어 학습용 어휘 XLS의 정확한 다운로드 URL
+- `hunspell-dict-ko` 릴리스 `0.7.94`와 다운로드 URL
+- 당시 `build_words.py`, `build_dict.js`의 전체 생성 로직
+- NFD→NFC 정규화, 한글 1~4글자, 1글자 제한, 활용 파편과 아동 유해어 필터
+
+입력 파일을 다시 내려받아 `DICTIONARY_NOTICE.md`에 SHA-256을 기록했다. 복구한 로직을 일반화한 두 스크립트로 80,774개 사전을 재생성했으며 기존 데이터 본문과 바이트 단위로 일치했다. 릴리스의 `LICENSE.md`에 따라 완성 `ko.dic`의 GPL-3.0 안내도 로컬에서 바로잡았다. 사전 본문은 바꾸지 않았다.
+
+상류 릴리스의 `LICENSE.GPL-3` 원문을 게임 경로에 보존하고 시작 화면에서 전문과 상세 고지를 연결했다. 다음 운영 배포에서는 이 파일과 변경된 크레딧이 함께 포함되는지만 확인하면 된다.
+
+## KBO 장기 규칙 보완
+
+- 계약이 0년으로 남는 대신, 미리 3년 재계약하지 않은 선수는 다음 시즌 1년 보류 계약과 20% 높은 연봉을 적용한다.
+- 새 시즌 시작 시 캠프와 현재 선수단 전력으로 구단 기대치를 다시 계산한다.
+- 관련 자동 검사를 추가했다.
+- 운영 시스템 검사, Oxlint, Vite 빌드, 120시즌 시뮬레이션을 통과했다.
+- 10개 구단·실명 선수 180명과 `noindex, nofollow`는 그대로 유지했다.
+
+## 학생 플레이테스트 준비
+
+`PLAYTEST_PROTOCOL_BATTLE_KBO_2026-09-03.md`에 이름·학교·학년·반·번호·계정·기기 정보 없이 선택형 결과만 받는 절차를 작성했다. 실제 학생 대상 실행이나 결과 수집은 하지 않았다.
+
+## 승인 전 실행하지 않은 작업
+
+1. 어떤 저장소도 push·merge·deploy하지 않음
+2. `life-diary`, `quiztown-room-proto` 원격을 만들지 않음
+3. Vercel 프로젝트·도메인·Git 연결을 바꾸지 않음
+4. Firebase·Kakao 콘솔과 학생 데이터를 조회하지 않음
+5. Firebase Rules·데이터 구조를 변경하거나 배포하지 않음
+6. 기존 에셋을 삭제·이동·교체하거나 공개 범위를 바꾸지 않음
+7. 학생 플레이테스트를 실행하거나 개인 정보를 수집하지 않음
+
+위 작업은 `DEFERRED_FOLLOWUPS_AFTER_STEP_12.md`의 승인 게이트와 사용자 결정을 따른다.

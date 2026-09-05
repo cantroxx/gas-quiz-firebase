@@ -11,6 +11,7 @@
 
 - `docs/operations/PROJECTS_WORK_ROADMAP_2026-09-01.md`: Projects 전체 작업 1~12단계의 실행 순서와 완료 상태 정본
 - `docs/operations/DEFERRED_FOLLOWUPS_AFTER_STEP_12.md`: 9~12단계 완료 뒤 일괄 처리할 안전·보존·출처 보류 목록
+- `docs/operations/DEFERRED_FOLLOWUPS_AUDIT_2026-09-03.md`: D-01~D-12 읽기 전용 조사·검증과 승인 대기 상태의 최신 보고서
 - `docs/operations/WORKSPACE_STATUS_2026-09-01.md`: 작업 가능 여부와 게임별 상태를 이해하기 위한 첫 문서
 - `docs/architecture/RESUME_MEMO_2026-09-01.md`: 현재 Git·운영본과 교차검증한 작업 재개 기준
 - `docs/product/GAME_PROJECT_INVENTORY_2026-09-01.md`: Projects 전체 게임, 외부 퀴즈, 중복 계보

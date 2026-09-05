@@ -61,7 +61,7 @@
         '<button class="big-btn ghost" id="btn-howto">📖 게임 방법 보기</button>' +
         '<p class="dict-note">사전 ' + dictSize.toLocaleString() + '개 낱말 · 사전에 없는 말은 게임 중 <b>제안</b>해서 친구들 동의를 받으면 돼요</p>' +
         '<a class="town-link" href="/">🏘️ 퀴즈타운으로</a>' +
-        '<p class="credit">어휘 출처: 국립국어원 학습용 어휘(공공누리 1유형) · hunspell-dict-ko(CC BY-SA 2.0 KR)</p>' +
+        '<p class="credit">어휘 출처: 국립국어원 학습용 어휘(공공누리 1유형) · hunspell-dict-ko 0.7.94(결합 사전 GPL-3.0) · <a href="DICTIONARY_NOTICE.md">상세</a> · <a href="LICENSE.GPL-3">GPL-3.0 전문</a></p>' +
       '</div></div>';
 
     document.getElementById('btn-howto').onclick = function () { global.WBTutorial.open(); };

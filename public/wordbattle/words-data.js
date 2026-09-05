@@ -2,13 +2,13 @@
  *
  * 출처:
  *  1) 국립국어원 「한국어 학습용 어휘 목록」 (2003) — 공공누리 제1유형
- *  2) spellcheck-ko/hunspell-dict-ko (ko.dic) — 국립국어원 사전 기반, CC BY-SA 2.0 KR
+ *  2) spellcheck-ko/hunspell-dict-ko 0.7.94 (ko.dic) — 결합 사전 GPL-3.0
  *     https://github.com/spellcheck-ko/hunspell-dict-ko
  * 순수 한글 1~4글자만 추리고, 욕설·성적·유해 낱말은 걸러냈습니다.
  * (완벽한 필터는 불가능하므로 교실에서 교사 지도 하에 이용하세요.)
  *
  * 총 80774개
- * 상세 출처·라이선스 및 현재 provenance 보류 사항: DICTIONARY_NOTICE.md
+ * 상세 입력 해시·생성 절차·라이선스: DICTIONARY_NOTICE.md
  */
 (function (global) {
   'use strict';
