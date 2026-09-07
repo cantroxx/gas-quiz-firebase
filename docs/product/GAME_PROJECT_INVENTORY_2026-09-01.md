@@ -4,7 +4,7 @@
 
 > 2026-09-06 갱신: `battle-school`·`math-escape` 자동 배포, `kbo-owner` 가명화 배포, `life-diary` 신규 비공개 원격·배포 주소를 반영했다. `dream-class` 아바타는 사용자 확인에 따라 AI 생성 데이터로 분류한다.
 
-> 2026-09-07 갱신: 퀴즈타운 복구 작업선과 연결 원격이 있는 독립 저장소를 모두 원격에 보존했다. `climb-typing` Pages는 공개 랭킹 일괄 삭제 경로가 제거된 산출물로 갱신했다. 문화유산은 실제 배포 RTDB 규칙의 위험을 확인했으며 학생 레코드는 열지 않았다. `quiztown-room-proto`의 코드 전용 비공개 원격만 승인 대기다.
+> 2026-09-07 갱신: 퀴즈타운 복구 작업선과 독립 저장소를 모두 원격에 보존했다. `climb-typing` Pages는 공개 랭킹 일괄 삭제 경로가 제거된 산출물로 갱신했다. 문화유산은 비공개 백업·익명 인증·로컬 UID 초안을 준비했고 원본 데이터와 운영 Rules는 유지했다. `quiztown-room-proto`도 코드 7개만 비공개 원격에 보존했다.
 
 ## 조사 기준
 
@@ -88,7 +88,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 
 - 위치: `/Users/kdw/Projects/quiztown-room-proto`
 - 파일 시각: 2026-07-08 경계
-- 상태: 로컬 Git 기준점 `90a2e03` 생성. 코드·문서 7개만 추적하며 Pixel Salvaje 유료 `assets/` 362개는 추적 제외. 비공개 원격 생성 승인 대기
+- 상태: 비공개 `cantroxx/quiztown-room-proto`에 코드·문서 7개만 Push. Pixel Salvaje 유료 `assets/` 362개는 추적·원격 제외
 - 계보: 현재 기준 구현은 `gas-quiz-firebase/public/housing/`이다.
 - 에셋은 재배포 금지이므로 공개 저장소에 포함하지 않는다.
 
@@ -101,7 +101,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 | 꿈의 교실 | `/Users/kdw/Projects/dream-class` | build smoke 통과, `bb4c06c` 원격·Vercel Production 확인. AI 생성 아바타 중복·확장자/실형식 정리는 선택 보류 |
 | 시장에 가면 | `/Users/kdw/Projects/market-game` | build smoke 통과, `bc9e010` 원격·Vercel Production 확인 |
 | 수학 마법학교 탈출 | `/Users/kdw/Projects/math-escape` | 11개 변경 정답 고정 검사·린트·빌드와 `b250878` 운영 반영 완료 |
-| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 실제 배포 RTDB의 학생 식별정보 공개 읽기·예측 키 쓰기 위험 확인. 학생 데이터 미열람, 삭제 없는 백업·UID 전환 승인 대기 |
+| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 비공개 백업과 익명 인증 완료. UID 호환 코드·V2 Rules는 로컬 브랜치 `aad3acf`에만 보존, 원본 데이터·운영 Rules 유지 |
 | 외계인 수학 침공 | `/Users/kdw/Projects/seoul-math-game` | 단일 `index.html`, 4학년 곱셈·나눗셈 기반 서울 지도 탈환. `bcf0614` 원격 보존과 Pages 응답 확인 |
 
 ## 퀴즈타운 내부 게임
