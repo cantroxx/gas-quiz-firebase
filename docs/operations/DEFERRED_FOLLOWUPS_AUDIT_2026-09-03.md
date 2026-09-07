@@ -1,7 +1,7 @@
 # D-01~D-12 일괄 보완 점검 결과
 
 점검일: 2026-09-03
-최종 재검증일: 2026-09-06
+최종 재검증일: 2026-09-07
 범위: `/Users/kdw/Projects`의 15개 Git 저장소, 로컬 보관 폴더, 공개 배포 주소
 
 ## 결론
@@ -9,6 +9,21 @@
 승인 없이 가능한 Git·배포·에셋·라이선스 읽기 전용 조사와 로컬 자동 검사를 완료했다. 원격에만 있는 새 커밋이나 예상하지 못한 미커밋 파일은 발견되지 않았다. 낱말대전 사전 provenance·GPL 전문과 KBO 장기 운영 규칙은 안전한 로컬 변경으로 보완했다. 2026-09-05 퀴즈타운 전체 검사와 KBO 전체 검사를 다시 통과했다.
 
 운영 데이터, Firebase·Kakao 콘솔, 학생·회원 정보는 조회·수정·삭제하지 않았다. 2026-09-06 사용자 승인 후 독립 게임 네 개에 한해 아래 원격 보존과 배포를 실행했으며 파일 삭제나 운영 데이터 변경은 없었다.
+
+> 2026-09-07 최신 상태: 아래 2026-09-03 표의 “앞섬” 표시는 당시 조사 이력이다. 사용자 승인 후 연결 원격이 있는 저장소는 모두 Push해 동기화했고, 퀴즈타운도 복구 작업선을 `main`에 fast-forward하여 `9929bbf`까지 원격 보존했다. Firebase Hosting·Functions·Rules와 학생 레코드는 변경하지 않았다.
+
+## 2026-09-07 최신 재검증
+
+| 범위 | 최신 결과 |
+| --- | --- |
+| 퀴즈타운 | `main`·`origin/main`이 `9929bbf`에서 일치, `npm run check` 전체 통과. 복구 브랜치는 삭제하지 않음. Firebase 배포는 하지 않음 |
+| 연결 원격 저장소 | 원격 전용 커밋이 0개임을 확인한 뒤 `dream-class`, `market-game`, `special-storage`, `climb-typing`, `seoul-math-game`, `seoul-heritage-main`, `detect-design`, `gas-quiz`, `habboasset/housing`까지 Push 완료 |
+| Vercel | `dream-class` `bb4c06c`, `market-game` `bc9e010`, `special-marble` `832d8b2`, `detect-design` `ad5de11`이 Production Ready이며 공개 주소 HTTP 200 확인 |
+| GitHub Pages | `seoul-math-game` 정상 응답. `climb-typing`은 공개 랭킹 일괄 삭제가 제거된 `docs/` 산출물 `4685526`을 Push하고 공개 HTML과 바이트 일치 확인 |
+| 문화유산 보안 | 배포 RTDB 규칙이 `users` 공개 읽기와 인증 없는 예측 키 쓰기를 허용함을 Firebase Console에서 확인. Google만 활성화, 익명 인증은 비활성. 학생 레코드·랭킹 내용은 열지 않았고 규칙·인증 설정도 변경하지 않음 |
+| 아직 원격 없는 프로젝트 | `quiztown-room-proto`만 해당. 추적 코드·문서 7개와 ignore된 유료 에셋 362개가 분리된 상태이며 비공개 원격 생성 승인 대기 |
+
+문화유산 게임은 규칙부터 잠그면 기존 사용자의 누적 기록 접근이 끊길 수 있다. 다음 단계는 삭제 없는 비공개 백업, UID 호환 복사, 전수 검증, 구 경로 잠금 순서이며 기존 레코드 삭제는 별도 승인 없이는 수행하지 않는다.
 
 ## Git과 원격 보존 상태
 
