@@ -14,6 +14,8 @@
 
 > 2026-09-08 문화유산 로컬 보완: 2,080명용 고유 전환 코드와 코드+PIN UID 귀속 흐름을 구현하고 합성 데이터 Emulator 보안 검사를 통과했다. 변경은 `codex/heritage-uid-transition`의 `3606bdd`까지만 로컬 보존했으며 운영 데이터·Rules·Pages는 변경하지 않았다.
 
+> 2026-09-08 승인 실행: Email/Password, V2 호환 Rules와 앱을 운영에 적용했다. 이후 신규 1명을 포함한 사용자 2,081명과 전환 코드 2,081개의 1:1 일치를 확인했다. 증분 업로드 중 전환 코드 하위 교체를 즉시 발견해 배부 전 복원했으며 기존 기록 영향은 없었다. 실제 학생 코드 사용은 아직 없고 최종 커밋은 `8786b01`이다.
+
 ## 2026-09-07 최신 재검증
 
 | 범위 | 최신 결과 |
@@ -22,10 +24,10 @@
 | 연결 원격 저장소 | 원격 전용 커밋이 0개임을 확인한 뒤 `dream-class`, `market-game`, `special-storage`, `climb-typing`, `seoul-math-game`, `seoul-heritage-main`, `detect-design`, `gas-quiz`, `habboasset/housing`까지 Push 완료 |
 | Vercel | `dream-class` `bb4c06c`, `market-game` `bc9e010`, `special-marble` `832d8b2`, `detect-design` `ad5de11`이 Production Ready이며 공개 주소 HTTP 200 확인 |
 | GitHub Pages | `seoul-math-game` 정상 응답. `climb-typing`은 공개 랭킹 일괄 삭제가 제거된 `docs/` 산출물 `4685526`을 Push하고 공개 HTML과 바이트 일치 확인 |
-| 문화유산 보안 | 배포 RTDB 위험 확인 후 `users` 2,080개·`rankings` 7주차 비공개 백업 완료. 익명 인증 활성화·자동 정리 비활성. 2,080개 고유 코드, 코드+PIN `usersV2`, 최소정보 `rankingsV2`를 로컬 `3606bdd`까지 구현하고 합성 데이터 Emulator 통과. 운영 적용은 승인 대기 |
+| 문화유산 보안 | `users` 2,080개·`rankings` 7주차 비공개 백업 후 코드+PIN 전환을 Emulator 검증했다. 승인 후 Email/Password·호환 Rules·앱을 운영 적용하고 현재 2,081명/2,081코드 전수 일치 및 Pages 확인 완료. 기존 기록 유지, V2 0건, 실제 학생 시험 전환 대기 |
 | 코드 전용 비공개 원격 | `quiztown-room-proto`를 비공개 `cantroxx/quiztown-room-proto`에 Push. 추적 코드·문서 7개만 존재하며 ignore된 유료 에셋 362개는 원격에 없음 |
 
-문화유산 게임은 규칙부터 잠그면 기존 사용자의 누적 기록 접근이 끊길 수 있다. 다음 단계는 Email/Password 활성화와 코드 seed·호환 앱·Rules 동시 적용 범위를 승인받고, 소수 시험 전환과 원본/V2 대조를 먼저 수행하는 것이다. 기존 레코드 삭제는 별도 승인 없이는 수행하지 않는다.
+문화유산 호환 기반은 운영에 적용됐다. 다음 단계는 교사가 확인 가능한 소수 대상에게만 코드를 배부하고 원본/V2 누적값을 대조하는 것이다. 기존 경로 잠금과 레코드 삭제는 별도 승인 없이는 수행하지 않는다.
 
 ## Git과 원격 보존 상태
 
