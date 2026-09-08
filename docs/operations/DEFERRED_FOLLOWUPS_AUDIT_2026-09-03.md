@@ -1,7 +1,7 @@
 # D-01~D-12 일괄 보완 점검 결과
 
 점검일: 2026-09-03
-최종 재검증일: 2026-09-07
+최종 재검증일: 2026-09-08
 범위: `/Users/kdw/Projects`의 15개 Git 저장소, 로컬 보관 폴더, 공개 배포 주소
 
 ## 결론
@@ -12,6 +12,8 @@
 
 > 2026-09-07 최신 상태: 아래 2026-09-03 표의 “앞섬” 표시는 당시 조사 이력이다. 사용자 승인 후 연결 원격이 있는 저장소는 모두 Push해 동기화했고, 퀴즈타운도 복구 작업선을 `main`에 fast-forward하여 `9929bbf`까지 원격 보존했다. Firebase Hosting·Functions·Rules와 학생 레코드는 변경하지 않았다.
 
+> 2026-09-08 문화유산 로컬 보완: 2,080명용 고유 전환 코드와 코드+PIN UID 귀속 흐름을 구현하고 합성 데이터 Emulator 보안 검사를 통과했다. 변경은 `codex/heritage-uid-transition`의 `3606bdd`까지만 로컬 보존했으며 운영 데이터·Rules·Pages는 변경하지 않았다.
+
 ## 2026-09-07 최신 재검증
 
 | 범위 | 최신 결과 |
@@ -20,10 +22,10 @@
 | 연결 원격 저장소 | 원격 전용 커밋이 0개임을 확인한 뒤 `dream-class`, `market-game`, `special-storage`, `climb-typing`, `seoul-math-game`, `seoul-heritage-main`, `detect-design`, `gas-quiz`, `habboasset/housing`까지 Push 완료 |
 | Vercel | `dream-class` `bb4c06c`, `market-game` `bc9e010`, `special-marble` `832d8b2`, `detect-design` `ad5de11`이 Production Ready이며 공개 주소 HTTP 200 확인 |
 | GitHub Pages | `seoul-math-game` 정상 응답. `climb-typing`은 공개 랭킹 일괄 삭제가 제거된 `docs/` 산출물 `4685526`을 Push하고 공개 HTML과 바이트 일치 확인 |
-| 문화유산 보안 | 배포 RTDB 위험 확인 후 승인된 `users` 2,080개·`rankings` 7주차 비공개 백업과 해시 검증 완료. 익명 인증 활성화, 자동 정리 비활성. UID 호환 초안은 로컬 브랜치 `aad3acf`에만 보존했고 원본 데이터·운영 Rules·Pages는 변경하지 않음 |
+| 문화유산 보안 | 배포 RTDB 위험 확인 후 `users` 2,080개·`rankings` 7주차 비공개 백업 완료. 익명 인증 활성화·자동 정리 비활성. 2,080개 고유 코드, 코드+PIN `usersV2`, 최소정보 `rankingsV2`를 로컬 `3606bdd`까지 구현하고 합성 데이터 Emulator 통과. 운영 적용은 승인 대기 |
 | 코드 전용 비공개 원격 | `quiztown-room-proto`를 비공개 `cantroxx/quiztown-room-proto`에 Push. 추적 코드·문서 7개만 존재하며 ignore된 유료 에셋 362개는 원격에 없음 |
 
-문화유산 게임은 규칙부터 잠그면 기존 사용자의 누적 기록 접근이 끊길 수 있다. 다음 단계는 삭제 없는 비공개 백업, UID 호환 복사, 전수 검증, 구 경로 잠금 순서이며 기존 레코드 삭제는 별도 승인 없이는 수행하지 않는다.
+문화유산 게임은 규칙부터 잠그면 기존 사용자의 누적 기록 접근이 끊길 수 있다. 다음 단계는 Email/Password 활성화와 코드 seed·호환 앱·Rules 동시 적용 범위를 승인받고, 소수 시험 전환과 원본/V2 대조를 먼저 수행하는 것이다. 기존 레코드 삭제는 별도 승인 없이는 수행하지 않는다.
 
 ## Git과 원격 보존 상태
 

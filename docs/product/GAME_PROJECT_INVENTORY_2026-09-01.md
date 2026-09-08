@@ -6,6 +6,8 @@
 
 > 2026-09-07 갱신: 퀴즈타운 복구 작업선과 독립 저장소를 모두 원격에 보존했다. `climb-typing` Pages는 공개 랭킹 일괄 삭제 경로가 제거된 산출물로 갱신했다. 문화유산은 비공개 백업·익명 인증·로컬 UID 초안을 준비했고 원본 데이터와 운영 Rules는 유지했다. `quiztown-room-proto`도 코드 7개만 비공개 원격에 보존했다.
 
+> 2026-09-08 갱신: 문화유산은 2,080명용 고유 전환 코드와 코드+PIN UID 귀속, 최소정보 V2 랭킹을 로컬 구현하고 합성 데이터 Emulator 검증을 통과했다. 운영 적용은 하지 않았다.
+
 ## 조사 기준
 
 - 기준일: 2026-09-01
@@ -20,7 +22,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 
 | 표시 이름 | 운영 주소 | 로컬 원본 | 재개 상태 |
 | --- | --- | --- | --- |
-| 문화유산 퀴즈 | <https://cantroxx.github.io/seoul-heritage/> | `/Users/kdw/Projects/seoul-heritage-main` | Git·배포 정상. RTDB 공개 읽기·예측 키 쓰기 위험 확인, 무삭제 전환 승인 대기 |
+| 문화유산 퀴즈 | <https://cantroxx.github.io/seoul-heritage/> | `/Users/kdw/Projects/seoul-heritage-main` | Git·배포 정상. 무삭제 UID 전환 로컬 검증 완료, 운영 적용 승인 대기 |
 | 외계인 퇴치 퀴즈 | <https://cantroxx.github.io/seoul-math-game/> | `/Users/kdw/Projects/seoul-math-game` | 2026-09-01 원격 저장소에서 복구. 배포본과 파일 해시 일치 |
 | 탐정 게임 | <https://detect-design.vercel.app/> | `/Users/kdw/Projects/black-design/detect-design` | Git 깨끗함. `npm run check` 통과 |
 | 올라타자 게임 | <https://cantroxx.github.io/climb-typing/> | `/Users/kdw/Projects/climb-typing` | 검사 통과. 공개 랭킹 일괄 삭제 경로 제거 빌드를 Pages에 반영 (`4685526`) |
@@ -101,7 +103,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 | 꿈의 교실 | `/Users/kdw/Projects/dream-class` | build smoke 통과, `bb4c06c` 원격·Vercel Production 확인. AI 생성 아바타 중복·확장자/실형식 정리는 선택 보류 |
 | 시장에 가면 | `/Users/kdw/Projects/market-game` | build smoke 통과, `bc9e010` 원격·Vercel Production 확인 |
 | 수학 마법학교 탈출 | `/Users/kdw/Projects/math-escape` | 11개 변경 정답 고정 검사·린트·빌드와 `b250878` 운영 반영 완료 |
-| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 비공개 백업과 익명 인증 완료. UID 호환 코드·V2 Rules는 로컬 브랜치 `aad3acf`에만 보존, 원본 데이터·운영 Rules 유지 |
+| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 비공개 백업·익명 인증과 2,080개 전환 코드 완료. 코드+PIN UID 흐름·V2 Rules·최소정보 랭킹은 로컬 브랜치 `3606bdd`까지 검증, 원본 데이터·운영 Rules 유지 |
 | 외계인 수학 침공 | `/Users/kdw/Projects/seoul-math-game` | 단일 `index.html`, 4학년 곱셈·나눗셈 기반 서울 지도 탈환. `bcf0614` 원격 보존과 Pages 응답 확인 |
 
 ## 퀴즈타운 내부 게임
