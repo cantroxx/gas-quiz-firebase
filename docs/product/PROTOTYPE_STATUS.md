@@ -558,12 +558,12 @@
 
 - Cloud Functions 런타임을 Node.js 22로 전환 완료
 - `firebase-functions`를 7.2.5로 갱신 완료
-- `firebase-admin`은 `firebase-functions` 7.2.5 peer dependency와 호환되는 13.x 범위로 유지
+- 현재 설치·운영본은 `firebase-functions` 7.3.2와 `firebase-admin` 14.3.0
 - `firebase deploy --only functions`에서 Node.js 22 업데이트 성공 확인
 - Node.js 20 deprecation deploy warning은 해소됨
-- `npm audit --omit=dev` 확인 결과, transitive Google client dependency 경로의 moderate 취약점이 남아 있음
-  - 자동 force fix는 `firebase-admin@14`로 올리며 현재 `firebase-functions@7.2.5` peer 범위와 충돌
-  - `firebase-functions`가 `firebase-admin@14`를 지원할 때 재검토 필요
+- 2026-09-09 두 직접 종속성을 함께 올리고 emulator·Functions 회귀 검증 후 운영 재배포 완료
+  - 재감사 결과 high 0건, moderate 8건, critical 0건
+  - 잔여 항목은 최신 Admin SDK의 Storage·Google client 전이 경로이며 npm이 제안하는 구버전 강제 다운그레이드는 적용하지 않음
 - 운영 백업 dry-run 스크립트 추가 및 실행 확인
   - `scripts/audit/export-operational-backup.js`
   - root collection 및 subcollection collectionGroup 백업 집계 확인

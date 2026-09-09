@@ -8,7 +8,9 @@
 
 > 2026-09-08 갱신: 문화유산은 2,080명용 고유 전환 코드와 코드+PIN UID 귀속, 최소정보 V2 랭킹을 로컬 구현하고 합성 데이터 Emulator 검증을 통과했다. 운영 적용은 하지 않았다.
 
-> 2026-09-08 승인 실행: 문화유산 Email/Password·호환 Rules·앱을 운영 적용했다. 신규 1명을 포함한 사용자 2,081명과 코드 2,081개가 전수 일치하며 기존 기록은 유지된다. 증분 코드 복원 기록과 재발 방지 도구는 `8786b01`에 보존했고 실제 학생 시험 전환은 대기 중이다.
+> 2026-09-08 승인 실행: 문화유산 Email/Password·호환 Rules·앱을 운영 적용했다. 신규 1명을 포함한 사용자 2,081명과 코드 2,081개가 전수 일치하며 기존 기록은 유지된다. 증분 코드 복원 기록과 재발 방지 도구는 `8786b01`에 보존했다.
+
+> 2026-09-09 최신 상태: 문화유산은 학교와 관계없는 자율 Game ID+PIN 가입을 운영 적용했다. `61117c7`에서 PIN 분실 시 자동 재설정 없이 새 ID로 시작하고 기존 기록을 보존하는 정책을 추가했고, `6f21ea3`까지 Pages에 반영했다. 전환 코드는 기존 기록을 가져올 때만 선택적으로 사용한다. 최신 전체 검증은 `../operations/FULL_HANDOFF_AUDIT_2026-09-09.md`를 따른다.
 
 ## 조사 기준
 
@@ -24,7 +26,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 
 | 표시 이름 | 운영 주소 | 로컬 원본 | 재개 상태 |
 | --- | --- | --- | --- |
-| 문화유산 퀴즈 | <https://cantroxx.github.io/seoul-heritage/> | `/Users/kdw/Projects/seoul-heritage-main` | 호환 UID 기반 운영 적용·Pages 확인 완료. 기존 기록 유지, 소수 시험 전환 대기 |
+| 문화유산 퀴즈 | <https://cantroxx.github.io/seoul-heritage/> | `/Users/kdw/Projects/seoul-heritage-main` | `6f21ea3` 자율 Game ID+PIN·무삭제 PIN 분실 정책 운영 적용. 기존 기록 유지, 전환 코드는 선택적 이전용 |
 | 외계인 퇴치 퀴즈 | <https://cantroxx.github.io/seoul-math-game/> | `/Users/kdw/Projects/seoul-math-game` | 2026-09-01 원격 저장소에서 복구. 배포본과 파일 해시 일치 |
 | 탐정 게임 | <https://detect-design.vercel.app/> | `/Users/kdw/Projects/black-design/detect-design` | Git 깨끗함. `npm run check` 통과 |
 | 올라타자 게임 | <https://cantroxx.github.io/climb-typing/> | `/Users/kdw/Projects/climb-typing` | 검사 통과. 공개 랭킹 일괄 삭제 경로 제거 빌드를 Pages에 반영 (`4685526`) |
@@ -105,7 +107,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 | 꿈의 교실 | `/Users/kdw/Projects/dream-class` | build smoke 통과, `bb4c06c` 원격·Vercel Production 확인. AI 생성 아바타 중복·확장자/실형식 정리는 선택 보류 |
 | 시장에 가면 | `/Users/kdw/Projects/market-game` | build smoke 통과, `bc9e010` 원격·Vercel Production 확인 |
 | 수학 마법학교 탈출 | `/Users/kdw/Projects/math-escape` | 11개 변경 정답 고정 검사·린트·빌드와 `b250878` 운영 반영 완료 |
-| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 비공개 백업 뒤 코드+PIN UID·V2 Rules·현재 2,081개 코드·최소정보 랭킹을 운영 적용. `8786b01` Pages 정상, 원본 데이터 유지·V2 0건·소수 시험 대기 |
+| 서울 문화유산 | `/Users/kdw/Projects/seoul-heritage-main` | 기존 데이터 무삭제 호환 위에 다학교 자율 Game ID+PIN 가입과 무삭제 PIN 분실 정책을 적용. `6f21ea3` Pages 정상, 전환 코드는 기존 기록 선택 이전용. 기존 경로 위험은 보류 |
 | 외계인 수학 침공 | `/Users/kdw/Projects/seoul-math-game` | 단일 `index.html`, 4학년 곱셈·나눗셈 기반 서울 지도 탈환. `bcf0614` 원격 보존과 Pages 응답 확인 |
 
 ## 퀴즈타운 내부 게임
@@ -134,7 +136,7 @@ Firestore `appSettings/externalQuizzes`와 `appSettings/featureFlags`를 읽기 
 
 현재 작업의 쓰기 루트는 `gas-quiz-firebase`다. 다른 게임을 수정할 때는 해당 폴더를 Codex의 별도 프로젝트로 열고 다음 순서를 지킨다.
 
-1. 상위 `/Users/kdw/Projects/CLAUDE.md`와 프로젝트별 `CLAUDE.md`·`AGENTS.md`를 읽는다.
+1. 상위와 프로젝트별 `AGENTS.md`를 읽는다. `CLAUDE.md`는 남아 있더라도 `AGENTS.md`를 가리키는 호환 포인터로만 취급한다.
 2. 이 인벤토리에서 해당 프로젝트의 계보와 미커밋 상태를 확인한다.
 3. `git status`, 최근 커밋, 배포 주소를 다시 확인한다.
 4. 미커밋 변경은 의도를 설명한 뒤 유지·수정·폐기 중 하나를 사용자와 결정한다.

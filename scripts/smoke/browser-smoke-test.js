@@ -560,6 +560,25 @@ async function runHousingShellCheck(page, config) {
   }
 }
 
+async function runIsolatedShellCheck(browser, config, pageErrors, check) {
+  const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  const page = await context.newPage();
+  const onPageError = error => pageErrors.push(error);
+  const onConsole = message => {
+    if(message.type() === 'error') pageErrors.push(new Error(message.text()));
+  };
+  page.on('pageerror', onPageError);
+  page.on('console', onConsole);
+  try {
+    await check(page, config);
+  } finally {
+    // 페이지 종료 자체가 만드는 Firebase 연결 종료 메시지는 검사 결과에 포함하지 않는다.
+    page.off('pageerror', onPageError);
+    page.off('console', onConsole);
+    await context.close();
+  }
+}
+
 async function main() {
   const config = getConfig();
   const { chromium } = requirePlaywright();
@@ -583,8 +602,8 @@ async function main() {
     await runPublicShellCheck(page, config);
     await runAccountEntryCheck(page);
     await runAdminShellCheck(page);
-    await runWordbattleShellCheck(page, config);
-    await runHousingShellCheck(page, config);
+    await runIsolatedShellCheck(browser, config, pageErrors, runWordbattleShellCheck);
+    await runIsolatedShellCheck(browser, config, pageErrors, runHousingShellCheck);
     if(!config.publicOnly) {
       await login(page, config);
       if(config.adminRead) await runAdminReadFlow(page);

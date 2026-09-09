@@ -16,21 +16,21 @@ Student data exports and service account files must stay local and must not be c
 Current Functions runtime target:
 
 - Node.js 22
-- `firebase-functions` 7.x
-- `firebase-admin` 13.x
+- installed `firebase-functions` 7.3.2
+- installed `firebase-admin` 14.3.0
 
 Firebase deploy previously warned that Node.js 20 was deprecated. The Functions package now targets Node.js 22 to avoid the upcoming Node.js 20 deploy block.
 
-Dependency audit note:
+Dependency audit note (upgraded and redeployed 2026-09-09):
 
-- `npm audit --omit=dev` currently reports moderate vulnerabilities through transitive Google client packages.
-- The available automatic fix requires `firebase-admin@14`, but current `firebase-functions@7.2.5` peer dependency supports `firebase-admin` up to v13.
-- Do not force-install `firebase-admin@14` until `firebase-functions` supports it or the server code is explicitly tested against that combination.
+- The direct dependencies were upgraded together to `firebase-functions@7.3.2` and `firebase-admin@14.3.0`. Static checks and all Functions definitions loaded in the emulator before the production deployment completed.
+- `npm audit --omit=dev` now reports high 0, moderate 8, critical 0. The former high `form-data` finding is gone.
+- The remaining findings are in the latest Admin SDK's Storage and Google client transitive paths. npm currently suggests incompatible old major versions as the full fix, so do not force-downgrade.
 
 Recommended cadence:
 
 - Re-run `npm audit --omit=dev` monthly.
-- Re-check `firebase-functions@latest` peer dependency before moving to `firebase-admin@14`.
+- Re-check the selected versions and their release notes immediately before upgrading.
 - Deploy Functions after dependency changes and confirm no runtime deprecation warning remains.
 
 ## Backup Procedure
