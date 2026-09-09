@@ -532,23 +532,31 @@ async function runFeatureEntryChecks(page) {
   }
 }
 
-async function runHousingShellCheck(page, config, pageErrors) {
-  // 하우징(내 방 꾸미기): 비로그인 상태에서 페이지가 뜨고,
-  // 게스트로 새는 대신 잠금 안내(재로그인/에셋 게이트)가 나오는지 확인
-  const errorCountBefore = pageErrors.length;
+async function runWordbattleShellCheck(page, config) {
+  await page.goto(`${config.baseUrl}/wordbattle/`, { waitUntil: 'domcontentloaded' });
+  await page.locator('#app').waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForTimeout(1000);
+  const bodyText = await page.locator('body').innerText();
+  assert.match(bodyText, /낱말 대전|연습 모드|온라인 대전|불러오는 중/, 'wordbattle shell should render');
+}
+
+async function runHousingShellCheck(page, config) {
+  // 운영에서는 비로그인 접근이 잠금 안내로, 로컬 개발에서는 합성 게스트 모드로 열린다.
   await page.goto(`${config.baseUrl}/housing/`, { waitUntil: 'domcontentloaded' });
   await page.locator('#room-canvas').waitFor({ state: 'attached', timeout: 15000 });
-  await page.waitForFunction(() => window.HousingData && window.HousingData.mode !== 'guest', null, { timeout: 20000 });
+  const isLocalBase = /localhost|127\.0\.0\.1/.test(new URL(config.baseUrl).hostname);
+  if(!isLocalBase) {
+    await page.waitForFunction(() => window.HousingData && window.HousingData.mode !== 'guest', null, { timeout: 20000 });
+  }
   const housing = await page.evaluate(() => ({
     mode: window.HousingData?.mode,
     bodyText: document.body.innerText
   }));
-  assert.equal(housing.mode, 'locked', `housing mode should be 'locked' for anonymous visitors, got '${housing.mode}'`);
-  assert.match(housing.bodyText, /로그인/, 'housing locked overlay should mention 로그인');
-  // 비로그인 진입 시 에셋 잠금이 내는 예상된 오류(login-required 등)는 통과시킨다
-  const allowed = /login-required|unauthorized|object-not-found|Missing or insufficient permissions/i;
-  for(let i = pageErrors.length - 1; i >= errorCountBefore; i -= 1) {
-    if(allowed.test(pageErrors[i]?.message || '')) pageErrors.splice(i, 1);
+  if(isLocalBase) {
+    assert.equal(housing.mode, 'guest', `local housing mode should be 'guest', got '${housing.mode}'`);
+  } else {
+    assert.equal(housing.mode, 'locked', `housing mode should be 'locked' for anonymous visitors, got '${housing.mode}'`);
+    assert.match(housing.bodyText, /로그인/, 'housing locked overlay should mention 로그인');
   }
 }
 
@@ -575,7 +583,8 @@ async function main() {
     await runPublicShellCheck(page, config);
     await runAccountEntryCheck(page);
     await runAdminShellCheck(page);
-    await runHousingShellCheck(page, config, pageErrors);
+    await runWordbattleShellCheck(page, config);
+    await runHousingShellCheck(page, config);
     if(!config.publicOnly) {
       await login(page, config);
       if(config.adminRead) await runAdminReadFlow(page);

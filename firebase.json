@@ -6,6 +6,9 @@
     "firestore": {
       "port": 8181
     },
+    "storage": {
+      "port": 9299
+    },
     "auth": {
       "port": 9191
     },

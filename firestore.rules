@@ -29,7 +29,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && request.auth.token.admin == true;
+      return isSignedIn()
+        && request.auth.token.get('admin', false) == true;
     }
 
     function hasNoForbiddenUserFields(data) {

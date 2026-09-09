@@ -134,8 +134,12 @@
         const code = error?.code || error?.message || '';
         if (String(code).includes('unauthorized') || String(code).includes('object-not-found')) {
             showGate('이 방 꾸미기는 우리 반 친구들만 쓸 수 있어요.<br>퀴즈타운에서 계정을 연결한 뒤 다시 와 주세요!');
+            window.HousingAssets.furni = {};
+            return { furni: {} };
         } else if (String(code).includes('login-required') || String(code).includes('firebase-unavailable')) {
             showGate('퀴즈타운에 로그인한 뒤에 들어올 수 있어요.');
+            window.HousingAssets.furni = {};
+            return { furni: {} };
         } else {
             showGate('가구 데이터를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.');
         }
