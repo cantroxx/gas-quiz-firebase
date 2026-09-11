@@ -5,15 +5,34 @@
   "buildCommand": "",
   "outputDirectory": "public/fraction-world",
   "redirects": [
-    { "source": "/fraction-world", "destination": "/", "permanent": false },
-    { "source": "/fraction-world/:path*", "destination": "/:path*", "permanent": false }
+    {
+      "source": "/fraction-world",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/fraction-world/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/fraction-world/:path*",
+      "destination": "/:path*",
+      "permanent": false
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
       ]
     }
   ]
