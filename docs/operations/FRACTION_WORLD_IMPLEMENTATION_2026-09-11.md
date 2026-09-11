@@ -2,6 +2,22 @@
 
 기준일: 2026-09-11
 
+## GitHub·Vercel 공개 배포 (후속 사용자 승인)
+
+사용자가 GitHub 업로드와 Vercel 배포를 명시적으로 요청하여 실행했다.
+
+- 게임 주소: <https://dj48-fraction-world.vercel.app/>
+- GitHub: <https://github.com/cantroxx/gas-quiz-firebase/tree/main/public/fraction-world>
+- 기능 커밋: `c9df201` (분수 월드 관련 29개 파일만 선택, 기존 낱말대전 변경 제외)
+- Vercel 프로젝트: `cantroxx7/dj48-fraction-world`, GitHub 저장소 연결 완료.
+- `vercel.json`: `public/fraction-world`만 게시하고 설치·빌드 명령은 생략하는 정적 배포.
+- `.vercelignore`: CLI 업로드도 게임 폴더와 Vercel 설정만 허용. 디렉터리 예외에는 끝 슬래시를 붙이지 않는다. 최초 제외 규칙으로 파일이 빠진 것을 확인하고 수정 후 재배포했다.
+- Vercel 루트 `/`에서 두 게임 실행. `/fraction-world/` 경로도 루트로 연결.
+- 게임 광장 복귀 링크는 Firebase 운영 주소로 연결한다.
+- 변경 후 `npm run check` 전체 통과. 공개 Vercel 응답과 브라우저 로비/게임 진입을 확인했다.
+- Firebase 자체는 배포하지 않았으며 운영 데이터·Rules·Functions는 변경하지 않았다.
+- 기기 내 저장은 사이트 주소별로 분리된다. 로컬 미리보기 기록이 Vercel 주소로 자동 이전되지는 않는다.
+
 ## 구현 상태
 
 사용자 요청에 따라 두 게임을 짧은 시범판이 아니라 종료·결과·재도전까지 있는 독립 캠페인으로 구현했다. 제품 설계 정본은 `docs/product/FRACTION_WORLD_DESIGN_2026-09-11.md`다.
@@ -66,9 +82,9 @@ npm run smoke:fractions:combat
 
 ## 운영 변경 범위
 
-이번 작업은 로컬 구현이다. Firebase Hosting 배포, Functions/Rules 변경, 운영 학생 데이터 수정, 랭킹/코인 연동, Git commit/push는 수행하지 않았다.
+초기 구현 단계는 로컬에서 완료했고, 후속 사용자 승인으로 GitHub commit/push와 Vercel 배포를 실행했다. Firebase Hosting 배포, Functions/Rules 변경, 운영 학생 데이터 수정, 랭킹/코인 연동은 수행하지 않았다.
 
-학생에게 운영 URL로 제공하려면 검증한 Hosting 변경을 별도 배포해야 한다. 동일 작업 트리에 기존 낱말대전 변경이 있으므로 배포 전 포함할 파일을 점검해야 한다. 이번 작업에서는 기존 낱말대전 파일을 수정하지 않았다.
+학생에게는 위 Vercel 주소를 제공할 수 있다. Firebase 퀴즈타운 자체에도 반영하려면 Hosting을 별도 배포해야 한다. 동일 작업 트리에 기존 낱말대전 변경이 있으므로 배포 전 포함할 파일을 점검해야 한다. 이번 작업에서는 기존 낱말대전 파일을 수정하지 않았다.
 
 ## 알려진 제품 범위
 
