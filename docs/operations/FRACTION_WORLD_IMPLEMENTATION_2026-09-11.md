@@ -2,6 +2,17 @@
 
 기준일: 2026-09-11
 
+## 퀴즈타운 온라인 대전 카드 운영 반영 (후속 승인)
+
+사용자가 “네 운영화면에 배포”로 명시적으로 승인하여 온라인 대전 입장 카드를 Firebase 운영 화면에 반영했다.
+
+- 진입: <https://dj48-quiztown-firebase.web.app/battle/> → 분수 월드 → <https://dj48-fraction-world.vercel.app/>
+- 변경 파일: `/battle/index.html` 한 개. 기존 운영 338개 중 나머지 337개 파일의 해시는 그대로 보존했다.
+- 기존 Hosting 설정도 그대로 복제했으며 Firestore·Storage 데이터, Rules, Functions는 변경하지 않았다.
+- 이전 Hosting 버전: `a182f0f601c0809f`; 반영 버전: `10650e5538b65bdb`.
+- 로컬 전체 `npm run check` 통과 후 적용. 공개 HTML과 로컬 입장 화면의 일치를 확인한다.
+- 기존 미커밋 낱말대전 변경은 이번 배포에 포함하지 않았다.
+
 ## GitHub·Vercel 공개 배포 (후속 사용자 승인)
 
 사용자가 GitHub 업로드와 Vercel 배포를 명시적으로 요청하여 실행했다.
