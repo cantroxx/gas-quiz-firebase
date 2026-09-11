@@ -14,12 +14,13 @@
   function validRun(s, type) {
     if (!s || s.version !== 1 || !['hard', 'expert'].includes(s.difficulty)) return null;
     if (type === 'tower') {
-      if (!finite(s.hp, 0, 200) || !Number.isInteger(s.room) || !finite(s.room, 1, 24) ||
+      if (!finite(s.hp, 0, 500) || !Number.isInteger(s.room) || !finite(s.room, 1, 24) ||
           !known(FWContent.weapons, s.weapon) || !Array.isArray(s.relics) || s.relics.length > 8 ||
           !s.relics.every(id => known(FWContent.relics, id)) || new Set(s.relics).size !== s.relics.length ||
           !Array.isArray(s.offers) || !s.offers.every(id => known(FWContent.relics, id)) ||
           !['route', 'charge', 'combat', 'reward', 'ended'].includes(s.phase) ||
           !finite(s.crystals) || !finite(s.kills) || !finite(s.best, 0, 24)) return null;
+      s.upgrades=Object.fromEntries(Object.entries(s.upgrades&&typeof s.upgrades==='object'?s.upgrades:{}).filter(([id,n])=>known(FWContent.relics,id)&&Number.isInteger(n)&&n>=0&&n<=3));
       if (s.combat) {
         const b = s.combat;
         if (!b.p || !['x', 'y', 'inv', 'dash', 'skill', 'burst', 'dx', 'dy'].every(k => finite(b.p[k], -1000, 10000)) ||

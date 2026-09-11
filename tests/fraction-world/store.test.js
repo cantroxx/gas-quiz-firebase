@@ -10,3 +10,5 @@ b=boot(JSON.stringify(parsed));assert.equal(b.store.get().studio,null);assert.eq
 b=boot('{bad json');assert.ok(b.store.warning());assert.equal(b.getRaw(),'{bad json');
 b=boot(null,true);b.store.get().total=9;assert.equal(b.store.save(),false);assert.ok(b.store.warning());assert.equal(b.store.get().total,9);
 console.log('Fraction World storage: run restore, slot isolation, partial corruption recovery, malformed JSON preservation, quota failure passed.');
+const legacy=JSON.parse(a.getRaw());delete legacy.slots[0].tower.upgrades;b=boot(JSON.stringify(legacy));assert.equal(b.store.get().tower.weapon,'wand');assert.equal(Object.keys(b.store.get().tower.upgrades).length,0);
+legacy.slots[0].tower.upgrades={heart:3,ember:999,unknown:2,frost:-1};legacy.slots[0].tower.hp=210;b=boot(JSON.stringify(legacy));assert.equal(b.store.get().tower.upgrades.heart,3);assert.equal(Object.keys(b.store.get().tower.upgrades).length,1);assert.equal(b.store.get().tower.hp,210);
