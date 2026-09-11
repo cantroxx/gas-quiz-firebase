@@ -17,7 +17,7 @@
       skillCooldown:9*(has('clock')?.8:1),skillDamage:75*(has('nova')?1.6:1)*(tags.star>=3?1.3:1),freeze:has('frost')?.65:1,crit:has('crit')?.2:0,tags};
   }
   function roomSpec(s){const biome=Math.min(3,Math.floor((s.room-1)/6));const boss=s.room%6===0;const elite=s.route==='elite';
-    return {biome,boss,elite,count:boss?1:5+biome*2+(s.room%6)+(elite?3:0),hpScale:1+biome*.38+s.room*.045+(elite?.3:0),damageScale:(s.difficulty==='expert'?1.35:1)*(1+biome*.13),reward:boss?45:elite?30:18};}
+    return {biome,boss,elite,count:boss?1:10+biome*3+(s.room%6)+(elite?3:0),hpScale:1+biome*.38+s.room*.045+(elite?.3:0),damageScale:(s.difficulty==='expert'?1.35:1)*(1+biome*.13),reward:boss?45:elite?30:18};}
   function offers(s,rng=Math.random){let pool=C.relics.filter(r=>!s.relics.includes(r.id)).map(r=>r.id);const out=[];while(pool.length&&out.length<3)out.push(pool.splice(Math.floor(rng()*pool.length),1)[0]);return out;}
   function completeRoom(s,rng=Math.random){if(s.phase!=='combat')return false;s.best=Math.max(s.best,s.room);s.crystals+=roomSpec(s).reward+(s.relics.includes('luck')?8:0);s.hp=Math.min(stats(s).maxHp,s.hp+(s.relics.includes('heal')?10:0));s.offers=offers(s,rng);s.phase='reward';return true;}
   function equip(s,id,replace){

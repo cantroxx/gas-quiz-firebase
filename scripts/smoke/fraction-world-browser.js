@@ -31,7 +31,8 @@ async function main(){
  await page.click('#home-button');await page.selectOption('#save-slot','1');assert.equal(await page.evaluate(()=>FWStore.get().tower),null);
  await page.click('#enter-studio');await page.click('[data-diff="expert"]');await page.click('#studio-start');
  await page.click('[data-tab="facilities"]');assert.ok(await page.locator('[data-facility]').count()===6);await page.click('[data-tab="schedule"]');
- // Complete a full season through actual controls and all 184 math questions.
+ await page.click('[data-focus="lumi"]');
+ // Complete a full season through actual controls and all 100 math questions.
  for(let day=1;day<=28;day++){
   assert.equal(await page.evaluate(()=>FWStore.get().studio.day),day);
   if([8,15,22].includes(day)){await page.click('[data-tab="music"]');await page.click(`[data-song="${day===8?'moon':day===15?'run':'first'}"]`);await page.click('[data-tab="schedule"]');}
@@ -39,11 +40,11 @@ async function main(){
   const choices=witness.sequence.slice((day-1)*3,day*3);for(let i=0;i<3;i++){await page.click(`[data-slot="${i}"]`);await page.click(`[data-activity="${choices[i]}"]`);}
   await page.click('#execute-day');if(day===1){await page.click('#quiz-exit');await page.reload();await page.click('#enter-studio');await page.click('#resume-day');}
   await solve();if(await page.locator('[data-event="1"]').count())await page.click('[data-event="1"]');
-  if(day%7===0){await page.click('#perform');await solve();}
+  if(day%7===0){await page.click('#perform');await solve();await page.click('#live-start');await page.waitForSelector('#next-day',{timeout:20000});assert.equal(await page.evaluate(()=>FWStore.get().studio.last.concert.accuracy),0);}
   if(day===27)await page.screenshot({path:'/tmp/fraction-world-studio.png'});
   await page.click('#next-day');
  }
- assert.equal(await page.evaluate(()=>FWStore.get().studio.cleared),true);assert.equal(await page.evaluate(()=>FWStore.get().total),184);assert.equal(await page.evaluate(()=>FWStore.get().studio.history.length),4);
+ assert.equal(await page.evaluate(()=>FWStore.get().studio.cleared),true);assert.equal(await page.evaluate(()=>FWStore.get().total),100);assert.equal(await page.evaluate(()=>FWStore.get().studio.history.length),4);
  await page.screenshot({path:'/tmp/fraction-world-studio-result.png'});
  await page.click('#home-button');await page.click('#journal-button');assert.equal(await page.locator('.journal-row').count(),6);await page.click('#home-button');
  for(const size of [{width:820,height:1180},{width:1024,height:768},{width:600,height:960}]){await page.setViewportSize(size);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`horizontal overflow at ${size.width}`);await page.click('#enter-studio');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.click('#home-button');}
@@ -53,7 +54,7 @@ async function main(){
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width*.8,y:box.y+box.height/2,id:1}]});await page.waitForTimeout(150);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await stick.locator('i').evaluate(e=>e.style.transform),'');await cdp.detach();
  await page.click('#home-button');
- assert.deepEqual(errors,[]);console.log('Fraction World browser: full expert season / 184 answers, wrong-answer retry, tower controls and checkpoint, independent slots, reload, journal, 3 tablet sizes passed.');
+ assert.deepEqual(errors,[]);console.log('Fraction World browser: full expert season / 100 answers, wrong-answer retry, tower controls and checkpoint, independent slots, reload, journal, 3 tablet sizes passed.');
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

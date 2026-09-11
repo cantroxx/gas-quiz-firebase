@@ -22,3 +22,6 @@ for(let day=1;day<=28;day++){
 assert.equal(s.phase,'ended');assert.equal(s.history.length,4);assert.ok(!s.cleared,'Resting and busking alone must not clear the season');
 const a=S.create(['lumi','rio','sora']),b=JSON.parse(JSON.stringify(a));a.members.forEach(m=>m.energy=10);S.applyDay(a,['vocal','vocal','vocal']);S.applyDay(b,['vocal','vocal','vocal']);assert.ok(S.average(a,'vocal')<S.average(b,'vocal'));
 console.log('Fraction World domain: 18,000 generated problems, 6 full tower equipment runs, season transitions, economy, fatigue and failure gates passed.');
+
+// Focus creates a distinct growth path; failed/repeated actions cannot award XP twice.
+{const D=require('../../public/fraction-world/studio-domain.js');const s=D.create(['lumi','rio','sora']);D.focus(s,'lumi');D.applyDay(s,['vocal','rest','vocal']);assert.ok(D.growth(s.members[0]).xp>D.growth(s.members[1]).xp);const xp=s.members[0].xp;assert.throws(()=>D.applyDay(s,['vocal','rest','vocal']));assert.equal(s.members[0].xp,xp);assert.equal(D.rhythmGrade(0),100);assert.equal(D.rhythmGrade(.15),70);assert.equal(D.rhythmGrade(-.23),35);assert.equal(D.rhythmGrade(.28),0);s.phase='concert';s.day=7;const base=D.forecast(s).score;const r=D.perform(s,1000);assert.equal(r.score,base+5);assert.equal(r.accuracy,100);assert.throws(()=>D.perform(s,100));}
