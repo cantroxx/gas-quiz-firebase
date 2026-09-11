@@ -15,6 +15,8 @@ Start with `architecture/PARALLEL_WORK_PLAN.md` when planning multiple terminals
 
 ## Current Handoff
 
+- `operations/FRACTION_WORLD_IMPLEMENTATION_2026-09-11.md`: 분수 월드 두 게임의 구현·실행·검증·로컬 저장 및 배포 범위
+- `product/FRACTION_WORLD_DESIGN_2026-09-11.md`: 균열의 탑 24방과 스타라이트 스튜디오 28일 시즌의 콘텐츠·학습 설계
 - `operations/FULL_HANDOFF_AUDIT_2026-09-09.md`: Claude 이관 완결성, 15개 저장소·자동 검사·공개 배포 대조, 최신 오류와 후속 우선순위의 현재 정본
 - `operations/PROJECTS_WORK_ROADMAP_2026-09-01.md`: 완료된 Projects 전체 작업 1~12단계의 실행 결과·검증·승인 게이트 정본
 - `operations/WORKSPACE_STATUS_2026-09-01.md`: 작업 가능 여부, 게임별 상태, 현재 변경과 안전한 재개 순서를 한 문서로 정리한 시작점

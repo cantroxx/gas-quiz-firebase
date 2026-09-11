@@ -1,0 +1,7 @@
+# Only the standalone Fraction World game belongs in the Vercel deployment.
+*
+!vercel.json
+!public/
+public/*
+!public/fraction-world/
+!public/fraction-world/**
