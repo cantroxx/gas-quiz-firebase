@@ -23,6 +23,7 @@
       s.upgrades=Object.fromEntries(Object.entries(s.upgrades&&typeof s.upgrades==='object'?s.upgrades:{}).filter(([id,n])=>known(FWContent.relics,id)&&Number.isInteger(n)&&n>=0&&n<=3));
       if (s.combat) {
         const b = s.combat;
+        b.pending=Array.isArray(b.pending)?b.pending.filter(f=>f&&f.kind==='meteor'&&finite(f.x,0,960)&&finite(f.y,0,600)&&finite(f.delay,0,1)&&finite(f.damage,0,10000)&&finite(f.radius,0,300)):[];
         if (!b.p || !['x', 'y', 'inv', 'dash', 'skill', 'burst', 'dx', 'dy'].every(k => finite(b.p[k], -1000, 10000)) ||
             !['enemies', 'bullets', 'shots'].every(k => Array.isArray(b[k]) && b[k].length < 1000 && b[k].every(o => o && finite(o.x, -2000, 3000) && finite(o.y, -2000, 3000))) ||
             !finite(b.time) || !finite(b.spawned)) return null;

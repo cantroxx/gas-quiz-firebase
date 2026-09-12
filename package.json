@@ -10,7 +10,7 @@
     "test:infrastructure": "node tests/infrastructure/ranking-repository.test.js && node tests/infrastructure/quiz-repository.test.js && node tests/infrastructure/account-repository.test.js && node tests/infrastructure/home-repository.test.js && node tests/infrastructure/profile-repository.test.js && node tests/infrastructure/shop-repository.test.js && node tests/infrastructure/admin-repository.test.js && node tests/infrastructure/classroom-repository.test.js && node tests/infrastructure/event-repository.test.js",
     "test:rules": "firebase emulators:exec --project demo-dj48-rules --only firestore,storage \"node tests/rules/firebase-rules.test.js\"",
     "smoke:browser": "node scripts/smoke/browser-smoke-test.js",
-    "test:fractions": "node tests/fraction-world/domain.test.js && node tests/fraction-world/balance.test.js && node tests/fraction-world/store.test.js",
+    "test:fractions": "node tests/fraction-world/domain.test.js && node tests/fraction-world/balance.test.js && node tests/fraction-world/store.test.js && node tests/fraction-world/combat.test.js",
     "smoke:fractions": "node scripts/smoke/fraction-world-browser.js",
     "smoke:fractions:combat": "node scripts/smoke/fraction-world-combat.js"
   },

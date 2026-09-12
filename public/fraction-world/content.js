@@ -10,11 +10,11 @@
     ],
     weapons: [
       { id: 'wand', name: '별빛 지팡이', icon: '✦', desc: '균형 잡힌 원거리 마법', damage: 20, interval: .58, speed: 390, count: 1, color: '#9ef6d0' },
-      { id: 'bow', name: '유성 활', icon: '➶', desc: '빠른 단일 공격 · 정밀한 사냥', damage: 15, interval: .35, speed: 570, count: 1, color: '#ffdb8a' },
-      { id: 'fan', name: '달의 부채', icon: '❋', desc: '세 갈래 공격 · 가까이서 강력', damage: 10, interval: .8, speed: 310, count: 3, color: '#e6a8ff' },
-      { id: 'orb', name: '서리 보주', icon: '❄', desc: '느리지만 묵직한 관통탄', damage: 34, interval: .9, speed: 260, count: 1, pierce: 2, color: '#91d8ff' },
+      { id: 'bow', name: '유성 활', icon: '➶', desc: '빠른 화살 · 적 하나를 관통', pierce: 1, damage: 15, interval: .35, speed: 570, count: 1, color: '#ffdb8a' },
+      { id: 'fan', name: '달의 부채', icon: '❋', desc: '세 갈래 달날 · 돌아오는 부메랑', damage: 10, interval: .8, speed: 310, count: 3, color: '#e6a8ff' },
+      { id: 'orb', name: '서리 보주', icon: '❄', desc: '관통하는 얼음탄 · 짧은 냉각', damage: 34, interval: .9, speed: 260, count: 1, pierce: 2, color: '#91d8ff' },
       { id: 'needle', name: '번개 바늘', icon: 'ϟ', desc: '초고속 연사 · 낮은 한 발 위력', damage: 8, interval: .2, speed: 620, count: 1, color: '#fff18b' },
-      { id: 'comet', name: '혜성 대포', icon: '☄', desc: '강력한 두 발 · 긴 공격 간격', damage: 27, interval: 1.15, speed: 360, count: 2, color: '#ffa78f' }
+      { id: 'comet', name: '혜성 대포', icon: '☄', desc: '폭발하는 두 발 · 주변에 추가 피해', damage: 27, interval: 1.15, speed: 360, count: 2, color: '#ffa78f' }
     ],
     relics: [
       ['ember','잿불 씨앗','🔥','공격력 +22%','fire'], ['frost','서리 눈꽃','❄','맞은 적의 이동 속도 감소','ice'],

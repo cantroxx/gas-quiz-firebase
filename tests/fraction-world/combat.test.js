@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('node:assert/strict'),C=require('../../public/fraction-world/combat-domain.js');
+const p={x:480,y:300,dx:1,dy:0};
+assert.ok(C.inBeam(p,{x:700,y:320,r:10},0));
+assert.equal(C.inBeam(p,{x:400,y:300,r:10},0),false);
+assert.equal(C.inBeam(p,{x:700,y:370,r:10},0),false);
+const targets=Array.from({length:9},(_,i)=>({x:490+i*20,y:300,hp:100,id:i}));
+assert.equal(C.chain(p,targets).length,6);assert.equal(new Set(C.chain(p,targets)).size,6);
+assert.equal(C.chain(p,[{x:20,y:20,hp:100}]).length,0);
+assert.deepEqual(C.meteorPoint(p,targets),{x:490,y:300});
+assert.deepEqual(C.meteorPoint({x:920,y:580,dx:1,dy:1},[]),{x:900,y:540});
+const fan={x:700,y:300,vx:310,vy:0,age:.5,life:2,style:'fan'};C.stepBullet(fan,.1,p);assert.ok(fan.x<700);assert.ok(fan.vx<0);
+fan.x=490;C.stepBullet(fan,.01,p);assert.equal(fan.life,0);
+const blade={x:0,y:0,orbit:0,age:0,life:2};C.stepBullet(blade,.1,p);assert.ok(Math.abs(Math.hypot(blade.x-p.x,blade.y-p.y)-74.5)<1e-8);
+console.log('Combat geometry: directional beam, bounded chain, meteor targeting, returning fan and moving orbit passed.');
