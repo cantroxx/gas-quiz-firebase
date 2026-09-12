@@ -24,7 +24,7 @@
   else if(f.kind==='chain'){f.nodes.forEach((node,i)=>{if(!i)return;const prev=f.nodes[i-1],points=[prev];for(let n=1;n<6;n++)points.push({x:prev.x+(node.x-prev.x)*n/6+Math.sin(n*9+t*16)*9,y:prev.y+(node.y-prev.y)*n/6+Math.cos(n*7+t*19)*9});points.push(node);line(c,points,color,5);line(c,points,'#fff',2);});}
   else if(f.kind==='ghost'){c.globalAlpha=f.life/f.max*.45;sprite(c,'hero-motion-v2',4,2,6,f.x-30,f.y-49,60,80);}
   else if(f.kind==='death'){c.globalAlpha=1-t;star(c,f.x,f.y,6+t*28,color,8,t);}
-  else {const r=(f.radius||200)*(f.kind==='meteor-mark'?1:.15+t*.85);c.strokeStyle=color;c.lineWidth=f.kind==='meteor-mark'?3:Math.max(1,7*(1-t));c.beginPath();c.arc(f.x,f.y,r,0,Math.PI*2);c.stroke();if(f.kind==='meteor-mark'){line(c,[{x:f.x-r*.6,y:f.y},{x:f.x+r*.6,y:f.y}],color,2);line(c,[{x:f.x,y:f.y-r*.6},{x:f.x,y:f.y+r*.6}],color,2);star(c,f.x-150*(1-t),f.y-320*(1-t),12+t*14,'#ffe3ba',6,t);}
+  else {const r=(f.radius||200)*(['meteor-mark','nova'].includes(f.kind)?1:.15+t*.85);c.strokeStyle=color;c.lineWidth=f.kind==='meteor-mark'?3:Math.max(1,7*(1-t));c.beginPath();c.arc(f.x,f.y,r,0,Math.PI*2);c.stroke();if(f.kind==='meteor-mark'){line(c,[{x:f.x-r*.6,y:f.y},{x:f.x+r*.6,y:f.y}],color,2);line(c,[{x:f.x,y:f.y-r*.6},{x:f.x,y:f.y+r*.6}],color,2);star(c,f.x-150*(1-t),f.y-320*(1-t),12+t*14,'#ffe3ba',6,t);}
    else{for(let i=0;i<12;i++){const a=i*Math.PI/6+t;star(c,f.x+Math.cos(a)*r,f.y+Math.sin(a)*r,f.kind==='frost'?9:5,color,f.kind==='frost'?4:5,a);}c.globalAlpha*=.12;c.fillStyle=color;c.beginPath();c.arc(f.x,f.y,r,0,Math.PI*2);c.fill();}}
   c.restore();
  }

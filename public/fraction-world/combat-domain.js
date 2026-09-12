@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  const kits={
-  wand:{name:'별의 파동',desc:'주변 230 범위에 별빛 폭발',kind:'nova',color:'#9ef6d0'},
+  wand:{name:'별의 파동',desc:'내 주변 적에게 피해 + 가까운 적 탄 제거',kind:'nova',color:'#9ef6d0'},
   bow:{name:'유성 관통',desc:'바라보는 적 방향으로 긴 관통 사격',kind:'beam',color:'#ffdb8a'},
   fan:{name:'달의 윤무',desc:'8개의 달날이 주위를 돌며 적을 베어요',kind:'blades',color:'#e6a8ff'},
   orb:{name:'빙결 지대',desc:'주변 적에게 피해 · 3초 동안 이동 냉각',kind:'frost',color:'#91d8ff'},

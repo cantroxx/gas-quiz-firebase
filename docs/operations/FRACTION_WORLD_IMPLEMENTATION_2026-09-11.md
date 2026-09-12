@@ -146,3 +146,12 @@ npm run smoke:fractions:combat
 - 생성: built-in image_gen, 신규 PNG 4개(무기 6셀, 주인공 8셀, 보스 4셀, 스튜디오 9셀). 프롬프트 정본: `docs/product/fraction-world-art/ART_V2_PROMPTS_2026-09-12.json`.
 - 검증: `npm run check` 통과(170개 JS 정적 검사, 분수 18,000문제, 시즌 목표, 저장, Firestore/Storage 에뮬레이터, 운영 셸 smoke). 새 순수 전투 기하 테스트와 실제 브라우저 6기술/중복 클릭/운석 복원/투명도/의상/600·820px 레이아웃 통과. 기존 이미지 로딩 실패 fallback 검증 통과.
 - 배포 범위: `public/fraction-world`의 Vercel 정적 앱. 운영 학생 데이터 및 규칙 변경 없음.
+
+## 2026-09-12 — 기술·유물·길 선택의 의미를 명시
+
+- 별의 파동: 준비 상태의 피해 범위 원, 장착 효과를 반영한 기본 피해/재사용 대기 안내, 터치 설명 창, 사용 직후 적중 수·탄 제거 수와 빈 범위 안내. 기존 반경 230 피해·250 탄 제거 및 밸런스 유지.
+- built-in image_gen으로 24종 전용 유물 atlas `assets/relics-v3.png` 생성. 보물, 가방, 공방, 도감에서 동일 이미지와 속성 배지를 사용. 프롬프트: `docs/product/fraction-world-art/RELICS_V3_PROMPT.json`.
+- 가방 유물은 터치로 단독 효과와 속성 조합 상세 확인. 조합별 실제 장착 유물, 3칸 진행도, 부족 수량, 활성 효과 표시. 보물은 선택 후 속성 수(예: 2/3→3/3), 조합 완성/해제, 능력치 변화를 함께 표시.
+- 길 비교는 현재 방과 난이도의 domain 수치에서 적 수, 적 체력 증가율, 보상을 계산. 나침반 +8 포함, 위험 보상 +12 및 동일 유물 후보/확률 명시. 첫 강화 20개와 연결해 결정 추가 보상의 용도를 설명. 샘터는 현재 체력 기준 회복량을 표시.
+- `npm run check` 통과(172 JS). 기존 강화 smoke 및 새 `scripts/smoke/fraction-world-clarity.js` 통과: 기본/심화 4개 지역 보상·적 수, 유물 조합 2→3, 터치 상세, atlas 투명도, 600/820px, 별의 파동 실제 피해·탄 제거와 안내 결과.
+- Vercel 정적 앱만 배포. 학생 데이터·Firestore 규칙·게임 경제 수치 변경 없음.
