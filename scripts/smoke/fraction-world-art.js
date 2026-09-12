@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+'use strict';
+const assert=require('node:assert/strict'),{chromium}=require('playwright-core');
+async function main(){const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});try{
+ const page=await browser.newPage({viewport:{width:1180,height:820},hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5478/fraction-world/');await page.waitForFunction(()=>[...document.querySelectorAll('.painted-cover img')].every(i=>i.complete&&i.naturalWidth));await page.screenshot({path:'/tmp/fraction-art-hub.png'});
+ for(const asset of ['ruins','desert','castle','void','rehearsal','concert','bosses','tower-cover'])assert.equal((await page.request.get('http://127.0.0.1:5478/fraction-world/assets/'+asset+'-v1.jpg')).status(),200);
+ for(const name of ['members','actors']){assert.equal((await page.request.get('http://127.0.0.1:5478/fraction-world/assets/'+name+'-v1.png')).status(),200);assert.equal(await page.evaluate(async name=>{const img=new Image();img.src='./assets/'+name+'-v1.png';await img.decode();const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);return ctx.getImageData(0,0,1,1).data[3];},name),0);}
+ await page.click('#enter-studio');await page.waitForFunction(()=>[...document.querySelectorAll('.illustrated-portrait img')].every(i=>i.complete&&i.naturalWidth));assert.equal(await page.locator('.illustrated-portrait').count(),8);await page.screenshot({path:'/tmp/fraction-art-members.png'});await page.click('#studio-start');await page.screenshot({path:'/tmp/fraction-art-studio.png'});
+ for(const width of [600,820]){await page.setViewportSize({width,height:960});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.click('[data-tab="members"]');assert.equal(await page.locator('.members-grid .illustrated-portrait').count(),3);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+ await page.setViewportSize({width:1180,height:820});await page.click('#home-button');await page.evaluate(()=>{const s=FWTowerDomain.create('wand');s.room=6;FWStore.get().tower=s;FWTower.enter();});assert.ok(await page.locator('.boss-portrait').count());await page.screenshot({path:'/tmp/fraction-art-boss-entry.png'});
+ await page.evaluate(()=>{const s=FWStore.get().tower;s.room=1;s.phase='combat';FWTower.enter();});await page.waitForTimeout(2000);await page.screenshot({path:'/tmp/fraction-art-combat.png'});await page.click('#home-button');
+ // Missing art cannot stop the game: canvas and vector actors remain available.
+ await page.route('**/assets/**',r=>r.abort());await page.reload();await page.click('#enter-tower');assert.ok(await page.locator('#arena').count());await page.click('#home-button');assert.deepEqual(errors,[]);console.log('Generated art: 10 assets, member atlas, tablet layouts, boss entry, combat and missing-art fallback passed.');
+ }finally{await browser.close();}}
+main().catch(e=>{console.error(e);process.exitCode=1;});

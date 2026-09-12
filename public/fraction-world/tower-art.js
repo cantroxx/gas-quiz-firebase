@@ -1,11 +1,16 @@
 /* Canvas-native original creatures and environments. No downloaded game artwork. */
 (function () {
   'use strict';
+  const floors={};
+  function floorImage(biome){if(!floors[biome]){const img=new Image();img.src='./assets/'+['ruins','desert','castle','void'][biome]+'-v1.jpg';floors[biome]=img;}return floors[biome];}
+  let actorSheet;
+  function actor(c,index,x,y,w,h){if(!actorSheet){actorSheet=new Image();actorSheet.src='./assets/actors-v1.png';}if(!actorSheet.complete||!actorSheet.naturalWidth)return false;const sw=actorSheet.naturalWidth/4,sh=actorSheet.naturalHeight/2;c.drawImage(actorSheet,index%4*sw,Math.floor(index/4)*sh,sw,sh,x,y,w,h);return true;}
   function ellipse(c,x,y,rx,ry,color){c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
   function polygon(c,points,color){c.fillStyle=color;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();}
   function eyes(c,y=0,space=7,color='#182537'){ellipse(c,-space,y,2.6,4,color);ellipse(c,space,y,2.6,4,color);ellipse(c,-space-.7,y-1, .8,1,'#ffffff');ellipse(c,space-.7,y-1,.8,1,'#ffffff');}
   function floor(c,b,biome,time,obstacles){
     c.fillStyle=b.floor;c.fillRect(0,0,960,600);
+    const painting=floorImage(biome);if(painting.complete&&painting.naturalWidth){c.drawImage(painting,0,0,960,600);c.fillStyle='#07122230';c.fillRect(0,0,960,600);}else{
     const wash=c.createRadialGradient(480,280,40,480,300,550);wash.addColorStop(0,b.color+'0c');wash.addColorStop(1,'#050a1877');c.fillStyle=wash;c.fillRect(0,0,960,600);
     for(let row=0;row<12;row++)for(let col=0;col<19;col++){
       const x=26+col*48,y=27+row*48,v=(col*31+row*13)%17;
@@ -29,6 +34,7 @@
       if(biome===2){c.fillStyle='#7296cb33';c.fillRect(x-5,y-8,12,9);c.fillStyle='#a0cfff55';c.fillRect(x-3,y-11,8,3);}
       if(biome===3){const a=time*.6+i;ellipse(c,x+Math.sin(a)*4,y+Math.cos(a)*4,2,2,'#d0a1ff77');}
     }
+    }
     for(const w of obstacles){
       c.fillStyle='#060e2266';c.fillRect(w.x+5,w.y+12,w.w,w.h);
       c.fillStyle=['#2d514c','#604655','#354665','#47385d'][biome];c.fillRect(w.x,w.y,w.w,w.h);
@@ -39,6 +45,11 @@
     }
   }
   function enemy(c,e,biome,time){
+    if(e.type!=='boss'){
+      const index={chaser:1,shooter:2,charger:3,splitter:4,orbiter:5,healer:6}[e.type];c.save();if(e.flash>0){c.shadowColor='#fff';c.shadowBlur=12;}
+      const drawn=actor(c,index??7,e.x-24,e.y-34+Math.sin(time*5+e.x)*2,48,64);c.restore();
+      if(drawn){if(e.hp<e.maxHp){c.fillStyle='#0009';c.fillRect(e.x-16,e.y-40,32,4);c.fillStyle='#ffb7c7';c.fillRect(e.x-16,e.y-40,32*Math.max(0,e.hp/e.maxHp),4);}if(e.slow>0){c.strokeStyle='#a8e5ffaa';c.beginPath();c.arc(e.x,e.y,e.r+5,0,Math.PI*2);c.stroke();}return;}
+    }
     c.save();c.translate(e.x,e.y);ellipse(c,0,e.r+4,e.r+5,7,'#0004');const bob=Math.sin(time*4+e.x)*1.6;c.translate(0,bob);
     if(e.flash>0){c.shadowColor='#fff';c.shadowBlur=16;}else if(e.tele>0){c.shadowColor='#ff426c';c.shadowBlur=18;}
     if(e.type==='boss'){
@@ -78,5 +89,5 @@
     c.shadowBlur=0;c.restore();
     if(e.hp<e.maxHp&&e.type!=='boss'){c.fillStyle='#0006';c.fillRect(e.x-e.r,e.y-e.r-18,e.r*2,4);c.fillStyle='#ffb7c7';c.fillRect(e.x-e.r,e.y-e.r-18,e.r*2*Math.max(0,e.hp/e.maxHp),4);}
   }
-  window.FWTowerArt={floor,enemy};
+  window.FWTowerArt={floor,enemy,actor};
 })();
