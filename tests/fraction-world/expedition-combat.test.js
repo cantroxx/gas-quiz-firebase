@@ -20,3 +20,14 @@ for(const m of C.mixes){const a=new Arena(m);switch(m.id){
  }}
 const a=new Arena(C.mixes[0]);a.s.rescue=true;a.s.hp=1;a.hurt(100);assert.equal(a.s.rescue,false);assert.equal(a.p.inv,2);assert.equal(a.s.hp,D.stats(a.s).maxHp*.3);
 console.log('Expedition combat: all 10 mixed effects, skill hit-only freeze and one-use rescue passed.');
+
+// Version 3 combat limits: control resistance, shared shield timing and proc budgets.
+{
+ const ice=new Arena(C.mixes.find(m=>m.id==='ice-star'));ice.enemies[0].type='boss';ice.skill();assert.equal(ice.enemies[0].frozen,.25);assert.equal(ice.enemies[0].freezeGuard,5);ice.enemies[0].frozen=0;ice.p.skill=0;ice.skill();assert.equal(ice.enemies[0].frozen,0);ice.featureUpdate(5.1);ice.p.skill=0;ice.skill();assert.equal(ice.enemies[0].frozen,.25);
+ const shield=new Arena(C.mixes.find(m=>m.id==='ice-earth'));shield.featureUpdate(.1);assert.equal(shield.features.shield,15);shield.features.shield=4;shield.featureUpdate(10);assert.equal(shield.features.shield,4);shield.features.shield=0;shield.featureUpdate(10);assert.equal(shield.features.shield,15);
+ const orb=new Arena(C.mixes[0]);orb.s.relics=[];orb.s.weapon='orb';orb.s.weaponLevel=3;orb.s.branch='a';orb.features.mixes=[];orb.hitEnemy(orb.enemies[0],10);const health=orb.enemies[1].hp;orb.hitEnemy(orb.enemies[0],10);assert.equal(orb.enemies[1].hp,health);orb.featureUpdate(.5);orb.hitEnemy(orb.enemies[0],10);assert.ok(orb.enemies[1].hp<health);
+ const shots=new Arena(C.mixes[0]);shots.s.relics=['twin'];shots.s.weapon='bow';shots.s.weaponLevel=3;shots.s.branch='b';shots.fire(D.stats(shots.s),shots.p,shots.enemies);assert.equal(shots.bullets.length,3);assert.equal(shots.bullets[1].damage,shots.bullets[0].damage*.45);
+ const wait=new Arena(C.mixes[0]);wait.enemies[0].spawnWait=.8;wait.hitEnemy(wait.enemies[0],100);assert.equal(wait.enemies[0].hp,1000);
+ const saved=new Arena(C.mixes[0]);context.window.FWCombatExpansion.init(saved,{features:{leechHeal:8,shield:4,cool:{iceShield:6}}});assert.equal(saved.features.leechHeal,8);assert.equal(saved.features.cool.iceShield,6);
+}
+console.log('Balance v3 combat: boss freeze resistance, shield refill gap, orb explosion cooldown, weaker extra arrows, spawn invulnerability and heal-budget restore passed.');

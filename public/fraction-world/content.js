@@ -135,10 +135,25 @@
     'earth-star':'작은 정령 1마리가 곁에서 함께 공격해요.'
   };
   C.mixes.forEach(m=>{m.detail=m.desc;m.desc=easyMixes[m.id];});
+  C.describeRelic=(r,s)=>s?.balance!==3?r.desc:({
+    leech:'적 1마리를 잡으면 체력 1 회복! 한 방에서 최대 8까지 채워요.',
+    heal:'전투 방을 깨면 체력 10 회복! 다른 방 완료 회복과 합쳐 최대 12예요.',
+    root:'전투 방을 깨면 체력 6 회복! 다른 방 완료 회복과 합쳐 최대 12예요.',
+    twin:'작은 탄을 1발 더 쏴요. 작은 탄은 힘이 절반보다 조금 약해요. 본래 탄의 힘도 조금 줄어요.',
+    echo:'작은 탄을 1발 더 쏴요. 작은 탄은 힘이 절반보다 조금 약해요. 공격도 조금 느려져요.',
+    luck:`전투 방을 깨면 결정 ${s.expedition==='long'?5:8}개를 더 받아요.`,
+    frost:'맞은 적이 느려져요. 보스는 조금만 느려져요.'
+  }[r.id]||r.desc);
+  C.describeMix=(m,s)=>s?.balance!==3?m.desc:({
+    'ice-earth':'10초마다 확인해요. 보호막이 없으면 피해 15를 막는 방패가 생겨요.',
+    'storm-earth':'2초 동안 움직이고 보호막이 없으면 피해 12를 막는 방패! 다시 만들려면 10초 기다려요.',
+    'ice-star':'기술에 맞은 적이 잠깐 얼어요. 보스는 아주 잠깐 얼고 5초 동안 다시 얼지 않아요.',
+    'earth-star':'작은 정령 1마리가 함께 공격해요. 여러 정령은 힘을 나눠 써요.'
+  }[m.id]||m.desc);
   const cropRows=[[2,244],[250,240],[493,245],[744,249],[999,245],[1250,278]];
   C.looks.forEach((l,i)=>{l.sheet='explorers-v4';l.crop=cropRows[i];l.sheetWidth=1024;l.sheetHeight=1536;});
   C.looks.splice(1,0,{id:'ranger',name:'카이 · 별바람 모험가',row:0,unlock:null,sheet:'boy-v6',sheetWidth:2172,sheetHeight:724,crop:[65,585]});
-  C.unlockNames={boss0:'뿌리의 파수꾼 처치',boss1:'모래시계 마녀 처치',boss2:'잿불 기사 처치',boss3:'균열의 심장 처치',awaken:'무기를 +5까지 각성',mix3:'두 속성 조합 3개를 한 번에 완성',expert:'심화 난이도로 탐험 완주'};
+  C.unlockNames={boss0:'뿌리의 파수꾼 처치',boss1:'모래시계 마녀 처치',boss2:'잿불 기사 처치',boss3:'균열의 심장 처치',awaken:'무기를 +5까지 각성',mix3:'한 탐험에서 두 속성 조합 3종 발견',expert:'심화 난이도로 탐험 완주'};
   if (typeof module !== 'undefined' && module.exports) module.exports = C;
   else root.FWContent = C;
 })(typeof window !== 'undefined' ? window : globalThis);
