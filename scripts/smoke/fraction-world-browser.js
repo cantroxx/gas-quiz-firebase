@@ -27,8 +27,8 @@ async function main(){
  await page.click('[data-key="9"]');await page.click('[data-key="9"]');await page.click('#answer-submit');await page.click('#hint-button');assert.ok(await page.locator('.bar-unit').count());await solve();await page.waitForTimeout(2200);
  await page.keyboard.down('KeyD');await page.waitForTimeout(220);await page.keyboard.up('KeyD');await page.click('#dash-button');await page.click('#skill-button');
  await page.click('#pause-game');await page.screenshot({path:'/tmp/fraction-world-tower.png'});const snapshot=await page.evaluate(()=>FWStore.get().tower.combat);assert.ok(snapshot.time>1);assert.ok(snapshot.p.x>480);assert.ok(snapshot.p.skill>0);
- await page.click('#home-button');await page.reload();await page.click('#enter-tower');await page.click('#pause-game');const restored=await page.evaluate(()=>FWStore.get().tower.combat);assert.ok(restored.time>=snapshot.time);
- await page.click('#home-button');await page.selectOption('#save-slot','1');assert.equal(await page.evaluate(()=>FWStore.get().tower),null);
+ await page.locator('#combat-lobby:visible, #home-button:visible').click();await page.reload();await page.click('#enter-tower');await page.click('#pause-game');const restored=await page.evaluate(()=>FWStore.get().tower.combat);assert.ok(restored.time>=snapshot.time);
+ await page.locator('#combat-lobby:visible, #home-button:visible').click();await page.selectOption('#save-slot','1');assert.equal(await page.evaluate(()=>FWStore.get().tower),null);
  await page.click('#enter-studio');await page.click('[data-diff="expert"]');await page.click('#studio-start');
  await page.click('[data-tab="facilities"]');assert.ok(await page.locator('[data-facility]').count()===6);await page.click('[data-tab="schedule"]');
  await page.click('[data-focus="lumi"]');
@@ -46,14 +46,14 @@ async function main(){
  }
  assert.equal(await page.evaluate(()=>FWStore.get().studio.cleared),true);assert.equal(await page.evaluate(()=>FWStore.get().total),100);assert.equal(await page.evaluate(()=>FWStore.get().studio.history.length),4);
  await page.screenshot({path:'/tmp/fraction-world-studio-result.png'});
- await page.click('#home-button');await page.click('#journal-button');assert.equal(await page.locator('.journal-row').count(),6);await page.click('#home-button');
- for(const size of [{width:820,height:1180},{width:1024,height:768},{width:600,height:960}]){await page.setViewportSize(size);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`horizontal overflow at ${size.width}`);await page.click('#enter-studio');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.click('#home-button');}
+ await page.locator('#combat-lobby:visible, #home-button:visible').click();await page.click('#journal-button');assert.equal(await page.locator('.journal-row').count(),6);await page.locator('#combat-lobby:visible, #home-button:visible').click();
+ for(const size of [{width:820,height:1180},{width:1024,height:768},{width:600,height:960}]){await page.setViewportSize(size);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`horizontal overflow at ${size.width}`);await page.click('#enter-studio');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.locator('#combat-lobby:visible, #home-button:visible').click();}
  await page.selectOption('#save-slot','0');await page.click('#enter-tower');await page.waitForTimeout(150);await page.click('#pause-game');
  // Real browser touch input exercises pointer capture and release on the joystick.
  await page.click('#pause-game');const stick=page.locator('#move-stick');const box=await stick.boundingBox();const cdp=await context.newCDPSession(page);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width*.8,y:box.y+box.height/2,id:1}]});await page.waitForTimeout(150);
  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await stick.locator('i').evaluate(e=>e.style.transform),'');await cdp.detach();
- await page.click('#home-button');
+ await page.locator('#combat-lobby:visible, #home-button:visible').click();
  assert.deepEqual(errors,[]);console.log('Fraction World browser: full expert season / 100 answers, wrong-answer retry, tower controls and checkpoint, independent slots, reload, journal, 3 tablet sizes passed.');
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }

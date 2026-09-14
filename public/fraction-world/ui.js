@@ -5,7 +5,9 @@
   let toastTimer,audio;
   function toast(text){$('toast').textContent=text;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',3500);}
   function save(){if(!FWStore.save())toast(FWStore.warning());}
-  function modal(html,onReady){const d=$('modal');if(d.open)d.close();$('modal-content').innerHTML=html;d.showModal();onReady?.($('modal-content'));}
+  function modal(html,onReady){const d=$('modal');if(d.open)d.close();$('modal-content').innerHTML=currency(html);d.showModal();onReady?.($('modal-content'));}
+  const coin='<img class="crystal-coin" src="./assets/crystal-coin.svg" alt="결정" width="26" height="26">';
+  const currency=html=>html.replaceAll('◇',coin);
   function close(){ $('modal').close(); }
   function fraction(n,d){const p=FWMath.parts(n,d);return `<span class="fraction" aria-label="${FWMath.plain(n,d)}">${p.whole||!p.num?`<span>${p.whole}</span>`:''}${p.num?`<span class="parts"><span class="num">${p.num}</span><span class="den">${d}</span></span>`:''}</span>`;}
   function meter(name,value,max=100,color=''){return `<div class="meter-label"><span>${name}</span><span>${Math.round(value)}${max!==100?' / '+max:''}</span></div><div class="meter ${color}"><i style="width:${Math.min(100,Math.max(0,value/max*100))}%"></i></div>`;}
@@ -26,5 +28,5 @@
   function art(type){return `<div class="painted-cover">${vectorArt(type)}<img class="world-art" src="./assets/${type==='tower'?'tower-cover':'concert'}-v1.jpg" alt="${type==='tower'?'달빛 아래 균열의 탑과 모험가':'스타라이트의 첫 공연 무대'}" decoding="async"></div>`;}
   document.addEventListener('error',e=>{if(e.target instanceof HTMLImageElement&&e.target.src.includes('/assets/')){e.target.hidden=true;e.target.parentElement.classList.add('art-fallback');}},true);
   function sound(kind){if(!FWStore.get().settings.sound)return;try{audio ||= new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(kind==='good'?660:kind==='hit'?140:440,audio.currentTime);o.frequency.exponentialRampToValueAtTime(kind==='good'?990:80,audio.currentTime+.12);g.gain.setValueAtTime(.035,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.17);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.18);}catch(e){/* Audio is optional. */}}
-  window.FWUI={$,esc,toast,save,modal,close,fraction,meter,portrait,art,sound,render:html=>{$('app').innerHTML=html;window.scrollTo(0,0);}};
+  window.FWUI={$,esc,toast,save,modal,close,coin,currency,fraction,meter,portrait,art,sound,render:html=>{document.body.classList.toggle('combat-view',html.includes('id="combat-stage"'));document.body.classList.toggle('map-view',html.includes('class="expedition-layout"'));$('app').innerHTML=currency(html);window.scrollTo(0,0);}};
 })();

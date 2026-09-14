@@ -2,7 +2,7 @@
  'use strict';
  const C=typeof module!=='undefined'&&module.exports?require('./content.js'):root.FWContent;
  const D=typeof module!=='undefined'&&module.exports?require('./tower-domain.js'):root.FWTowerDomain;
- const kinds={normal:['전투','결정 18 + 유물 3택1'],elite:['정예','결정 30 + 유물 3택1'],treasure:['속성 보물','표시된 속성 유물 3택1'],forge:['대장간','무기 고단계·유물 강화'],shop:['상점','상품 3개 중 1개 구매'],rest:['샘터','결정 25로 체력 40 또는 무료 축복'],event:['사건','열쇠·결정·회복 중 선택'],boss:['보스','결정 45 + 보스 보물']};
+ const kinds={normal:['전투','적을 모두 물리치면 결정 18개와 유물 1개를 받아요.'],elite:['강한 적','적이 더 많고 튼튼해요. 대신 결정 30개와 유물 1개를 받아요!'],treasure:['보물','싸우지 않고, 같은 속성의 유물 중 1개를 골라 받아요.'],forge:['강화소','결정을 써서 무기와 유물을 더 강하게 만들어요. +3 이상 무기는 여기서!'],shop:['상점','결정으로 유물이나 특별한 도구를 사요. 한 번에 1개만 살 수 있어요.'],rest:['회복 샘','결정 25개로 체력을 40까지 채우거나, 무료 보호막 15를 받아요.'],event:['선물 발견','싸우지 않고 열쇠, 결정 18개, 체력 20 중 하나를 공짜로 받아요!'],boss:['보스','이 지역의 가장 강한 적! 이기면 결정 45개와 유물을 받고 다음 지역이 열려요.']};
  const depth=s=>s.expedition==='long'?8:6,region=s=>Math.min(3,Math.floor((s.room-1)/depth(s))),step=s=>(s.room-1)%depth(s),total=s=>depth(s)*4;
  function rng(seed){let x=seed>>>0;return()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};}
  function create(weapon,difficulty,mode='short',look='dawn',seed=Math.floor(Math.random()*0xffffffff)){
