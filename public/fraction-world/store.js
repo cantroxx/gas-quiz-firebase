@@ -93,8 +93,20 @@
       return false;
     }
   }
+  // Replace one active slot only; failed writes leave its in-memory progress intact.
+  function replaceSlot(n, next) {
+    if (n !== active || !Number.isInteger(n) || n < 0 || n > 2) return false;
+    const previous = data.slots[n]; data.slots[n] = next;
+    if (save()) return true;
+    data.slots[n] = previous; return false;
+  }
+  function discardTower(n) {
+    if (n !== active) return false;
+    const p = data.slots[n];
+    return replaceSlot(n, { ...p, tower: null, quiz: p.quiz?.mode?.startsWith('tower-') ? null : p.quiz });
+  }
   window.FWStore = {
-    get: () => data.slots[active], save, slot: () => active, warning: () => warning,
+    get: () => data.slots[active], resetSlot: n => replaceSlot(n, fresh()), discardTower, save, slot: () => active, warning: () => warning,
     switchSlot: n => { if (Number.isInteger(n) && finite(n, 0, 2)) { active = n; save(); } },
     record: (mode, result) => {
       const p = data.slots[active]; p.records.unshift({ mode, ...result, date: new Date().toISOString() });

@@ -36,5 +36,5 @@
   }
   U.$('quiz-dialog').addEventListener('cancel',()=>U.save());
   document.addEventListener('keydown',e=>{if(!U.$('quiz-dialog').open)return;if(/^\d$/.test(e.key)){e.preventDefault();key(e.key);}else if(e.key==='Backspace'){e.preventDefault();key('⌫');}else if(e.key==='Enter'){e.preventDefault();submit();}else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();key('칸 이동');}});
-  window.FWQuiz={start};
+  window.FWQuiz={start,dismiss:()=>{callback=null;U.$('quiz-dialog').close();U.$('quiz-content').innerHTML='';}};
 })();
