@@ -1,8 +1,9 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const C=require('../../public/fraction-world/content.js'),S=require('../../public/fraction-world/studio-domain.js'),T=require('../../public/fraction-world/tower-domain.js');
+const E=require('../../public/fraction-world/expedition-domain');
 const source=fs.readFileSync(require.resolve('../../public/fraction-world/store.js'),'utf8');
-function boot(raw,blocked=false){let storage=raw;const context={window:{},FWContent:C,localStorage:{getItem:()=>storage,setItem:(_k,v)=>{if(blocked)throw new Error('quota');storage=v;}}};vm.runInNewContext(source,context);return {store:context.window.FWStore,getRaw:()=>storage};}
+function boot(raw,blocked=false){let storage=raw;const context={window:{FWExpedition:E},FWExpedition:E,FWContent:C,localStorage:{getItem:()=>storage,setItem:(_k,v)=>{if(blocked)throw new Error('quota');storage=v;}}};vm.runInNewContext(source,context);return {store:context.window.FWStore,getRaw:()=>storage};}
 let a=boot(null);a.store.get().tower=T.create('wand');a.store.get().studio=S.create(['lumi','rio','sora']);a.store.get().stats[0]={attempts:3,first:2,solved:3};a.store.save();
 let b=boot(a.getRaw());assert.equal(b.store.get().tower.weapon,'wand');assert.equal(b.store.get().studio.day,1);assert.equal(b.store.get().total,3);b.store.switchSlot(1);assert.equal(b.store.get().tower,null);b.store.switchSlot(0);assert.equal(b.store.get().tower.weapon,'wand');
 const parsed=JSON.parse(a.getRaw());parsed.slots[0].studio.phase='event';parsed.slots[0].studio.event=999;parsed.slots[0].settings=null;parsed.slots[0].quiz={mode:'garbage'};parsed.slots[1]=null;
@@ -12,3 +13,5 @@ b=boot(null,true);b.store.get().total=9;assert.equal(b.store.save(),false);asser
 console.log('Fraction World storage: run restore, slot isolation, partial corruption recovery, malformed JSON preservation, quota failure passed.');
 const legacy=JSON.parse(a.getRaw());delete legacy.slots[0].tower.upgrades;b=boot(JSON.stringify(legacy));assert.equal(b.store.get().tower.weapon,'wand');assert.equal(Object.keys(b.store.get().tower.upgrades).length,0);
 legacy.slots[0].tower.upgrades={heart:3,ember:999,unknown:2,frost:-1};legacy.slots[0].tower.hp=210;b=boot(JSON.stringify(legacy));assert.equal(b.store.get().tower.upgrades.heart,3);assert.equal(Object.keys(b.store.get().tower.upgrades).length,1);assert.equal(b.store.get().tower.hp,210);
+
+const expanded=boot(null);expanded.store.get().tower=E.create('wand','hard','long');expanded.store.get().unlocks=['boss0'];expanded.store.save();let restored=boot(expanded.getRaw());assert.equal(restored.store.get().tower.expedition,'long');assert.equal(restored.store.get().unlocks[0],'boss0');const corrupt=JSON.parse(expanded.getRaw());corrupt.slots[0].tower.maps[0][0][0].stock[0].price=-10;restored=boot(JSON.stringify(corrupt));assert.equal(restored.store.get().tower,null);assert.equal(restored.store.get().unlocks[0],'boss0');console.log('Expedition storage: map/long mode/unlocks preserved, corrupt shop rejected without losing unlocks.');

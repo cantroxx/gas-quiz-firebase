@@ -1,0 +1,78 @@
+(function(){
+ 'use strict';
+ const D=FWTowerDomain,C=FWContent;
+ const branches={wand:['추적 별탄 → 각성: 빠른 추적','다중 별탄 → 각성: 파동의 별탄'],bow:['집중 저격 → 각성: 위력 추가 30%','분열 화살 → 각성: 파편 3발'],fan:['왕복 달날 → 각성: 관통 +2','공전 달날 → 각성: 공전 시간 증가'],orb:['빙정 폭발 → 각성: 폭발 범위 증가','냉각 지대 → 각성: 지속 시간 증가'],needle:['누적 방전 → 각성: 누적 위력 증가','연쇄 바늘 → 각성: 방전 주기 단축'],comet:['집중 포격 → 각성: 폭발 위력 증가','파편 포격 → 각성: 파편 5발'],blades:['회피 기습 → 각성: 기습 위력 증가','연속 베기 → 각성: 베기 범위 증가'],spear:['수정 충격파 → 각성: 3방향 파동','거리 유지 → 각성: 찌르기 범위 증가'],hammer:['대지 균열 → 각성: 균열 지속 증가','충격 누적 → 각성: 세 번째 타격 강화'],scythe:['끌어오는 사슬 → 각성: 끌기 범위 증가','원형 윤무 → 각성: 범위 증가'],shield:['반사 방패 → 각성: 반사 범위 증가','돌격 방패 → 각성: 회피 충돌 강화'],book:['정령 무리 → 각성: 정령 3마리','거대 수호수 → 각성: 정령 위력 강화']};
+ const colors={blades:'#ffca9b',spear:'#acf1ff',hammer:'#ffd093',scythe:'#d3a6ff',shield:'#9df5dc',book:'#d6bdff'};
+ Object.assign(FWCombat.kits,{
+  blades:{name:'새벽 난무',desc:'주변 적을 3번 베어요',kind:'flurry',color:colors.blades},spear:{name:'수정 관통파',desc:'긴 직선으로 강력한 충격파',kind:'lance',color:colors.spear},hammer:{name:'지각 붕괴',desc:'주변 적에게 강한 피해와 밀치기',kind:'quake',color:colors.hammer},scythe:{name:'영혼 거두기',desc:'주변 적을 끌어당기고 베어요',kind:'reap',color:colors.scythe},shield:{name:'수호 돌진',desc:'피해 30 보호막과 전방 충격',kind:'guard',color:colors.shield},book:{name:'정령의 합창',desc:'정령의 별탄을 사방으로 발사',kind:'summon',color:colors.book}
+ });
+ const nearby=(a,p,r)=>a.enemies.filter(e=>e.hp>0&&Math.hypot(e.x-p.x,e.y-p.y)<r);
+ const mix=(a,id)=>a.features.mixes.includes(id);
+ function init(a,saved){const raw=saved?.features||{},finite=(v,max=1e6)=>Number.isFinite(v)&&v>=0&&v<=max;a.features={cool:{},zones:[],shots:0,shield:a.s.bless||0,moving:0,attackBuff:0};for(const k of ['shots','shield','moving','attackBuff'])if(finite(raw[k]))a.features[k]=raw[k];if(raw.cool&&typeof raw.cool==='object')for(const [k,v] of Object.entries(raw.cool))if(finite(v,60))a.features.cool[k]=v;if(Array.isArray(raw.zones))a.features.zones=raw.zones.filter(z=>z&&['x','y','r','damage','life','cd'].every(k=>finite(z[k]))&&z.r<=500&&z.life<=10).slice(0,24);a.features.mixes=a.s.expedition?FWExpedition.mixes(a.s).map(m=>m.id):[];a.s.bless=0;}
+
+ function extraHit(a,e,damage){a.extra=true;try{a.hitEnemy(e,damage);}finally{a.extra=false;}}
+ function radial(a,p,r,damage,color){nearby(a,p,r).forEach(e=>extraHit(a,e,damage));a.effect('nova',p.x,p.y,r,{color,life:.35,max:.35});}
+ function zone(a,p,r,damage,color,life=2,chill=false){a.features.zones.push({x:p.x,y:p.y,r,damage,color,life,cd:0,chill});}
+ function bullet(a,angle,st,extra={}){a.bullets.push({x:a.p.x,y:a.p.y,vx:Math.cos(angle)*st.bulletSpeed,vy:Math.sin(angle)*st.bulletSpeed,life:2.8,pierce:st.pierce,hit:[],damage:st.damage,style:a.s.weapon,age:0,...extra});}
+ function fire(st,p,living){const s=this.s,f=this.features,angle=FWCombat.aim(p,living),lv=s.weaponLevel||0,aw=lv===5;f.shots++;p.facing=angle;this.attack=.16;
+  if(st.reach){let reach=st.reach;if(s.weapon==='spear'&&s.branch==='b')reach*=aw?1.5:1.25;if(s.weapon==='blades'&&s.branch==='b')reach*=aw?1.4:1.15;const all=s.weapon==='scythe'&&s.branch==='b';const targets=living.filter(e=>Math.hypot(e.x-p.x,e.y-p.y)<reach&&(all||FWCombat.inBeam(p,e,angle,reach,s.weapon==='spear'?25:reach*.55)));
+   this.effect(s.weapon==='spear'?'beam':'slash',p.x,p.y,reach,{angle,color:FWCombat.kits[s.weapon].color,life:.2,max:.2});targets.forEach(e=>{let power=st.damage*st.count;if(s.weapon==='blades'&&s.branch==='a'&&f.attackBuff>0)power*=aw?2.3:1.6;if(s.weapon==='blades'&&s.branch==='b')power*=1.25;if(s.weapon==='hammer'&&s.branch==='b'&&f.shots%3===0)power*=aw?2.8:2;this.hitEnemy(e,power);if(s.weapon==='scythe'&&s.branch==='a'&&e.type!=='boss'){e.x+=(p.x-e.x)*.25;e.y+=(p.y-e.y)*.25;}});
+   if(s.weapon==='hammer'&&s.branch==='a')zone(this,{x:p.x+Math.cos(angle)*90,y:p.y+Math.sin(angle)*90},80,st.damage*.2,'#dfbc78',aw?3:1.5);
+   if(s.weapon==='spear'&&s.branch==='a'){for(let i=0;i<(aw?3:1);i++)bullet(this,angle+(i-(aw?1:0))*.15,{...st,bulletSpeed:430},{damage:st.damage*.45,style:'bow',life:1.2});}
+  }else if(s.weapon!=='book'){
+   for(let i=0;i<st.count;i++){const a=angle+(i-(st.count-1)/2)*.17;bullet(this,a,st,{homing:s.weapon==='wand'&&s.branch==='a',pierce:st.pierce+(s.weapon==='fan'&&s.branch==='a'&&aw?2:0),damage:st.damage*(s.weapon==='bow'&&s.branch==='a'&&aw?1.3:1),...(s.weapon==='fan'&&s.branch==='b'?{orbit:a,life:aw?2.4:1.6}:{}),...(s.weapon==='shield'?{returning:true,pierce:2}:{}),split:s.weapon==='bow'&&s.branch==='b'?(aw?3:2):s.weapon==='comet'&&s.branch==='b'&&aw?5:0});}
+  }
+  if((mix(this,'storm-star')||s.relics.includes('coil')||s.weapon==='needle'&&s.branch==='b')&&f.shots%(aw&&s.weapon==='needle'?5:8)===0){const targets=FWCombat.chain(p,living);targets.forEach(e=>extraHit(this,e,st.damage*.65));this.effect('chain',p.x,p.y,0,{nodes:[p,...targets].map(x=>({x:x.x,y:x.y})),color:'#ffe691'});}
+ }
+ let previewProto;
+ function install(Arena){previewProto=Arena.prototype;const proto=Arena.prototype,oldHit=proto.hitEnemy,oldHurt=proto.hurt,oldDash=proto.dash,oldSkill=proto.skill,oldDraw=proto.draw;
+ proto.fire=fire;
+ proto.hitEnemy=function(e,damage){const wasAlive=e.hp>0;if(!wasAlive)return;const f=this.features,s=this.s,st=D.stats(s);if(!this.extra&&s.weapon==='needle'&&s.branch==='a'){e.stacks=Math.min(5,(e.stacks||0)+1);damage*=1+e.stacks*(s.weaponLevel===5?.16:.1);}oldHit.call(this,e,damage);if(this.skillImpact&&(mix(this,'ice-star')||s.relics.includes('icicle'))){e.chill=2;e.slow=2;if(mix(this,'ice-star'))e.frozen=.8;}if(this.extra)return;
+  if(s.relics.includes('torch'))e.burn=2;
+  if(mix(this,'fire-ice')&&(e.chill>0||e.slow>0)&&!f.cool.thermal){f.cool.thermal=2;radial(this,e,85,st.damage*.6,'#ffc0ac');}
+  if(s.weapon==='orb'&&s.branch==='a')radial(this,e,s.weaponLevel===5?95:60,st.damage*.3,'#b9f3ff');
+  if(s.weapon==='orb'&&s.branch==='b'&&!f.cool.icezone){f.cool.icezone=.8;zone(this,e,75,st.damage*.15,'#a3e8ff',s.weaponLevel===5?3:1.5,true);}
+ };
+ proto.hurt=function(amount,reason){if(this.p.inv>0)return;const f=this.features,s=this.s;const reduced=amount*D.stats(s).armor,absorbed=Math.min(f.shield,reduced);f.shield-=absorbed;amount-=absorbed/D.stats(s).armor;if(amount<=0){this.p.inv=.3;return;}if(s.rescue&&s.hp<=amount*D.stats(s).armor){s.rescue=false;s.hp=D.stats(s).maxHp*.3;this.p.inv=2;this.effect('nova',this.p.x,this.p.y,120,{color:'#ffdf89'});FWUI.toast('구조 부적 발동 · 체력 30% 회복');return;}oldHurt.call(this,amount,reason);if(!this.dead&&mix(this,'fire-earth')&&!f.cool.thorns){f.cool.thorns=2;radial(this,this.p,120,D.stats(s).damage,'#ffa182');}
+ };
+ proto.dash=function(){const before=this.p.dash;oldDash.call(this);if(before>0||this.p.dash<=0)return;const f=this.features;f.attackBuff=1.5;if(mix(this,'fire-storm'))zone(this,this.p,85,D.stats(this.s).damage*.35,'#ff9c65');if(mix(this,'ice-storm'))nearby(this,this.p,150).forEach(e=>{e.chill=2;});if(this.s.weapon==='shield'&&this.s.branch==='b')radial(this,this.p,150,D.stats(this.s).damage*(this.s.weaponLevel===5?2.5:1.5),'#b1fce7');};
+ proto.skill=function(){if(this.paused||this.dead||FWUI.$('modal').open||this.p.skill>0)return;const s=this.s,st=D.stats(s),p=this.p,kit=FWCombat.kits[s.weapon],angle=FWCombat.aim(p,this.enemies);this.skillImpact=true;if(['flurry','lance','quake','reap','guard','summon'].includes(kit.kind)){
+   p.skill=st.skillCooldown;p.facing=angle;this.attack=.2;this.shots=this.shots.filter(b=>Math.hypot(b.x-p.x,b.y-p.y)>250);const damage=st.skillDamage;
+   if(kit.kind==='flurry'){radial(this,p,155,damage*.5,kit.color);for(const delay of [.2,.4])this.features.zones.push({x:p.x,y:p.y,r:155,damage:damage*.5,color:kit.color,life:delay+.05,cd:delay,once:true});}
+   if(kit.kind==='lance'){this.enemies.filter(e=>FWCombat.inBeam(p,e,angle,580,45)).forEach(e=>extraHit(this,e,damage*1.5));this.effect('beam',p.x,p.y,580,{angle,color:kit.color});}
+   if(kit.kind==='quake'){radial(this,p,230,damage*1.4,kit.color);nearby(this,p,230).filter(e=>e.type!=='boss').forEach(e=>{const a=Math.atan2(e.y-p.y,e.x-p.x);this.moveBody(e,Math.cos(a)*40,Math.sin(a)*40,e.r);});}
+   if(kit.kind==='reap'){nearby(this,p,250).filter(e=>e.type!=='boss').forEach(e=>{e.x+=(p.x-e.x)*.5;e.y+=(p.y-e.y)*.5;});radial(this,p,260,damage,kit.color);}
+   if(kit.kind==='guard'){this.features.shield=Math.max(30,this.features.shield);radial(this,p,160,damage,kit.color);}
+   if(kit.kind==='summon')for(let i=0;i<16;i++)bullet(this,i*Math.PI/8,{...st,bulletSpeed:340},{damage:damage*.3,style:'wand',homing:true});FWUI.sound('good');
+  }else oldSkill.call(this);
+  this.skillImpact=false;if(p.skill<=0)return;
+  if(s.tech==='echo')this.pending.push({kind:'meteor',x:p.x,y:p.y,delay:.65,damage:st.skillDamage*.45,radius:210});
+  if(mix(this,'fire-star')){const pos=FWCombat.meteorPoint(p,this.enemies);this.pending.push({kind:'meteor',...pos,delay:.5,damage:st.skillDamage*.45,radius:100});this.effect('meteor-mark',pos.x,pos.y,100,{life:.5,max:.5});}
+  if(s.weapon==='wand'&&s.branch==='b'&&s.weaponLevel===5)for(let i=0;i<12;i++)bullet(this,i*Math.PI/6,st,{damage:st.damage*.7});
+ };
+ proto.featureUpdate=function(dt){const f=this.features,s=this.s,st=D.stats(s);for(const k in f.cool)f.cool[k]=Math.max(0,f.cool[k]-dt);f.attackBuff=Math.max(0,f.attackBuff-dt);
+  if(mix(this,'ice-earth')&&!f.cool.iceShield){f.shield=Math.max(f.shield,15);f.cool.iceShield=8;}
+  if(mix(this,'storm-earth')){if(this.moving)f.moving+=dt;if(f.moving>=2&&!f.cool.windShield){f.shield=Math.max(f.shield,12);f.moving=0;f.cool.windShield=6;}}
+  if(s.weapon==='shield'&&s.branch==='a'&&!f.cool.reflect){const shot=this.shots.find(b=>Math.hypot(b.x-this.p.x,b.y-this.p.y)<(s.weaponLevel===5?100:70));if(shot){shot.life=0;f.cool.reflect=.4;const a=FWCombat.aim(this.p,this.enemies);bullet(this,a,{...st,bulletSpeed:480},{style:'bow',damage:st.damage*1.2});}}
+  for(const e of this.enemies){if(e.frozen>0){e.frozen=Math.max(0,e.frozen-dt);e.chill=Math.max(e.chill||0,.1);}if(e.burn>0){e.burn-=dt;e.burnTick=(e.burnTick||0)-dt;if(e.burnTick<=0){extraHit(this,e,st.damage*.18*(s.relics.includes('scorch')?1.5:1));e.burnTick=.5;}}}
+  for(const b of this.bullets){if(b.homing&&this.enemies.length){const target=this.enemies.filter(e=>e.hp>0).sort((a,c)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(c.x-b.x,c.y-b.y))[0];if(target){const a=Math.atan2(target.y-b.y,target.x-b.x),speed=Math.hypot(b.vx,b.vy);b.vx+=(Math.cos(a)*speed-b.vx)*Math.min(1,dt*(s.weaponLevel===5?9:5));b.vy+=(Math.sin(a)*speed-b.vy)*Math.min(1,dt*(s.weaponLevel===5?9:5));}}
+   if(b.returning&&b.age>.4){const a=Math.atan2(this.p.y-b.y,this.p.x-b.x),speed=Math.hypot(b.vx,b.vy);b.vx=Math.cos(a)*speed;b.vy=Math.sin(a)*speed;}
+  }
+  for(const z of f.zones){z.life-=dt;z.cd-=dt;if(z.cd<=0){this.skillImpact=!!z.once;nearby(this,z,z.r).forEach(e=>{extraHit(this,e,z.damage);if(z.chill)e.chill=.8;});this.skillImpact=false;z.cd=.5;if(z.once)z.life=0;}}
+  f.zones=f.zones.filter(z=>z.life>0).slice(-24);
+  const spirits=(s.weapon==='book'?(s.branch==='a'?(s.weaponLevel===5?3:2):1):0)+(mix(this,'earth-star')?1:0);f.spirits=spirits;
+  if(spirits&&!f.cool.spirit&&this.enemies.some(e=>e.hp>0)){f.cool.spirit=.8;for(let i=0;i<spirits;i++){const a=this.time*1.5+i*Math.PI*2/spirits,x=this.p.x+Math.cos(a)*60,y=this.p.y+Math.sin(a)*60,angle=FWCombat.aim({x,y},this.enemies);for(let j=0;j<st.count;j++)bullet(this,angle+(j-(st.count-1)/2)*.16,{...st,bulletSpeed:350},{x,y,damage:st.damage*(s.branch==='b'?(s.weaponLevel===5?2.6:1.8):.8)*(s.relics.includes('orbit')?1.25:1),style:'wand',homing:s.weaponLevel===5});}}
+ };
+ proto.splitBullet=function(b,e){if(!b.split||b.fragment)return;const st=D.stats(this.s),count=b.split;b.split=0;for(let i=0;i<count;i++)bullet(this,i*Math.PI*2/count,st,{x:e.x,y:e.y,style:'bow',damage:b.damage*.35,fragment:true,life:.8,hit:[e.id]});};
+ proto.draw=function(){oldDraw.call(this);if(this.dead||this.paused||FWUI.$('modal').open)return;const c=this.ctx,f=this.features,p=this.p;c.save();for(const z of f.zones){c.globalAlpha=.22;c.fillStyle=z.color;c.beginPath();c.arc(z.x,z.y,z.r,0,Math.PI*2);c.fill();}c.globalAlpha=1;if(f.shield>0){c.strokeStyle='#9cdfff';c.lineWidth=3;c.beginPath();c.arc(p.x,p.y,33,0,Math.PI*2);c.stroke();c.fillStyle='#fff';c.font='12px sans-serif';c.fillText('보호막 '+Math.ceil(f.shield),p.x-30,p.y-40);}for(let i=0;i<(f.spirits||0);i++){const a=this.time*1.5+i*Math.PI*2/f.spirits,x=p.x+Math.cos(a)*60,y=p.y+Math.sin(a)*60;c.fillStyle='#d7b6ff';c.beginPath();c.arc(x,y,this.s.branch==='b'?13:8,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.fillRect(x-4,y-2,2,3);c.fillRect(x+3,y-2,2,3);}c.restore();};
+ }
+ function demo(s){const U=FWUI;U.modal(`<h2>무기 성장 시연</h2><div class="row"><button data-demo-branch="a">${branches[s.weapon][0]}</button><button data-demo-branch="b">${branches[s.weapon][1]}</button></div><canvas id="growth-canvas" width="640" height="320" aria-label="각성 무기의 실제 공격 방식 시연"></canvas><p id="growth-caption"></p><p class="fine">선택한 계열의 +5 공격을 시연해요. 탐험의 장비·결정은 변하지 않아요.</p><button id="growth-close">돌아가기</button>`,()=>{
+  const canvas=U.$('growth-canvas'),c=canvas.getContext('2d');let branch=s.branch||'a',frame=0,last=0,closed=false;
+  const a={s:{...s,weaponLevel:5,branch},p:{x:230,y:180,dx:1,dy:0,inv:0,skill:0,dash:0},enemies:[{id:'dummy',x:330,y:180,hp:100000,maxHp:100000,r:20,type:'chaser'}],bullets:[],shots:[],pending:[],fx:[],time:0,attack:0,auto:0,moving:false,extra:false,effect(kind,x,y,radius,extra={}){this.fx.push({kind,x,y,radius,life:.3,max:.3,color:FWCombat.kits[s.weapon].color,...extra});},hitEnemy(e,damage){e.hp-=damage;e.flash=.15;this.effect('nova',e.x,e.y,24,{life:.18,max:.18});},moveBody(e,x,y){e.x+=x;e.y+=y;}};init(a);a.features.mixes=[];a.featureUpdate=previewProto.featureUpdate;
+  const choose=value=>{branch=value;a.s.branch=branch;a.bullets=[];a.fx=[];a.auto=0;U.$('growth-caption').textContent=branches[s.weapon][branch==='a'?0:1];};choose(branch);
+  document.querySelectorAll('[data-demo-branch]').forEach(b=>b.onclick=()=>choose(b.dataset.demoBranch));U.$('growth-close').onclick=()=>{closed=true;cancelAnimationFrame(frame);U.close();};
+  const tick=t=>{if(closed||!canvas.isConnected||!U.$('modal').open)return;const dt=Math.min(.04,last?(t-last)/1000:.016);last=t;a.time+=dt;a.auto-=dt;a.attack=Math.max(0,a.attack-dt);a.enemies[0].hp=100000;a.featureUpdate(dt);if(a.auto<=0){fire.call(a,D.stats(a.s),a.p,a.enemies);a.auto=D.stats(a.s).interval;}a.bullets.forEach(b=>{FWCombat.stepBullet(b,dt,a.p);const e=a.enemies[0];if(!b.hit.includes(e.id)&&Math.hypot(e.x-b.x,e.y-b.y)<26){a.hitEnemy(e,b.damage);b.hit.push(e.id);if(b.hit.length>b.pierce)b.life=0;}});a.bullets=a.bullets.filter(b=>b.life>0&&b.x<640&&b.x>0);a.fx.forEach(f=>f.life-=dt);a.fx=a.fx.filter(f=>f.life>0);c.fillStyle='#101b2b';c.fillRect(0,0,640,320);c.strokeStyle='#315345';for(let x=0;x<640;x+=40){c.beginPath();c.moveTo(x,0);c.lineTo(x,320);c.stroke();}a.enemies[0].flash=Math.max(0,(a.enemies[0].flash||0)-dt);if(!FWTowerArt.actor(c,1,a.enemies[0].x-26,145,52,69)){c.fillStyle='#ab7d5b';c.fillRect(a.enemies[0].x-15,150,30,50);}c.fillStyle='#f5d6a4';c.font='13px sans-serif';c.fillText('연습 허수아비',a.enemies[0].x-40,135);FWCombatArt.player(c,a.p,s.weapon,a.time,a.attack,false,a.s);a.bullets.forEach(b=>FWCombatArt.bullet(c,b,a.time,s.weapon));a.fx.forEach(f=>FWCombatArt.effect(c,f));frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);
+ });}
+
+ window.FWGrowth={branches,demo};window.FWCombatExpansion={init,install};
+})();

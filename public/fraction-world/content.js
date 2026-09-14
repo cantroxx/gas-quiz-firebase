@@ -86,6 +86,37 @@
       {day:28,name:'스타라이트 어워즈',concept:'자유',score:68,team:67,energy:42,fans:290,reward:250}
     ]
   };
+  C.weapons.push(...[
+    ['blades','새벽 쌍검','근거리 연속 베기',18,.28,0,1,'#ffd5b5','boss0',100],
+    ['spear','수정 창','긴 직선 찌르기',36,.7,0,1,'#b7ddff','boss0',190],
+    ['hammer','대지 망치','넓은 충격과 밀치기',58,1.1,0,1,'#efc998','boss1',130],
+    ['scythe','사슬낫','중거리 회전 베기',30,.65,0,1,'#e0b0ff','boss2',170],
+    ['shield','수호 방패','방어와 부메랑 방패',24,.8,340,1,'#9be7cb','boss1',0],
+    ['book','정령 소환서','정령들이 별탄 발사',20,.75,340,1,'#d1b8ff','boss3',0]
+  ].map(([id,name,desc,damage,interval,speed,count,color,unlock,reach])=>({id,name,desc,damage,interval,speed,count,color,unlock,reach,icon:'✦'})));
+  C.relics.push(...[
+    ['coal','영원의 숯','불꽃','공격력 +12%','fire'],['torch','횃불 횃대','불꽃','공격 적중 시 2초 화상','fire'],['scorch','용의 송곳니','불꽃','화상 피해 +50%','fire'],
+    ['prism','서리 프리즘','서리','탄속 +15%','ice'],['icicle','고드름 핀','서리','기술 적중 시 2초 냉각','ice'],['shell','빙정 조개','서리','받는 피해 -8%','ice'],['snow','눈결정 부적','서리','최대 체력 +12','ice'],
+    ['gust','돌풍 병','폭풍','이동 속도 +8%','storm'],['wing','매의 날개','폭풍','공격 속도 +10%','storm'],['coil','축전 나선','폭풍','기본 공격 8회마다 연쇄 방전','storm'],['tempo','박자의 북','폭풍','기술 대기시간 -10%','storm'],
+    ['root','뿌리 매듭','숲','방 완료 시 체력 6 회복','earth'],['acorn','황금 도토리','숲','최대 체력 +18','earth'],['bark','고목 껍질','숲','받는 피해 -8%','earth'],
+    ['pearl','달빛 진주','별','기술 위력 +20%','star'],['orbit','궤도 나침반','별','정령 공격 위력 +25%','star']
+  ].map(([id,name,icon,desc,tag])=>({id,name,icon,desc,tag})));
+  C.mixes=[
+    ['fire','ice','열충격','냉각 적 타격 시 주변 폭발 · 2초 간격'],['fire','storm','불꽃 발자국','회피한 자리에 불길 · 2초 지속'],
+    ['fire','earth','가시불꽃','피격 시 주변 반격 · 2초 간격'],['fire','star','유성우','기술 사용 시 작은 운석 추가'],
+    ['ice','storm','얼음 길','회피할 때 주변 적 2초 냉각'],['ice','earth','빙정 수호','8초마다 피해 15 흡수 보호막'],
+    ['ice','star','시간 얼음','기술 적중 시 0.8초 빙결'],['storm','earth','바람 수호','2초 이동으로 피해 12 흡수 보호막 · 6초 간격'],
+    ['storm','star','연쇄 회로','기본 공격 8회마다 최대 6명 방전'],['earth','star','숲의 정령','지원 정령 1마리 소환']
+  ].map(([a,b,name,desc])=>({id:a+'-'+b,a,b,name,desc}));
+  C.looks=[
+    {id:'dawn',name:'루나 · 새벽 여행자',row:0,unlock:null},
+    {id:'moss',name:'로아 · 숲의 길잡이',row:1,unlock:'boss0'},
+    {id:'knight',name:'테오 · 잿불 기사',row:2,unlock:'boss1'},
+    {id:'aurora',name:'루나 · 별의 대관식',row:3,unlock:'awaken'},
+    {id:'winter',name:'로아 · 겨울 탐험가',row:4,unlock:'mix3'},
+    {id:'void',name:'테오 · 공허의 수호자',row:5,unlock:'expert'}
+  ];
+  C.unlockNames={boss0:'뿌리의 파수꾼 처치',boss1:'모래시계 마녀 처치',boss2:'잿불 기사 처치',boss3:'균열의 심장 처치',awaken:'무기를 +5까지 각성',mix3:'혼합 조합 3종 동시 활성',expert:'심화 난이도로 탐험 완주'};
   if (typeof module !== 'undefined' && module.exports) module.exports = C;
   else root.FWContent = C;
 })(typeof window !== 'undefined' ? window : globalThis);

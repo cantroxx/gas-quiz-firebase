@@ -1,0 +1,37 @@
+(function(root){
+ 'use strict';
+ const C=typeof module!=='undefined'&&module.exports?require('./content.js'):root.FWContent;
+ const D=typeof module!=='undefined'&&module.exports?require('./tower-domain.js'):root.FWTowerDomain;
+ const kinds={normal:['전투','결정 18 + 유물 3택1'],elite:['정예','결정 30 + 유물 3택1'],treasure:['속성 보물','표시된 속성 유물 3택1'],forge:['대장간','무기 고단계·유물 강화'],shop:['상점','상품 3개 중 1개 구매'],rest:['샘터','결정 25로 체력 40 또는 무료 축복'],event:['사건','열쇠·결정·회복 중 선택'],boss:['보스','결정 45 + 보스 보물']};
+ const depth=s=>s.expedition==='long'?8:6,region=s=>Math.min(3,Math.floor((s.room-1)/depth(s))),step=s=>(s.room-1)%depth(s),total=s=>depth(s)*4;
+ function rng(seed){let x=seed>>>0;return()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};}
+ function create(weapon,difficulty,mode='short',look='dawn',seed=Math.floor(Math.random()*0xffffffff)){
+  const s=D.create(weapon,difficulty);Object.assign(s,{expedition:mode==='long'?'long':'short',look,seed,weaponLevel:0,branch:null,mod:null,tech:null,maps:[],visited:[],node:null,bosses:[],regionFights:[0,0,0,0],runes:0,quizAnswered:0,correct:0,hiddenUsed:[],keys:0,elites:[0,0,0,0],hiddenOpen:false});
+  const random=rng(seed),tags=['fire','ice','storm','earth','star'];
+  for(let r=0;r<4;r++){const rows=[];for(let j=0;j<depth(s);j++){
+   let types=j===depth(s)-1?['boss']:j===depth(s)-2?['forge','rest','shop']:j===2?['treasure','shop','event']:['normal','elite',j%2?'elite':'normal'];
+   const offset=Math.floor(random()*types.length);types=types.map((_,i)=>types[(i+offset)%types.length]);
+   rows.push(types.map((type,col)=>({id:`${r}-${j}-${col}`,type,col,row:j,tag:tags[Math.floor(random()*5)],stock:stock(random,weapon),done:false})));
+  }s.maps.push(rows);}return s;
+ }
+ function stock(random,weapon){const tag=['fire','ice','storm','earth','star'][Math.floor(random()*5)];return [{id:'relic',name:'속성 유물 선택',tag,price:40},{id:random()>.5?'mod':'tech',name:random()>.5?'무기·기술 공방':'마법 개조',price:55},{id:'rescue',name:'구조 부적',price:45}];}
+ function current(s){return s.maps[region(s)][step(s)];}
+ function select(s,id){if(s.phase!=='route'||s.node)return false;const n=current(s).find(n=>n.id===id);if(!n)return false;s.node=n;s.route=n.type==='elite'?'elite':'normal';
+  if(['normal','elite','boss'].includes(n.type)){const r=region(s);s.regionFights[r]++;if(n.type==='elite')s.elites[r]++;s.phase=[1,3].includes(s.regionFights[r])?'charge':'combat';}else if(n.type==='treasure'){s.offers=D.offers(s,rng(s.seed+s.room),n.tag);s.phase='reward';}else s.phase='room';return true;
+ }
+ function finish(s){if(!['room','route'].includes(s.phase)||!s.node||s.hiddenOpen)return false;D.finishReward(s);return true;}
+ function upgradeWeapon(s,branch){const lv=s.weaponLevel||0,cost=[15,25,40,60,85][lv];if(lv>=5||!['route','room'].includes(s.phase)||s.crystals<cost||lv>=2&&s.node?.type!=='forge')return false;if(lv===2&&!['a','b'].includes(branch))return false;s.crystals-=cost;s.weaponLevel=lv+1;if(lv===2)s.branch=branch;return true;}
+ function mixes(s){const tags=D.stats(s).tags;return C.mixes.filter(m=>tags[m.a]>=2&&tags[m.b]>=2);}
+ function canHidden(s){const r=region(s);return s.phase==='route'&&!s.hiddenUsed.includes(r)&&(s.keys>0||s.elites[r]>=2||mixes(s).length>0);}
+ function openHidden(s){if(!canHidden(s))return false;s.hiddenOpen=true;s.hiddenStock=stock(rng(s.seed+region(s)*79+900),s.weapon).map(i=>({...i,price:i.price-10}));s.hiddenUsed.push(region(s));if(s.keys>0)s.keys--;return true;}
+ function buy(s,index,relicId){if(!(s.phase==='room'&&s.node?.type==='shop'||s.phase==='route'&&s.hiddenOpen)||s.purchase)return false;const items=s.hiddenOpen?s.hiddenStock:s.node.stock,item=items[index];if(!item||s.crystals<item.price)return false;
+  if(item.id==='relic'){const r=C.relics.find(r=>r.id===relicId);if(!r||r.tag!==item.tag||s.relics.includes(r.id)||s.relics.length>=8)return false;s.relics.push(r.id);s.hp=Math.min(D.stats(s).maxHp,s.hp+(r.id==='heart'?25:r.id==='icewall'?15:0));}else if(item.id==='rescue'){if(s.rescue)return false;s.rescue=true;}else if(item.id==='mod'){if(s.mod==='focus')return false;s.mod='focus';}else{if(s.tech==='echo')return false;s.tech='echo';}s.crystals-=item.price;s.purchase=true;return true;}
+ function sync(profile,s){profile.unlocks=Array.from(new Set([...(profile.unlocks||[]),...(s.bosses||[]).map(n=>'boss'+n),...(s.weaponLevel===5?['awaken']:[]),...(mixes(s).length>=3?['mix3']:[]),...(s.cleared&&s.difficulty==='expert'?['expert']:[])]));return profile.unlocks;}
+ function unlocked(profile,item){return !item.unlock||(profile.unlocks||[]).includes(item.unlock);}
+ function valid(s){try{const d=depth(s),bounded=(n,max=1e6)=>Number.isFinite(n)&&n>=0&&n<=max;
+  const stockOK=items=>Array.isArray(items)&&items.length===3&&items.every(i=>i&&['relic','mod','tech','rescue'].includes(i.id)&&bounded(i.price,100)&&i.price>0&&(i.id!=='relic'||['fire','ice','storm','earth','star'].includes(i.tag)));
+  return ['short','long'].includes(s.expedition)&&C.looks.some(l=>l.id===s.look)&&bounded(s.seed,0xffffffff)&&Number.isInteger(s.weaponLevel)&&bounded(s.weaponLevel,5)&&(s.weaponLevel<3||['a','b'].includes(s.branch))&&[null,'focus'].includes(s.mod)&&[null,'echo'].includes(s.tech)&&Array.isArray(s.maps)&&s.maps.length===4&&s.maps.every((rows,r)=>Array.isArray(rows)&&rows.length===d&&rows.every((row,j)=>Array.isArray(row)&&row.length===(j===d-1?1:3)&&row.every((n,i)=>n&&n.id===`${r}-${j}-${i}`&&n.row===j&&n.col===i&&kinds[n.type]&&['fire','ice','storm','earth','star'].includes(n.tag)&&stockOK(n.stock))))&&Array.isArray(s.visited)&&s.visited.length<=32&&s.visited.every(id=>s.maps.flat(2).some(n=>n.id===id))&&Array.isArray(s.regionFights)&&s.regionFights.length===4&&s.regionFights.every(n=>Number.isInteger(n)&&bounded(n,8))&&Array.isArray(s.hiddenUsed)&&s.hiddenUsed.every(n=>Number.isInteger(n)&&bounded(n,3))&&Array.isArray(s.bosses)&&s.bosses.every(n=>Number.isInteger(n)&&bounded(n,3))&&Array.isArray(s.elites)&&s.elites.length===4&&s.elites.every(n=>bounded(n,7))&&bounded(s.runes,6)&&bounded(s.keys,20)&&bounded(s.quizAnswered,32)&&bounded(s.correct,32)&&(!s.hiddenOpen||s.phase==='route'&&stockOK(s.hiddenStock))&&(!['room','charge','combat','reward'].includes(s.phase)||!!s.node)&&(!s.node||current(s).some(n=>n.id===s.node.id&&n.type===s.node.type)&&stockOK(s.node.stock));
+ }catch(_){return false;}}
+
+ const api={kinds,depth,region,step,total,create,current,select,finish,upgradeWeapon,mixes,canHidden,openHidden,buy,sync,unlocked,valid};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FWExpedition=api;
+})(typeof window!=='undefined'?window:globalThis);

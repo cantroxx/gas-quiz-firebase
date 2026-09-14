@@ -14,12 +14,13 @@
   function validRun(s, type) {
     if (!s || s.version !== 1 || !['hard', 'expert'].includes(s.difficulty)) return null;
     if (type === 'tower') {
-      if (!finite(s.hp, 0, 500) || !Number.isInteger(s.room) || !finite(s.room, 1, 24) ||
+      if (!finite(s.hp, 0, 500) || !Number.isInteger(s.room) || !finite(s.room, 1, s.expedition==='long'?32:24) ||
           !known(FWContent.weapons, s.weapon) || !Array.isArray(s.relics) || s.relics.length > 8 ||
           !s.relics.every(id => known(FWContent.relics, id)) || new Set(s.relics).size !== s.relics.length ||
           !Array.isArray(s.offers) || !s.offers.every(id => known(FWContent.relics, id)) ||
-          !['route', 'charge', 'combat', 'reward', 'ended'].includes(s.phase) ||
-          !finite(s.crystals) || !finite(s.kills) || !finite(s.best, 0, 24)) return null;
+          !['route', 'charge', 'combat', 'reward', 'room', 'ended'].includes(s.phase) ||
+          !finite(s.crystals) || !finite(s.kills) || !finite(s.best, 0, 32)) return null;
+      if(s.expedition&&(!window.FWExpedition||!FWExpedition.valid(s)))return null;if(!s.expedition&&s.phase==='room')return null;
       s.upgrades=Object.fromEntries(Object.entries(s.upgrades&&typeof s.upgrades==='object'?s.upgrades:{}).filter(([id,n])=>known(FWContent.relics,id)&&Number.isInteger(n)&&n>=0&&n<=3));
       if (s.combat) {
         const b = s.combat;
@@ -57,6 +58,7 @@
     p.collection = [...new Set((Array.isArray(p.collection) ? p.collection : []).filter(id => known(FWContent.relics, id)))];
     p.trophies = [...new Set((Array.isArray(p.trophies) ? p.trophies : []).filter(id => ['tower', 'studio'].includes(id)))];
     p.records = (Array.isArray(p.records) ? p.records : []).filter(r => r && ['tower', 'studio'].includes(r.mode) && typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(r.date)).slice(0, 40);
+    p.unlocks=[...new Set((Array.isArray(p.unlocks)?p.unlocks:[]).filter(id=>FWContent.unlockNames[id]))];
     p.tower = validRun(p.tower, 'tower'); p.studio = validRun(p.studio, 'studio');
     if ((raw?.tower && !p.tower) || (raw?.studio && !p.studio)) warning = '일부 진행 기록을 읽지 못했어요. 읽을 수 있는 학습 기록과 다른 저장 칸은 유지했어요.';
     const q = p.quiz;
@@ -67,7 +69,7 @@
           (Number.isInteger(q.question.kind) && finite(q.question.kind, 0, 5) && Number.isInteger(q.question.d) && finite(q.question.d, 3, 12) &&
           finite(q.question.a) && finite(q.question.b) && ['+', '−'].includes(q.question.op) &&
           q.question.n === (q.question.op === '+' ? q.question.a + q.question.b : q.question.a - q.question.b)));
-      if (!valid) p.quiz = null;
+      if (!valid || (q.single&&(!['tower-entry','tower-reward'].includes(q.mode)||!p.tower?.expedition||!finite(q.correct||0,0,q.count)||!finite(q.wrong||0,0,q.count))) || (q.review&&(!q.question||typeof q.review.correct!=='boolean'))) p.quiz = null;
     }
     return p;
   }

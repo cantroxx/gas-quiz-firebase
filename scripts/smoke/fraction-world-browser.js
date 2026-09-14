@@ -22,7 +22,7 @@ async function main(){
   await page.click('#answer-num');await page.keyboard.type(String(q.n));await page.keyboard.press('Enter');
   assert.match(await page.locator('#quiz-feedback').innerText(),/정답/);await page.click('#answer-submit');
  }};
- await page.click('#enter-tower');await page.click('#tower-start');await page.click('[data-route="normal"]');
+ await page.evaluate(()=>{FWStore.get().tower=FWTowerDomain.create('wand');FWTower.enter();});await page.click('[data-route="normal"]');
  // Wrong answer, retry and visual hint; attempt statistics must count a problem once.
  await page.click('[data-key="9"]');await page.click('[data-key="9"]');await page.click('#answer-submit');await page.click('#hint-button');assert.ok(await page.locator('.bar-unit').count());await solve();await page.waitForTimeout(2200);
  await page.keyboard.down('KeyD');await page.waitForTimeout(220);await page.keyboard.up('KeyD');await page.click('#dash-button');await page.click('#skill-button');

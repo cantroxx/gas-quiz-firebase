@@ -1,0 +1,26 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "maps-v4.png",
+      "prompt": "Original premium hand painted fantasy roguelike OVERWORLD MAP background atlas. Portrait image 1536x2048 divided exactly into 2 columns x2 rows, four separate rectangular maps each 768x1024. Each cell has top-to-bottom progression, landscape detail along sides, broad open muted center reserved for UI stage buttons. NO text, NO letters, NO paths connecting nodes, NO icons/buttons, NO borders. Top-left mossy forest ruins jade water old root gate at bottom. Top-right amber glass desert oasis crystals with hourglass temple at bottom. Bottom-left blue ember castle snowy iron bridges and forge with huge knight fortress gate at bottom. Bottom-right floating violet void islands crystalline stars with dark celestial throne at bottom. Magical painted console RPG environment art, atmospheric depth, top down oblique miniature terrain, visually coherent, darker contrast toward the center so UI readable. Full bleed rectangular quadrants, exact equal grid, no cross-quadrant objects."
+    },
+    {
+      "name": "explorers-v4.png",
+      "prompt": "Transparent PNG game character sprite atlas, exact 4 columns x6 rows, portrait 1024x1536, 24 equal square cells. Original charming fantasy console roguelike hand painted chibi heroes, 3/4 front camera facing slightly right, full body centered, consistent scale and 15% margin in each cell. Each ROW has ONE consistent character and costume, four poses left to right: idle standing, walking left foot forward, attacking leaning empty hands forward, low dashing. No weapons, no background, no text, no grid. ROW1: white-haired bunny hood lavender cape young female traveler (base hero). ROW2: copper-haired fox ears mint forest scout young girl. ROW3: short silver-haired young boy knight, blue steel armor no helmet. ROW4: SAME bunny girl in ornate golden celestial white cape star crown. ROW5: SAME fox girl in ice-blue white fur winter explorer costume. ROW6: SAME knight boy in violet-black crystalline royal armor. Actual transparent alpha, isolated sprites clean edges. Child-friendly original identities, no franchise references. Each cell strictly isolated, no overlapping."
+    },
+    {
+      "name": "weapons-v4.png",
+      "prompt": "Transparent fantasy RPG equipment sprite atlas 3 columns x2 rows landscape1536x1024 exact equal square cells with safe margins, six ornate original hand-painted game weapons isolated, polished metal and jewel materials, recognizable at64px. Row1 left to right: pair of warm gold dual short swords, long icy crystalline spear, huge amber stone warhammer. Row2: violet crescent scythe with curled chain, mint heraldic round shield, open lavender spellbook with tiny glowing spirit hovering. No text, no border, no background, real PNG alpha. Diagonal handle bottom-left tip top-right where applicable. Cohesive cute-premium console fantasy game art, no franchise emblems."
+    },
+    {
+      "name": "relics-v4.png",
+      "prompt": "Transparent PNG premium hand-painted original fantasy game relic inventory atlas, exact 4 columns x4 rows, square1536x1536, 16 equally sized square cells, clean alpha empty margin15%, no text or grid. Distinct small treasures centered, rich material highlights and readable silhouettes. Row1 left-right: eternal glowing red charcoal; red torch stand; dragon fang with ember; icy blue glass prism. Row2: icicle pin brooch; blue ice shell; snow crystal amulet; teal whirlwind in glass bottle. Row3: teal hawk wings ornament; turquoise electrical coil; small teal rhythm drum; tangled green root knot. Row4: golden acorn with green leaves; ancient green bark talisman; lavender moon pearl in golden crescent; golden violet orbital compass. True transparent background, matching polished magical RPG inventory artwork, no frame or words, each object contained entirely in its cell."
+    },
+    {
+      "name": "locations-v4.png",
+      "prompt": "Original fantasy game location ICON atlas, square1536x1536, exactly3columns x3rows equalcells, transparent alpha backgrounds. Hand painted miniature buildings/objects with dimensional lighting, cute premium RPG. Each cell centered safe margin15%, no text no letters no grid no card borders. Row1: crossed swords over ruined small gate (normal battle); horned red armored monster shrine (elite); ornate green and gold treasure chest (treasure). Row2: forge with hammer and blue flame anvil (smith); friendly hooded merchant standing behind purple traveling stall (shop); stone fountain with luminous green spring (rest). Row3: weathered traveler backpack with glowing scroll (event); monumental obsidian boss gate with crown (boss); mysterious violet secret doorway with golden key (hidden shop). Complete independent isolated icons, not a scene. Strong silhouettes readable on small map buttons, all on transparent canvas."
+    }
+  ],
+  "usage": "4-map atlas; six explorer looks with four poses each; six weapons; sixteen relics; nine locations. Transparent assets preserve source alpha."
+}
