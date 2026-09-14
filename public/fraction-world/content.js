@@ -116,7 +116,29 @@
     {id:'winter',name:'로아 · 겨울 탐험가',row:4,unlock:'mix3'},
     {id:'void',name:'테오 · 공허의 수호자',row:5,unlock:'expert'}
   ];
-  C.unlockNames={boss0:'뿌리의 파수꾼 처치',boss1:'모래시계 마녀 처치',boss2:'잿불 기사 처치',boss3:'균열의 심장 처치',awaken:'무기를 +5까지 각성',mix3:'혼합 조합 3종 동시 활성',expert:'심화 난이도로 탐험 완주'};
+  // Plain-language copy is shared by shops, rewards, inventory and the guide.
+  C.attributes={fire:{name:'불꽃',hint:'더 세게 공격해요',symbol:'✹',relic:'ember'},ice:{name:'서리',hint:'적을 느리게 해요',symbol:'❄',relic:'frost'},storm:{name:'바람',hint:'더 빠르게 움직여요',symbol:'↝',relic:'storm'},earth:{name:'숲',hint:'체력을 지켜요',symbol:'❧',relic:'heart'},star:{name:'별',hint:'마법을 도와줘요',symbol:'✦',relic:'nova'}};
+  const easyRelics={
+    ember:'한 번 맞힐 때 더 큰 피해를 줘요.',frost:'내 공격에 맞은 적이 느려져요.',storm:'기본 공격을 더 자주 해요.',twin:'한 번에 1발 더 쏴요. 대신 한 발의 힘은 조금 약해져요.',heart:'체력 칸이 25 늘고, 체력도 25 채워져요.',boots:'달리는 속도가 빨라져요.',pierce:'공격이 적 1마리를 더 뚫고 나가요.',leech:'적 1마리를 잡을 때마다 체력을 1 채워요.',nova:'기술 버튼으로 쓰는 마법이 더 강해져요.',clock:'기술 버튼을 더 빨리 다시 쓸 수 있어요.',shield:'맞아도 체력이 조금 덜 줄어요.',dash:'회피 버튼을 더 빨리 다시 쓸 수 있어요.',crit:'가끔 아주 강한 공격이 나가요.',reach:'내가 쏜 공격이 더 빨리 날아가요.',fury:'체력이 절반보다 적으면 공격이 강해져요.',heal:'전투 방을 깨면 체력을 10 채워요.',echo:'한 번에 1발 더 쏴요. 대신 조금 천천히 공격해요.',icewall:'체력 칸이 15 늘고, 맞을 때 덜 아파요.',spark:'가까이 온 적에게 전기로 계속 피해를 줘요.',bloom:'맞으면 가까운 적에게 되받아쳐요.',meteor:'공격이 강해져요. 대신 달리기가 조금 느려져요.',shard:'느려진 적을 더 세게 공격해요.',luck:'전투 방을 깨면 결정 8개를 더 받아요.',crown:'아주 세게 공격해요. 대신 맞을 때 더 아파요.',coal:'기본 공격이 조금 더 강해져요.',torch:'맞은 적에게 불을 붙여 2초 동안 더 아프게 해요.',scorch:'적에게 붙인 불이 더 뜨거워져요. 불을 붙이는 유물과 모아 보세요.',prism:'내가 쏜 공격이 더 빨리 날아가요.',icicle:'기술에 맞은 적이 2초 동안 느려져요.',shell:'맞아도 체력이 조금 덜 줄어요.',snow:'체력 칸이 12 늘어나요.',gust:'달리는 속도가 조금 빨라져요.',wing:'기본 공격을 조금 더 자주 해요.',coil:'8번 공격할 때마다 번개가 적들을 이어서 때려요.',tempo:'기술 버튼을 조금 더 빨리 다시 써요.',root:'전투 방을 깨면 체력을 6 채워요.',acorn:'체력 칸이 18 늘어나요.',bark:'맞아도 체력이 조금 덜 줄어요.',pearl:'기술 버튼으로 쓰는 마법이 더 강해져요.',orbit:'나를 돕는 정령이 더 세게 공격해요. 정령 소환서나 숲+별 조합과 모아 보세요.'
+  };
+  C.relics.forEach(r=>{r.detail=r.desc;r.desc=easyRelics[r.id];});
+  const easyMixes={
+    'fire-ice':'느려진 적을 맞히면 주변에 펑! 2초에 한 번 터져요.',
+    'fire-storm':'회피한 자리에 불길이 남아 적을 공격해요.',
+    'fire-earth':'맞으면 가까운 적에게 되받아쳐요. 2초에 한 번!',
+    'fire-star':'기술을 쓰면 작은 별똥별도 함께 떨어져요.',
+    'ice-storm':'회피하면 가까운 적이 2초 동안 느려져요.',
+    'ice-earth':'8초마다 피해 15를 대신 막는 방패가 생겨요.',
+    'ice-star':'기술에 맞은 적이 잠깐 얼어 멈춰요.',
+    'storm-earth':'2초 동안 움직이면 피해 12를 막는 방패가 생겨요. 다시 만들려면 6초 기다려요.',
+    'storm-star':'8번 공격하면 번개가 적 6마리까지 이어서 때려요.',
+    'earth-star':'작은 정령 1마리가 곁에서 함께 공격해요.'
+  };
+  C.mixes.forEach(m=>{m.detail=m.desc;m.desc=easyMixes[m.id];});
+  const cropRows=[[2,244],[250,240],[493,245],[744,249],[999,245],[1250,278]];
+  C.looks.forEach((l,i)=>{l.sheet='explorers-v4';l.crop=cropRows[i];l.sheetWidth=1024;l.sheetHeight=1536;});
+  C.looks.splice(1,0,{id:'ranger',name:'카이 · 별바람 모험가',row:0,unlock:null,sheet:'boy-v6',sheetWidth:2172,sheetHeight:724,crop:[65,585]});
+  C.unlockNames={boss0:'뿌리의 파수꾼 처치',boss1:'모래시계 마녀 처치',boss2:'잿불 기사 처치',boss3:'균열의 심장 처치',awaken:'무기를 +5까지 각성',mix3:'두 속성 조합 3개를 한 번에 완성',expert:'심화 난이도로 탐험 완주'};
   if (typeof module !== 'undefined' && module.exports) module.exports = C;
   else root.FWContent = C;
 })(typeof window !== 'undefined' ? window : globalThis);

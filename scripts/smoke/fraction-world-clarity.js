@@ -10,7 +10,7 @@ for(const difficulty of ['hard','expert'])for(const room of [1,7,13,19]){
  assert.match(await page.locator('[data-route="elite"]').innerText(),/획득 확률은 탐험과 같아요/);
 }
 await page.evaluate(()=>{const s=FWStore.get().tower;s.room=2;s.difficulty='hard';s.relics=['nova','clock'];s.phase='reward';s.offers=['luck','ember','heart'];FWTower.enter();});
-assert.match(await page.locator('[data-preview="luck"]').innerText(),/별 2\/3 → 3\/3 · 조합 완성/);assert.match(await page.locator('[data-preview="luck"]').innerText(),/특수 기술 위력 \+30%/);
+assert.match(await page.locator('[data-preview="luck"]').innerText(),/별 2\/3 → 3\/3 · 조합 완성/);assert.match(await page.locator('[data-preview="luck"]').innerText(),/기술 버튼의 마법이 더 강해져요/);
 await page.waitForFunction(()=>[...document.querySelectorAll('.relic-art img')].every(i=>i.complete&&i.naturalWidth));await page.screenshot({path:'/tmp/fraction-relics-v3.png'});
 await page.locator('.relic-belt-item').first().tap();assert.ok(await page.locator('#modal').evaluate(d=>d.open));assert.match(await page.locator('.relic-detail').innerText(),/이 유물 하나의 효과/);await page.click('#close-relic');
 await page.click('[data-relic="luck"]');await page.click('#confirm-reward');assert.equal(await page.locator('.synergy-group.tag-star.is-active').count(),1);await page.locator('#app .synergy-group.tag-star').screenshot({path:'/tmp/fraction-synergy-v3.png'});

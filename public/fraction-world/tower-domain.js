@@ -6,9 +6,10 @@
     return {version:1,weapon,difficulty,room:1,hp:110,relics:[],upgrades:{},crystals:0,kills:0,phase:'route',route:'normal',best:0,cleared:false,offers:[],history:[]};
   }
   function level(s,id){const n=s.upgrades?.[id];return Number.isInteger(n)&&n>=0&&n<=3?n:0;}
+  const upgradeCap=s=>s.balance===2?[1,2,3,3][Math.min(3,Math.floor((s.room-1)/(s.expedition==='long'?8:6)))]:3;
   function upgradeCost(s,id){return 20+level(s,id)*15;}
   function upgrade(s,id){
-    if(!['route','room'].includes(s.phase)||s.expedition&&s.node?.type!=='forge'||!s.relics.includes(id)||level(s,id)>=3||s.crystals<upgradeCost(s,id))return false;
+    if(!['route','room'].includes(s.phase)||s.expedition&&s.node?.type!=='forge'||!s.relics.includes(id)||level(s,id)>=upgradeCap(s)||s.crystals<upgradeCost(s,id))return false;
     const before=stats(s).maxHp,cost=upgradeCost(s,id),next=level(s,id)+1;
     s.upgrades=s.upgrades||{};s.upgrades[id]=next;s.crystals-=cost;s.hp=Math.min(stats(s).maxHp,s.hp+stats(s).maxHp-before);return true;
   }
@@ -36,5 +37,5 @@
     s.relics.push(id);s.hp=Math.min(stats(s).maxHp,s.hp+(id==='heart'?25:id==='icewall'?15:0));finishReward(s);return true;
   }
   function finishReward(s){s.offers=[];if(s.expedition){s.best=Math.max(s.best,s.room);if(s.node&&!s.visited.includes(s.node.id))s.visited.push(s.node.id);s.node=null;s.purchase=false;s.combat=null;}if(s.room>=(s.expedition==='long'?32:24)){s.phase='ended';s.cleared=true;}else{s.room++;s.phase='route';}}
-  const api={level,upgradeCost,upgrade,create,stats,roomSpec,offers,completeRoom,equip,finishReward};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FWTowerDomain=api;
+  const api={upgradeCap,level,upgradeCost,upgrade,create,stats,roomSpec,offers,completeRoom,equip,finishReward};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FWTowerDomain=api;
 })(typeof window!=='undefined'?window:globalThis);

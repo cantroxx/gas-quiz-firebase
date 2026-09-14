@@ -1,12 +1,12 @@
 (function(root){
  'use strict';
  const kits={
-  wand:{name:'별의 파동',desc:'내 주변 적에게 피해 + 가까운 적 탄 제거',kind:'nova',color:'#9ef6d0'},
-  bow:{name:'유성 관통',desc:'바라보는 적 방향으로 긴 관통 사격',kind:'beam',color:'#ffdb8a'},
+  wand:{name:'별의 파동',desc:'내 주변 적을 공격하고, 날아오는 적의 공격도 지워요',kind:'nova',color:'#9ef6d0'},
+  bow:{name:'유성 관통',desc:'앞으로 길게 쏴서 여러 적을 뚫어요',kind:'beam',color:'#ffdb8a'},
   fan:{name:'달의 윤무',desc:'8개의 달날이 주위를 돌며 적을 베어요',kind:'blades',color:'#e6a8ff'},
-  orb:{name:'빙결 지대',desc:'주변 적에게 피해 · 3초 동안 이동 냉각',kind:'frost',color:'#91d8ff'},
-  needle:{name:'연쇄 번개',desc:'가까운 적부터 최대 6명에게 번개 연결',kind:'chain',color:'#fff18b'},
-  comet:{name:'혜성 낙하',desc:'가까운 적 위치에 0.65초 뒤 운석 폭발',kind:'meteor',color:'#ffa78f'}
+  orb:{name:'빙결 지대',desc:'가까운 적을 공격하고 3초 동안 느리게 해요',kind:'frost',color:'#91d8ff'},
+  needle:{name:'연쇄 번개',desc:'번개가 적 6마리까지 이어서 때려요',kind:'chain',color:'#fff18b'},
+  comet:{name:'혜성 낙하',desc:'잠깐 뒤, 가까운 적에게 별똥별이 떨어져요',kind:'meteor',color:'#ffa78f'}
  };
  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  function aim(p,enemies){const live=enemies.filter(e=>e.hp>0);const target=live.reduce((best,e)=>!best||distance(p,e)<distance(p,best)?e:best,null);return target?Math.atan2(target.y-p.y,target.x-p.x):Math.atan2(p.dy||0,p.dx||1);}
