@@ -6,7 +6,7 @@ const T=require('../../public/fraction-world/tower-domain.js');
 const S=require('../../public/fraction-world/studio-domain.js');
 let seed=183487;const rng=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
 for(let k=0;k<6;k++)for(let i=0;i<3000;i++){
-  const q=M.generate(k,rng);assert.ok(q.d>=3&&q.d<=12);assert.ok(q.a>=0&&q.b>=0&&q.n>=0);assert.equal(q.n,q.op==='+'?q.a+q.b:q.a-q.b);
+  const q=M.generate(k,rng);assert.ok(q.d>=3&&q.d<=12);assert.ok(q.a>=0&&q.b>=0&&q.n>=0);assert.equal(q.n,q.op==='+'?q.a+q.b:q.a-q.b);if(q.op==='−')assert.ok(q.n>0,'Never offer zero-result subtraction');
   const p=M.parts(q.n,q.d);assert.ok(M.matches(q,p.whole,p.num));assert.ok(M.matches(q,0,q.n));assert.ok(!M.matches(q,0,q.n+1));assert.ok(!M.matches(q,'-1',q.n));assert.ok(!M.matches(q,0,''));
   if(k===0)assert.ok(q.n<q.d);if(k===2)assert.ok(q.n>=q.d);if(k===5)assert.ok(q.a%q.d<q.b%q.d);
 }
@@ -32,3 +32,6 @@ console.log('Fraction World domain: 18,000 generated problems, 6 full tower equi
  const attack=T.stats(basic).damage;basic.relics=basic.relics.filter(id=>id!=='ember');assert.ok(T.stats(basic).damage<attack);basic.relics.push('ember');assert.equal(T.stats(basic).damage,attack);
  basic.relics.push('crit');basic.crystals=19;assert.ok(!T.upgrade(basic,'crit'));basic.crystals=100;basic.phase='combat';assert.ok(!T.upgrade(basic,'crit'));basic.phase='route';assert.ok(!T.upgrade(basic,'crown'));assert.equal(basic.crystals,100);
 }
+
+for(const value of [0,0.999999999])for(const k of [1,4,5]){const q=M.generate(k,()=>value);assert.ok(q.a>q.b&&q.n>0);}
+assert.ok(M.matches({n:0,d:4},0,0),'Zero remains mathematically valid, just excluded from new questions');

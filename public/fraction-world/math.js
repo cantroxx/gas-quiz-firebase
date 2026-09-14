@@ -5,7 +5,7 @@
   function generate(kind,rng=Math.random){
     const d=int(rng,3,12); let a,b,op='+';
     if(kind===0){ a=int(rng,1,d-2); b=int(rng,1,d-1-a); }
-    else if(kind===1){a=int(rng,2,d-1);b=int(rng,1,a);op='−';}
+    else if(kind===1){a=int(rng,2,d-1);b=int(rng,1,a-1);op='−';}
     else if(kind===2){a=int(rng,1,d-1);b=int(rng,d-a,d-1);}
     else if(kind===3){a=int(rng,1,3)*d+int(rng,1,d-1);b=int(rng,1,2)*d+int(rng,1,d-1);}
     else if(kind===4){let ar=int(rng,1,d-1);a=int(rng,2,4)*d+ar;b=d+int(rng,1,ar);op='−';}

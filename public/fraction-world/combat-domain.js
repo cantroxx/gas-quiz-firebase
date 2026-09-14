@@ -8,6 +8,7 @@
   needle:{name:'연쇄 번개',desc:'번개가 적 6마리까지 이어서 때려요',kind:'chain',color:'#fff18b'},
   comet:{name:'혜성 낙하',desc:'잠깐 뒤, 가까운 적에게 별똥별이 떨어져요',kind:'meteor',color:'#ffa78f'}
  };
+ const bowOrigin=(p,angle)=>({x:p.x+Math.cos(angle)*24,y:p.y-24+Math.sin(angle)*24});
  const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  function aim(p,enemies){const live=enemies.filter(e=>e.hp>0);const target=live.reduce((best,e)=>!best||distance(p,e)<distance(p,best)?e:best,null);return target?Math.atan2(target.y-p.y,target.x-p.x):Math.atan2(p.dy||0,p.dx||1);}
  function inBeam(p,e,angle,range=580,width=38){const x=e.x-p.x,y=e.y-p.y,forward=x*Math.cos(angle)+y*Math.sin(angle),side=Math.abs(-x*Math.sin(angle)+y*Math.cos(angle));return forward>=0&&forward<=range&&side<=width+(e.r||0);}
@@ -18,5 +19,5 @@
   if(b.style==='fan'&&b.age>.48){const a=Math.atan2(p.y-b.y,p.x-b.x),speed=Math.hypot(b.vx,b.vy);b.vx=Math.cos(a)*speed;b.vy=Math.sin(a)*speed;if(distance(b,p)<18){b.life=0;return;}}
   b.x+=b.vx*dt;b.y+=b.vy*dt;
  }
- const api={kits,aim,inBeam,chain,meteorPoint,stepBullet};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FWCombat=api;
+ const api={bowOrigin,kits,aim,inBeam,chain,meteorPoint,stepBullet};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.FWCombat=api;
 })(typeof window!=='undefined'?window:globalThis);

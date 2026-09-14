@@ -13,3 +13,5 @@ const fan={x:700,y:300,vx:310,vy:0,age:.5,life:2,style:'fan'};C.stepBullet(fan,.
 fan.x=490;C.stepBullet(fan,.01,p);assert.equal(fan.life,0);
 const blade={x:0,y:0,orbit:0,age:0,life:2};C.stepBullet(blade,.1,p);assert.ok(Math.abs(Math.hypot(blade.x-p.x,blade.y-p.y)-74.5)<1e-8);
 console.log('Combat geometry: directional beam, bounded chain, meteor targeting, returning fan and moving orbit passed.');
+
+{const C=require("../../public/fraction-world/combat-domain.js"),p={x:300,y:240};for(const a of [0,Math.PI/2,Math.PI,-Math.PI/2]){const o=C.bowOrigin(p,a);assert.ok(Math.abs(o.x-(p.x+Math.cos(a)*24))<1e-8);assert.ok(Math.abs(o.y-(p.y-24+Math.sin(a)*24))<1e-8);}}

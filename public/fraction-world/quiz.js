@@ -6,7 +6,7 @@
     const p=FWStore.get();if(!p.quiz||p.quiz.mode!==mode)p.quiz={mode,count,title,index:0,question:null,tries:0,correct:0,wrong:0,single:!!p.tower?.expedition&&['tower-entry','tower-reward'].includes(mode)};
     callback=done;if(!U.$('quiz-dialog').open)U.$('quiz-dialog').showModal();next();
   }
-  function next(){const s=session();if(s.review){solved=true;answer={whole:'0',num:''};render();review();return;}if(s.index>=s.count){const done=callback;FWStore.get().quiz=null;U.save();U.$('quiz-dialog').close();callback=null;done?.(s);return;}
+  function next(){const s=session();if(s.question?.op==='−'&&s.question.n===0&&!s.review){s.question=M.generate(s.question.kind);s.tries=0;U.save();}if(s.review){solved=true;answer={whole:'0',num:''};render();review();return;}if(s.index>=s.count){const done=callback;FWStore.get().quiz=null;U.save();U.$('quiz-dialog').close();callback=null;done?.(s);return;}
     if(!s.question){s.question=M.generate(M.pickKind(FWStore.get().settings.level,FWStore.get().stats));s.tries=0;U.save();}
     solved=false;answer={whole:'0',num:''};field='num';render();
   }
