@@ -94,3 +94,5 @@ dialog:has(.mini-status){border:1px solid #d8c28d99;background:radial-gradient(e
 @media(max-height:520px) and (orientation:landscape){#combat-stage .combat-buttons.with-parry{grid-template-columns:repeat(2,64px);grid-template-rows:repeat(2,64px);gap:6px}#combat-stage .combat-buttons.with-parry button{width:64px;height:64px;font-size:11px}#combat-stage .touch-controls{bottom:34px}#tactic-state{top:130px;bottom:auto;font-size:11px}}
 
 .asset-loading{position:absolute;inset:0;z-index:100;background:#102333f5;display:grid;place-content:center;text-align:center;padding:30px;color:#d5fff1}.asset-loading[hidden]{display:none}.asset-loading p{max-width:420px}.asset-loading button{margin:8px}
+
+.monster-style-preview{display:block;width:104px;height:104px;margin:8px auto 16px;background-size:500% 200%;background-position:0 0;background-repeat:no-repeat;image-rendering:pixelated}.monster-style-cute{background-image:url('./assets/optimized-v12/monsters-v6.webp')}.monster-style-battle{background-image:url('./assets/optimized-v12/battle-monsters-v13.webp')}
