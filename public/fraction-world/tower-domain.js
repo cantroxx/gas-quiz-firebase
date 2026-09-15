@@ -5,7 +5,7 @@
     if(!C.weapons.some(w=>w.id===weapon))throw new Error('무기를 골라 주세요.');
     return {version:1,weapon,difficulty,room:1,hp:110,relics:[],upgrades:{},crystals:0,kills:0,phase:'route',route:'normal',best:0,cleared:false,offers:[],history:[]};
   }
-  const modern=s=>s.balance===3;
+  const modern=s=>s.balance===3||s.balance===4;
   const region=s=>Math.min(3,Math.floor((s.room-1)/(s.expedition==='long'?8:6)));
   const forgeRemaining=s=>!modern(s)?Infinity:s.node?.type==='forge'?Math.max(0,2-(s.forgeUses?.[s.node.id]||0)):0;
   function spendForge(s){if(modern(s)&&s.node?.type==='forge'){s.forgeUses=s.forgeUses||{};s.forgeUses[s.node.id]=(s.forgeUses[s.node.id]||0)+1;}}

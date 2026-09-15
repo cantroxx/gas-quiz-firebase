@@ -27,3 +27,4 @@ console.log('Regional upgrade caps resist unlimited currency for all 12 weapons 
 for(const mode of ['short','long']){const x=E.create('wand','hard',mode);x.balance=2;x.crystals=99999;x.relics=['ember','heart'];x.node={type:'forge'};x.phase='room';for(const [region,cap] of [1,2,3,3].entries()){x.room=region*E.depth(x)+1;for(const id of x.relics){while(D.level(x,id)<cap)assert.ok(D.upgrade(x,id));const coins=x.crystals;assert.equal(D.upgrade(x,id),false);assert.equal(x.crystals,coins);}}}
 
 require('./tower-balance-v3.test.js');
+require('./tactics.test.js');

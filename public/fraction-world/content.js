@@ -135,7 +135,7 @@
     'earth-star':'작은 정령 1마리가 곁에서 함께 공격해요.'
   };
   C.mixes.forEach(m=>{m.detail=m.desc;m.desc=easyMixes[m.id];});
-  C.describeRelic=(r,s)=>s?.balance!==3?r.desc:({
+  C.describeRelic=(r,s)=>![3,4].includes(s?.balance)?r.desc:({
     leech:'적 1마리를 잡으면 체력 1 회복! 한 방에서 최대 8까지 채워요.',
     heal:'전투 방을 깨면 체력 10 회복! 다른 방 완료 회복과 합쳐 최대 12예요.',
     root:'전투 방을 깨면 체력 6 회복! 다른 방 완료 회복과 합쳐 최대 12예요.',
@@ -144,7 +144,7 @@
     luck:`전투 방을 깨면 결정 ${s.expedition==='long'?5:8}개를 더 받아요.`,
     frost:'맞은 적이 느려져요. 보스는 조금만 느려져요.'
   }[r.id]||r.desc);
-  C.describeMix=(m,s)=>s?.balance!==3?m.desc:({
+  C.describeMix=(m,s)=>![3,4].includes(s?.balance)?m.desc:({
     'ice-earth':'10초마다 확인해요. 보호막이 없으면 피해 15를 막는 방패가 생겨요.',
     'storm-earth':'2초 동안 움직이고 보호막이 없으면 피해 12를 막는 방패! 다시 만들려면 10초 기다려요.',
     'ice-star':'기술에 맞은 적이 잠깐 얼어요. 보스는 아주 잠깐 얼고 5초 동안 다시 얼지 않아요.',

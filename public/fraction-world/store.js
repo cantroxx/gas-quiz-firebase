@@ -2,7 +2,7 @@
   'use strict';
   const KEY = 'dj48.fraction-world.v1';
   const fresh = () => ({
-    version: 1, settings: { level: 'all', sound: false },
+    version: 1, settings: { level: 'all', sound: false, music: true, musicVolume: 30, effectsVolume: 65 },
     stats: Array.from({ length: 6 }, () => ({ attempts: 0, first: 0, solved: 0 })),
     total: 0, tower: null, studio: null, quiz: null, collection: [], trophies: [], records: []
   });
@@ -49,7 +49,7 @@
 
   function normalize(raw) {
     const p = { ...fresh(), ...raw };
-    p.settings = { level: ['all', 'basic', 'mixed'].includes(raw?.settings?.level) ? raw.settings.level : 'all', sound: raw?.settings?.sound === true };
+    p.settings = { level: ['all', 'basic', 'mixed'].includes(raw?.settings?.level) ? raw.settings.level : 'all', sound: raw?.settings?.sound === true, music: raw?.settings?.music !== false, musicVolume: finite(raw?.settings?.musicVolume,0,100)?raw.settings.musicVolume:30, effectsVolume: finite(raw?.settings?.effectsVolume,0,100)?raw.settings.effectsVolume:65 };
     p.stats = Array.from({ length: 6 }, (_, i) => {
       const s = raw?.stats?.[i]; const attempts = count(s?.attempts);
       return { attempts, first: Math.min(attempts, count(s?.first)), solved: count(s?.solved) };
