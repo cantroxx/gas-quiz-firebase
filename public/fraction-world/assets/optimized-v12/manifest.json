@@ -1,0 +1,194 @@
+[
+  {
+    "source": "boy-v6.png",
+    "output": "boy-v6.webp",
+    "before": 1045401,
+    "after": 226182
+  },
+  {
+    "source": "castle-v1.jpg",
+    "output": "castle-v1.webp",
+    "before": 630667,
+    "after": 319138
+  },
+  {
+    "source": "concert-v1.jpg",
+    "output": "concert-v1.webp",
+    "before": 527956,
+    "after": 237518
+  },
+  {
+    "source": "desert-v1.jpg",
+    "output": "desert-v1.webp",
+    "before": 571862,
+    "after": 258762
+  },
+  {
+    "source": "explorers-v4.png",
+    "output": "explorers-v4.webp",
+    "before": 2880016,
+    "after": 566562
+  },
+  {
+    "source": "locations-v4.png",
+    "output": "locations-v4.webp",
+    "before": 2825786,
+    "after": 642100
+  },
+  {
+    "source": "maps-v4.png",
+    "output": "maps-v4.webp",
+    "before": 3138265,
+    "after": 485942
+  },
+  {
+    "source": "members-v1.png",
+    "output": "members-v1.webp",
+    "before": 2504712,
+    "after": 410994
+  },
+  {
+    "source": "monsters-v6.png",
+    "output": "monsters-v6.webp",
+    "before": 1858524,
+    "after": 493514
+  },
+  {
+    "source": "rehearsal-v1.jpg",
+    "output": "rehearsal-v1.webp",
+    "before": 396848,
+    "after": 137148
+  },
+  {
+    "source": "relics-v3.png",
+    "output": "relics-v3.webp",
+    "before": 2916914,
+    "after": 634130
+  },
+  {
+    "source": "relics-v4.png",
+    "output": "relics-v4.webp",
+    "before": 2071891,
+    "after": 636962
+  },
+  {
+    "source": "ruins-v1.jpg",
+    "output": "ruins-v1.webp",
+    "before": 596606,
+    "after": 291464
+  },
+  {
+    "source": "star-wave-v6.png",
+    "output": "star-wave-v6.webp",
+    "before": 2102103,
+    "after": 430022
+  },
+  {
+    "source": "studio-wardrobe-v2.png",
+    "output": "studio-wardrobe-v2.webp",
+    "before": 2040431,
+    "after": 615128
+  },
+  {
+    "source": "tower-cover-v1.jpg",
+    "output": "tower-cover-v1.webp",
+    "before": 792895,
+    "after": 433242
+  },
+  {
+    "source": "void-v1.jpg",
+    "output": "void-v1.webp",
+    "before": 584926,
+    "after": 286282
+  },
+  {
+    "source": "weapons-v2.png",
+    "output": "weapons-v2.webp",
+    "before": 2146648,
+    "after": 317036
+  },
+  {
+    "source": "weapons-v4.png",
+    "output": "weapons-v4.webp",
+    "before": 2422341,
+    "after": 390550
+  },
+  {
+    "source": "fw-cell-blades.png",
+    "output": "skill-blades.webp",
+    "before": 37150,
+    "after": 25844
+  },
+  {
+    "source": "fw-cell-book.png",
+    "output": "skill-book.webp",
+    "before": 48909,
+    "after": 39036
+  },
+  {
+    "source": "fw-cell-bow-pose.png",
+    "output": "skill-bow-pose.webp",
+    "before": 22452,
+    "after": 16026
+  },
+  {
+    "source": "fw-cell-bow.png",
+    "output": "skill-bow.webp",
+    "before": 23571,
+    "after": 17062
+  },
+  {
+    "source": "fw-cell-comet.png",
+    "output": "skill-comet.webp",
+    "before": 35360,
+    "after": 26182
+  },
+  {
+    "source": "fw-cell-fan.png",
+    "output": "skill-fan.webp",
+    "before": 38932,
+    "after": 25980
+  },
+  {
+    "source": "fw-cell-hammer.png",
+    "output": "skill-hammer.webp",
+    "before": 42631,
+    "after": 31184
+  },
+  {
+    "source": "fw-cell-needle.png",
+    "output": "skill-needle.webp",
+    "before": 25498,
+    "after": 16952
+  },
+  {
+    "source": "fw-cell-orb.png",
+    "output": "skill-orb.webp",
+    "before": 33608,
+    "after": 24214
+  },
+  {
+    "source": "fw-cell-scythe.png",
+    "output": "skill-scythe.webp",
+    "before": 44612,
+    "after": 33536
+  },
+  {
+    "source": "fw-cell-shield.png",
+    "output": "skill-shield.webp",
+    "before": 41685,
+    "after": 30490
+  },
+  {
+    "source": "fw-cell-spear.png",
+    "output": "skill-spear.webp",
+    "before": 26974,
+    "after": 18020
+  },
+  {
+    "source": "fw-cell-wand.png",
+    "output": "skill-wand.webp",
+    "before": 32859,
+    "after": 23896
+  }
+]

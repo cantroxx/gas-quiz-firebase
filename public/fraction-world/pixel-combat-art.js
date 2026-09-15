@@ -1,16 +1,9 @@
 (function(){
  'use strict';
- const atlas={magic:new Image(),martial:new Image(),guardian:new Image(),bow:new Image()},cache=new Map();
- for(const [key,img] of Object.entries(atlas))img.src='./assets/pixel-'+key+'-v8.png';
+ const cache=new Map();
  const rows={wand:['magic',0],orb:['magic',1],needle:['magic',2],comet:['magic',3],bow:['martial',0],fan:['martial',1],blades:['martial',2],spear:['martial',3],hammer:['guardian',0],scythe:['guardian',1],shield:['guardian',2],book:['guardian',3]};
- // Generated cels have unequal gutters. Explicit source regions prevent neighbor bleed.
- const regions={magic:[[0,344,[0,232,589,925,1254]],[344,677,[0,253,595,940,1254]],[677,896,[0,278,610,944,1254]],[896,1254,[0,237,564,920,1254]]],martial:[[0,288,[0,223,526,919,1254]],[288,627,[0,238,540,902,1254]],[627,953,[0,219,529,931,1254]],[953,1254,[0,243,542,931,1254]]],guardian:[[0,313,[0,273,599,962,1254]],[313,627,[0,267,600,932,1254]],[627,927,[0,277,599,936,1254]],[927,1254,[0,278,612,936,1254]]]};
- function cel(key,row,frame){const id=key+row+frame;if(cache.has(id))return cache.get(id);const img=atlas[key];if(!img.complete||!img.naturalWidth)return null;const c=document.createElement('canvas');c.width=96;c.height=key==='bow'?112:96;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
-  if(key==='bow'){const w=img.naturalWidth/4;x.drawImage(img,frame*w,0,w,img.naturalHeight,0,0,96,112);}
-  else{const [top,bottom,cuts]=regions[key][row],left=cuts[frame],w=cuts[frame+1]-left,h=bottom-top;
-   // Center the isolated art without resizing each phase to the same size.
-   const sample=document.createElement('canvas');sample.width=w;sample.height=h;const sc=sample.getContext('2d',{willReadFrequently:true});sc.drawImage(img,left,top,w,h,0,0,w,h);const rgba=sc.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=0,y1=0;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(rgba[(j*w+i)*4+3]>80){x0=Math.min(x0,i);x1=Math.max(x1,i);y0=Math.min(y0,j);y1=Math.max(y1,j);}const scale=96/400,sw=x1-x0+1,sh=y1-y0+1;x.drawImage(sample,x0,y0,sw,sh,(96-sw*scale)/2,(96-sh*scale)/2,sw*scale,sh*scale);
-  }cache.set(id,c);return c;}
+ const names={magic:['wand','orb','needle','comet'],martial:['bow','fan','blades','spear'],guardian:['hammer','scythe','shield','book'],bow:['bow-pose']};
+ function cel(key,row,frame){const id=key+row+frame;if(cache.has(id))return cache.get(id);const img=FWAssets.image('skill-'+names[key][row]);if(!img.complete||!img.naturalWidth)return null;const c=document.createElement('canvas');c.width=96;c.height=key==='bow'?112:96;c.getContext('2d').drawImage(img,frame*96,0,96,c.height,0,0,96,c.height);cache.set(id,c);return c;}
  function draw(c,key,row,frame,x,y,w,h){const img=cel(key,row,frame);if(!img)return false;c.save();c.imageSmoothingEnabled=false;c.drawImage(img,Math.round(x),Math.round(y),Math.round(w),Math.round(h));c.restore();return true;}
  function stamp(c,weapon,frame,x,y,size){const [key,row]=rows[weapon]||rows.wand;return draw(c,key,row,frame,x-size/2,y-size/2,size,size);}
  function shaft(c,weapon,frame,x,y,angle,length,width){c.save();c.translate(x,y);c.rotate(angle);const [key,row]=rows[weapon];const ok=draw(c,key,row,frame,0,-width/2,length,width);c.restore();return ok;}
@@ -27,6 +20,6 @@
  function zone(c,z,time){c.save();c.globalAlpha=.24;stamp(c,z.chill?'orb':(z.weapon||'hammer'),Math.floor(time*4)%4,z.x,z.y,z.r*2);c.restore();}
  function spirit(c,x,y,big){const pixels=['..aa..','.abba.','abccba','abccba','.abba.','..aa..'],palette={a:'#997aca',b:'#d9c0ff',c:'#fff4ce'},u=big?4:3;c.save();for(let j=0;j<6;j++)for(let i=0;i<6;i++)if(palette[pixels[j][i]]){c.fillStyle=palette[pixels[j][i]];c.fillRect(Math.round(x+(i-3)*u),Math.round(y+(j-3)*u),u,u);}c.fillStyle='#25334a';c.fillRect(x-u,y-u,u,u);c.fillRect(x+u,y-u,u,u);c.restore();}
  function preview(){return '<canvas id="skill-pixel-preview" class="skill-pixel-preview" width="96" height="96" aria-hidden="true"></canvas>';}
- function paintPreview(canvas,weapon){const [key,row]=rows[weapon]||rows.wand;const paint=()=>{if(!canvas.isConnected)return;const c=canvas.getContext('2d');c.clearRect(0,0,96,96);draw(c,key,row,2,0,0,96,96);};if(atlas[key].complete)paint();else atlas[key].addEventListener('load',paint,{once:true});}
+ function paintPreview(canvas,weapon){const [key,row]=rows[weapon]||rows.wand;const paint=()=>{if(!canvas.isConnected)return;const c=canvas.getContext('2d');c.clearRect(0,0,96,96);draw(c,key,row,2,0,0,96,96);};FWAssets.load('skill-'+names[key][row]).then(paint).catch(()=>{});}
  window.FWPixelArt={preview,paintPreview,moon,bow,arrow,effect,stamp,zone,spirit};
 })();

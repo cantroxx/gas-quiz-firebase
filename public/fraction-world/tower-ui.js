@@ -3,7 +3,7 @@
  const C=FWContent,D=FWTowerDomain,U=FWUI;
  const synergy=[['fire','불꽃','기본 공격이 더 강해져요'],['ice','서리','느려진 적이 공격도 천천히 준비해요'],['storm','바람','회피를 더 빨리 다시 쓸 수 있어요'],['earth','숲','체력 칸이 20 늘어나요'],['star','별','기술 버튼의 마법이 더 강해져요']];
  const names=Object.fromEntries(synergy.map(([tag,name])=>[tag,name]));
- function icon(r){const i=C.relics.findIndex(x=>x.id===r.id),fresh=i>=24,n=fresh?i-24:i,cols=fresh?4:6;return `<span class="relic-art tag-${r.tag}" aria-hidden="true"><img src="./assets/relics-${fresh?'v4':'v3'}.png" alt="" style="width:${cols*100}%;height:400%;left:${-(n%cols)*100}%;top:${-Math.floor(n/cols)*100}%"></span>`;}
+ function icon(r){const i=C.relics.findIndex(x=>x.id===r.id),fresh=i>=24,n=fresh?i-24:i,cols=fresh?4:6;return `<span class="relic-art tag-${r.tag}" aria-hidden="true"><img src="./assets/optimized-v12/relics-${fresh?'v4':'v3'}.webp" alt="" style="width:${cols*100}%;height:400%;left:${-(n%cols)*100}%;top:${-Math.floor(n/cols)*100}%"></span>`;}
  function badge(r){return `<span class="relic-element tag-${r.tag}">${names[r.tag]} 속성</span>`;}
  function attribute(tag){const a=C.attributes[tag];return `<span class="attribute-emblem tag-${tag}">${icon(C.relics.find(r=>r.id===a.relic))}<b>${a.name}</b></span>`;}
  function sockets(s,tag,need){const ids=s.relics.filter(id=>C.relics.find(r=>r.id===id).tag===tag);return `<div class="recipe-sockets">${Array.from({length:need},(_,i)=>ids[i]?`<span class="recipe-owned" title="${C.relics.find(r=>r.id===ids[i]).name}">${icon(C.relics.find(r=>r.id===ids[i]))}</span>`:`<span class="recipe-empty tag-${tag}" aria-label="${names[tag]} 유물 1개 더 필요">${C.attributes[tag].symbol}<small>빈칸</small></span>`).join('')}</div>`;}

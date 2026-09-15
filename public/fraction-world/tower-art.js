@@ -1,10 +1,8 @@
 /* Canvas-native original creatures and environments. No downloaded game artwork. */
 (function () {
   'use strict';
-  const floors={};
-  function floorImage(biome){if(!floors[biome]){const img=new Image();img.src='./assets/'+['ruins','desert','castle','void'][biome]+'-v1.jpg';floors[biome]=img;}return floors[biome];}
-  let actorSheet;
-  function actor(c,index,x,y,w,h){if(!actorSheet){actorSheet=new Image();actorSheet.src='./assets/actors-v1.png';}if(!actorSheet.complete||!actorSheet.naturalWidth)return false;const sw=actorSheet.naturalWidth/4,sh=actorSheet.naturalHeight/2;c.drawImage(actorSheet,index%4*sw,Math.floor(index/4)*sh,sw,sh,x,y,w,h);return true;}
+  function floorImage(biome){return FWAssets.image(['ruins','desert','castle','void'][biome]+'-v1');}
+  function actor(){return false;}
   function ellipse(c,x,y,rx,ry,color){c.fillStyle=color;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
   function polygon(c,points,color){c.fillStyle=color;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();}
   function eyes(c,y=0,space=7,color='#182537'){ellipse(c,-space,y,2.6,4,color);ellipse(c,space,y,2.6,4,color);ellipse(c,-space-.7,y-1, .8,1,'#ffffff');ellipse(c,space-.7,y-1,.8,1,'#ffffff');}

@@ -4,3 +4,8 @@
 !public
 !public/fraction-world
 !public/fraction-world/**
+
+# Retain original art in Git, but ship only optimized, referenced images.
+public/fraction-world/assets/*.png
+public/fraction-world/assets/*.jpg
+public/fraction-world/assets/optimized-v12/manifest.json
