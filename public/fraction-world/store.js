@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const KEY = 'dj48.fraction-world.v1';
+  const KEY = 'dj48.study-town.v1', LEGACY_KEY = 'dj48.fraction-world.v1';
   const fresh = () => ({
     version: 1, settings: { level: 'all', sound: false, music: true, musicVolume: 30, effectsVolume: 65 },
     stats: Array.from({ length: 6 }, () => ({ attempts: 0, first: 0, solved: 0 })),
@@ -9,7 +9,7 @@
   const finite = (n, min = 0, max = 1e9) => Number.isFinite(n) && n >= min && n <= max;
   const count = n => Number.isInteger(n) && finite(n) ? n : 0;
   const known = (list, id) => list.some(item => item.id === id);
-  let warning = '', active = 0, data;
+  let warning = '', active = 0, data, preview = null, resetNotice = false;
 
   function validRun(s, type) {
     if (!s || s.version !== 1 || !['hard', 'expert'].includes(s.difficulty)) return null;
@@ -86,6 +86,7 @@
     warning = '저장 기록을 읽지 못했어요. 기존 저장값은 다음 저장 전까지 유지돼요.';
   }
   function save() {
+    if (preview) return true;
     try {
       data.active = active; localStorage.setItem(KEY, JSON.stringify(data)); warning = ''; return true;
     } catch (error) {
@@ -95,7 +96,7 @@
   }
   // Replace one active slot only; failed writes leave its in-memory progress intact.
   function replaceSlot(n, next) {
-    if (n !== active || !Number.isInteger(n) || n < 0 || n > 2) return false;
+    if (preview || n !== active || !Number.isInteger(n) || n < 0 || n > 2) return false;
     const previous = data.slots[n]; data.slots[n] = next;
     if (save()) return true;
     data.slots[n] = previous; return false;
@@ -105,11 +106,20 @@
     const p = data.slots[n];
     return replaceSlot(n, { ...p, tower: null, quiz: p.quiz?.mode?.startsWith('tower-') ? null : p.quiz });
   }
+  // A separate save namespace prevents old open tabs from restoring pre-reset progress.
+  try {
+    if (localStorage.getItem(LEGACY_KEY) !== null) {
+      if (save()) { localStorage.removeItem(LEGACY_KEY); resetNotice = true; }
+    }
+  } catch (_) { warning = '새 기록은 준비했지만 이전 기록 정리가 끝나지 않았어요. 다시 접속해 주세요.'; }
   window.FWStore = {
-    get: () => data.slots[active], resetSlot: n => replaceSlot(n, fresh()), discardTower, save, slot: () => active, warning: () => warning,
-    switchSlot: n => { if (Number.isInteger(n) && finite(n, 0, 2)) { active = n; save(); } },
+    resetNotice: () => resetNotice, isPreview: () => !!preview,
+    beginPreview: tower => { preview = fresh(); preview.tower = tower; preview.unlocks = Object.keys(FWContent.unlockNames); },
+    endPreview: () => { preview = null; },
+    get: () => preview || data.slots[active], resetSlot: n => replaceSlot(n, fresh()), discardTower, save, slot: () => active, warning: () => warning,
+    switchSlot: n => { if (!preview && Number.isInteger(n) && finite(n, 0, 2)) { active = n; save(); } },
     record: (mode, result) => {
-      const p = data.slots[active]; p.records.unshift({ mode, ...result, date: new Date().toISOString() });
+      const p = preview || data.slots[active]; p.records.unshift({ mode, ...result, date: new Date().toISOString() });
       p.records = p.records.slice(0, 40); save();
     }
   };
