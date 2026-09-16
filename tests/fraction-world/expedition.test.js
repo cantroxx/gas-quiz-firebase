@@ -32,3 +32,5 @@ require('./tactics.test.js');
 require('./adventure-v2.test.js');
 
 require('./study.test.js');
+
+require("../study-town/domain.test.js");

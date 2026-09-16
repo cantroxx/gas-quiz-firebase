@@ -1,0 +1,28 @@
+'use strict';
+const crypto=require('node:crypto'),D=require('./study-domain');
+const tiers=['beginner','intermediate','advanced'];
+function compare(a,b){return b.bosses-a.bosses||b.rooms-a.rooms||((b.correct*(a.attempts||1))-(a.correct*(b.attempts||1)))||b.correct-a.correct;}
+function snapshot(value){if(!value||!Number.isInteger(value.rooms)||value.rooms<0||value.rooms>24||!Number.isInteger(value.bosses)||value.bosses!==Math.floor(value.rooms/6))throw Error('모험 기록을 확인해 주세요.');return {rooms:value.rooms,bosses:value.bosses};}
+function createService({db,now=()=>Date.now(),ErrorType=Error}){
+ const fail=(code,msg)=>{const e=new ErrorType(code,msg);if(ErrorType===Error)e.message=msg;e.code=code;throw e;},ref=(c,id)=>db.collection(c).doc(id),hash=t=>crypto.createHash('sha256').update(t).digest('hex');
+ async function member(tx,uid){const link=(await tx.get(ref('authLinks',uid))).data(),id=link?.memberUserId;if(!id)fail('permission-denied','퀴즈타운 로그인이 필요해요.');const u=(await tx.get(ref('users',id))).data();if(!u||u.authUid!==uid||u.status!=='active'||u.active===false)fail('permission-denied','활성 계정으로 로그인해 주세요.');return {id,nickname:String(u.nickname||u.displayNickname||'모험가').slice(0,20),eligible:id!=='G4-C8-N23'&&u.role!=='admin'&&!u.adminLevel};}
+ async function act(authUid,p){if(!p||typeof p!=='object'||JSON.stringify(p).length>16000)fail('invalid-argument','요청을 확인해 주세요.');const time=now(),token=crypto.randomBytes(32).toString('hex'),runId=crypto.randomUUID();return db.runTransaction(async tx=>{
+ let uid=authUid;if(p.action!=='connect'&&p.action!=='list'){if(typeof p.token!=='string'||!/^[a-f0-9]{64}$/.test(p.token))fail('unauthenticated','랭킹 계정을 연결해 주세요.');const session=(await tx.get(ref('studyTownSessions',hash(p.token)))).data();if(!session||session.expiresAt<=time)fail('unauthenticated','랭킹 연결이 만료됐어요. 다시 연결해 주세요.');uid=session.uid;}if(!uid)fail('unauthenticated','퀴즈타운 로그인이 필요해요.');const me=await member(tx,uid);
+ if(p.action==='connect'){tx.set(ref('studyTownSessions',hash(token)),{uid,expiresAt:time+12*3600000});return {token,nickname:me.nickname,memberId:me.id,expiresAt:time+12*3600000,eligible:me.eligible};}
+ if(p.action==='list'){if(!tiers.includes(p.tier))fail('invalid-argument','난이도를 골라 주세요.');const entries=await tx.get(db.collection('studyTownRanking').doc(p.tier).collection('entries'));const rows=entries.docs.map(d=>d.data()).filter(r=>r.memberId!=='G4-C8-N23').sort(compare);let rank=0;return {rows:rows.map((r,i)=>{if(!i||compare(r,rows[i-1]))rank=i+1;return {memberUserId:r.memberId,nickname:r.nickname,bosses:r.bosses,rooms:r.rooms,correct:r.correct,attempts:r.attempts,rank,mine:r.memberId===me.id};})};}
+ if(!me.eligible)fail('permission-denied','관리자 체험은 학생 랭킹에 등록하지 않아요.');
+ if(p.action==='start'){if(!tiers.includes(p.tier))fail('invalid-argument','난이도를 확인해 주세요.');const units=D.units.map(u=>u.id).filter(id=>p.units?.includes(id));if(!units.length)fail('invalid-argument','학습 단원을 골라 주세요.');tx.create(ref('studyTownRuns',runId),{uid,memberId:me.id,tier:p.tier,units,createdAt:time,questions:{},finished:false});return {runId,memberId:me.id};}
+ if(typeof p.runId!=='string'||! /^[a-f0-9-]{36}$/.test(p.runId))fail('invalid-argument','모험 번호를 확인해 주세요.');const rr=ref('studyTownRuns',p.runId),run=(await tx.get(rr)).data();if(!run||run.uid!==uid||run.memberId!==me.id)fail('permission-denied','이 계정으로 시작한 모험만 등록할 수 있어요.');
+ if(p.action==='finish'&&run.finished)return run.result;
+ if(run.finished)fail('failed-precondition','이미 끝난 모험이에요.');
+ if(p.action==='question'){
+ const key=p.key;if(typeof key!=='string'||! /^(entry|reward)-(\d{1,2})-[0-2]$/.test(key))fail('invalid-argument','문제 순서를 확인해 주세요.');const [mode,room,index]=key.split('-');if(+room<1||+room>24||mode==='reward'&&(+room%6!==0||+index>1))fail('invalid-argument','문제 위치를 확인해 주세요.');if(run.questions[key])return run.questions[key].descriptor;
+ if(Object.keys(run.questions).length>=32)fail('resource-exhausted','한 모험의 문제 수를 넘었어요.');const descriptor=D.select(run.units,Object.values(run.questions).map(q=>q.descriptor.template),false,()=>crypto.randomInt(0,0x1000000)/0x1000000);run.questions[key]={descriptor,issuedAt:time};tx.set(rr,run);return descriptor;
+ }
+ if(p.action==='answer'){if(!p.answers||typeof p.answers!=='object'||Array.isArray(p.answers)||Object.values(p.answers).some(v=>typeof v==='string'?v.length>80:Array.isArray(v)?v.length>20||v.some(x=>typeof x!=='string'||x.length>80):true))fail('invalid-argument','답의 형식을 확인해 주세요.');const q=run.questions[p.key];if(!q)fail('failed-precondition','출제된 문제를 풀어 주세요.');if(typeof q.correct==='boolean')return {correct:q.correct};let grade;try{grade=D.grade(D.generate(q.descriptor.template,q.descriptor.seed),p.answers||{});}catch(_){fail('invalid-argument','답을 확인해 주세요.');}if(grade.correct===null)fail('invalid-argument','서술형은 랭킹에서 제외해요.');q.correct=grade.correct===true;q.answeredAt=time;tx.set(rr,run);return {correct:q.correct};}
+ if(p.action==='finish'){let metrics;try{metrics=snapshot(p.metrics);}catch(e){fail('invalid-argument',e.message);}const qs=Object.values(run.questions).filter(q=>typeof q.correct==='boolean');const row={...metrics,correct:qs.filter(q=>q.correct).length,attempts:qs.length,memberId:me.id,nickname:me.nickname,updatedAt:time,runId:p.runId};if(row.rooms&&row.attempts<3)fail('failed-precondition','모험 시작 문제 기록이 필요해요.');const rankRef=db.collection('studyTownRanking').doc(run.tier).collection('entries').doc(me.id),old=(await tx.get(rankRef)).data();const improved=!old||compare(row,old)<0;if(improved)tx.set(rankRef,row);run.finished=true;run.result={improved,record:row};tx.set(rr,run);return run.result;}
+ fail('invalid-argument','지원하지 않는 요청이에요.');
+ });}
+ return {act};
+}
+module.exports={createService,compare,snapshot,tiers};

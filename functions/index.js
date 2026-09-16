@@ -8,6 +8,8 @@ const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestor
 initializeApp();
 
 const REGION = "asia-northeast3";
+const studyTownService = require('./study-town/service').createService({db:getFirestore(),ErrorType:HttpsError});
+exports.studyTownAction = onCall({region:REGION,maxInstances:5}, request => studyTownService.act(request.auth?.uid,request.data));
 const DEFAULT_MEMBER_SCHOOL = "동자";
 const AUTH_LINK_PROVIDER = "firebase_member_link_function";
 const AUTH_LINK_VERSION = 3;

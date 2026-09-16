@@ -1,0 +1,5 @@
+'use strict';const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{compare,snapshot}=require('../../functions/study-town/service');
+const row=(bosses,rooms,correct,attempts)=>({bosses,rooms,correct,attempts});
+assert.ok(compare(row(2,12,1,10),row(1,11,10,10))<0);assert.ok(compare(row(1,9,1,10),row(1,8,10,10))<0);assert.ok(compare(row(1,9,8,10),row(1,9,7,10))<0);assert.ok(compare(row(1,9,16,20),row(1,9,8,10))<0);assert.equal(compare(row(1,9,8,10),row(1,9,8,10)),0);assert.ok(compare(row(0,0,1,1),row(0,0,0,0))<0);assert.throws(()=>snapshot({rooms:25,bosses:4}));assert.throws(()=>snapshot({rooms:5,bosses:1}));assert.deepEqual(snapshot({rooms:6,bosses:1}),{rooms:6,bosses:1});
+const root=path.resolve(__dirname,'../..');assert.equal(fs.readFileSync(path.join(root,'public/fraction-world/study-domain.js'),'utf8'),fs.readFileSync(path.join(root,'functions/study-town/study-domain.js'),'utf8'));
+console.log('Study ranking comparator and shared grading engine PASS');

@@ -15,7 +15,7 @@
       U.$('reset-confirm').onclick=()=>{
         if(confirmed||FWStore.slot()!==slot||FWStore.get()!==profile)return;
         const clearQuiz=all||profile.quiz?.mode?.startsWith('tower-');
-        FWTower.suspend();restart=mode==='tower';
+        FWTower.suspend();restart=mode==='tower';if(profile.tower?.ranking){const previous=JSON.parse(JSON.stringify(profile.tower));previous.phase='ended';previous.retryPending=false;window.FWRanking?.finish(previous);}
         if(!(all?FWStore.resetSlot(slot):FWStore.discardTower(slot))){U.$('reset-error').textContent='기록을 저장하지 못해서 지우지 않았어요. 잠시 뒤 다시 해 주세요.';return;}
         confirmed=true;if(clearQuiz)FWQuiz.dismiss();U.close();home();soundLabel();
         if(!all)FWTower.enter();U.toast(all?'모험가 '+(slot+1)+' 저장 칸을 비웠어요.':'새 탐험을 준비해 보세요!');

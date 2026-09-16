@@ -66,7 +66,7 @@
     p.tower = validRun(p.tower, 'tower'); p.studio = validRun(p.studio, 'studio');
     if ((raw?.tower && !p.tower) || (raw?.studio && !p.studio)) warning = '일부 진행 기록을 읽지 못했어요. 읽을 수 있는 학습 기록과 다른 저장 칸은 유지했어요.';
     const q = p.quiz;
-    if(q?.engine===2){
+    if(q?.engine===2){delete q.rankSubmitting;
       const valid=window.FWStudy&&['practice','tower-entry','tower-reward','study-writing'].includes(q.mode)&&Number.isInteger(q.count)&&finite(q.count,1,10)&&Number.isInteger(q.index)&&finite(q.index,0,q.count)&&finite(q.correct,0,q.count)&&finite(q.wrong,0,q.count)&&typeof q.title==='string'&&Array.isArray(q.units)&&q.units.length>0&&q.units.length<=6&&q.units.every(id=>FWStudy.units.some(u=>u.id===id))&&Array.isArray(q.recent)&&q.recent.length<=12&&(!q.reviewQueue||Array.isArray(q.reviewQueue)&&q.reviewQueue.length<=10&&q.reviewQueue.every(d=>FWStudy.validDescriptor(d)))&&q.answers&&typeof q.answers==='object'&&!Array.isArray(q.answers)&&(!q.question||FWStudy.validDescriptor(q.question))&&(!q.review||q.question&&['correct','incorrect','submitted'].includes(q.review.status)&&Array.isArray(q.review.parts));
       if(!valid)p.quiz=null;
     }else if (q) {
