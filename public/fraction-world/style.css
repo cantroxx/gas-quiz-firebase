@@ -118,3 +118,5 @@ dialog:has(.mini-status){border:1px solid #d8c28d99;background:radial-gradient(e
 #combat-stage .touch-controls{bottom:60px}#combat-stage .arena-hint{display:none}
 @media(max-width:680px){#boss-status{top:140px}#tactic-state{top:227px}#combat-stage .touch-controls{bottom:72px}}
 @media(max-height:520px) and (orientation:landscape){#combat-stage .combat-buttons.with-attack{grid-template-columns:78px 60px;grid-template-rows:54px 54px;gap:8px}#combat-stage .combat-buttons.with-attack #attack-button{width:78px;height:116px;font-size:19px}#combat-stage .combat-buttons.with-attack #skill-button,#combat-stage .combat-buttons.with-attack #dash-button{width:60px;height:54px;font-size:14px}#combat-stage .touch-controls{bottom:55px}#boss-status{top:10px;width:250px}#tactic-state{top:100px;max-width:40%}}
+
+.departure .setup-steps{grid-template-columns:repeat(4,minmax(0,1fr))}#combat-stage #arena{touch-action:none}@media(max-width:680px){.departure .setup-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
