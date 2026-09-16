@@ -30,3 +30,5 @@ require('./tower-balance-v3.test.js');
 require('./tactics.test.js');
 
 require('./adventure-v2.test.js');
+
+require('./study.test.js');

@@ -2,7 +2,8 @@
   'use strict';
   const KEY = 'dj48.study-town.v1', LEGACY_KEY = 'dj48.fraction-world.v1';
   const fresh = () => ({
-    version: 1, settings: { level: 'all', sound: false, music: true, musicVolume: 30, effectsVolume: 65 },
+    version: 1, settings: { level: 'all', sound: false, music: true, musicVolume: 30, effectsVolume: 65, studyUnits:['fraction'] },
+    studyStats:{}, studyAnswers:[],
     stats: Array.from({ length: 6 }, () => ({ attempts: 0, first: 0, solved: 0 })),
     total: 0, tower: null, studio: null, quiz: null, collection: [], trophies: [], records: []
   });
@@ -50,11 +51,14 @@
   function normalize(raw) {
     const p = { ...fresh(), ...raw };
     p.settings = { level: ['all', 'basic', 'mixed'].includes(raw?.settings?.level) ? raw.settings.level : 'all', sound: raw?.settings?.sound === true, music: raw?.settings?.music !== false, musicVolume: finite(raw?.settings?.musicVolume,0,100)?raw.settings.musicVolume:30, effectsVolume: finite(raw?.settings?.effectsVolume,0,100)?raw.settings.effectsVolume:65 };
+    p.settings.studyUnits=Array.from(new Set((Array.isArray(raw?.settings?.studyUnits)?raw.settings.studyUnits:['fraction']).filter(id=>['fraction','triangle','decimal','quadrilateral','graph','polygon'].includes(id))));if(!p.settings.studyUnits.length)p.settings.studyUnits=['fraction'];
+    p.studyStats=Object.fromEntries(Object.entries(raw?.studyStats&&typeof raw.studyStats==='object'?raw.studyStats:{}).filter(([id])=>window.FWStudy?.templates.some(t=>t.id===id)).map(([id,s])=>[id,{attempts:count(s?.attempts),correct:Math.min(count(s?.attempts),count(s?.correct)),submitted:count(s?.submitted),partsCorrect:Math.min(count(s?.partsTotal),count(s?.partsCorrect)),partsTotal:count(s?.partsTotal)}]));
+    p.studyAnswers=(Array.isArray(raw?.studyAnswers)?raw.studyAnswers:[]).filter(a=>a&&window.FWStudy?.validDescriptor(a.question)&&typeof a.id==='string'&&typeof a.date==='string'&&['correct','incorrect','submitted'].includes(a.status)).slice(0,120).map(a=>({...a,teacherReview:a.teacherReview&&Array.isArray(a.teacherReview.criteria)&&a.teacherReview.criteria.length===3&&a.teacherReview.criteria.every(n=>Number.isInteger(n)&&n>=0&&n<=2)?{date:String(a.teacherReview.date||'').slice(0,30),criteria:a.teacherReview.criteria,feedback:String(a.teacherReview.feedback||'').slice(0,300)}:undefined,answer:typeof a.answer==='string'?a.answer.slice(0,600):a.answer&&typeof a.answer==='object'?a.answer:{},selfCheck:Array.isArray(a.selfCheck)?a.selfCheck.slice(0,3).map(x=>x===true):[]}));
     p.stats = Array.from({ length: 6 }, (_, i) => {
       const s = raw?.stats?.[i]; const attempts = count(s?.attempts);
       return { attempts, first: Math.min(attempts, count(s?.first)), solved: count(s?.solved) };
     });
-    p.total = p.stats.reduce((sum, s) => sum + s.solved, 0);
+    p.total = p.stats.reduce((sum, s) => sum + s.solved, 0)+Object.values(p.studyStats).reduce((sum,s)=>sum+s.correct,0);
     p.collection = [...new Set((Array.isArray(p.collection) ? p.collection : []).filter(id => known(FWContent.relics, id)))];
     p.trophies = [...new Set((Array.isArray(p.trophies) ? p.trophies : []).filter(id => ['tower', 'studio'].includes(id)))];
     p.records = (Array.isArray(p.records) ? p.records : []).filter(r => r && ['tower', 'studio'].includes(r.mode) && typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(r.date)).slice(0, 40);
@@ -62,7 +66,10 @@
     p.tower = validRun(p.tower, 'tower'); p.studio = validRun(p.studio, 'studio');
     if ((raw?.tower && !p.tower) || (raw?.studio && !p.studio)) warning = '일부 진행 기록을 읽지 못했어요. 읽을 수 있는 학습 기록과 다른 저장 칸은 유지했어요.';
     const q = p.quiz;
-    if (q) {
+    if(q?.engine===2){
+      const valid=window.FWStudy&&['practice','tower-entry','tower-reward','study-writing'].includes(q.mode)&&Number.isInteger(q.count)&&finite(q.count,1,10)&&Number.isInteger(q.index)&&finite(q.index,0,q.count)&&finite(q.correct,0,q.count)&&finite(q.wrong,0,q.count)&&typeof q.title==='string'&&Array.isArray(q.units)&&q.units.length>0&&q.units.length<=6&&q.units.every(id=>FWStudy.units.some(u=>u.id===id))&&Array.isArray(q.recent)&&q.recent.length<=12&&(!q.reviewQueue||Array.isArray(q.reviewQueue)&&q.reviewQueue.length<=10&&q.reviewQueue.every(d=>FWStudy.validDescriptor(d)))&&q.answers&&typeof q.answers==='object'&&!Array.isArray(q.answers)&&(!q.question||FWStudy.validDescriptor(q.question))&&(!q.review||q.question&&['correct','incorrect','submitted'].includes(q.review.status)&&Array.isArray(q.review.parts));
+      if(!valid)p.quiz=null;
+    }else if (q) {
       const valid = ['practice', 'tower-entry', 'tower-reward', 'studio-day', 'studio-concert'].includes(q.mode) &&
         Number.isInteger(q.count) && finite(q.count, 1, 10) && Number.isInteger(q.index) && finite(q.index, 0, q.count) &&
         typeof q.title === 'string' && finite(q.tries) && (!q.question ||

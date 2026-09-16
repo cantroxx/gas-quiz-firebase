@@ -3,7 +3,7 @@
   const U=FWUI,M=FWMath;let callback=null,field='num',answer={whole:'0',num:''},solved=false;
   function session(){return FWStore.get().quiz;}
   function start(mode,count,title,done){
-    const p=FWStore.get();if(!p.quiz||p.quiz.mode!==mode)p.quiz={mode,count,title,index:0,question:null,tries:0,correct:0,wrong:0,single:!!p.tower?.expedition&&['tower-entry','tower-reward'].includes(mode)};
+    const p=FWStore.get();if(window.FWStudyQuiz&&['practice','tower-entry','tower-reward','study-writing'].includes(mode)&&(!p.quiz||p.quiz.engine===2||p.quiz.mode!==mode))return FWStudyQuiz.start(mode,count,title,done);if(!p.quiz||p.quiz.mode!==mode)p.quiz={mode,count,title,index:0,question:null,tries:0,correct:0,wrong:0,single:!!p.tower?.expedition&&['tower-entry','tower-reward'].includes(mode)};
     callback=done;if(!U.$('quiz-dialog').open)U.$('quiz-dialog').showModal();next();
   }
   function next(){const s=session();if(s.question&&s.review&&(s.question.n%s.question.d===0||s.question.a%s.question.d===0||s.question.b%s.question.d===0)){delete s.review;s.question=null;U.save();}if(s.question&&(s.question.n%s.question.d===0||s.question.a%s.question.d===0||s.question.b%s.question.d===0)&&!s.review){s.question=M.generate(s.question.kind);s.tries=0;U.save();}if(s.review){solved=true;answer={whole:'0',num:''};render();review();return;}if(s.index>=s.count){const done=callback;FWStore.get().quiz=null;U.save();U.$('quiz-dialog').close();callback=null;done?.(s);return;}
@@ -35,6 +35,6 @@
     U.save();
   }
   U.$('quiz-dialog').addEventListener('cancel',()=>U.save());
-  document.addEventListener('keydown',e=>{if(!U.$('quiz-dialog').open)return;if(/^\d$/.test(e.key)){e.preventDefault();key(e.key);}else if(e.key==='Backspace'){e.preventDefault();key('⌫');}else if(e.key==='Enter'){e.preventDefault();submit();}else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();key('칸 이동');}});
-  window.FWQuiz={start,dismiss:()=>{callback=null;U.$('quiz-dialog').close();U.$('quiz-content').innerHTML='';}};
+  document.addEventListener('keydown',e=>{if(!U.$('quiz-dialog').open||session()?.engine===2)return;if(/^\d$/.test(e.key)){e.preventDefault();key(e.key);}else if(e.key==='Backspace'){e.preventDefault();key('⌫');}else if(e.key==='Enter'){e.preventDefault();submit();}else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();key('칸 이동');}});
+  window.FWQuiz={start,dismiss:()=>{window.FWStudyQuiz?.dismiss();callback=null;U.$('quiz-dialog').close();U.$('quiz-content').innerHTML='';}};
 })();
