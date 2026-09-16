@@ -16,7 +16,7 @@ for(const m of C.mixes){const a=new Arena(m);switch(m.id){
  case 'ice-star':a.skill();assert.equal(a.enemies[0].frozen,.8);assert.equal(a.enemies[1].frozen,undefined);break;
  case 'storm-earth':a.moving=true;a.featureUpdate(2.1);assert.equal(a.features.shield,12);break;
  case 'storm-star':for(let i=0;i<8;i++)a.fire(D.stats(a.s),a.p,a.enemies);assert.ok(a.fx.some(f=>f[0]==='chain'));break;
- case 'earth-star':a.featureUpdate(.1);assert.equal(a.features.spirits,1);assert.ok(a.bullets.length);break;
+ case 'earth-star':a.featureUpdate(.1);assert.equal(a.bullets.length,0);a.manualActive=.6;a.featureUpdate(.1);assert.equal(a.features.spirits,1);assert.ok(a.bullets.length);break;
  }}
 const a=new Arena(C.mixes[0]);a.s.rescue=true;a.s.hp=1;a.hurt(100);assert.equal(a.s.rescue,false);assert.equal(a.p.inv,2);assert.equal(a.s.hp,D.stats(a.s).maxHp*.3);
 console.log('Expedition combat: all 10 mixed effects, skill hit-only freeze and one-use rescue passed.');

@@ -1,0 +1,8 @@
+(function(){
+ 'use strict';let step=0,seen=0;
+ const ids=['mode','weapon','look','monster','diff','playmode'],titles=['탐험 길이','시작 무기','모험가 모습','몬스터 모습','전투 난이도','부활 모드와 길잡이'];
+ function reset(){step=0;seen=0;}
+ function advance(id){const i=ids.indexOf(id);if(i>=0&&i<5){step=i+1;seen=Math.max(seen,step);}}
+ function apply(redraw){const root=FWUI.$('app'),groups=ids.map(id=>root.querySelector('.grid:has([data-'+id+'])')),start=FWUI.$('tower-start'),parry=FWUI.$('setup-parry'),guide=FWUI.$('setup-guide');const labels=groups.map(g=>g?.querySelector('.selected strong')?.textContent||'선택하기');root.innerHTML=`<section class="setup-wizard"><h1>모험을 준비해요</h1><p>하나씩 고르면 돼요. 앞에서 고른 것은 다시 바꿀 수 있어요.</p><nav class="setup-steps" aria-label="모험 준비 단계">${titles.map((t,i)=>`<button data-setup-step="${i}" ${i>seen?'disabled':''} ${i===step?'aria-current="step"':''}><b>${i+1}. ${t}</b><small>${labels[i]}</small></button>`).join('')}</nav><section class="panel" id="setup-active"><small>${step+1} / 6 단계</small><h2>${titles[step]}</h2>${step===3?'<p>모습만 달라요. 힘과 보상은 같아요.</p>':''}</section></section>`;const active=FWUI.$('setup-active');active.append(groups[step]);if(step===5){active.append(guide);const practice=document.createElement('button');practice.textContent='조작 체험 · 이동부터 받아치기까지';practice.onclick=()=>FWGuide.practice();active.append(practice,parry,start);}else{const next=document.createElement('button');next.id='setup-next';next.className='primary';next.textContent='이 선택으로 다음 →';next.onclick=()=>{step++;seen=Math.max(seen,step);redraw();};active.append(next);}root.querySelectorAll('[data-setup-step]').forEach(b=>b.onclick=()=>{step=Number(b.dataset.setupStep);redraw();});}
+ window.FWStart={apply,advance,reset};
+})();

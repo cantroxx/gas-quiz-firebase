@@ -6,7 +6,7 @@
     const p=FWStore.get();if(!p.quiz||p.quiz.mode!==mode)p.quiz={mode,count,title,index:0,question:null,tries:0,correct:0,wrong:0,single:!!p.tower?.expedition&&['tower-entry','tower-reward'].includes(mode)};
     callback=done;if(!U.$('quiz-dialog').open)U.$('quiz-dialog').showModal();next();
   }
-  function next(){const s=session();if(s.question?.op==='−'&&s.question.n===0&&!s.review){s.question=M.generate(s.question.kind);s.tries=0;U.save();}if(s.review){solved=true;answer={whole:'0',num:''};render();review();return;}if(s.index>=s.count){const done=callback;FWStore.get().quiz=null;U.save();U.$('quiz-dialog').close();callback=null;done?.(s);return;}
+  function next(){const s=session();if(s.question&&s.review&&(s.question.n%s.question.d===0||s.question.a%s.question.d===0||s.question.b%s.question.d===0)){delete s.review;s.question=null;U.save();}if(s.question&&(s.question.n%s.question.d===0||s.question.a%s.question.d===0||s.question.b%s.question.d===0)&&!s.review){s.question=M.generate(s.question.kind);s.tries=0;U.save();}if(s.review){solved=true;answer={whole:'0',num:''};render();review();return;}if(s.index>=s.count){const done=callback;FWStore.get().quiz=null;U.save();U.$('quiz-dialog').close();callback=null;done?.(s);return;}
     if(!s.question){s.question=M.generate(M.pickKind(FWStore.get().settings.level,FWStore.get().stats));s.tries=0;U.save();}
     solved=false;answer={whole:'0',num:''};field='num';render();
   }
@@ -23,7 +23,7 @@
   function review(){const s=session(),q=s.question,ok=s.review.correct;U.$('quiz-feedback').className='quiz-feedback '+(ok?'ok':'');U.$('quiz-feedback').textContent=ok?`정답! ${M.plain(q.n,q.d)}이에요.`:`정답은 ${M.plain(q.n,q.d)}이에요. ${s.mode==='tower-entry'?'다음 전투에 균열 적이 추가돼요.':'이번 문제의 추가 결정 3개는 받지 못해요.'}`;if(!ok)hint();U.$('answer-submit').textContent=s.index>=s.count?'풀이 확인 · 진행 →':'풀이 확인 · 다음 문제 →';U.$('hint-button').disabled=true;}
   function submit(){
     if(solved){if(session().review){delete session().review;session().question=null;U.save();}next();return;}
-    if(answer.num===''){U.$('quiz-feedback').textContent='분자 칸에 답을 입력해 주세요. 정수라면 분자는 0이에요.';return;}
+    if(answer.num===''){U.$('quiz-feedback').textContent='분자 칸에 답을 입력해 주세요.';return;}
     const s=session(),q=s.question,p=FWStore.get(),stat=p.stats[q.kind];
     if(s.tries===0)stat.attempts++;s.tries++;
     if(s.single){const correct=M.matches(q,answer.whole||'0',answer.num);if(correct){stat.first++;stat.solved++;p.total++;s.correct=(s.correct||0)+1;}else{s.wrong=(s.wrong||0)+1;}s.index++;s.review={correct};solved=true;review();U.sound(correct?'good':'wrong');U.save();return;}

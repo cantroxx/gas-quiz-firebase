@@ -35,3 +35,6 @@ console.log('Fraction World domain: 18,000 generated problems, 6 full tower equi
 
 for(const value of [0,0.999999999])for(const k of [1,4,5]){const q=M.generate(k,()=>value);assert.ok(q.a>q.b&&q.n>0);}
 assert.ok(M.matches({n:0,d:4},0,0),'Zero remains mathematically valid, just excluded from new questions');
+
+// Neither operand nor result may have a zero fractional part, including fixed RNG extremes.
+for(let kind=0;kind<6;kind++)for(const rng of [()=>0,()=>.999999,Math.random])for(let i=0;i<1000;i++){const q=M.generate(kind,rng);assert.ok(q.a%q.d>0&&q.b%q.d>0&&q.n%q.d>0);}
