@@ -53,3 +53,12 @@
 Vercel은 독립 게임 폴더만 배포한다. Firebase Hosting은 현재 live 버전의 파일과 설정을 복제하고 `/study-town-admin.html` 추가 및 `/battle/index.html`의 이름 문자열만 변경한다. 운영 배포와 다른 미완료 로컬 파일은 섞지 않는다. 배포 전에 모든 나머지 파일 해시·설정이 동일한지, 준비 이후 live 버전이 바뀌지 않았는지 검사한다.
 
 Hosting API 참고: https://firebase.google.com/docs/reference/hosting/rest/v1beta1/sites.versions/clone , https://firebase.google.com/docs/reference/hosting/rest/v1beta1/sites.versions/populateFiles
+
+### 운영 배포 확인
+
+- 구현 커밋 `ab96e86`, GitHub main 반영 완료.
+- Vercel `dpl_DHHzVfNDe6HeLQeWN248h6dGhxZd`, READY, 기존 운영 주소 연결 완료.
+- Firebase Hosting 버전 `f8fb277e87c0c7e4`, release `1789523147663000`. 기존 파일 367개 및 Hosting 설정 동일 확인, 관리자 연결 페이지 추가와 게임 카드 이름만 변경.
+- 운영 파일 비교: 변경 게임 파일 5개 및 관리자 연결 HTML이 검증한 로컬 파일과 일치. 게임 카드 이름 변경 확인.
+- 실제 운영 Firebase SDK를 로드한 격리 브라우저에서 비로그인 관리자 연결 거부 확인. 운영 사이트의 1회 초기화 및 새 진행 재접속 보존도 통과.
+- 실제 관리자 승인은 교사의 기존 로그인 세션이 필요하므로, 관리자 성공 경로는 모의 Firebase 계정으로 검증했다. 실제 교사 계정이나 학생 데이터를 테스트 목적으로 생성·변경하지 않았다.
