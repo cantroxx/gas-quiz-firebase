@@ -28,3 +28,5 @@ for(const mode of ['short','long']){const x=E.create('wand','hard',mode);x.balan
 
 require('./tower-balance-v3.test.js');
 require('./tactics.test.js');
+
+require('./adventure-v2.test.js');
