@@ -45,3 +45,12 @@
 
 운영 주소: https://dj48-fraction-world.vercel.app/
 배포 직전 운영 index와 기존 HEAD가 동일함을 확인했다. 이번 변경 파일만 커밋하고 독립 분수 월드 Vercel 프로젝트에 배포한다.
+
+### 운영 확인 완료
+
+- 구현 커밋: `da37ebd` — GitHub main 반영 완료.
+- Vercel 배포: `dpl_HzeWWRGRNVK3qRzZH7buFhqUN3m4`, READY, 기존 운영 주소 연결 완료.
+- 최종 `npm run check` exit 0 확인.
+- 변경 앱 파일 14개를 운영 응답과 바이트 단위 비교하여 모두 일치 확인.
+- 운영 주소에서 `fraction-world-journey.js` 통과: 시작 흐름·정답 보너스·직접 공격·부활·저장 교체 재검증.
+- 추가 코인 심화 보스 검사: 받아치기 없이 일반 공격으로 방패 파괴·처치 가능 확인. 로그라이크 심화 보스의 기존 방패 제한도 별도로 통과.
