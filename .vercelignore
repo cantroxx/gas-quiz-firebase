@@ -9,3 +9,9 @@
 public/fraction-world/assets/*.png
 public/fraction-world/assets/*.jpg
 public/fraction-world/assets/optimized-v12/manifest.json
+
+# Retired Starlight Studio art stays in source history, not in the live game.
+public/fraction-world/assets/optimized-v12/concert-v1.webp
+public/fraction-world/assets/optimized-v12/members-v1.webp
+public/fraction-world/assets/optimized-v12/rehearsal-v1.webp
+public/fraction-world/assets/optimized-v12/studio-wardrobe-v2.webp

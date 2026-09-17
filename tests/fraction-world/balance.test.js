@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
-const S=require('../../public/fraction-world/studio-domain.js');
+const S=require('../../fixtures/fraction-world-legacy/studio-domain.js');
 const C=require('../../public/fraction-world/content.js');
 const witness=require('./season-witness.json');
 for(const difficulty of ['hard','expert']){

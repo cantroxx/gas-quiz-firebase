@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const C=require('../../public/fraction-world/content.js');
 const M=require('../../public/fraction-world/math.js');
 const T=require('../../public/fraction-world/tower-domain.js');
-const S=require('../../public/fraction-world/studio-domain.js');
+const S=require('../../fixtures/fraction-world-legacy/studio-domain.js');
 let seed=183487;const rng=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
 for(let k=0;k<6;k++)for(let i=0;i<3000;i++){
   const q=M.generate(k,rng);assert.ok(q.d>=3&&q.d<=12);assert.ok(q.a>=0&&q.b>=0&&q.n>=0);assert.equal(q.n,q.op==='+'?q.a+q.b:q.a-q.b);if(q.op==='−')assert.ok(q.n>0,'Never offer zero-result subtraction');
@@ -24,7 +24,7 @@ const a=S.create(['lumi','rio','sora']),b=JSON.parse(JSON.stringify(a));a.member
 console.log('Fraction World domain: 18,000 generated problems, 6 full tower equipment runs, season transitions, economy, fatigue and failure gates passed.');
 
 // Focus creates a distinct growth path; failed/repeated actions cannot award XP twice.
-{const D=require('../../public/fraction-world/studio-domain.js');const s=D.create(['lumi','rio','sora']);D.focus(s,'lumi');D.applyDay(s,['vocal','rest','vocal']);assert.ok(D.growth(s.members[0]).xp>D.growth(s.members[1]).xp);const xp=s.members[0].xp;assert.throws(()=>D.applyDay(s,['vocal','rest','vocal']));assert.equal(s.members[0].xp,xp);assert.equal(D.rhythmGrade(0),100);assert.equal(D.rhythmGrade(.15),70);assert.equal(D.rhythmGrade(-.23),35);assert.equal(D.rhythmGrade(.28),0);s.phase='concert';s.day=7;const base=D.forecast(s).score;const r=D.perform(s,1000);assert.equal(r.score,base+5);assert.equal(r.accuracy,100);assert.throws(()=>D.perform(s,100));}
+{const D=require('../../fixtures/fraction-world-legacy/studio-domain.js');const s=D.create(['lumi','rio','sora']);D.focus(s,'lumi');D.applyDay(s,['vocal','rest','vocal']);assert.ok(D.growth(s.members[0]).xp>D.growth(s.members[1]).xp);const xp=s.members[0].xp;assert.throws(()=>D.applyDay(s,['vocal','rest','vocal']));assert.equal(s.members[0].xp,xp);assert.equal(D.rhythmGrade(0),100);assert.equal(D.rhythmGrade(.15),70);assert.equal(D.rhythmGrade(-.23),35);assert.equal(D.rhythmGrade(.28),0);s.phase='concert';s.day=7;const base=D.forecast(s).score;const r=D.perform(s,1000);assert.equal(r.score,base+5);assert.equal(r.accuracy,100);assert.throws(()=>D.perform(s,100));}
 // Difficulty separation and currency upgrades share the same stats used by combat.
 {const basic=T.create('wand','hard'),advanced=T.create('wand','expert');assert.ok(T.roomSpec(basic).count<T.roomSpec(advanced).count);assert.ok(T.roomSpec(basic).speedScale<T.roomSpec(advanced).speedScale);assert.ok(T.roomSpec(basic).hpScale<T.roomSpec(advanced).hpScale);assert.ok(T.roomSpec(basic).damageScale<T.roomSpec(advanced).damageScale);
  basic.relics=['ember','heart','frost','storm','nova'];basic.crystals=500;

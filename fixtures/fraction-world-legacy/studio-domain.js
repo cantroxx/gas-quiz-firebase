@@ -1,6 +1,6 @@
 (function(root){
   'use strict';
-  const C=typeof module!=='undefined'&&module.exports?require('./content.js'):root.FWContent;
+  const C=typeof module!=='undefined'&&module.exports?require('../../public/fraction-world/content.js'):root.FWContent;
   const clamp=(v,min=0,max=100)=>Math.min(max,Math.max(min,v));
   function create(ids,difficulty='hard'){
     if(ids.length!==3||new Set(ids).size!==3||ids.some(id=>!C.members.some(m=>m.id===id)))throw new Error('멤버 세 명을 골라 주세요.');

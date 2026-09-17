@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const C=require('../../public/fraction-world/content.js'),S=require('../../public/fraction-world/studio-domain.js'),T=require('../../public/fraction-world/tower-domain.js');
+const C=require('../../public/fraction-world/content.js'),S=require('../../fixtures/fraction-world-legacy/studio-domain.js'),T=require('../../public/fraction-world/tower-domain.js');
 const E=require('../../public/fraction-world/expedition-domain');
 const source=fs.readFileSync(require.resolve('../../public/fraction-world/store.js'),'utf8');
 function boot(raw,blocked=false){let storage=raw;const context={window:{FWExpedition:E},FWExpedition:E,FWContent:C,localStorage:{getItem:k=>k==='dj48.study-town.v1'?storage:null,setItem:(_k,v)=>{if(blocked)throw new Error('quota');storage=v;}}};vm.runInNewContext(source,context);return {store:context.window.FWStore,getRaw:()=>storage};}
