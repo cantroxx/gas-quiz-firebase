@@ -16,10 +16,14 @@
       if(!Number.isSafeInteger(max)||max<1||max>64*1024*1024)throw Error('Asset size limit');
       const response=await fetchData(url(p),{redirect:'error',signal:AbortSignal.timeout(15000)});metrics.requests++;
       if(!response.ok)throw Error('자료를 읽을 수 없습니다: '+p);
-      if(p.endsWith('.gz')&&response.headers.get('content-encoding'))throw Error('Bundle requires raw gzip bytes without Content-Encoding');
       const r=response.body.getReader(),chunks=[];let length=0;
       try{while(true){const {value,done}=await r.read();if(done)break;length+=value.length;if(length>max)throw Error('Asset size limit');chunks.push(value);}}finally{await r.cancel();}
-      const b=new Uint8Array(length);let i=0;for(const c of chunks){b.set(c,i);i+=c.length;}metrics.bytes+=length;return b;
+      const b=new Uint8Array(length);let i=0;for(const c of chunks){b.set(c,i);i+=c.length;}
+      // Fetch has already decoded HTTP transport compression (Firebase can add br/gzip).
+      // The stored gzip payload must still be intact; asset() verifies its exact size/hash
+      // before a separate, bounded gzip decode. Mislabelled single-gzip delivery fails here.
+      if(p.endsWith('.gz')&&(b.length<2||b[0]!==0x1f||b[1]!==0x8b))throw Error('Bundle requires raw gzip payload after HTTP decoding');
+      metrics.bytes+=length;return b;
     }
     async function cached(key,fn){
       if(cache.has(key)){metrics.hits++;const v=cache.get(key);cache.delete(key);cache.set(key,v);return v.data;}

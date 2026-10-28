@@ -15,7 +15,7 @@ class AppError extends Error{constructor(code,message,details){super(message);th
   if(url.pathname.endsWith('manifest.json'))return new Response(manifest);
   if(url.pathname.endsWith('index/items/30.json'))return Response.json({items:{30000:{id:30000,part:badPath?{...part,path:'../escape.gz'}:part}}});
   if(url.pathname.endsWith('0000.json'))return Response.json({items:[{id:30000}]});
-  if(url.pathname.endsWith('.gz'))return new Response(badHash?Buffer.alloc(raw.length):raw,{headers:badEncoding?{'Content-Encoding':'gzip'}:{}});
+  if(url.pathname.endsWith('.gz')){const bytes=Buffer.from(raw);if(badHash)bytes[bytes.length-1]^=1;return new Response(bytes,{headers:badEncoding?{'Content-Encoding':'gzip'}:{}});}
   throw Error('Unexpected asset '+url);
  };
  const make=()=>createReader(base,{origin:new URL(base).origin,manifestSha256:digest(manifest),fetch:fetchData});
@@ -24,7 +24,7 @@ class AppError extends Error{constructor(code,message,details){super(message);th
  assert.deepEqual(await reader.part(30000),{fixture:true});assert.equal(hits.length,4);await reader.part(30000);assert.equal(hits.length,4);
  await assert.rejects(reader.catalogPage('hair',1),/Invalid catalog page/);
  fail=true;const retry=make();await assert.rejects(retry.manifest());await retry.manifest();assert.equal(retry.stats().pending,0);
- badEncoding=true;await assert.rejects(make().part(30000),/Content-Encoding/);badEncoding=false;
+ badEncoding=true;assert.deepEqual(await make().part(30000),{fixture:true},'Transport header does not invalidate exact stored gzip bytes');badEncoding=false;
  badHash=true;await assert.rejects(make().part(30000),/hash mismatch/);badHash=false;
  badPath=true;await assert.rejects(make().part(30000),/Invalid asset path/);badPath=false;
  await assert.rejects(createReader(base,{origin:new URL(base).origin,manifestSha256:'0'.repeat(64),fetch:fetchData}).manifest(),/Manifest hash/);
@@ -38,5 +38,22 @@ class AppError extends Error{constructor(code,message,details){super(message);th
  assert.equal(environmentConfig({}).mode,'official');
  const authorized=createConfiguredPreviewService({config,ErrorType:AppError,fetchData,authorize:async()=>{}});
  await assert.rejects(authorized('member',{look:{earType:99}}),{code:'failed-precondition'});
+ // Real Fetch transparently removes transport br/gzip, retaining the separately pinned gzip asset.
+ let transport='identity';
+ const server=require('node:http').createServer((req,res)=>{
+  if(req.url.endsWith('/manifest.json'))return res.end(manifest);
+  if(req.url.endsWith('/index/items/30.json'))return res.end(JSON.stringify({items:{30000:{id:30000,part}}}));
+  if(!req.url.endsWith('/parts/test.json.gz')){res.statusCode=404;return res.end();}
+  res.setHeader('Content-Type','application/octet-stream');
+  if(transport!=='identity')res.setHeader('Content-Encoding',transport==='mislabelled'?'gzip':transport);
+  res.end(transport==='br'?zlib.brotliCompressSync(raw):transport==='gzip'?zlib.gzipSync(raw):raw);
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{
+  const origin='http://127.0.0.1:'+server.address().port;
+  const live=()=>createReader(origin+'/codi/'+snapshot+'/',{origin,manifestSha256:digest(manifest)});
+  for(transport of ['identity','gzip','br'])assert.deepEqual(await live().part(30000),{fixture:true},transport);
+  transport='mislabelled';await assert.rejects(live().part(30000),/raw gzip payload/);
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
  console.log('PASS HTTP reader: pinned manifest/origin, lazy pages, dedup/cache, retry, raw gzip, hash/size/path checks, authorization before data and explicit local config.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

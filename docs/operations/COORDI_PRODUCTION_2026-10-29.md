@@ -33,6 +33,14 @@
 
 운영 브라우저에 로그인 세션이 없어 학생 자격 증명을 추측하거나 새 계정을 만들지 않았다. 실인증 callable의 정상 응답, 실계정 구매/저장 및 교실 Storage 업로드 E2E, Cloud Run cold/warm p95·peak메모리는 검증 완료로 표기하지 않는다. 기존 메모리 commerce 테스트와 운영 CDN 합성 검사를 이 항목들의 대체 성공으로 계산하지 않는다.
 
+## 실제 CDN에서 발견하고 수정한 압축 경계
+
+첫 데이터 게시 후 정상 합성이 `Content-Encoding` 거부에 걸려 서버·상점 전환을 중단했다. 일부 응답은 `br`, 일부는 `gzip`, 일부는 헤더가 없었다. [Firebase Hosting 공식 설명](https://firebase.google.com/docs/hosting/)대로 CDN이 전송 압축을 선택하며, Fetch가 이를 해제한 응답 본문은 원본 gzip 파츠와 동일했다.
+
+reader는 헤더 존재만으로 거부하는 대신 Fetch 이후 gzip magic, 실제 길이, 원본 SHA-256을 확인한 뒤 별도로 제한된 gzip 해제를 수행한다. 단일 gzip 파일에 잘못 `Content-Encoding:gzip`만 붙여 JSON으로 풀려버린 경우는 여전히 거부한다. 실제 HTTP 서버의 identity/gzip/Brotli 정상3개와 잘못 표기한1개 거부 회귀 검사를 추가했다. 합성 규칙·Windows 데이터·manifest pin은 변경하지 않았다.
+
+수정된 Node22 reader로 실제 운영 CDN의69개 기준 사례 모두 통과했다. 정상58개는 원래 크기 RGBA 변화픽셀0이고 예상거부11개도 일치한다. 기존 인계 문서의 “Content-Encoding 없음”을 무조건 요구하는 대신 **Fetch 이후 저장된 gzip bytes가 정확히 보존되는지**를 검증하는 것으로 구체화했다. 외부 렌더러로 우회하지 않았다.
+
 ## 실행 결과
 
 배포 및 검증 단계 진행 중. 영수증은 완료 후 이 문서와 `coordi-production-2026-10-29/`에 기록한다.

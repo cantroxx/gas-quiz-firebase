@@ -25,6 +25,6 @@ if(require.main===module){
  fs.writeFileSync(path.join(versionDir,'quiztown-display.json'),JSON.stringify(displayCatalog()));fs.mkdirSync(path.join(out,'public/coordi-shop'),{recursive:true});fs.writeFileSync(path.join(out,'public/coordi-shop/runtime-config.json'),JSON.stringify(config,null,2)+'\n');
  fs.writeFileSync(path.join(out,'functions.env.example'),`COORDI_RENDERER_MODE=local\nCOORDI_DATA_BASE_URL=https://dj48-quiztown-firebase.web.app${config.baseUrl}\nCOORDI_DATA_SNAPSHOT=${config.snapshot}\nCOORDI_MANIFEST_SHA256=${config.manifestSha256}\n`);
  fs.writeFileSync(path.join(out,'hosting-headers.json'),JSON.stringify([{source:config.baseUrl+'**',headers:[{key:'Cache-Control',value:'public,max-age=31536000,immutable'}]},{source:config.baseUrl+'**/*.gz',headers:[{key:'Content-Type',value:'application/octet-stream'}]}],null,2));
- fs.writeFileSync(path.join(out,'VERIFICATION.txt'),checked.stdout+'\nCandidate only. Merge headers into Hosting config; gzip must have NO Content-Encoding. Deploy only after approval.\n');console.log(JSON.stringify({out,...config}));
+ fs.writeFileSync(path.join(out,'VERIFICATION.txt'),checked.stdout+'\nCandidate only. Merge headers into Hosting config. Do not label stored gzip as HTTP encoding: Fetch-decoded bodies must retain exact pinned gzip bytes. CDN transport br/gzip wrapping is supported. Deploy only after approval.\n');console.log(JSON.stringify({out,...config}));
 }
 module.exports={displayCatalog,configFor};
