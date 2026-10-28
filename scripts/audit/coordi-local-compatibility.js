@@ -7,9 +7,9 @@ const core=require('../../functions/coordi-shop/local-renderer/core'),png=requir
 const {createRenderer}=require('../../public/coordi-shop/preview-renderer'),hair=require('../../public/coordi-shop/hair-prism');
 const slots={hair:'Hair',face:'Face',hat:'Hat',faceAccessory:'Face Accessory',eyeAccessory:'Eye Decoration',earring:'Earrings',top:'Top',overall:'Overall',bottom:'Bottom',shoes:'Shoes',glove:'Glove',cape:'Cape',weapon:'Cash'};
 (async()=>{
- const [bundle,savedFile,out]=process.argv.slice(2);if(!out)throw Error('Pass bundle, private saved-input JSON, output JSON');
+ const [bundle,savedFile,out,publicReport]=process.argv.slice(2);if(!out)throw Error('Pass bundle, private saved-input JSON, output JSON');
  const reader=createBundleReader(bundle),catalog=require('../../functions/coordi-shop/catalog.json');
- const issues=JSON.parse(await fs.readFile(path.join(bundle,'reports/public-catalog-compatibility.json'))).catalogs[0].issues.filter(i=>i.status!=='skin-code-candidate');
+ const issues=JSON.parse(await fs.readFile(publicReport||path.join(bundle,'reports/public-catalog-compatibility.json'))).catalogs[0].issues.filter(i=>i.status!=='skin-code-candidate');
  const baseline=await toWidgetLook(normalize({gender:0,itemCode:{skin:12000,hair:30000,face:20000}}),reader),results=[];
  for(const row of issues){
   const look=structuredClone(baseline),slot=slots[row.category];look.Items=look.Items.filter(i=>i.Slot!==slot&&!(slot==='Overall'&&['Top','Bottom'].includes(i.Slot)));

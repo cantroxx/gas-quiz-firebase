@@ -9,9 +9,13 @@ function displayCatalog(){
  return {...verified,items:[...rows.values()]};
 }
 function configFor(bundleRoot){
+ if(fs.existsSync(path.join(bundleRoot,'BUILD-INCOMPLETE.json')))throw Error('Bundle assembly is incomplete');
  const bytes=fs.readFileSync(path.join(bundleRoot,'web/manifest.json')),manifest=JSON.parse(bytes);
  if(manifest.schemaVersion!==1||manifest.bundleKind!=='complete-data'||!/^[A-F0-9]{64}$/.test(manifest.sourceSnapshot))throw Error('Invalid complete bundle');
- return {schemaVersion:1,mode:'local',snapshot:manifest.sourceSnapshot,baseUrl:'/codi/'+manifest.sourceSnapshot+'/',manifestSha256:crypto.createHash('sha256').update(bytes).digest('hex')};
+ const manifestSha256=crypto.createHash('sha256').update(bytes).digest('hex');
+ const versionFile=path.join(bundleRoot,'version.json');
+ if(fs.existsSync(versionFile)){const version=JSON.parse(fs.readFileSync(versionFile));if(version.sourceSnapshot!==manifest.sourceSnapshot||version.webManifestSha256!==manifestSha256)throw Error('Supplement version/manifest pin mismatch');}
+ return {schemaVersion:1,mode:'local',snapshot:manifest.sourceSnapshot,baseUrl:'/codi/'+manifest.sourceSnapshot+'/',manifestSha256};
 }
 if(require.main===module){
  const [bundle,destination]=process.argv.slice(2);if(!bundle||!destination)throw Error('Usage: node scripts/build-coordi-local-release.js BUNDLE NEW_OUTPUT_DIRECTORY');

@@ -36,7 +36,7 @@
     "test:fractions": "node tests/fraction-world/domain.test.js && node tests/fraction-world/balance.test.js && node tests/fraction-world/store.test.js && node tests/fraction-world/combat.test.js && node tests/fraction-world/expedition.test.js && node tests/fraction-world/expedition-combat.test.js",
     "smoke:fractions": "node scripts/smoke/fraction-world-browser.js",
     "smoke:fractions:combat": "node scripts/smoke/fraction-world-combat.js",
-    "test:growth": "node tests/growth/services.test.js && node tests/coordi-shop/preview.test.js && node tests/coordi-shop/provider-boundary.test.js && node tests/coordi-shop/http-reader.test.js && node tests/coordi-shop/local-renderer.test.js && node tests/coordi-shop/catalog.test.js && node tests/coordi-shop/hair-prism.test.js && node tests/coordi-shop/display-catalog.test.js",
+    "test:growth": "node tests/growth/services.test.js && node tests/coordi-shop/preview.test.js && node tests/coordi-shop/provider-boundary.test.js && node tests/coordi-shop/http-reader.test.js && node tests/coordi-shop/bundle-paths.test.js && node tests/coordi-shop/local-renderer.test.js && node tests/coordi-shop/catalog.test.js && node tests/coordi-shop/hair-prism.test.js && node tests/coordi-shop/display-catalog.test.js",
     "serve:fruit-bell": "node functions/fruit-bell/local-server.js",
     "test:fruit-bell": "node scripts/build-fruit-bell.js --check && node --test tests/fruit-bell/domain.test.js tests/fruit-bell/server.test.js",
     "smoke:fruit-bell": "node scripts/smoke/fruit-bell-browser.js",

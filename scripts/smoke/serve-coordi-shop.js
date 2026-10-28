@@ -38,7 +38,7 @@ const bundleRoot = process.env.COORDI_BUNDLE_ROOT;
 const {configFor,displayCatalog}=require('../build-coordi-local-release');
 const config=bundleRoot?configFor(bundleRoot):{schemaVersion:1,mode:'official'};
 const dataPrefix=config.baseUrl||'';
-const dataRoot=bundleRoot?path.resolve(bundleRoot,'web'):'';
+const dataRoot=bundleRoot?fs.realpathSync(path.resolve(bundleRoot,'web')):'';
 let previewService;
 async function render(uid,payload) {
  if(!previewService)previewService=require('../../functions/coordi-shop/runtime').createConfiguredPreviewService({
@@ -62,7 +62,7 @@ const server = http.createServer(async (req, res) => {
   const send = (status, type, data) => res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store' }).end(data);
   if(url.pathname === '/coordi-shop/runtime-config.json')return send(200,'application/json',JSON.stringify(config));
   if(dataPrefix&&url.pathname === dataPrefix+'quiztown-display.json')return send(200,'application/json',JSON.stringify(displayCatalog()));
-  if(url.pathname === '/preview-stats')return send(200,'application/json',JSON.stringify(previewService?.stats?.()||{}));
+  if(url.pathname === '/preview-stats')return send(200,'application/json',JSON.stringify({...previewService?.stats?.(),process:{node:process.version,memory:process.memoryUsage()}}));
   if(url.pathname === '/') return send(200, 'text/html; charset=utf-8', shell);
   if(url.pathname === '/preview-call') {
     if(req.method !== 'POST' || req.headers.origin !== origin || !req.headers['content-type']?.startsWith('application/json')) return res.writeHead(403).end();
@@ -86,6 +86,6 @@ const server = http.createServer(async (req, res) => {
   if(!url.pathname.startsWith('/coordi-shop/')) return res.writeHead(404).end();
   let file; try { file = path.resolve(root, '.' + decodeURIComponent(url.pathname) + (url.pathname.endsWith('/') ? 'index.html' : '')); } catch { return res.writeHead(400).end(); }
   if(!file.startsWith(path.join(root, 'coordi-shop') + path.sep)) return res.writeHead(403).end();
-  fs.readFile(file, (error, data) => error ? res.writeHead(404).end() : send(200, ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png' })[path.extname(file)] || 'application/octet-stream', data));
+  fs.readFile(file, (error, data) => error ? res.writeHead(404).end() : send(200, ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png' })[path.extname(file)] || 'application/octet-stream', data));
 });
 server.listen(Number(process.env.PORT || 0), '127.0.0.1', () => console.log(`Local coordi preview: http://127.0.0.1:${server.address().port}/`));

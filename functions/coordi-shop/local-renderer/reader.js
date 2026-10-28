@@ -1,7 +1,8 @@
 'use strict';
 const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
 function createBundleReader(bundleRoot) {
-  const root=path.resolve(bundleRoot,'web'),cache=new Map();let size=0;
+  // Canonicalize the caller-selected root (macOS /tmp is a symlink); child escapes still fail.
+  const root=require('node:fs').realpathSync(path.resolve(bundleRoot,'web')),cache=new Map();let size=0;
   async function bytes(relative){if(typeof relative!=='string'||relative.includes('\\')||path.isAbsolute(relative))throw Error('Invalid bundle path');const file=path.resolve(root,relative);if(!file.startsWith(root+path.sep))throw Error('Path outside bundle');const real=await fs.realpath(file);if(!real.startsWith(root+path.sep))throw Error('Bundle symlink outside root');return fs.readFile(real);}
   async function cached(key,load){if(cache.has(key)){const v=cache.get(key);cache.delete(key);cache.set(key,v);return v.data;}const data=await load(),n=Buffer.byteLength(JSON.stringify(data));while(cache.size&&(size+n>64*1024*1024||cache.size>=128)){const first=cache.keys().next().value;size-=cache.get(first).size;cache.delete(first);}if(n<=64*1024*1024){cache.set(key,{data,size:n});size+=n;}return data;}
   const json=p=>cached(p,async()=>JSON.parse((await bytes(p)).toString('utf8')));

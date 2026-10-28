@@ -1,6 +1,9 @@
 'use strict';
-const assert=require('node:assert/strict'),{chromium}=require('playwright-core');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright-core');
 (async()=>{
+ const output=process.env.COORDI_OUTPUT_DIR||'/tmp/coordi-local-phase2';fs.mkdirSync(output,{recursive:true});
+ assert(process.env.COORDI_BUNDLE_ROOT,'Set COORDI_BUNDLE_ROOT for fixture expectations');
+ const femaleCase=JSON.parse(fs.readFileSync(path.join(process.env.COORDI_BUNDLE_ROOT,'reference/cases/results.json'))).cases.find(c=>c.id==='unsupported-current-female-hair');assert(femaleCase);
  let server;
  const origin=process.env.COORDI_LOCAL_ORIGIN||await new Promise((resolve,reject)=>{
   assert(process.env.COORDI_BUNDLE_ROOT,'Set COORDI_BUNDLE_ROOT for an isolated memory server');
@@ -8,7 +11,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright-core')
   server.once('error',reject);server.once('exit',code=>reject(Error('Preview server exit '+code)));
   server.stdout.on('data',chunk=>{const match=String(chunk).match(/http:\/\/127\.0\.0\.1:\d+/);if(match)resolve(match[0]);});
  });assert.match(origin,/^http:\/\/127\.0\.0\.1:\d+$/);
- const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+ const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1360,height:1000}}),calls=[],outside=[],errors=[],paths=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
@@ -18,9 +21,15 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright-core')
     if(location.pathname==='/')localStorage.setItem('dj48.coordi.preview.local-shop-demo',JSON.stringify({gender:'female',equipped:{},officialLook:{imageUrl:'https://maplestory.io/poison-cached-avatar.png',hash:'cached-external'}}));
   });
   await page.goto(origin);const f=page.frameLocator('iframe');await f.locator('#coordi-wallet').filter({hasText:'10,000'}).waitFor();
-  await f.locator('[data-set-gender="female"]').click();await f.locator('#official-look-status').filter({hasText:'31000'}).waitFor();
+  const ready=()=>f.locator('#official-look-status').filter({hasText:'미리보기 반영됨'}).waitFor();
+  await f.locator('[data-set-gender="female"]').click();
+  if(femaleCase.status==='rendered'){
+    await ready();assert.equal(calls.filter(c=>c.name==='renderCoordiShopPreview').at(-1).p.look.itemCode.hair,31000);
+    assert((await f.locator('#character-image').getAttribute('src')).startsWith('data:image/png;base64,'));
+    await page.screenshot({path:path.join(output,'shop-female-default.png'),fullPage:true});
+  }else await f.locator('#official-look-status').filter({hasText:'31000'}).waitFor();
   await f.locator('#change-gender').click();await f.locator('[data-set-gender="male"]').click();
-  const ready=()=>f.locator('#official-look-status').filter({hasText:'미리보기 반영됨'}).waitFor();await ready();
+  await ready();
   delayNext=true;await f.locator('#item-grid [data-item="hair-45000"]').click();
   await page.waitForRequest(req=>req.url().endsWith('/preview-call')&&JSON.parse(req.postData()).p.look?.itemCode.hair===45000);
   await f.locator('#item-grid [data-item="hair-66630"]').click();await ready();
@@ -51,8 +60,8 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright-core')
   assert(await f.locator('#slot-list').innerText().then(x=>x.includes('망토')),'Unsupported selection remains visible, never silently substituted');
   await f.locator('[data-draft="saved"]').click();await ready();
   assert(await f.locator('#character-effects').isHidden(),'Local PNG includes effects; no second overlay');
-  await page.screenshot({path:'/tmp/coordi-windows-shop-desktop.png',fullPage:true});
-  await page.setViewportSize({width:390,height:844});assert(await f.locator('body').evaluate(b=>b.scrollWidth<=innerWidth+1));assert(await f.locator('.stage-frame').evaluate(el=>el.clientWidth>=300),'Mobile preview must not collapse into a cropped narrow column');await page.screenshot({path:'/tmp/coordi-windows-shop-mobile.png',fullPage:true});
+  await page.screenshot({path:path.join(output,'shop-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});assert(await f.locator('body').evaluate(b=>b.scrollWidth<=innerWidth+1));assert(await f.locator('.stage-frame').evaluate(el=>el.clientWidth>=300),'Mobile preview must not collapse into a cropped narrow column');await page.screenshot({path:path.join(output,'shop-mobile.png'),fullPage:true});
   await f.locator('[data-coordi-mode="dressroom"]').click();assert(await f.locator('#coordi-buy').isHidden());
   // Exercise the actual town/classroom consumers against the SAME real HTTP compositor.
   // Only classroom status and account identities are synthetic; no fake PNGs are supplied.
@@ -93,9 +102,9 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright-core')
   const metrics=await page.evaluate(async()=>await(await fetch('/preview-stats')).json());
   assert(metrics.requests>0&&metrics.requests<150,'Reads only requested asset subset');
   assert(metrics.cachedBytes<=64*1024*1024);assert.equal(metrics.pending,0);
-  require('node:fs').writeFileSync('/tmp/coordi-local-phase2/http-browser-metrics.json',JSON.stringify({metrics,externalRequests:outside.length,surfacesIdentical:true,staleAccountDiscarded:true,staleSelectionDiscarded:true,legacyThumbnailRequests:paths.filter(p=>p.startsWith('/coordi-shop/verified/')).length},null,2));
+  require('node:fs').writeFileSync(path.join(output,'http-browser-metrics.json'),JSON.stringify({femaleBaseline:femaleCase.status,snapshot:JSON.parse(fs.readFileSync(path.join(process.env.COORDI_BUNDLE_ROOT,'web/manifest.json'))).sourceSnapshot,metrics,externalRequests:outside.length,surfacesIdentical:true,staleAccountDiscarded:true,staleSelectionDiscarded:true,legacyThumbnailRequests:paths.filter(p=>p.startsWith('/coordi-shop/verified/')).length},null,2));
   assert.deepEqual(errors,[]);assert.deepEqual(outside,[]);
   assert(!paths.some(p=>p.startsWith('/coordi-shop/verified/')||p.startsWith('/coordi-shop/data/')||p.startsWith('/api/')),'No previously generated external thumbnails or legacy API');
-  console.log('PASS local Windows shop: explicit female failure, original image retained, icons, A/B/undo zero transactions, large view, original purchase/equip/dye, effects once, mobile and free dressroom; fresh context with poisoned external cached URL discarded, same real PNG in shop/town/classroom, late account result discarded, bounded HTTP cache, no external requests.');
+  console.log('PASS local Windows shop: versioned female baseline (no substitution), original image retained, icons, A/B/undo zero transactions, large view, original purchase/equip/dye, effects once, mobile and free dressroom; fresh context with poisoned external cached URL discarded, same real PNG in shop/town/classroom, late account result discarded, bounded HTTP cache, no external requests.');
  }finally{await browser.close();server?.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
