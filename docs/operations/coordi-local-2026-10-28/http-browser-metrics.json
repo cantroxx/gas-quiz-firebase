@@ -1,0 +1,17 @@
+{
+  "metrics": {
+    "requests": 25,
+    "bytes": 4341392,
+    "hits": 182,
+    "cachedBytes": 8898366,
+    "entries": 25,
+    "pending": 0,
+    "active": 0,
+    "queued": 0
+  },
+  "externalRequests": 0,
+  "surfacesIdentical": true,
+  "staleAccountDiscarded": true,
+  "staleSelectionDiscarded": true,
+  "legacyThumbnailRequests": 0
+}

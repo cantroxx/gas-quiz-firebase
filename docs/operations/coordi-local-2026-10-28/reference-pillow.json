@@ -1,0 +1,369 @@
+{
+  "ok": true,
+  "cases": [
+    {
+      "id": "basic-stand1",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-stand2",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk1",
+      "ok": true,
+      "expectedSize": [
+        51,
+        92
+      ],
+      "actualSize": [
+        51,
+        92
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk2",
+      "ok": true,
+      "expectedSize": [
+        51,
+        92
+      ],
+      "actualSize": [
+        51,
+        92
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-sit",
+      "ok": true,
+      "expectedSize": [
+        49,
+        91
+      ],
+      "actualSize": [
+        49,
+        91
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-jump",
+      "ok": true,
+      "expectedSize": [
+        49,
+        92
+      ],
+      "actualSize": [
+        49,
+        92
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "female-hair-61050",
+      "ok": true,
+      "expectedSize": [
+        85,
+        98
+      ],
+      "actualSize": [
+        85,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hat-occlusion",
+      "ok": true,
+      "expectedSize": [
+        63,
+        97
+      ],
+      "actualSize": [
+        63,
+        97
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "overall-shoes-weapon",
+      "ok": true,
+      "expectedSize": [
+        92,
+        90
+      ],
+      "actualSize": [
+        92,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape",
+      "ok": true,
+      "expectedSize": [
+        62,
+        90
+      ],
+      "actualSize": [
+        62,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "fixed-emotion",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-4",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-9",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-48",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-50",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-100",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "face-mix-63",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-face-mix",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape-prism",
+      "ok": true,
+      "expectedSize": [
+        62,
+        90
+      ],
+      "actualSize": [
+        62,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "skin-prism",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "legacy-color",
+      "ok": true,
+      "expectedSize": [
+        63,
+        97
+      ],
+      "actualSize": [
+        63,
+        97
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-1",
+      "ok": true,
+      "expectedSize": [
+        63,
+        90
+      ],
+      "actualSize": [
+        63,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-2",
+      "ok": true,
+      "expectedSize": [
+        69,
+        90
+      ],
+      "actualSize": [
+        69,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-3",
+      "ok": true,
+      "expectedSize": [
+        65,
+        90
+      ],
+      "actualSize": [
+        65,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "flip",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "invisible-hat",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "baseline": "509687040e7afe5998daa8c919d83c75e6a31e1e",
+  "branch": "codex/coordi-local-runtime",
+  "verifiedAt": "2026-10-28T12:32:07.551573+00:00",
+  "productionChanged": false,
+  "fullCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "subjectScreens": 2502
+  },
+  "finalStatic": {
+    "command": "npm run check:static",
+    "exitCode": 0
+  },
+  "bundle": {
+    "files": 64064,
+    "bytes": 322927171,
+    "items": 31599,
+    "failures": 0
+  },
+  "references": {
+    "node": "30/30",
+    "browser": "30/30",
+    "pillow": "26/26 RGBA exact",
+    "expectedRejections": 4
+  },
+  "commerceEmulator": {
+    "project": "demo-dj48-rules",
+    "access": true,
+    "couponsAndDye": true,
+    "couponReset": true
+  },
+  "unit": [
+    "http-reader",
+    "provider-boundary",
+    "windows-integration"
+  ],
+  "browser": {
+    "freshContext": true,
+    "externalRequests": 0,
+    "cachedExternalImageDiscarded": true,
+    "legacyThumbnailsRequested": 0,
+    "actualHttpComposition": true,
+    "shopTownClassroomSamePng": true,
+    "purchaseEquipDyeRestore": true,
+    "staleAccountDiscarded": true,
+    "staleSelectionDiscarded": true,
+    "mobileWidth": 390
+  },
+  "sale": {
+    "total": 1632,
+    "passed": 1626,
+    "failed": 6
+  },
+  "publicIssues": {
+    "total": 132,
+    "passed": 3,
+    "failed": 129,
+    "missing72OnSale": 0
+  },
+  "saved": {
+    "profiles": 159,
+    "combinationsIncludingEmptyDefaults": 10,
+    "passed": 8,
+    "failed": 2,
+    "failureItem": 31000
+  },
+  "notVerified": [
+    "Remote Firebase preview deployment and gzip headers",
+    "Node22 deployed cold start/memory under classroom concurrency",
+    "Production authenticated end-to-end and classroom Storage writes",
+    "Unsupported items pending Windows extraction/rules"
+  ],
+  "implementationCommit": "0ece356f6dfd439be58398479b2fcf4a73c970a8"
+}

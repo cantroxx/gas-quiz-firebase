@@ -1,0 +1,28 @@
+{
+  "scope": "Loopback HTTP Node; not Cloud Run cold start or production latency",
+  "coldMs": 125.209667,
+  "warmMs": 0.9708750000000066,
+  "coldAssetRequests": 14,
+  "coldAssetBytes": 1829991,
+  "warmAdditionalRequests": 0,
+  "parallel8Ms": [
+    13.350874999999974,
+    14.498957999999988,
+    21.641332999999975,
+    22.598542000000037,
+    28.37062499999996,
+    29.149957999999998,
+    34.433042,
+    34.40112499999998
+  ],
+  "stats": {
+    "requests": 14,
+    "bytes": 1829991,
+    "hits": 230,
+    "cachedBytes": 3604004,
+    "entries": 14,
+    "pending": 0,
+    "active": 0,
+    "queued": 0
+  }
+}

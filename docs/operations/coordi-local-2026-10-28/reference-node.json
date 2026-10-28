@@ -1,0 +1,335 @@
+{
+  "ok": true,
+  "snapshot": "7B05F3B49BDF2B2DBD868F0C932BE1C9D8C5A22AD47A6CB8FE09F41A3A1EC1A3",
+  "renderer": "windows-static-v1",
+  "results": [
+    {
+      "id": "basic-stand1",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "e58568043bc7fd1175523d7b06f6798ac097d66a5ff50a48d8abc8e467a7c8b0",
+      "ms": 36,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-stand2",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "bc40f566b49a7ec12044f73181f51be9e2201db82d05d2da62e70735578e593d",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk1",
+      "ok": true,
+      "width": 51,
+      "height": 92,
+      "rgbaSha256": "20c94258de1d7bbcdd241adcfdea85a0f3366d9967dac56c4c1a7bb3e08c3a7a",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk2",
+      "ok": true,
+      "width": 51,
+      "height": 92,
+      "rgbaSha256": "403205f17d777bf09d0171aa41980a076591a3e84eb006daf88249d2e0f8f6b9",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-sit",
+      "ok": true,
+      "width": 49,
+      "height": 91,
+      "rgbaSha256": "ac2d61cf05e0b9d4e3c0ba37106eb8190fb0482d3ace6edb2311c4d189c40779",
+      "ms": 6,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-jump",
+      "ok": true,
+      "width": 49,
+      "height": 92,
+      "rgbaSha256": "69f538156b11c37ce0b6dfec8b591ea0bc65c20073a9e51b8154537c42b8799b",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "female-hair-61050",
+      "ok": true,
+      "width": 85,
+      "height": 98,
+      "rgbaSha256": "ac76005edbb117ebad9fd0cc6f572f787b712f1a9adf656ddfcc3215b7dab7e1",
+      "ms": 14,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "unsupported-current-female-hair",
+      "ok": true,
+      "error": "헤어 그림자 파츠 형식을 확인하세요.",
+      "expectedError": "헤어 그림자 파츠 형식을 확인하세요.",
+      "details": {
+        "itemId": 31000,
+        "action": "stand1"
+      },
+      "ms": 5
+    },
+    {
+      "id": "hat-occlusion",
+      "ok": true,
+      "width": 63,
+      "height": 97,
+      "rgbaSha256": "d751619bf799be61f29f5ec67da8e4d3c46486170ca4493cafd0557bf4a38749",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "overall-shoes-weapon",
+      "ok": true,
+      "width": 92,
+      "height": 90,
+      "rgbaSha256": "7a675020a184f2afb275887ba31ef043ff78bd52cc49112d2a538f38b1b89b62",
+      "ms": 14,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape",
+      "ok": true,
+      "width": 62,
+      "height": 90,
+      "rgbaSha256": "5288b9c54fb1a28e4c6b2395933e4ce7ec1d56d8047e291609fbe0c307c88f9e",
+      "ms": 8,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "fixed-emotion",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "21a8573f37ad074435e3d7290c42c115f6ef5c4f41fa0c2ad6f60515b6a01300",
+      "ms": 7,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-4",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "8dafab814fb0b65f85b906319dfc916f628a320535a10e13c23eb072d174c13b",
+      "ms": 15,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-9",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "595a7147f21ff54e826d59638513e204fe64b32ec14aab387575d576aa5c12d9",
+      "ms": 8,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-48",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "827ff452e4e116aa5dd7d0bd039cbf4baf1f7c969db0671a2fd82b545ef5e3c8",
+      "ms": 7,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-50",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "8c7574ecd19b0c8d27cc31a769fa7f4411d9a5f4211a1ec626e3964e209c21c5",
+      "ms": 13,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-100",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "1f4aed4a7b643f4b0bc9638ca3762e7592d99467dbb670d04bdc753f380b36ee",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "face-mix-63",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "25a2141005aa78a7494228c752c8177247dffe59afc074b5832366f60d3845d6",
+      "ms": 14,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-face-mix",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "8312e32c6edfd7bd894978e38130eba3cebde3256b683c701a1ba44ada33094a",
+      "ms": 17,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape-prism",
+      "ok": true,
+      "width": 62,
+      "height": 90,
+      "rgbaSha256": "8208473a34a342131614480830da714aa9bc5f869c21b9e943cd43d8290137e4",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "skin-prism",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "26cca081411057cb69f89fdfc5956067104b9ff5686bbb48aa8c0874fb6908fb",
+      "ms": 5,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "legacy-color",
+      "ok": true,
+      "width": 63,
+      "height": 97,
+      "rgbaSha256": "24c0514b2b8dc931f47087f2a57914155c10f0190de57825642cb56feef65d84",
+      "ms": 5,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-1",
+      "ok": true,
+      "width": 63,
+      "height": 90,
+      "rgbaSha256": "f4e58a0d10d9acf47582f264f963abf7c86c9d249df0f783e7672e4cd98d02df",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-2",
+      "ok": true,
+      "width": 69,
+      "height": 90,
+      "rgbaSha256": "e1b5e1d1bee8198495f4b27abeb6eb4ec2026b246a4e63a290918760e1b643bc",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-3",
+      "ok": true,
+      "width": 65,
+      "height": 90,
+      "rgbaSha256": "48478322efbd29297055dd6e3aa333c880bebe76fe31c226a4458fb9836e1f57",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "flip",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "ec161a11f5e211ad3ffeb1bec7955d31da194a927ca8da79eb11362dce0573ec",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "invisible-hat",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "e58568043bc7fd1175523d7b06f6798ac097d66a5ff50a48d8abc8e467a7c8b0",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "unsupported-missing-item",
+      "ok": true,
+      "error": "설치 데이터에 해당 파츠가 없습니다: 01005635.img",
+      "expectedError": "설치 데이터에 해당 파츠가 없습니다: 01005635.img",
+      "details": {
+        "itemId": 1005635
+      },
+      "ms": 3
+    },
+    {
+      "id": "unsupported-reveal-equipment",
+      "ok": true,
+      "error": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "expectedError": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "details": {
+        "itemId": 1054818,
+        "slot": "Overall"
+      },
+      "ms": 0
+    },
+    {
+      "id": "unsupported-sprite-rule",
+      "ok": true,
+      "error": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+      "expectedError": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+      "details": {
+        "itemId": 1102621
+      },
+      "ms": 1
+    }
+  ]
+}
