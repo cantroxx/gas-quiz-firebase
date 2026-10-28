@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "exitCode": 0,
+  "command": "npm run check",
+  "node": "v22.23.4",
+  "completedAt": "2026-10-28T15:29:39.036Z",
+  "logSha256": "c059bacd6b3ffae833e4540793b050fff433bb6fc597ecc34fb9f02367285e13",
+  "subjectScreens": 2502,
+  "includesCdnTransportFix": true
+}

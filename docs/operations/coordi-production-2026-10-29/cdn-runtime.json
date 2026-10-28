@@ -1,0 +1,64 @@
+{
+  "ok": true,
+  "scope": "Local Node runtime with real production CDN; synthetic authorization, not Cloud Run latency/authentication",
+  "node": "v22.23.4",
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "female": {
+    "width": 78,
+    "height": 89,
+    "rgbaSha256": "08a61c1fbf2a4ca9e0a0403481cf5e9818c1ca2444a869a41d6e9f2a812ac8c7",
+    "pngSha256": "bf5a9cc664a975de9bf6698641e250cf42dbc0db1ef0b949fe7c2c08cf57e657",
+    "coldMs": 318.320625,
+    "warmMs": 0.04800000000000182,
+    "firstAssetRequests": 14,
+    "firstAssetBytes": 1895899
+  },
+  "parallel8Ms": [
+    14.377333999999905,
+    15.600125000000048,
+    26.06891600000006,
+    27.229209000000083,
+    33.961208000000056,
+    34.9788749999999,
+    41.62287500000002,
+    41.79933300000005
+  ],
+  "authorizationChecks": 15,
+  "errors": [
+    {
+      "productId": "earring-1032331",
+      "code": "failed-precondition",
+      "message": "기준점이 없습니다."
+    },
+    {
+      "productId": "shoes-1073469",
+      "code": "failed-precondition",
+      "message": "이 아이템의 동작 데이터는 아직 지원하지 않습니다."
+    },
+    {
+      "productId": "cape-1103862",
+      "code": "failed-precondition",
+      "message": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다."
+    },
+    {
+      "productId": "cape-1102039",
+      "code": "failed-precondition",
+      "message": "이 아이템의 동작 데이터는 아직 지원하지 않습니다."
+    },
+    {
+      "productId": "weapon-1703421",
+      "code": "failed-precondition",
+      "message": "아직 확인되지 않은 겹침 순서입니다."
+    }
+  ],
+  "stats": {
+    "requests": 27,
+    "bytes": 5241947,
+    "hits": 354,
+    "cachedBytes": 10240508,
+    "entries": 27,
+    "pending": 0,
+    "active": 0,
+    "queued": 0
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-28T15:35:55.041Z",
+  "version": "sites/dj48-quiztown-firebase/versions/46e4ac236a4d6cee",
+  "verifiedCompleteManifestFiles": 68651,
+  "verifiedClientFiles": 6,
+  "existingHostingConfigPreserved": true,
+  "unauthenticated": [
+    {
+      "id": "renderCoordiShopPreview",
+      "status": 401
+    },
+    {
+      "id": "coordiShopAction",
+      "status": 401
+    }
+  ]
+}

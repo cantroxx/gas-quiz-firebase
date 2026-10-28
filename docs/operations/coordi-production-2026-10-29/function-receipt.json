@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-28T15:32:59.298Z",
+  "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/renderCoordiShopPreview",
+  "revision": "rendercoordishoppreview-00006-zuj",
+  "previousRevision": "rendercoordishoppreview-00005-huc",
+  "state": "ACTIVE",
+  "runtime": "nodejs22",
+  "localMode": true,
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "manifestSha256": "bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195",
+  "unchangedOtherFunctions": 133,
+  "existingServiceSettingsPreserved": true,
+  "sourceFilesVerified": 128,
+  "candidate": {
+    "commit": "94678c4096e80b25b3c8b29a8315f3fe69dd34fd",
+    "archiveSha256": "7e1ca8693b50a308f10b0e282ff26bae5d21f47236e3c8da57f55db04b951339",
+    "sourceFiles": 128
+  }
+}

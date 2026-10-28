@@ -1,5 +1,7 @@
 # Windows 보완 델타 적용·Node 22 검증
 
+후속 상태: 사용자 승인 후 [2026-10-29 운영 전환](COORDI_PRODUCTION_2026-10-29.md)을 완료했다. 아래의 운영 미반영 설명은 당시 이력이다.
+
 기준 커밋 `2454d07dabe71499c84421977c447920701c514c`, 브랜치 `codex/coordi-local-runtime`.
 코드·시험 커밋: `480273e77270677ed2aca9553d4deb7aecc2b0ff`.
 저장소: https://github.com/cantroxx/gas-quiz-firebase . 이전 상태는 [로컬 런타임 보고서](COORDI_LOCAL_RUNTIME_2026-10-28.md)를 참조한다.

@@ -104,7 +104,12 @@ async function retry(fn){for(let i=0;;i++){try{return await fn();}catch(e){if(i=
   for(const [k,v]of Object.entries(before.serviceConfig.environmentVariables||{}))assert.equal(after.serviceConfig.environmentVariables[k],v,'Existing environment changed: '+k);
   assert.equal(after.serviceConfig.environmentVariables.COORDI_RENDERER_MODE,'local');assert.equal(after.serviceConfig.environmentVariables.COORDI_MANIFEST_SHA256,config.manifestSha256);
   const expectedLabels={...before.labels};delete expectedLabels['firebase-functions-hash'];assert.deepEqual(after.labels,expectedLabels);
-  const oldOthers=read('before.json').functions.filter(x=>x.name!==name),others=(await allFunctions()).filter(x=>x.name!==name);assert.deepEqual(others.sort((a,b)=>a.name.localeCompare(b.name)),oldOthers.sort((a,b)=>a.name.localeCompare(b.name)),'Another function changed');
+  const allAfter=await allFunctions();write('functions-after.json',allAfter);
+  const oldOthers=read('before.json').functions.filter(x=>x.name!==name),others=allAfter.filter(x=>x.name!==name);
+  // Eventarc filters are a conjunction, not an ordered program; API list responses reorder them.
+  // Keep every filter field plus all timestamps/configuration in the comparison.
+  const canonical=rows=>structuredClone(rows).map(x=>{x.eventTrigger?.eventFilters?.sort((a,b)=>[a.attribute,a.operator||'',a.value].join('|').localeCompare([b.attribute,b.operator||'',b.value].join('|')));return x;}).sort((a,b)=>a.name.localeCompare(b.name));
+  assert.deepEqual(canonical(others),canonical(oldOthers),'Another function changed');
   const download=(await f.post(name+':generateDownloadUrl',{})).body.downloadUrl,r=await fetch(download);assert(r.ok);fs.writeFileSync(path.join(stage,'function-after.zip'),Buffer.from(await r.arrayBuffer()));execFileSync('unzip',['-oq',path.join(stage,'function-after.zip'),'-d',path.join(stage,'function-after')]);
   const hashes=read('function-source-hashes.json');for(const [p,sha]of Object.entries(hashes))assert.equal(hash(fs.readFileSync(path.join(stage,'function-after',p))),sha,p);
   const receipt={at:new Date().toISOString(),name,revision:after.serviceConfig.revision,previousRevision:before.serviceConfig.revision,state:after.state,runtime:after.buildConfig.runtime,localMode:true,snapshot:config.snapshot,manifestSha256:config.manifestSha256,unchangedOtherFunctions:others.length,existingServiceSettingsPreserved:true,sourceFilesVerified:Object.keys(hashes).length,candidate:read('function-candidate.json')};write('function-receipt.json',receipt);console.log(JSON.stringify(receipt));return;

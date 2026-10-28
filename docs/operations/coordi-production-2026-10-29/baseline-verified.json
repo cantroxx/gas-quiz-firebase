@@ -1,0 +1,25 @@
+{
+  "baseCommit": "509687040e7afe5998daa8c919d83c75e6a31e1e",
+  "files": [
+    {
+      "file": "index.js",
+      "matches50968704": true,
+      "sha256": "1b1df5cc641e123201b6f8dfcb2d1cbf8ed23f4d862d3ba80f5ba4f835082276"
+    },
+    {
+      "file": "coordi-shop/commerce.js",
+      "matches50968704": true,
+      "sha256": "a2d8d260c9291a5e05051008b09d5af97f046601537b04370414c29fa90854d4"
+    },
+    {
+      "file": "coordi-shop/catalog.json",
+      "matches50968704": true,
+      "sha256": "c7776a7ed8c43204bb12bdc3ecf7578fb78bef3d201285637f6792bef5caccca"
+    },
+    {
+      "file": "coordi-shop/service.js",
+      "matches50968704": true,
+      "sha256": "fd3c1b83d09b1ad21379e9ccd432825f3d213da48e1aa68f5454b3cda2c30473"
+    }
+  ]
+}

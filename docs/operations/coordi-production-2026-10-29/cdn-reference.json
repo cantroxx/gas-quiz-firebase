@@ -1,0 +1,1359 @@
+{
+  "ok": true,
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "renderer": "windows-static-v1",
+  "node": "v22.23.4",
+  "transport": "production-cdn",
+  "readerStats": {
+    "requests": 73,
+    "bytes": 9506657,
+    "hits": 1239,
+    "cachedBytes": 18853412,
+    "entries": 73,
+    "pending": 0
+  },
+  "httpRequests": [
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/30.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 589130
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/4A/4A57F83A5086113142F6E0B3FF2D8966D1C45CAD30A37AC61D12D9F36A2E2E3F.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1968
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/20.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 604848
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/BD/BDA41712C0A0B84F70AD591679C9F062837F506B5AAC2F08BACD362C4FC93515.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 11123
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1040.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 168754
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/04/0429D8F2D815362D34212D6F88D98883BAA8AF1302B42BC8E5D3A13526371206.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 2016
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1060.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 153655
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/D4/D492BC72442EFB6CAAE1E31CE8F7AF3353FE0FB452A448295784E53A36B49FE3.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1370
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/manifest.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 9771
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/base-index.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 93009
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/24/24C9EE7208681E878105EA936F65810BD0C74A928C523FF577AF8D2EA234A452.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1212
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/43/4369FCF0BFED968F58F67EECAFB021388C49D52D58421C2BB6DDEF275EC3DDAA.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1470
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/3E/3EEB7E96E59CE40F9CB1A089DABA079FD699F6867A30F6634AF8570967B2375A.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1162
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/3B/3B478A0A3FC655DF9DF052728812851B6B22DDF49DAA1130FF37EAFED057414F.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1674
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/EE/EEF584973E126B7401445CDBC811693E82BED7EE50E17D28C8DCF59C0DF7637D.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1402
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/A4/A4F1FD0A3AE687FC5964F470A70DC7275688DE4C8F0DEA44D78E54F6F00BED4C.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1209
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/8F/8F09FD923FECA645CFABCB5A6AAA10C34E0CA64F00EAB08283BCAEE20947DA7B.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1369
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/D5/D554CCE3B83C6EDB2A9E7E84C03F986215FA1CBB1A69D0FB09E00B9D91ED15C9.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 971
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/49/49E2B25231457176DE302308A30B2B0C5075566E9CD890A5F7141569B975005E.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1466
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/61.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 501389
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/4D/4D7AE717CB1956354BA6847228D60AC31DBB3274EC5273472C364498E099D0A8.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 5613
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/21.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 628708
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/05/05859C90395CE10FE8A7CDDB5B99F9740A1683C371B85EA75257245C76AB8DEA.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 10205
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/31.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 631964
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/36/369AA1B3B8A0DD7B458A77D0D812D56367651789941979A65B6151D8C3FDA834.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 2101
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1000.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 114503
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/C2/C2EA2B0CB6B8B0E7317A7310EEF868F6EF8D5869AB644794CD21C81A2422D3B5.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 2312
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1050.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 736144
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/8D/8D75B72DEAE4E4B54F1DD0348C10C3BBF688C02569DCEE301335CB7D240CEF63.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 4167
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1070.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 198248
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/03/03BDE181611FCD173F7F1B64EAB626FE1BA1935A5FFB8CC4D29AB56F7420BE8A.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1169
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1702.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 530975
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/AD/ADD09C867620F6171673CDEEB66CDA2E6D8984F47140FA0ECB803597839E1181.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1273
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1102.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 484526
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/30/3063F0AF89835561B362B2819B482CC99B86336E0F915F69107CC576DE09D1FF.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 4765
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1012.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 497039
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/6E/6EB1C01B20F9EE4E15C75A932FF5CEEEC48D1B8708F97F922393E9C846EBC008.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 468
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/60.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 643064
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/3E/3E4D93AEBE6886328A2F4A4515475D6000994A3593ACB8A46FF7D5F983787B88.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 3365
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/74/7461931CFA62E0721B279B383B910C4CBB37C3693853535657CC73F8AACE4B29.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 3518
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/D4/D4CE99B376C1F78C2A7E26777BFBDE2AFC9AE090E0BF192BBF7977ED29AFB284.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 10363
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/52/52DD9C67A0DD69FDED474AE672419BD6D4B4692D00345D2243342EE27707B95E.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 10457
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/94/94A922EAF54CDEE0A141872FFAD7648D595C2C21A1D18FF05DFDE04225B79011.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1454
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/01/01E543F3DFF109CA533E7E66154A3A5A859AE58E4EE7A8F28E5004957F3D2E90.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1565
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/D8/D8F3FDE9E34B2FEA060FB05FC2C2152626C2E53D7CC652C0F2A151BFD36B5685.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1554
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1005.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 473208
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1042.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 294619
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/13/13D12062D63E25F26A617B6E998B46F495CBAC04979231D4E4A062F23AD9AA0A.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1921
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1062.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 216625
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/BD/BD74E881AE3138278D1E649BF2DB62B1B4B5694D2CB7C480B9AF89D45702E090.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1458
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1032.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 160088
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/D7/D7558D0FE2CA4BF139889BBD27E1298D43B938465AF1CD04BA7B5DEB9264ABE6.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 268
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1073.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 416393
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/E1/E1FC3849E42DE7618E721CF77CB97F19D5DA1C39751AF8D1B4DFC5006EB787DB.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 167
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1103.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 488937
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/04/043E348B9E6AC758EDE5B015D2E0F82F3F556414AC8675A4685D4B1BA5792F38.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 167469
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/18/187F63722B62AC45E3D5497B40FE70C84069517C53AE02E0880C76C89DF6E004.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 166
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/index/items/1703.json",
+      "status": 200,
+      "contentType": "application/json",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 548950
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/6F/6F292F427A718FD6E18CF76CC971F286C6FB097CEAF398579F4F4A76600ACD47.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 39484
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/85/85DEBF98EE90335E091A0506349BA6E4ABBA335C18A183E1D96BC260BDFEC43D.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1280
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/62/625CF8FABEF069511FB25B48AAE7F00370B8174CF75C01AD482C8BACA468388E.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1411
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/F7/F7391B119FDFF0356C6CE660742B8C16B0ABE0EA46B57BF01CB17BA163235400.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1210
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/B1/B172DBBE8F5AA4BE8DBCC084BABE9A440E88A3C4A863BFE672A1AFABAD78290E.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1380
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/2A/2A52C59931EC86F2B0AC28EA4AA6E83DF1E9C88446EC14DFBE6BC2392C5C4746.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1244
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/F0/F08626BF172B51DF9B31A25655AB7AFCEA76BD4A074FBF0BDD65EA9E9A864147.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1478
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/26/26028CDB5F9360481AF6AE3F2BFC7F1F5A02FBD9D89D873FCF2876F65613A38A.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1173
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/26/265EFD5CE47EFC6E16494853570EE1FF3E545BA317DDD2C0D511560B3EB5F8E6.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1490
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/4C/4CC4B8341DF4EF08F761101A44A4FB23DD913ADB535CBBAB26717C1DDE07431C.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1055
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/03/03B187BDE87448B8006CF20AF832955D6F0B008194BF142BE3465005A990797F.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1278
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/7D/7D7A1F57A657527760A642D3343DF05DEE7209D84172E789A8EC40E4DA9A8040.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1186
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/95/9583FE0314D33BC161B2EF1CEA0559A15D6BFC8CD487BF022D91C40086DDE618.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": "br",
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1423
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/38/381507302945A1EE043A7896E9AA234F20FB8DE13F6BBA5323B2847776ED8E74.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1246
+    },
+    {
+      "path": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/parts/86/86D0B9C6C52D1F12DC026683B79A1F4C756AC0910D126090235D7B1EBDA63293.json.gz",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "contentEncoding": null,
+      "cacheControl": "public,max-age=31536000,immutable",
+      "bytes": 1562
+    }
+  ],
+  "results": [
+    {
+      "id": "basic-stand1",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "e58568043bc7fd1175523d7b06f6798ac097d66a5ff50a48d8abc8e467a7c8b0",
+      "ms": 1494,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-stand2",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "bc40f566b49a7ec12044f73181f51be9e2201db82d05d2da62e70735578e593d",
+      "ms": 192,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk1",
+      "ok": true,
+      "width": 51,
+      "height": 92,
+      "rgbaSha256": "20c94258de1d7bbcdd241adcfdea85a0f3366d9967dac56c4c1a7bb3e08c3a7a",
+      "ms": 236,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk2",
+      "ok": true,
+      "width": 51,
+      "height": 92,
+      "rgbaSha256": "403205f17d777bf09d0171aa41980a076591a3e84eb006daf88249d2e0f8f6b9",
+      "ms": 194,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-sit",
+      "ok": true,
+      "width": 49,
+      "height": 91,
+      "rgbaSha256": "ac2d61cf05e0b9d4e3c0ba37106eb8190fb0482d3ace6edb2311c4d189c40779",
+      "ms": 152,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-jump",
+      "ok": true,
+      "width": 49,
+      "height": 92,
+      "rgbaSha256": "69f538156b11c37ce0b6dfec8b591ea0bc65c20073a9e51b8154537c42b8799b",
+      "ms": 163,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "female-hair-61050",
+      "ok": true,
+      "width": 85,
+      "height": 98,
+      "rgbaSha256": "ac76005edbb117ebad9fd0cc6f572f787b712f1a9adf656ddfcc3215b7dab7e1",
+      "ms": 522,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "unsupported-current-female-hair",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "55872a4f4801cd1a3f5af4b80802ebaa0c684653905ae55e33d07473748ebe05",
+      "ms": 41,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hat-occlusion",
+      "ok": true,
+      "width": 63,
+      "height": 97,
+      "rgbaSha256": "d751619bf799be61f29f5ec67da8e4d3c46486170ca4493cafd0557bf4a38749",
+      "ms": 701,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "overall-shoes-weapon",
+      "ok": true,
+      "width": 92,
+      "height": 90,
+      "rgbaSha256": "7a675020a184f2afb275887ba31ef043ff78bd52cc49112d2a538f38b1b89b62",
+      "ms": 2128,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape",
+      "ok": true,
+      "width": 62,
+      "height": 90,
+      "rgbaSha256": "5288b9c54fb1a28e4c6b2395933e4ce7ec1d56d8047e291609fbe0c307c88f9e",
+      "ms": 814,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "fixed-emotion",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "21a8573f37ad074435e3d7290c42c115f6ef5c4f41fa0c2ad6f60515b6a01300",
+      "ms": 652,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-4",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "8dafab814fb0b65f85b906319dfc916f628a320535a10e13c23eb072d174c13b",
+      "ms": 484,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-9",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "595a7147f21ff54e826d59638513e204fe64b32ec14aab387575d576aa5c12d9",
+      "ms": 9,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-48",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "827ff452e4e116aa5dd7d0bd039cbf4baf1f7c969db0671a2fd82b545ef5e3c8",
+      "ms": 6,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-50",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "8c7574ecd19b0c8d27cc31a769fa7f4411d9a5f4211a1ec626e3964e209c21c5",
+      "ms": 5,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-100",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "1f4aed4a7b643f4b0bc9638ca3762e7592d99467dbb670d04bdc753f380b36ee",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "face-mix-63",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "25a2141005aa78a7494228c752c8177247dffe59afc074b5832366f60d3845d6",
+      "ms": 381,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-face-mix",
+      "ok": true,
+      "width": 60,
+      "height": 98,
+      "rgbaSha256": "8312e32c6edfd7bd894978e38130eba3cebde3256b683c701a1ba44ada33094a",
+      "ms": 14,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape-prism",
+      "ok": true,
+      "width": 62,
+      "height": 90,
+      "rgbaSha256": "8208473a34a342131614480830da714aa9bc5f869c21b9e943cd43d8290137e4",
+      "ms": 5,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "skin-prism",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "26cca081411057cb69f89fdfc5956067104b9ff5686bbb48aa8c0874fb6908fb",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "legacy-color",
+      "ok": true,
+      "width": 63,
+      "height": 97,
+      "rgbaSha256": "24c0514b2b8dc931f47087f2a57914155c10f0190de57825642cb56feef65d84",
+      "ms": 5,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-1",
+      "ok": true,
+      "width": 63,
+      "height": 90,
+      "rgbaSha256": "f4e58a0d10d9acf47582f264f963abf7c86c9d249df0f783e7672e4cd98d02df",
+      "ms": 139,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-2",
+      "ok": true,
+      "width": 69,
+      "height": 90,
+      "rgbaSha256": "e1b5e1d1bee8198495f4b27abeb6eb4ec2026b246a4e63a290918760e1b643bc",
+      "ms": 285,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-3",
+      "ok": true,
+      "width": 65,
+      "height": 90,
+      "rgbaSha256": "48478322efbd29297055dd6e3aa333c880bebe76fe31c226a4458fb9836e1f57",
+      "ms": 161,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "flip",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "ec161a11f5e211ad3ffeb1bec7955d31da194a927ca8da79eb11362dce0573ec",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "invisible-hat",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "e58568043bc7fd1175523d7b06f6798ac097d66a5ff50a48d8abc8e467a7c8b0",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "unsupported-missing-item",
+      "ok": true,
+      "error": "설치 데이터에 해당 파츠가 없습니다: 01005635.img",
+      "expectedError": "설치 데이터에 해당 파츠가 없습니다: 01005635.img",
+      "details": {
+        "itemId": 1005635
+      },
+      "ms": 413
+    },
+    {
+      "id": "unsupported-reveal-equipment",
+      "ok": true,
+      "error": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "expectedError": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "details": {
+        "itemId": 1054818,
+        "slot": "Overall"
+      },
+      "ms": 1
+    },
+    {
+      "id": "unsupported-sprite-rule",
+      "ok": true,
+      "error": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+      "expectedError": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+      "details": {
+        "itemId": 1102621
+      },
+      "ms": 0
+    },
+    {
+      "id": "primary-earring-1032331",
+      "ok": true,
+      "error": "기준점이 없습니다.",
+      "expectedError": "기준점이 없습니다.",
+      "details": {
+        "itemId": 1032331,
+        "action": "stand1"
+      },
+      "ms": 538
+    },
+    {
+      "id": "primary-shoes-1073469",
+      "ok": true,
+      "error": "이 아이템의 동작 데이터는 아직 지원하지 않습니다.",
+      "expectedError": "이 아이템의 동작 데이터는 아직 지원하지 않습니다.",
+      "details": {
+        "itemId": 1073469,
+        "action": "stand1"
+      },
+      "ms": 523
+    },
+    {
+      "id": "primary-cape-1103400",
+      "ok": true,
+      "width": 215,
+      "height": 243,
+      "rgbaSha256": "f6272c94e8ae13e3b18d9510a4ad50875e40c82e0ff80513ed723e8e1390dec5",
+      "ms": 1219,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "primary-cape-1103862",
+      "ok": true,
+      "error": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+      "expectedError": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+      "details": {
+        "itemId": 1103862
+      },
+      "ms": 0
+    },
+    {
+      "id": "primary-cape-1102039",
+      "ok": true,
+      "error": "이 아이템의 동작 데이터는 아직 지원하지 않습니다.",
+      "expectedError": "이 아이템의 동작 데이터는 아직 지원하지 않습니다.",
+      "details": {
+        "itemId": 1102039,
+        "action": "stand1"
+      },
+      "ms": 145
+    },
+    {
+      "id": "primary-weapon-1703421",
+      "ok": true,
+      "error": "아직 확인되지 않은 겹침 순서입니다.",
+      "expectedError": "아직 확인되지 않은 겹침 순서입니다.",
+      "details": {
+        "itemId": 1703421,
+        "position": "weaponBelowHand"
+      },
+      "ms": 1082
+    },
+    {
+      "id": "primary-female-31000",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "08a61c1fbf2a4ca9e0a0403481cf5e9818c1ca2444a869a41d6e9f2a812ac8c7",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "primary-female-31000-skin-prism",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "1f363bd99a1d12d9d983186554ef3d04178fc77f063d0781d9921423ced65687",
+      "ms": 5,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-stand1",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "08a61c1fbf2a4ca9e0a0403481cf5e9818c1ca2444a869a41d6e9f2a812ac8c7",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-stand1",
+      "ok": true,
+      "width": 215,
+      "height": 243,
+      "rgbaSha256": "f6272c94e8ae13e3b18d9510a4ad50875e40c82e0ff80513ed723e8e1390dec5",
+      "ms": 12,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-stand2",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "f7c6e32a75d280b7408e070ce53bb4b2b1373557012dbdac84f0303712c89bad",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-stand2",
+      "ok": true,
+      "width": 215,
+      "height": 243,
+      "rgbaSha256": "aa51b91e5b2e73e4f0c09b7ded0727823b21dcb2e6d9f5d5402bf4ff78a5fea7",
+      "ms": 13,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-walk1",
+      "ok": true,
+      "width": 74,
+      "height": 91,
+      "rgbaSha256": "aa07fc0026dab33b338e3282d89f8f2c313318570a960c81a998d7fa34ad927e",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-walk1",
+      "ok": true,
+      "width": 211,
+      "height": 245,
+      "rgbaSha256": "e1ed0c3631a2bdb479b544d6b02f33eeaf5868c58728871eec8d70506290b338",
+      "ms": 9,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-walk2",
+      "ok": true,
+      "width": 74,
+      "height": 91,
+      "rgbaSha256": "7526dc0257a40d19883909efe154be699f9e7371d5e00b1531b4f426ecfff680",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-walk2",
+      "ok": true,
+      "width": 211,
+      "height": 245,
+      "rgbaSha256": "6b77951074736e5b41946c0d39f86eb8815015f25fd1dae865d28672e920401c",
+      "ms": 8,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-sit",
+      "ok": true,
+      "width": 72,
+      "height": 88,
+      "rgbaSha256": "15cd1925fb6877c27692dd353f3962ddf22c7dbd3b2cba5ff81fb5722102ce84",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-sit",
+      "ok": true,
+      "width": 203,
+      "height": 251,
+      "rgbaSha256": "f6228a2b983e8570e3841d415d75d54b619f9bb42bdad41024ad34d47f69e2f2",
+      "ms": 9,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-jump",
+      "ok": true,
+      "width": 72,
+      "height": 91,
+      "rgbaSha256": "6089ab9652da0d9d226b4f012b20bef6e971d55ad704b66ed774e4ef38455a9e",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-jump",
+      "ok": true,
+      "width": 209,
+      "height": 249,
+      "rgbaSha256": "867de355c1e6b8ee98983945e5e85a0970c292d1e20ff0328a633f05f0e94c42",
+      "ms": 9,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-0",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "08a61c1fbf2a4ca9e0a0403481cf5e9818c1ca2444a869a41d6e9f2a812ac8c7",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-1",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "90cf1f9f27c8dfbc734d52b3568715f60460029e344b34d1bc5ac4b395fae555",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-2",
+      "ok": true,
+      "width": 77,
+      "height": 89,
+      "rgbaSha256": "1ec5ecba5e9470e0939658cfe3e890f2bd46177c89d98fd6333b6cc50a18ad7f",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-3",
+      "ok": true,
+      "width": 77,
+      "height": 89,
+      "rgbaSha256": "03f286d6d02e70c81eca736a72817728877733c60c7e01b25330655328c675bb",
+      "ms": 2,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2001",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "d8df095ca3d9cbcfc31f3e6360195fd8d878067f0d43c175193e239c55a9a567",
+      "ms": 393,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2002",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "3174cc9cef82bc167ec9a15026aa8e9b18c00229e03e540be527b5b99146b791",
+      "ms": 574,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2003",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "c592ef82cf00a53102978a31cf7cf1edbf7607f08eb72bd88d9ac25a46a95949",
+      "ms": 581,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2004",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "2e57a1fe1fce32ea3c70fbb651ed92194753a57930f05640e700d739598099d2",
+      "ms": 321,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2009",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "55aa6462c177d1d75f7bbb9a504339b933d2b979b0f0a5e803eda9de749ca412",
+      "ms": 380,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2010",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "1670d5e195d94d51ee15a9987afb60258efc19727618efdc06704984cf0fc56f",
+      "ms": 499,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2011",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "1a38850f07dd5bf25a013362a5b26355a29fb3e66c5c94164cf286b51bd250b1",
+      "ms": 310,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-flip",
+      "ok": true,
+      "width": 78,
+      "height": 89,
+      "rgbaSha256": "d0bbe2ea05b449fa917ec0c93d6ea165ccc7cef8ad1b1f5c0c006485481d16dc",
+      "ms": 3,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-prism",
+      "ok": true,
+      "width": 215,
+      "height": 243,
+      "rgbaSha256": "1ce166da81681d9262ecd4f762ff23cea4a5c610f527fe297ad94f5f0669d8e9",
+      "ms": 28,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "reveal-1042483-missing",
+      "ok": true,
+      "error": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "expectedError": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "details": {
+        "itemId": 1042483,
+        "slot": "Top"
+      },
+      "ms": 0
+    },
+    {
+      "id": "reveal-1042483-matched",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "e746da9926976b9e0387eee7fcc945c7d4254f95e19d8aed3ebdc22b42e078cb",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "reveal-1062323-missing",
+      "ok": true,
+      "error": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "expectedError": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "details": {
+        "itemId": 1062323,
+        "slot": "Bottom"
+      },
+      "ms": 0
+    },
+    {
+      "id": "reveal-1062323-matched",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "a07ea2f5f70028efca3a6c66e9734a0dacc9edbf6d0e8cec9516002a6b9a4a2d",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "reveal-1054818-missing",
+      "ok": true,
+      "error": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "expectedError": "원래 장비 정보가 없습니다. 캐릭터를 다시 불러와 주세요.",
+      "details": {
+        "itemId": 1054818,
+        "slot": "Overall"
+      },
+      "ms": 0
+    },
+    {
+      "id": "reveal-1054818-matched",
+      "ok": true,
+      "width": 55,
+      "height": 90,
+      "rgbaSha256": "fc5a07a3c35f7fc8be6be34a2dc20f174bfa8e7da16443c9d8236b6fca88c7cc",
+      "ms": 4,
+      "expectedDecodeMatches": true,
+      "changedPixels": 0,
+      "maxChannelError": 0
+    }
+  ]
+}

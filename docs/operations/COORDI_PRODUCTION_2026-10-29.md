@@ -2,6 +2,8 @@
 
 사용자 승인: “운영 미반영 사항 반영 작업 진행”. 이 승인은 앞선 운영 전환 대기를 해제한다. 첨부 문서의 지시를 배포 승인으로 대신 사용하지 않았다. 이전 구현·보완 검증은 [보완 보고서](COORDI_SUPPLEMENT_2026-10-28.md)에 있다.
 
+**운영 반영 완료.** Hosting `46e4ac236a4d6cee`, 자체 렌더 함수 `rendercoordishoppreview-00006-zuj`. 기본 옷과 여성 기본 헤어31000, 기존 저장 코디를 실제 로그인한 운영 화면에서도 확인했다. 미지원5개와 아래의 미실행 검증은 남아 있다.
+
 ## 반영 범위
 
 - 데이터 snapshot `1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820`.
@@ -27,11 +29,13 @@
 
 복구 기준 Hosting은 `3ed3040023a7477d`, 미리보기 revision은 `rendercoordishoppreview-00005-huc`다. `/tmp/coordi-production-20261028/before.json`, `function-before.json`, `function-before.zip`을 보관한다. 복구가 필요하면 기존 source 및 환경값을 동일한 좁은 필드 마스크로 복원하고, 기존 Hosting 버전을 다시 release한 후 전체 새로고침한다. 원장을 수정하거나 데이터를 삭제하는 복구 절차는 없다. 데이터·앱 전환은 두 Hosting release이므로 단계별 영수증에 직전 버전도 기록한다. 비공개 전체 설정 스냅샷은 Git에 올리지 않는다.
 
+같은 복구 스냅샷은 임시 폴더 정리에 대비해 Git 제외 경로 `private/coordi-production-20261029-rollback/`에도 별도로 보관했다. 기존 private 파일은 변경하지 않았다.
+
 ## 남는 제한
 
 미지원 판매 아이템5개 `1032331`, `1073469`, `1103862`, `1102039`, `1703421`은 오류를 명시하고 선택 및 직전 정상 이미지를 유지한다. 대체 상품이나 투명 파츠로 속이지 않는다. 구매 내역 삭제·판매 ID 변경도 없다. [Windows 보완 요청](coordi-supplement-2026-10-28/WINDOWS-REQUEST.md)의 근거·규칙·골든 이미지가 더 필요하다.
 
-운영 브라우저에 로그인 세션이 없어 학생 자격 증명을 추측하거나 새 계정을 만들지 않았다. 실인증 callable의 정상 응답, 실계정 구매/저장 및 교실 Storage 업로드 E2E, Cloud Run cold/warm p95·peak메모리는 검증 완료로 표기하지 않는다. 기존 메모리 commerce 테스트와 운영 CDN 합성 검사를 이 항목들의 대체 성공으로 계산하지 않는다.
+사용자가 직접 기존 관리자 계정으로 로그인했다. 학생 자격 증명을 추측하거나 새 계정을 만들지 않았다. 실제 운영 인증 상태에서 저장 코디 읽기, 여성 기본 코디 입어보기, 기존 저장 코디 복원을 확인했다. 구매·장착·염색 저장 버튼은 누르지 않았다. **실계정 구매/저장 및 교실 Storage 업로드 E2E, Cloud Run cold/warm p95·peak메모리는 미검증**이다. 메모리 commerce 테스트와 운영 CDN 합성 검사를 이 항목들의 대체 성공으로 계산하지 않는다.
 
 ## 실제 CDN에서 발견하고 수정한 압축 경계
 
@@ -43,4 +47,16 @@ reader는 헤더 존재만으로 거부하는 대신 Fetch 이후 gzip magic, �
 
 ## 실행 결과
 
-배포 및 검증 단계 진행 중. 영수증은 완료 후 이 문서와 `coordi-production-2026-10-29/`에 기록한다.
+- 배포 코드 기준: `94678c4096e80b25b3c8b29a8315f3fe69dd34fd`. Firebase CDN 대응 reader 수정은 `b418a2ea`에 포함된다. 최종 보고 커밋은 이 문서의 Git 이력을 확인한다.
+- Hosting: 기존4,754파일을 보존하고 버전 데이터63,896개 및 새 runtime-config를 추가했다. 최종 **68,651파일 전체 manifest**, 상점 변경6개 응답 SHA 및 헤더가 준비본과 일치한다.
+- Functions: 미리보기만 ACTIVE 새 revision으로 전환. 배포 소스128개 해시 일치. 기존 서비스 설정·환경값과 다른133함수 보존. Eventarc 필터는 API가 배열 순서를 바꿔 반환하므로 순서만 정규화하고 모든 필터 값·갱신 시각을 대조했다.
+- 최종 CDN 수정 후 전체 `npm run check` exit0, 교과2,502화면 포함.
+- 실제 운영 CDN: Node22 **69/69**, 정상58개 원래 크기 RGBA 변화픽셀0, 예상거부11개 일치. 새 Chrome도 **69/69**, 외부 출처 차단·외부요청0. Fetch 이후 원본 gzip SHA/길이를 검증했으며 자동 Brotli 전송도 통과했다.
+- 운영 CDN을 연결한 로컬 서버 런타임: 기본 여성+기본 옷, 캐시 재사용, 동시8요청, 미지원5개의 `failed-precondition` 통과. 이 검사의 인증은 합성이며 Cloud Run 지연 측정은 아니다.
+- 최종 로컬 상점 브라우저: 외부 요청0, 기존 외부 캐시 폐기, 상점·광장·교실 동일 자체PNG, 연속 선택·계정 전환의 늦은 응답 폐기, 구매·장착·염색·저장/복원·390px 통과. 거래는 메모리 테스트 원장만 사용했다.
+- 운영 비로그인 preview/commerce 모두401. 실제 사용자 로그인 세션에서는 기존 보유·저장 코디, 기본 여성31000+흰 티/청반바지 및 ‘미리보기 반영됨’을 확인했고, 마지막에 기존 저장 코디로 복원했다. 운영 거래는 실행하지 않았다.
+- 로그인 탭의 첫 빈 iframe은 브라우저 디버깅 연결 상태에서 재현됐고, 연결 해제 후 새로고침한 일반 Chrome에서는 정상 로드됐다. 동일 운영 iframe은 별도의 새 Chrome에서도 정상 로드됐다. 이 현상 때문에 운영 UI 코드를 임의 수정하지 않았다. 운영 로그인 UI 검사에는 외부 도메인 차단을 적용하지 않았으며, 차단 검증은 위의 별도 새 브라우저/로컬 통합 검사와 구분한다.
+
+영수증: [Hosting](coordi-production-2026-10-29/client-receipt.json), [Functions](coordi-production-2026-10-29/function-receipt.json), [전체 파일·접근 검증](coordi-production-2026-10-29/verified.json), [Node CDN RGBA](coordi-production-2026-10-29/cdn-reference.json), [Chrome CDN](coordi-production-2026-10-29/cdn-browser.json), [CDN 런타임](coordi-production-2026-10-29/cdn-runtime.json), [전체 검사](coordi-production-2026-10-29/checks.json), [마지막 운영 상태 확인](coordi-production-2026-10-29/last-live-check.json).
+
+저장소 https://github.com/cantroxx/gas-quiz-firebase , 브랜치 `codex/coordi-local-runtime`. 소스·검증 보고서를 같은 브랜치로 push한다. 로컬 데이터 원본과 실제 계정/거래 자료는 Git에 포함하지 않는다.
