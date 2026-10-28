@@ -10,5 +10,5 @@
     async status(){assertSession();return (await functions.httpsCallable('coordiShopAction')({action:'status'})).data;},
     async transact(payload){assertSession();const key=JSON.stringify(payload);if(!pending||pending.key!==key)pending={key,requestId:crypto.randomUUID()};const response=await functions.httpsCallable('coordiShopAction')({...payload,requestId:pending.requestId});pending=null;assertSession();if(response.data?.success && ['equip','dye'].includes(payload.action))parentWindow.DJ48TownAvatar?.refresh(true)?.catch(()=>{});return response.data;}
   };
-  const script=document.createElement('script');script.src='/coordi-shop/dressing-room.js?v=renderer-boundary-20261028';document.body.append(script);
+  const script=document.createElement('script');script.src='/coordi-shop/dressing-room.js?v=local-runtime-20261028';document.body.append(script);
 })();

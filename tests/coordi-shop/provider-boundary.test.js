@@ -40,10 +40,11 @@ class AppError extends Error { constructor(code, message) { super(message); this
   const paths = [];
   const data = createProvider(async (url, options) => {
     paths.push(url); assert.equal(options.cache, 'no-store');
-    return {ok:true,json:async()=>({items:[]})};
+    return {ok:true,json:async()=>url.endsWith('runtime-config.json')?{schemaVersion:1,mode:'official'}:{items:[]}};
   });
   for(const kind of ['catalog','featuredHair','verified','effects']) await data.load(kind);
-  assert(paths.every(url => url.startsWith('/coordi-shop/data/')));
+  assert.equal(paths.filter(url=>url.endsWith('runtime-config.json')).length,1);
+  assert(paths.slice(1).every(url => url.startsWith('/coordi-shop/data/')));
   await assert.rejects(data.load('https://example.test'), /Unknown/);
   assert.equal(data.thumbnail({code:31000}, [{code:31000,thumbnail:'/fixture.png'}]), '/fixture.png');
 

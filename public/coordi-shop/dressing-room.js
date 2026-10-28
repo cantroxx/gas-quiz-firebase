@@ -280,6 +280,8 @@
   let topCoordiItemMap = new Map();
   let topCoordiItemsByCategoryGender = {};
   let state = loadState();
+  // Persisted outfits survive provider changes; persisted pixels must be regenerated.
+  state.officialLook = null;
   let prismDraft = null;
   let lastRenderedPayload = "";
   let prismTargetKey = "";
@@ -557,7 +559,12 @@
   }
 
   const renderPreview = window.DJ48CoordiPreviewRenderer.createRenderer({
-    render: look => window.DJ48CoordiBridge.render(look),
+    render: async look => {
+      const config=await dataProvider.configure();
+      const result=await window.DJ48CoordiBridge.render(look);
+      if(config.mode==='local'&&(result.renderer!=='quiztown-local-static'||result.sourceSnapshot!==config.snapshot))throw Error('코디 서버와 로컬 데이터 버전이 일치하지 않습니다.');
+      return result;
+    },
     assertCurrent: () => window.DJ48CoordiBridge.assertSession()
   });
 
@@ -623,6 +630,8 @@
   }
 
   async function loadOfficialLook() {
+    await dataProvider.configure();
+    if(dataProvider.isLocal()) { setOfficialLookStatus('로컬 모드에서는 저장 코디와 아이템 선택으로 미리보기를 만드세요.'); return; }
     const input = elements.officialLookInput ? elements.officialLookInput.value.trim() : '';
     if(!input) {
       setOfficialLookStatus('공식 이미지 URL 또는 hash 필요', 'error');
@@ -1310,7 +1319,7 @@
       if(payload.equipped) {
         state.equipped = { ...state.equipped, ...payload.equipped };
       }
-      state.officialLook = normalizeOfficialLook(payload.officialLook);
+      state.officialLook = null; // Shared links carry selections, never trusted renderer pixels.
     } catch(error) {
       location.hash = '';
     }

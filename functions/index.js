@@ -9248,7 +9248,7 @@ exports.wbCleanupOldRooms = onSchedule(
 );
 
 // Preview shares commerce access checks; purchases use a separate transactional endpoint.
-const coordiPreview = require('./coordi-shop/service').createCoordiPreviewService({
+const coordiPreview = require('./coordi-shop/runtime').createConfiguredPreviewService({
   authorize: uid => coordiCommerce.authorizePreview(uid), ErrorType: HttpsError
 });
 exports.renderCoordiShopPreview = onCall({ region: REGION, maxInstances: 2, concurrency: 8, timeoutSeconds: 40 }, request =>

@@ -4,8 +4,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const commerce = require('../../functions/coordi-shop/commerce');
-const { createCoordiPreviewService } = require('../../functions/coordi-shop/service');
-class PreviewError extends Error { constructor(code, message) { super(message); this.code = code; } }
+class PreviewError extends Error { constructor(code, message, details) { super(message); this.code = code; this.details = details; } }
 const records = new Map([
   ['authLinks/demo', { memberUserId: 'local-shop-demo' }],
   ['appSettings/featureFlags', { shopEnabled: true }],
@@ -36,17 +35,17 @@ const db = {
 const service = commerce.createService({ db, FieldValue: { increment: n => ({ __increment: n }), serverTimestamp: () => Date.now() }, ErrorType: PreviewError, authorize: async () => ({ role: 'student' }) });
 // Explicit opt-in only. The default/production provider remains unchanged.
 const bundleRoot = process.env.COORDI_BUNDLE_ROOT;
-const localProvider = bundleRoot ? require('../../functions/coordi-shop/local-provider').createLocalProvider({bundleRoot}) : null;
-const previewService = localProvider
-  ? localProvider.then(provider => createCoordiPreviewService({authorize:async()=>{},ErrorType:PreviewError,provider}))
-  : Promise.resolve(createCoordiPreviewService({authorize:async()=>{},ErrorType:PreviewError}));
-const manifest = bundleRoot ? JSON.parse(fs.readFileSync(path.join(bundleRoot,'web/manifest.json'),'utf8')) : null;
-const dataPrefix = manifest ? '/codi/'+manifest.sourceSnapshot+'/' : '';
-const dataRoot = bundleRoot ? path.resolve(bundleRoot,'web') : '';
-let renderQueue = Promise.resolve();
-function render(uid,payload) {
-  const job=renderQueue.then(async()=> (await previewService)(uid,payload));
-  renderQueue=job.catch(()=>{});return job;
+const {configFor,displayCatalog}=require('../build-coordi-local-release');
+const config=bundleRoot?configFor(bundleRoot):{schemaVersion:1,mode:'official'};
+const dataPrefix=config.baseUrl||'';
+const dataRoot=bundleRoot?path.resolve(bundleRoot,'web'):'';
+let previewService;
+async function render(uid,payload) {
+ if(!previewService)previewService=require('../../functions/coordi-shop/runtime').createConfiguredPreviewService({
+  config:{...config,baseUrl:config.baseUrl?`http://127.0.0.1:${server.address().port}${config.baseUrl}`:null},allowLoopback:true,authorize:async()=>{},ErrorType:PreviewError,
+  fetchData:(url,options)=>{if(new URL(url).origin!==`http://127.0.0.1:${server.address().port}`)throw Error('External data prohibited');return fetch(url,options);}
+ });
+ return previewService(uid,payload);
 }
 
 const root = path.resolve(__dirname, '../../public');
@@ -61,6 +60,9 @@ const server = http.createServer(async (req, res) => {
   if(req.headers.host !== new URL(origin).host) return res.writeHead(403).end();
   const url = new URL(req.url, origin);
   const send = (status, type, data) => res.writeHead(status, { 'Content-Type': type, 'Cache-Control': 'no-store' }).end(data);
+  if(url.pathname === '/coordi-shop/runtime-config.json')return send(200,'application/json',JSON.stringify(config));
+  if(dataPrefix&&url.pathname === dataPrefix+'quiztown-display.json')return send(200,'application/json',JSON.stringify(displayCatalog()));
+  if(url.pathname === '/preview-stats')return send(200,'application/json',JSON.stringify(previewService?.stats?.()||{}));
   if(url.pathname === '/') return send(200, 'text/html; charset=utf-8', shell);
   if(url.pathname === '/preview-call') {
     if(req.method !== 'POST' || req.headers.origin !== origin || !req.headers['content-type']?.startsWith('application/json')) return res.writeHead(403).end();
