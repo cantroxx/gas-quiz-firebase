@@ -40,4 +40,14 @@ Firebase Hosting은 현재 버전을 복제한 후 변경 파일을 추가/교�
 첫 서버 배포 후 대조에서 기존에 서버 설정으로만 존재하던 최대 인스턴스 한도 109개가 SDK의 기본 reset 값으로 초기화된 것을 발견했다. 실제 배포 전 스냅샷의 20/100 한도를 각 함수의 `maxInstances`에 명시해 복원하고 재배포한다. 기존 132개 함수의 cap 전체가 원래 설정과 일치함을 검사했다. 코드의 거래/권한/보상 로직은 이 복원에서 바꾸지 않았다. 일부 과거 HTTP revision에 SDK가 `FUNCTION_SIGNATURE_TYPE=http`를 추가한 것만 프레임워크 메타데이터의 정상 차이로 분류하고, 다른 환경값·서비스 설정은 그대로 비교한다.
 
 검사·배포 원 로그와 읽기 전용 스냅샷: `/tmp/quiztown-release-20261028/`, `/tmp/quiztown-release-check-20261028.log`.
-최종 배포 결과와 검증 수치는 아래 완료 기록에 추가한다.
+## 완료 기록
+
+- 최초 통합 커밋 `c8da1b94`, 기존 함수 한도 명시·검증 커밋 `c87cfbc7`.
+- 기존 132개 + 신규 2개 = **134개 Functions ACTIVE**. 기존 최대 인스턴스 한도, 메모리·timeout·concurrency·서비스 계정·네트워크·환경 설정을 배포 전과 대조했다. 위의 예약 HTTP 서명 메타데이터 추가 외에는 유지됐다. 두 배포 모두 Google API 429 재시도가 있었으며 실제 운영 상태를 정본으로 확인했다.
+- 배포된 preview 함수 소스에서 index, preview service, official provider, 기본 의상, commerce, classroom board/followup의 해시가 로컬과 동일하다. 이 검사는 학생 문서를 조회하지 않는다.
+- `renderCoordiShopPreview`, `coordiShopAction`, `classroomBoardAction`, `classroomFollowupAction`의 비로그인 요청은 모두 HTTP 401.
+- **Hosting 버전 `3ed3040023a7477d` 운영 반영 완료**. 변경/추가 101개, 기존 파일 4,653개 보존, 전체 4,754개 manifest와 기존 Hosting 설정 일치. 변경 101개 파일을 운영 URL에서 다시 받아 SHA-256 일치를 확인했다.
+- 실제 운영 HTML/JS를 읽는 새 브라우저로 1360px·390px 로그인 화면, 새 번들 버전, 코디 직접 접근 차단을 확인했다. pageerror 0. 로그인/쓰기 요청은 차단했으며 운영 계정으로 거래 테스트를 하지 않았다.
+- 운영 Firestore/Storage 직접 쓰기·데이터 이전·초기화·상품 무료 지급·구매 내역 변경·규칙 변경은 하지 않았다. Windows 자체 렌더러의 운영 전환과 별도 Vercel 앱 배포는 이번에 수행하지 않았다.
+
+영수증: [Hosting](workspace-release-2026-10-28/hosting-receipt.json), [Hosting 해시 검증](workspace-release-2026-10-28/hosting-verified.json), [Functions 상태·설정·소스 검증](workspace-release-2026-10-28/functions-deployed.json), [운영 브라우저](workspace-release-2026-10-28/live-browser.json).

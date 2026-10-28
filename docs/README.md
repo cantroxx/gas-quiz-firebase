@@ -15,6 +15,7 @@ Start with `architecture/PARALLEL_WORK_PLAN.md` when planning multiple terminals
 
 ## Current Handoff
 
+- `operations/WORKSPACE_RELEASE_2026-10-28.md`: 기본 흰 티·청반바지, 미커밋 작업 통합 커밋·배포·운영 검증 기록.
 - `operations/COORDI_WINDOWS_INTEGRATION_2026-10-28.md`: Windows 묶음 검증·자체 렌더러/상점 연결·26개 픽셀 일치·판매 단품 검사·Windows 보완 요청.
 
 - `architecture/COORDI_RENDERER_WINDOWS_HANDOFF_2026-10-28.md`: 메이플 코디 Windows 인계 요구사항·기존 거래/저장/ID 계약·공통 렌더 교체 경계·검증 상태.

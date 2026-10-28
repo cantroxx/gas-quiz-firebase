@@ -1,0 +1,832 @@
+{
+  "passed": true,
+  "verifiedAt": "2026-10-28T11:41:53.707Z",
+  "functions": 134,
+  "newFunctions": [
+    "classroomBoardAction",
+    "classroomFollowupAction"
+  ],
+  "existingServiceSettingsPreserved": true,
+  "frameworkMetadataAddition": "FUNCTION_SIGNATURE_TYPE=http for older HTTP revisions",
+  "sourceFilesMatch": [
+    "index.js",
+    "coordi-shop/service.js",
+    "coordi-shop/official-provider.js",
+    "coordi-shop/default-outfit.js",
+    "coordi-shop/commerce.js",
+    "classroom/board.js",
+    "classroom/followup.js"
+  ],
+  "unauthenticatedDenied": [
+    "renderCoordiShopPreview",
+    "coordiShopAction",
+    "classroomBoardAction",
+    "classroomFollowupAction"
+  ],
+  "revisions": [
+    {
+      "name": "prepareMonthlySeasonDraft",
+      "updateTime": "2026-10-28T11:38:41.803104988Z",
+      "revision": "preparemonthlyseasondraft-00006-jex",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getPublicSeasonEvents",
+      "updateTime": "2026-10-28T11:37:14.873630522Z",
+      "revision": "getpublicseasonevents-00040-buf",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "claimClassroomSavingsMaturity",
+      "updateTime": "2026-10-28T11:38:34.381347390Z",
+      "revision": "claimclassroomsavingsmaturity-00034-bik",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "joinClassroomSavingsProduct",
+      "updateTime": "2026-10-28T11:38:25.411356226Z",
+      "revision": "joinclassroomsavingsproduct-00034-wuy",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomShopItem",
+      "updateTime": "2026-10-28T11:38:22.463605845Z",
+      "revision": "saveclassroomshopitem-00081-sir",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomJob",
+      "updateTime": "2026-10-28T11:37:35.472895701Z",
+      "revision": "saveclassroomjob-00081-rud",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomGem",
+      "updateTime": "2026-10-28T11:38:28.581575315Z",
+      "revision": "saveclassroomgem-00032-seg",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "rejectClassroomShopPurchaseUse",
+      "updateTime": "2026-10-28T11:37:36.568681475Z",
+      "revision": "rejectclassroomshoppurchaseuse-00057-wiq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminListCommunications",
+      "updateTime": "2026-10-28T11:38:33.959109138Z",
+      "revision": "adminlistcommunications-00004-puz",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "renderCoordiShopPreview",
+      "updateTime": "2026-10-28T11:38:35.140116041Z",
+      "revision": "rendercoordishoppreview-00005-huc",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomMissionConfig",
+      "updateTime": "2026-10-28T11:38:24.609252426Z",
+      "revision": "saveclassroommissionconfig-00034-qeq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdateNoticeBoard",
+      "updateTime": "2026-10-28T11:37:34.924086581Z",
+      "revision": "adminupdatenoticeboard-00102-lek",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetPasswordSetupSettings",
+      "updateTime": "2026-10-28T11:37:33.304381025Z",
+      "revision": "admingetpasswordsetupsettings-00101-rej",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "resetMemberPasswordToTemporary",
+      "updateTime": "2026-10-28T11:37:33.541007268Z",
+      "revision": "resetmemberpasswordtotemporary-00105-jeh",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomExchangeSettings",
+      "updateTime": "2026-10-28T11:41:26.989176932Z",
+      "revision": "saveclassroomexchangesettings-00030-nos",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "approveClassroomShopPurchaseUse",
+      "updateTime": "2026-10-28T11:37:36.664052610Z",
+      "revision": "approveclassroomshoppurchaseuse-00058-gam",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "studyTownAction",
+      "updateTime": "2026-10-28T11:36:56.657775590Z",
+      "revision": "studytownaction-00005-fad",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "wbCleanupOldRooms",
+      "updateTime": "2026-10-28T11:38:38.885148272Z",
+      "revision": "wbcleanupoldrooms-00004-lah",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminSeasonEventDraft",
+      "updateTime": "2026-10-28T11:38:42.186780006Z",
+      "revision": "adminseasoneventdraft-00006-dap",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminResetMemberPassword",
+      "updateTime": "2026-10-28T11:37:05.994875411Z",
+      "revision": "adminresetmemberpassword-00104-pux",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "submitMemberInquiry",
+      "updateTime": "2026-10-28T11:38:33.629593159Z",
+      "revision": "submitmemberinquiry-00004-sez",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "registerNewMember",
+      "updateTime": "2026-10-28T11:37:24.011595998Z",
+      "revision": "registernewmember-00095-bul",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "linkMemberAuthUid",
+      "updateTime": "2026-10-28T11:37:29.409247417Z",
+      "revision": "linkmemberauthuid-00108-jox",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "auditPopularQuizSources",
+      "updateTime": "2026-10-28T11:29:50.818943945Z",
+      "revision": "auditpopularquizsources-00002-jip",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetQuizQualityAudit",
+      "updateTime": "2026-10-28T11:37:29.152176159Z",
+      "revision": "admingetquizqualityaudit-00088-gir",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "requestClassroomShopPurchaseUse",
+      "updateTime": "2026-10-28T11:37:34.002715713Z",
+      "revision": "requestclassroomshoppurchaseuse-00058-pir",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getClassroomReviewItems",
+      "updateTime": "2026-10-28T11:37:31.451333571Z",
+      "revision": "getclassroomreviewitems-00059-xek",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getMemberAchievements",
+      "updateTime": "2026-10-28T11:38:33.670367941Z",
+      "revision": "getmemberachievements-00003-jug",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getPopularQuizUsageStatus",
+      "updateTime": "2026-10-28T11:37:11.969922327Z",
+      "revision": "getpopularquizusagestatus-00085-xez",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminAdjustAdminWallet",
+      "updateTime": "2026-10-28T11:37:10.166876461Z",
+      "revision": "adminadjustadminwallet-00073-dil",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetDashboard",
+      "updateTime": "2026-10-28T11:37:29.266017338Z",
+      "revision": "admingetdashboard-00098-wek",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "deleteClassroomBillboardMessage",
+      "updateTime": "2026-10-28T11:38:33.731834001Z",
+      "revision": "deleteclassroombillboardmessage-00032-gak",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "refundClassroomShopPurchase",
+      "updateTime": "2026-10-28T11:38:14.976727870Z",
+      "revision": "refundclassroomshoppurchase-00057-wuk",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "recordPopularQuizUsageSeconds",
+      "updateTime": "2026-10-28T11:37:10.201717091Z",
+      "revision": "recordpopularquizusageseconds-00085-xiq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomSecuritiesTick",
+      "updateTime": "2026-10-28T11:39:25.635317588Z",
+      "revision": "classroomsecuritiestick-00003-sev",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "loginMemberWithPassword",
+      "updateTime": "2026-10-28T11:37:23.605236233Z",
+      "revision": "loginmemberwithpassword-00107-beq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomBoardAction",
+      "updateTime": "2026-10-28T11:38:42.975336883Z",
+      "revision": "classroomboardaction-00002-rex",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminListMembers",
+      "updateTime": "2026-10-28T11:37:13.228667312Z",
+      "revision": "adminlistmembers-00104-tap",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "releaseClassroomJob",
+      "updateTime": "2026-10-28T11:38:14.577254568Z",
+      "revision": "releaseclassroomjob-00081-rat",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "reportHousingGuestbookEntry",
+      "updateTime": "2026-10-28T11:38:35.825170884Z",
+      "revision": "reporthousingguestbookentry-00004-giv",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "specialRewardAction",
+      "updateTime": "2026-10-28T11:38:40.541857233Z",
+      "revision": "specialrewardaction-00004-ror",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "grantPracticeReward",
+      "updateTime": "2026-10-28T11:38:32.450715256Z",
+      "revision": "grantpracticereward-00116-vib",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "submitAnonymousInquiry",
+      "updateTime": "2026-10-28T11:38:39.146617224Z",
+      "revision": "submitanonymousinquiry-00004-tib",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomTaxPreset",
+      "updateTime": "2026-10-28T11:38:28.378723512Z",
+      "revision": "saveclassroomtaxpreset-00032-bed",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomSecuritiesQuery",
+      "updateTime": "2026-10-28T11:38:41.983103609Z",
+      "revision": "classroomsecuritiesquery-00003-yuq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUnlinkMemberAuth",
+      "updateTime": "2026-10-28T11:37:33.108567263Z",
+      "revision": "adminunlinkmemberauth-00104-qeh",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "startMemberPasswordSetup",
+      "updateTime": "2026-10-28T11:37:07.866268136Z",
+      "revision": "startmemberpasswordsetup-00106-pin",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminModerateGuestbook",
+      "updateTime": "2026-10-28T11:38:39.763225133Z",
+      "revision": "adminmoderateguestbook-00005-lup",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "pizzaAssessmentAction",
+      "updateTime": "2026-10-28T11:37:04.061698817Z",
+      "revision": "pizzaassessmentaction-00003-qes",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "wbDraw",
+      "updateTime": "2026-10-28T11:38:38.477096559Z",
+      "revision": "wbdraw-00006-luq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminListLogs",
+      "updateTime": "2026-10-28T11:37:31.290992008Z",
+      "revision": "adminlistlogs-00100-vok",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomSecuritiesAdminAction",
+      "updateTime": "2026-10-28T11:39:25.555597562Z",
+      "revision": "classroomsecuritiesadminaction-00003-das",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminAdjustMemberWallet",
+      "updateTime": "2026-10-28T11:37:28.067487627Z",
+      "revision": "adminadjustmemberwallet-00079-pej",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "deleteClassroomShopItem",
+      "updateTime": "2026-10-28T11:38:23.512750650Z",
+      "revision": "deleteclassroomshopitem-00018-sil",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomDiaryAction",
+      "updateTime": "2026-10-28T11:37:37.237055941Z",
+      "revision": "classroomdiaryaction-00003-vup",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetOperationalAudit",
+      "updateTime": "2026-10-28T11:37:10.889881053Z",
+      "revision": "admingetoperationalaudit-00090-joz",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdateMemberVisibility",
+      "updateTime": "2026-10-28T11:37:04.936348844Z",
+      "revision": "adminupdatemembervisibility-00027-kax",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetSeasonEvents",
+      "updateTime": "2026-10-28T11:37:14.122602169Z",
+      "revision": "admingetseasonevents-00048-not",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "fruitBellAction",
+      "updateTime": "2026-10-28T11:37:08.818273684Z",
+      "revision": "fruitbellaction-00005-mok",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "verifyMemberAccessCode",
+      "updateTime": "2026-10-28T11:37:21.424861031Z",
+      "revision": "verifymemberaccesscode-00107-liw",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "contributeClassroomGroupPurchase",
+      "updateTime": "2026-10-28T11:38:25.079820450Z",
+      "revision": "contributeclassroomgrouppurchase-00034-bey",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdateFeatureFlags",
+      "updateTime": "2026-10-28T11:37:06.725041103Z",
+      "revision": "adminupdatefeatureflags-00096-han",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getDailyRewardStatus",
+      "updateTime": "2026-10-28T11:37:35.937603201Z",
+      "revision": "getdailyrewardstatus-00028-mot",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "subjectQuizAction",
+      "updateTime": "2026-10-28T11:29:49.113318235Z",
+      "revision": "subjectquizaction-00011-qiz",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "changeMemberPassword",
+      "updateTime": "2026-10-28T11:37:22.021356786Z",
+      "revision": "changememberpassword-00106-cer",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "completeClassroomAutoQuest",
+      "updateTime": "2026-10-28T11:37:38.636298940Z",
+      "revision": "completeclassroomautoquest-00085-wun",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomSecuritiesAction",
+      "updateTime": "2026-10-28T11:38:42.698811241Z",
+      "revision": "classroomsecuritiesaction-00003-nen",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "assignClassroomJob",
+      "updateTime": "2026-10-28T11:38:14.768447472Z",
+      "revision": "assignclassroomjob-00081-fof",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminListStudentEconomy",
+      "updateTime": "2026-10-28T11:37:09.890939473Z",
+      "revision": "adminliststudenteconomy-00008-vat",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "applyClassroomJob",
+      "updateTime": "2026-10-28T11:38:15.019040513Z",
+      "revision": "applyclassroomjob-00081-zim",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "completeClassroomShopPurchaseUse",
+      "updateTime": "2026-10-28T11:37:38.485968944Z",
+      "revision": "completeclassroomshoppurchaseuse-00058-mit",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "checkClassroomRoutine",
+      "updateTime": "2026-10-28T11:38:34.503542519Z",
+      "revision": "checkclassroomroutine-00081-mez",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminDeleteNote",
+      "updateTime": "2026-10-28T11:38:34.492537646Z",
+      "revision": "admindeletenote-00004-fuz",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "grantRankingCompleteXp",
+      "updateTime": "2026-10-28T11:38:28.517065511Z",
+      "revision": "grantrankingcompletexp-00072-tut",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getEventProgress",
+      "updateTime": "2026-10-28T11:37:21.296840380Z",
+      "revision": "geteventprogress-00096-doj",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "purchaseShopItem",
+      "updateTime": "2026-10-28T11:38:33.913595781Z",
+      "revision": "purchaseshopitem-00107-wid",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getClassroomStudentCards",
+      "updateTime": "2026-10-28T11:37:40.657599088Z",
+      "revision": "getclassroomstudentcards-00084-nam",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "popularQuizAction",
+      "updateTime": "2026-10-28T11:29:50.845108026Z",
+      "revision": "popularquizaction-00008-sef",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetNoticeBoard",
+      "updateTime": "2026-10-28T11:37:03.969074591Z",
+      "revision": "admingetnoticeboard-00102-vus",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "reviewClassroomQuestProgress",
+      "updateTime": "2026-10-28T11:38:34.514360694Z",
+      "revision": "reviewclassroomquestprogress-00083-gav",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "coordiShopAction",
+      "updateTime": "2026-10-28T11:38:42.498372785Z",
+      "revision": "coordishopaction-00009-heb",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "ingestPracticeGrowth",
+      "updateTime": "2026-10-28T11:38:39.323654921Z",
+      "revision": "ingestpracticegrowth-00009-bor",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "setSelectedMemberTitle",
+      "updateTime": "2026-10-28T11:38:40.051723588Z",
+      "revision": "setselectedmembertitle-00010-wov",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "setMemberPassword",
+      "updateTime": "2026-10-28T11:37:11.887279685Z",
+      "revision": "setmemberpassword-00107-peh",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "purchaseHousingItem",
+      "updateTime": "2026-10-28T11:38:26.942931683Z",
+      "revision": "purchasehousingitem-00006-xah",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "survivorQuestQuiz",
+      "updateTime": "2026-10-28T11:38:41.886235147Z",
+      "revision": "survivorquestquiz-00005-xow",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "purchaseClassroomShopItem",
+      "updateTime": "2026-10-28T11:38:25.000910826Z",
+      "revision": "purchaseclassroomshopitem-00081-juq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetExternalQuizzes",
+      "updateTime": "2026-10-28T11:37:18.927716784Z",
+      "revision": "admingetexternalquizzes-00092-siz",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdateMemberStatus",
+      "updateTime": "2026-10-28T11:37:25.418293907Z",
+      "revision": "adminupdatememberstatus-00104-tan",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "setClassroomSelectedBadge",
+      "updateTime": "2026-10-28T11:37:31.207226751Z",
+      "revision": "setclassroomselectedbadge-00081-rip",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "setHousingRoomName",
+      "updateTime": "2026-10-28T11:38:33.754487176Z",
+      "revision": "sethousingroomname-00004-rud",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetMemberDetail",
+      "updateTime": "2026-10-28T11:37:12.087998456Z",
+      "revision": "admingetmemberdetail-00098-hej",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "reorderClassroomQuest",
+      "updateTime": "2026-10-28T11:39:37.084186622Z",
+      "revision": "reorderclassroomquest-00057-xig",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminResolveInquiry",
+      "updateTime": "2026-10-28T11:38:38.315428191Z",
+      "revision": "adminresolveinquiry-00005-jiq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomGroupPurchase",
+      "updateTime": "2026-10-28T11:38:33.416859755Z",
+      "revision": "saveclassroomgrouppurchase-00034-kuc",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "writeHousingGuestbook",
+      "updateTime": "2026-10-28T11:38:33.914321657Z",
+      "revision": "writehousingguestbook-00004-qif",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "useClassroomBillboardTicket",
+      "updateTime": "2026-10-28T11:38:35.795352073Z",
+      "revision": "useclassroombillboardticket-00045-her",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "getClassroomEconomyBoard",
+      "updateTime": "2026-10-28T11:37:31.825160659Z",
+      "revision": "getclassroomeconomyboard-00082-now",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "spaceAssessmentAction",
+      "updateTime": "2026-10-28T11:37:25.061499504Z",
+      "revision": "spaceassessmentaction-00005-les",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "exchangeClassroomCurrency",
+      "updateTime": "2026-10-28T11:38:30.574341276Z",
+      "revision": "exchangeclassroomcurrency-00030-put",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "deleteClassroomQuest",
+      "updateTime": "2026-10-28T11:37:39.305240676Z",
+      "revision": "deleteclassroomquest-00018-doc",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "updateMemberNickname",
+      "updateTime": "2026-10-28T11:37:21.086541369Z",
+      "revision": "updatemembernickname-00092-qey",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "claimHousingDailyCoupon",
+      "updateTime": "2026-10-28T11:38:38.469224252Z",
+      "revision": "claimhousingdailycoupon-00006-hev",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "setClassroomShopPurchaseEquipped",
+      "updateTime": "2026-10-28T11:38:23.775693916Z",
+      "revision": "setclassroomshoppurchaseequipped-00028-maq",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "verifyClassroomEntryCode",
+      "updateTime": "2026-10-28T11:37:04.931784465Z",
+      "revision": "verifyclassroomentrycode-00060-pit",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGetFeatureFlags",
+      "updateTime": "2026-10-28T11:37:23.481669056Z",
+      "revision": "admingetfeatureflags-00095-cah",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "claimClassroomJobSalary",
+      "updateTime": "2026-10-28T11:37:34.959243253Z",
+      "revision": "claimclassroomjobsalary-00081-fef",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "wordBombAction",
+      "updateTime": "2026-10-28T11:37:11.563867826Z",
+      "revision": "wordbombaction-00011-doy",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "collectClassroomTax",
+      "updateTime": "2026-10-28T11:37:41.863247321Z",
+      "revision": "collectclassroomtax-00034-dol",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomRoutine",
+      "updateTime": "2026-10-28T11:38:33.574588307Z",
+      "revision": "saveclassroomroutine-00081-gak",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomQuest",
+      "updateTime": "2026-10-28T11:37:40.357295828Z",
+      "revision": "saveclassroomquest-00085-riy",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdateExternalQuizzes",
+      "updateTime": "2026-10-28T11:40:56.654679497Z",
+      "revision": "adminupdateexternalquizzes-00092-cow",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "deleteClassroomJob",
+      "updateTime": "2026-10-28T11:38:15.438098434Z",
+      "revision": "deleteclassroomjob-00018-vav",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "claimEventQuestReward",
+      "updateTime": "2026-10-28T11:37:39.564193322Z",
+      "revision": "claimeventquestreward-00095-xaj",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomFollowupAction",
+      "updateTime": "2026-10-28T11:38:43.510950969Z",
+      "revision": "classroomfollowupaction-00002-nus",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminSetClassAdmin",
+      "updateTime": "2026-10-28T11:37:10.997917966Z",
+      "revision": "adminsetclassadmin-00096-taf",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminListNotes",
+      "updateTime": "2026-10-28T11:38:33.423271256Z",
+      "revision": "adminlistnotes-00004-pid",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "startRankingQuestSession",
+      "updateTime": "2026-10-28T11:38:30.697922734Z",
+      "revision": "startrankingquestsession-00003-lor",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "classroomPortraitAction",
+      "updateTime": "2026-10-28T11:37:39.507364102Z",
+      "revision": "classroomportraitaction-00003-bet",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdatePasswordSetupSettings",
+      "updateTime": "2026-10-28T11:37:30.908351705Z",
+      "revision": "adminupdatepasswordsetupsettings-00101-qit",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomNotices",
+      "updateTime": "2026-10-28T11:38:30.764697927Z",
+      "revision": "saveclassroomnotices-00045-zil",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "saveClassroomSavingsProduct",
+      "updateTime": "2026-10-28T11:38:24.408532118Z",
+      "revision": "saveclassroomsavingsproduct-00034-vuv",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "syncMemberTitles",
+      "updateTime": "2026-10-28T11:38:33.607836300Z",
+      "revision": "syncmembertitles-00091-fer",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminGrowthSeasonPlan",
+      "updateTime": "2026-10-28T11:38:42.192224030Z",
+      "revision": "admingrowthseasonplan-00005-kam",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "ingestGrowthActivity",
+      "updateTime": "2026-10-28T11:38:35.957794676Z",
+      "revision": "ingestgrowthactivity-00008-yaz",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "townMarbleAction",
+      "updateTime": "2026-10-28T11:37:21.033863650Z",
+      "revision": "townmarbleaction-00005-ges",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "recordEducationCorrectForPopularUnlock",
+      "updateTime": "2026-10-28T11:37:23.146846806Z",
+      "revision": "recordeducationcorrectforpopularunlock-00085-gos",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminSetHousingSuspension",
+      "updateTime": "2026-10-28T11:38:41.979016504Z",
+      "revision": "adminsethousingsuspension-00005-weg",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminUpdateSeasonEvents",
+      "updateTime": "2026-10-28T11:37:14.823811076Z",
+      "revision": "adminupdateseasonevents-00048-lup",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adminSpecialRewardAction",
+      "updateTime": "2026-10-28T11:38:41.039937269Z",
+      "revision": "adminspecialrewardaction-00004-feb",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "awardClassroomBadgeCampaign",
+      "updateTime": "2026-10-28T11:37:37.958613840Z",
+      "revision": "awardclassroombadgecampaign-00081-zih",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "cloudTowerAction",
+      "updateTime": "2026-10-28T11:37:34.480612889Z",
+      "revision": "cloudtoweraction-00005-gov",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "adjustClassroomStudentPoint",
+      "updateTime": "2026-10-28T11:37:39.052966491Z",
+      "revision": "adjustclassroomstudentpoint-00027-foj",
+      "state": "ACTIVE"
+    },
+    {
+      "name": "resetHousingWeeklyCoupons",
+      "updateTime": "2026-10-28T11:38:29.461494745Z",
+      "revision": "resethousingweeklycoupons-00004-dog",
+      "state": "ACTIVE"
+    }
+  ]
+}

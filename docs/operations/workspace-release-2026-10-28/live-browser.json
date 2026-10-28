@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "liveStatic": true,
+  "viewportWidths": [
+    1360,
+    390
+  ],
+  "loginGuard": true,
+  "pageErrors": 0,
+  "backendRequestsSent": 0,
+  "blockedBackends": [
+    "identitytoolkit.googleapis.com"
+  ]
+}
