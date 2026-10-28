@@ -7,10 +7,14 @@ let preview;
 (async()=>{
   const root=path.resolve(process.argv[2]||''),out=path.resolve(process.argv[3]||'/tmp/coordi-windows-render-results');
   if(!process.argv[2]||out.startsWith(root+path.sep))throw Error('Pass bundle root and separate output directory');
-  const useHttp=process.argv.includes('--http');
-  if(useHttp)preview=await require('../smoke/coordi-preview-process').startPreview(root);
+  const productionCdn=process.argv.includes('--production-cdn');
+  const useHttp=process.argv.includes('--http')||productionCdn;
+  if(useHttp&&!productionCdn)preview=await require('../smoke/coordi-preview-process').startPreview(root);
   const config=useHttp?require('../build-coordi-local-release').configFor(root):null;
-  const reader=useHttp?require('../../functions/coordi-shop/local-renderer/browser-reader').createReader(preview.origin+config.baseUrl,{origin:preview.origin,manifestSha256:config.manifestSha256}):createBundleReader(root),cases=JSON.parse(await fs.readFile(path.join(root,'reference/cases/results.json'),'utf8')).cases,results=[];
+  const origin=productionCdn?'https://dj48-quiztown-firebase.web.app':preview?.origin;
+  const httpRequests=[];
+  const fetchData=async(url,options)=>{if(!String(url).startsWith(origin+config.baseUrl))throw Error('External request blocked');const r=await fetch(url,options);const body=await r.arrayBuffer();httpRequests.push({path:new URL(url).pathname,status:r.status,contentType:r.headers.get('content-type'),contentEncoding:r.headers.get('content-encoding'),cacheControl:r.headers.get('cache-control'),bytes:body.byteLength});if(String(url).endsWith('.gz')&&(new Uint8Array(body)[0]!==0x1f||new Uint8Array(body)[1]!==0x8b))throw Error('Gzip payload must remain compressed');return new Response(body,{status:r.status,headers:r.headers});};
+  const reader=useHttp?require('../../functions/coordi-shop/local-renderer/browser-reader').createReader(origin+config.baseUrl,{origin,manifestSha256:config.manifestSha256,fetch:fetchData}):createBundleReader(root),cases=JSON.parse(await fs.readFile(path.join(root,'reference/cases/results.json'),'utf8')).cases,results=[];
   if(!cases.length||new Set(cases.map(c=>c.id)).size!==cases.length||cases.some(c=>!/^[a-zA-Z0-9_-]+$/.test(c.id)||!['rendered','expected-rejection'].includes(c.status)))throw Error('Invalid reference case index');
   await fs.mkdir(out,{recursive:true});
   for(const c of cases){const look=JSON.parse(await fs.readFile(path.join(root,'reference/cases',c.id,'look.json'),'utf8'));const start=Date.now();
@@ -20,5 +24,5 @@ let preview;
     }catch(e){results.push({id:c.id,ok:c.status!=='rendered'&&e.message===c.error,error:e.message,expectedError:c.error,details:e.details,ms:Date.now()-start});}
     console.log(JSON.stringify(results.at(-1)));
   }
-  const report={ok:results.every(r=>r.ok),snapshot:(await reader.manifest()).sourceSnapshot,renderer:core.version,node:process.version,transport:useHttp?'actual-loopback-http':'file',readerStats:reader.stats?.(),results};await fs.writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2)+'\n');if(!report.ok)process.exitCode=1;
+  const report={ok:results.every(r=>r.ok),snapshot:(await reader.manifest()).sourceSnapshot,renderer:core.version,node:process.version,transport:productionCdn?'production-cdn':useHttp?'actual-loopback-http':'file',readerStats:reader.stats?.(),httpRequests:useHttp?httpRequests:undefined,results};await fs.writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2)+'\n');if(!report.ok)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>preview?.stop());

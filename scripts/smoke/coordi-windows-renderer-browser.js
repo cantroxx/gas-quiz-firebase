@@ -1,11 +1,12 @@
 'use strict';
-// Fresh browser, actual loopback HTTP assets; every external origin is blocked.
+// Fresh browser, actual HTTP assets; every origin except the selected asset host is blocked.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('playwright-core');
 (async()=>{
   assert(process.argv[2],'Pass Windows bundle root');const bundle=path.resolve(process.argv[2]),web=path.join(bundle,'web'),manifest=JSON.parse(fs.readFileSync(path.join(web,'manifest.json'))),prefix='/codi/'+manifest.sourceSnapshot+'/';
   const cases=JSON.parse(fs.readFileSync(path.join(bundle,'reference/cases/results.json'))).cases,results=[];
-  const preview=await require('./coordi-preview-process').startPreview(bundle),origin=preview.origin;let browser;
+  const productionCdn=process.argv.includes('--production-cdn');
+  const preview=productionCdn?null:await require('./coordi-preview-process').startPreview(bundle),origin=productionCdn?'https://dj48-quiztown-firebase.web.app':preview.origin;let browser;
   try{
     browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
     const page=await browser.newPage();const external=[];
@@ -20,7 +21,7 @@ const {chromium}=require('playwright-core');
       const result=await page.evaluate(async look=>{try{const image=await DJ48CoordiLocalRenderer.render(look,reader);const rgbaSha256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',image.data))].map(n=>n.toString(16).padStart(2,'0')).join('');return {width:image.width,height:image.height,rgbaSha256};}catch(e){return {error:e.message};}},look);
       const ok=c.status==='rendered'?result.rgbaSha256===c.rgbaSha256&&result.width===c.width&&result.height===c.height:result.error===c.error;results.push({id:c.id,ok,...result});
     }
-    assert.deepEqual(external,[]);assert(headers.length>0);assert(headers.every(h=>h['content-type']==='application/octet-stream'&&!h['content-encoding']));const report={ok:results.every(r=>r.ok),snapshot:manifest.sourceSnapshot,externalRequests:external.length,hostNode:process.version,transport:'actual-loopback-http',gzipResponses:headers.length,gzipContentType:'application/octet-stream',gzipContentEncoding:null,readerStats:await page.evaluate(()=>reader.stats()),results};fs.writeFileSync(process.argv[3]||'/tmp/coordi-windows-browser-reference.json',JSON.stringify(report,null,2)+'\n');
+    assert.deepEqual(external,[]);assert(headers.length>0);assert(headers.every(h=>h['content-type']==='application/octet-stream'&&!h['content-encoding']));const report={ok:results.every(r=>r.ok),snapshot:manifest.sourceSnapshot,externalRequests:external.length,hostNode:process.version,transport:productionCdn?'production-cdn':'actual-loopback-http',gzipResponses:headers.length,gzipContentType:'application/octet-stream',gzipContentEncoding:null,readerStats:await page.evaluate(()=>reader.stats()),results};fs.writeFileSync(process.argv[3]||'/tmp/coordi-windows-browser-reference.json',JSON.stringify(report,null,2)+'\n');
     console.log(JSON.stringify({ok:report.ok,cases:results.length,failed:results.filter(r=>!r.ok)},null,2));assert(report.ok);
-  }finally{await browser?.close();preview.stop();}
+  }finally{await browser?.close();preview?.stop();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

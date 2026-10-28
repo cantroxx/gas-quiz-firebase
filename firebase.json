@@ -144,6 +144,24 @@
             "value": "no-cache, no-store, must-revalidate"
           }
         ]
+      },
+      {
+        "source": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=31536000,immutable"
+          }
+        ]
+      },
+      {
+        "source": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/**/*.gz",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/octet-stream"
+          }
+        ]
       }
     ]
   }

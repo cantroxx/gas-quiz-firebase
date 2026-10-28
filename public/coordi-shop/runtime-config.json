@@ -1,1 +1,7 @@
-{"schemaVersion":1,"mode":"official","snapshot":null,"baseUrl":null}
+{
+  "schemaVersion": 1,
+  "mode": "local",
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "baseUrl": "/codi/1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820/",
+  "manifestSha256": "bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195"
+}
