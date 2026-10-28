@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "fullCheck": "npm run check",
+  "fullLog": "/tmp/quiztown-release-check-20261028.log",
+  "finalStatic": true,
+  "finalPublicShell": true,
+  "coordiBrowser": true,
+  "windowsIntegration": true,
+  "officialDefaultsBothGenders": true,
+  "checkedAt": "2026-10-28T11:24:31.577Z"
+}

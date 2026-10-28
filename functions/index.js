@@ -2247,7 +2247,7 @@ function canViewHiddenClassroomStudents(memberData = {}, settings = {}) {
   return isClassroomTeacherMember(memberData, settings);
 }
 
-exports.verifyClassroomEntryCode = onCall({ region: REGION }, async request => {
+exports.verifyClassroomEntryCode = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -2557,7 +2557,7 @@ async function loadLinkedMemberForEvent(authUid, memberUserId) {
   return { memberUserId: safeMemberUserId, memberData };
 }
 
-exports.getPopularQuizUsageStatus = onCall({ region: REGION }, async request => {
+exports.getPopularQuizUsageStatus = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -2578,7 +2578,7 @@ exports.getPopularQuizUsageStatus = onCall({ region: REGION }, async request => 
   };
 });
 
-exports.recordPopularQuizUsageSeconds = onCall({ region: REGION }, async request => {
+exports.recordPopularQuizUsageSeconds = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -2603,7 +2603,7 @@ exports.recordPopularQuizUsageSeconds = onCall({ region: REGION }, async request
   return { success: true, status };
 });
 
-exports.recordEducationCorrectForPopularUnlock = onCall({ region: REGION }, async request => {
+exports.recordEducationCorrectForPopularUnlock = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -2812,7 +2812,7 @@ function mirrorAuthLinkInTransaction(transaction, { authUid, memberUserId, previ
   }, { merge: true });
 }
 
-exports.verifyMemberAccessCode = onCall({ region: REGION }, async request => {
+exports.verifyMemberAccessCode = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = getMemberPayload(request.data);
 
@@ -2844,7 +2844,7 @@ exports.verifyMemberAccessCode = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.linkMemberAuthUid = onCall({ region: REGION }, async request => {
+exports.linkMemberAuthUid = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = getMemberPayload(request.data);
 
@@ -2920,7 +2920,7 @@ exports.linkMemberAuthUid = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.startMemberPasswordSetup = onCall({ region: REGION }, async request => {
+exports.startMemberPasswordSetup = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const identity = getMemberIdentityPayload(payload);
@@ -3022,7 +3022,7 @@ exports.startMemberPasswordSetup = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.setMemberPassword = onCall({ region: REGION }, async request => {
+exports.setMemberPassword = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const setupSessionId = normalizeId(payload.setupSessionId, "setupSessionId");
@@ -3120,7 +3120,7 @@ exports.setMemberPassword = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
+exports.loginMemberWithPassword = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const identity = getMemberIdentityPayload(payload);
@@ -3232,7 +3232,7 @@ exports.loginMemberWithPassword = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.registerNewMember = onCall({ region: REGION }, async request => {
+exports.registerNewMember = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const identity = getMemberIdentityPayload(payload);
@@ -3317,7 +3317,7 @@ exports.registerNewMember = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.changeMemberPassword = onCall({ region: REGION }, async request => {
+exports.changeMemberPassword = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -3404,7 +3404,7 @@ exports.changeMemberPassword = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.updateMemberNickname = onCall({ region: REGION }, async request => {
+exports.updateMemberNickname = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -3463,7 +3463,7 @@ exports.updateMemberNickname = onCall({ region: REGION }, async request => {
   }
 });
 
-exports.resetMemberPasswordToTemporary = onCall({ region: REGION }, async request => {
+exports.resetMemberPasswordToTemporary = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const identity = getMemberIdentityPayload(payload);
@@ -3613,7 +3613,7 @@ function buildAdminDashboardSummary({ adminMember, members, credentialStates, to
   };
 }
 
-exports.adminGetDashboard = onCall({ region: REGION }, async request => {
+exports.adminGetDashboard = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   // Scope checks still finish before content reads. Only independent reads overlap.
@@ -3690,7 +3690,7 @@ function publicAuditRecord(doc) {
   return { recordId: doc.id, ...(doc.data() || {}) };
 }
 
-exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
+exports.adminGetOperationalAudit = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -3898,7 +3898,7 @@ function getQuestionQualityReason(data) {
   return "";
 }
 
-exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
+exports.adminGetQuizQualityAudit = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4001,7 +4001,7 @@ exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminListMembers = onCall({ region: REGION }, async request => {
+exports.adminListMembers = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4091,7 +4091,7 @@ exports.adminListMembers = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminListStudentEconomy = onCall({ region: REGION }, async request => {
+exports.adminListStudentEconomy = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4181,7 +4181,7 @@ exports.adminListStudentEconomy = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
+exports.adminResetMemberPassword = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4243,7 +4243,7 @@ exports.adminResetMemberPassword = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
+exports.adminGetMemberDetail = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4364,7 +4364,7 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
+exports.adminAdjustMemberWallet = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4470,7 +4470,7 @@ exports.adminAdjustMemberWallet = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminAdjustAdminWallet = onCall({ region: REGION }, async request => {
+exports.adminAdjustAdminWallet = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4552,7 +4552,7 @@ exports.adminAdjustAdminWallet = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminSetClassAdmin = onCall({ region: REGION }, async request => {
+exports.adminSetClassAdmin = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4620,7 +4620,7 @@ exports.adminSetClassAdmin = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminUpdateMemberStatus = onCall({ region: REGION }, async request => {
+exports.adminUpdateMemberStatus = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4659,7 +4659,7 @@ exports.adminUpdateMemberStatus = onCall({ region: REGION }, async request => {
   return { success: true, memberUserId, status: nextStatus, active: nextStatus === "active" };
 });
 
-exports.adminUpdateMemberVisibility = onCall({ region: REGION }, async request => {
+exports.adminUpdateMemberVisibility = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4700,7 +4700,7 @@ exports.adminUpdateMemberVisibility = onCall({ region: REGION }, async request =
   return { success: true, memberUserId, classroomHidden };
 });
 
-exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
+exports.adminUnlinkMemberAuth = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -4737,7 +4737,7 @@ exports.adminUnlinkMemberAuth = onCall({ region: REGION }, async request => {
   return { success: true, memberUserId, authLinked: false };
 });
 
-exports.adminGetPasswordSetupSettings = onCall({ region: REGION }, async request => {
+exports.adminGetPasswordSetupSettings = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4751,7 +4751,7 @@ exports.adminGetPasswordSetupSettings = onCall({ region: REGION }, async request
   };
 });
 
-exports.adminUpdatePasswordSetupSettings = onCall({ region: REGION }, async request => {
+exports.adminUpdatePasswordSetupSettings = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4786,7 +4786,7 @@ exports.adminUpdatePasswordSetupSettings = onCall({ region: REGION }, async requ
   };
 });
 
-exports.adminListLogs = onCall({ region: REGION }, async request => {
+exports.adminListLogs = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4830,7 +4830,7 @@ function publicNoticeBoard(data) {
 
 
 
-exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
+exports.adminGetNoticeBoard = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4841,7 +4841,7 @@ exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminUpdateNoticeBoard = onCall({ region: REGION }, async request => {
+exports.adminUpdateNoticeBoard = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4872,7 +4872,7 @@ exports.adminUpdateNoticeBoard = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminGetFeatureFlags = onCall({ region: REGION }, async request => {
+exports.adminGetFeatureFlags = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4883,7 +4883,7 @@ exports.adminGetFeatureFlags = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
+exports.adminUpdateFeatureFlags = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4948,7 +4948,7 @@ exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminGetExternalQuizzes = onCall({ region: REGION }, async request => {
+exports.adminGetExternalQuizzes = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4959,7 +4959,7 @@ exports.adminGetExternalQuizzes = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request => {
+exports.adminUpdateExternalQuizzes = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
@@ -4989,24 +4989,24 @@ exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request =>
   };
 });
 
-exports.getPublicSeasonEvents = onCall({ region: REGION }, async request => {
+exports.getPublicSeasonEvents = onCall({ maxInstances: 100, region: REGION }, async request => {
   requireAuth(request);
   return { success: true, seasonEvents: { items: [] }, retired: true };
 });
 
-exports.adminGetSeasonEvents = onCall({ region: REGION }, async request => {
+exports.adminGetSeasonEvents = onCall({ maxInstances: 100, region: REGION }, async request => {
   const adminMember = await getAdminMemberForAuth(requireAuth(request));
   assertSuperAdmin(adminMember);
   throw new HttpsError('failed-precondition', '시즌 이벤트 기능이 종료되었습니다.');
 });
 
-exports.adminUpdateSeasonEvents = onCall({ region: REGION }, async request => {
+exports.adminUpdateSeasonEvents = onCall({ maxInstances: 100, region: REGION }, async request => {
   const adminMember = await getAdminMemberForAuth(requireAuth(request));
   assertSuperAdmin(adminMember);
   throw new HttpsError('failed-precondition', '시즌 이벤트 기능이 종료되었습니다.');
 });
 
-exports.getEventProgress = onCall({ region: REGION }, async request => {
+exports.getEventProgress = onCall({ maxInstances: 100, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -5023,7 +5023,7 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
 
 });
 
-exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
+exports.getDailyRewardStatus = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -5068,15 +5068,15 @@ exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
+exports.claimEventQuestReward = onCall({ maxInstances: 100, region: REGION }, async request => {
   return growthQuests.claim(requireAuth(request), normalizeId(request.data?.memberUserId, 'memberUserId'), String(request.data?.questId || ''));
 });
 
-exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request => {
+exports.completeClassroomAutoQuest = onCall({ maxInstances: 20, region: REGION }, async request => {
   return classroomBoardService(requireAuth(request), { ...request.data, action: 'submit' });
 });
 
-exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
+exports.saveClassroomQuest = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -5163,7 +5163,7 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.deleteClassroomQuest = onCall({ region: REGION }, async request => {
+exports.deleteClassroomQuest = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -5193,7 +5193,7 @@ exports.deleteClassroomQuest = onCall({ region: REGION }, async request => {
   return { success: true, classId, ...result };
 });
 
-exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
+exports.getClassroomReviewItems = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -5325,7 +5325,7 @@ exports.getClassroomReviewItems = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
+exports.getClassroomStudentCards = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -5517,7 +5517,7 @@ const classroomDiaryService = require('./classroom/diary').createService({
 exports.classroomDiaryAction = onCall({ region: REGION, maxInstances: 5 }, request =>
   classroomDiaryService(request.auth?.uid, request.data || {}));
 
-exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => {
+exports.setClassroomSelectedBadge = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -5596,7 +5596,7 @@ exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => 
   };
 });
 
-exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request => {
+exports.awardClassroomBadgeCampaign = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -5785,7 +5785,7 @@ exports.awardClassroomBadgeCampaign = onCall({ region: REGION }, async request =
   };
 });
 
-exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
+exports.getClassroomEconomyBoard = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -6198,7 +6198,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.adjustClassroomStudentPoint = onCall({ region: REGION }, async request => {
+exports.adjustClassroomStudentPoint = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6285,7 +6285,7 @@ exports.adjustClassroomStudentPoint = onCall({ region: REGION }, async request =
   };
 });
 
-exports.requestClassroomShopPurchaseUse = onCall({ region: REGION }, async request => {
+exports.requestClassroomShopPurchaseUse = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -6373,19 +6373,19 @@ async function reviewClassroomShopPurchaseUse(request, nextStatus) {
   return { success: true, classId, memberUserId, purchaseId, ...result };
 }
 
-exports.approveClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
+exports.approveClassroomShopPurchaseUse = onCall({ maxInstances: 20, region: REGION }, request => {
   return reviewClassroomShopPurchaseUse(request, "use_approved");
 });
 
-exports.completeClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
+exports.completeClassroomShopPurchaseUse = onCall({ maxInstances: 20, region: REGION }, request => {
   return reviewClassroomShopPurchaseUse(request, "used");
 });
 
-exports.rejectClassroomShopPurchaseUse = onCall({ region: REGION }, request => {
+exports.rejectClassroomShopPurchaseUse = onCall({ maxInstances: 20, region: REGION }, request => {
   return reviewClassroomShopPurchaseUse(request, "use_rejected");
 });
 
-exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request => {
+exports.refundClassroomShopPurchase = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6453,7 +6453,7 @@ exports.refundClassroomShopPurchase = onCall({ region: REGION }, async request =
   return { success: true, classId, purchaseId, ...result };
 });
 
-exports.reorderClassroomQuest = onCall({ region: REGION }, async request => {
+exports.reorderClassroomQuest = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6489,7 +6489,7 @@ exports.reorderClassroomQuest = onCall({ region: REGION }, async request => {
   return { success: true, classId, ...result };
 });
 
-exports.saveClassroomJob = onCall({ region: REGION }, async request => {
+exports.saveClassroomJob = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6512,7 +6512,7 @@ exports.saveClassroomJob = onCall({ region: REGION }, async request => {
   return { success: true, classId, job };
 });
 
-exports.deleteClassroomJob = onCall({ region: REGION }, async request => {
+exports.deleteClassroomJob = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6543,7 +6543,7 @@ exports.deleteClassroomJob = onCall({ region: REGION }, async request => {
   return { success: true, classId, jobId };
 });
 
-exports.applyClassroomJob = onCall({ region: REGION }, async request => {
+exports.applyClassroomJob = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -6595,7 +6595,7 @@ exports.applyClassroomJob = onCall({ region: REGION }, async request => {
   return { success: true, classId, jobId, memberUserId, ...result };
 });
 
-exports.assignClassroomJob = onCall({ region: REGION }, async request => {
+exports.assignClassroomJob = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6673,7 +6673,7 @@ exports.assignClassroomJob = onCall({ region: REGION }, async request => {
   return { success: true, classId, applicationId, ...result };
 });
 
-exports.releaseClassroomJob = onCall({ region: REGION }, async request => {
+exports.releaseClassroomJob = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6712,7 +6712,7 @@ exports.releaseClassroomJob = onCall({ region: REGION }, async request => {
   return { success: true, classId, assignmentId, ...result };
 });
 
-exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
+exports.claimClassroomJobSalary = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6806,7 +6806,7 @@ exports.claimClassroomJobSalary = onCall({ region: REGION }, async request => {
   return { success: true, classId, assignmentId, ...result };
 });
 
-exports.saveClassroomShopItem = onCall({ region: REGION }, async request => {
+exports.saveClassroomShopItem = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6829,7 +6829,7 @@ exports.saveClassroomShopItem = onCall({ region: REGION }, async request => {
   return { success: true, classId, item };
 });
 
-exports.deleteClassroomShopItem = onCall({ region: REGION }, async request => {
+exports.deleteClassroomShopItem = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -6864,7 +6864,7 @@ exports.deleteClassroomShopItem = onCall({ region: REGION }, async request => {
   return { success: true, classId, itemId };
 });
 
-exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => {
+exports.purchaseClassroomShopItem = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7003,7 +7003,7 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
   return { success: true, classId, memberUserId, ...result };
 });
 
-exports.setClassroomShopPurchaseEquipped = onCall({ region: REGION }, async request => {
+exports.setClassroomShopPurchaseEquipped = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7072,7 +7072,7 @@ exports.setClassroomShopPurchaseEquipped = onCall({ region: REGION }, async requ
   return { success: true, classId, memberUserId, ...result };
 });
 
-exports.saveClassroomMissionConfig = onCall({ region: REGION }, async request => {
+exports.saveClassroomMissionConfig = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7094,7 +7094,7 @@ exports.saveClassroomMissionConfig = onCall({ region: REGION }, async request =>
   return { success: true, classId, mission };
 });
 
-exports.collectClassroomTax = onCall({ region: REGION }, async request => {
+exports.collectClassroomTax = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7175,7 +7175,7 @@ exports.collectClassroomTax = onCall({ region: REGION }, async request => {
   return { success: true, classId, ratePercent, collectedPoint, affectedCount: targets.length };
 });
 
-exports.saveClassroomTaxPreset = onCall({ region: REGION }, async request => {
+exports.saveClassroomTaxPreset = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7200,7 +7200,7 @@ exports.saveClassroomTaxPreset = onCall({ region: REGION }, async request => {
   return { success: true, classId, preset };
 });
 
-exports.saveClassroomGroupPurchase = onCall({ region: REGION }, async request => {
+exports.saveClassroomGroupPurchase = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7226,7 +7226,7 @@ exports.saveClassroomGroupPurchase = onCall({ region: REGION }, async request =>
   return { success: true, classId, groupPurchase };
 });
 
-exports.contributeClassroomGroupPurchase = onCall({ region: REGION }, async request => {
+exports.contributeClassroomGroupPurchase = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7304,7 +7304,7 @@ exports.contributeClassroomGroupPurchase = onCall({ region: REGION }, async requ
   return { success: true, classId, memberUserId, ...result };
 });
 
-exports.saveClassroomSavingsProduct = onCall({ region: REGION }, async request => {
+exports.saveClassroomSavingsProduct = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7329,7 +7329,7 @@ exports.saveClassroomSavingsProduct = onCall({ region: REGION }, async request =
   return { success: true, classId, product };
 });
 
-exports.saveClassroomExchangeSettings = onCall({ region: REGION }, async request => {
+exports.saveClassroomExchangeSettings = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7351,7 +7351,7 @@ exports.saveClassroomExchangeSettings = onCall({ region: REGION }, async request
   return { success: true, classId, exchangeSettings: settings };
 });
 
-exports.saveClassroomGem = onCall({ region: REGION }, async request => {
+exports.saveClassroomGem = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7376,7 +7376,7 @@ exports.saveClassroomGem = onCall({ region: REGION }, async request => {
   return { success: true, classId, gem };
 });
 
-exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request => {
+exports.joinClassroomSavingsProduct = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7456,7 +7456,7 @@ exports.joinClassroomSavingsProduct = onCall({ region: REGION }, async request =
   return { success: true, classId, memberUserId, ...result };
 });
 
-exports.exchangeClassroomCurrency = onCall({ region: REGION }, async request => {
+exports.exchangeClassroomCurrency = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7604,7 +7604,7 @@ exports.exchangeClassroomCurrency = onCall({ region: REGION }, async request => 
   return { success: true, classId, memberUserId, ...result };
 });
 
-exports.claimClassroomSavingsMaturity = onCall({ region: REGION }, async request => {
+exports.claimClassroomSavingsMaturity = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7672,7 +7672,7 @@ exports.claimClassroomSavingsMaturity = onCall({ region: REGION }, async request
   return { success: true, classId, memberUserId, ...result };
 });
 
-exports.saveClassroomNotices = onCall({ region: REGION }, async request => {
+exports.saveClassroomNotices = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7695,7 +7695,7 @@ exports.saveClassroomNotices = onCall({ region: REGION }, async request => {
   return { success: true, classId, slots };
 });
 
-exports.useClassroomBillboardTicket = onCall({ region: REGION }, async request => {
+exports.useClassroomBillboardTicket = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7756,7 +7756,7 @@ exports.useClassroomBillboardTicket = onCall({ region: REGION }, async request =
   return { success: true, classId, memberUserId, purchaseId, text, ...result };
 });
 
-exports.deleteClassroomBillboardMessage = onCall({ region: REGION }, async request => {
+exports.deleteClassroomBillboardMessage = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -7783,7 +7783,7 @@ exports.deleteClassroomBillboardMessage = onCall({ region: REGION }, async reque
   return { success: true, classId, messageId };
 });
 
-exports.saveClassroomRoutine = onCall({ region: REGION }, async request => {
+exports.saveClassroomRoutine = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7819,7 +7819,7 @@ exports.saveClassroomRoutine = onCall({ region: REGION }, async request => {
   return { success: true, classId, memberUserId, routine };
 });
 
-exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
+exports.checkClassroomRoutine = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const classId = normalizeId(payload.classId || "G4-C8", "classId");
@@ -7917,7 +7917,7 @@ exports.checkClassroomRoutine = onCall({ region: REGION }, async request => {
   return { success: true, classId, memberUserId, routineId, ...result };
 });
 
-exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request => {
+exports.reviewClassroomQuestProgress = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -8099,7 +8099,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
   };
 });
 
-exports.purchaseShopItem = onCall({ region: REGION }, async request => {
+exports.purchaseShopItem = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8236,7 +8236,7 @@ function assertHousingNotSuspended(memberData) {
 }
 
 // 친구집 방명록 글쓰기 — 언어 필터 + 실명(닉네임·아이디) + 정지 검사
-exports.writeHousingGuestbook = onCall({ region: REGION }, async request => {
+exports.writeHousingGuestbook = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8278,7 +8278,7 @@ exports.writeHousingGuestbook = onCall({ region: REGION }, async request => {
 });
 
 // 방명록 신고 — 즉시 임시 블라인드 (관리자가 소통 관리에서 삭제/복구 판단)
-exports.reportHousingGuestbookEntry = onCall({ region: REGION }, async request => {
+exports.reportHousingGuestbookEntry = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8304,7 +8304,7 @@ exports.reportHousingGuestbookEntry = onCall({ region: REGION }, async request =
 });
 
 // 방 이름 바꾸기 — 방명록과 같은 금칙어 필터 + 정지 검사 (친구들에게 보이는 텍스트라서)
-exports.setHousingRoomName = onCall({ region: REGION }, async request => {
+exports.setHousingRoomName = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8330,7 +8330,7 @@ exports.setHousingRoomName = onCall({ region: REGION }, async request => {
 });
 
 // 문의하기 — 학생이 선생님(관리자)에게 보내는 글 (관리자 센터 '소통 관리'에서 확인)
-exports.submitMemberInquiry = onCall({ region: REGION }, async request => {
+exports.submitMemberInquiry = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8358,7 +8358,7 @@ exports.submitMemberInquiry = onCall({ region: REGION }, async request => {
 });
 
 // 비로그인 문의 — 입장(로그인) 화면에서 학년·반만 적어 접수 (익명 계정당 하루 3건 제한)
-exports.submitAnonymousInquiry = onCall({ region: REGION }, async request => {
+exports.submitAnonymousInquiry = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request); // 익명 로그인 계정
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const grade = Math.round(Number(payload.grade) || 0);
@@ -8406,7 +8406,7 @@ exports.submitAnonymousInquiry = onCall({ region: REGION }, async request => {
 });
 
 // 관리자: 소통 관리 목록 (문의 + 신고된 방명록)
-exports.adminListCommunications = onCall({ region: REGION }, async request => {
+exports.adminListCommunications = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   await getAdminMemberForAuth(authUid);
 
@@ -8444,7 +8444,7 @@ exports.adminListCommunications = onCall({ region: REGION }, async request => {
 });
 
 // 관리자: 문의 처리 상태 변경
-exports.adminResolveInquiry = onCall({ region: REGION }, async request => {
+exports.adminResolveInquiry = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -8461,7 +8461,7 @@ exports.adminResolveInquiry = onCall({ region: REGION }, async request => {
 });
 
 // 관리자: 신고된 방명록 글 삭제 또는 복구
-exports.adminModerateGuestbook = onCall({ region: REGION }, async request => {
+exports.adminModerateGuestbook = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -8485,7 +8485,7 @@ exports.adminModerateGuestbook = onCall({ region: REGION }, async request => {
 });
 
 // 관리자: 학생 쪽지 최근 목록 (생활지도용 열람 — 학생 토큰엔 admin 클레임이 없어 서버 경유)
-exports.adminListNotes = onCall({ region: REGION }, async request => {
+exports.adminListNotes = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   await getAdminMemberForAuth(authUid);
 
@@ -8508,7 +8508,7 @@ exports.adminListNotes = onCall({ region: REGION }, async request => {
 });
 
 // 관리자: 학생 쪽지 삭제
-exports.adminDeleteNote = onCall({ region: REGION }, async request => {
+exports.adminDeleteNote = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -8519,7 +8519,7 @@ exports.adminDeleteNote = onCall({ region: REGION }, async request => {
 });
 
 // 관리자: 하우징 이용 일시정지 (days 0 = 해제)
-exports.adminSetHousingSuspension = onCall({ region: REGION }, async request => {
+exports.adminSetHousingSuspension = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -8539,7 +8539,7 @@ exports.adminSetHousingSuspension = onCall({ region: REGION }, async request => 
 
 // 가구 쿠폰 폐지: 구형 클라이언트와 예약 호출에는 지급 없이 응답한다.
 const housingCouponService = createCouponService({ db, FieldValue });
-exports.claimHousingDailyCoupon = onCall({ region: REGION }, async request => {
+exports.claimHousingDailyCoupon = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8564,7 +8564,7 @@ exports.resetHousingWeeklyCoupons = onSchedule({
 // 하우징(내 방 꾸미기) 전용 구매 — purchaseShopItem과 같지만 같은 가구를 여러 개 살 수 있게
 // 보유 문서를 quantity 증가 방식으로 기록한다. room_ 접두사 아이템만 허용.
 // 가구 쿠폰 결제는 폐지됐으며 DJ코인 결제만 허용한다.
-exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
+exports.purchaseHousingItem = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8829,7 +8829,7 @@ async function grantPracticeRewardInTransaction(transaction, { memberUserId, rec
     };
 }
 
-exports.grantPracticeReward = onCall({ region: REGION }, async request => {
+exports.grantPracticeReward = onCall({ maxInstances: 100, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -8868,7 +8868,7 @@ exports.startRankingQuestSession = onCall({ region: REGION }, async request => {
   });
 });
 
-exports.grantRankingCompleteXp = onCall({ region: REGION }, async request => {
+exports.grantRankingCompleteXp = onCall({ maxInstances: 100, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -9077,7 +9077,7 @@ exports.getMemberAchievements = onCall({ region: REGION }, async request => {
     }))};
   });
 });
-exports.syncMemberTitles = onCall({ region: REGION }, async request => {
+exports.syncMemberTitles = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid=requireAuth(request),memberUserId=normalizeId(request.data?.memberUserId,"memberUserId");
   const result=await db.runTransaction(async tx=>{
     const user=await assertLinkedMemberAuth(tx,memberUserId,authUid);
@@ -9108,7 +9108,7 @@ exports.syncMemberTitles = onCall({ region: REGION }, async request => {
     titleCount:result.titleCount,titleRewardCount:rewards.filter(r=>!r.duplicate).length,titleRewards:rewards};
 });
 
-exports.setSelectedMemberTitle = onCall({ region: REGION }, async request => {
+exports.setSelectedMemberTitle = onCall({ maxInstances: 20, region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
@@ -9157,7 +9157,7 @@ function wbNextTurn(room) {
   }
 }
 
-exports.wbDraw = onCall({ region: REGION }, async request => {
+exports.wbDraw = onCall({ maxInstances: 20, region: REGION }, async request => {
   const uid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   // 예열(ping): 낱말대전 페이지를 열 때 미리 호출해 콜드 스타트를 게임 시작 전에 치러 둔다
@@ -9235,7 +9235,7 @@ exports.wbDraw = onCall({ region: REGION }, async request => {
 
 // 매일 새벽 4시(한국): 만든 지 6시간 넘은 방을 하위 문서(secret/hands)까지 삭제
 exports.wbCleanupOldRooms = onSchedule(
-  { region: REGION, schedule: "0 4 * * *", timeZone: "Asia/Seoul" },
+  { maxInstances: 20, region: REGION, schedule: "0 4 * * *", timeZone: "Asia/Seoul" },
   async () => {
     const cutoff = Date.now() - WB_CLEANUP_AGE_MS;
     const snap = await db.collection("wordbattleRooms")
@@ -9260,8 +9260,8 @@ const growthQuests = require('./growth/quests').createService({db,FieldValue,Err
  applyXp:(tx,options)=>applyLevelXp(tx,{...options,caps:[]})
 });
 const {onDocumentCreated}=require('firebase-functions/v2/firestore');
-exports.ingestGrowthActivity=onDocumentCreated({document:'growthActivities/{id}',region:REGION,retry:true},event=>growthQuests.ingest(event.data.data()));
-exports.ingestPracticeGrowth=onDocumentCreated({document:'rewardLogs/{id}',region:REGION,retry:true},event=>{
+exports.ingestGrowthActivity=onDocumentCreated({ maxInstances: 100,document:'growthActivities/{id}',region:REGION,retry:true},event=>growthQuests.ingest(event.data.data()));
+exports.ingestPracticeGrowth=onDocumentCreated({ maxInstances: 100,document:'rewardLogs/{id}',region:REGION,retry:true},event=>{
  const r=event.data.data();if(r.type!=='practice_correct'||(!/^subject-(korean|math|social|science)$/.test(String(r.quizId))&&!require('./subject-quiz/curriculum').legacyQuizIds.includes(r.quizId)))return;
  return growthQuests.ingest({source:'practice:'+event.params.id,memberId:r.memberUserId,uid:r.authUid,quizId:r.quizId,counts:{practiceCorrect:1},time:r.createdAt.toMillis()});
 });
@@ -9272,8 +9272,8 @@ const specialRewards = require('./growth/special-rewards').createService({db,Fie
  authorizeAdmin:uid=>getAdminMemberForAuth(uid),
  applyXp:(tx,options)=>applyLevelXp(tx,{...options,caps:[]})
 });
-exports.specialRewardAction=onCall({region:REGION},request=>specialRewards.act(requireAuth(request),request.data||{}));
-exports.adminSpecialRewardAction=onCall({region:REGION},request=>specialRewards.admin(requireAuth(request),request.data||{}));
+exports.specialRewardAction=onCall({ maxInstances: 20,region:REGION},request=>specialRewards.act(requireAuth(request),request.data||{}));
+exports.adminSpecialRewardAction=onCall({ maxInstances: 20,region:REGION},request=>specialRewards.admin(requireAuth(request),request.data||{}));
 exports.survivorQuestQuiz=onCall({region:REGION,maxInstances:5},request=>survivorQuiz(request.auth?.uid,request.data||{}));
 
 const coordiCommerce=require('./coordi-shop/commerce').createService({db,FieldValue,ErrorType:HttpsError,authorize:assertLinkedMemberAuth});
@@ -9285,11 +9285,11 @@ exports.adminGrowthSeasonPlan = onCall({region:REGION}, async request=>{
 });
 
 const seasonDrafts=require('./growth/season-draft').createService({db,FieldValue,ErrorType:HttpsError});
-exports.adminSeasonEventDraft=onCall({region:REGION},async request=>{
+exports.adminSeasonEventDraft=onCall({ maxInstances: 100,region:REGION},async request=>{
  const admin=await getAdminMemberForAuth(requireAuth(request));assertSuperAdmin(admin);
  throw new HttpsError('failed-precondition','시즌 이벤트 기능이 종료되었습니다.');
 });
-exports.prepareMonthlySeasonDraft=onSchedule({region:REGION,schedule:'0 0 1 * *',timeZone:'Asia/Seoul'},async()=>({retired:true}));
+exports.prepareMonthlySeasonDraft=onSchedule({ maxInstances: 100,region:REGION,schedule:'0 0 1 * *',timeZone:'Asia/Seoul'},async()=>({retired:true}));
 
 // Securities C/D: the explicit 4-8 pilot is separate from other classroom deployments.
 Object.assign(exports, require('./classroom/securities/production').register({
