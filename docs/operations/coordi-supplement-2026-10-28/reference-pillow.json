@@ -1,0 +1,817 @@
+{
+  "ok": true,
+  "cases": [
+    {
+      "id": "basic-stand1",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-stand2",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk1",
+      "ok": true,
+      "expectedSize": [
+        51,
+        92
+      ],
+      "actualSize": [
+        51,
+        92
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-walk2",
+      "ok": true,
+      "expectedSize": [
+        51,
+        92
+      ],
+      "actualSize": [
+        51,
+        92
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-sit",
+      "ok": true,
+      "expectedSize": [
+        49,
+        91
+      ],
+      "actualSize": [
+        49,
+        91
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "basic-jump",
+      "ok": true,
+      "expectedSize": [
+        49,
+        92
+      ],
+      "actualSize": [
+        49,
+        92
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "female-hair-61050",
+      "ok": true,
+      "expectedSize": [
+        85,
+        98
+      ],
+      "actualSize": [
+        85,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "unsupported-current-female-hair",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hat-occlusion",
+      "ok": true,
+      "expectedSize": [
+        63,
+        97
+      ],
+      "actualSize": [
+        63,
+        97
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "overall-shoes-weapon",
+      "ok": true,
+      "expectedSize": [
+        92,
+        90
+      ],
+      "actualSize": [
+        92,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape",
+      "ok": true,
+      "expectedSize": [
+        62,
+        90
+      ],
+      "actualSize": [
+        62,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "fixed-emotion",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-4",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-9",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-48",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-50",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-mix-100",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "face-mix-63",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair-face-mix",
+      "ok": true,
+      "expectedSize": [
+        60,
+        98
+      ],
+      "actualSize": [
+        60,
+        98
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape-prism",
+      "ok": true,
+      "expectedSize": [
+        62,
+        90
+      ],
+      "actualSize": [
+        62,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "skin-prism",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "legacy-color",
+      "ok": true,
+      "expectedSize": [
+        63,
+        97
+      ],
+      "actualSize": [
+        63,
+        97
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-1",
+      "ok": true,
+      "expectedSize": [
+        63,
+        90
+      ],
+      "actualSize": [
+        63,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-2",
+      "ok": true,
+      "expectedSize": [
+        69,
+        90
+      ],
+      "actualSize": [
+        69,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "ears-3",
+      "ok": true,
+      "expectedSize": [
+        65,
+        90
+      ],
+      "actualSize": [
+        65,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "flip",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "invisible-hat",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "primary-cape-1103400",
+      "ok": true,
+      "expectedSize": [
+        215,
+        243
+      ],
+      "actualSize": [
+        215,
+        243
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "primary-female-31000",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "primary-female-31000-skin-prism",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-stand1",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-stand1",
+      "ok": true,
+      "expectedSize": [
+        215,
+        243
+      ],
+      "actualSize": [
+        215,
+        243
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-stand2",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-stand2",
+      "ok": true,
+      "expectedSize": [
+        215,
+        243
+      ],
+      "actualSize": [
+        215,
+        243
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-walk1",
+      "ok": true,
+      "expectedSize": [
+        74,
+        91
+      ],
+      "actualSize": [
+        74,
+        91
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-walk1",
+      "ok": true,
+      "expectedSize": [
+        211,
+        245
+      ],
+      "actualSize": [
+        211,
+        245
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-walk2",
+      "ok": true,
+      "expectedSize": [
+        74,
+        91
+      ],
+      "actualSize": [
+        74,
+        91
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-walk2",
+      "ok": true,
+      "expectedSize": [
+        211,
+        245
+      ],
+      "actualSize": [
+        211,
+        245
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-sit",
+      "ok": true,
+      "expectedSize": [
+        72,
+        88
+      ],
+      "actualSize": [
+        72,
+        88
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-sit",
+      "ok": true,
+      "expectedSize": [
+        203,
+        251
+      ],
+      "actualSize": [
+        203,
+        251
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-jump",
+      "ok": true,
+      "expectedSize": [
+        72,
+        91
+      ],
+      "actualSize": [
+        72,
+        91
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-jump",
+      "ok": true,
+      "expectedSize": [
+        209,
+        249
+      ],
+      "actualSize": [
+        209,
+        249
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-0",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-1",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-2",
+      "ok": true,
+      "expectedSize": [
+        77,
+        89
+      ],
+      "actualSize": [
+        77,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-ear-3",
+      "ok": true,
+      "expectedSize": [
+        77,
+        89
+      ],
+      "actualSize": [
+        77,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2001",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2002",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2003",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2004",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2009",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2010",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-skin-2011",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "hair31000-flip",
+      "ok": true,
+      "expectedSize": [
+        78,
+        89
+      ],
+      "actualSize": [
+        78,
+        89
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "cape1103400-prism",
+      "ok": true,
+      "expectedSize": [
+        215,
+        243
+      ],
+      "actualSize": [
+        215,
+        243
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "reveal-1042483-matched",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "reveal-1062323-matched",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    },
+    {
+      "id": "reveal-1054818-matched",
+      "ok": true,
+      "expectedSize": [
+        55,
+        90
+      ],
+      "actualSize": [
+        55,
+        90
+      ],
+      "changedPixels": 0,
+      "maxChannelError": 0
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "scope": "Loopback HTTP Node; not Cloud Run cold start or production latency",
+  "look": {
+    "gender": 1,
+    "itemCode": {
+      "skin": 12000,
+      "hair": 31000,
+      "face": 21000
+    },
+    "itemPrism": {}
+  },
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "node": "v22.23.4",
+  "coldMs": 100.47341699999998,
+  "warmMs": 1.330459000000019,
+  "coldAssetRequests": 14,
+  "coldAssetBytes": 1895899,
+  "warmAdditionalRequests": 0,
+  "parallel8Ms": [
+    16.299374999999998,
+    16.86137500000001,
+    25.908916000000005,
+    26.195625000000007,
+    32.993041000000005,
+    32.816374999999994,
+    38.83416600000001,
+    38.66395800000001
+  ],
+  "stats": {
+    "requests": 14,
+    "bytes": 1895899,
+    "hits": 230,
+    "cachedBytes": 3717320,
+    "entries": 14,
+    "pending": 0,
+    "active": 0,
+    "queued": 0,
+    "process": {
+      "node": "v22.23.4",
+      "memory": {
+        "rss": 110297088,
+        "heapTotal": 31604736,
+        "heapUsed": 13278984,
+        "external": 4201460,
+        "arrayBuffers": 685280
+      }
+    }
+  }
+}

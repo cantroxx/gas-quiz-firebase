@@ -1,0 +1,28 @@
+{
+  "parentSnapshot": "7B05F3B49BDF2B2DBD868F0C932BE1C9D8C5A22AD47A6CB8FE09F41A3A1EC1A3",
+  "sourceSnapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "sourceKey": "local-wz/v2/252590050BBCC90ACF5BDC07BBCA6E2016076EDD584E8083275F1323086C2DF2",
+  "sourceManifestSha256": "1c55ec2754b32b4cf348e338d20e3dec55cbd03e4bbaa82fdcd4f1c80f1e508b",
+  "changedItemIds": [
+    31000,
+    1103400
+  ],
+  "webManifestSha256": "bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195",
+  "parentWebManifestSha256": "170e2cc0d4e68209947770f141809f17ceaa5723e52020da188527fe39344a35",
+  "changedWebFiles": [
+    "web/catalog/cape/0005.json",
+    "web/catalog/hair/0004.json",
+    "web/index/items/1103.json",
+    "web/index/items/31.json",
+    "web/manifest.json",
+    "web/parts/04/043E348B9E6AC758EDE5B015D2E0F82F3F556414AC8675A4685D4B1BA5792F38.json.gz",
+    "web/parts/36/369AA1B3B8A0DD7B458A77D0D812D56367651789941979A65B6151D8C3FDA834.json.gz"
+  ],
+  "remainingPrimaryItemIds": [
+    1032331,
+    1073469,
+    1103862,
+    1102039,
+    1703421
+  ]
+}

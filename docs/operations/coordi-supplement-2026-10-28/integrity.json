@@ -1,0 +1,651 @@
+{
+  "ok": true,
+  "version": {
+    "parentSnapshot": "7B05F3B49BDF2B2DBD868F0C932BE1C9D8C5A22AD47A6CB8FE09F41A3A1EC1A3",
+    "sourceSnapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+    "sourceKey": "local-wz/v2/252590050BBCC90ACF5BDC07BBCA6E2016076EDD584E8083275F1323086C2DF2",
+    "sourceManifestSha256": "1c55ec2754b32b4cf348e338d20e3dec55cbd03e4bbaa82fdcd4f1c80f1e508b",
+    "changedItemIds": [
+      31000,
+      1103400
+    ],
+    "webManifestSha256": "bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195",
+    "parentWebManifestSha256": "170e2cc0d4e68209947770f141809f17ceaa5723e52020da188527fe39344a35",
+    "changedWebFiles": [
+      "web/catalog/cape/0005.json",
+      "web/catalog/hair/0004.json",
+      "web/index/items/1103.json",
+      "web/index/items/31.json",
+      "web/manifest.json",
+      "web/parts/04/043E348B9E6AC758EDE5B015D2E0F82F3F556414AC8675A4685D4B1BA5792F38.json.gz",
+      "web/parts/36/369AA1B3B8A0DD7B458A77D0D812D56367651789941979A65B6151D8C3FDA834.json.gz"
+    ],
+    "remainingPrimaryItemIds": [
+      1032331,
+      1073469,
+      1103862,
+      1102039,
+      1703421
+    ]
+  },
+  "changedWebFiles": [
+    "web/catalog/cape/0005.json",
+    "web/catalog/hair/0004.json",
+    "web/index/items/1103.json",
+    "web/index/items/31.json",
+    "web/manifest.json",
+    "web/parts/04/043E348B9E6AC758EDE5B015D2E0F82F3F556414AC8675A4685D4B1BA5792F38.json.gz",
+    "web/parts/36/369AA1B3B8A0DD7B458A77D0D812D56367651789941979A65B6151D8C3FDA834.json.gz"
+  ],
+  "changedItems": [
+    31000,
+    1103400
+  ],
+  "originalRgbaExact": [
+    "basic-stand1",
+    "basic-stand2",
+    "basic-walk1",
+    "basic-walk2",
+    "basic-sit",
+    "basic-jump",
+    "female-hair-61050",
+    "hat-occlusion",
+    "overall-shoes-weapon",
+    "cape",
+    "fixed-emotion",
+    "hair-mix-4",
+    "hair-mix-9",
+    "hair-mix-48",
+    "hair-mix-50",
+    "hair-mix-100",
+    "face-mix-63",
+    "hair-face-mix",
+    "cape-prism",
+    "skin-prism",
+    "legacy-color",
+    "ears-1",
+    "ears-2",
+    "ears-3",
+    "flip",
+    "invisible-hat"
+  ],
+  "capeMarkerPreserved": [
+    {
+      "action": "stand1",
+      "alpha": 17,
+      "spriteCount": 2
+    },
+    {
+      "action": "stand2",
+      "alpha": 17,
+      "spriteCount": 2
+    },
+    {
+      "action": "walk1",
+      "alpha": 17,
+      "spriteCount": 2
+    },
+    {
+      "action": "walk2",
+      "alpha": 17,
+      "spriteCount": 2
+    },
+    {
+      "action": "sit",
+      "alpha": 17,
+      "spriteCount": 2
+    },
+    {
+      "action": "jump",
+      "alpha": 17,
+      "spriteCount": 2
+    }
+  ],
+  "rawPngEvidence": [
+    {
+      "file": "1032331-0.png",
+      "path": "01032331.img\\default\\default",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "8e00d1c0c8ffe94540e534e256d4589be3e3865dc0559a732697aef38a364e83"
+    },
+    {
+      "file": "1032331-effect-1.png",
+      "path": "ItemEff.img\\1032331\\effect\\default\\0",
+      "width": 12,
+      "height": 12,
+      "rgbaSha256": "aa384ae089a52ac341e063d3f8d1f2b4a7e191d26271c734f65f5cb6af4ba22d"
+    },
+    {
+      "file": "1032331-effect-2.png",
+      "path": "ItemEff.img\\1032331\\effect\\ladder\\0",
+      "width": 12,
+      "height": 12,
+      "rgbaSha256": "428990f70f6212b0f2e16b35918bd45d5a5c5c7408224e2d627f6d9a9b324372"
+    },
+    {
+      "file": "1073469-effect-3.png",
+      "path": "ItemEff.img\\1073469\\effect\\default\\0",
+      "width": 40,
+      "height": 15,
+      "rgbaSha256": "97f7407cf12e3adc5ed5c1d956e41b91d9dabf824c65604f1ee58f9f96a268f7"
+    },
+    {
+      "file": "1073469-effect-4.png",
+      "path": "ItemEff.img\\1073469\\effect\\backDefault\\0",
+      "width": 38,
+      "height": 16,
+      "rgbaSha256": "803e4bebe9c9fa969a6d8fd849c43dda03e8a4f0ab3600234a912df0166b8155"
+    },
+    {
+      "file": "1073469-effect-5.png",
+      "path": "ItemEff.img\\1073469\\effect\\walk1\\0",
+      "width": 36,
+      "height": 14,
+      "rgbaSha256": "75f252e5a34defb61b822a86e9e3f897846b267fd745606b02914ad80c74c953"
+    },
+    {
+      "file": "1103400-6.png",
+      "path": "01103400.img\\default\\default",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "8e00d1c0c8ffe94540e534e256d4589be3e3865dc0559a732697aef38a364e83"
+    },
+    {
+      "file": "1103400-7.png",
+      "path": "01103400.img\\stand1\\0\\cape",
+      "width": 60,
+      "height": 37,
+      "rgbaSha256": "cf7c6345b5d6c947dbcb52f085ed168eca0fc965f2bf3182f07e990176071358"
+    },
+    {
+      "file": "1103400-8.png",
+      "path": "01103400.img\\stand1\\0\\capeOverHead",
+      "width": 46,
+      "height": 31,
+      "rgbaSha256": "538be1f71e31b49e88f0f7011768680dc4e23b8c7f1317e5ef1d08e1bf9f38ef"
+    },
+    {
+      "file": "1103400-effect-9.png",
+      "path": "ItemEff.img\\1103400\\effect\\default\\0",
+      "width": 183,
+      "height": 191,
+      "rgbaSha256": "fef5c42c4d4098fde9a51e4b0be3b09666e2426945cc99440e2898dda374b399"
+    },
+    {
+      "file": "1103400-effect-10.png",
+      "path": "ItemEff.img\\1103400\\effect\\ladder\\0",
+      "width": 183,
+      "height": 191,
+      "rgbaSha256": "fef5c42c4d4098fde9a51e4b0be3b09666e2426945cc99440e2898dda374b399"
+    },
+    {
+      "file": "1103400-effect-11.png",
+      "path": "ItemEff.img\\1103400\\effect\\proneStab\\0",
+      "width": 183,
+      "height": 191,
+      "rgbaSha256": "fef5c42c4d4098fde9a51e4b0be3b09666e2426945cc99440e2898dda374b399"
+    },
+    {
+      "file": "1103862-12.png",
+      "path": "01103862.img\\default\\default",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "8e00d1c0c8ffe94540e534e256d4589be3e3865dc0559a732697aef38a364e83"
+    },
+    {
+      "file": "1103862-effect-13.png",
+      "path": "ItemEff.img\\1103862\\effect\\default\\0",
+      "width": 152,
+      "height": 136,
+      "rgbaSha256": "f77c01a8c0b578bc1dcda50e64261abfc36308aaa3463215d72bf23bb84a888b"
+    },
+    {
+      "file": "1703421-14.png",
+      "path": "01703421.img\\30\\walk1\\0\\weapon",
+      "width": 17,
+      "height": 19,
+      "rgbaSha256": "413825be9bdf010ad3ca4aa39d445b681fce0ed3a83b36846a0ff1a060b9eab7"
+    },
+    {
+      "file": "1703421-15.png",
+      "path": "01703421.img\\30\\walk1\\0\\effect",
+      "width": 69,
+      "height": 41,
+      "rgbaSha256": "c4d31acceabf9a357692ce4c796c475abd0f0ee223c369df2fd78430a89b304b"
+    },
+    {
+      "file": "1703421-16.png",
+      "path": "01703421.img\\30\\walk2\\0\\weapon",
+      "width": 20,
+      "height": 19,
+      "rgbaSha256": "614730946572b52682450ac8fae486dce3babb8ffc0a10c59640fa34808c7991"
+    },
+    {
+      "file": "1703421-17.png",
+      "path": "01703421.img\\30\\walk2\\0\\effect",
+      "width": 69,
+      "height": 41,
+      "rgbaSha256": "c4d31acceabf9a357692ce4c796c475abd0f0ee223c369df2fd78430a89b304b"
+    },
+    {
+      "file": "1703421-18.png",
+      "path": "01703421.img\\30\\stand1\\0\\weapon",
+      "width": 17,
+      "height": 19,
+      "rgbaSha256": "413825be9bdf010ad3ca4aa39d445b681fce0ed3a83b36846a0ff1a060b9eab7"
+    },
+    {
+      "file": "1703421-19.png",
+      "path": "01703421.img\\30\\stand1\\0\\effect",
+      "width": 86,
+      "height": 41,
+      "rgbaSha256": "f8149696d30a84870b7d04620aaef5c5bf60bd6a58ca1e9b3761ea9671f52551"
+    },
+    {
+      "file": "1703421-20.png",
+      "path": "01703421.img\\30\\stand2\\0\\weapon",
+      "width": 20,
+      "height": 19,
+      "rgbaSha256": "614730946572b52682450ac8fae486dce3babb8ffc0a10c59640fa34808c7991"
+    },
+    {
+      "file": "1703421-21.png",
+      "path": "01703421.img\\30\\stand2\\0\\effect",
+      "width": 86,
+      "height": 41,
+      "rgbaSha256": "f8149696d30a84870b7d04620aaef5c5bf60bd6a58ca1e9b3761ea9671f52551"
+    },
+    {
+      "file": "1703421-22.png",
+      "path": "01703421.img\\30\\alert\\0\\weapon",
+      "width": 19,
+      "height": 20,
+      "rgbaSha256": "6681e12971cbfc69009cba012bbce272f7adf84d9cbe21f4462cc92c4c41e4ee"
+    },
+    {
+      "file": "1703421-23.png",
+      "path": "01703421.img\\30\\alert\\0\\effect",
+      "width": 59,
+      "height": 64,
+      "rgbaSha256": "15211af2e8fc8704a5d920a51e94f48fdd866b3679a830c368af7d87d4e0a581"
+    },
+    {
+      "file": "1703421-24.png",
+      "path": "01703421.img\\30\\swingO1\\0\\weapon",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "file": "1703421-25.png",
+      "path": "01703421.img\\30\\swingO1\\0\\effect",
+      "width": 102,
+      "height": 107,
+      "rgbaSha256": "06df272db471013db1a3b6922a4776f9c881d59780501d2541d5d425c1f20c58"
+    },
+    {
+      "file": "1703421-26.png",
+      "path": "01703421.img\\30\\swingO2\\0\\weapon",
+      "width": 20,
+      "height": 20,
+      "rgbaSha256": "72a12e7fca98b34b366ec73a219951d7743317165070ea77d2c1d81b904a48f7"
+    },
+    {
+      "file": "1703421-27.png",
+      "path": "01703421.img\\30\\swingO2\\0\\effect",
+      "width": 62,
+      "height": 71,
+      "rgbaSha256": "c72492d505a21923be890b0d370c11570fcbcf38b1b29f194a1c4377eaafe0b1"
+    },
+    {
+      "file": "1703421-28.png",
+      "path": "01703421.img\\30\\swingO3\\0\\weapon",
+      "width": 20,
+      "height": 17,
+      "rgbaSha256": "876435052c9445c9db827c32e65940e1df216fe52bad43be62101d3231f397e4"
+    },
+    {
+      "file": "1703421-29.png",
+      "path": "01703421.img\\30\\swingO3\\0\\effect",
+      "width": 62,
+      "height": 71,
+      "rgbaSha256": "39fe1e610591553859f78ff6a922b0bbb1e634469b45cfc48f530dd0d81736af"
+    },
+    {
+      "file": "1703421-30.png",
+      "path": "01703421.img\\30\\swingOF\\0\\weapon",
+      "width": 20,
+      "height": 20,
+      "rgbaSha256": "1f68830a6824796437beeb753f6dc29c24ab6ee526322e00df58912476fab818"
+    },
+    {
+      "file": "1703421-31.png",
+      "path": "01703421.img\\30\\swingOF\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "419e6a065795fe9ba91e7cd9a5e2c701159e9b8a9ce880d976a9adb2143e6a5c"
+    },
+    {
+      "file": "1703421-32.png",
+      "path": "01703421.img\\30\\swingT1\\0\\weapon",
+      "width": 20,
+      "height": 20,
+      "rgbaSha256": "8c76b715b78eb77fb2c534278ad3b084dc82c47398719121444e7523873c1251"
+    },
+    {
+      "file": "1703421-33.png",
+      "path": "01703421.img\\30\\swingT1\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "419e6a065795fe9ba91e7cd9a5e2c701159e9b8a9ce880d976a9adb2143e6a5c"
+    },
+    {
+      "file": "1703421-34.png",
+      "path": "01703421.img\\30\\swingT2\\0\\weapon",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "file": "1703421-35.png",
+      "path": "01703421.img\\30\\swingT2\\0\\effect",
+      "width": 62,
+      "height": 71,
+      "rgbaSha256": "39fe1e610591553859f78ff6a922b0bbb1e634469b45cfc48f530dd0d81736af"
+    },
+    {
+      "file": "1703421-36.png",
+      "path": "01703421.img\\30\\swingT3\\0\\weapon",
+      "width": 20,
+      "height": 20,
+      "rgbaSha256": "1f68830a6824796437beeb753f6dc29c24ab6ee526322e00df58912476fab818"
+    },
+    {
+      "file": "1703421-37.png",
+      "path": "01703421.img\\30\\swingT3\\0\\effect",
+      "width": 71,
+      "height": 62,
+      "rgbaSha256": "47e27ce35b9306b5ed6221ea9bccea1237409f9ead94b2c6ae5a9826861335c1"
+    },
+    {
+      "file": "1703421-38.png",
+      "path": "01703421.img\\30\\swingTF\\0\\weapon",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "file": "1703421-39.png",
+      "path": "01703421.img\\30\\swingTF\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "419e6a065795fe9ba91e7cd9a5e2c701159e9b8a9ce880d976a9adb2143e6a5c"
+    },
+    {
+      "file": "1703421-40.png",
+      "path": "01703421.img\\30\\swingP1\\0\\weapon",
+      "width": 20,
+      "height": 20,
+      "rgbaSha256": "8c76b715b78eb77fb2c534278ad3b084dc82c47398719121444e7523873c1251"
+    },
+    {
+      "file": "1703421-41.png",
+      "path": "01703421.img\\30\\swingP1\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "419e6a065795fe9ba91e7cd9a5e2c701159e9b8a9ce880d976a9adb2143e6a5c"
+    },
+    {
+      "file": "1703421-42.png",
+      "path": "01703421.img\\30\\swingP2\\0\\weapon",
+      "width": 20,
+      "height": 19,
+      "rgbaSha256": "614730946572b52682450ac8fae486dce3babb8ffc0a10c59640fa34808c7991"
+    },
+    {
+      "file": "1703421-43.png",
+      "path": "01703421.img\\30\\swingP2\\0\\effect",
+      "width": 62,
+      "height": 71,
+      "rgbaSha256": "39fe1e610591553859f78ff6a922b0bbb1e634469b45cfc48f530dd0d81736af"
+    },
+    {
+      "file": "1703421-44.png",
+      "path": "01703421.img\\30\\swingPF\\0\\weapon",
+      "width": 17,
+      "height": 20,
+      "rgbaSha256": "f3c353f786b3f373082372025b6c08105ccb07b3e28ffe2b8e4180a7abfc7813"
+    },
+    {
+      "file": "1703421-45.png",
+      "path": "01703421.img\\30\\swingPF\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "fa5769c32721af12d4f6e1563773caa051c496bf246b45db5fb2c18f0404180d"
+    },
+    {
+      "file": "1703421-46.png",
+      "path": "01703421.img\\30\\stabO1\\0\\weapon",
+      "width": 17,
+      "height": 19,
+      "rgbaSha256": "413825be9bdf010ad3ca4aa39d445b681fce0ed3a83b36846a0ff1a060b9eab7"
+    },
+    {
+      "file": "1703421-47.png",
+      "path": "01703421.img\\30\\stabO1\\0\\effect",
+      "width": 87,
+      "height": 48,
+      "rgbaSha256": "933d98b510592c5d4411d83a9b74c42dfd06aa146da274c2399ef69b0b1253d2"
+    },
+    {
+      "file": "1703421-48.png",
+      "path": "01703421.img\\30\\stabO2\\0\\weapon",
+      "width": 19,
+      "height": 17,
+      "rgbaSha256": "06e3e417240abe486d48121891dbcedc6d2c3a414c760267d8b5cc38a032edc8"
+    },
+    {
+      "file": "1703421-49.png",
+      "path": "01703421.img\\30\\stabO2\\0\\effect",
+      "width": 95,
+      "height": 55,
+      "rgbaSha256": "09133e1a9dd1d5ee511d20030505aa1ef828bb094cd7520e45e306fd5321fe5f"
+    },
+    {
+      "file": "1703421-50.png",
+      "path": "01703421.img\\30\\stabOF\\0\\weapon",
+      "width": 17,
+      "height": 19,
+      "rgbaSha256": "413825be9bdf010ad3ca4aa39d445b681fce0ed3a83b36846a0ff1a060b9eab7"
+    },
+    {
+      "file": "1703421-51.png",
+      "path": "01703421.img\\30\\stabOF\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "fa5769c32721af12d4f6e1563773caa051c496bf246b45db5fb2c18f0404180d"
+    },
+    {
+      "file": "1703421-52.png",
+      "path": "01703421.img\\30\\stabT1\\0\\weapon",
+      "width": 20,
+      "height": 20,
+      "rgbaSha256": "1f68830a6824796437beeb753f6dc29c24ab6ee526322e00df58912476fab818"
+    },
+    {
+      "file": "1703421-53.png",
+      "path": "01703421.img\\30\\stabT1\\0\\effect",
+      "width": 71,
+      "height": 62,
+      "rgbaSha256": "47e27ce35b9306b5ed6221ea9bccea1237409f9ead94b2c6ae5a9826861335c1"
+    },
+    {
+      "file": "1703421-54.png",
+      "path": "01703421.img\\30\\stabT2\\0\\weapon",
+      "width": 19,
+      "height": 20,
+      "rgbaSha256": "6681e12971cbfc69009cba012bbce272f7adf84d9cbe21f4462cc92c4c41e4ee"
+    },
+    {
+      "file": "1703421-55.png",
+      "path": "01703421.img\\30\\stabT2\\0\\effect",
+      "width": 71,
+      "height": 62,
+      "rgbaSha256": "47e27ce35b9306b5ed6221ea9bccea1237409f9ead94b2c6ae5a9826861335c1"
+    },
+    {
+      "file": "1703421-56.png",
+      "path": "01703421.img\\30\\shoot1\\0\\weapon",
+      "width": 19,
+      "height": 17,
+      "rgbaSha256": "06e3e417240abe486d48121891dbcedc6d2c3a414c760267d8b5cc38a032edc8"
+    },
+    {
+      "file": "1703421-57.png",
+      "path": "01703421.img\\30\\shoot1\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "fa5769c32721af12d4f6e1563773caa051c496bf246b45db5fb2c18f0404180d"
+    },
+    {
+      "file": "1703421-58.png",
+      "path": "01703421.img\\30\\shoot2\\0\\weapon",
+      "width": 19,
+      "height": 17,
+      "rgbaSha256": "06e3e417240abe486d48121891dbcedc6d2c3a414c760267d8b5cc38a032edc8"
+    },
+    {
+      "file": "1703421-59.png",
+      "path": "01703421.img\\30\\shoot2\\0\\effect",
+      "width": 56,
+      "height": 56,
+      "rgbaSha256": "fa5769c32721af12d4f6e1563773caa051c496bf246b45db5fb2c18f0404180d"
+    },
+    {
+      "file": "1703421-60.png",
+      "path": "01703421.img\\30\\shootF\\0\\weapon",
+      "width": 19,
+      "height": 17,
+      "rgbaSha256": "06e3e417240abe486d48121891dbcedc6d2c3a414c760267d8b5cc38a032edc8"
+    },
+    {
+      "file": "1703421-61.png",
+      "path": "01703421.img\\30\\shootF\\0\\effect",
+      "width": 91,
+      "height": 103,
+      "rgbaSha256": "cf794e10eb4cbda549f24460a38355fc403c0cd521e037771b30956457993bd1"
+    },
+    {
+      "file": "1703421-62.png",
+      "path": "01703421.img\\30\\proneStab\\0\\weapon",
+      "width": 19,
+      "height": 17,
+      "rgbaSha256": "06e3e417240abe486d48121891dbcedc6d2c3a414c760267d8b5cc38a032edc8"
+    },
+    {
+      "file": "1703421-63.png",
+      "path": "01703421.img\\30\\proneStab\\0\\effect",
+      "width": 91,
+      "height": 57,
+      "rgbaSha256": "93ac7ccbaee33c5f729fe80e9b8a28863f8331452f16e1e6935180300c311e61"
+    },
+    {
+      "file": "1703421-64.png",
+      "path": "01703421.img\\30\\fly\\0\\weapon",
+      "width": 20,
+      "height": 19,
+      "rgbaSha256": "614730946572b52682450ac8fae486dce3babb8ffc0a10c59640fa34808c7991"
+    },
+    {
+      "file": "1703421-65.png",
+      "path": "01703421.img\\30\\fly\\0\\effect",
+      "width": 86,
+      "height": 41,
+      "rgbaSha256": "f8149696d30a84870b7d04620aaef5c5bf60bd6a58ca1e9b3761ea9671f52551"
+    },
+    {
+      "file": "1703421-66.png",
+      "path": "01703421.img\\30\\jump\\0\\weapon",
+      "width": 20,
+      "height": 19,
+      "rgbaSha256": "614730946572b52682450ac8fae486dce3babb8ffc0a10c59640fa34808c7991"
+    },
+    {
+      "file": "1703421-67.png",
+      "path": "01703421.img\\30\\jump\\0\\effect",
+      "width": 167,
+      "height": 181,
+      "rgbaSha256": "c1349d24df06039f09e55ae13d2297e0301817b2d2974601fbe782451fb0a588"
+    },
+    {
+      "file": "1703421-68.png",
+      "path": "01703421.img\\30\\sit\\0\\weapon",
+      "width": 19,
+      "height": 20,
+      "rgbaSha256": "6681e12971cbfc69009cba012bbce272f7adf84d9cbe21f4462cc92c4c41e4ee"
+    },
+    {
+      "file": "1703421-69.png",
+      "path": "01703421.img\\30\\sit\\0\\effect",
+      "width": 86,
+      "height": 41,
+      "rgbaSha256": "f8149696d30a84870b7d04620aaef5c5bf60bd6a58ca1e9b3761ea9671f52551"
+    },
+    {
+      "file": "1703421-70.png",
+      "path": "01703421.img\\30\\ladder\\0\\weapon",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "file": "1703421-71.png",
+      "path": "01703421.img\\30\\ladder\\0\\effect",
+      "width": 86,
+      "height": 41,
+      "rgbaSha256": "f8149696d30a84870b7d04620aaef5c5bf60bd6a58ca1e9b3761ea9671f52551"
+    },
+    {
+      "file": "1703421-72.png",
+      "path": "01703421.img\\30\\rope\\0\\weapon",
+      "width": 1,
+      "height": 1,
+      "rgbaSha256": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "file": "1703421-73.png",
+      "path": "01703421.img\\30\\rope\\0\\effect",
+      "width": 86,
+      "height": 41,
+      "rgbaSha256": "f8149696d30a84870b7d04620aaef5c5bf60bd6a58ca1e9b3761ea9671f52551"
+    },
+    {
+      "file": "31000-74.png",
+      "path": "00031000.img\\default\\hairOverHead",
+      "width": 54,
+      "height": 24,
+      "rgbaSha256": "2eda4ec820301a3817f1a7a44936d76b4600eb350c19be665e6e045bac873958"
+    },
+    {
+      "file": "31000-75.png",
+      "path": "00031000.img\\default\\hair",
+      "width": 35,
+      "height": 23,
+      "rgbaSha256": "f7b88830ba4fcfe76e0e8ae2487b0bc05173de664f0bedcdc973503c69bffbe3"
+    },
+    {
+      "file": "31000-76.png",
+      "path": "00031000.img\\default\\hairShade\\0",
+      "width": 35,
+      "height": 24,
+      "rgbaSha256": "b0d0f329c0d010517556cd4438f093d0fb9e322dfd9049d39ff338a795ad8010"
+    }
+  ],
+  "unknownWeaponLayerConfirmed": true,
+  "referenceCounts": {
+    "rendered": 58,
+    "rejected": 11
+  },
+  "scope": "Actual transferred bytes; no original WZ or Windows extractor guard rerun"
+}

@@ -1,0 +1,29 @@
+{
+  "femaleBaseline": "rendered",
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "metrics": {
+    "requests": 25,
+    "bytes": 4342549,
+    "hits": 182,
+    "cachedBytes": 8935766,
+    "entries": 25,
+    "pending": 0,
+    "active": 0,
+    "queued": 0,
+    "process": {
+      "node": "v22.23.4",
+      "memory": {
+        "rss": 143212544,
+        "heapTotal": 56705024,
+        "heapUsed": 34770616,
+        "external": 8890903,
+        "arrayBuffers": 5436249
+      }
+    }
+  },
+  "externalRequests": 0,
+  "surfacesIdentical": true,
+  "staleAccountDiscarded": true,
+  "staleSelectionDiscarded": true,
+  "legacyThumbnailRequests": 0
+}

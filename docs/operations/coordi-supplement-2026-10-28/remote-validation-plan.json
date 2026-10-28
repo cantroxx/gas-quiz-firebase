@@ -1,0 +1,51 @@
+{
+  "productionChangesApplied": false,
+  "modeInRepository": "official",
+  "candidateSnapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "manifestPin": "bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195",
+  "candidateLocalPath": "/tmp/coordi-supplement-results-20261028/release",
+  "candidateIsOverlayNotWholeSite": true,
+  "productionTargetsAfterSeparateApproval": {
+    "hostingSite": "dj48-quiztown-firebase",
+    "function": "asia-northeast3/renderCoordiShopPreview",
+    "doNotRedeploy": [
+      "coordiShopAction",
+      "firestore.rules",
+      "firestore.indexes.json",
+      "unrelated functions"
+    ],
+    "preserve": "Union with current Hosting manifest; retain existing assets and all Firestore/Storage records"
+  },
+  "remoteValidation": {
+    "status": "not-run",
+    "isolation": "Approved separate staging project/test accounts and Storage namespace; never exercise purchases on student production profiles",
+    "configGap": "runtime currently restricts asset origins to the two production Firebase hosts; approve/configure the actual staging origin before remote tests, do not allow arbitrary caller URLs",
+    "headers": [
+      "manifest HTTP200 + exact SHA256",
+      "gzip Content-Type application/octet-stream",
+      "gzip has no Content-Encoding",
+      "compressed bytes + decodedBytes exact",
+      "immutable Cache-Control for versioned assets",
+      "fresh runtime-config fetch"
+    ],
+    "performance": [
+      "Measure Node22 Cloud Run cold/warm p50/p95 and peak RSS under 1/2/8 concurrent requests",
+      "All supported inputs succeed inside callable 40s timeout",
+      "Check per-instance cache hits and version invalidation; no external renderer domain fetches"
+    ],
+    "integration": [
+      "fresh context with external coordi API/image domains blocked",
+      "first-entry female31000, try-on, saved looks, town, classroom",
+      "authenticated ownership/price/coupons/dye/save/restore and account switch",
+      "classroom Storage upload/download/reload using synthetic accounts",
+      "expected errors for remaining five, no silent item substitutions"
+    ]
+  },
+  "releaseGate": [
+    "Resolve remaining five or explicitly approve their documented limitations",
+    "Pass remote staging validation",
+    "Review exact Hosting union and Functions env together",
+    "Separate user approval before production deploy/mode change"
+  ],
+  "rollback": "Restore prior Hosting config/version and renderer mode; never modify student records"
+}

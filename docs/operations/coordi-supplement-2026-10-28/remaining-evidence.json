@@ -1,0 +1,952 @@
+[
+  {
+    "productId": "earring-1032331",
+    "request": {
+      "gender": 0,
+      "earType": 0,
+      "weaponMotion": 0,
+      "variation": 0,
+      "variationType": 0,
+      "weaponBaseEffect": 1,
+      "weaponJumpEffect": 1,
+      "weaponSpecialEffect": 1,
+      "capeEffect": 1,
+      "hideWeaponOnSkill": 1,
+      "capEffect": 1,
+      "floatEffect": 1,
+      "itemCode": {
+        "skin": 12000,
+        "face": 20000,
+        "hair": 30000,
+        "earring": 1032331,
+        "dress": 1042194,
+        "pants": 1062067
+      },
+      "itemPrism": {}
+    },
+    "actualError": "기준점이 없습니다.",
+    "details": {
+      "itemId": 1032331,
+      "action": "stand1"
+    },
+    "rawCharacterFile": "1032331-raw.json",
+    "pngs": [
+      {
+        "file": "1032331-0.png",
+        "sourcePath": "01032331.img\\default\\default",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1032331-effect-1.png",
+        "sourcePath": "ItemEff.img\\1032331\\effect\\default\\0",
+        "width": 12,
+        "height": 12
+      },
+      {
+        "file": "1032331-effect-2.png",
+        "sourcePath": "ItemEff.img\\1032331\\effect\\ladder\\0",
+        "width": 12,
+        "height": 12
+      }
+    ],
+    "effectControls": [
+      {
+        "path": "/1032331/effect/z",
+        "value": 0
+      },
+      {
+        "path": "/1032331/effect/default/z",
+        "value": 0
+      },
+      {
+        "path": "/1032331/effect/default/pos",
+        "value": 1
+      },
+      {
+        "path": "/1032331/effect/default/0/z",
+        "value": 0
+      },
+      {
+        "path": "/1032331/effect/ladder/z",
+        "value": -1
+      },
+      {
+        "path": "/1032331/effect/ladder/pos",
+        "value": 1
+      },
+      {
+        "path": "/1032331/effect/ladder/0/z",
+        "value": 0
+      },
+      {
+        "path": "/1032331/effect/action",
+        "value": 1
+      },
+      {
+        "path": "/1032331/effect/actionExceptRotation",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "productId": "shoes-1073469",
+    "request": {
+      "gender": 0,
+      "earType": 0,
+      "weaponMotion": 0,
+      "variation": 0,
+      "variationType": 0,
+      "weaponBaseEffect": 1,
+      "weaponJumpEffect": 1,
+      "weaponSpecialEffect": 1,
+      "capeEffect": 1,
+      "hideWeaponOnSkill": 1,
+      "capEffect": 1,
+      "floatEffect": 1,
+      "itemCode": {
+        "skin": 12000,
+        "face": 20000,
+        "hair": 30000,
+        "shoes": 1073469,
+        "dress": 1042194,
+        "pants": 1062067
+      },
+      "itemPrism": {}
+    },
+    "actualError": "이 아이템의 동작 데이터는 아직 지원하지 않습니다.",
+    "details": {
+      "itemId": 1073469,
+      "action": "stand1"
+    },
+    "rawCharacterFile": "1073469-raw.json",
+    "pngs": [
+      {
+        "file": "1073469-effect-3.png",
+        "sourcePath": "ItemEff.img\\1073469\\effect\\default\\0",
+        "width": 40,
+        "height": 15
+      },
+      {
+        "file": "1073469-effect-4.png",
+        "sourcePath": "ItemEff.img\\1073469\\effect\\backDefault\\0",
+        "width": 38,
+        "height": 16
+      },
+      {
+        "file": "1073469-effect-5.png",
+        "sourcePath": "ItemEff.img\\1073469\\effect\\walk1\\0",
+        "width": 36,
+        "height": 14
+      }
+    ],
+    "effectControls": [
+      {
+        "path": "/1073469/effect/fixed",
+        "value": 1
+      },
+      {
+        "path": "/1073469/effect/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/default/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/default/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/default/0/z",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/backDefault/z",
+        "value": -1
+      },
+      {
+        "path": "/1073469/effect/backDefault/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/backDefault/0/z",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/action",
+        "value": 1
+      },
+      {
+        "path": "/1073469/effect/actionExceptRotation",
+        "value": 1
+      },
+      {
+        "path": "/1073469/effect/walk1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/walk1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/walk1/0/z",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/walk2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/walk2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stand1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stand1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stand2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stand2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/alert/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/alert/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingO1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingO1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingO2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingO2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingO3/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingO3/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingOF/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingOF/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingT1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingT1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingT2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingT2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingT3/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingT3/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingTF/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingTF/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingP1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingP1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingP2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingP2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/swingPF/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/swingPF/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stabO1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stabO1/pos",
+        "value": 1
+      },
+      {
+        "path": "/1073469/effect/stabO2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stabO2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stabOF/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stabOF/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stabT1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stabT1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stabT2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stabT2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/stabTF/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/stabTF/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/shoot1/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/shoot1/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/shoot2/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/shoot2/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/shootF/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/shootF/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/proneStab/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/proneStab/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/prone/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/prone/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/heal/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/heal/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/fly/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/fly/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/jump/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/jump/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/sit/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/sit/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/ladder/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/ladder/pos",
+        "value": 0
+      },
+      {
+        "path": "/1073469/effect/rope/z",
+        "value": 2
+      },
+      {
+        "path": "/1073469/effect/rope/pos",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "productId": "cape-1103862",
+    "request": {
+      "gender": 0,
+      "earType": 0,
+      "weaponMotion": 0,
+      "variation": 0,
+      "variationType": 0,
+      "weaponBaseEffect": 1,
+      "weaponJumpEffect": 1,
+      "weaponSpecialEffect": 1,
+      "capeEffect": 1,
+      "hideWeaponOnSkill": 1,
+      "capEffect": 1,
+      "floatEffect": 1,
+      "itemCode": {
+        "skin": 12000,
+        "face": 20000,
+        "hair": 30000,
+        "cape": 1103862,
+        "dress": 1042194,
+        "pants": 1062067
+      },
+      "itemPrism": {}
+    },
+    "actualError": "이 아이템의 효과 이동 규칙은 아직 지원하지 않습니다.",
+    "details": {
+      "itemId": 1103862
+    },
+    "rawCharacterFile": "1103862-raw.json",
+    "pngs": [
+      {
+        "file": "1103862-12.png",
+        "sourcePath": "01103862.img\\default\\default",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1103862-effect-13.png",
+        "sourcePath": "ItemEff.img\\1103862\\effect\\default\\0",
+        "width": 152,
+        "height": 136
+      }
+    ],
+    "effectControls": [
+      {
+        "path": "/1103862/effect/fixed",
+        "value": 0
+      },
+      {
+        "path": "/1103862/effect/z",
+        "value": -2
+      },
+      {
+        "path": "/1103862/effect/default/z",
+        "value": -2
+      },
+      {
+        "path": "/1103862/effect/default/0/z",
+        "value": 0
+      },
+      {
+        "path": "/1103862/effect/action",
+        "value": 1
+      },
+      {
+        "path": "/1103862/effect/actionExceptRotation",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "productId": "cape-1102039",
+    "request": {
+      "gender": 0,
+      "earType": 0,
+      "weaponMotion": 0,
+      "variation": 0,
+      "variationType": 0,
+      "weaponBaseEffect": 1,
+      "weaponJumpEffect": 1,
+      "weaponSpecialEffect": 1,
+      "capeEffect": 1,
+      "hideWeaponOnSkill": 1,
+      "capEffect": 1,
+      "floatEffect": 1,
+      "itemCode": {
+        "skin": 12000,
+        "face": 20000,
+        "hair": 30000,
+        "cape": 1102039,
+        "dress": 1042194,
+        "pants": 1062067
+      },
+      "itemPrism": {}
+    },
+    "actualError": "이 아이템의 동작 데이터는 아직 지원하지 않습니다.",
+    "details": {
+      "itemId": 1102039,
+      "action": "stand1"
+    },
+    "rawCharacterFile": "1102039-raw.json",
+    "pngs": []
+  },
+  {
+    "productId": "weapon-1703421",
+    "request": {
+      "gender": 0,
+      "earType": 0,
+      "weaponMotion": 0,
+      "variation": 0,
+      "variationType": 0,
+      "weaponBaseEffect": 1,
+      "weaponJumpEffect": 1,
+      "weaponSpecialEffect": 1,
+      "capeEffect": 1,
+      "hideWeaponOnSkill": 1,
+      "capEffect": 1,
+      "floatEffect": 1,
+      "itemCode": {
+        "skin": 12000,
+        "face": 20000,
+        "hair": 30000,
+        "weapon": 1703421,
+        "dress": 1042194,
+        "pants": 1062067
+      },
+      "itemPrism": {}
+    },
+    "actualError": "아직 확인되지 않은 겹침 순서입니다.",
+    "details": {
+      "itemId": 1703421,
+      "position": "weaponBelowHand"
+    },
+    "rawCharacterFile": "1703421-raw.json",
+    "pngs": [
+      {
+        "file": "1703421-14.png",
+        "sourcePath": "01703421.img\\30\\walk1\\0\\weapon",
+        "width": 17,
+        "height": 19
+      },
+      {
+        "file": "1703421-15.png",
+        "sourcePath": "01703421.img\\30\\walk1\\0\\effect",
+        "width": 69,
+        "height": 41
+      },
+      {
+        "file": "1703421-16.png",
+        "sourcePath": "01703421.img\\30\\walk2\\0\\weapon",
+        "width": 20,
+        "height": 19
+      },
+      {
+        "file": "1703421-17.png",
+        "sourcePath": "01703421.img\\30\\walk2\\0\\effect",
+        "width": 69,
+        "height": 41
+      },
+      {
+        "file": "1703421-18.png",
+        "sourcePath": "01703421.img\\30\\stand1\\0\\weapon",
+        "width": 17,
+        "height": 19
+      },
+      {
+        "file": "1703421-19.png",
+        "sourcePath": "01703421.img\\30\\stand1\\0\\effect",
+        "width": 86,
+        "height": 41
+      },
+      {
+        "file": "1703421-20.png",
+        "sourcePath": "01703421.img\\30\\stand2\\0\\weapon",
+        "width": 20,
+        "height": 19
+      },
+      {
+        "file": "1703421-21.png",
+        "sourcePath": "01703421.img\\30\\stand2\\0\\effect",
+        "width": 86,
+        "height": 41
+      },
+      {
+        "file": "1703421-22.png",
+        "sourcePath": "01703421.img\\30\\alert\\0\\weapon",
+        "width": 19,
+        "height": 20
+      },
+      {
+        "file": "1703421-23.png",
+        "sourcePath": "01703421.img\\30\\alert\\0\\effect",
+        "width": 59,
+        "height": 64
+      },
+      {
+        "file": "1703421-24.png",
+        "sourcePath": "01703421.img\\30\\swingO1\\0\\weapon",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1703421-25.png",
+        "sourcePath": "01703421.img\\30\\swingO1\\0\\effect",
+        "width": 102,
+        "height": 107
+      },
+      {
+        "file": "1703421-26.png",
+        "sourcePath": "01703421.img\\30\\swingO2\\0\\weapon",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "file": "1703421-27.png",
+        "sourcePath": "01703421.img\\30\\swingO2\\0\\effect",
+        "width": 62,
+        "height": 71
+      },
+      {
+        "file": "1703421-28.png",
+        "sourcePath": "01703421.img\\30\\swingO3\\0\\weapon",
+        "width": 20,
+        "height": 17
+      },
+      {
+        "file": "1703421-29.png",
+        "sourcePath": "01703421.img\\30\\swingO3\\0\\effect",
+        "width": 62,
+        "height": 71
+      },
+      {
+        "file": "1703421-30.png",
+        "sourcePath": "01703421.img\\30\\swingOF\\0\\weapon",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "file": "1703421-31.png",
+        "sourcePath": "01703421.img\\30\\swingOF\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-32.png",
+        "sourcePath": "01703421.img\\30\\swingT1\\0\\weapon",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "file": "1703421-33.png",
+        "sourcePath": "01703421.img\\30\\swingT1\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-34.png",
+        "sourcePath": "01703421.img\\30\\swingT2\\0\\weapon",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1703421-35.png",
+        "sourcePath": "01703421.img\\30\\swingT2\\0\\effect",
+        "width": 62,
+        "height": 71
+      },
+      {
+        "file": "1703421-36.png",
+        "sourcePath": "01703421.img\\30\\swingT3\\0\\weapon",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "file": "1703421-37.png",
+        "sourcePath": "01703421.img\\30\\swingT3\\0\\effect",
+        "width": 71,
+        "height": 62
+      },
+      {
+        "file": "1703421-38.png",
+        "sourcePath": "01703421.img\\30\\swingTF\\0\\weapon",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1703421-39.png",
+        "sourcePath": "01703421.img\\30\\swingTF\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-40.png",
+        "sourcePath": "01703421.img\\30\\swingP1\\0\\weapon",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "file": "1703421-41.png",
+        "sourcePath": "01703421.img\\30\\swingP1\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-42.png",
+        "sourcePath": "01703421.img\\30\\swingP2\\0\\weapon",
+        "width": 20,
+        "height": 19
+      },
+      {
+        "file": "1703421-43.png",
+        "sourcePath": "01703421.img\\30\\swingP2\\0\\effect",
+        "width": 62,
+        "height": 71
+      },
+      {
+        "file": "1703421-44.png",
+        "sourcePath": "01703421.img\\30\\swingPF\\0\\weapon",
+        "width": 17,
+        "height": 20
+      },
+      {
+        "file": "1703421-45.png",
+        "sourcePath": "01703421.img\\30\\swingPF\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-46.png",
+        "sourcePath": "01703421.img\\30\\stabO1\\0\\weapon",
+        "width": 17,
+        "height": 19
+      },
+      {
+        "file": "1703421-47.png",
+        "sourcePath": "01703421.img\\30\\stabO1\\0\\effect",
+        "width": 87,
+        "height": 48
+      },
+      {
+        "file": "1703421-48.png",
+        "sourcePath": "01703421.img\\30\\stabO2\\0\\weapon",
+        "width": 19,
+        "height": 17
+      },
+      {
+        "file": "1703421-49.png",
+        "sourcePath": "01703421.img\\30\\stabO2\\0\\effect",
+        "width": 95,
+        "height": 55
+      },
+      {
+        "file": "1703421-50.png",
+        "sourcePath": "01703421.img\\30\\stabOF\\0\\weapon",
+        "width": 17,
+        "height": 19
+      },
+      {
+        "file": "1703421-51.png",
+        "sourcePath": "01703421.img\\30\\stabOF\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-52.png",
+        "sourcePath": "01703421.img\\30\\stabT1\\0\\weapon",
+        "width": 20,
+        "height": 20
+      },
+      {
+        "file": "1703421-53.png",
+        "sourcePath": "01703421.img\\30\\stabT1\\0\\effect",
+        "width": 71,
+        "height": 62
+      },
+      {
+        "file": "1703421-54.png",
+        "sourcePath": "01703421.img\\30\\stabT2\\0\\weapon",
+        "width": 19,
+        "height": 20
+      },
+      {
+        "file": "1703421-55.png",
+        "sourcePath": "01703421.img\\30\\stabT2\\0\\effect",
+        "width": 71,
+        "height": 62
+      },
+      {
+        "file": "1703421-56.png",
+        "sourcePath": "01703421.img\\30\\shoot1\\0\\weapon",
+        "width": 19,
+        "height": 17
+      },
+      {
+        "file": "1703421-57.png",
+        "sourcePath": "01703421.img\\30\\shoot1\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-58.png",
+        "sourcePath": "01703421.img\\30\\shoot2\\0\\weapon",
+        "width": 19,
+        "height": 17
+      },
+      {
+        "file": "1703421-59.png",
+        "sourcePath": "01703421.img\\30\\shoot2\\0\\effect",
+        "width": 56,
+        "height": 56
+      },
+      {
+        "file": "1703421-60.png",
+        "sourcePath": "01703421.img\\30\\shootF\\0\\weapon",
+        "width": 19,
+        "height": 17
+      },
+      {
+        "file": "1703421-61.png",
+        "sourcePath": "01703421.img\\30\\shootF\\0\\effect",
+        "width": 91,
+        "height": 103
+      },
+      {
+        "file": "1703421-62.png",
+        "sourcePath": "01703421.img\\30\\proneStab\\0\\weapon",
+        "width": 19,
+        "height": 17
+      },
+      {
+        "file": "1703421-63.png",
+        "sourcePath": "01703421.img\\30\\proneStab\\0\\effect",
+        "width": 91,
+        "height": 57
+      },
+      {
+        "file": "1703421-64.png",
+        "sourcePath": "01703421.img\\30\\fly\\0\\weapon",
+        "width": 20,
+        "height": 19
+      },
+      {
+        "file": "1703421-65.png",
+        "sourcePath": "01703421.img\\30\\fly\\0\\effect",
+        "width": 86,
+        "height": 41
+      },
+      {
+        "file": "1703421-66.png",
+        "sourcePath": "01703421.img\\30\\jump\\0\\weapon",
+        "width": 20,
+        "height": 19
+      },
+      {
+        "file": "1703421-67.png",
+        "sourcePath": "01703421.img\\30\\jump\\0\\effect",
+        "width": 167,
+        "height": 181
+      },
+      {
+        "file": "1703421-68.png",
+        "sourcePath": "01703421.img\\30\\sit\\0\\weapon",
+        "width": 19,
+        "height": 20
+      },
+      {
+        "file": "1703421-69.png",
+        "sourcePath": "01703421.img\\30\\sit\\0\\effect",
+        "width": 86,
+        "height": 41
+      },
+      {
+        "file": "1703421-70.png",
+        "sourcePath": "01703421.img\\30\\ladder\\0\\weapon",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1703421-71.png",
+        "sourcePath": "01703421.img\\30\\ladder\\0\\effect",
+        "width": 86,
+        "height": 41
+      },
+      {
+        "file": "1703421-72.png",
+        "sourcePath": "01703421.img\\30\\rope\\0\\weapon",
+        "width": 1,
+        "height": 1
+      },
+      {
+        "file": "1703421-73.png",
+        "sourcePath": "01703421.img\\30\\rope\\0\\effect",
+        "width": 86,
+        "height": 41
+      }
+    ]
+  }
+]

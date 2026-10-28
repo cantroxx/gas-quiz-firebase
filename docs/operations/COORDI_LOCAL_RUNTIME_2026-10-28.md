@@ -1,5 +1,7 @@
 # 코디룸 자체 데이터 런타임 후속 검증
 
+후속 Windows 보완 델타의 최신 결과는 [보완 검증 보고서](COORDI_SUPPLEMENT_2026-10-28.md)를 따른다.
+
 2026-10-28. 기준 `509687040e7afe5998daa8c919d83c75e6a31e1e`, 브랜치 `codex/coordi-local-runtime`.
 저장소: https://github.com/cantroxx/gas-quiz-firebase . 구현 커밋: `0ece356f6dfd439be58398479b2fcf4a73c970a8`. 이 문서는 이전 `COORDI_WINDOWS_INTEGRATION_2026-10-28.md`의 후속 상태다. 최종 전체 커밋 SHA와 push 결과는 최종 인계 메시지에 기록한다.
 

@@ -1,0 +1,116 @@
+{
+  "baseCommit": "2454d07dabe71499c84421977c447920701c514c",
+  "branch": "codex/coordi-local-runtime",
+  "verifiedAt": "2026-10-28T14:51:27.928036+00:00",
+  "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+  "manifestPin": "bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195",
+  "runtime": "v22.23.4",
+  "productionDeployed": false,
+  "productionMode": "official",
+  "fullCheck": {
+    "command": "PATH=/tmp/coordi-supplement-node22/bin:$PATH npm run check",
+    "finalExitCode": 0,
+    "subjectScreens": 2502,
+    "firstAttempt": {
+      "exitCode": 1,
+      "stage": "classroom-board-browser.js:51 new blank page setContent timeout30s"
+    },
+    "retry": "Full run without other Chrome tasks; all passed; unrelated test source unchanged"
+  },
+  "bundle": {
+    "ok": true,
+    "verifiedFiles": 64283,
+    "bytes": 324366322,
+    "catalogItems": 31599,
+    "seconds": 4.36,
+    "failures": []
+  },
+  "reference": {
+    "node": {
+      "ok": true,
+      "cases": 69,
+      "rendered": 58,
+      "expectedRejections": 11
+    },
+    "http": {
+      "ok": true,
+      "cases": 69,
+      "rendered": 58,
+      "expectedRejections": 11
+    },
+    "browser": {
+      "ok": true,
+      "cases": 69,
+      "rendered": 58,
+      "expectedRejections": 11
+    }
+  },
+  "originalBundleRegression": {
+    "referenceCases": 30,
+    "passed": true,
+    "integration": "PASS"
+  },
+  "sale": {
+    "total": 1632,
+    "passed": 1627,
+    "failedIds": [
+      "earring-1032331",
+      "shoes-1073469",
+      "cape-1103862",
+      "cape-1102039",
+      "weapon-1703421"
+    ]
+  },
+  "saved": {
+    "scope": "Owner-free fixed projection from prior read-only production audit; not a fresh live scan",
+    "combinations": 10,
+    "passed": 10
+  },
+  "browserIntegration": {
+    "femaleBaseline": "rendered",
+    "snapshot": "1B0FD079043CC715E90E95376B2D3641B3E5DE3619C4156F0830C2B5362B1820",
+    "metrics": {
+      "requests": 25,
+      "bytes": 4342549,
+      "hits": 182,
+      "cachedBytes": 8935766,
+      "entries": 25,
+      "pending": 0,
+      "active": 0,
+      "queued": 0,
+      "process": {
+        "node": "v22.23.4",
+        "memory": {
+          "rss": 143212544,
+          "heapTotal": 56705024,
+          "heapUsed": 34770616,
+          "external": 8890903,
+          "arrayBuffers": 5436249
+        }
+      }
+    },
+    "externalRequests": 0,
+    "surfacesIdentical": true,
+    "staleAccountDiscarded": true,
+    "staleSelectionDiscarded": true,
+    "legacyThumbnailRequests": 0
+  },
+  "unit": [
+    "bundle-paths and child escape rejection",
+    "version pin and incomplete assembly rejection",
+    "original and supplement windows-integration"
+  ],
+  "notPerformed": [
+    "Production deployment or mode switch",
+    "Remote Firebase staging/Cloud Run/CDN validation",
+    "Real account and Storage upload integration",
+    "Original WZ extraction / Windows extractor guard rerun"
+  ],
+  "logs": {
+    "full-check-node22-retry.log": "0789361942cff62be2be13b008993bba4a6e602b64b22bac80fbbd4514408e96",
+    "shop-browser.log": "6b96cde53f860338c13547cb915e178564d6382b3156717cf43043df9ac76888",
+    "windows-integration.log": "6a650bc04f04b6087c7a84c54cbc32836f78c9dac7401f0e95f1b8600af7bb7b",
+    "assembly.log": "957c238ed5a033467021991dff8a5680c7948f3d662471a02b39d84d20ab3574"
+  },
+  "implementationCommit": "480273e77270677ed2aca9553d4deb7aecc2b0ff"
+}
