@@ -87,6 +87,7 @@ async function retry(fn){for(let i=0;;i++){try{return await fn();}catch(e){if(i=
   const sourceFiles=execFileSync('git',['ls-files','functions'],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(p=>!path.basename(p).startsWith('.env')).map(p=>p.slice(10));
   execFileSync('zip',['-q',zip,...sourceFiles],{cwd:path.join(root,'functions')});
   const sourceHashes=Object.fromEntries(sourceFiles.map(p=>[p,hash(fs.readFileSync(path.join(root,'functions',p)))]));write('function-source-hashes.json',sourceHashes);
+  write('function-candidate.json',{commit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),archiveSha256:hash(fs.readFileSync(zip)),sourceFiles:sourceFiles.length});
   const upload=(await f.post(`projects/${project}/locations/asia-northeast3/functions:generateUploadUrl`,{})).body;
   const result=await fetch(upload.uploadUrl,{method:'PUT',headers:{'Content-Type':'application/zip'},body:fs.readFileSync(zip)});assert(result.ok,'Source upload failed');
   const env={...before.serviceConfig.environmentVariables,COORDI_RENDERER_MODE:'local',COORDI_DATA_BASE_URL:`https://${project}.web.app${config.baseUrl}`,COORDI_DATA_SNAPSHOT:config.snapshot,COORDI_MANIFEST_SHA256:config.manifestSha256};
@@ -103,7 +104,7 @@ async function retry(fn){for(let i=0;;i++){try{return await fn();}catch(e){if(i=
   const oldOthers=read('before.json').functions.filter(x=>x.name!==name),others=(await allFunctions()).filter(x=>x.name!==name);assert.deepEqual(others.sort((a,b)=>a.name.localeCompare(b.name)),oldOthers.sort((a,b)=>a.name.localeCompare(b.name)),'Another function changed');
   const download=(await f.post(name+':generateDownloadUrl',{})).body.downloadUrl,r=await fetch(download);assert(r.ok);fs.writeFileSync(path.join(stage,'function-after.zip'),Buffer.from(await r.arrayBuffer()));execFileSync('unzip',['-oq',path.join(stage,'function-after.zip'),'-d',path.join(stage,'function-after')]);
   const hashes=read('function-source-hashes.json');for(const [p,sha]of Object.entries(hashes))assert.equal(hash(fs.readFileSync(path.join(stage,'function-after',p))),sha,p);
-  const receipt={at:new Date().toISOString(),name,revision:after.serviceConfig.revision,previousRevision:before.serviceConfig.revision,state:after.state,runtime:after.buildConfig.runtime,localMode:true,snapshot:config.snapshot,manifestSha256:config.manifestSha256,unchangedOtherFunctions:others.length,existingServiceSettingsPreserved:true,sourceFilesVerified:Object.keys(hashes).length};write('function-receipt.json',receipt);console.log(JSON.stringify(receipt));return;
+  const receipt={at:new Date().toISOString(),name,revision:after.serviceConfig.revision,previousRevision:before.serviceConfig.revision,state:after.state,runtime:after.buildConfig.runtime,localMode:true,snapshot:config.snapshot,manifestSha256:config.manifestSha256,unchangedOtherFunctions:others.length,existingServiceSettingsPreserved:true,sourceFilesVerified:Object.keys(hashes).length,candidate:read('function-candidate.json')};write('function-receipt.json',receipt);console.log(JSON.stringify(receipt));return;
  }
  if(command==='--verify'){
   const p=read('client-plan.json');assert.equal(versionKey((await live()).release.version.name),versionKey(p.version));assert.deepEqual(await manifest(p.version),p.files);assert.deepEqual((await h.get(p.version)).body.config,p.config);
