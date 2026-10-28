@@ -1,0 +1,154 @@
+/* Student card and diary surfaces; teacher workspaces keep their existing layout. */
+#classroom-view .classroom-diary-nav { margin-top:10px; min-height:44px; width:100%; border:1px solid #d5cff0; border-radius:16px; color:#6750aa; background:#f6efff; font:inherit; font-size:.9rem; cursor:pointer; }
+#classroom-view[data-classroom-role="student"][data-active-tab="today"] { background: radial-gradient(ellipse at 45% 5%,#fff0df,transparent 58%),radial-gradient(ellipse at 65% 95%,#ede8ff,transparent 60%),#f6fbf4; }
+#classroom-view .classroom-card-home { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr); gap:24px; color:#202844; }
+#classroom-view .classroom-card-home-main { min-width:0; display:grid; gap:16px; align-content:start; }
+#classroom-view .classroom-card-welcome p { color:#66708b; margin:0 0 7px; font-size:.88rem; }
+#classroom-view .classroom-card-welcome h3 { margin:0 0 5px; font-size:clamp(1.3rem,2.3vw,1.9rem); }
+#classroom-view .classroom-personal-card { padding:26px; border:1px solid #fff; border-radius:28px; background:linear-gradient(160deg,#fffdf8,#fff 60%); box-shadow:0 12px 36px #65528412; }
+#classroom-view .classroom-personal-profile { display:flex; justify-content:center; align-items:center; gap:22px; margin-bottom:26px; }
+#classroom-view .classroom-card-home .classroom-home-avatar { width:150px; height:150px; flex:0 0 150px; border-radius:28px; background:#f2ecff; border:3px solid #fff; box-shadow:0 3px 16px #63569e16; }
+#classroom-view .classroom-card-home .classroom-home-avatar.is-avatar img { object-fit:contain; image-rendering:pixelated; }
+#classroom-view .classroom-personal-identity { display:grid; gap:8px; min-width:0; }
+#classroom-view .classroom-personal-identity h4 { margin:0; font-size:1.4rem; overflow-wrap:anywhere; }
+#classroom-view .classroom-personal-identity small { font-size:.75rem; color:#69728b; }
+#classroom-view .classroom-image-source { font-size:.78rem; color:#6842be; }
+#classroom-view .classroom-card-home .classroom-portrait-edit { min-height:44px; background:#fff; border:1px solid #b9b4ef; border-radius:20px; color:#4d45c7; padding:8px 12px; font-size:.85rem; text-decoration:none; }
+#classroom-view .classroom-card-shortcuts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+#classroom-view .classroom-card-shortcuts button { display:grid; justify-items:center; gap:10px; padding:18px 6px; background:#fff0f5; border:0; border-radius:20px; color:#824465; min-width:0; }
+#classroom-view .classroom-card-shortcuts button:nth-child(2) { background:#f0edff; color:#514699; }
+#classroom-view .classroom-card-shortcuts button:nth-child(3) { background:#e9fbf3; color:#236b62; }
+#classroom-view .classroom-card-shortcuts button>span { font-size:2.5rem; line-height:1.3; }
+#classroom-view .classroom-card-shortcuts button>img { width:64px; height:64px; object-fit:contain; }
+#classroom-view .classroom-card-shortcuts strong { font-size:.9rem; }
+#classroom-view .classroom-card-wallet { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; border-top:1px solid #eceaf5; margin-top:20px; padding-top:14px; text-align:center; align-items:center; font-weight:700; }
+#classroom-view .classroom-card-wallet button { min-height:44px; background:none; border:0; color:#564cc6; padding:4px; font:inherit; }
+#classroom-view .classroom-card-wallet button:last-child { color:#13775b; }
+#classroom-view .classroom-diary-invite { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; min-height:78px; border:2px solid #fff; border-radius:22px; background:linear-gradient(100deg,#e1f5ff,#faf2ff); color:#38327f; padding:12px 16px; }
+#classroom-view .classroom-invite-sun { font-size:2.1rem; color:#d69d00; }
+#classroom-view .classroom-diary-invite>span:last-child { border-radius:20px; background:#6253dd; color:#fff; padding:12px 16px; font-size:.83rem; }
+#classroom-view .classroom-home-friends { background:#ffffffdc; border:1px solid #e4e5f1; border-radius:22px; padding:16px; }
+#classroom-view .classroom-home-friends p { font-size:.84rem; color:#647087; }
+#classroom-view .classroom-card-section-heading { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+#classroom-view .classroom-card-section-heading h4 { margin:0; }
+#classroom-view .classroom-card-section-heading button { border:0; background:#f0efff; border-radius:16px; color:#5549a7; min-height:44px; padding:6px 10px; }
+#classroom-view .classroom-friend-strip { display:flex; gap:10px; overflow-x:auto; padding-top:12px; }
+#classroom-view .classroom-friend-strip button { flex:0 0 72px; display:grid; justify-items:center; gap:5px; border:0; background:transparent; color:#424d65; font-size:.8rem; padding:0; }
+#classroom-view .classroom-friend-face { width:58px; height:58px; border-radius:18px; }
+#classroom-view .classroom-card-activities { display:grid; gap:14px; align-content:start; min-width:0; }
+#classroom-view .classroom-card-activities>h3 { margin:0 0 5px; font-size:1.2rem; }
+#classroom-view .classroom-activity-tile { display:block; text-align:left; border-radius:23px; border:1px solid #dfe8f4; padding:12px; color:#26365c; background:#edf7ff; min-width:0; overflow:hidden; }
+#classroom-view .classroom-activity-tile img { float:left; width:100px; height:100px; object-fit:contain; margin-right:8px; }
+#classroom-view .classroom-activity-tile strong { display:block; font-size:1rem; margin:12px 0 8px; }
+#classroom-view .classroom-activity-tile span { font-size:.8rem; }
+#classroom-view .classroom-activity-tile p { clear:both; font-size:.86rem; line-height:1.6; white-space:pre-wrap; margin:8px 0 0; overflow-wrap:anywhere; }
+#classroom-view .classroom-activity-tile summary { cursor:pointer; min-height:100px; list-style:none; }
+#classroom-view .classroom-activity-tile summary::after { content:'내용 보기 ›'; font-size:.8rem; color:#42679a; }
+#classroom-view .classroom-activity-notice>button { min-height:44px; padding:10px; border:1px solid #c2d6f4; border-radius:12px; background:white; color:#325ca6; }
+#classroom-view .classroom-activity-quest { background:#fff5e8; border-color:#f4dfc3; }
+#classroom-view .classroom-activity-heading { display:block; width:100%; min-height:110px; border:0; background:transparent; text-align:left; padding:0; color:inherit; }
+#classroom-view .classroom-card-quest { clear:both; display:flex; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid #e8d8c7; padding-top:8px; margin-top:8px; }
+#classroom-view .classroom-card-quest>span { flex:1; }
+#classroom-view .classroom-card-quest button { background:#fff; border:1px solid #dacac0; border-radius:14px; color:#714e34; min-height:44px; padding:6px 10px; font-size:.76rem; }
+#classroom-view .classroom-activity-routine { background:#e8faf1; border-color:#c5e9d9; }
+#classroom-view .classroom-activity-mission { background:#f1edff; border-color:#dcd4f5; }
+#classroom-view .classroom-card-home button { cursor:pointer; font-family:inherit; }
+#classroom-view .classroom-card-home button:focus-visible { outline:3px solid #6654da; outline-offset:3px; }
+
+.classroom-diary-dialog { width:min(1100px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); box-sizing:border-box; padding:30px; border:1px solid #e2e4f0; border-radius:28px; background:#fff; color:#26304b; box-shadow:0 24px 90px #1e234b38; font-family:inherit; overflow:auto; }
+.classroom-diary-dialog::backdrop { background:#28274570; backdrop-filter:blur(5px); }
+.classroom-diary-dialog * { box-sizing:border-box; }
+.classroom-diary-dialog [hidden] { display:none!important; }
+.classroom-diary-dialog button { min-height:44px; border:1px solid #dcdeee; border-radius:14px; background:#fff; color:#454779; padding:9px 14px; font:inherit; font-weight:700; cursor:pointer; }
+.classroom-diary-dialog button:disabled { opacity:.5; cursor:default; }
+.classroom-diary-dialog :focus-visible { outline:3px solid #7867ee; outline-offset:2px; }
+.classroom-diary-dialog .diary-primary { background:#6253dc; color:#fff; border-color:#6253dc; }
+.diary-heading { display:flex; align-items:center; gap:16px; }
+.diary-heading>div { flex:1; min-width:0; }
+.diary-heading h2 { margin:0; font-size:1.7rem; overflow-wrap:anywhere; }
+.diary-heading p { margin:7px 0; color:#70798b; font-size:.9rem; }
+.diary-heading [data-close] { align-self:flex-start; border:0; border-radius:50%; background:#f2f5fb; font-size:1.5rem; }
+.diary-author-face { width:90px; height:90px; flex:0 0 90px; border-radius:22px; }
+.classroom-diary-dialog .classroom-member-portrait { display:grid; place-items:center; overflow:hidden; background:#f0ebfc; color:#5d5a88; font-size:1.5rem; }
+.classroom-diary-dialog .classroom-member-portrait img { width:100%; height:100%; object-fit:cover; }
+.classroom-diary-dialog .classroom-member-portrait.is-avatar img { object-fit:contain; image-rendering:pixelated; }
+.diary-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:20px 0 6px; }
+.diary-tabs { display:flex; gap:6px; flex:1; }
+.diary-tabs [aria-pressed="true"] { background:#6253dc; color:#fff; }
+.diary-toolbar label { font-size:.88rem; }
+.diary-toolbar input { min-height:44px; border:1px solid #e4dbe6; border-radius:15px; padding:8px; background:#fff2f7; color:#9e4367; font:inherit; max-width:100%; }
+.diary-status { min-height:22px; margin:8px 0; color:#685385; font-size:.88rem; }
+.diary-body { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:28px; }
+.diary-entry { min-width:0; }
+.classroom-diary-dialog fieldset { border:0; padding:0; margin:0; min-width:0; }
+.classroom-diary-dialog legend { font-weight:700; margin-bottom:12px; }
+.diary-moods { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:5px; margin-bottom:24px!important; }
+.diary-moods button { display:grid; justify-items:center; gap:7px; padding:8px 2px; font-size:.68rem; border:2px solid transparent; background:#fff6df; min-width:0; }
+.diary-moods button span { font-size:2rem; line-height:1.4; color:#bd8a00; text-shadow:1px 2px #fff; }
+.diary-mood-picture { display:block; width:48px; height:48px; }.diary-mood-picture svg { display:block; width:100%; height:100%; filter:drop-shadow(0 3px 2px #84704718); }
+.diary-moods button:nth-of-type(2) { background:#fff0e9; }.diary-moods button:nth-of-type(2) span { color:#d27859; }
+.diary-moods button:nth-of-type(3) { background:#e9faf1; }.diary-moods button:nth-of-type(3) span { color:#3f9e77; }
+.diary-moods button:nth-of-type(4) { background:#f3eaff; }.diary-moods button:nth-of-type(4) span { color:#8b5ebe; }
+.diary-moods button:nth-of-type(5) { background:#e8f5ff; }.diary-moods button:nth-of-type(5) span { color:#418ac0; }
+.diary-moods button:nth-of-type(6) { background:#ffedee; }.diary-moods button:nth-of-type(6) span { color:#cc757c; }
+.diary-moods [aria-pressed="true"] { border-color:#7562df; box-shadow:0 3px 9px #7862df22; }
+.diary-text-label { display:block; font-weight:700; margin:0 0 10px; }
+.classroom-diary-dialog textarea { display:block; width:100%; border:1px solid #d9dce9; border-radius:17px; padding:16px; resize:vertical; color:#334264; background:#fff; font:inherit; line-height:1.8; min-height:100px; }
+.classroom-diary-dialog textarea:disabled { background:#f8f9fd; color:#53617a; opacity:1; }
+.diary-count { display:block; text-align:right; margin:6px 0 14px; color:#7e879b; }
+.diary-visibility { display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
+.diary-visibility label { border:1px solid #dcdeef; border-radius:20px; padding:10px; font-size:.88rem; cursor:pointer; }
+.diary-visibility label:has(:checked) { background:#f0edff; border-color:#8e7be6; }
+.diary-visibility input { margin:0 6px 0 0; accent-color:#6554dc; }
+.diary-sharing-help { min-height:36px; color:#718095; font-size:.82rem; line-height:1.5; }
+.diary-entry-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.diary-entry-actions [data-delete] { margin-right:auto; color:#9d4955; font-size:.83rem; }
+.diary-comments { display:flex; flex-direction:column; border-left:1px solid #e6e6f0; padding-left:26px; min-width:0; }
+.diary-comments h3 { margin:0 0 15px; font-size:1.1rem; }
+.diary-comments h3 span { display:inline-block; border-radius:15px; background:#e9edff; color:#6650c4; padding:2px 9px; }
+.diary-comment-list { flex:1; max-height:380px; overflow-y:auto; padding:0 3px; }
+.diary-comment { display:flex; gap:10px; margin:0 0 18px; }
+.diary-comment-avatar { width:48px; height:48px; flex:0 0 48px; border-radius:14px; }
+.diary-comment-copy { flex:1; min-width:0; }
+.diary-comment-copy>p { margin:6px 0; padding:12px; background:#edf6ff; border-radius:0 16px 16px 16px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; }
+.diary-comment:nth-child(even) .diary-comment-copy>p { background:#f4efff; }
+.diary-comment-actions { display:flex; flex-wrap:wrap; gap:5px; }
+.diary-comment-actions button { border:0; padding:5px 8px; font-size:.75rem; min-height:36px; }
+.diary-comment-form { margin-top:15px; display:grid; gap:9px; }
+.diary-comment-form label { color:#758099; font-size:.82rem; }
+.diary-comment-form button { justify-self:end; }
+.diary-empty { padding:30px 12px; text-align:center; color:#778299; font-size:.92rem; line-height:1.8; }
+.diary-discard { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; margin-bottom:16px; border-radius:15px; background:#fff4da; }
+.diary-discard span { flex:1 1 200px; font-size:.9rem; }
+.diary-friends { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.classroom-diary-dialog .diary-friend-entry { display:grid; grid-template-columns:60px minmax(0,1fr); gap:7px 12px; text-align:left; background:#faf8ff; padding:15px; }
+.diary-friend-avatar { width:60px; height:60px; border-radius:16px; grid-row:span 3; }
+.diary-friend-entry>span:not(.diary-friend-avatar) { overflow-wrap:anywhere; font-size:.88rem; font-weight:400; }
+.diary-friend-entry small { font-weight:400; color:#71678d; }
+@media(max-width:1000px) {
+  #classroom-view .classroom-card-home { grid-template-columns:minmax(0,1fr); }
+  #classroom-view .classroom-card-activities { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #classroom-view .classroom-card-activities>h3 { grid-column:1/-1; }
+}
+@media(max-width:700px) {
+  .classroom-diary-dialog { padding:18px; width:calc(100vw - 16px); max-height:calc(100dvh - 16px); border-radius:20px; }
+  .diary-heading { gap:10px; }.diary-heading h2 { font-size:1.2rem; }.diary-heading p { font-size:.77rem; }
+  .diary-author-face { width:58px; height:58px; flex-basis:58px; border-radius:15px; }
+  .diary-body { grid-template-columns:minmax(0,1fr); gap:24px; }.diary-comments { padding:20px 0 0; border-left:0; border-top:1px solid #e4e4ef; }
+  .diary-toolbar { gap:8px; }.diary-tabs { flex-basis:100%; }.diary-toolbar>button { font-size:.78rem; padding:8px; }
+  .diary-moods { grid-template-columns:repeat(3,minmax(0,1fr)); }.diary-moods button { font-size:.8rem; }
+  .diary-friends { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:560px) {
+  #classroom-view .classroom-card-home { gap:20px; }
+  #classroom-view .classroom-personal-card { padding:16px; border-radius:23px; }
+  #classroom-view .classroom-personal-profile { gap:12px; margin-bottom:18px; }
+  #classroom-view .classroom-card-home .classroom-home-avatar { width:104px; height:116px; flex-basis:104px; border-radius:21px; }
+  #classroom-view .classroom-personal-identity h4 { font-size:1.1rem; }
+  #classroom-view .classroom-personal-identity small { font-size:.68rem; }
+  #classroom-view .classroom-card-shortcuts { gap:7px; }.classroom-card-shortcuts button { padding:12px 4px; }
+  #classroom-view .classroom-card-shortcuts strong { font-size:.76rem; }
+  #classroom-view .classroom-card-wallet { font-size:.79rem; }
+  #classroom-view .classroom-card-activities { grid-template-columns:minmax(0,1fr); }
+  #classroom-view .classroom-activity-tile img { width:90px; height:90px; }
+}

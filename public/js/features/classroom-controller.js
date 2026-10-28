@@ -1,5 +1,35 @@
 (function () {
   function bindClassroomEvents(deps = {}) {
+    window.DJ48ClassroomShopArt?.bindPicker();
+    document.getElementById('home-classroom-return')?.addEventListener('click', () => deps.returnToClassroom?.());
+    document.getElementById('classroom-routine-checklist-fields')?.addEventListener('input', () => {
+      window.DJ48ClassroomForm?.updateClassroomRoutineItemCount();
+    });
+    document.getElementById('classroom-view')?.addEventListener('click', event => {
+      if(event.target.closest('[data-classroom-followup-open]')) deps.openClassroomFollowup?.();
+      if(event.target.closest('[data-classroom-board-open]')) deps.openClassroomBoard?.();
+      if(event.target.closest('[data-classroom-open-home]')) deps.openHome?.();
+      if(event.target.closest('[data-classroom-edit-portrait]')) deps.editClassroomPortrait?.();
+      const diary = event.target.closest('[data-classroom-diary]');
+      if(diary && !diary.disabled) deps.openClassroomDiary?.({ mode: diary.dataset.classroomDiary === 'friends' ? 'friends' : 'mine', ownerId: diary.dataset.classroomDiaryOwner });
+    });
+    document.querySelectorAll('[data-classroom-group]').forEach(button => {
+      button.addEventListener('click', () => window.DJ48ClassroomForm?.setActiveClassroomGroup(button.dataset.classroomGroup));
+    });
+    document.querySelector('.classroom-tabs')?.addEventListener('keydown', event => {
+      if(!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      const tabs = Array.from(document.querySelectorAll('[data-classroom-tab]')).filter(tab => !tab.hidden);
+      const current = tabs.indexOf(event.target);
+      if(current < 0 || !tabs.length) return;
+      event.preventDefault();
+      const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+        : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+      deps.setActiveClassroomTab?.(tabs[index].dataset.classroomTab);
+      tabs[index].focus();
+    });
+    document.getElementById('classroom-load-status')?.addEventListener('click', event => {
+      if(event.target.closest('[data-classroom-retry]')) deps.retryClassroom?.();
+    });
     document.addEventListener('click', event => {
       const openedDrop = event.target.closest('.classroom-student-mini-drop');
       document.querySelectorAll('.classroom-student-mini-drop[open]').forEach(drop => {
@@ -83,6 +113,7 @@
     document.querySelectorAll('[data-classroom-market-tab]').forEach(button => {
       button.addEventListener('click', () => {
         const nextTab = button.dataset.classroomMarketTab || 'point';
+        deps.setActiveClassroomTab?.('market');
         document.querySelectorAll('[data-classroom-market-tab]').forEach(tab => {
           const active = tab === button;
           tab.classList.toggle('is-active', active);
@@ -91,6 +122,7 @@
         document.querySelectorAll('[data-classroom-market-pane]').forEach(pane => {
           pane.classList.toggle('is-active', pane.dataset.classroomMarketPane === nextTab);
         });
+        window.DJ48ClassroomWorkspace?.syncEconomyNavigation?.('market');
       });
     });
 
@@ -99,6 +131,11 @@
     });
 
     document.getElementById('classroom-today-grid')?.addEventListener('click', event => {
+      const questButton = event.target.closest('[data-classroom-quest-action]');
+      if(questButton && !questButton.disabled) {
+        deps.completeClassroomCheckQuest?.(questButton.dataset.classroomQuestAction || '', questButton);
+        return;
+      }
       const deleteBillboardButton = event.target.closest('[data-classroom-billboard-delete-id]');
       if(deleteBillboardButton && !deleteBillboardButton.disabled) {
         deps.deleteClassroomBillboardMessage?.(deleteBillboardButton.dataset.classroomBillboardDeleteId || '', deleteBillboardButton);
@@ -107,6 +144,15 @@
       const button = event.target.closest('[data-classroom-today-tab]');
       if(!button || button.disabled) return;
       deps.setActiveClassroomTab?.(button.dataset.classroomTodayTab || 'today');
+      if(button.dataset.classroomMarketTarget) {
+        document.querySelector(`[data-classroom-market-tab="${button.dataset.classroomMarketTarget}"]`)?.click();
+      }
+      if(button.dataset.classroomStudentTarget) {
+        const card = Array.from(document.querySelectorAll('[data-classroom-student-id]'))
+          .find(item => item.dataset.classroomStudentId === button.dataset.classroomStudentTarget);
+        if(card?.tagName === 'DETAILS') card.open = true;
+        card?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
       if(button.dataset.classroomTeacherTarget) {
         document.getElementById(button.dataset.classroomTeacherTarget)?.scrollIntoView({
           block: 'start',
@@ -153,7 +199,7 @@
       }
       const button = event.target.closest('[data-classroom-quest-action]');
       if(!button || button.disabled) return;
-      deps.completeClassroomCheckQuest?.(button.dataset.classroomQuestAction || '');
+      deps.completeClassroomCheckQuest?.(button.dataset.classroomQuestAction || '', button);
     });
 
     document.getElementById('classroom-inactive-quest-grid')?.addEventListener('click', event => {

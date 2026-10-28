@@ -1,0 +1,105 @@
+{
+  "tool": "built-in image_gen",
+  "artworks": 12,
+  "files": [
+    {
+      "name": "reading-320.webp",
+      "bytes": 28792
+    },
+    {
+      "name": "reading-640.webp",
+      "bytes": 80374
+    },
+    {
+      "name": "painting-320.webp",
+      "bytes": 30762
+    },
+    {
+      "name": "painting-640.webp",
+      "bytes": 93294
+    },
+    {
+      "name": "sports-320.webp",
+      "bytes": 28560
+    },
+    {
+      "name": "sports-640.webp",
+      "bytes": 84500
+    },
+    {
+      "name": "science-320.webp",
+      "bytes": 28902
+    },
+    {
+      "name": "science-640.webp",
+      "bytes": 80188
+    },
+    {
+      "name": "cinema-320.webp",
+      "bytes": 36340
+    },
+    {
+      "name": "cinema-640.webp",
+      "bytes": 100662
+    },
+    {
+      "name": "camera-320.webp",
+      "bytes": 28656
+    },
+    {
+      "name": "camera-640.webp",
+      "bytes": 75480
+    },
+    {
+      "name": "flowers-320.webp",
+      "bytes": 34444
+    },
+    {
+      "name": "flowers-640.webp",
+      "bytes": 95318
+    },
+    {
+      "name": "wateringcan-320.webp",
+      "bytes": 34012
+    },
+    {
+      "name": "wateringcan-640.webp",
+      "bytes": 100712
+    },
+    {
+      "name": "bench-320.webp",
+      "bytes": 39694
+    },
+    {
+      "name": "bench-640.webp",
+      "bytes": 115048
+    },
+    {
+      "name": "mailbox-320.webp",
+      "bytes": 27896
+    },
+    {
+      "name": "mailbox-640.webp",
+      "bytes": 78344
+    },
+    {
+      "name": "treasure-320.webp",
+      "bytes": 33328
+    },
+    {
+      "name": "treasure-640.webp",
+      "bytes": 100684
+    },
+    {
+      "name": "aquarium-320.webp",
+      "bytes": 36786
+    },
+    {
+      "name": "aquarium-640.webp",
+      "bytes": 107628
+    }
+  ],
+  "totalBytes": 1500404,
+  "status": "deployed and connected to classroom product icon selector",
+  "hostingVersion": "sites/dj48-quiztown-firebase/versions/68aecd1b1f3f9dc5"
+}

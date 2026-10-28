@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>작은 숲속 집 · 퀴즈타운 체험실</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top"><a class="brand" href="#">🌿 <span>퀴즈타운 <small>작은 숲속 집</small></span></a><div class="top-actions"><span class="badge">자체 하우징 체험실</span><button id="help" class="icon-button" aria-label="체험 안내">?</button></div></header>
+  <main class="layout">
+    <section class="home-panel" aria-label="나의 방">
+      <div class="room-heading"><div><span class="eyebrow">A LITTLE PLACE OF MY OWN</span><h1>오늘도, 내 취향대로.</h1><p>나를 닮은 친구와 함께 작은 방을 꾸며요.</p></div><span class="save-status" id="save-status">이 브라우저에 자동 저장</span></div>
+      <div class="room-toolbar"><label class="room-name"><span>⌂</span><input id="room-name" maxlength="24" aria-label="방 이름"></label><div class="mode-switch" aria-label="방 조작 모드"><button id="walk-mode" aria-pressed="true">산책하기</button><button id="build-mode" aria-pressed="false">가구 편집</button></div></div>
+      <div class="room-viewport"><canvas id="room" width="1000" height="820" tabindex="0" aria-label="방 지도. 바닥을 눌러 이동합니다. 방향키로 이동하거나 배치 위치를 조정하고 Enter로 배치합니다."></canvas><div class="room-label"><span class="live-dot"></span><span id="room-state">산책 중</span></div><div id="asset-error" hidden>가구 그림을 불러오지 못했어요. 새로고침해 주세요.</div></div>
+      <div class="room-controls"><p id="room-hint">바닥을 누르면 걸어가요. 의자를 누르면 앉을 수 있어요.</p><div class="selected-actions" id="selected-actions" hidden><button id="rotate">방향 바꾸기 ↻</button><button id="move">옮기기</button><button id="store">보관하기</button><button id="sit">앉아보기</button></div><div id="placement-actions" hidden><button id="place-confirm" class="primary">여기에 놓기</button><button id="place-cancel">취소</button><button id="place-rotate">방향 바꾸기 ↻</button></div></div>
+      <div class="room-footer"><span>✦ 가구 6종 · 캐릭터 3종</span><button id="stand" hidden>일어나기</button><button id="reset" class="text-button">체험 처음부터</button></div>
+    </section>
+    <aside class="studio">
+      <div class="studio-top"><span class="eyebrow">FOREST HOME STUDIO</span><div class="studio-title"><h2>작은 취향 상점</h2><div class="wallet"><span>체험 코인</span><strong id="coins">300</strong></div></div><p>마음에 드는 소품으로 나만의 공간을.</p></div>
+      <nav class="tabs" aria-label="꾸미기 메뉴"><button data-tab="shop" aria-pressed="true">가구 상점</button><button data-tab="avatar" aria-pressed="false">내 캐릭터</button><button data-tab="bag" aria-pressed="false">보관함 <span id="bag-count"></span></button></nav>
+      <section id="tab-shop" class="tab-panel"><div class="section-heading"><h3>숲속 나무 가구</h3><span>첫 번째 컬렉션</span></div><div id="catalog" class="catalog"></div><p class="small-note">구매한 가구는 보관함에 남아요. 실제 DJ코인과 쿠폰은 사용하지 않아요.</p></section>
+      <section id="tab-avatar" class="tab-panel" hidden><div class="avatar-stage"><canvas id="avatar-preview" width="360" height="260" aria-label="캐릭터 미리보기"></canvas><span>나를 닮은 숲속 친구</span></div><div id="avatar-options"></div><div class="section-heading"><h3>방의 색감</h3></div><div id="wall-options" class="choices"></div><p class="small-note">색과 옷, 작은 소품으로 나만의 숲속 친구를 꾸며보세요.</p></section>
+      <section id="tab-bag" class="tab-panel" hidden><div class="section-heading"><h3>내 소품들</h3><span id="placed-count"></span></div><div id="inventory"></div></section>
+    </aside>
+  </main>
+  <footer class="page-footer">QUIZTOWN ORIGINALS <span>·</span> 디자인·조작 검토용 체험판 <span>·</span> 기록은 이 브라우저에만 저장됩니다.</footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="help-dialog"><button id="close-help" class="close" aria-label="닫기">×</button><span class="eyebrow">WELCOME HOME</span><h2>우리만의 작은 집</h2><p>상점에서 가구를 사고, 바닥을 눌러 놓아보세요. 가구 편집 모드에서 가구를 선택하면 옮기거나 보관할 수 있어요.</p><p>산책 모드에서는 바닥을 눌러 걸어가고, 의자를 눌러 앉아요. 방향키로도 이동하며, 가구 배치 중에는 Enter로 확정하고 Esc로 취소해요.</p><p>회전은 두 방향을 지원합니다. 모바일에서는 방을 옆으로 밀어볼 수 있어요.</p><p class="small-note">학생 계정·기존 가구·DJ코인에는 연결되지 않습니다. 현재 캐릭터와 가구는 자체 디자인 가능성을 확인하는 시제품입니다.</p></dialog>
+  <script src="app.js"></script>
+</body></html>

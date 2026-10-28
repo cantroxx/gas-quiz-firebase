@@ -44,6 +44,7 @@
 
   var loading = false;
   function load() {
+    if (window.DJ48RankingVisibility && !window.DJ48RankingVisibility.isVisible(ROOT_ID)) return;
     if (loading) return;
     if (!(window.firebase && window.firebase.firestore && window.firebase.auth && window.firebase.auth().currentUser)) return;
     loading = true;
@@ -98,6 +99,7 @@
 
     injectSubTab();
     // 랭킹 보드가 다시 그려지거나 다른 탭이 늦게 주입돼도 따라 붙는다
+    window.DJ48RankingVisibility?.register(ROOT_ID, load);
     if (window.MutationObserver) {
       new MutationObserver(function () { injectSubTab(); }).observe(root, { childList: true, subtree: true });
     }
@@ -106,7 +108,7 @@
     var view = document.getElementById('ranking-view');
     if (view && window.MutationObserver) {
       new MutationObserver(function () {
-        if (!view.hidden) { loading = false; load(); }
+        if (!view.hidden) load();
       }).observe(view, { attributes: true, attributeFilter: ['hidden'] });
     }
   }

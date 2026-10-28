@@ -1,0 +1,116 @@
+/* Styles are scoped to the two plazas; data and existing controls are retained. */
+#ranking-view, #event-view { background:#f9f7ed; border:1px solid #e2e4d3; border-radius:25px; padding:22px; }
+#ranking-view::before, #ranking-view::after, #event-view::before, #event-view::after { display:none; }
+#ranking-view .ranking-topbar, #event-view .event-topbar { display:block; margin-bottom:25px; }
+:is(#ranking-view,#event-view) .plaza-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+:is(#ranking-view,#event-view) .plaza-toolbar .button { min-height:40px; padding:9px 14px; border:1px solid #d9ddc9; border-radius:12px; background:#fffdf6; color:#5b6c4d; box-shadow:none; font-size:12px; }
+:is(#ranking-view,#event-view) .plaza-location { font-size:12px; color:#879276; }
+:is(#ranking-view,#event-view) .plaza-hero { position:relative; min-height:355px; display:flex; align-items:center; border-radius:20px; overflow:hidden; isolation:isolate; background:#f3ebd8; }
+:is(#ranking-view,#event-view) .plaza-hero-art { position:absolute; top:0; right:0; width:80%; height:100%; object-fit:cover; object-position:70% 42%; z-index:-2; }
+:is(#ranking-view,#event-view) .plaza-hero::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg,#f8f3e5 0%,#f8f3e5f5 22%,#f8f3e5a0 43%,#f8f3e500 64%); z-index:-1; }
+:is(#ranking-view,#event-view) .plaza-hero-copy { padding:35px; }
+:is(#ranking-view,#event-view) .plaza-hero-copy .eyebrow { background:none; padding:0; font-size:10px; letter-spacing:2px; color:#889273; }
+:is(#ranking-view,#event-view) .plaza-hero-copy h2 { font:40px/1.25 'Jua',sans-serif; color:#45593e; margin:14px 0; letter-spacing:-1px; text-shadow:none; }
+:is(#ranking-view,#event-view) .plaza-hero-copy>p:not(.eyebrow) { font-size:13px; line-height:1.9; color:#748065; font-weight:500; }
+:is(#ranking-view,#event-view) .plaza-jump { display:inline-flex; align-items:center; min-height:42px; margin-top:22px; padding:10px 16px; background:#50694b; color:#fffced; border:1px solid #50694b; border-radius:11px; text-decoration:none; font-size:12px; font-weight:700; }
+#event-view .plaza-hero-links { display:flex; gap:8px; flex-wrap:wrap; }
+#event-view .plaza-jump.secondary { color:#687a52; background:#fff9e9; border-color:#ccd4b9; }
+:is(#ranking-view,#event-view) :is(button,a,summary):focus-visible { outline:3px solid #ad7d38; outline-offset:3px; }
+:is(#ranking-view,#event-view) .plaza-section-title { display:flex; align-items:end; justify-content:space-between; gap:12px; margin:28px 0 17px; }
+:is(#ranking-view,#event-view) .plaza-section-title .eyebrow { padding:0; background:none; color:#939d81; font-size:9px; letter-spacing:1.5px; }
+:is(#ranking-view,#event-view) .plaza-section-title h3 { margin:7px 0 0; font:25px 'Jua',sans-serif; color:#4f6245; }
+#ranking-view .plaza-section-title>span { font-size:11px; color:#909a81; }
+#ranking-view .ranking-hall-shell { grid-template-columns:minmax(0,1fr) 260px; gap:20px; align-items:start; }
+#ranking-view .ranking-hall-details { border:1px solid #e0dfca; border-radius:16px; padding:18px; background:#f0efdf; }
+#ranking-view .ranking-hall-summary { background:#fffaf0; border:1px solid #d4d5bc; color:#5a6747; font-size:14px; min-height:44px; width:100%; box-shadow:none; }
+#ranking-view .ranking-hall-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+#ranking-view .ranking-card { min-height:0; padding:16px; border:1px solid #dfdfc8; border-radius:13px; background:#fffdf5; box-shadow:none; }
+#ranking-view .ranking-card-icon { width:40px; height:40px; font-size:25px; background:#f2ecd6; border-radius:12px; }
+#ranking-view .ranking-rank { margin-top:10px; background:#edf0df; color:#667652; font-size:11px; }
+#ranking-view .ranking-card h3 { font:17px 'Jua',sans-serif; margin:9px 0; }
+#ranking-view .ranking-nickname { font-size:14px; overflow-wrap:anywhere; }
+#ranking-view .ranking-title { font-size:11px; font-weight:500; color:#8b917b; }
+#ranking-view .ranking-featured-king { background:#f4edd8; border:1px solid #dfcf9d; padding:17px; border-radius:16px; gap:10px; align-content:start; }
+#ranking-view .ranking-featured-label { text-align:left; color:#9b8045; font-size:11px; letter-spacing:1px; }
+#ranking-view .ranking-card-featured { background:#fffbeb; border-color:#e5d7b5; }
+#ranking-view .ranking-board-root { margin-top:28px; gap:15px; scroll-margin-top:20px; }
+#ranking-view .ranking-board-tabs { padding:12px; gap:8px; border:1px solid #dddcc9; border-radius:16px; background:#eeeedf; }
+#ranking-view .ranking-board-tab { border:1px solid #d9dcc5; background:#fffdf4; color:#63714f; border-radius:10px; box-shadow:none; font-size:14px; min-height:43px; }
+#ranking-view .ranking-board-tab.is-active { background:#516a4d; border-color:#516a4d; color:white; }
+#ranking-view .ranking-board-panel { padding:22px; border-color:#dddcc8; background:#fffdf6; border-radius:18px; box-shadow:0 5px 18px #66704408; }
+#ranking-view .ranking-board-header h3 { font:24px 'Jua',sans-serif; color:#4d6246; }
+#ranking-view .ranking-board-header p { font-size:12px; line-height:1.7; }
+#ranking-view :is(.ranking-sub-tab,.ranking-popular-area-tab) { border:1px solid #daddc8; background:#f4f4e8; color:#687752; box-shadow:none; }
+#ranking-view :is(.ranking-sub-tab,.ranking-popular-area-tab).is-active { background:#e5ebd4; border-color:#91a575; color:#405c32; }
+#ranking-view .ranking-podium { margin-top:30px; gap:12px; }
+#ranking-view .ranking-podium-card { background:linear-gradient(#fffef6,#f0eddc); border-color:#d7d4bc; border-radius:15px; box-shadow:none; }
+#ranking-view .ranking-podium-card.rank-1 { background:linear-gradient(#fffcef,#f7e7bd); border-color:#d7b567; }
+#ranking-view .ranking-podium-card.rank-2 { background:linear-gradient(#fffef9,#e9eee7); border-color:#b6c2af; }
+#ranking-view .ranking-podium-card.rank-3 { background:linear-gradient(#fffaf3,#f0dfcf); border-color:#d2ad88; }
+#ranking-view .ranking-board-row { border:1px solid #e7e5d5; border-radius:12px; background:#fbfaf1; box-shadow:none; }
+#ranking-view .ranking-row-identity { display:flex; align-items:center; gap:10px; min-width:0; }
+#ranking-view .ranking-row-avatar { width:42px; height:42px; flex:0 0 42px; margin:0; font-size:23px; }
+#ranking-view .hideout-ranking-actions { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0; }
+#ranking-view .hideout-ranking-actions a { color:#405c32; }
+#ranking-view [data-ranking-board-panel="hideout"] [aria-pressed="true"] { background:#e5ebd4; border-color:#91a575; color:#405c32; }
+#event-view .event-toolbar-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-left:auto; }
+#event-view .event-toolbar-actions .button { width:auto; flex:none; }
+#event-view #event-loading-status { margin-top:18px; }
+#event-view .event-quest-toggle { display:inline-flex; align-items:center; justify-content:space-between; gap:24px; min-height:48px; padding:12px 18px; border:1px solid #c5ceb7; border-radius:12px; background:#e8eddd; color:#4c6243; font:20px 'Jua',sans-serif; box-shadow:none; cursor:pointer; }
+#event-view .event-quest-toggle[aria-expanded="true"] { background:#50694b; border-color:#50694b; color:#fffdf0; }
+#event-view .event-quest-chevron { transition:transform .15s; }
+#event-view .event-quest-toggle[aria-expanded="false"] .event-quest-chevron { transform:rotate(-90deg); }
+#event-view :is(#quest-card-grid,#season-event-grid)[hidden] { display:none; }
+#event-view .event-rewards-dialog { width:min(900px,calc(100% - 28px)); max-height:85dvh; margin:auto; padding:24px; border:1px solid #d3d9c2; border-radius:20px; background:#f9f7ed; color:#4c6243; box-shadow:0 20px 80px #26341c40; overflow:auto; }
+#event-view .event-rewards-dialog::backdrop { background:#1e2d25a6; }
+#event-view .event-rewards-header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+#event-view .event-rewards-header h3 { margin:0; font:26px 'Jua',sans-serif; white-space:nowrap; }
+#event-view .event-rewards-header button { width:auto; flex:none; min-height:44px; padding:8px 16px; border:1px solid #c5ceb7; border-radius:10px; background:#fffdf6; color:#4c6243; box-shadow:none; }
+#event-view #event-unclaimed-period { margin:12px 0 20px; color:#748065; font-size:14px; }
+#event-view .event-section { margin-top:26px; border:0; background:none; padding:0; box-shadow:none; }
+#event-view .event-section-heading { display:block; margin-bottom:17px; }
+#event-view .event-section-heading .eyebrow { font-size:9px; letter-spacing:1.5px; color:#939d80; background:none; padding:0; }
+#event-view .event-section-heading h3 { font:27px 'Jua',sans-serif; color:#506347; margin:7px 0; scroll-margin-top:20px; }
+#event-view .event-section-switcher { display:flex; gap:10px; }
+#event-view .event-section-switcher h3 { margin:0; }
+#event-view :is(.quest-card-grid,.season-event-grid) { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+#event-view :is(.quest-card,.season-event-card) { position:relative; overflow:hidden; padding:30px 20px 20px; border:1px solid #dedfca; border-radius:16px; background:#fffdf5; box-shadow:0 6px 18px #74634108; }
+#event-view :is(.quest-card,.season-event-card)::before { content:''; position:absolute; top:0; left:0; right:0; height:10px; background:repeating-linear-gradient(90deg,#c5d0ab 0 24px,#f5f1df 24px 48px); }
+#event-view .season-event-card::before { background:repeating-linear-gradient(90deg,#e1af96 0 24px,#fff0db 24px 48px); }
+#event-view .event-card-icon { width:44px; height:44px; border-radius:12px; font-size:28px; background:#f1ecd9; }
+#event-view :is(.quest-card,.season-event-card) h4 { margin:14px 0 10px; font:21px 'Jua',sans-serif; color:#4c6243; }
+#event-view :is(.quest-progress,.quest-reward,.season-event-card p) { font-size:13px; line-height:1.8; font-weight:500; color:#77816a; }
+#event-view .quest-reward { color:#a18044; }
+#event-view :is(.quest-scope-badge,.season-event-period) { border:1px solid #dddcc7; background:#f3f2e5; color:#7c866a; font-size:11px; border-radius:8px; }
+#event-view .quest-claim-button { width:100%; margin-top:16px; border:1px solid #58754b; border-radius:10px; background:#58754b; color:#fffdf0; box-shadow:none; min-height:43px; }
+#event-view .quest-claim-button:disabled { background:#eff0e4; border-color:#dfe2cc; color:#7e896f; opacity:1; cursor:default; }
+#event-view .plaza-empty { grid-column:1/-1; padding:30px 20px; border:1px dashed #d3d7bf; border-radius:14px; color:#7c886c; text-align:center; font-size:13px; background:#f4f3e7; }
+@media(max-width:760px) {
+  #ranking-view,#event-view { padding:14px; }
+  :is(#ranking-view,#event-view) .plaza-hero { min-height:350px; align-items:end; }
+  :is(#ranking-view,#event-view) .plaza-hero-art { width:100%; height:100%; object-position:70% 35%; }
+  :is(#ranking-view,#event-view) .plaza-hero::before { background:linear-gradient(0deg,#f8f3e5 0%,#f8f3e5f5 34%,#f8f3e5d9 58%,#f8f3e533 76%,transparent); }
+  :is(#ranking-view,#event-view) .plaza-hero-copy { padding:24px; }
+  :is(#ranking-view,#event-view) .plaza-hero-copy h2 { font-size:32px; margin:10px 0; }
+  :is(#ranking-view,#event-view) .plaza-hero-copy>p:not(.eyebrow) { font-size:12px; }
+  :is(#ranking-view,#event-view) .plaza-jump { margin-top:15px; }
+  #ranking-view .ranking-hall-shell { grid-template-columns:1fr; }
+  #ranking-view .ranking-hall-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #ranking-view .ranking-featured-king { grid-template-columns:1fr; }
+  #ranking-view .ranking-board-panel { padding:15px; }
+  #ranking-view .plaza-section-title>span { display:none; }
+  #event-view :is(.quest-card-grid,.season-event-grid) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:480px) {
+  #event-view .event-section-switcher h3 { flex:1; min-width:0; }
+  #event-view .event-section-switcher .event-quest-toggle { width:100%; gap:6px; padding:12px 8px; font-size:16px; white-space:nowrap; }
+  #event-view .event-rewards-dialog { padding:18px; }
+  :is(#ranking-view,#event-view) .plaza-toolbar { flex-wrap:wrap; }
+  :is(#ranking-view,#event-view) .plaza-toolbar .button { font-size:11px; }
+  #event-view .plaza-location { display:none; }
+  #ranking-view .ranking-hall-grid { grid-template-columns:1fr; }
+  #ranking-view .ranking-podium { grid-template-columns:1fr; }
+  #ranking-view .ranking-podium-card.rank-1 { order:0; }
+  #ranking-view .ranking-podium-card { min-height:0; }
+  #event-view :is(.quest-card-grid,.season-event-grid) { grid-template-columns:1fr; }
+}

@@ -1,0 +1,13 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1789613958308000",
+  "version": "sites/dj48-quiztown-firebase/versions/7039b0ad888e3e4b",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8790d503d60f75ba",
+  "changed": [
+    "/word-bomb/DICTIONARY_NOTICE.md",
+    "/word-bomb/app.js",
+    "/word-bomb/dictionary.js",
+    "/word-bomb/domain.js",
+    "/word-bomb/index.html",
+    "/word-bomb/word-list.txt"
+  ]
+}

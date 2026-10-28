@@ -1,0 +1,154 @@
+{
+  "completedAt": "2026-10-18T05:42:04.229Z",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792302065194000",
+    "version": "sites/dj48-quiztown-firebase/versions/c8fd6508cc43947f",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/02a49fc4f45d9528",
+    "changed": [
+      "index.html",
+      "js/app.bundle.js",
+      "js/features/home-render.js",
+      "js/features/home-data.js",
+      "js/features/event-render.js"
+    ],
+    "preservedFiles": 3994,
+    "manifestAndHttpHashes": "PASS"
+  },
+  "functions": {
+    "targets": [
+      {
+        "key": "grantPracticeReward",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:40.286696481Z"
+      },
+      {
+        "key": "subjectQuizAction",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:33:21.287688230Z"
+      },
+      {
+        "key": "getDailyRewardStatus",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:33:31.756863708Z"
+      },
+      {
+        "key": "getEventProgress",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:15.674803701Z"
+      },
+      {
+        "key": "claimEventQuestReward",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:22.827618654Z"
+      },
+      {
+        "key": "getPublicSeasonEvents",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:46.151154018Z"
+      },
+      {
+        "key": "adminGetSeasonEvents",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:25.650149958Z"
+      },
+      {
+        "key": "adminUpdateSeasonEvents",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:26.402379513Z"
+      },
+      {
+        "key": "adminSeasonEventDraft",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:50.038338221Z"
+      },
+      {
+        "key": "prepareMonthlySeasonDraft",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:26.318910690Z"
+      },
+      {
+        "key": "adminGetFeatureFlags",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:33:27.749011979Z"
+      },
+      {
+        "key": "adminUpdateFeatureFlags",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:33:33.286453163Z"
+      },
+      {
+        "key": "ingestGrowthActivity",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:36.067322805Z"
+      },
+      {
+        "key": "ingestPracticeGrowth",
+        "sourceFiles": 92,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T05:39:38.602943893Z"
+      }
+    ],
+    "preservedFunctions": 114,
+    "deployedSourceFiles": 92,
+    "sourceAndEffectiveConfiguration": "PASS",
+    "unauthenticatedChecks": "PASS"
+  },
+  "reset": {
+    "before": {
+      "economy": 159,
+      "positiveCoin": 83,
+      "totalCoin": 17929,
+      "levels": 83,
+      "totalXp": 6228,
+      "securitiesMarkets": 1,
+      "securitiesAccounts": 0,
+      "writes": 247
+    },
+    "commitTime": "2026-10-18T05:40:54.678441Z",
+    "writes": 247,
+    "after": {
+      "economyDocuments": 159,
+      "remainingCoin": 0,
+      "levelDocuments": 83,
+      "remainingXp": 0,
+      "nonInitialLevels": 0,
+      "securitiesAccounts": 0,
+      "securitiesPositions": 0,
+      "protectedEconomyAndLevelFields": "PASS"
+    },
+    "backupDirectory": "private/maintenance/hard-reset-20261018/"
+  },
+  "validation": {
+    "fullCheck": "PASS (exit 0)",
+    "subjectScreens": 2502,
+    "hardResetTransactions": "PASS, local and deployed-source candidate",
+    "conditionalAtomicReset": "PASS",
+    "candidateUI": "PASS",
+    "liveBrowser": {
+      "verifiedAt": "2026-10-18T05:41:33.462Z",
+      "publicLogin": "PASS",
+      "removedControls": "PASS",
+      "seasonRankingRemoved": true,
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "pageErrors": [],
+      "studentApiRequests": "blocked"
+    }
+  }
+}

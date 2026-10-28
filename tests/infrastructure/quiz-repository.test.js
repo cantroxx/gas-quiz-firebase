@@ -521,7 +521,7 @@ async function testLegacyFullRoundOnTwoHundredQuestionQuizCanAwardSecondStar() {
   assert.equal(result.nextBadgeProgressCount, 201);
   assert.equal(result.nextStarCount, 2);
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
-  assert(calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeBadgeCycleReward'));
+  assert(!calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeBadgeCycleReward'));
 }
 
 async function testShortPracticeQuizAwardsStarAfterRepeatedHundredCorrects() {
@@ -578,7 +578,7 @@ async function testShortPracticeQuizAwardsStarAfterRepeatedHundredCorrects() {
   assert.equal(result.fullRoundCompleted, true);
   assert.deepEqual(recordWrite[2].correctIds, []);
   assert(calls.some(call => call[0] === 'callable' && call[1] === 'syncMemberTitles'));
-  assert(calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeBadgeCycleReward'));
+  assert(!calls.some(call => call[0] === 'callable' && call[1] === 'grantPracticeBadgeCycleReward'));
 }
 
 async function run() {

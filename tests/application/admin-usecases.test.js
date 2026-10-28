@@ -113,18 +113,12 @@ async function testLoadAdminInitialViewFlow() {
   await new Promise(resolve => setTimeout(resolve, 0));
 
   assert.deepEqual(result, {
-    dashboard: { adminLevel: 'superAdmin' },
-    members: { members: [] }
+    dashboard: { adminLevel: 'superAdmin' }
   });
   assert.deepEqual(calls, [
     ['enter'],
     ['section', 'dashboard'],
-    ['dashboard'],
-    ['members'],
-    ['notice'],
-    ['logs'],
-    ['warn', 'logs failed'],
-    ['logs-error']
+    ['dashboard']
   ]);
 }
 
@@ -144,15 +138,15 @@ async function testLoadAdminInitialViewFlowErrors() {
     warn: message => calls.push(['warn', message])
   });
 
-  assert.deepEqual(result, { dashboard: null, members: null });
+  assert.deepEqual(result, { dashboard: null });
   assert.deepEqual(calls.slice(0, 2), [
     ['enter'],
     ['section', 'dashboard']
   ]);
   assert(calls.some(call => call[0] === 'warn' && call[1] === 'Admin dashboard load failed.'));
   assert(calls.some(call => call[0] === 'dashboard-error'));
-  assert(calls.some(call => call[0] === 'warn' && call[1] === 'Admin member list load failed.'));
-  assert(calls.some(call => call[0] === 'members-error'));
+  assert(!calls.some(call => call[0] === 'warn' && call[1] === 'Admin member list load failed.'));
+  assert(!calls.some(call => call[0] === 'members-error'));
 }
 
 async function run() {

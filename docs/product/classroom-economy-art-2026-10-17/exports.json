@@ -1,0 +1,47 @@
+[
+  {
+    "key": "point-shop",
+    "size": 96,
+    "bytes": 4900
+  },
+  {
+    "key": "point-shop",
+    "size": 160,
+    "bytes": 9078
+  },
+  {
+    "key": "point-shop",
+    "size": 320,
+    "bytes": 20680
+  },
+  {
+    "key": "coin-shop",
+    "size": 96,
+    "bytes": 5022
+  },
+  {
+    "key": "coin-shop",
+    "size": 160,
+    "bytes": 9786
+  },
+  {
+    "key": "coin-shop",
+    "size": 320,
+    "bytes": 23524
+  },
+  {
+    "key": "exchange",
+    "size": 96,
+    "bytes": 5188
+  },
+  {
+    "key": "exchange",
+    "size": 160,
+    "bytes": 9766
+  },
+  {
+    "key": "exchange",
+    "size": 320,
+    "bytes": 23222
+  }
+]

@@ -7,11 +7,12 @@
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=10">
 <!-- 퀴즈타운 Firebase 재사용 (Firebase Hosting 에서만 로드됨. 로컬 시험 서버에선 없어도 게임은 동작) -->
 <script src="/__/firebase/10.12.2/firebase-app-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-auth-compat.js"></script>
 <script src="/__/firebase/10.12.2/firebase-firestore-compat.js"></script>
+<script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
 <script src="/__/firebase/init.js"></script>
 </head>
 <body>
@@ -82,7 +83,7 @@
     <div class="quiz-timer hidden" id="quizTimerWrap" aria-label="남은 문제 풀이 시간">
       <div class="quiz-timer-fill" id="quizTimerFill"></div>
     </div>
-    <div class="quiz-unit" id="quizUnit">4학년 · 각도</div>
+    <div class="quiz-unit" id="quizUnit">문제 준비 중</div>
     <p class="quiz-why" id="quizWhy"></p>
     <div class="quiz-text" id="quizText"></div>
     <div class="quiz-choices" id="quizChoices"></div>
@@ -188,7 +189,7 @@
 <script src="sprites.js?v=7"></script>
 <script src="problems.js?v=8"></script>
 <script src="bank.js?v=8"></script>
-<script src="net.js?v=7"></script>
-<script src="game.js?v=8"></script>
+<script src="net.js?v=achievements-20261019"></script>
+<script src="game.js?v=plaza-20261019"></script>
 </body>
 </html>

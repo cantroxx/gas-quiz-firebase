@@ -1,0 +1,711 @@
+--- a/public/index.html
++++ b/public/index.html
+@@ -7667,7 +7667,7 @@
+     async function loadAdminQuizQualityAudit() {
+       return window.DJ48AdminUsecases.loadAdminAuditFlow({
+         loadingMessage: '문제 데이터를 점검하는 중입니다...',
+-        getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
++        getSuccessMessage: audit => `${audit?.complete === false ? '일부 범위 점검 미완료' : '요청 범위 점검 완료'} · ${formatAdminTimestamp(audit?.checkedAt)}`
+       }, {
+         setStatus: setAdminQuizQualityStatus,
+         loadAudit: () => getAdminRepository().loadAdminQuizQualityAudit(),
+--- a/public/js/infrastructure/admin-repository.js
++++ b/public/js/infrastructure/admin-repository.js
+@@ -87,7 +87,6 @@
+         const watchedDocs = [
+           ['featureFlags', db.collection('appSettings').doc('featureFlags')],
+           ['externalQuizzes', db.collection('appSettings').doc('externalQuizzes')],
+-          ['seasonEvents', db.collection('appSettings').doc('seasonEvents')],
+           ['noticeBoard', db.collection('noticeBoard').doc('current')]
+         ];
+         const snapshots = await Promise.all(watchedDocs.map(([key, ref]) =>
+--- a/public/js/infrastructure/ranking-repository.js
++++ b/public/js/infrastructure/ranking-repository.js
+@@ -279,6 +279,14 @@
+         if(!root.firebase?.auth?.().currentUser) throw new Error('과목 랭킹은 로그인 후 확인할 수 있습니다.');
+         return (await root.firebase.app().functions('asia-northeast3').httpsCallable('subjectQuizAction')({action:'rankingSnapshot'})).data;
+       },
++      async loadSubjectRankingRecords(subject, limit = 10) {
++        if(!root.firebase?.auth?.().currentUser) throw new Error('과목 랭킹은 로그인 후 확인할 수 있습니다.');
++        return (await root.firebase.app().functions('asia-northeast3').httpsCallable('subjectQuizAction')({ action: 'subjectRankings', subject, limit })).data;
++      },
++      async loadSubjectMemberRankings(memberUserId) {
++        if(!root.firebase?.auth?.().currentUser) throw new Error('과목 랭킹은 로그인 후 확인할 수 있습니다.');
++        return (await root.firebase.app().functions('asia-northeast3').httpsCallable('subjectQuizAction')({ action: 'memberRankings', memberUserId })).data;
++      },
+       async loadQuizKingSummaries(limit = 10) {
+         const snapshot = await db.collection('quizKingSummary')
+           .orderBy('totalScore', 'desc')
+@@ -313,7 +321,7 @@
+         const normalizeRecord = deps.normalizeRecord || (doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }));
+         const rows = getDocs(snapshot).map(normalizeRecord);
+         if(!root.DJ48SubjectQuiz) return rows;
+-        const generated = await this.loadSubjectRankingSnapshot();
++        const generated = await this.loadSubjectMemberRankings(memberUserId);
+         return rows.filter(row => !root.DJ48SubjectQuiz.isLegacyRecord(row))
+           .concat(generated.records.filter(row => row.memberUserId === memberUserId));
+       },
+--- a/public/js/application/ranking-usecases.js
++++ b/public/js/application/ranking-usecases.js
+@@ -6,8 +6,11 @@
+ 
+     const rowLimit = Number(options.rowLimit) || 10;
+     const boardId = options.boardId || '';
+-    const generated = repository.loadSubjectRankingSnapshot && (!boardId || ['quizKing','korean','math','social','science'].includes(boardId))
+-      ? await repository.loadSubjectRankingSnapshot() : null;
++    const subjectBoard = ['korean','math','social','science'].includes(boardId) && repository.loadSubjectRankingRecords;
++    const generated = subjectBoard
++      ? { ...(await repository.loadSubjectRankingRecords(boardId, rowLimit)), summaries: [] }
++      : repository.loadSubjectRankingSnapshot && (!boardId || boardId === 'quizKing')
++        ? await repository.loadSubjectRankingSnapshot() : null;
+     const needsSeason = !boardId || boardId === 'season';
+     const seasonEvents = needsSeason ? await deps.loadSeasonEventsForRanking?.().catch(error => {
+       deps.warn?.('Season events for ranking load failed.', error);
+@@ -22,7 +25,7 @@
+           : Array.from(new Set((board?.groups || []).flatMap(group => group.keys || [])));
+     const [rawQuizKingSummaries, selectedRecords, seasonRankingRecords] = await Promise.all([
+       generated ? generated.summaries.slice(0,rowLimit) : !boardId || boardId === 'quizKing' ? repository.loadQuizKingSummaries(rowLimit) : [],
+-      !boardId ? repository.loadLimitedRankingRecordsForPlaza()
++      subjectBoard ? [] : !boardId ? repository.loadLimitedRankingRecordsForPlaza()
+         : categoryKeys?.length && boardId !== 'season' ? repository.loadLimitedRankingRecordsForPlaza(categoryKeys) : [],
+       seasonRankingCategoryKeys.length
+         ? repository.loadSeasonRankingRecordsForPlaza?.(seasonRankingCategoryKeys, seasonEvents)
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -105,7 +105,6 @@
+ const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
+ const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
+ const SEASON_EVENTS_DOC_PATH = "appSettings/seasonEvents";
+-const ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS = new Set(["science-grade4"]);
+ const MAX_EXTERNAL_QUIZ_ITEMS = 12;
+ const MAX_SEASON_EVENT_ITEMS = 12;
+ const POPULAR_USAGE_SOFT_LIMIT_SECONDS = 10 * 60;
+@@ -4192,21 +4191,14 @@
+   const adminMember = await getAdminMemberForAuth(authUid);
+   assertSuperAdmin(adminMember);
+ 
+-  const [quizSnapshot, featureFlags] = await Promise.all([
+-    db.collection("quizzes").limit(300).get(),
+-    getFeatureFlags().catch(() => DEFAULT_FEATURE_FLAGS)
++  const qualityScope = require('./quiz-quality-scope');
++  const selection = qualityScope.selectScope(request.data || {}, HttpsError);
++  const [loaded, featureFlags] = await Promise.all([
++    qualityScope.loadScope(db, selection),
++    getFeatureFlags()
+   ]);
+   const disabledQuizIds = new Set(publicFeatureFlags(featureFlags).disabledQuizIds || []);
+-  const quizDocs = quizSnapshot.docs
+-    .map(doc => ({ quizId: doc.id, ...(doc.data() || {}) }))
+-    .filter(quiz => !ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS.has(quiz.quizId));
+-  const questionSnapshots = await Promise.all(quizDocs.map(quiz =>
+-    db.collection("quizQuestions").doc(quiz.quizId).collection("questions").limit(1200).get()
+-      .catch(error => {
+-        console.warn("Admin quiz quality question read failed.", quiz.quizId, error);
+-        return null;
+-      })
+-  ));
++  const quizDocs = loaded.entries.map(entry => entry.quiz);
+ 
+   const quizSummaries = [];
+   const invalidQuestions = [];
+@@ -4218,8 +4210,7 @@
+   let duplicateQuestionIdCount = 0;
+ 
+   quizDocs.forEach((quiz, index) => {
+-    const snapshot = questionSnapshots[index];
+-    const questions = snapshot ? snapshot.docs.map(publicAuditRecord) : [];
++    const questions = loaded.entries[index].questions.map(publicAuditRecord);
+     const seenIds = new Map();
+     questionCount += questions.length;
+ 
+@@ -4274,6 +4265,11 @@
+     success: true,
+     audit: {
+       checkedAt: Timestamp.now(),
++      scope: selection.scope,
++      complete: loaded.readIssues.length === 0,
++      scopeDescription: selection.scope === 'current'
++        ? '현재 인기 퀴즈의 국기·티니핑·포켓몬 문제은행 11개 점검. 생성형 과목과 아이돌·애니 정적 팩은 별도 로컬 검사 대상입니다.'
++        : '지정한 보관 문제은행만 점검한 결과입니다. 전체 문제은행 검사가 아닙니다.',
+       metrics: {
+         quizCount: quizDocs.length,
+         questionCount,
+@@ -4284,6 +4280,7 @@
+       },
+       quizSummaries,
+       issues: {
++        readIssues: loaded.readIssues,
+         invalidQuestions,
+         missingImages,
+         duplicateQuestionIds
+@@ -9502,15 +9499,6 @@
+       quizCorrectRewardCount: nextQuizCorrectCount,
+       updatedAt: FieldValue.serverTimestamp()
+     }, { merge: true });
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: getPracticeQuestKindsForQuiz(quizId),
+-      amount: 1,
+-      sourceType: "practice_correct",
+-      sourceId: `${recordId}__${questionId}`
+-    });
+     transaction.set(logRef, {
+       type: "practice_correct",
+       todayQuiz: false,
+@@ -9710,15 +9698,6 @@
+     transaction.set(activityRef,{source:'ranking:'+recordId,memberId:memberUserId,uid:authUid,quizId,counts:{rankingComplete:1},time:Date.now()});
+     const dateKey = getKstDateKey();
+     const weekKey = getKstWeekKey();
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: new Set(["rankingComplete"]),
+-      amount: 1,
+-      sourceType: "ranking_complete",
+-      sourceId: recordId
+-    });
+     transaction.set(recordRef, {
+       levelXpDelta: 0,
+       levelAfter: null,
+--- a/functions/subject-quiz/service.js
++++ b/functions/subject-quiz/service.js
+@@ -42,6 +42,40 @@
+       const me=await identity(tx,uid),time=now();
+       const settings=await tx.get(ref('appSettings','featureFlags')),flags=settings.data()||{};
+       if(flags.subjectQuizEnabled===false)fail('failed-precondition','과목 퀴즈를 점검하고 있어요.');
++      // Read-only views do not need the player's active session or other boards.
++      const rankingRecord=(subject,doc)=>{
++        const row=doc.data(),s=C.subjects.find(s=>s.id===subject);
++        return {memberUserId:doc.id,userId:doc.id,displayName:row.nickname,displayNickname:row.nickname,
++          recordId:`${C.VERSION}_${subject}_${doc.id}`,quizId:`subject-${subject}`,categoryKey:`subject-${subject}`,category:s.title,
++          subject,cumulative:true,rankingMode:'normal',score:row.totalScore,elapsedSeconds:0,elapsedText:''};
++      };
++      if(action==='memberRankings'){
++        if(payload.memberUserId&&payload.memberUserId!==me.memberId)fail('permission-denied','본인의 기록만 확인할 수 있어요.');
++        const snapshots=await Promise.all(C.subjects.map(s=>tx.get(rankRef(s.id,me.memberId))));
++        const records=snapshots.flatMap((doc,i)=>doc.exists&&doc.data().visible!==false?[rankingRecord(C.subjects[i].id,doc)]:[]);
++        return {version:C.VERSION,memberUserId:me.memberId,records,serverNow:time};
++      }
++      if(action==='subjectRankings'){
++        const subject=String(payload.subject||''),limit=payload.limit===undefined?10:payload.limit;
++        if(!C.subjects.some(s=>s.id===subject)||!Number.isInteger(limit)||limit<1||limit>100)fail('invalid-argument','과목과 조회 개수를 확인해 주세요.');
++        const query=rankRef(subject,me.memberId).parent.orderBy('totalScore','desc');
++        const records=[];let cursor,scanned=0;
++        const compare=(a,b)=>b.score-a.score||(a.memberUserId<b.memberUserId?-1:a.memberUserId>b.memberUserId?1:0);
++        while(scanned<501){
++          // Read through the cutoff tie so the legacy document-ID tie order is
++          // preserved without requiring a new production composite index.
++          const pageSize=Math.min(cursor?Math.max(limit,25):limit+1,501-scanned);
++          const page=await tx.get((cursor?query.startAfter(cursor):query).limit(pageSize));
++          scanned+=page.size;
++          for(const doc of page.docs)if(doc.data().visible!==false)records.push(rankingRecord(subject,doc));
++          records.sort(compare);
++          if(page.size<pageSize)break;
++          cursor=page.docs[page.docs.length-1];
++          if(records.length>=limit&&Number(cursor.data().totalScore)<Number(records[limit-1].score))break;
++        }
++        if(scanned>500)fail('resource-exhausted','랭킹 집계 범위를 점검해야 합니다.');
++        return {version:C.VERSION,subject,records:records.slice(0,limit),serverNow:time};
++      }
+       const controlRef=ref('subjectQuizPlayers',me.memberId),controlSnap=await tx.get(controlRef),control=controlSnap.data()||{};
+       if(action==='rankingSnapshot'){
+         const snapshots=await Promise.all(C.subjects.map(s=>tx.get(rankRef(s.id,me.memberId).parent.limit(501))));
+--- a/tests/infrastructure/admin-repository.test.js
++++ b/tests/infrastructure/admin-repository.test.js
+@@ -19,11 +19,12 @@
+ }
+ 
+ async function testAdminRepositoryCallsAdminFunctions() {
++  const documentReads = [];
+   const repository = createAdminRepository({
+     getFirestoreDb: () => ({
+       collection: name => ({
+         doc: id => ({
+-          get: async () => ({
++          get: async () => (documentReads.push(`${name}/${id}`), {
+             exists: true,
+             data: () => ({ name, id, title: 'Notice', updatedAt: { millis: `${name}-${id}` } })
+           })
+@@ -56,9 +57,11 @@
+     updatedAt: { millis: 'appSettings-externalQuizzes' }
+   });
+   assert.deepEqual(await repository.loadPublicSeasonEvents(), { items: [{ eventId: 'season-1' }] });
++  documentReads.length = 0;
+   assert.equal(await repository.loadServerFreshnessSignature({
+     getTimestampMillis: value => value.millis
+-  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|seasonEvents:appSettings-seasonEvents|noticeBoard:noticeBoard-current');
++  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|noticeBoard:noticeBoard-current');
++  assert.deepEqual(documentReads, ['appSettings/featureFlags', 'appSettings/externalQuizzes', 'noticeBoard/current']);
+   await assertAdminCall(await repository.loadAdminDashboard(), 'adminGetDashboard', {});
+   await assertAdminCall(await repository.loadAdminOperationalAudit(), 'adminGetOperationalAudit', {});
+   await assertAdminCall(await repository.loadAdminQuizQualityAudit(), 'adminGetQuizQualityAudit', {});
+--- a/tests/infrastructure/ranking-repository.test.js
++++ b/tests/infrastructure/ranking-repository.test.js
+@@ -193,7 +193,29 @@
+   await testRepositoryReadsRankingCollections();
+   await testRepositoryBuildsProfileRankContext();
+   await testScopedProfileCache();
++  await testPersonalSubjectReadIsScoped();
+   console.log('Infrastructure tests passed: ranking-repository');
++}
++
++async function testPersonalSubjectReadIsScoped() {
++  const previousFirebase=globalThis.firebase,previousSubject=globalThis.DJ48SubjectQuiz;
++  const calls=[];
++  try {
++    globalThis.DJ48SubjectQuiz={isLegacyRecord:row=>row.quizId==='spelling'};
++    globalThis.firebase={auth:()=>({currentUser:{uid:'test-uid'}}),app:()=>({functions:()=>({
++      httpsCallable:name=>async payload=>{calls.push([name,payload]);return {data:{records:[{memberUserId:'u1',quizId:'subject-math',score:7}]}};}
++    })})};
++    const db=makeDb({rankingRecords:[makeDoc('old',{quizId:'spelling'}),makeDoc('popular',{quizId:'idol'})]});
++    const repo=createRankingRepository({db});
++    const rows=await repo.loadMemberRankingRecords('u1');
++    assert.deepEqual(rows.map(r=>r.quizId),['idol','subject-math']);
++    assert.deepEqual(calls,[['subjectQuizAction',{action:'memberRankings',memberUserId:'u1'}]]);
++    await repo.loadSubjectRankingRecords('math',10);
++    assert.deepEqual(calls[1],['subjectQuizAction',{action:'subjectRankings',subject:'math',limit:10}]);
++  } finally {
++    if(previousFirebase===undefined)delete globalThis.firebase;else globalThis.firebase=previousFirebase;
++    if(previousSubject===undefined)delete globalThis.DJ48SubjectQuiz;else globalThis.DJ48SubjectQuiz=previousSubject;
++  }
+ }
+ 
+ run().catch(error => {
+--- a/tests/application/ranking-usecases.test.js
++++ b/tests/application/ranking-usecases.test.js
+@@ -174,7 +174,24 @@
+   await testRenderProfileRankingRecordsFlow();
+   await testRenderCurrentMemberProfileRankingFlow();
+   await testOnlySelectedBoardLoads();
++  await testGeneratedBoardAvoidsFullSnapshot();
+   console.log('Application tests passed: ranking-usecases');
++}
++
++async function testGeneratedBoardAvoidsFullSnapshot() {
++  const calls=[];
++  const result=await rankingUsecases.loadRankingPlazaData({boardId:'math',rowLimit:10},{
++    getRankingRepository:()=>({
++      loadSubjectRankingSnapshot:async()=>assert.fail('single subject requested full snapshot'),
++      loadSubjectRankingRecords:async(subject,limit)=>{calls.push([subject,limit]);return {records:[{recordId:'math-1',subject:'math',score:9}]};},
++      loadLimitedRankingRecordsForPlaza:async()=>assert.fail('generated board queried legacy records'),
++      loadMemberProfilesForRankingRows:async rows=>{assert.equal(rows.length,1);return {};}
++    }),
++    getRankingBoardModels:(summaries,records)=>[{id:'math',groups:[{keys:['subject-math']}],records}],
++    buildQuizKingSummariesFromRankingRecords:()=>[],getTopQuizKingSummaries:()=>[],
++    buildQuizKingCard:()=>({}),buildRankingRecordCard:()=>({})
++  });
++  assert.deepEqual(calls,[['math',10]]);assert.equal(result.boards[0].records.length,1);
+ }
+ 
+ run().catch(error => {
+--- a/tests/subject-quiz/service.test.js
++++ b/tests/subject-quiz/service.test.js
+@@ -112,6 +112,14 @@
+   const oldQuestion=(await secret(r)).question.poolId;r=(await answer(r,false)).r;assert.notEqual((await secret(r)).question.poolId,oldQuestion);assert.equal((await atomicRef.get()).data().issued,atomicBefore.issued+1);await call('finish',{runId:r.runId});
+   await db.doc('quizKingSummary/'+memberId).set({displayName:'테스트',totalScore:9000,categories:[{quizId:'spelling',categoryKey:'맞춤법',score:8900},{quizId:'pokemon',categoryKey:'포켓몬',score:100}]});
+   const ranks=await call('rankingSnapshot');const mine=ranks.summaries.find(x=>x.memberUserId===memberId);assert.equal(mine.totalScore,160);assert.equal(mine.categories.some(C.isLegacyRecord),false);
++  const personal=await call('memberRankings',{memberUserId:memberId});
++  assert.deepEqual(personal.records,ranks.records.filter(x=>x.memberUserId===memberId));
++  await assert.rejects(call('memberRankings',{memberUserId:'another-member'}),e=>e.code==='permission-denied');
++  const subjectBoard=await call('subjectRankings',{subject:'korean',limit:10});
++  assert.deepEqual(subjectBoard.records,ranks.records.filter(x=>x.subject==='korean').sort((a,b)=>b.score-a.score).slice(0,10));
++  for(let i=0;i<30;i++)await db.doc(`subjectQuizRankings/${C.VERSION}/math/tie-${String(i).padStart(2,'0')}`).set({nickname:'tie fixture',totalScore:777,visible:i>1});
++  const tiedFull=await call('rankingSnapshot'),tiedTop=await call('subjectRankings',{subject:'math',limit:10});
++  assert.deepEqual(tiedTop.records,tiedFull.records.filter(x=>x.subject==='math').sort((a,b)=>b.score-a.score).slice(0,10),'cutoff ties preserve legacy display order');
+   assert.equal((await db.doc('quizKingSummary/'+memberId).get()).data().totalScore,9000,'legacy archive must remain untouched');
+   for(const ctx of [env.unauthenticatedContext(),env.authenticatedContext(uid)])for(const p of ['subjectQuizRuns/'+r.runId,'subjectQuizPlayers/'+memberId,`subjectQuizRankings/${C.VERSION}/korean/${memberId}`,historyRef.path]){await assertFails(getDoc(doc(ctx.firestore(),p)));await assertFails(setDoc(doc(ctx.firestore(),p),{totalScore:999999}));}
+   const client=env.authenticatedContext(uid).firestore();
+--- a/package.json
++++ b/package.json
+@@ -2,7 +2,9 @@
+   "name": "gas-quiz-firebase",
+   "private": true,
+   "scripts": {
+-    "test:subject": "node scripts/build-subject-quiz-catalog.js --check && node --test tests/subject-quiz/generator.test.js tests/subject-quiz/expansion.test.js tests/subject-quiz/pool.test.js tests/subject-quiz/ranking.test.js",
++    "test:cleanup": "node --test tests/admin/quiz-quality-scope.test.js",
++    "check:cleanup-online": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/admin/quiz-quality-online.test.js\"",
++    "test:subject": "node scripts/build-subject-quiz-catalog.js --check && node --test tests/subject-quiz/generator.test.js tests/subject-quiz/expansion.test.js tests/subject-quiz/pool.test.js tests/subject-quiz/ranking.test.js tests/subject-quiz/ranking-reads.test.js",
+     "smoke:subject": "node scripts/smoke/subject-quiz-browser.js && node scripts/smoke/subject-quiz-resume-browser.js",
+     "check:subject-online": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/subject-quiz/service.test.js && node tests/subject-quiz/rewards.test.js\"",
+     "test:space": "node --test tests/space-explorer/domain.test.js",
+@@ -22,7 +24,7 @@
+     "check:town-marble": "npm --prefix town-marble-src run build && npm --prefix town-marble-src test && node town-marble-src/tests/speed-smoke.js && node town-marble-src/tests/emotion-smoke.js && npm --prefix town-marble-src run smoke && npm --prefix town-marble-src run smoke:layout",
+     "check:town-marble-online": "npm run build:town-marble && firebase emulators:exec --project demo-dj48-rules --only firestore,auth,functions \"node tests/rules/town-marble-online.test.js && node scripts/smoke/town-marble-online-browser.js\"",
+     "build:app": "node scripts/build-app-bundle.js",
+-    "check": "npm run check:static && npm run test:securities && npm run smoke:securities && npm run test:domain && npm run test:subject && npm run test:popular && npm run test:application && npm run test:infrastructure && npm run test:fractions && npm run test:pizza && npm run test:space && npm run test:word-bomb && npm run test:fruit-bell && npm run test:growth && npm run test:rules && SMOKE_PUBLIC_ONLY=1 npm run smoke:browser && npm run smoke:classroom && npm run smoke:subject",
++    "check": "npm run check:static && npm run test:cleanup && npm run test:securities && npm run smoke:securities && npm run test:domain && npm run test:subject && npm run test:popular && npm run test:application && npm run test:infrastructure && npm run test:fractions && npm run test:pizza && npm run test:space && npm run test:word-bomb && npm run test:fruit-bell && npm run test:growth && npm run test:rules && SMOKE_PUBLIC_ONLY=1 npm run smoke:browser && npm run smoke:classroom && npm run smoke:subject",
+     "check:static": "npm run build:coordi-catalog && npm run build:app && node scripts/smoke/check-project.js && node scripts/smoke/check-mathsurvivor.js",
+     "test:domain": "node tests/domain/shop-domain.test.js && node tests/domain/ranking-domain.test.js && node tests/domain/quiz-domain.test.js && node tests/domain/account-domain.test.js && node tests/domain/classroom-domain.test.js && node tests/domain/event-domain.test.js && node tests/domain/housing-coupons.test.js && node tests/domain/season-period.test.js && node tests/domain/season-ranking-view.test.js",
+     "test:application": "node tests/application/event-usecases.test.js && node tests/application/classroom-usecases.test.js && node tests/classroom/loading.test.js && node tests/application/shop-usecases.test.js && node tests/application/home-usecases.test.js && node tests/application/home-loading.test.js && node tests/application/home-controller.test.js && node tests/application/profile-usecases.test.js && node tests/application/ranking-usecases.test.js && node tests/application/account-usecases.test.js && node tests/application/app-view.test.js && node tests/application/app-bootstrap.test.js && node tests/application/quiz-flow.test.js && node tests/application/quiz-usecases.test.js && node tests/application/admin-usecases.test.js && node tests/classroom/economy-loading.test.js && node --test tests/application/entry-performance.test.js",
+@@ -48,7 +50,8 @@
+     "serve:securities-server": "node scripts/smoke/run-securities-emulators.js --preview",
+     "check:securities-callable": "node scripts/smoke/run-securities-emulators.js --callable",
+     "test:popular": "node scripts/build-popular-quiz.js --check && node --test tests/popular-quiz/domain.test.js tests/popular-quiz/source-audit.test.js",
+-    "check:popular-online": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/popular-quiz/service.test.js && node tests/popular-quiz/rewards.test.js && node scripts/smoke/popular-quiz-browser.js\""
++    "check:popular-online": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/popular-quiz/service.test.js && node tests/popular-quiz/rewards.test.js && node scripts/smoke/popular-quiz-browser.js\"",
++    "check:cleanup-rewards": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/growth/legacy-progress-cleanup.integration.test.js && node tests/popular-quiz/rewards.test.js\""
+   },
+   "devDependencies": {
+     "@firebase/rules-unit-testing": "^5.0.2",
+--- a/public/js/features/admin-render.js
++++ b/public/js/features/admin-render.js
+@@ -214,6 +214,11 @@
+     const data = audit || {};
+     summaryRoot.innerHTML = '';
+     listRoot.innerHTML = '';
++    if(data.scopeDescription) {
++      const scope = document.createElement('p');
++      scope.textContent = `${data.scopeDescription}${data.complete === false ? ' 일부 범위는 읽기 실패·누락·문항 상한으로 검사가 끝나지 않았습니다.' : ''}`;
++      listRoot.appendChild(scope);
++    }
+     [
+       ['퀴즈', data.metrics?.quizCount || 0],
+       ['문항', data.metrics?.questionCount || 0],
+@@ -226,6 +231,7 @@
+     });
+ 
+     [
++      ['점검하지 못한 범위', data.issues?.readIssues || [], row => `${row.quizId} · ${row.reason}`],
+       ['퀴즈별 문항 수', data.quizSummaries || [], row => `${row.quizId} · ${row.title || '-'} · ${row.questionCount}문항${row.expectedQuestionCount && row.expectedQuestionCount !== row.questionCount ? ` · 기준 ${row.expectedQuestionCount}` : ''}${row.disabled ? ' · 닫힘' : ''}`],
+       ['문항 오류 후보', data.issues?.invalidQuestions || [], row => `${row.quizId}/${row.questionId} · ${row.reason}`],
+       ['이미지 누락 후보', data.issues?.missingImages || [], row => `${row.quizId}/${row.questionId} · ${row.answer || row.prompt || '-'}`],
+--- a/scripts/audit/quiz-cleanup-audit.js
++++ b/scripts/audit/quiz-cleanup-audit.js
+@@ -122,7 +122,8 @@
+     freshnessReads.push(`${c}/${id}`); return { exists: true, data: () => ({}) };
+   } }) }) };
+   await admin.window.DJ48AdminRepository.createAdminRepository({ getFirestoreDb: () => freshnessDb }).loadServerFreshnessSignature();
+-  assert(freshnessReads.includes('appSettings/seasonEvents'));
++  assert(!freshnessReads.includes('appSettings/seasonEvents'));
++  assert.equal(freshnessReads.length, 3);
+ 
+   // Evaluate only pure legacy quest definitions/helpers, with an inert write recorder.
+   const index = read('functions/index.js');
+--- /dev/null
++++ b/functions/quiz-quality-scope.js
+@@ -0,0 +1,38 @@
++'use strict';
++// Only these legacy Firestore banks supply the current popular quiz service.
++const CURRENT_BANK_IDS=Object.freeze(['flag-country','tiniping',...Array.from({length:9},(_,i)=>`pokemon-gen${i+1}`)]);
++const QUESTION_LIMIT=1200;
++function selectScope(payload={},ErrorType=Error) {
++  const fail=()=>{const error=new ErrorType('invalid-argument','점검 범위와 퀴즈 ID를 확인해 주세요. 보관 문제는 한 번에 5개까지 점검합니다.');error.code='invalid-argument';throw error;};
++  if(!payload||typeof payload!=='object'||Array.isArray(payload))fail();
++  const scope=payload.scope||'current';
++  if(scope==='current'){
++    if(payload.quizIds!==undefined)fail();
++    return {scope,quizIds:[...CURRENT_BANK_IDS]};
++  }
++  if(scope!=='archive'||!Array.isArray(payload.quizIds)||!payload.quizIds.length||payload.quizIds.length>5)fail();
++  if(payload.quizIds.some(id=>typeof id!=='string'||!/^[a-z0-9][a-z0-9_-]{0,79}$/.test(id)))fail();
++  return {scope,quizIds:[...new Set(payload.quizIds)]};
++}
++async function loadScope(db,selection) {
++  const entries=[];
++  // Bound concurrent reads as well as total scope. A failed bank is not empty.
++  for(let start=0;start<selection.quizIds.length;start+=3){
++    entries.push(...await Promise.all(selection.quizIds.slice(start,start+3).map(async quizId=>{
++      const [metadata,questions]=await Promise.allSettled([
++        db.collection('quizzes').doc(quizId).get(),
++        db.collection('quizQuestions').doc(quizId).collection('questions').limit(QUESTION_LIMIT+1).get()
++      ]);
++      const issues=[];
++      if(metadata.status==='rejected')issues.push({quizId,reason:'퀴즈 정보 읽기 실패'});
++      else if(!metadata.value.exists)issues.push({quizId,reason:'퀴즈 정보 문서 없음'});
++      if(questions.status==='rejected')issues.push({quizId,reason:'문항 읽기 실패'});
++      const docs=questions.status==='fulfilled'?questions.value.docs:[];
++      if(docs.length>QUESTION_LIMIT)issues.push({quizId,reason:`${QUESTION_LIMIT}문항까지만 검사함`});
++      return {quiz:{...(metadata.status==='fulfilled'?metadata.value.data()||{}:{}),quizId},
++        questions:docs.slice(0,QUESTION_LIMIT),issues};
++    })));
++  }
++  return {entries,readIssues:entries.flatMap(e=>e.issues)};
++}
++module.exports={CURRENT_BANK_IDS,QUESTION_LIMIT,selectScope,loadScope};
+--- /dev/null
++++ b/tests/subject-quiz/ranking-reads.test.js
+@@ -0,0 +1,74 @@
++'use strict';
++const {test}=require('node:test');
++const assert=require('node:assert/strict');
++const {createService}=require('../../functions/subject-quiz/service');
++const C=require('../../functions/subject-quiz/curriculum');
++
++function fixture({hidden=2,active=true,enabled=true,empty=false,count=30,sameScore=false}={}) {
++  const calls=[];const base=`subjectQuizRankings/${C.VERSION}/`;
++  const data=new Map([
++    ['authLinks/test-uid',{memberUserId:'member-000'}],
++    ['users/member-000',{authUid:'test-uid',status:'active',active}],
++    ['appSettings/featureFlags',{subjectQuizEnabled:enabled}]
++  ]);
++  if(!empty)for(const s of C.subjects)for(let i=0;i<count;i++)data.set(base+s.id+'/member-'+String(i).padStart(3,'0'),{
++    nickname:'synthetic '+i,totalScore:sameScore?10:Math.floor((count-i)/2),visible:i===0||i>hidden
++  });
++  const snapshot=p=>({id:p.split('/').pop(),path:p,exists:data.has(p),data:()=>data.get(p)});
++  function ref(p,query=false,options={}) {return {
++    path:p,query,options,doc:id=>ref(p+'/'+id),collection:n=>ref(p+'/'+n,true),
++    get parent(){return ref(p.split('/').slice(0,-1).join('/'),true);},
++    orderBy:(field,direction)=>ref(p,true,{...options,field,direction}),
++    startAfter:doc=>ref(p,true,{...options,cursor:doc.path}),limit:n=>ref(p,true,{...options,limit:n})
++  };}
++  const db={collection:p=>ref(p,true),runTransaction:fn=>fn({
++    get:async r=>{
++      calls.push({path:r.path,query:r.query,...r.options});
++      if(!r.query)return snapshot(r.path);
++      let docs=[...data.keys()].filter(p=>p.startsWith(r.path+'/')&&p.slice(r.path.length+1).indexOf('/')<0).sort().map(snapshot);
++      if(r.options.field)docs.sort((a,b)=>(b.data()[r.options.field]-a.data()[r.options.field])||(a.id<b.id?1:a.id>b.id?-1:0));
++      if(r.options.cursor)docs=docs.slice(docs.findIndex(d=>d.path===r.options.cursor)+1);
++      docs=docs.slice(0,r.options.limit);return {docs,size:docs.length};
++    },set:()=>assert.fail('read action wrote data'),update:()=>assert.fail('read action wrote data'),delete:()=>assert.fail('read action deleted data')
++  })};
++  return {calls,service:createService({db})};
++}
++test('personal rankings read exactly own four documents; no session or aggregate queries',async()=>{
++  const f=fixture(),out=await f.service.act('test-uid',{action:'memberRankings',memberUserId:'member-000'});
++  assert.equal(out.records.length,4);assert(out.records.every(r=>r.memberUserId==='member-000'));
++  assert.equal(f.calls.length,7);assert.equal(f.calls.filter(c=>c.query).length,0);
++  assert(!f.calls.some(c=>/quizKingSummary|subjectQuizPlayers/.test(c.path)));
++});
++test('single subject returns top visible rows including ties and never queries other subjects',async()=>{
++  const f=fixture(),out=await f.service.act('test-uid',{action:'subjectRankings',subject:'math',limit:10});
++  assert.equal(out.records.length,10);
++  assert.deepEqual(out.records.slice(0,3).map(r=>r.memberUserId),['member-000','member-003','member-004']);
++  const queries=f.calls.filter(c=>c.query);assert.equal(queries.length,2);
++  assert(queries.every(c=>c.path===`subjectQuizRankings/${C.VERSION}/math`));
++  assert.equal(queries.reduce((n,c)=>n+c.limit,0),36);
++  assert(!f.calls.some(c=>/quizKingSummary|subjectQuizPlayers/.test(c.path)));
++});
++test('cutoff ties keep legacy ID order; hidden-heavy scans are bounded',async()=>{
++  const f=fixture({sameScore:true,hidden:0});
++  const out=await f.service.act('test-uid',{action:'subjectRankings',subject:'math',limit:10});
++  assert.deepEqual(out.records.map(r=>r.memberUserId),Array.from({length:10},(_,i)=>'member-'+String(i).padStart(3,'0')));
++  const hidden=fixture({count:510,hidden:510});
++  await assert.rejects(hidden.service.act('test-uid',{action:'subjectRankings',subject:'math',limit:10}),e=>e.code==='resource-exhausted');
++  const queries=hidden.calls.filter(c=>c.query);
++  assert.equal(queries.reduce((n,c)=>n+c.limit,0),501);assert(queries.length<=21);
++});
++test('personal and subject missing records are empty; wrong subject/count/owner is denied',async()=>{
++  const f=fixture({empty:true});
++  assert.deepEqual((await f.service.act('test-uid',{action:'memberRankings'})).records,[]);
++  assert.deepEqual((await f.service.act('test-uid',{action:'subjectRankings',subject:'math'})).records,[]);
++  await assert.rejects(f.service.act('test-uid',{action:'memberRankings',memberUserId:'other'}),e=>e.code==='permission-denied');
++  for(const args of [{subject:'bad'},{subject:'math',limit:0},{subject:'math',limit:101},{subject:'math',limit:1.5}])
++    await assert.rejects(f.service.act('test-uid',{action:'subjectRankings',...args}),e=>e.code==='invalid-argument');
++});
++test('new reads retain authentication, active-member and feature restrictions',async()=>{
++  for(const action of ['memberRankings','subjectRankings']){
++    await assert.rejects(fixture().service.act(null,{action,subject:'math'}),e=>e.code==='unauthenticated');
++    await assert.rejects(fixture({active:false}).service.act('test-uid',{action,subject:'math'}),e=>e.code==='permission-denied');
++    await assert.rejects(fixture({enabled:false}).service.act('test-uid',{action,subject:'math'}),e=>e.code==='failed-precondition');
++  }
++});
+--- /dev/null
++++ b/tests/admin/quiz-quality-scope.test.js
+@@ -0,0 +1,35 @@
++'use strict';
++const {test}=require('node:test');
++const assert=require('node:assert/strict');
++const {selectScope,loadScope,CURRENT_BANK_IDS,QUESTION_LIMIT}=require('../../functions/quiz-quality-scope');
++function fixture({metadataError=false,missing=false,questionError=false,count=1}={}){
++  const reads=[];let active=0,maxActive=0;
++  const db={collection:name=>({doc:id=>({
++    get:async()=>{reads.push(`${name}/${id}`);if(metadataError)throw Error('offline');return {exists:!missing,data:()=>missing?undefined:{title:id,quizId:'untrusted-metadata-id'}};},
++    collection:child=>({limit:n=>({get:async()=>{
++      reads.push(`${name}/${id}/${child}:${n}`);active++;maxActive=Math.max(maxActive,active);
++      await new Promise(resolve=>setImmediate(resolve));active--;
++      if(questionError)throw Error('offline');
++      return {docs:Array.from({length:Math.min(count,n)},(_,i)=>({id:'q'+i,data:()=>({answerText:'answer'})}))};
++    }})})
++  })})};
++  return {db,reads,maxActive:()=>maxActive};
++}
++test('default scope reads only current banks, bounded parallelism and no catalog scan',async()=>{
++  const f=fixture(),selected=selectScope(),result=await loadScope(f.db,selected);
++  assert.deepEqual(selected.quizIds,CURRENT_BANK_IDS);assert.equal(result.entries.length,11);
++  assert.equal(f.reads.length,22);assert.equal(result.readIssues.length,0);assert(f.maxActive()<=3);
++  assert(!f.reads.some(p=>p.includes('spelling')));assert.equal(result.entries[0].quiz.quizId,'flag-country');
++});
++test('archive requires explicit bounded valid IDs',()=>{
++  assert.deepEqual(selectScope({scope:'archive',quizIds:['spelling','spelling']}),{scope:'archive',quizIds:['spelling']});
++  for(const payload of [{scope:'all'},{scope:'archive'},{scope:'archive',quizIds:[]},{scope:'archive',quizIds:Array(6).fill('spelling')},{scope:'archive',quizIds:['../../users']},{scope:'archive',quizIds:[null]},{quizIds:['spelling']},[]])
++    assert.throws(()=>selectScope(payload),e=>e.code==='invalid-argument');
++});
++test('read failures, missing metadata and truncation are explicit, never a clean audit',async()=>{
++  for(const options of [{metadataError:true},{missing:true},{questionError:true},{count:QUESTION_LIMIT+1}]){
++    const f=fixture(options),result=await loadScope(f.db,selectScope({scope:'archive',quizIds:['spelling']}));
++    assert.equal(result.readIssues.length,1);assert.equal(result.readIssues[0].quizId,'spelling');
++    assert(result.entries[0].questions.length<=QUESTION_LIMIT);
++  }
++});
+--- /dev/null
++++ b/tests/admin/quiz-quality-online.test.js
+@@ -0,0 +1,34 @@
++'use strict';
++const assert=require('node:assert/strict');
++process.env.GCLOUD_PROJECT='demo-dj48-rules';process.env.GOOGLE_CLOUD_PROJECT='demo-dj48-rules';
++async function main(){
++  assert.equal(process.env.FIRESTORE_EMULATOR_HOST,'127.0.0.1:8181');
++  const {adminGetQuizQualityAudit:action}=require('../../functions/index');
++  const functionRequire=require('node:module').createRequire(require.resolve('../../functions/package.json'));
++  const {getFirestore}=functionRequire('firebase-admin/firestore'),{getApps,deleteApp}=functionRequire('firebase-admin/app'),db=getFirestore();
++  const {CURRENT_BANK_IDS}=require('../../functions/quiz-quality-scope');
++  const uid='quality-audit-test',call=(data={},as=uid)=>action.run({auth:as?{uid:as}:null,data});
++  try{
++    await db.doc('users/quality-admin').set({authUid:uid,role:'admin',adminLevel:'superAdmin',active:true,status:'active'});
++    await db.doc('users/quality-class-admin').set({authUid:'quality-class',role:'admin',adminLevel:'classAdmin',active:true,status:'active'});
++    await db.doc('appSettings/featureFlags').set({disabledQuizIds:[]});
++    for(const id of [...CURRENT_BANK_IDS,'spelling']){
++      await db.doc(`quizzes/${id}`).set({title:id,questionCount:1});
++      await db.doc(`quizQuestions/${id}/questions/one`).set({questionId:'one',prompt:'synthetic',answerText:'answer'});
++    }
++    await assert.rejects(call({},null),e=>e.code==='unauthenticated');
++    await assert.rejects(call({},'quality-class'),e=>e.code==='permission-denied');
++    const current=(await call()).audit;assert.equal(current.scope,'current');assert.equal(current.complete,true);
++    assert.equal(current.metrics.quizCount,11);assert.equal(current.metrics.questionCount,11);
++    assert(!current.quizSummaries.some(q=>q.quizId==='spelling'));
++    const archive=(await call({scope:'archive',quizIds:['spelling']})).audit;
++    assert.equal(archive.metrics.quizCount,1);assert.equal(archive.metrics.questionCount,1);
++    assert.equal(archive.quizSummaries[0].quizId,'spelling');
++    const missing=(await call({scope:'archive',quizIds:['missing-fixture']})).audit;
++    assert.equal(missing.complete,false);assert.equal(missing.issues.readIssues.length,1);
++    await assert.rejects(call({scope:'archive',quizIds:Array(6).fill('spelling')}),e=>e.code==='invalid-argument');
++    assert.equal((await db.doc('quizQuestions/spelling/questions/one').get()).data().answerText,'answer');
++    console.log('PASS quality audit callable: admin authorization, current/archive scope, missing data and preservation');
++  }finally{await Promise.all(getApps().map(deleteApp));}
++}
++main().catch(error=>{console.error(error);process.exitCode=1;});
+--- /dev/null
++++ b/scripts/smoke/quiz-cleanup-browser.js
+@@ -0,0 +1,33 @@
++'use strict';
++// Local renderer only: every network request is blocked.
++const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs');
++const {chromium}=require('playwright-core');
++const root=path.resolve(__dirname,'../..');
++async function main(){
++  const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
++  const output=process.env.QUIZ_CLEANUP_SCREENSHOT_DIR||'/tmp/quiz-cleanup-stages-20261018/screenshots';
++  fs.mkdirSync(output,{recursive:true});
++  try{
++    const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
++    await page.route('**/*',route=>route.abort());
++    await page.setContent('<main class="admin-panel"><div id="admin-quiz-quality-summary"></div><div id="admin-quiz-quality-list"></div></main>');
++    await page.addStyleTag({path:path.join(root,'public/styles.css')});
++    await page.addScriptTag({path:path.join(root,'public/js/features/admin-render.js')});
++    for(const width of [390,1440]){
++      await page.setViewportSize({width,height:900});
++      await page.evaluate(()=>DJ48AdminRender.renderAdminQuizQualityAudit({
++        scope:'current',complete:false,scopeDescription:'현재 인기 퀴즈 문제은행 11개 점검. 생성형 과목과 아이돌·애니 팩은 별도 검사 대상입니다.',
++        metrics:{quizCount:11,questionCount:1200},quizSummaries:[{quizId:'pokemon-gen1',title:'포켓몬',questionCount:1200}],
++        issues:{readIssues:[{quizId:'pokemon-gen1',reason:'1200문항까지만 검사함'},{quizId:'tiniping',reason:'문항 읽기 실패'}]}
++      }));
++      const text=await page.locator('#admin-quiz-quality-list').innerText();
++      assert.match(text,/검사가 끝나지 않았습니다/);assert.match(text,/문항 읽기 실패/);assert.match(text,/1200문항까지만/);
++      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
++      await page.screenshot({path:path.join(output,`audit-partial-${width}.png`),fullPage:true});
++    }
++    await page.evaluate(()=>DJ48AdminRender.renderAdminQuizQualityAudit({scope:'archive',complete:true,scopeDescription:'지정한 보관 문제만 점검',issues:{}}));
++    assert(!/검사가 끝나지/.test(await page.locator('#admin-quiz-quality-list').innerText()));
++    assert.deepEqual(errors,[]);console.log('PASS cleanup admin UI: scope, partial/truncated/read-failure notice, complete refresh, 390/1440px, no network');
++  }finally{await browser.close();}
++}
++main().catch(e=>{console.error(e);process.exitCode=1;});
+--- /dev/null
++++ b/tests/growth/legacy-progress-cleanup.integration.test.js
+@@ -0,0 +1,93 @@
++'use strict';
++const assert = require('node:assert/strict');
++const path = require('node:path');
++assert.match(process.env.FIRESTORE_EMULATOR_HOST || '', /^127\.0\.0\.1:\d+$/);
++process.env.GCLOUD_PROJECT = 'demo-dj48-rules';
++process.env.GOOGLE_CLOUD_PROJECT = 'demo-dj48-rules';
++const source = process.env.HARD_RESET_FUNCTIONS_ROOT || path.resolve(__dirname, '../../functions');
++const functions = require(source + '/index');
++const load = require('node:module').createRequire(source + '/package.json');
++const {getFirestore} = load('firebase-admin/firestore');
++const {getApps, deleteApp} = load('firebase-admin/app');
++const db = getFirestore();
++async function main() {
++  const uid = 'reset-test-auth', member = 'G4-C8-N97', recordId = member + '__hard-reset';
++  const call = (name, data, user = uid) => functions[name].run({auth: {uid: user}, data});
++  const date = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
++  await db.doc('authLinks/' + uid).set({memberUserId: member, authUid: uid});
++  await db.doc('users/' + member).set({authUid: uid, status: 'active', active: true, role: 'student', grade: '4', classNumber: '8'});
++  await db.doc('userEconomy/' + member).set({djCoin: 0, totalEarned: 0, housingCoupons: 3});
++  await db.doc('userLevelSummary/' + member).set({level: 1, totalXp: 0, xp: 0});
++  await db.doc('appSettings/featureFlags').set({practiceRewardEnabled: true, practiceXpEnabled: true, todayQuizIds: [], todayQuizRandomPoolIds: [], eventPlazaEnabled: true});
++  const legacy = db.doc('eventQuestProgress/cleanup-preserved');
++  await legacy.set({current: 7, memberUserId: member});
++  const legacyBefore = await legacy.get();
++  const ids = Array.from({length: 55}, (_, i) => 'q' + i);
++  await db.doc('practiceRecords/' + recordId).set({memberUserId: member, correctIds: ids});
++  const answer = questionId => call('grantPracticeReward', {memberUserId: member, recordId, questionId, quizId: 'fraction-basic'});
++  const results = await Promise.all([answer('q0'), answer('q0')]);
++  assert.equal(results.filter(result => result.duplicate).length, 1);
++  assert.equal(results.reduce((sum, result) => sum + result.rewardCoin, 0), 1);
++  assert.equal(results.reduce((sum, result) => sum + result.xpDelta, 0), 2);
++  for(let i = 1; i < 51; i++) await answer('q' + i);
++  assert.equal((await db.doc('userEconomy/' + member).get()).data().djCoin, 50);
++  assert.equal((await db.doc('userEconomy/' + member).get()).data().housingCoupons, 3);
++  assert.equal((await db.doc('userLevelSummary/' + member).get()).data().totalXp, 20);
++  const status = await call('getDailyRewardStatus', {memberUserId: member});
++  assert.equal(status.coin.remaining, 0); assert.equal(status.practiceXp.remaining, 0);
++  assert.equal(status.todayQuizXp, undefined);
++  await assert.rejects(answer('unrecorded'), error => error.code === 'failed-precondition');
++  await assert.rejects(call('grantPracticeReward', {memberUserId: member, recordId, questionId: 'q52'}, 'other-user'), error => error.code === 'permission-denied');
++  for(const questId of ['v2_daily_today', 'v2_season_practice', 'season3_old_practiceCorrect']) {
++    await assert.rejects(call('claimEventQuestReward', {memberUserId: member, questId}), error => error.code === 'failed-precondition');
++  }
++  assert.deepEqual((await call('getPublicSeasonEvents', {})).seasonEvents.items, []);
++  const progress = await call('getEventProgress', {memberUserId: member});
++  assert.deepEqual(progress.seasonEvents, []); assert.deepEqual(progress.legacyQuests, []);
++  assert(!progress.quests.some(quest => quest.scope === 'season' || quest.questId === 'v2_daily_today'));
++  // Generated subject practice follows the same XP and coin path without any daily featured quiz.
++  await db.doc('rewardDailyCaps/practice_coin_daily__' + date + '__' + member).set({usedCoin: 0});
++  await db.doc('levelXpCaps/practice_xp_daily__' + date + '__' + member).set({xp: 0});
++  let run = await call('subjectQuizAction', {action: 'start', unitId: 'math:4-1:3', mode: 'practice', requestId: crypto.randomUUID()});
++  await new Promise(resolve => setTimeout(resolve, 350));
++  const question = (await db.doc('subjectQuizRuns/' + run.runId).get()).data().question;
++  const payload = {action: 'answer', runId: run.runId, seq: run.seq, choice: question.answer};
++  run = await call('subjectQuizAction', payload);
++  assert.equal(run.feedback.rewardCoin, 1); assert.equal(run.feedback.xpDelta, 2);
++  assert.equal((await call('subjectQuizAction', payload)).duplicate, true);
++  await db.doc('appSettings/featureFlags').set({practiceRewardEnabled: false, practiceXpEnabled: false}, {merge: true});
++  const disabled = await answer('q53'); assert.equal(disabled.rewardCoin, 0); assert.equal(disabled.xpDelta, 0);
++  const logs = await db.collection('rewardLogs').where('memberUserId', '==', member).get();
++  const practiceLogs = logs.docs.filter(doc => doc.data().type === 'practice_correct');
++  assert(practiceLogs.length >= 51);
++  for (const doc of practiceLogs) {
++    const event = {params: {id: doc.id}, data: doc};
++    await functions.ingestPracticeGrowth.run(event);
++    await functions.ingestPracticeGrowth.run(event);
++  }
++  const progressAfter = await call('getEventProgress', {memberUserId: member});
++  assert(progressAfter.quests.find(q => q.questId === 'v2_daily_practice').claimable);
++  const daily = (await db.doc('growthQuestProgress/' + member + '__daily__' + date).get()).data();
++  assert.equal(daily.counts.practiceCorrect, practiceLogs.length, 'trigger retries must not double progress');
++  const claim = await call('claimEventQuestReward', {memberUserId: member, questId: 'v2_daily_practice'});
++  assert.equal(claim.rewardCoin, 10); assert.equal(claim.xpDelta, 15);
++  assert((await call('claimEventQuestReward', {memberUserId: member, questId: 'v2_daily_practice'})).duplicate);
++  const start = await call('startRankingQuestSession', {memberUserId: member, quizId: 'spelling'});
++  await db.doc('rankingRecords/cleanup-ranking').set({memberUserId: member, userId: member, quizId: 'spelling', score: 5, elapsedSeconds: 20, recordedAt: new Date()});
++  await db.doc('rankingQuestSessions/' + member).update({issuedAt: Date.now() - 20000});
++  const finish = {memberUserId: member, quizId: 'spelling', recordId: 'cleanup-ranking', sessionId: start.sessionId};
++  assert.equal((await call('grantRankingCompleteXp', finish)).duplicate, false);
++  assert.equal((await call('grantRankingCompleteXp', finish)).duplicate, true);
++  const activities = await db.collection('growthActivities').get();
++  for (const doc of activities.docs) {
++    await functions.ingestGrowthActivity.run({params: {id: doc.id}, data: doc});
++    await functions.ingestGrowthActivity.run({params: {id: doc.id}, data: doc});
++  }
++  const ranked = await call('getEventProgress', {memberUserId: member});
++  assert(ranked.quests.find(q => q.questId === 'v2_daily_ranking').claimable);
++  const legacyAfter = await legacy.get();
++  assert(legacyAfter.updateTime.isEqual(legacyBefore.updateTime), 'legacy document must not be written');
++  assert.equal((await db.collection('eventQuestProgress').get()).size, 1, 'no new legacy progress documents');
++  console.log('PASS cleanup: legacy writes absent; practice/subject coins, XP, caps, concurrent dedup, flags, authorization, growth trigger replay and claims, ranking completion preserved.');
++}
++main().catch(error => {console.error(error); process.exitCode = 1;}).finally(() => Promise.all(getApps().map(deleteApp)));

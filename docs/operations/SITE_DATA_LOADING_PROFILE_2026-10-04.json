@@ -1,0 +1,30 @@
+{
+  "scope": "Synthetic timings and mock provider call counts only; not production latency, billed reads, or unique network requests.",
+  "classroom": {
+    "configuredDelayMs": {
+      "settings": 30,
+      "ordinary": 30,
+      "economy": 600
+    },
+    "completed": {
+      "settings": 32,
+      "progress": 63,
+      "review": 63,
+      "wallet": 63,
+      "gems": 63,
+      "students": 63,
+      "economy": 633
+    },
+    "classroomResolvedMs": 633
+  },
+  "studentCards": {
+    "syntheticStudentCount": 22,
+    "studentCallableCount": 1,
+    "levelDocReadCount": 22
+  },
+  "authOverlap": {
+    "scenario": "Auth callback overlaps anonymous sign-in completion",
+    "restores": 2,
+    "destinations": 2
+  }
+}

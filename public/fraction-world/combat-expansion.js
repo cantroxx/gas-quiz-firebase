@@ -1,7 +1,19 @@
 (function(){
  'use strict';
  const D=FWTowerDomain,C=FWContent;
- const branches={wand:['추적 별탄 → 각성: 빠른 추적','다중 별탄 → 각성: 파동의 별탄'],bow:['집중 저격 → 각성: 위력 추가 30%','분열 화살 → 각성: 파편 3발'],fan:['왕복 달날 → 각성: 관통 +2','공전 달날 → 각성: 공전 시간 증가'],orb:['빙정 폭발 → 각성: 폭발 범위 증가','냉각 지대 → 각성: 지속 시간 증가'],needle:['모아서 번개 → 각성: 누적 위력 증가','이어지는 번개 → 각성: 번개를 더 자주'],comet:['집중 포격 → 각성: 폭발 위력 증가','파편 포격 → 각성: 파편 5발'],blades:['회피 기습 → 각성: 깜짝 공격의 힘 증가','연속 베기 → 각성: 베기 범위 증가'],spear:['수정 충격파 → 각성: 3방향 파동','거리 유지 → 각성: 찌르기 범위 증가'],hammer:['대지 균열 → 각성: 균열 지속 증가','충격 누적 → 각성: 세 번째 타격 강화'],scythe:['끌어오는 사슬 → 각성: 끌기 범위 증가','빙글빙글 베기 → 각성: 범위 증가'],shield:['반사 방패 → 각성: 반사 범위 증가','돌격 방패 → 각성: 회피 충돌 강화'],book:['정령 무리 → 각성: 정령 3마리','거대 수호수 → 각성: 정령 위력 강화']};
+ const branches={
+ wand:['적을 따라가는 별탄 → +5: 더 빠르게 따라가요','여러 갈래 별탄 → +5: 별탄이 퍼져요'],
+ bow:['힘을 모아 쏘기 → +5: 한 발이 더 강해져요','갈라지는 화살 → +5: 작은 화살 3발이 나가요'],
+ fan:['돌아오는 칼날 → +5: 적 2마리를 더 뚫어요','주위를 도는 칼날 → +5: 더 오래 돌아요'],
+ orb:['터지는 얼음 → +5: 더 넓게 터져요','느려지는 얼음 바닥 → +5: 더 오래 남아요'],
+ needle:['번개 힘 모으기 → +5: 모은 힘이 더 강해져요','이어지는 번개 → +5: 번개가 더 자주 나가요'],
+ comet:['한곳에 큰 포탄 → +5: 더 세게 터져요','갈라지는 포탄 → +5: 작은 조각 5개가 나가요'],
+ blades:['피하며 깜짝 공격 → +5: 깜짝 공격이 더 강해져요','여러 번 베기 → +5: 더 넓게 베어요'],
+ spear:['앞으로 마법 쏘기 → +5: 세 방향으로 나가요','멀리서 찌르기 → +5: 더 멀리 찔러요'],
+ hammer:['땅을 갈라 공격 → +5: 갈라진 땅이 더 오래 남아요','세 번째에 강한 공격 → +5: 세 번째 공격이 더 강해져요'],
+ scythe:['사슬로 끌어오기 → +5: 더 멀리 있는 적도 끌어요','빙글빙글 베기 → +5: 더 넓게 베어요'],
+ shield:['공격을 되돌리는 방패 → +5: 더 넓게 되돌려요','방패로 부딪치기 → +5: 피하며 부딪칠 때 더 강해져요'],
+ book:['정령 친구 늘리기 → +5: 정령 3마리가 도와줘요','큰 나무 정령 → +5: 정령의 공격이 더 강해져요']};
  const colors={blades:'#ffca9b',spear:'#acf1ff',hammer:'#ffd093',scythe:'#d3a6ff',shield:'#9df5dc',book:'#d6bdff'};
  Object.assign(FWCombat.kits,{
   blades:{name:'새벽 난무',desc:'주변 적을 3번 베어요',kind:'flurry',color:colors.blades},spear:{name:'수정 관통파',desc:'앞으로 길게 마법을 쏴요',kind:'lance',color:colors.spear},hammer:{name:'쿵! 땅울림',desc:'가까운 적을 세게 때리고 밀어내요',kind:'quake',color:colors.hammer},scythe:{name:'빙글 사슬',desc:'주변 적을 끌어당기고 베어요',kind:'reap',color:colors.scythe},shield:{name:'수호 돌진',desc:'피해 30을 대신 막는 방패! 앞의 적도 공격해요',kind:'guard',color:colors.shield},book:{name:'정령의 합창',desc:'별탄을 사방으로 쏴요',kind:'summon',color:colors.book}
@@ -33,7 +45,19 @@
   if(s.weapon==='orb'&&s.branch==='a'&&(!D.modern(s)||!f.cool.orbBlast)){f.cool.orbBlast=.45;radial(this,e,s.weaponLevel===5?95:60,st.damage*.3,'#b9f3ff');}
   if(s.weapon==='orb'&&s.branch==='b'&&!f.cool.icezone){f.cool.icezone=.8;zone(this,e,75,st.damage*.15,'#a3e8ff',s.weaponLevel===5?3:1.5,true);}
  };
- proto.hurt=function(amount,reason){if(this.poisonTick){oldHurt.call(this,amount,reason);return;}if(this.p.inv>0)return;const f=this.features,s=this.s;const reduced=amount*D.stats(s).armor,absorbed=Math.min(f.shield,reduced);f.shield-=absorbed;amount-=absorbed/D.stats(s).armor;if(amount<=0){this.p.inv=.3;return;}if(s.rescue&&s.hp<=amount*D.stats(s).armor){s.rescue=false;s.hp=D.stats(s).maxHp*.3;this.p.inv=2;this.effect('nova',this.p.x,this.p.y,120,{color:'#ffdf89'});FWUI.toast('구조 부적 발동 · 체력 30% 회복');return;}oldHurt.call(this,amount,reason);if(!this.dead&&mix(this,'fire-earth')&&!f.cool.thorns){f.cool.thorns=2;radial(this,this.p,120,D.stats(s).damage,'#ffa182');}
+ proto.hurt=function(amount,reason){
+  if(this.p.inv>0&&!this.poisonTick)return;
+  const f=this.features,s=this.s,st=D.stats(s);
+  // Poison ignores shields and ordinary hit invulnerability, but rescue still applies.
+  if(!this.poisonTick){const absorbed=Math.min(f.shield,amount*st.armor);f.shield-=absorbed;amount-=absorbed/st.armor;}
+  if(amount<=0){if(!this.poisonTick)this.p.inv=.3;return;}
+  if(s.rescue&&s.hp<=amount*st.armor){
+   s.rescue=false;s.hp=st.maxHp*.3;this.p.inv=2;
+   if(this.tactics){this.tactics.poison=0;this.tactics.poisonClock=1;}
+   this.effect('nova',this.p.x,this.p.y,120,{color:'#ffdf89'});FWUI.toast('구조 부적 발동 · 체력 30% 회복');return;
+  }
+  oldHurt.call(this,amount,reason);
+  if(!this.poisonTick&&!this.dead&&mix(this,'fire-earth')&&!f.cool.thorns){f.cool.thorns=2;radial(this,this.p,120,st.damage,'#ffa182');}
  };
  proto.dash=function(){const before=this.p.dash;oldDash.call(this);if(before>0||this.p.dash<=0)return;const f=this.features;f.attackBuff=1.5;if(mix(this,'fire-storm'))zone(this,this.p,85,D.stats(this.s).damage*.35,'#ff9c65');if(mix(this,'ice-storm'))nearby(this,this.p,150).forEach(e=>{e.chill=2;});if(this.s.weapon==='shield'&&this.s.branch==='b')radial(this,this.p,150,D.stats(this.s).damage*(this.s.weaponLevel===5?2.5:1.5),'#b1fce7');};
  proto.skill=function(){if(this.paused||this.dead||FWUI.$('modal').open||this.p.skill>0)return;const s=this.s,st=D.stats(s),p=this.p,kit=FWCombat.kits[s.weapon],angle=FWCombat.aim(p,this.enemies);this.skillImpact=true;if(['flurry','lance','quake','reap','guard','summon'].includes(kit.kind)){
@@ -66,7 +90,7 @@
  proto.splitBullet=function(b,e){if(!b.split||b.fragment)return;const st=D.stats(this.s),count=b.split;b.split=0;for(let i=0;i<count;i++)bullet(this,i*Math.PI*2/count,st,{x:e.x,y:e.y,style:'bow',damage:b.damage*.35,fragment:true,life:.8,hit:[e.id]});};
  proto.draw=function(){oldDraw.call(this);if(this.dead||this.paused||FWUI.$('modal').open)return;const c=this.ctx,f=this.features,p=this.p;c.save();for(const z of f.zones){FWPixelArt.zone(c,z,this.time);}c.globalAlpha=1;if(f.shield>0){c.globalAlpha=.55;FWPixelArt.stamp(c,'shield',1,p.x,p.y-12,80);c.globalAlpha=1;c.fillStyle='#fff';c.font='12px sans-serif';c.fillText('보호막 '+Math.ceil(f.shield),p.x-30,p.y-40);}for(let i=0;i<(f.spirits||0);i++){const a=this.time*1.5+i*Math.PI*2/f.spirits,x=p.x+Math.cos(a)*60,y=p.y+Math.sin(a)*60;FWPixelArt.spirit(c,x,y,this.s.branch==='b');}c.restore();};
  }
- function demo(s){const U=FWUI;U.modal(`<h2>무기 성장 시연</h2><div class="row"><button data-demo-branch="a">${branches[s.weapon][0]}</button><button data-demo-branch="b">${branches[s.weapon][1]}</button></div><canvas id="growth-canvas" width="640" height="320" aria-label="각성 무기의 실제 공격 방식 시연"></canvas><p id="growth-caption"></p><p class="fine">선택한 계열의 +5 공격을 시연해요. 탐험의 장비·결정은 변하지 않아요.</p><button id="growth-close">돌아가기</button>`,()=>{
+ function demo(s){const U=FWUI;U.modal(`<h2>강해진 공격 미리 보기</h2><div class="row"><button data-demo-branch="a">${branches[s.weapon][0]}</button><button data-demo-branch="b">${branches[s.weapon][1]}</button></div><canvas id="growth-canvas" width="640" height="320" aria-label="마지막 강화 뒤 공격 모습"></canvas><p id="growth-caption"></p><p class="fine">고른 쪽의 마지막 강화(+5) 공격을 보여줘요. 탐험의 장비·결정 코인은 변하지 않아요.</p><button id="growth-close">돌아가기</button>`,()=>{
   const canvas=U.$('growth-canvas'),c=canvas.getContext('2d');let branch=s.branch||'a',frame=0,last=0,closed=false;
   const a={s:{...s,weaponLevel:5,branch},p:{x:230,y:180,dx:1,dy:0,inv:0,skill:0,dash:0},enemies:[{id:'dummy',x:330,y:180,hp:100000,maxHp:100000,r:20,type:'chaser'}],bullets:[],shots:[],pending:[],fx:[],time:0,attack:0,auto:0,moving:false,extra:false,effect(kind,x,y,radius,extra={}){this.fx.push({kind,x,y,radius,life:.3,max:.3,weapon:s.weapon,color:FWCombat.kits[s.weapon].color,...extra});},hitEnemy(e,damage){e.hp-=damage;e.flash=.15;this.effect('nova',e.x,e.y,24,{life:.18,max:.18});},moveBody(e,x,y){e.x+=x;e.y+=y;}};init(a);a.features.mixes=[];a.featureUpdate=previewProto.featureUpdate;
   const choose=value=>{branch=value;a.s.branch=branch;a.bullets=[];a.fx=[];a.auto=0;U.$('growth-caption').textContent=branches[s.weapon][branch==='a'?0:1];};choose(branch);

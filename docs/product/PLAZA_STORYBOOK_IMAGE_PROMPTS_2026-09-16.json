@@ -1,0 +1,13 @@
+{
+  "method": "OpenAI imagegen built-in; original generated illustrations",
+  "assets": [
+    {
+      "path": "public/images/ranking-plaza-storybook-v1.png",
+      "prompt": "Original warm Korean children's storybook village game illustration, delicate gouache texture, honey oak wood, cream stone paving, sage trees, soft sunshine, coherent gentle outlines, charming rabbits and squirrels. Wide landscape 3:2 asset to be displayed as a wide website hero crop. Main subjects in middle vertical band, plenty of soft pale open space at left third for HTML heading overlay. No text, no lettering, no UI, no watermark. Same world as a cozy orange-roof elementary school village. A welcoming ranking plaza close-up: on the RIGHT HALF a large tasteful golden star trophy on cream stone pedestal, three small award podium blocks, wooden leaderboard with colored decorative rows but no writing, blue and gold pennants, flower planters. One rabbit and squirrel cheering at the sides. Soft forest and school roof distant background. Calm sense of achievement; no crowded characters. Left third is soft cream sunlit paving and sky with low contrast."
+    },
+    {
+      "path": "public/images/event-plaza-storybook-v1.png",
+      "prompt": "Original warm Korean children's storybook village game illustration, delicate gouache texture, honey oak wood, cream stone paving, sage trees, soft sunshine, coherent gentle outlines, charming rabbits and squirrels. Wide landscape 3:2 asset to be displayed as a wide website hero crop. Main subjects in middle vertical band, plenty of soft pale open space at left third for HTML heading overlay. No text, no lettering, no UI, no watermark. Same world as a cozy orange-roof elementary school village. A welcoming festival plaza close-up: on the RIGHT HALF two pastel coral-and-cream and sage-and-cream striped wooden festival stalls, wrapped gift boxes, triangular bunting, flowers, a rabbit shopkeeper and squirrel visitor. Warm fun seasonal fair in the village, with little open paved space. Left third stays airy low contrast cream paving and pale green trees, usable for a heading."
+    }
+  ]
+}

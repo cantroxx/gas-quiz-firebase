@@ -1,0 +1,223 @@
+--- live/adminGetQuizQualityAudit/index.js
++++ candidate/adminGetQuizQualityAudit/index.js
+@@ -4133,21 +4133,14 @@
+   const adminMember = await getAdminMemberForAuth(authUid);
+   assertSuperAdmin(adminMember);
+ 
+-  const [quizSnapshot, featureFlags] = await Promise.all([
+-    db.collection("quizzes").limit(300).get(),
+-    getFeatureFlags().catch(() => DEFAULT_FEATURE_FLAGS)
++  const qualityScope = require('./quiz-quality-scope');
++  const selection = qualityScope.selectScope(request.data || {}, HttpsError);
++  const [loaded, featureFlags] = await Promise.all([
++    qualityScope.loadScope(db, selection),
++    getFeatureFlags()
+   ]);
+   const disabledQuizIds = new Set(publicFeatureFlags(featureFlags).disabledQuizIds || []);
+-  const quizDocs = quizSnapshot.docs
+-    .map(doc => ({ quizId: doc.id, ...(doc.data() || {}) }))
+-    .filter(quiz => !ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS.has(quiz.quizId));
+-  const questionSnapshots = await Promise.all(quizDocs.map(quiz =>
+-    db.collection("quizQuestions").doc(quiz.quizId).collection("questions").limit(1200).get()
+-      .catch(error => {
+-        console.warn("Admin quiz quality question read failed.", quiz.quizId, error);
+-        return null;
+-      })
+-  ));
++  const quizDocs = loaded.entries.map(entry => entry.quiz);
+ 
+   const quizSummaries = [];
+   const invalidQuestions = [];
+@@ -4159,8 +4152,7 @@
+   let duplicateQuestionIdCount = 0;
+ 
+   quizDocs.forEach((quiz, index) => {
+-    const snapshot = questionSnapshots[index];
+-    const questions = snapshot ? snapshot.docs.map(publicAuditRecord) : [];
++    const questions = loaded.entries[index].questions.map(publicAuditRecord);
+     const seenIds = new Map();
+     questionCount += questions.length;
+ 
+@@ -4215,6 +4207,11 @@
+     success: true,
+     audit: {
+       checkedAt: Timestamp.now(),
++      scope: selection.scope,
++      complete: loaded.readIssues.length === 0,
++      scopeDescription: selection.scope === 'current'
++        ? '현재 인기 퀴즈의 국기·티니핑·포켓몬 문제은행 11개 점검. 생성형 과목과 아이돌·애니 정적 팩은 별도 로컬 검사 대상입니다.'
++        : '지정한 보관 문제은행만 점검한 결과입니다. 전체 문제은행 검사가 아닙니다.',
+       metrics: {
+         quizCount: quizDocs.length,
+         questionCount,
+@@ -4225,6 +4222,7 @@
+       },
+       quizSummaries,
+       issues: {
++        readIssues: loaded.readIssues,
+         invalidQuestions,
+         missingImages,
+         duplicateQuestionIds
+--- live/grantPracticeReward/index.js
++++ candidate/grantPracticeReward/index.js
+@@ -9474,15 +9474,6 @@
+       quizCorrectRewardCount: nextQuizCorrectCount,
+       updatedAt: FieldValue.serverTimestamp()
+     }, { merge: true });
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: getPracticeQuestKindsForQuiz(quizId),
+-      amount: 1,
+-      sourceType: "practice_correct",
+-      sourceId: `${recordId}__${questionId}`
+-    });
+     transaction.set(logRef, {
+       type: "practice_correct",
+       todayQuiz: false,
+--- live/grantRankingCompleteXp/index.js
++++ candidate/grantRankingCompleteXp/index.js
+@@ -9624,15 +9624,6 @@
+     transaction.set(activityRef,{source:'ranking:'+recordId,memberId:memberUserId,uid:authUid,quizId,counts:{rankingComplete:1},time:Date.now()});
+     const dateKey = getKstDateKey();
+     const weekKey = getKstWeekKey();
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: new Set(["rankingComplete"]),
+-      amount: 1,
+-      sourceType: "ranking_complete",
+-      sourceId: recordId
+-    });
+     transaction.set(recordRef, {
+       levelXpDelta: 0,
+       levelAfter: null,
+--- live/popularQuizAction/index.js
++++ candidate/popularQuizAction/index.js
+@@ -9502,15 +9502,6 @@
+       quizCorrectRewardCount: nextQuizCorrectCount,
+       updatedAt: FieldValue.serverTimestamp()
+     }, { merge: true });
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: getPracticeQuestKindsForQuiz(quizId),
+-      amount: 1,
+-      sourceType: "practice_correct",
+-      sourceId: `${recordId}__${questionId}`
+-    });
+     transaction.set(logRef, {
+       type: "practice_correct",
+       todayQuiz: false,
+--- live/subjectQuizAction/index.js
++++ candidate/subjectQuizAction/index.js
+@@ -9351,18 +9351,10 @@
+ });
+ 
+ async function rewardGeneratedSubjectAnswer(transaction, item) {
+-  const dateKey=getKstDateKey(),usageRef=db.collection('dailyUsage').doc(buildDailyUsageRecordId(item.memberId,dateKey));
+-  const snapshot=await transaction.get(usageRef);
+-  const current=normalizeDailyUsageData(snapshot.data()||{},item.memberId,dateKey);
+-  const award=item.mode==='practice' ? await grantPracticeRewardInTransaction(transaction, {
++  return item.mode==='practice' ? grantPracticeRewardInTransaction(transaction, {
+     memberUserId:item.memberId,authUid:item.uid,recordId:`${item.memberId}__subject_${item.subject}`,
+     questionId:`${item.runId}_${item.seq}`,quizId:item.unitId.startsWith('korean:spelling:')?'spelling':`subject-${item.subject}`
+   },true) : {rewardCoin:0,xpDelta:0};
+-  transaction.set(usageRef,{...current,eduCorrectCount:current.eduCorrectCount+1,
+-    unlockBaseEduCorrectCount:current.funSeconds>=POPULAR_USAGE_SOFT_LIMIT_SECONDS&&current.unlockBaseEduCorrectCount<=0?current.eduCorrectCount:current.unlockBaseEduCorrectCount,
+-    updatedAt:FieldValue.serverTimestamp(),...(snapshot.exists?{}:{createdAt:FieldValue.serverTimestamp()}),source:'subject_quiz_server'
+-  },{merge:true});
+-  return award;
+ }
+ 
+ async function grantPracticeRewardInTransaction(transaction, { memberUserId, recordId, questionId, quizId, authUid }, verified = false) {
+@@ -9474,15 +9466,6 @@
+       quizCorrectRewardCount: nextQuizCorrectCount,
+       updatedAt: FieldValue.serverTimestamp()
+     }, { merge: true });
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: getPracticeQuestKindsForQuiz(quizId),
+-      amount: 1,
+-      sourceType: "practice_correct",
+-      sourceId: `${recordId}__${questionId}`
+-    });
+     transaction.set(logRef, {
+       type: "practice_correct",
+       todayQuiz: false,
+--- a/index.html
++++ b/index.html
+@@ -2732,6 +2732,7 @@
+     let titleCatalogCache = null;
+     let titleCatalogMapCache = null;
+     let serverFreshnessPollTimer = null;
++    let serverFreshnessRequest = null;
+ 
+     function debugLog(...args) {
+       try {
+@@ -2791,26 +2792,38 @@
+     }
+ 
+     async function checkServerFreshness() {
+-      if(!window.DJ48AccountState.getCurrentMemberUserId()) return;
+-      try {
+-        const signature = await loadServerFreshnessSignature();
+-        if(!signature) return;
+-        const stored = getStoredServerFreshnessSignature();
+-        if(!stored) {
+-          storeServerFreshnessSignature(signature);
+-          setGlobalRefreshNeedsAttention(false);
+-          return;
++      const memberId = window.DJ48AccountState.getCurrentMemberUserId();
++      if(!memberId || document.hidden) return;
++      if(serverFreshnessRequest?.memberId === memberId) return serverFreshnessRequest.promise;
++      const request = { memberId, promise: null };
++      serverFreshnessRequest = request;
++      request.promise = (async () => {
++        try {
++          const signature = await loadServerFreshnessSignature();
++          if(!signature || document.hidden || window.DJ48AccountState.getCurrentMemberUserId() !== memberId) return;
++          const stored = getStoredServerFreshnessSignature();
++          if(!stored) {
++            storeServerFreshnessSignature(signature);
++            setGlobalRefreshNeedsAttention(false);
++            return;
++          }
++          setGlobalRefreshNeedsAttention(stored !== signature);
++        } catch(error) {
++          debugLog('Server freshness check skipped.', error);
++        } finally {
++          if(serverFreshnessRequest === request) serverFreshnessRequest = null;
+         }
+-        setGlobalRefreshNeedsAttention(stored !== signature);
+-      } catch(error) {
+-        debugLog('Server freshness check skipped.', error);
+-      }
++      })();
++      return request.promise;
+     }
+ 
+     function startServerFreshnessPolling() {
+       if(serverFreshnessPollTimer) return;
+       window.setTimeout(checkServerFreshness, 2500);
+       serverFreshnessPollTimer = window.setInterval(checkServerFreshness, 60000);
++      document.addEventListener('visibilitychange', () => {
++        if(!document.hidden) void checkServerFreshness();
++      });
+     }
+ 
+     async function refreshCurrentAppData() {
+@@ -7667,7 +7680,7 @@
+     async function loadAdminQuizQualityAudit() {
+       return window.DJ48AdminUsecases.loadAdminAuditFlow({
+         loadingMessage: '문제 데이터를 점검하는 중입니다...',
+-        getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
++        getSuccessMessage: audit => `${audit?.complete === false ? '일부 범위 점검 미완료' : '요청 범위 점검 완료'} · ${formatAdminTimestamp(audit?.checkedAt)}`
+       }, {
+         setStatus: setAdminQuizQualityStatus,
+         loadAudit: () => getAdminRepository().loadAdminQuizQualityAudit(),

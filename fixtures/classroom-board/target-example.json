@@ -1,0 +1,6 @@
+{
+  "students": [{"memberUserId": "DEMO-A"}, {"memberUserId": "DEMO-B"}],
+  "quests": [{"id": "reading", "repeatRule": "daily"}],
+  "gems": [{"gemId": "reading-gem-a", "gemName": "독서젬"}, {"gemId": "reading-gem-b", "gemName": "독서젬"}],
+  "shopItems": [{"itemId": "demo-coupon", "pricePoint": 20}]
+}

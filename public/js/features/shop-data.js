@@ -17,9 +17,9 @@
     return {
       itemId,
       rawCategory: category,
-      category: categoryLabels[category] || category || '기타',
-      name: data.name || itemId,
-      desc: data.desc || '상점 아이템 설명을 준비 중입니다.',
+      category: String(categoryLabels[category] || category || '기타').replaceAll('칭호를', '타이틀을').replaceAll('칭호가', '타이틀이').replaceAll('칭호와', '타이틀과').replaceAll('칭호는', '타이틀은').replaceAll('칭호', '타이틀'),
+      name: String(data.name || itemId).replaceAll('칭호를', '타이틀을').replaceAll('칭호가', '타이틀이').replaceAll('칭호와', '타이틀과').replaceAll('칭호는', '타이틀은').replaceAll('칭호', '타이틀'),
+      desc: String(data.desc || '상점 아이템 설명을 준비 중입니다.').replaceAll('칭호를', '타이틀을').replaceAll('칭호가', '타이틀이').replaceAll('칭호와', '타이틀과').replaceAll('칭호는', '타이틀은').replaceAll('칭호', '타이틀'),
       price: Number.isFinite(price) ? price : 0,
       icon: deps.getShopFallbackIcon?.(itemId, category) || '🛍️',
       enabled: data.enabled === true,
@@ -113,7 +113,8 @@
     const categoryMap = {
       '배경': 'background',
       '아바타': 'avatar',
-      '칭호 프레임': 'titleFrame'
+      '칭호 프레임': 'titleFrame',
+      '타이틀 프레임': 'titleFrame'
     };
     return categoryMap[category] || category;
   }
@@ -176,12 +177,24 @@
     return items.filter(item => inventoryItemIds.has(item.itemId));
   }
 
+  const SHOWCASE_ITEMS = [
+    { itemId: 'showcase-ocean-journal', category: '배경', name: '바닷속 수첩', icon: '🐳', price: 150, desc: '파도와 고래가 머무는 시원한 내 집 테마예요.' },
+    { itemId: 'showcase-space-journal', category: '배경', name: '별 여행 수첩', icon: '🪐', price: 200, desc: '작은 행성과 별빛으로 수첩을 꾸며요.' },
+    { itemId: 'showcase-fox-sticker', category: '수집 도감', name: '숲속 여우 스티커', icon: '🦊', price: 30, desc: '숲속 친구들 도감 · 여우의 한 칸을 채워요.' },
+    { itemId: 'showcase-bear-sticker', category: '수집 도감', name: '포근한 곰 스티커', icon: '🐻', price: 30, desc: '숲속 친구들 도감 · 느긋한 곰을 만나보세요.' },
+    { itemId: 'showcase-rabbit-sticker', category: '수집 도감', name: '달토끼 스티커', icon: '🐰', price: 40, desc: '숲속 친구들 도감 · 토끼와 함께 모험해요.' }
+  ].map(item => ({ ...item, previewOnly: true }));
+
+  function withShopShowcase(items = []) {
+    return [...items, ...SHOWCASE_ITEMS.filter(sample => !items.some(item => item.itemId === sample.itemId))];
+  }
+
   function getShopTabDefinitions() {
     return [
-      { tabId: 'all', label: '전체' },
-      { tabId: 'avatar', label: '아바타' },
-      { tabId: 'background', label: '배경' },
-      { tabId: 'titleFrame', label: '칭호 프레임' }
+      { tabId: 'all', label: '모든 보물' },
+      { tabId: 'avatar', label: '🎨 프로필 꾸미기' },
+      { tabId: 'background', label: '🏡 내 집 테마' },
+      { tabId: 'collection', label: '📒 수집 도감' }
     ];
   }
 
@@ -189,14 +202,14 @@
     if(item.avatarLayer === true) return 'avatar';
     const category = String(item.rawCategory || item.category || '').trim();
     if(category === '배경' || category === 'background') return 'background';
-    if(category === '아바타' || category === 'avatar') return 'avatar';
-    if(category === '칭호 프레임' || category === 'titleFrame') return 'titleFrame';
+    if(category === '수집 도감' || category === 'collection') return 'collection';
+    if(['아바타', 'avatar', '칭호 프레임', '타이틀 프레임', 'titleFrame'].includes(category)) return 'avatar';
     return 'all';
   }
 
   function filterShopItemsByTab(items = [], tabId = 'all') {
     if(tabId === 'all') return items;
-    return items.filter(item => getShopItemTabId(item) === tabId);
+    return items.filter(item => getShopItemTabId(item) === (tabId === 'titleFrame' ? 'avatar' : tabId));
   }
 
   function getAvatarLayerItems(items = []) {
@@ -279,6 +292,7 @@
     buildEconomyFallback,
     buildUserEconomyForRender,
     getOwnedShopItems,
+    withShopShowcase,
     getShopTabDefinitions,
     getShopItemTabId,
     filterShopItemsByTab,

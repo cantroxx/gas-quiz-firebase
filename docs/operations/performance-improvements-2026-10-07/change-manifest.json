@@ -1,0 +1,154 @@
+{
+  "baseline": "starting dirty working tree; unrelated art/CSS normalized equally in comparison pair",
+  "files": [
+    {
+      "path": "public/index.html",
+      "startingWorkingTreeSha256": "e4edaa54130d8b91eef2e4a7564ac7bb50ecf56ca375ef10365ed434dfbab2e8",
+      "comparisonBeforeSha256": "e4edaa54130d8b91eef2e4a7564ac7bb50ecf56ca375ef10365ed434dfbab2e8",
+      "finalSha256": "e956899c414a40262cf23c6340d2648ae2393e2d87e48df22f195872162a509a"
+    },
+    {
+      "path": "public/js/application/admin-usecases.js",
+      "startingWorkingTreeSha256": "ffd8840d2919edcdd434be7eb53e6a62f2904722b9cd476c50313039064294d4",
+      "comparisonBeforeSha256": "ffd8840d2919edcdd434be7eb53e6a62f2904722b9cd476c50313039064294d4",
+      "finalSha256": "328894ae4f27b23ef4c241e6d08efc14c8cd52ecc5cc812890cd0aad7def6021"
+    },
+    {
+      "path": "public/js/application/classroom-usecases.js",
+      "startingWorkingTreeSha256": "78118fff8d05578abb148b22a9cd1ac4dcf56c3fb968d8470fbe1bbed6e55b59",
+      "comparisonBeforeSha256": "78118fff8d05578abb148b22a9cd1ac4dcf56c3fb968d8470fbe1bbed6e55b59",
+      "finalSha256": "a213550d41d24e81ff784421512467829bc409571bc6bf1eedee30c7840cd006"
+    },
+    {
+      "path": "public/js/infrastructure/admin-repository.js",
+      "startingWorkingTreeSha256": "e3347affe4006ccb77e1e76c6065f8fcfda03859991f79cd9c06cd44e8ed1d78",
+      "comparisonBeforeSha256": "e3347affe4006ccb77e1e76c6065f8fcfda03859991f79cd9c06cd44e8ed1d78",
+      "finalSha256": "283b3066536e548c7f627f98779f6e17b9b70c14697f111fb29d51ff23742759"
+    },
+    {
+      "path": "public/js/infrastructure/classroom-repository.js",
+      "startingWorkingTreeSha256": "417539bfe3a6e718372b1551ee933efabc53b0f639e4b7612ab9783e673c6db9",
+      "comparisonBeforeSha256": "417539bfe3a6e718372b1551ee933efabc53b0f639e4b7612ab9783e673c6db9",
+      "finalSha256": "fe8ad7ff737f9bac84ca25e4fb9642a337e7ebd9141694f3cc1c93a02bcbe1c9"
+    },
+    {
+      "path": "public/js/features/admin-state.js",
+      "startingWorkingTreeSha256": "e63f33ca80f0eb417ebd2707d5dc2f98b349536d6a44a5a69d404c8409373edc",
+      "comparisonBeforeSha256": "e63f33ca80f0eb417ebd2707d5dc2f98b349536d6a44a5a69d404c8409373edc",
+      "finalSha256": "2b3ad4711d4b25441d6f8c6c44e3155fb98c4e365ea43eaa37fbd4ff08c93e30"
+    },
+    {
+      "path": "public/js/features/classroom-state.js",
+      "startingWorkingTreeSha256": "aa8fb0a0da74f10ed1fc63230d4f6de0e984026b89137d819300c463d63b02b0",
+      "comparisonBeforeSha256": "aa8fb0a0da74f10ed1fc63230d4f6de0e984026b89137d819300c463d63b02b0",
+      "finalSha256": "d90cc876d5aadbb2b1287794c807304625d5034833badc0cfa5bb1d3419be5e4"
+    },
+    {
+      "path": "public/js/features/classroom-form.js",
+      "startingWorkingTreeSha256": "76d236dd70bd86e21404fde15a47641085c2ed0790212257e7e6104d18bca18e",
+      "comparisonBeforeSha256": "76d236dd70bd86e21404fde15a47641085c2ed0790212257e7e6104d18bca18e",
+      "finalSha256": "297572c721ad12d88c442ef9c06bee2835fd5f01bc3bb6d3ed3021872599685d"
+    },
+    {
+      "path": "public/js/features/classroom-render.js",
+      "startingWorkingTreeSha256": "4dc72c339e5ab04617f24d50ccca26a5fd2483e23404ff36837e7ab5e202dafd",
+      "comparisonBeforeSha256": "c281015e0f222b4a249934fe8667daf6cce69145364e4925b4b3fd70e52e6630",
+      "finalSha256": "2063054cc28e2e296706f3a1e8b430917a24fcae22955113e46a6a780797a553"
+    },
+    {
+      "path": "public/js/features/classroom-workspace.js",
+      "startingWorkingTreeSha256": "fe1457406cf8f60051d8ef988d95f77d05d329a36b05f56e86b03a9e8e900abf",
+      "comparisonBeforeSha256": "fe1457406cf8f60051d8ef988d95f77d05d329a36b05f56e86b03a9e8e900abf",
+      "finalSha256": "5148d2f05f666cf27b92ec926c12ea8b7149584c27dc37b9ccf90929aaabddd6"
+    },
+    {
+      "path": "public/coordi-shop/dressing-room.js",
+      "startingWorkingTreeSha256": "358d077a76f2f11270836126d51c4680f556b2822898099bd74d86862f0957f5",
+      "comparisonBeforeSha256": "358d077a76f2f11270836126d51c4680f556b2822898099bd74d86862f0957f5",
+      "finalSha256": "fc1511af6270a6fb616041511ad234a6b82bb6635669bb4c259d5caba8df9628"
+    },
+    {
+      "path": "functions/index.js",
+      "startingWorkingTreeSha256": "81712c4d52e0fdc93c87eaca57eed3e4e3b5b256ffdaa359a025ad0b506e1e54",
+      "comparisonBeforeSha256": "81712c4d52e0fdc93c87eaca57eed3e4e3b5b256ffdaa359a025ad0b506e1e54",
+      "finalSha256": "bc2b3d39bada532a77ff5abd468f10f5911a28139b383d3e5a0909e0d997e592"
+    },
+    {
+      "path": "functions/coordi-shop/commerce.js",
+      "startingWorkingTreeSha256": "9add1340ff563b9a4a7c74d64438f30e2d26a0c7a7b2db0ceb69726fdf24f95e",
+      "comparisonBeforeSha256": "9add1340ff563b9a4a7c74d64438f30e2d26a0c7a7b2db0ceb69726fdf24f95e",
+      "finalSha256": "6b26dca0227d28dd5e06d48ec8d17ebdd83edb87165263b016fd84ff604d3d2d"
+    },
+    {
+      "path": "package.json",
+      "startingWorkingTreeSha256": "5c0c39662ba6e492a145732a6bb3eab48964e675de3b2f85d928771f6cb86a4e",
+      "comparisonBeforeSha256": "5c0c39662ba6e492a145732a6bb3eab48964e675de3b2f85d928771f6cb86a4e",
+      "finalSha256": "765f734d404cdac306ac6489037535dfeb4683472ed6738e7a2850d450d65be0"
+    },
+    {
+      "path": "tests/application/admin-usecases.test.js",
+      "startingWorkingTreeSha256": "4abdf3a309631be69fd06b84d3ad502387a26a46840d6e50c33de2daf35848d4",
+      "comparisonBeforeSha256": "4abdf3a309631be69fd06b84d3ad502387a26a46840d6e50c33de2daf35848d4",
+      "finalSha256": "4016aa27b908a26affed747902d92fc7813f72307c43594a4b39872ba2b6349b"
+    },
+    {
+      "path": "scripts/smoke/classroom-loading-browser.js",
+      "startingWorkingTreeSha256": "e9eabf16e6a5ab43e1e6ce271c6df99b705433416ffcd85d7fa3248cadb0bda6",
+      "comparisonBeforeSha256": "e9eabf16e6a5ab43e1e6ce271c6df99b705433416ffcd85d7fa3248cadb0bda6",
+      "finalSha256": "24fe90f0829fdd0259e5969b0f88409329394918c975113038c4ce28ea313d9c"
+    },
+    {
+      "path": "public/js/app.bundle.js",
+      "startingWorkingTreeSha256": "77503e16d8fa475fb86161043027a2fe40178bbf249606ef05087d37a8a85e2a",
+      "comparisonBeforeSha256": "77503e16d8fa475fb86161043027a2fe40178bbf249606ef05087d37a8a85e2a",
+      "finalSha256": "3450af55cc2360d507cc87ea507f3c76edbc9238d6dd2e15ddb1eac4110ff40d"
+    },
+    {
+      "path": "scripts/smoke/browser-smoke-test.js",
+      "baselineEvidence": "Reconstructed by reversing this turn exact guard edits; not included in starting file snapshot",
+      "comparisonBeforeSha256": "c59bfb1e94caf09f3c6a4f60ea1dcb5eda46465a6bb768e071e7e5bc354d92da",
+      "finalSha256": "9646e6b2f9c5992d3f2c678d508548487663984b655f12be6c457c17ce90a160"
+    }
+  ],
+  "newFiles": [
+    {
+      "path": "tests/application/entry-performance.test.js",
+      "sha256": "aea5d85fddf8778a1fbb48f3508e267957127bf7c58a3efd2249ef629e115e63"
+    },
+    {
+      "path": "scripts/audit/entry-performance-profile.cjs",
+      "sha256": "6252c84f07e6e9c564a8202eaf2afe340a8fef324630c03fdbc6164546bbfecd"
+    },
+    {
+      "path": "scripts/audit/entry-preview-auth-profile.cjs",
+      "sha256": "28da023b885ac03286db786bcfadad30d4431cb1008ee66988b7879b30d3344c"
+    },
+    {
+      "path": "scripts/smoke/public-shell-fixture.js",
+      "sha256": "6e1bf2c73b562a912096ca779c64547db5c1a011e57ac684317933a61208bdbd"
+    }
+  ],
+  "protected": [
+    {
+      "path": "firestore.rules",
+      "sha256": "47e59bf38bbab8780743cea2442868da0c1cb0ff6e1930bc6cc71aa52e7a5636",
+      "unchangedSinceStart": true
+    },
+    {
+      "path": "firestore.indexes.json",
+      "sha256": "fd021741b5f33eebfff4b5b37cdcd1a2dbe816ac33538a372f9a8b045abe4d13",
+      "unchangedSinceStart": true
+    },
+    {
+      "path": "firebase.json",
+      "sha256": "a2c3dbff762243119044663be1be56099933c992dd9bd64ac9c851c31fcd5ad3",
+      "unchangedSinceStart": true
+    }
+  ],
+  "otherWorkPreserved": [
+    "public/classroom.css",
+    "public/js/features/classroom-render.js illustration-only hunks",
+    "scripts/smoke/classroom-ui-browser.js"
+  ],
+  "postMeasurementChange": "Product: trailing whitespace only and formal bundle rebuild. Test tooling: public smoke now offline, API guard regression added; final full check rerun."
+}

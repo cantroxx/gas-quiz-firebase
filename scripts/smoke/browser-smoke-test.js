@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 const assert = require('node:assert/strict');
+const publicFixture = require('./public-shell-fixture');
 
 const DEFAULT_BASE_URL = 'https://dj48-quiztown-firebase.web.app';
 const DEFAULT_CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 function getConfig() {
   return {
-    baseUrl: process.env.SMOKE_BASE_URL || DEFAULT_BASE_URL,
+    baseUrl: process.env.SMOKE_PUBLIC_ONLY === '1' ? publicFixture.ORIGIN : (process.env.SMOKE_BASE_URL || DEFAULT_BASE_URL),
     chromePath: process.env.SMOKE_CHROME_PATH || DEFAULT_CHROME_PATH,
     publicOnly: process.env.SMOKE_PUBLIC_ONLY === '1',
     headless: process.env.SMOKE_HEADLESS !== '0',
@@ -62,7 +63,7 @@ async function runPublicShellCheck(page, config) {
   await page.locator('#member-link-number').waitFor({ state: 'visible' });
   await page.locator('#member-link-password').waitFor({ state: 'visible' });
   const globals = await page.evaluate(() => {
-    const hasAppBundle = !!document.querySelector('script[src="/js/app.bundle.js"]');
+    const hasAppBundle = Array.from(document.scripts).some(script => new URL(script.src, location.href).pathname === '/js/app.bundle.js');
     const hasScript = src => hasAppBundle || !!document.querySelector(`script[src="${src}"]`);
     return {
       format: !!window.DJ48Format,
@@ -508,26 +509,25 @@ async function runFeatureEntryChecks(page) {
   await waitForVisible(page, '#classroom-view');
   await page.locator('#classroom-main-panel').waitFor({ state: 'visible', timeout: 15000 });
   await page.locator('#classroom-today-grid').waitFor({ state: 'visible', timeout: 15000 });
-  assert.ok(await page.locator('#classroom-today-grid .classroom-today-card').count() >= 6, 'classroom today cards should render');
+  assert.ok(await page.locator('#classroom-today-grid .classroom-checklist-section').count() > 0, 'classroom today actions should render');
   assert.ok(await page.locator('#classroom-today-grid [data-classroom-today-tab]').count() >= 3, 'classroom today shortcuts should render');
-  if(await page.locator('[data-classroom-tab="classroom"]').count()) {
-    await page.click('[data-classroom-tab="classroom"]');
-  }
-  if(await page.locator('[data-classroom-subtab="quest"]').count()) {
-    await page.locator('[data-classroom-subtab="quest"]').waitFor({ state: 'visible', timeout: 15000 });
-    await page.click('[data-classroom-subtab="quest"]');
-  }
+  if(await page.locator('[data-classroom-group="activity"]').count()) await page.click('[data-classroom-group="activity"]');
+  await page.click('[data-classroom-tab="quest"]');
   await page.locator('#classroom-quest-grid').waitFor({ state: 'visible', timeout: 15000 });
-  await page.click('[data-classroom-tab="gems"]');
+  if(await page.locator('[data-classroom-group="growth"]').count()) await page.click('[data-classroom-group="growth"]');
+  else await page.click('[data-classroom-tab="gems"]');
   await page.locator('#classroom-gem-summary').waitFor({ state: 'visible', timeout: 15000 });
   if(await page.locator('[data-classroom-tab="jobs"]').count()) {
+    if(await page.locator('[data-classroom-group="class"]').count()) await page.click('[data-classroom-group="class"]');
     await page.click('[data-classroom-tab="jobs"]');
     const isActive = await page.locator('[data-classroom-tab="jobs"]').evaluate(element => element.classList.contains('is-active'));
     assert.equal(isActive, true);
     await page.locator('#classroom-job-summary').waitFor({ state: 'visible', timeout: 15000 });
   }
-  if(await page.locator('[data-classroom-tab="shop"]').count()) {
-    await page.click('[data-classroom-tab="shop"]');
+  if(await page.locator('[data-classroom-tab="market"]').count()) {
+    if(await page.locator('[data-classroom-group="economy"]').count()) await page.click('[data-classroom-group="economy"]');
+    await page.click('[data-classroom-tab="market"]');
+    await page.click('[data-classroom-market-tab="inventory"]');
     await page.locator('#classroom-shop-history').waitFor({ state: 'visible', timeout: 15000 });
   }
 }
@@ -561,11 +561,12 @@ async function runHousingShellCheck(page, config) {
 }
 
 async function runIsolatedShellCheck(browser, config, pageErrors, check) {
-  const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1366, height: 900 }, serviceWorkers: 'block' });
+  if(config.publicOnly) await publicFixture.install(context);
   const page = await context.newPage();
   const onPageError = error => pageErrors.push(error);
   const onConsole = message => {
-    if(message.type() === 'error') pageErrors.push(new Error(message.text()));
+    if(message.type() === 'error' && !(config.publicOnly && publicFixture.isExpectedBlockedConsole(message.text()))) pageErrors.push(new Error(message.text()));
   };
   page.on('pageerror', onPageError);
   page.on('console', onConsole);
@@ -588,12 +589,14 @@ async function main() {
   });
   const pageErrors = [];
   const context = await browser.newContext({
-    viewport: { width: 1366, height: 900 }
+    viewport: { width: 1366, height: 900 },
+    serviceWorkers: 'block'
   });
+  if(config.publicOnly) await publicFixture.install(context);
   const page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error));
   page.on('console', message => {
-    if(message.type() === 'error') {
+    if(message.type() === 'error' && !(config.publicOnly && publicFixture.isExpectedBlockedConsole(message.text()))) {
       pageErrors.push(new Error(message.text()));
     }
   });
@@ -615,7 +618,7 @@ async function main() {
       await runFeatureEntryChecks(page);
     }
     await expectNoPageErrors(pageErrors);
-    console.log(`Browser smoke test passed: ${config.publicOnly ? 'public shell' : 'authenticated practice/ranking/home/features'} @ ${config.baseUrl}`);
+    console.log(`Browser smoke test passed: ${config.publicOnly ? 'offline public shell (all backend requests blocked)' : 'authenticated practice/ranking/home/features'} @ ${config.baseUrl}`);
   } finally {
     await browser.close();
   }

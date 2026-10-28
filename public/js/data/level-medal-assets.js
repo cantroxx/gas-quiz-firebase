@@ -1,6 +1,6 @@
 (function (root) {
-  const LEVEL_MEDAL_MAX = 50;
-  const LEVEL_MEDAL_ROOT = '/images/classroom-assets/medals/levels';
+  const LEVEL_MEDAL_MAX = 100;
+  const LEVEL_MEDAL_ROOT = '/images/town-medals-20261018';
 
   function padLevel(level) {
     return String(Math.max(1, Math.min(LEVEL_MEDAL_MAX, Math.round(Number(level) || 1)))).padStart(2, '0');
@@ -26,9 +26,9 @@
       name: `레벨 ${level} 훈장`,
       level,
       tier: getLevelMedalTier(level),
-      path: `${LEVEL_MEDAL_ROOT}/level-${padded}-v1.png`,
+      path: `${LEVEL_MEDAL_ROOT}/level-${String(level).padStart(3, '0')}.svg?v=jewels-20261018`,
       status: 'selected',
-      source: 'Recraft grid #1 crop, original unmodified',
+      source: 'Native SVG village medal set 2026-10-18',
       usage: ['homeProfile', 'levelReward', 'studentProfile']
     });
   }));

@@ -1,0 +1,89 @@
+{
+  "scope": "Synthetic dependency timing using exact deployed navigation function bodies; no DOM, Firebase, account, requests or production latency. This measures calls to rendering functions, not pixel paint.",
+  "runs": [
+    {
+      "function": "showRankingView",
+      "configuredFlagDelayMs": 0,
+      "sample": 1,
+      "renderCallMs": 0.05145800000000378,
+      "enterViewCallMs": 0.05754200000000509
+    },
+    {
+      "function": "showRankingView",
+      "configuredFlagDelayMs": 0,
+      "sample": 2,
+      "renderCallMs": 0.002042000000002986,
+      "enterViewCallMs": 0.0030830000000037217
+    },
+    {
+      "function": "showRankingView",
+      "configuredFlagDelayMs": 0,
+      "sample": 3,
+      "renderCallMs": 0.001459000000004096,
+      "enterViewCallMs": 0.0025839999999988095
+    },
+    {
+      "function": "showRankingView",
+      "configuredFlagDelayMs": 250,
+      "sample": 1,
+      "renderCallMs": 252.301125,
+      "enterViewCallMs": 252.31725
+    },
+    {
+      "function": "showRankingView",
+      "configuredFlagDelayMs": 250,
+      "sample": 2,
+      "renderCallMs": 250.707583,
+      "enterViewCallMs": 250.72670799999992
+    },
+    {
+      "function": "showRankingView",
+      "configuredFlagDelayMs": 250,
+      "sample": 3,
+      "renderCallMs": 250.48462500000005,
+      "enterViewCallMs": 250.50595799999996
+    },
+    {
+      "function": "showShopView",
+      "configuredFlagDelayMs": 0,
+      "sample": 1,
+      "renderCallMs": 0.12312499999995907,
+      "enterViewCallMs": 0.12799999999992906
+    },
+    {
+      "function": "showShopView",
+      "configuredFlagDelayMs": 0,
+      "sample": 2,
+      "renderCallMs": 0.004792000000065855,
+      "enterViewCallMs": 0.0072499999999990905
+    },
+    {
+      "function": "showShopView",
+      "configuredFlagDelayMs": 0,
+      "sample": 3,
+      "renderCallMs": 0.004041000000029271,
+      "enterViewCallMs": 0.006416000000058375
+    },
+    {
+      "function": "showShopView",
+      "configuredFlagDelayMs": 250,
+      "sample": 1,
+      "renderCallMs": 251.26412499999992,
+      "enterViewCallMs": 251.29099999999994
+    },
+    {
+      "function": "showShopView",
+      "configuredFlagDelayMs": 250,
+      "sample": 2,
+      "renderCallMs": 251.379958,
+      "enterViewCallMs": 251.42012499999987
+    },
+    {
+      "function": "showShopView",
+      "configuredFlagDelayMs": 250,
+      "sample": 3,
+      "renderCallMs": 251.09825,
+      "enterViewCallMs": 251.13158399999998
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 (function () {
   function formatAdminTimestamp(value) {
     const seconds = Number(value?._seconds || value?.seconds || 0);
-    const millis = seconds ? seconds * 1000 : Date.parse(value || '');
+    const millis = seconds ? seconds * 1000 : typeof value === 'number' ? value : Date.parse(value || '');
     if(!millis || Number.isNaN(millis)) return '-';
     return new Date(millis).toLocaleString('ko-KR', {
       month: '2-digit',
@@ -137,13 +137,29 @@
       ['비번 미설정', data.passwordMissing || 0],
       ['변경 필요', data.passwordForceChange || 0],
       ['잠김', data.passwordLocked || 0],
-      ['오늘 기록', data.todayPracticeCount || 0],
-      ['오늘 보상', data.todayRewardCount || 0]
+      [data.activityLabel || '과거 연습기록 문서 수', data.todayPracticeCount ?? '조회 실패'],
+      ['오늘 보상 로그 건수', data.todayRewardCount ?? '조회 실패']
     ].forEach(([label, value]) => {
       grid.appendChild(createAdminDetailMetric(label, value));
     });
 
     recent.innerHTML = '';
+    const freshness = document.createElement('p');
+    const states = {complete:'조회 완료',partial:'상한 도달 · 일부 조회',failed:'조회 실패'};
+    freshness.textContent = data.readStatus ? `${formatAdminTimestamp(data.checkedAt)} · 회원 ${states[data.readStatus.members]} · 학습 ${states[data.readStatus.activity]} · 보상 ${states[data.readStatus.rewards]} · ${data.activityNote}` : '구형 집계 응답입니다. 최신 관리자 서버 반영 여부를 확인하세요.';
+    recent.append(freshness);
+    if(isSuperAdmin) {
+      const pizzaLink = document.createElement('a');
+      pizzaLink.className = 'button secondary';
+      pizzaLink.href = '/pizza-assessment/admin.html';
+      pizzaLink.textContent = '🍕 피자 평가 학급 관리';
+      recent.appendChild(pizzaLink);
+      const spaceLink = document.createElement('a');
+      spaceLink.className = 'button secondary';
+      spaceLink.href = '/space-explorer/admin.html';
+      spaceLink.textContent = '🪐 우주 평가 학급 관리';
+      recent.appendChild(spaceLink);
+    }
     const heading = document.createElement('h3');
     heading.textContent = isSuperAdmin ? '최근 관리자 작업' : '반 관리자 모드';
     recent.appendChild(heading);
@@ -167,6 +183,19 @@
     const data = audit || {};
     summaryRoot.innerHTML = '';
     listRoot.innerHTML = '';
+    const note = document.createElement('p');
+    note.textContent = `${formatAdminTimestamp(data.checkedAt)} · ${data.complete === true ? '조회 완료' : '일부 조회 또는 완료 여부 미확인'}`;
+    summaryRoot.append(note);
+    if(data.scope === 'current') {
+      const info = document.createElement('p'); info.textContent = data.note; summaryRoot.append(info);
+      const status = {complete:'조회 완료',partial:'일부 조회',failed:'조회 실패'};
+      (data.sources || []).forEach(source=>summaryRoot.append(createAdminDetailMetric(source.name, `${source.count ?? '-'}건 · ${status[source.status] || '미확인'}`)));
+      listRoot.append(createAdminDetailList('현행 기록 확인 후보', data.issues || [], row=>`${row.source} · ${row.recordId} · ${row.reason}`));
+      return;
+    }
+    const archiveNotice = document.createElement('p');
+    archiveNotice.textContent = '과거 자료 전용 점검입니다. 구 퀴즈왕 summary 차이는 현재 순위 오류를 뜻하지 않습니다. 현재 인기 서버 기록은 과거 점검에서 제외합니다.';
+    listRoot.append(archiveNotice);
     [
       ['회원', data.metrics?.users || 0],
       ['활성 학생', data.metrics?.activeStudents || 0],
@@ -202,6 +231,11 @@
     const data = audit || {};
     summaryRoot.innerHTML = '';
     listRoot.innerHTML = '';
+    if(data.scopeDescription) {
+      const scope = document.createElement('p');
+      scope.textContent = `${data.scopeDescription}${data.complete === false ? ' 일부 범위는 읽기 실패·누락·문항 상한으로 검사가 끝나지 않았습니다.' : ''}`;
+      listRoot.appendChild(scope);
+    }
     [
       ['퀴즈', data.metrics?.quizCount || 0],
       ['문항', data.metrics?.questionCount || 0],
@@ -214,6 +248,7 @@
     });
 
     [
+      ['점검하지 못한 범위', data.issues?.readIssues || [], row => `${row.quizId} · ${row.reason}`],
       ['퀴즈별 문항 수', data.quizSummaries || [], row => `${row.quizId} · ${row.title || '-'} · ${row.questionCount}문항${row.expectedQuestionCount && row.expectedQuestionCount !== row.questionCount ? ` · 기준 ${row.expectedQuestionCount}` : ''}${row.disabled ? ' · 닫힘' : ''}`],
       ['문항 오류 후보', data.issues?.invalidQuestions || [], row => `${row.quizId}/${row.questionId} · ${row.reason}`],
       ['이미지 누락 후보', data.issues?.missingImages || [], row => `${row.quizId}/${row.questionId} · ${row.answer || row.prompt || '-'}`],
@@ -504,19 +539,32 @@
       createAdminDetailMetric('비밀번호', getAdminPasswordStateLabel({ passwordState: data.passwordState })),
       createAdminDetailMetric('DJ코인', Number(data.economy?.djCoin || 0)),
       createAdminDetailMetric('포인트', Number(data.classroomWallet?.point || 0)),
-      createAdminDetailMetric('연습 기록', Number(data.practiceSummary?.recordCount || 0)),
-      createAdminDetailMetric('완주 별', Number(data.practiceSummary?.totalStars || 0)),
-      createAdminDetailMetric('칭호', Number(data.titleSummary?.ownedCount || data.counts?.titles || 0)),
-      createAdminDetailMetric('뱃지', Number(data.counts?.badges || 0)),
-      createAdminDetailMetric('대표 칭호', data.titleSummary?.selectedTitleName || data.titleSummary?.selectedTitleId || '없음')
+      createAdminDetailMetric('상점 구매 쿠폰', data.purchaseCoupons ?? '조회 미지원'),
+      createAdminDetailMetric('아지트 별', data.gameHonors?.stars ?? '조회 미지원'),
+      createAdminDetailMetric('아지트 하트', data.gameHonors?.hearts ?? '조회 미지원'),
+      createAdminDetailMetric('타이틀', Number(data.titleSummary?.ownedCount || data.counts?.titles || 0)),
+      createAdminDetailMetric('대표 타이틀', data.titleSummary?.selectedTitleName || data.titleSummary?.selectedTitleId || '없음')
     );
 
-    content.append(
-      metrics,
-      createAdminDetailList('최근 연습 기록', data.practiceRecords || [], row => `${row.area || '-'} / ${row.detail || row.areaKey || '-'} · ${row.correctCount}/${row.totalCount} · 별 ${row.starCount} · ${formatAdminTimestamp(row.updatedAt)}`),
-      createAdminDetailList('보유 뱃지', data.badges || [], row => `${row.label || row.badgeId} · ${row.correct}/${row.total} · 별 ${row.starCount}${row.completed ? ' · 완료' : ''}`),
-      createAdminDetailList('보유 칭호', data.titles || [], row => `${row.selected ? '대표 · ' : ''}${row.titleName || row.titleId}`)
-    );
+    content.append(metrics);
+    const note = document.createElement('p');
+    note.textContent = data.achievements ? '현행 집계: ' + data.achievements.version + ' · 정오답 모두 답안 수에 포함 · 과목 랭킹은 20연속 정답 달성 판당 1회' : '최신 학습 진행도 조회를 지원하지 않는 서버입니다.';
+    content.append(note);
+    if(data.achievements) content.append(createAdminDetailList('학습·타이틀 진행도', data.achievements.records, row => {
+      const next = row.nextPractice ? `다음 ${row.nextPractice.titleName}까지 ${Math.max(0,row.nextPractice.threshold-row.answered)}번` : '연습 타이틀 최종 단계 달성';
+      const ranking = row.subject ? ` · 성공 ${row.perfectRuns}판 · ${row.nextRanking ? '다음 '+row.nextRanking.titleName+'까지 '+Math.max(0,row.nextRanking.threshold-row.perfectRuns)+'판' : '랭킹 타이틀 최종 단계 달성'}` : '';
+      return `${row.label} · 답안 ${row.answered}번 · ${next}${ranking}`;
+    }));
+    const titles = data.titles || [];
+    const titleText = row => `${row.selected ? '대표 · ' : ''}${row.titleName || row.titleId}`;
+    content.append(createAdminDetailList('보유 타이틀', titles.filter(row=>row.titleId?.startsWith('a26_')), titleText));
+    const archive = document.createElement('details'), summary = document.createElement('summary');
+    summary.textContent = '과거 기록 · 구 타이틀·뱃지·연습';
+    archive.append(summary,
+      createAdminDetailList('(구) 타이틀', titles.filter(row=>!row.titleId?.startsWith('a26_')), titleText),
+      createAdminDetailList('과거 연습 기록', data.practiceRecords || [], row => `${row.area || '-'} / ${row.detail || row.areaKey || '-'} · ${row.correctCount}/${row.totalCount} · 별 ${row.starCount} · ${formatAdminTimestamp(row.updatedAt)}`),
+      createAdminDetailList('보유 뱃지', data.badges || [], row => `${row.label || row.badgeId} · ${row.correct}/${row.total} · 별 ${row.starCount}${row.completed ? ' · 완료' : ''}`));
+    content.append(archive);
   }
 
   function renderAdminExternalQuizRows(externalQuizzes, deps = {}) {
@@ -525,13 +573,19 @@
     const defaultExternalQuizzes = deps.defaultExternalQuizzes || {};
     const maxRows = Number(deps.maxRows || 0);
     if(!root || typeof normalizeExternalQuizzes !== 'function' || !maxRows) return;
-    const items = normalizeExternalQuizzes(externalQuizzes || defaultExternalQuizzes).items;
+    const config = normalizeExternalQuizzes(externalQuizzes || defaultExternalQuizzes);
+    const items = config.items;
+    const month = document.getElementById('admin-concept-month');
+    const theme = document.getElementById('admin-concept-theme');
+    if(month) month.value = String(config.concept?.month || 1);
+    if(theme) theme.value = config.concept?.theme || ''; 
     root.innerHTML = '';
     for(let index = 0; index < maxRows; index += 1) {
       const item = items[index] || {};
       const row = document.createElement('article');
       row.className = 'admin-external-quiz-row';
       row.innerHTML = `
+        <label>분류<select data-external-quiz-field="group"><option value="learning">학습 퀴즈</option><option value="concept">컨셉 퀴즈</option></select></label>
         <label>
           퀴즈 이름
           <input data-external-quiz-field="title" data-external-quiz-index="${index}" type="text" maxlength="40" value="">
@@ -549,6 +603,7 @@
           활성
         </label>
       `;
+      row.querySelector('[data-external-quiz-field="group"]').value = item.group || 'learning';
       row.querySelector('[data-external-quiz-field="title"]').value = item.title || '';
       row.querySelector('[data-external-quiz-field="description"]').value = item.description || '';
       row.querySelector('[data-external-quiz-field="url"]').value = item.url || '';
@@ -570,6 +625,7 @@
       const item = items[index] || {};
       const row = document.createElement('article');
       row.className = 'admin-external-quiz-row';
+      row.dataset.seasonEventId = item.eventId || 'season-'+Array.from(crypto.getRandomValues(new Uint32Array(4)),v=>v.toString(16).padStart(8,'0')).join('');
       row.innerHTML = `
         <label>
           시즌 타이틀
@@ -589,6 +645,10 @@
         <label>
           월간 대상 월
           <input data-season-event-field="targetMonth" data-season-event-index="${index}" type="month" value="">
+        </label>
+        <label class="admin-checkbox-label">
+          <input data-season-event-field="autoRenew" data-season-event-index="${index}" type="checkbox">
+          매월 자동 전환 (매월 1일 0시, 기존 기록 보존)
         </label>
         <label>
           주간 시작일
@@ -611,10 +671,29 @@
           활성
         </label>
       `;
+      const conditions=document.createElement('fieldset');const legend=document.createElement('legend');legend.textContent='시즌 달성 조건·보상 (선택한 활동만 참여)';conditions.append(legend);
+      const activities={practiceCorrect:'연습전 정답',rankingComplete:'랭킹전 정상 완료',studyCorrect:'스터디 타운 정답',survivorCorrect:'퀴즈 서바이버 정답',marbleComplete:'마블 정상 완주',towerClear:'구름탑 문장',bombWord:'말폭탄 낱말'};
+      for(const [kind,label]of Object.entries(activities)){const goal=(item.goals||[]).find(g=>g.kind===kind);const line=document.createElement('div');line.dataset.seasonGoal=kind;line.className='season-goal-editor'+(goal?'':' is-disabled');
+        const enabled=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=!!goal;check.dataset.goalEnabled='';enabled.append(check,document.createTextNode(label));line.append(enabled);
+        for(const [field,title,value,max]of [['target','목표',goal?.target||10,10000],['xpReward','XP',goal?.xpReward??50,100],['rewardCoin','DJ코인',goal?.rewardCoin??40,100]]){const wrap=document.createElement('label'),input=document.createElement('input');input.type='number';input.min=field==='target'?1:0;input.max=max;input.value=value;input.dataset.goalField=field;input.disabled=!goal;wrap.append(document.createTextNode(title),input);line.append(wrap);}
+        check.addEventListener('change',()=>{line.classList.toggle('is-disabled',!check.checked);line.querySelectorAll('[data-goal-field]').forEach(n=>n.disabled=!check.checked);if(check.checked){row.querySelector('[data-season-event-field="autoRenew"]').checked=false;}});conditions.append(line);
+      }
+      const help=document.createElement('p');help.textContent='지정 퀴즈 ID는 연습전·랭킹전 조건에 적용됩니다. 비워두면 전체 퀴즈입니다. 온라인 대전은 선택한 게임에서 집계합니다. 보상 조건이 있는 시즌은 매월 자동 전환을 해제하세요. 순위는 달성 조건 수(동점 공동 순위)입니다. 삭제·비활성화하면 신규 집계가 종료됩니다. 이미 달성한 미수령 보상은 보존하며, 중단한 시즌은 같은 ID로 다시 열 수 없습니다.';conditions.append(help);row.append(conditions);
       row.querySelector('[data-season-event-field="title"]').value = item.title || '';
       row.querySelector('[data-season-event-field="desc"]').value = item.desc || '';
       row.querySelector('[data-season-event-field="periodType"]').value = item.periodType === 'weekly' ? 'weekly' : 'monthly';
       row.querySelector('[data-season-event-field="targetMonth"]').value = item.targetMonth || '';
+      const autoRenewInput = row.querySelector('[data-season-event-field="autoRenew"]');
+      const periodTypeInput = row.querySelector('[data-season-event-field="periodType"]');
+      const targetMonthInput = row.querySelector('[data-season-event-field="targetMonth"]');
+      autoRenewInput.checked = item.autoRenew === true;
+      const updatePeriodInputs = () => {
+        autoRenewInput.disabled = periodTypeInput.value !== 'monthly';
+        targetMonthInput.disabled = periodTypeInput.value !== 'monthly' || autoRenewInput.checked;
+      };
+      autoRenewInput.addEventListener('change', updatePeriodInputs);
+      periodTypeInput.addEventListener('change', updatePeriodInputs);
+      updatePeriodInputs();
       row.querySelector('[data-season-event-field="startDate"]').value = item.startDate || item.periodStartDate || '';
       row.querySelector('[data-season-event-field="endDate"]').value = item.endDate || item.periodEndDate || '';
       row.querySelector('[data-season-event-field="quizIds"]').value = (item.quizIds || []).join(', ');
@@ -643,38 +722,6 @@
     }
   }
 
-  function renderAdminTodayQuizPoolGrid(flags, deps = {}) {
-    const root = document.getElementById('admin-today-quiz-pool-grid');
-    const getAdminQuizToggleGroups = deps.getAdminQuizToggleGroups;
-    const quizCatalog = deps.quizCatalog || {};
-    if(!root || typeof getAdminQuizToggleGroups !== 'function') return;
-    const selected = new Set(flags?.todayQuizRandomPoolIds || []);
-    root.innerHTML = '';
-    getAdminQuizToggleGroups().forEach(group => {
-      const section = document.createElement('section');
-      const heading = document.createElement('h4');
-      const list = document.createElement('div');
-      section.className = 'admin-quiz-toggle-group';
-      heading.textContent = group.label;
-      list.className = 'admin-quiz-toggle-list';
-      group.quizIds.forEach(quizId => {
-        const quiz = quizCatalog[quizId];
-        if(!quiz) return;
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        const text = document.createElement('span');
-        label.className = 'admin-quiz-toggle';
-        input.type = 'checkbox';
-        input.checked = selected.has(quizId);
-        input.dataset.adminTodayQuizPoolToggle = quizId;
-        text.textContent = String(quiz.title || quizId).replace(' 퀴즈', '');
-        label.append(input, text);
-        list.appendChild(label);
-      });
-      section.append(heading, list);
-      root.appendChild(section);
-    });
-  }
 
   function renderAdminQuizToggleGrid(flags, deps = {}) {
     const root = document.getElementById('admin-quiz-toggle-grid');
@@ -756,7 +803,6 @@
     renderAdminMemberDetail,
     renderAdminExternalQuizRows,
     renderAdminSeasonEventRows,
-    renderAdminTodayQuizPoolGrid,
     renderAdminQuizToggleGrid,
     renderAdminDashboard,
     renderAdminLogs

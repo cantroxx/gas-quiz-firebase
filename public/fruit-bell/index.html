@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#164f46"><title>딩동! 과일종 · DJ48 퀴즈타운</title>
+  <link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="style.css?v=emotes-20260929">
+  <script defer src="domain.js?v=emotes-20260929"></script><script defer src="net.js"></script><script defer src="app.js?v=emotes-20260929"></script>
+</head>
+<body>
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="fruit-0" viewBox="0 0 64 64"><path d="M32 18C13 6 4 27 14 45c8 16 14 10 18 10s10 6 18-10C60 27 51 6 32 18Z" fill="#ed6660" stroke="#bd3f42" stroke-width="2.5"/><path d="M32 21q-4-10 1-15" fill="none" stroke="#795332" stroke-width="4" stroke-linecap="round"/><path d="M35 13Q41 1 52 7Q48 20 35 13" fill="#548854"/><path d="M18 25q-5 8 0 15" fill="none" stroke="#ffb4a5" stroke-width="4" stroke-linecap="round"/></symbol>
+    <symbol id="fruit-1" viewBox="0 0 64 64"><path d="M12 17Q5 48 31 54Q55 59 57 24Q35 51 17 16Z" fill="#f5c947" stroke="#bd8c22" stroke-width="2.5"/><path d="M17 20Q18 47 43 43" fill="none" stroke="#fff09b" stroke-width="4"/><path d="m12 17 5-6 4 5M54 25l4-6" fill="none" stroke="#74603a" stroke-width="4"/></symbol>
+    <symbol id="fruit-2" viewBox="0 0 64 64"><path d="M31 17q-3-9 5-13" stroke="#658149" stroke-width="4" fill="none"/><path d="M33 14Q44 1 53 10Q48 23 33 14" fill="#719655"/><g fill="#9073c3" stroke="#655094" stroke-width="2"><circle cx="22" cy="25" r="10"/><circle cx="41" cy="25" r="10"/><circle cx="17" cy="38" r="10"/><circle cx="33" cy="39" r="10"/><circle cx="47" cy="38" r="9"/><circle cx="32" cy="52" r="9"/></g><circle cx="19" cy="22" r="3" fill="#c7b4e8"/></symbol>
+    <symbol id="fruit-3" viewBox="0 0 64 64"><path d="M7 19h50C58 65 5 65 7 19Z" fill="#79ab69" stroke="#3a8058" stroke-width="2.5"/><path d="M12 19h40C50 56 14 56 12 19Z" fill="#fff1c7"/><path d="M16 19h32C46 50 18 50 16 19Z" fill="#f17f77"/><g fill="#784d49"><ellipse cx="25" cy="28" rx="2" ry="3"/><ellipse cx="39" cy="28" rx="2" ry="3"/><ellipse cx="32" cy="38" rx="2" ry="3"/></g></symbol>
+    <symbol id="bell-art" viewBox="0 0 160 140"><ellipse cx="80" cy="121" rx="63" ry="13" fill="#173e35" opacity=".2"/><rect x="18" y="108" width="124" height="17" rx="8" fill="#815128"/><rect x="26" y="103" width="108" height="13" rx="6" fill="#b97939"/><path d="M30 100C32 66 43 41 80 41s48 25 50 59Z" fill="#efbf56" stroke="#ba822a" stroke-width="3"/><path d="M43 91C44 70 54 52 72 51" fill="none" stroke="#ffeb9d" stroke-width="8" stroke-linecap="round"/><path d="M32 100h96" stroke="#ffe299" stroke-width="5"/><rect x="74" y="24" width="12" height="20" rx="5" fill="#c5963a"/><ellipse cx="80" cy="23" rx="20" ry="8" fill="#ffdc81" stroke="#c5963a" stroke-width="3"/></symbol>
+  </defs></svg>
+  <header class="topbar"><a href="/battle/" class="brand">← <span>DJ48</span> 게임 아지트</a><div class="tools"><button id="sound" aria-pressed="true" title="소리 켜고 끄기">소리 켜짐</button><button id="help">놀이 방법</button></div></header>
+  <main>
+    <section id="lobby" class="lobby">
+      <div class="intro"><p class="eyebrow">눈은 과일에, 손은 종에!</p><h1>딩동!<br><span>과일종</span><i>✳</i></h1><p class="lead">같은 과일이 딱 <b>5개</b>!<br>누가 먼저 종을 울릴까요?</p><div class="chips"><span>2–4명</span><span>한 판 90초</span><span>순발력 + 눈치</span></div>
+      <div class="demo-cards" aria-hidden="true"><div class="mini-card"><svg><use href="#fruit-0"/></svg><svg><use href="#fruit-0"/></svg></div><span>+</span><div class="mini-card"><svg><use href="#fruit-0"/></svg><svg><use href="#fruit-0"/></svg><svg><use href="#fruit-0"/></svg></div><span>=</span><svg class="demo-bell"><use href="#bell-art"/></svg></div>
+      <p class="intro-foot">하나, 둘, 셋… 딩! 쌓인 카드는 내 거.</p></div>
+      <div class="play-panel"><div class="panel-title"><span class="little-star">✦</span><h2>테이블에 앉아 볼까요?</h2></div><p>카드를 살피고, 타이밍을 잡아요.</p>
+        <button id="practice" class="primary big">혼자 연습하기 <span>→</span></button><p class="hint">동물 친구 3명과 바로 시작 · 랭킹 제외</p>
+        <div class="divider"><span>친구와 함께</span></div>
+        <p id="online-note" class="notice">친구 대전 연결을 확인하고 있어요.</p>
+        <a id="login-link" class="text-button" href="/" hidden>퀴즈타운 로그인하기 →</a><label for="nickname">테이블 이름</label><input id="nickname" maxlength="12" autocomplete="off" placeholder="예: 종치는 토끼" value="종치는 토끼">
+        <button id="create" class="secondary" disabled>새 테이블 만들기</button>
+        <form id="join-form" class="join"><label class="sr-only" for="room-code">6자리 방 코드</label><input id="room-code" maxlength="6" placeholder="6자리 방 코드" autocomplete="off" pattern="[a-fA-F0-9]{6}" required><button id="join" class="secondary" disabled>입장</button></form>
+        <button id="rank-open" class="text-button">🏆 과일종 시험 랭킹 보기</button>
+      </div>
+    </section>
+    <section id="waiting" class="waiting panel" hidden><p class="eyebrow">친구를 기다리는 중</p><h1>우리 테이블</h1><p>친구에게 이 코드를 알려 주세요.</p><strong id="code-display" class="code"></strong><p id="waiting-note" class="hint">같은 로컬 서버에 접속한 친구끼리 참여할 수 있어요.</p><div id="waiting-players"></div><div class="waiting-actions"><button id="ready" class="primary">준비하기</button><button id="start" class="secondary" disabled>경기 시작</button><button id="leave-room" class="text-button">나가기</button></div></section>
+    <section id="match" hidden>
+      <div class="match-heading"><div><p class="eyebrow" id="mode-label">봇 연습</p><h1>딩동! 과일종</h1></div><div class="match-clock"><span>남은 시간</span><strong id="clock">1:30</strong></div><button id="leave" class="text-button">나가기</button></div>
+      <div class="table-wrap"><div class="table" id="table"><div class="table-mark" aria-hidden="true">FRUIT BELL CLUB · DJ48</div><div id="seats"></div><div class="bell-zone"><div id="bell-caption">정확히 5개면</div><button id="bell" aria-label="종 치기, 스페이스바" disabled><svg aria-hidden="true"><use href="#bell-art"/></svg><span>딩!</span></button><small>터치 / SPACE</small><div id="ring-feedback" aria-live="polite"></div></div></div></div>
+      <div class="play-footer"><div><p id="message" role="status">카드를 준비하고 있어요.</p><span id="connection">같은 과일이 정확히 5개일 때 종을 쳐요.</span></div><button id="flip" class="primary" disabled>내 카드 뒤집기 <kbd>F</kbd></button></div>
+      <div class="emote-bar"><span id="emote-hint">가볍게 한마디</span><div id="emotes" role="group" aria-label="감정표현"></div></div><p id="emote-announcement" class="sr-only" aria-live="polite"></p>
+      <div class="match-note"><span>오종: 친구마다 카드 1장씩</span><span>90초 뒤 카드가 가장 많으면 우승!</span></div>
+    </section>
+    <p id="status" role="status"></p>
+  </main>
+  <dialog id="help-dialog"><button class="close" data-close="help-dialog" aria-label="닫기">×</button><p class="eyebrow">아주 간단한 세 가지</p><h2>눈치 보고, 딩!</h2><ol class="rules"><li><b>내 차례에 카드를 뒤집어요.</b><p>버튼 또는 F키! 기다리면 자동으로 뒤집혀요.</p></li><li><b>같은 과일이 정확히 5개면 종!</b><p>모든 사람의 맨 위 카드만 세어요. 6개는 안 돼요. 터치하거나 스페이스바를 눌러요.</p></li><li><b>쌓인 카드를 모두 가져와요.</b><p>틀리면 남은 덱에서 친구에게 한 장씩! 90초 뒤 가진 카드가 가장 많으면 우승해요.</p></li></ol><p class="notice">거의 동시에 종을 치면 카드를 그대로 두고 다음 카드에서 다시 겨뤄요. 카드 뒤집기 중에는 종을 칠 수 없어요.</p><button class="primary" data-close="help-dialog">알겠어요!</button></dialog>
+  <dialog id="result-dialog"><p class="eyebrow" id="result-eyebrow">한 판 잘 놀았다!</p><h2 id="result-title">경기 결과</h2><p id="result-desc"></p><div id="result-rows"></div><p id="result-note" class="notice"></p><button id="again" class="primary">다시 놀기 →</button><button id="result-rank" class="text-button">시험 랭킹 보기</button></dialog>
+  <dialog id="ranking-dialog"><button class="close" data-close="ranking-dialog" aria-label="닫기">×</button><p class="eyebrow">우리 테이블의 기록</p><h2 id="ranking-title">과일종 시험 랭킹</h2><p id="ranking-note" class="notice">이 로컬 서버의 친구 대전만 집계해요. 우승 3점 · 공동 우승 1점. 서버를 끄면 초기화되며 퀴즈타운 공식 기록에는 저장되지 않아요.</p><div id="ranking-rows"></div><a class="text-button" href="/?fruitBellRanking=1">퀴즈타운 아지트 랭킹으로 →</a></dialog>
+  <dialog id="leave-dialog"><h2>테이블에서 나갈까요?</h2><p>친구 대전은 여기서 끝나며 랭킹에 반영되지 않아요.</p><button id="confirm-leave" class="primary">나가기</button><button class="text-button" data-close="leave-dialog">계속 놀기</button></dialog>
+</body>
+</html>

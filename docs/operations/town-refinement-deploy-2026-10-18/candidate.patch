@@ -1,0 +1,336 @@
+--- a/index.html
++++ b/index.html
+@@ -20,8 +20,9 @@
+   <link rel="stylesheet" href="/plaza-views.css?v=event-sections-20261017">
+   <link rel="stylesheet" href="/profile-view.css?v=1">
+   <link rel="stylesheet" href="/town-ui-refresh.css?v=20261018">
+-  <link rel="stylesheet" href="/town-spatial.css?v=20261018">
+-  <script src="/js/town-spatial.js?v=20261018" defer></script>
++  <link rel="stylesheet" href="/town-spatial.css?v=refine-20261018">
++  <script src="/js/town-avatar.js?v=20261018" defer></script>
++  <script src="/js/town-spatial.js?v=refine-20261018" defer></script>
+   <script defer src="/js/player-status-shortcut.js?v=town-ui-20261018"></script>
+   <link rel="stylesheet" href="/classroom-securities.css?v=securities-workspace-20261018">
+ </head>
+@@ -342,7 +343,7 @@
+ 
+     <section id="ranking-view" class="ranking-view app-view" aria-labelledby="ranking-title" hidden>
+       <div class="ranking-topbar">
+-        <div class="plaza-toolbar"><button class="button secondary back-to-town" type="button" data-back-to-town>← 마을로 돌아가기</button><a class="button hall-of-fame-link" href="/housing/?hall=1">🏛️ 하보 명예의 전당</a></div>
++        <div class="plaza-toolbar"><button class="button secondary back-to-town" type="button" data-back-to-town>← 마을로 돌아가기</button></div>
+         <div class="plaza-hero ranking-plaza-hero">
+           <img class="plaza-hero-art" loading="lazy" src="/images/ranking-plaza-storybook-v1.webp" alt="" decoding="async">
+           <div class="plaza-hero-copy"><p class="eyebrow">우리 마을의 도전 기록</p><h2 id="ranking-title">랭킹 광장</h2><p>친구들의 기록을 만나고<br>나의 다음 도전에 함께해요.</p><a class="plaza-jump" href="#ranking-board-root">순위 보기 ↓</a></div>
+@@ -1982,13 +1983,13 @@
+   <script src="/__/firebase/10.12.2/firebase-storage-compat.js"></script>
+   <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
+   <script src="/__/firebase/init.js"></script>
+-  <script src="/js/app.bundle.js?v=town-ui-20261018"></script>
++  <script src="/js/app.bundle.js?v=town-refine-20261018"></script>
+   <script src="/js/ranking-visibility.js?v=1"></script>
+   <script src="/js/ranking-plaza-loader.js?v=1"></script>
+   <script src="/js/event-plaza-loader.js?v=1"></script>
+   <script src="/js/hideout-ranking-plaza.js?v=fruit-bell-emotes-20260929"></script>
+   <script src="/js/battle-hub.js?v=6"></script>
+-  <script src="/js/school-rooms.js?v=subject-depth-20261017"></script>
++  <script src="/js/school-rooms.js?v=town-refine-20261018"></script>
+   <script>
+     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
+ 
+--- a/town-spatial.css
++++ b/town-spatial.css
+@@ -10,8 +10,8 @@
+ #town-view .town-map .place-name { background:#fff9e9; border:2px solid #ac8b51; box-shadow:0 4px 0 #704a3438; }
+ .spatial-guide { position:absolute; width:8%; max-width:88px; aspect-ratio:1; transform:translate(-50%,-88%); z-index:6; pointer-events:none; transition-property:left,top; transition-timing-function:linear; filter:drop-shadow(0 5px 2px #59412240); }
+ .spatial-guide img { display:block; width:100%; height:100%; object-fit:contain; }
+-.spatial-guide.is-walking img { animation:spatial-hop .22s ease-in-out infinite alternate; }
+-@keyframes spatial-hop { to { transform:translateY(-5px) rotate(3deg); } }
++.spatial-guide img[hidden] { display:none; }
++.spatial-guide[data-avatar-state="fallback"]::after { content:""; position:absolute; bottom:0; left:35%; width:30%; aspect-ratio:1; border-radius:50%; background:#f9dc7c; border:3px solid #fffdf4; box-shadow:0 2px 4px #64523560; }
+ .spatial-walk-status { font-size:13px; line-height:1.7; margin:12px 2px; color:#506744; min-height:23px; }
+ .spatial-nav-label { font:15px 'Jua',sans-serif; margin:12px 2px 8px; color:#5f6c46; }
+ .spatial-zoom { display:none; }
+@@ -48,7 +48,7 @@
+ .spatial-panel .home-detail-root { margin:0; }
+ .spatial-panel #profile-card-root { margin:0; }
+ .spatial-panel #shop-avatar-market iframe { width:100%; height:min(900px,74dvh) !important; }
+-#school-view .school-scene { background-image:url('/images/town-spatial-20261018/school-v1.webp'); min-width:800px; }
++#school-view .school-scene { background-image:url('/images/town-spatial-20261018/school-v2.webp'); min-width:800px; }
+ #school-view :is(.school-homeroom-door,.school-quiz-card) { top:32%; height:27%; width:12%; justify-content:flex-end; }
+ #school-view .school-homeroom-door { left:6%; }
+ #school-view .school-quiz-card-subjects { left:21%; }
+@@ -57,7 +57,7 @@
+ #school-view .school-quiz-card-concept { left:66%; }
+ #school-view .school-quiz-card-battle { left:82%; }
+ #school-view :is(#school-concept-label,.school-quiz-card-popular .popular-usage-notice) { position:absolute; top:100%; margin-top:8px; }
+-#school-room-view .room-hero { background-image:linear-gradient(90deg,var(--room-soft) 35%,#fffaf060),url('/images/town-spatial-20261018/school-v1.webp'); }
++#school-room-view .room-hero { background-image:linear-gradient(90deg,var(--room-soft) 35%,#fffaf060),url('/images/town-spatial-20261018/school-v2.webp'); }
+ @media(max-width:560px) {
+   #login-view { background-position:28% top; background-size:auto 540px; background-color:#eaf0d7; }
+   #login-view .storybook-welcome { margin-top:0; }
+@@ -100,3 +100,13 @@
+   #school-view .spatial-viewport:not(.is-enlarged) :is(.school-quiz-card,.school-homeroom-door) { min-width:40px; min-height:44px; }
+ }
+ @media(prefers-reduced-motion:reduce) { .spatial-guide,.spatial-guide img { transition:none !important; animation:none !important; } }
++
++/* Refinement: immediate hall overview and an optional compact reward dropdown. */
++#ranking-view .ranking-hall-shell { grid-template-columns:1fr; }
++#event-loading-status { position:relative; z-index:9; }
++#event-unclaimed-button { font-size:.85rem; padding:7px 11px; min-height:36px; }
++#event-unclaimed-button[hidden],.event-rewards-dropdown[hidden] { display:none !important; }
++.event-rewards-dropdown { position:absolute; right:0; top:calc(100% + 6px); width:min(420px,100%); box-sizing:border-box; max-height:65dvh; overflow:auto; padding:16px; background:#fffdf3; border:2px solid #d2c59c; border-radius:18px; box-shadow:0 12px 32px #40382330; }
++.event-rewards-dropdown .event-rewards-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
++.event-rewards-dropdown h3 { margin:0; }
++.event-rewards-dropdown .quest-card-grid { grid-template-columns:minmax(0,1fr); }
+--- a/js/town-spatial.js
++++ b/js/town-spatial.js
+@@ -13,7 +13,8 @@
+   function guide(scene) {
+     const actor = element('span', 'spatial-guide');
+     actor.setAttribute('aria-hidden', 'true');
+-    const img = element('img'); img.src = ART + 'guide-v1.webp'; img.alt = ''; img.draggable = false;
++    const img = element('img'); img.hidden = true; img.alt = ''; img.draggable = false;
++    actor.dataset.avatarState = 'fallback';
+     actor.append(img); scene.append(actor);
+     return actor;
+   }
+@@ -52,20 +53,20 @@
+       }
+       return [nodes[target]];
+     }
+-    const status = element('p','spatial-walk-status','산책 도우미와 함께! 길을 누르면 이동하고, 건물을 누르면 입장해요.');
++    const status = element('p','spatial-walk-status','길을 누르면 이동하고, 건물을 누르면 입장해요.');
+     status.setAttribute('role','status');
+     view.querySelector('.storybook-map-tip')?.replaceWith(status);
+     function cancel() { clearTimeout(timer); sequence++; actor.classList.remove('is-walking'); }
+     function walk(target, done, label) {
+       cancel(); const ticket = sequence;
+       const path = routeTo(target);
+-      status.textContent = label ? `${label}(으)로 가는 중… 다른 곳을 누르면 목적지를 바꿀 수 있어요.` : '토끼가 길을 따라 산책해요.';
++      status.textContent = label ? `${label}(으)로 가는 중… 다른 곳을 누르면 목적지를 바꿀 수 있어요.` : '길을 따라 천천히 이동해요.';
+       actor.classList.add('is-walking');
+       const step = () => {
+         if(ticket !== sequence || view.hidden) return;
+         const next = path.shift();
+         if(!next) { actor.classList.remove('is-walking'); status.textContent = label ? `${label}에 도착했어요!` : '다음에는 어디로 갈까요? 건물이나 아래 빠른 이동을 눌러보세요.'; done?.(); return; }
+-        const duration = reduceMotion.matches ? 0 : Math.min(240,Math.max(70,distance(position,next)*10));
++        const duration = reduceMotion.matches ? 0 : Math.min(650,Math.max(120,distance(position,next)*18));
+         actor.style.transitionDuration = `${duration}ms`;
+         actor.style.left = `${next[0]}%`; actor.style.top = `${next[1]}%`; position = next;
+         timer = setTimeout(step,duration);
+@@ -209,13 +210,6 @@
+       room(event,'event','오늘의 퀘스트를 확인하고, 해낸 만큼 보상을 받아요.',[
+         {key:'quests',label:'오늘의 퀘스트',rect:[5,15,34,48],panel:quests,run:()=>{
+           const toggle = byId('event-quest-toggle'); if(toggle?.getAttribute('aria-expanded')==='false') toggle.click();
+-        }},
+-        {key:'rewards',label:'미수령 보상',rect:[64,28,30,38],run:(node,message)=>{
+-          const original = byId('event-unclaimed-button');
+-          if(!original || original.disabled) { message.textContent='보상을 불러오는 중이에요. 잠시 뒤 다시 눌러주세요.';return; }
+-          original.click();
+-          const dialog = byId('event-unclaimed-dialog');
+-          if(dialog?.open) dialog.addEventListener('close',()=>{if(!event.hidden) node.focus();},{once:true});
+         }}
+       ]);
+     }
+@@ -311,6 +305,7 @@
+     town();
+     home(); plazas(); shop(); school();
+     legacyModalBridge();
++    window.DJ48TownAvatar?.sync();
+   }
+   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init,{once:true});
+   else init();
+--- a/js/school-rooms.js
++++ b/js/school-rooms.js
+@@ -5,7 +5,6 @@
+     subjects: ['📚', '과목 퀴즈', '배운 내용을 익히는 연습 교실', '국어·수학·사회·과학을 고르고, 기초 연습부터 독서와 탐구까지 도전해요.'],
+     learning: ['🔎', '학습 퀴즈', '직접 해 보는 학습 탐험', '탐사하고, 계산하고, 선택하며 배워요. 활동은 별도 사이트의 새 탭에서 열려요.'],
+     popular: ['⭐', '인기 퀴즈', '좋아하는 주제로 즐기는 동아리방', '캐릭터·그림·말놀이 중 좋아하는 주제를 골라 관찰력과 기억력을 뽐내요.'],
+-    concept: ['🎨', '컨셉 퀴즈', '새로운 주제가 찾아오는 특별 교실', '하나의 주제를 여러 활동으로 탐험해요.'],
+     games: ['🎲', '게임 아지트', '함께 놀고 도전하는 휴게실', '혼자 차근차근, 또는 친구와 함께 한 판!']
+   };
+   // Presentation labels only. Quiz IDs, availability and reward/ranking rules stay in their existing catalogs.
+@@ -54,7 +53,7 @@
+     configPromise = pending; return pending;
+   }
+   async function refreshLabel(force = true) {
+-    try { const config = await loadConfig(force); const label = document.getElementById('school-concept-label'); if(label) label.textContent = config?.concept?.theme || '컨셉 준비 중'; } catch (_) { /* Room has retry. */ }
++    // Compatibility hook for the app shell. Concept entrance has been retired.
+   }
+   function tabs(root, options, selected, select) {
+     const nav = el('nav', 'room-filters'); nav.setAttribute('aria-label', '활동 분류');
+@@ -149,19 +148,17 @@
+     try {
+       const flags = await deps.loadFlags(); if(id !== request || root.hidden) return; body.replaceChildren();
+       if(hub === 'subjects' || hub === 'popular') { renderQuizzes(body); restore(); return; }
+-      if(flags.externalQuizzesEnabled === false && !deps.isAdmin()) { status(body, '학습·컨셉 퀴즈는 지금 점검 중이에요.'); return; }
++      if(flags.externalQuizzesEnabled === false && !deps.isAdmin()) { status(body, '학습 퀴즈는 지금 점검 중이에요.'); return; }
+       status(body, '활동을 불러오는 중…'); const config = await loadConfig(options.refresh === true); if(id !== request || root.hidden) return; body.replaceChildren();
+-      if(hub === 'concept') { title.textContent = config.concept?.theme ? `컨셉 퀴즈 · ${config.concept.theme}` : rooms.concept[1]; if(!config.concept?.theme) { status(body, '다음 주제의 문을 준비하고 있어요. 다른 교실에서 먼저 놀아 볼까요?'); return; } }
+       const items = (config.items || []).filter(item => item.active !== false && (item.group || 'learning') === hub).filter(item => { try { return new URL(item.url).protocol === 'https:'; } catch (_) { return false; } }).map(item => ({ ...item, id: item.id || item.url }));
+       recentStrip(body, items, item => { remember(item.id); window.open(item.url, '_blank', 'noopener,noreferrer'); });
+-      if(hub === 'concept') root.querySelector('.room-hero-copy > p:last-child').textContent = '활동은 새 탭에서 열려요. 학교 화면은 그대로 남아 있어요.';
+-      body.append(el('h3', 'room-section-title', hub === 'concept' ? '주제를 탐험하는 활동' : '직접 해 보는 배움')); const grid = el('div', 'room-grid'); body.append(grid);
++      body.append(el('h3', 'room-section-title', '직접 해 보는 배움')); const grid = el('div', 'room-grid'); body.append(grid);
+       if(hub === 'learning') {
+         const guide = el('aside', 'room-purpose');
+         guide.append(el('strong', '', '활동을 고르기 전에'), el('p', '', '활동마다 입장 방법과 기록 저장 방식이 달라요. 열린 사이트의 안내를 확인하고, 다른 활동을 고르려면 이 탭으로 돌아오세요.'));
+         body.insertBefore(guide, grid);
+       }
+-      for(const item of items) { const view = card(hub === 'concept' ? '🎨' : '🔎', item.title, item.description || '새로운 활동을 열고 직접 탐험해 보세요.', hub === 'learning' ? ['체험·탐험 활동', '새 탭에서 열림'] : ['새 탭에서 열림']); view.actions.append(link('활동 열기 ↗', item.url, item.id)); grid.append(view.node); }
++      for(const item of items) { const view = card('🔎', item.title, item.description || '새로운 활동을 열고 직접 탐험해 보세요.', ['체험·탐험 활동', '새 탭에서 열림']); view.actions.append(link('활동 열기 ↗', item.url, item.id)); grid.append(view.node); }
+       if(!items.length) status(body, '아직 등록된 활동이 없어요. 새로운 소식을 기다려 주세요.');
+       body.append(button('목록 새로고침', () => open(hub, { refresh: true }), 'room-back')); restore();
+     } catch (_) { if(id === request && !root.hidden) { body.replaceChildren(); status(body, '활동을 불러오지 못했어요. 다시 시도해 주세요.', () => open(hub, { refresh: true })); } }
+--- a/js/features/ranking-render.js
++++ b/js/features/ranking-render.js
+@@ -39,25 +39,12 @@
+     if(!entries.length) return;
+ 
+     const shell = document.createElement('section');
+-    const featuredWrap = document.createElement('div');
+-    const featuredLabel = document.createElement('p');
+-    const hall = document.createElement('details');
+-    const summary = document.createElement('summary');
+     const hallGrid = document.createElement('div');
+-    const featuredEntry = entries[getDailyFeaturedRankingIndex(entries)] || entries[0];
+ 
+     shell.className = 'ranking-hall-shell';
+-    featuredWrap.className = 'ranking-featured-king';
+-    featuredLabel.className = 'ranking-featured-label';
+-    featuredLabel.textContent = '오늘의 왕';
+-    hall.className = 'ranking-hall-details';
+-    summary.className = 'ranking-hall-summary';
+-    summary.textContent = '명예의 전당';
+     hallGrid.className = 'ranking-hall-grid';
+-    featuredWrap.append(featuredLabel, createRankingCard(featuredEntry, 'ranking-card-featured'));
+     entries.forEach(entry => hallGrid.appendChild(createRankingCard(entry)));
+-    hall.append(summary, hallGrid);
+-    shell.append(hall, featuredWrap);
++    shell.append(hallGrid);
+     grid.appendChild(shell);
+   }
+ 
+--- a/js/features/event-render.js
++++ b/js/features/event-render.js
+@@ -125,36 +125,49 @@
+     document.getElementById('event-cycle-guide')?.remove();
+   }
+ 
++  function closeUnclaimedRewards(restoreFocus = false) {
++    const dropdown = document.getElementById('event-unclaimed-dialog');
++    if(!dropdown) return;
++    dropdown.hidden = true;
++    const button = document.getElementById('event-unclaimed-button');
++    button?.setAttribute('aria-expanded', 'false');
++    if(restoreFocus && !document.getElementById('event-view')?.hidden) {
++      (button && !button.hidden ? button : document.getElementById('event-refresh-button'))?.focus();
++    }
++  }
++
+   function getUnclaimedRewardsDialog() {
+-    let dialog = document.getElementById('event-unclaimed-dialog');
+-    if(dialog) return dialog;
++    let dropdown = document.getElementById('event-unclaimed-dialog');
++    if(dropdown) return dropdown;
+     const view = document.getElementById('event-view');
+     if(!view) return null;
+-    dialog = document.createElement('dialog');
+-    dialog.id = 'event-unclaimed-dialog';
+-    dialog.className = 'event-rewards-dialog';
+-    dialog.setAttribute('aria-labelledby', 'event-unclaimed-title');
+-    dialog.innerHTML = '<div class="event-rewards-header"><h3 id="event-unclaimed-title">미수령 보상</h3><button type="button" class="button" data-event-rewards-close autofocus>닫기</button></div><p id="event-unclaimed-period"></p><div id="legacy-season-quest-grid" class="quest-card-grid"></div>';
+-    dialog.querySelector('[data-event-rewards-close]').onclick = () => dialog.close();
+-    dialog.addEventListener('click', event => {
+-      const rect = dialog.getBoundingClientRect();
+-      if(event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) dialog.close();
+-    });
+-    dialog.addEventListener('close', () => {
+-      if(!view.hidden) document.getElementById('event-unclaimed-button')?.focus();
+-    });
+-    new MutationObserver(() => {
+-      if(view.hidden && dialog.open) dialog.close();
+-    }).observe(view, { attributes: true, attributeFilter: ['hidden'] });
+-    view.append(dialog);
+-    return dialog;
++    dropdown = document.createElement('section');
++    dropdown.id = 'event-unclaimed-dialog';
++    dropdown.className = 'event-rewards-dropdown';
++    dropdown.hidden = true;
++    dropdown.setAttribute('role', 'region');
++    dropdown.setAttribute('aria-labelledby', 'event-unclaimed-title');
++    dropdown.innerHTML = '<div class="event-rewards-header"><h3 id="event-unclaimed-title">미수령 보상</h3><button type="button" class="button" data-event-rewards-close>닫기</button></div><p id="event-unclaimed-period"></p><div id="legacy-season-quest-grid" class="quest-card-grid"></div>';
++    dropdown.querySelector('[data-event-rewards-close]').onclick = () => closeUnclaimedRewards(true);
++    document.addEventListener('click', event => {
++      if(!dropdown.hidden && !dropdown.contains(event.target) && !event.target.closest('#event-unclaimed-button')) closeUnclaimedRewards();
++    });
++    view.addEventListener('keydown', event => {
++      if(event.key === 'Escape' && !dropdown.hidden) { event.preventDefault(); closeUnclaimedRewards(true); }
++    });
++    new MutationObserver(() => { if(view.hidden) closeUnclaimedRewards(); }).observe(view, { attributes: true, attributeFilter: ['hidden'] });
++    (document.getElementById('event-loading-status') || view.querySelector('.event-topbar') || view).append(dropdown);
++    return dropdown;
+   }
+ 
+   function updateUnclaimedButton() {
+     const button = document.getElementById('event-unclaimed-button');
+     if(!button) return;
+-    const count = Number(document.getElementById('event-unclaimed-dialog')?.dataset.count) || 0;
+-    button.textContent = count ? `미수령 보상 (${count})` : '미수령 보상';
++    const dropdown = document.getElementById('event-unclaimed-dialog');
++    const count = Number(dropdown?.dataset.count) || 0;
++    button.textContent = `미수령 보상 (${count}) ▾`;
++    button.hidden = !count;
++    if(!count) closeUnclaimedRewards(dropdown?.contains(document.activeElement) || document.activeElement === button);
+   }
+ 
+   function renderUnclaimedRewards(data = {}) {
+@@ -167,8 +180,9 @@
+     dialog.querySelector('#event-unclaimed-period').textContent = data.legacySeasonKey ? `이전 월간 퀘스트 · ${data.legacySeasonKey}` : '이전 월간 퀘스트';
+     renderQuestCards(quests, grid.id);
+     if(!quests.length) grid.querySelector('.plaza-empty').textContent = '받을 수 있는 미수령 보상이 없어요.';
+-    if(hadFocus && dialog.open) dialog.querySelector('[data-event-rewards-close]').focus();
++    if(hadFocus && !dialog.hidden && quests.length) dialog.querySelector('[data-event-rewards-close]').focus();
+     updateUnclaimedButton();
++    if(hadFocus && !quests.length) closeUnclaimedRewards(true);
+   }
+ 
+   function renderEventSections(data = {}) {
+@@ -191,12 +205,16 @@
+     if(!status) {
+       status = document.createElement('div'); status.id = 'event-loading-status';
+       status.className = 'plaza-toolbar'; topbar.append(status);
+-      status.innerHTML = '<span id="event-status-message" role="status"></span><div class="event-toolbar-actions"><button id="event-unclaimed-button" type="button" class="button" aria-haspopup="dialog" aria-controls="event-unclaimed-dialog">미수령 보상</button><button id="event-refresh-button" type="button" class="button">새로고침</button></div>';
++      status.innerHTML = '<span id="event-status-message" role="status"></span><div class="event-toolbar-actions"><button id="event-unclaimed-button" type="button" class="button event-rewards-button" hidden aria-expanded="false" aria-controls="event-unclaimed-dialog">미수령 보상</button><button id="event-refresh-button" type="button" class="button">새로고침</button></div>';
+       status.querySelector('#event-unclaimed-button').onclick = () => {
+         const dialog = getUnclaimedRewardsDialog();
+-        if(dialog && !dialog.open) dialog.showModal();
++        if(!dialog || !Number(dialog.dataset.count)) return;
++        dialog.hidden = !dialog.hidden;
++        status.querySelector('#event-unclaimed-button').setAttribute('aria-expanded', String(!dialog.hidden));
+       };
+     }
++    const dropdown = getUnclaimedRewardsDialog();
++    if(dropdown && dropdown.parentElement !== status) status.append(dropdown);
+     status.querySelector('#event-status-message').textContent = message;
+     status.querySelector('#event-unclaimed-button').disabled = loading;
+     const button = status.querySelector('#event-refresh-button');
+--- a/js/features/quiz-render.js
++++ b/js/features/quiz-render.js
+@@ -5,7 +5,7 @@
+     const grid = document.getElementById('school-quiz-grid');
+     if(!grid) return;
+     grid.innerHTML = '';
+-    const doors = [{ schoolHub: 'subjects', title: '과목 퀴즈', enabled: true }, { schoolHub: 'learning', title: '학습 퀴즈', enabled: true }, { subjectId: 'popular' }, { schoolHub: 'concept', title: '컨셉 퀴즈', enabled: true }];
++    const doors = [{ schoolHub: 'subjects', title: '과목 퀴즈', enabled: true }, { schoolHub: 'learning', title: '학습 퀴즈', enabled: true }, { subjectId: 'popular' }];
+     doors.forEach(card => {
+       const subject = card.subjectId ? deps.subjectCatalog?.[card.subjectId] : null;
+       const viewModel = subject ? {
+@@ -55,7 +55,6 @@
+       }
+ 
+       item.append(icon, title, desc);
+-      if(viewModel.schoolHub === 'concept') { const label=document.createElement('small'); label.id='school-concept-label'; label.textContent='컨셉 준비 중'; item.appendChild(label); }
+       if(viewModel.subjectId === 'popular') {
+         usageNotice.className = 'popular-usage-notice';
+         usageNotice.dataset.popularUsageNotice = 'true';

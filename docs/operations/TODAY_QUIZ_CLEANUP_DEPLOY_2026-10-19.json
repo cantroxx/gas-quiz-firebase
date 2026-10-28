@@ -1,0 +1,84 @@
+{
+  "releasedAt": "2026-10-19 09:15:42 KST",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792368942539000",
+    "version": "sites/dj48-quiztown-firebase/versions/77560450f386c2f2",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8f2d90c70e57dfd1",
+    "changed": [
+      "index.html",
+      "js/app.bundle.js",
+      "js/features/admin-form.js",
+      "js/features/admin-controller.js",
+      "js/features/admin-render.js",
+      "js/features/home-controller.js",
+      "js/features/home-data.js",
+      "js/features/home-render.js",
+      "js/admin-growth-season.js"
+    ]
+  },
+  "functions": {
+    "verified": [
+      {
+        "target": "subjectQuizAction",
+        "updateTime": "2026-10-19T00:14:46.728435422Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "grantPracticeReward",
+        "updateTime": "2026-10-19T00:14:53.563345270Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "popularQuizAction",
+        "updateTime": "2026-10-19T00:14:28.469306851Z",
+        "sourceFiles": 96,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "adminGetFeatureFlags",
+        "updateTime": "2026-10-19T00:14:36.314210903Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "adminUpdateFeatureFlags",
+        "updateTime": "2026-10-19T00:14:32.854570132Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "getDailyRewardStatus",
+        "updateTime": "2026-10-19T00:14:45.149355816Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "ingestPracticeGrowth",
+        "updateTime": "2026-10-19T00:15:08.761934193Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      }
+    ],
+    "unrelatedChanges": [],
+    "verifiedAt": "2026-10-19T00:15:20.897Z"
+  },
+  "preservedHostingFiles": 4662,
+  "preservedOtherFunctions": 123,
+  "validation": {
+    "fullCheck": "passed",
+    "subjectUnits": 49,
+    "subjectBrowserScreens": 2502,
+    "candidateRewards": "passed",
+    "candidateAdminAndNotice": "passed",
+    "candidatePopularRewards": "passed",
+    "liveBrowserWidths": [
+      1440,
+      390,
+      320
+    ],
+    "fullHostingManifestAndHTTPHashes": "passed",
+    "productionStudentWrites": false
+  }
+}

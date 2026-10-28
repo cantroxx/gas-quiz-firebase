@@ -1,0 +1,45 @@
+'use strict';
+const assert=require('node:assert/strict');
+assert.match(process.env.FIRESTORE_EMULATOR_HOST||'',/^127\.0\.0\.1:\d+$/);
+process.env.GCLOUD_PROJECT='demo-dj48-rules';
+const api=require(process.env.GROWTH_FUNCTIONS_INDEX||'../../functions/index');
+const {getFirestore,FieldValue}=require('node:module').createRequire(require('node:path').resolve('functions/index.js'))('firebase-admin/firestore');
+const {createService}=require('../../functions/growth/quests');
+const {catalog,version}=require('../../functions/coordi-shop/commerce');
+(async()=>{const db=getFirestore(),uid='growth-integration',id='growth-student';
+ await db.doc('users/'+id).set({authUid:uid,status:'active',active:true,role:'student',school:'test',grade:4,classNo:1});await db.doc('authLinks/'+uid).set({memberUserId:id});
+ await db.doc('appSettings/featureFlags').set({shopEnabled:true,eventPlazaEnabled:true,practiceRewardEnabled:true,practiceXpEnabled:true});await db.doc('userEconomy/'+id).set({djCoin:1000});
+ if(api.adminGrowthSeasonPlan){
+   await assert.rejects(api.adminGrowthSeasonPlan.run({auth:{uid},data:{action:'reroll'}}),e=>e.code==='permission-denied');
+   const adminUid='growth-season-admin';await db.doc('users/growth-season-admin').set({authUid:adminUid,role:'admin',adminLevel:'superAdmin',active:true,status:'active'});
+   await assert.rejects(api.adminGrowthSeasonPlan.run({auth:{uid:adminUid},data:{}}),e=>e.code==='failed-precondition');
+ }
+ const activity={source:'integration-'+Date.now(),uid,memberId:id,counts:{practiceCorrect:10,todayCorrect:5,studyCorrect:8},time:Date.now()};
+ await api.ingestGrowthActivity.run({data:{data:()=>activity},params:{id:'fixture'}});await api.ingestGrowthActivity.run({data:{data:()=>activity},params:{id:'fixture'}});
+ const request=data=>({auth:{uid},data:{memberUserId:id,...data}});
+ const status=await api.getEventProgress.run(request({}));assert(status.quests.find(q=>q.questId==='v2_daily_practice').claimable);
+ const claim=await api.claimEventQuestReward.run(request({questId:'v2_daily_practice'}));assert.equal(claim.xpDelta,15);assert.equal(claim.rewardCoin,10);assert((await api.claimEventQuestReward.run(request({questId:'v2_daily_practice'}))).duplicate);
+ assert.equal((await db.doc('userEconomy/'+id).get()).data().djCoin,1010);assert.equal((await db.doc('userLevelSummary/'+id).get()).data().totalXp,15);
+ if(api.coordiShopAction){const item=Object.values(catalog).find(i=>i.genders.includes('female'));const buy=request({action:'purchase',items:[item.id],version,requestId:crypto.randomUUID()});const first=await api.coordiShopAction.run(buy);assert.equal(first.cost,item.price);assert((await api.coordiShopAction.run(buy)).duplicate);
+ await assert.rejects(api.coordiShopAction.run({auth:{uid:'unlinked'},data:{action:'status'}}));}
+ const start=await api.startRankingQuestSession.run(request({quizId:'spelling'}));
+ const recordId='growth-ranking',rank=db.doc('rankingRecords/'+recordId);
+ await rank.set({memberUserId:id,userId:id,quizId:'spelling',score:5,elapsedSeconds:20,recordedAt:FieldValue.serverTimestamp()});
+ const finish=request({quizId:'spelling',recordId,sessionId:start.sessionId});
+ await assert.rejects(api.grantRankingCompleteXp.run(finish),e=>e.code==='failed-precondition');
+ await db.doc('rankingQuestSessions/'+id).update({issuedAt:Date.now()-20000});
+ await assert.rejects(api.grantRankingCompleteXp.run(request({...finish.data,sessionId:'forged'})),e=>e.code==='failed-precondition');
+ assert.equal((await api.grantRankingCompleteXp.run(finish)).duplicate,false);
+ assert.equal((await api.grantRankingCompleteXp.run(finish)).duplicate,true);
+ await db.doc('rankingRecords/growth-ranking-2').set({memberUserId:id,userId:id,quizId:'spelling',score:5,elapsedSeconds:20,recordedAt:FieldValue.serverTimestamp()});
+ await assert.rejects(api.grantRankingCompleteXp.run(request({...finish.data,recordId:'growth-ranking-2'})),e=>e.code==='failed-precondition');
+ const seasonActivity={source:'season-integration-'+Date.now(),uid,memberId:id,counts:{studyCorrect:100},time:Date.now()};
+ await api.ingestGrowthActivity.run({data:{data:()=>seasonActivity}});
+ const seasonStatus=await api.getEventProgress.run(request({}));assert(seasonStatus.legacyQuests.find(q=>q.questId==='v2_season_study').claimable);
+ const coinsBefore=(await db.doc('userEconomy/'+id).get()).data().djCoin;
+ const seasonResults=await Promise.all([api.claimEventQuestReward.run(request({questId:'v2_season_study'})),api.claimEventQuestReward.run(request({questId:'v2_season_study'}))]);
+ assert.equal(seasonResults.filter(r=>r.duplicate).length,1);assert.equal(seasonResults.find(r=>!r.duplicate).xpDelta,50);assert.equal((await db.doc('userEconomy/'+id).get()).data().djCoin,coinsBefore+40+50);assert.equal(seasonResults.find(r=>!r.duplicate).levelXp.levelReward.djCoin,50);assert.equal((await db.doc('userLevelSummary/'+id).get()).data().totalXp,65);assert.equal((await api.getEventProgress.run(request({}))).todayQuestCoin,100);
+ const question=await api.survivorQuestQuiz.run(request({action:'question',subject:'math',grade:4,sem:1}));assert(!('answerIndex'in question));
+ const qref=db.doc('survivorQuizQuestions/'+question.questionId),q=(await qref.get()).data();await qref.update({issuedAt:Date.now()-3000});const answer=await api.survivorQuestQuiz.run(request({action:'answer',questionId:question.questionId,answer:q.q.choices[q.q.answerIndex]}));assert(answer.correct);
+ console.log('PASS real Firestore transactions and exported callables: activity dedup, daily/monthly concurrent XP+coin claim plus level-up bonus, caps-compatible level writes, purchase replay, ownership, server quiz');
+})().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

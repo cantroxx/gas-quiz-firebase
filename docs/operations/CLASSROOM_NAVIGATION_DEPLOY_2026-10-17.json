@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-17",
+  "site": "https://dj48-quiztown-firebase.web.app",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792222968398000",
+    "version": "sites/dj48-quiztown-firebase/versions/8a4f09caa04e5008",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/28dbfb78e811cfb7",
+    "changed": [
+      "/index.html",
+      "/js/features/classroom-render.js",
+      "/js/app.bundle.js",
+      "/classroom.css",
+      "/images/classroom/navigation-v2/bank-96.webp",
+      "/images/classroom/navigation-v2/bank-160.webp",
+      "/images/classroom/navigation-v2/bank-320.webp",
+      "/images/classroom/navigation-v2/home-96.webp",
+      "/images/classroom/navigation-v2/home-160.webp",
+      "/images/classroom/navigation-v2/home-320.webp",
+      "/images/classroom/navigation-v2/job-96.webp",
+      "/images/classroom/navigation-v2/job-160.webp",
+      "/images/classroom/navigation-v2/job-320.webp"
+    ]
+  },
+  "changedFileCount": 13,
+  "preservedFileCount": 3926,
+  "hostingSettingsPreserved": true,
+  "unrelatedShellAndBundlePreserved": true,
+  "functionsRulesAndStudentDataChanged": false,
+  "verification": {
+    "npm run check": "passed",
+    "responsiveRoleAndTabCases": 76,
+    "menuImagesDecoded": 7,
+    "jobImages": "unassigned and unknown role use new caddy; assigned role artwork preserved",
+    "productionHashes": "all 13 changed files and full manifest match",
+    "productionBrowser": "no page errors or failed static assets; all backend traffic blocked"
+  },
+  "imageGeneration": {
+    "tool": "built-in image_gen",
+    "newArtworks": 3,
+    "prompts": "docs/product/classroom-navigation-art-2026-10-17/prompts.json",
+    "exports": "public/images/classroom/navigation-v2"
+  },
+  "rawHashes": {
+    "index.html": "05425aee99d856eb64669c1007e893105e9fa668c3070bc72fea034a7f0c8c85",
+    "js/features/classroom-render.js": "abcb95ef4fe52919d7bd400c367237a504780789431dc38d9b5a4207e47d0367",
+    "js/app.bundle.js": "4e3fcdd7800aa0089b61fe88c4a40d0aee61f0802e267247f6778f1b214d3bad",
+    "classroom.css": "97ee20fe6090e8565a737e5d879338874ec75a916acfcd7e4b85ca1d0f830226",
+    "images/classroom/navigation-v2/bank-96.webp": "196ec2f49da936ed8934097f895eecfddc4d08e28b338f0a5927818bc68ae57f",
+    "images/classroom/navigation-v2/bank-160.webp": "0c5c9253b1a1a3e4ee66bffcda6b1eb5425a4aa0577542c930a89c05de698876",
+    "images/classroom/navigation-v2/bank-320.webp": "73688b9f67ed633713f04404a1cb89102ccefef527933ffab1e53e1ce6201011",
+    "images/classroom/navigation-v2/home-96.webp": "abd0a1d1663e4aeef030f43c010b1f2e6fea8fb05becaa0447ae1e364e118222",
+    "images/classroom/navigation-v2/home-160.webp": "8d7a79b1b0464186c22c6d3a2fe0c63dba63f45d65340ba84f1a0101c6bf4268",
+    "images/classroom/navigation-v2/home-320.webp": "956854bb1e94ceaac00cefa596c66db29f8a43996ebc43334dbeaca0ef463594",
+    "images/classroom/navigation-v2/job-96.webp": "1411b8eac5262d57500229df3cf0af1b9089ebfa0225e0ea9edc5b429e398cb8",
+    "images/classroom/navigation-v2/job-160.webp": "5bf244948daa945b90b4578c683a0eebede1b9efeeadc42d0d567e477bfcd1a0",
+    "images/classroom/navigation-v2/job-320.webp": "28a8c7feb072194601fe73d8c12f999695c7d0cd76653c377d1668a7594ee311"
+  }
+}

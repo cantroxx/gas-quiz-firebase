@@ -161,16 +161,17 @@
   }
 
   function getAdminExternalQuizzesFormValues() {
-    const rows = Array.from(document.querySelectorAll('.admin-external-quiz-row'));
+    const rows = Array.from(document.querySelectorAll('#admin-external-quiz-list .admin-external-quiz-row'));
     const items = rows.map((row, index) => ({
       id: `external-${index + 1}`,
+      group: row.querySelector('[data-external-quiz-field="group"]')?.value === 'concept' ? 'concept' : 'learning',
       title: row.querySelector('[data-external-quiz-field="title"]')?.value || '',
       description: row.querySelector('[data-external-quiz-field="description"]')?.value || '',
       url: row.querySelector('[data-external-quiz-field="url"]')?.value || '',
       active: row.querySelector('[data-external-quiz-field="active"]')?.checked === true,
       sortOrder: index + 1
     })).filter(item => item.title.trim() || item.url.trim() || item.description.trim());
-    return { items };
+    return { items, concept: { month: Number(document.getElementById('admin-concept-month')?.value) || 1, theme: document.getElementById('admin-concept-theme')?.value || '' } };
   }
 
   function setAdminSeasonEventsForm(seasonEvents = {}) {
@@ -194,12 +195,14 @@
         ? [startDate, endDate].filter(Boolean).join(' ~ ')
         : targetMonth;
       return {
-        eventId: `season-${periodType}-${index + 1}`,
+        eventId: row.dataset.seasonEventId || `season-${periodType}-${index + 1}`,
+        goals: Array.from(row.querySelectorAll("[data-season-goal]")).filter(n=>n.querySelector("[data-goal-enabled]").checked).map(n=>({kind:n.dataset.seasonGoal,...Object.fromEntries(Array.from(n.querySelectorAll("[data-goal-field]")).map(i=>[i.dataset.goalField,Number(i.value)]))})),
         icon,
         title,
         desc: row.querySelector('[data-season-event-field="desc"]')?.value || '',
         quizIds,
         periodType,
+        autoRenew: periodType === 'monthly' && row.querySelector('[data-season-event-field="autoRenew"]')?.checked === true,
         period,
         targetMonth,
         startDate,
@@ -236,7 +239,6 @@
   function setAdminFeatureFlagsForm(flags, deps = {}) {
     const normalizeFeatureFlags = deps.normalizeFeatureFlags || (value => value || {});
     const renderAdminQuizToggleGrid = deps.renderAdminQuizToggleGrid || (() => {});
-    const renderAdminTodayQuizPoolGrid = deps.renderAdminTodayQuizPoolGrid || (() => {});
     const data = normalizeFeatureFlags(flags);
     document.getElementById('admin-feature-practice-reward').checked = data.practiceRewardEnabled;
     document.getElementById('admin-feature-practice-xp').checked = data.practiceXpEnabled;
@@ -244,15 +246,6 @@
     document.getElementById('admin-feature-external-quizzes').checked = data.externalQuizzesEnabled;
     document.getElementById('admin-feature-event').checked = data.eventPlazaEnabled;
     document.getElementById('admin-feature-ranking').checked = data.rankingEnabled;
-    const todayQuizModeInput = document.getElementById('admin-feature-today-quiz-mode');
-    if(todayQuizModeInput) todayQuizModeInput.value = data.todayQuizMode === 'dailyRandom' ? 'dailyRandom' : 'manual';
-    const todayQuizInput = document.getElementById('admin-feature-today-quiz-ids');
-    if(todayQuizInput) todayQuizInput.value = (data.activeTodayQuizIds || data.todayQuizIds || []).join(', ');
-    const todayQuizPoolInput = document.getElementById('admin-feature-today-quiz-pool-ids');
-    if(todayQuizPoolInput) todayQuizPoolInput.value = (data.todayQuizRandomPoolIds || []).join(', ');
-    const todayQuizCountInput = document.getElementById('admin-feature-today-quiz-count');
-    if(todayQuizCountInput) todayQuizCountInput.value = data.todayQuizDailyCount || 1;
-    renderAdminTodayQuizPoolGrid(data);
     renderAdminQuizToggleGrid(data);
   }
 
@@ -263,18 +256,6 @@
       .filter(input => input.checked !== true)
       .map(input => normalizeFirebaseQuizId(input.dataset.adminQuizToggle || ''))
       .filter(Boolean);
-    const todayQuizIds = String(document.getElementById('admin-feature-today-quiz-ids')?.value || '')
-      .split(/[\s,]+/)
-      .map(id => normalizeFirebaseQuizId(id.trim()))
-      .filter(Boolean);
-    const todayQuizRandomPoolIds = String(document.getElementById('admin-feature-today-quiz-pool-ids')?.value || '')
-      .split(/[\s,]+/)
-      .map(id => normalizeFirebaseQuizId(id.trim()))
-      .filter(Boolean);
-    const todayQuizRandomPoolToggleIds = Array.from(document.querySelectorAll('[data-admin-today-quiz-pool-toggle]'))
-      .filter(input => input.checked === true)
-      .map(input => normalizeFirebaseQuizId(input.dataset.adminTodayQuizPoolToggle || ''))
-      .filter(Boolean);
     return normalizeFeatureFlags({
       practiceRewardEnabled: document.getElementById('admin-feature-practice-reward')?.checked === true,
       practiceXpEnabled: document.getElementById('admin-feature-practice-xp')?.checked === true,
@@ -282,12 +263,6 @@
       externalQuizzesEnabled: document.getElementById('admin-feature-external-quizzes')?.checked === true,
       eventPlazaEnabled: document.getElementById('admin-feature-event')?.checked === true,
       rankingEnabled: document.getElementById('admin-feature-ranking')?.checked === true,
-      todayQuizMode: document.getElementById('admin-feature-today-quiz-mode')?.value === 'dailyRandom' ? 'dailyRandom' : 'manual',
-      todayQuizIds,
-      todayQuizRandomPoolIds: todayQuizRandomPoolToggleIds.length ? todayQuizRandomPoolToggleIds : todayQuizRandomPoolIds,
-      todayQuizDailyCount: Number(document.getElementById('admin-feature-today-quiz-count')?.value || 1),
-      todayQuizShuffleSeed: deps.todayQuizShuffleSeed || '',
-      todayQuizShuffledAtIso: deps.todayQuizShuffledAtIso || '',
       disabledQuizIds
     });
   }

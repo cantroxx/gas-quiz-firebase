@@ -30,7 +30,6 @@
         mode: 'guest',
         member: null,
         djCoin: 0,
-        coupons: 0,          // 일일 무료 쿠폰 (50코인 이하 아이템 교환)
         shopEnabled: true,   // 관리자 기능 관리의 상점 열림/닫힘 (appSettings/featureFlags)
         roomData: null,
         furniItemId,
@@ -76,7 +75,6 @@
                     profileImageUrl: '',
                     selectedTitleName: '퀴즈 꿈나무',
                     djCoin: api.djCoin || 2000,
-                    coupons: api.coupons || 1,
                     level: 7, tier: 'silver', rankIconUrl: '',
                     xp: 120, nextLevelXp: 200,
                     titleCount: 3, badgeCount: 5
@@ -91,7 +89,7 @@
             const u = (userDoc && userDoc.exists) ? userDoc.data() : {};
             const lv = (levelDoc && levelDoc.exists) ? levelDoc.data() : {};
 
-            // 대표 칭호 이름 (선택돼 있으면 titleCatalog에서 이름만 조회)
+            // 대표 타이틀 이름 (선택돼 있으면 titleCatalog에서 이름만 조회)
             let selectedTitleName = '';
             if (u.selectedTitleId) {
                 const titleDoc = await db.collection('titleCatalog').doc(u.selectedTitleId).get().catch(() => null);
@@ -103,7 +101,6 @@
                 profileImageUrl: u.profileImageUrl || '',
                 selectedTitleName,
                 djCoin: api.djCoin,
-                coupons: api.coupons,
                 level: Number(lv.level) || 1,
                 tier: lv.tier || 'bronze',
                 rankIconUrl: lv.rankIconUrl || '',
@@ -114,7 +111,7 @@
             };
         },
 
-        // ---- 내 정보 상세 (랭킹·칭호·뱃지) ----
+        // ---- 내 정보 상세 (랭킹·타이틀·뱃지) ----
         async getMyTitles() {
             if (api.mode !== 'online') return [];
             const snap = await db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null);
@@ -135,7 +132,7 @@
             const doc = await db.collection('users').doc(memberUserId).get().catch(() => null);
             return (doc && doc.exists) ? (doc.data()?.selectedTitleId || '') : '';
         },
-        // 대표 칭호 설정 — 연결 회원 본인이 selectedTitleId만 수정 (보안 규칙 허용 범위)
+        // 대표 타이틀 설정 — 연결 회원 본인이 selectedTitleId만 수정 (보안 규칙 허용 범위)
         async setSelectedTitle(titleId) {
             if (api.mode !== 'online') return;
             await db.collection('users').doc(memberUserId).set({
@@ -325,18 +322,9 @@
         db.collection('userEconomy').doc(memberUserId).onSnapshot(doc => {
             const data = doc.data() || {};
             const coin = Number(data.djCoin);
-            const coupons = Number(data.housingCoupons);
             api.djCoin = Number.isFinite(coin) ? coin : 0;
-            api.coupons = Number.isFinite(coupons) && coupons > 0 ? Math.round(coupons) : 0;
             notifyCoin();
         }, () => { /* 구독 실패해도 구매 응답으로 갱신됨 */ });
-    }
-
-    // 하우징 진입 시에도 일일 쿠폰 자동 수령 시도 (퀴즈타운 접속 지급의 안전망 — 서버가 중복 방지)
-    function claimDailyCouponSilently() {
-        try {
-            functionsInstance.httpsCallable('claimHousingDailyCoupon')({ memberUserId }).catch(() => {});
-        } catch (e) { /* 무시 */ }
     }
 
     // ---- 서버 구매 ----
@@ -349,17 +337,14 @@
         'functions/invalid-argument': '구매 요청이 올바르지 않아요.'
     };
 
-    async function purchase(itemId, options = {}) {
+    async function purchase(itemId) {
         if (api.mode !== 'online') throw new Error('guest-mode');
         const callable = functionsInstance.httpsCallable('purchaseHousingItem');
         try {
-            const result = await callable({ memberUserId, itemId, useCoupon: options.useCoupon === true });
+            const result = await callable({ memberUserId, itemId });
             const data = result?.data || {};
             if (Number.isFinite(Number(data.nextDjCoin))) {
                 api.djCoin = Number(data.nextDjCoin);
-            }
-            if (Number.isFinite(Number(data.nextCoupons))) {
-                api.coupons = Math.max(0, Number(data.nextCoupons));
             }
             notifyCoin();
             ownedCounts[itemId] = Number(data.quantity) || (ownedCounts[itemId] || 0) + 1;
@@ -448,7 +433,6 @@
 
         await Promise.all([loadOwnedItems(), loadRoomDoc(), loadShopFlag()]);
         subscribeCoin();
-        claimDailyCouponSilently();
         return { mode: 'online' };
     }
 

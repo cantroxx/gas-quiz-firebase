@@ -39,6 +39,7 @@
 
   var loading = false;
   function load() {
+    if (window.DJ48RankingVisibility && !window.DJ48RankingVisibility.isVisible(ROOT_ID)) return;
     if (loading) return;
     if (!(window.firebase && window.firebase.firestore && window.firebase.auth && window.firebase.auth().currentUser)) return;
     loading = true;
@@ -102,6 +103,7 @@
     if (!root) { setTimeout(init, 800); return; }
 
     injectTab(root);
+    window.DJ48RankingVisibility?.register(ROOT_ID, load);
     // 랭킹 목록이 다시 그려질 때마다(데이터 로드/필터) 탭을 다시 끼워 넣는다.
     if (window.MutationObserver) {
       new MutationObserver(function () { injectTab(root); })
@@ -114,7 +116,7 @@
     var view = document.getElementById('ranking-view');
     if (view && window.MutationObserver) {
       new MutationObserver(function () {
-        if (!view.hidden) { loading = false; load(); }
+        if (!view.hidden) load();
       }).observe(view, { attributes: true, attributeFilter: ['hidden'] });
     }
   }

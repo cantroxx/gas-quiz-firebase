@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-17",
+  "tool": "built-in image_gen",
+  "scope": "Updated UI design mockups and verified existing portrait functionality. No application source changes, deployment or production data writes.",
+  "outputs": [
+    "student-card-home-v2.png",
+    "portrait-choice-v2.png",
+    "diary-comments-v2.png"
+  ],
+  "behavior": {
+    "sources": [
+      "Existing configured/uploaded image",
+      "Purchased saved shop outfit with dye"
+    ],
+    "refresh": "After changing the saved outfit, load it again and save the classroom portrait.",
+    "presentation": "Full-body pixel avatar; keep existing image and avatar available for switching.",
+    "diary": "Future diary/comment UI should reuse the selected classroom portrait; diary functionality remains unimplemented."
+  },
+  "checks": [
+    "node tests/classroom/portrait.test.js: passed",
+    "node scripts/smoke/classroom-ui-browser.js: passed; 76 responsive role/tab cases including portrait upload, avatar selection, switching, retry and stale-account rejection"
+  ],
+  "prompts": [
+    {
+      "key": "home-avatar-v2",
+      "refs": [
+        "/Users/kdw/Projects/gas-quiz-firebase/docs/product/classroom-card-diary-2026-10-17/student-card-home.png",
+        "/Users/kdw/Projects/gas-quiz-firebase/public/coordi-shop/verified/female-1032038.png"
+      ],
+      "prompt": "Use case ui-mockup, precise reference edit. Image 1 is the student classroom home to MODIFY; Image 2 is an actual Maple-style 2D pixel character sprite from this project's avatar shop, use it as the displayed sample saved outfit, retaining its distinctive black hair buns, outfit, turquoise earrings, head-body proportions and pixel-art rendering. User requirement: each student can choose their own configured/uploaded image OR the Maple-style avatar they bought and dressed in the shop. This must be visible in the UI. Preserve image 1's high-quality rounded cards, diverse animal activity illustrations, pastel classroom backdrop, Korean labels, diary entry and 3-column composition.\n\nChange the current student's central portrait into a generously sized softly rounded pale-lilac display area showing the FULL BODY actual pixel character from image 2, crisp pixel edges, no 3D reimagining, no face-only cropping, no missing shoes/accessories. Give that display enough room without covering other controls. Name '14 별이', role '도서 도우미' remain. Directly beside or below the current portrait place a small pill '상점 코디 사용 중' and a plainly visible outlined button with pencil icon '이미지 변경'. Under it a brief subtle caption '내 이미지 또는 상점 아바타 선택'. Do not put a complex settings panel over the home; this is the unobscured final home with a clear change-image entry. Show the SAME selected pixel sprite for this student's mini avatar in left selected 내 카드 and for '나' in bottom friend carousel. Other friends demonstrate independent selections: 민준 retains his own uploaded illustration (boy blue glasses), 하린 is a DIFFERENT pastel outfit 2D pixel avatar with a white bunny-eared hat, 지우 retains her uploaded purple-haired illustration. All profile examples fictional. Keep non-avatar feature artwork in the charming original 2.5D style; pixel avatars intentionally retain their actual shop art. Do not convert all illustrations to pixels. Keep coins and all other values unchanged. No default compulsory cartoon avatar, no purchase action within the profile card, no invented Berry currency, no watermarks. Precise readable Korean, complete desktop landscape screen."
+    },
+    {
+      "key": "portrait-choice-v2",
+      "refs": [
+        "/Users/kdw/Projects/gas-quiz-firebase/docs/product/classroom-card-diary-2026-10-17/student-card-home.png",
+        "/Users/kdw/Projects/gas-quiz-firebase/public/coordi-shop/verified/female-1032038.png"
+      ],
+      "prompt": "Use case ui-mockup. Create the IMAGE SELECTION MODAL opened by the student's '이미지 변경' button, for the exact Korean classroom app style in image 1. Image 2 is the project's actual saved Maple-style pixel avatar to use as the right option reference. Landscape desktop screenshot with large centered rounded white modal over softly blurred image-1 classroom card home, polished cream/lilac/mint pastel palette, clear navy Korean typography, blue-violet selected borders/buttons. Keep screen uncluttered, accessible, all controls visible.\nHeader: '내 교실 이미지 선택' and subtitle '내가 설정한 이미지와 상점에서 꾸민 아바타 중 골라요.' Close X top right.\nTwo equal large selection cards SIDE BY SIDE with radio circles and generous previews. LEFT: label '내가 설정한 이미지', small fictional uploaded illustrated mint-hoodie girl with brown top bun from image 1 inside a square photo-style frame, subtitle '기존 프로필 이미지 또는 직접 올린 이미지', secondary button '이미지 올리기'. This is an example of the student's uploaded image, NOT an automatic required stock avatar; radio unselected.\nRIGHT: label '상점 코디 아바타', selected radio and violet border, show the full-body actual Maple-style 2D pixel sprite from image 2 large enough to see black hair buns, turquoise earrings and complete clothing and feet, crisp nearest-neighbor style pixel edges, not clay/3D. Subtitle '구매한 아이템으로 저장한 코디와 염색', secondary button '저장한 코디 불러오기'. Little chip '선택됨'. Never crop this character to face only.\nUnder two option cards, a light neutral preview strip label '적용 미리보기' containing a small student card avatar + '별이', a diary-header mini avatar + '마음 일기', a comment mini avatar + '댓글', all three reuse the selected exact pixel sprite. This is a design preview, not real student data.\nSmall informative line '코디를 바꾸면 다시 불러와 주세요.' Another quiet line '두 이미지는 보관되어 언제든 바꿀 수 있어요.' Footer cancel '취소' and prominent blue-violet '이 이미지로 저장'. Tiny upload format note under image option 'JPG · PNG · WebP, 2MB 이하'. No shop buying/payment button, no actual upload example private photograph, no extra tabs, no cropped controls. Preserve reference app's warmth and varied artwork without gratuitous decorations. Excellent readable Korean UI text."
+    },
+    {
+      "key": "diary-avatar-v2",
+      "refs": [
+        "/Users/kdw/Projects/gas-quiz-firebase/docs/product/classroom-card-diary-2026-10-17/diary-comments.png",
+        "/Users/kdw/Projects/gas-quiz-firebase/public/coordi-shop/verified/female-1032038.png"
+      ],
+      "prompt": "Use case ui-mockup. Precisely EDIT image 1, the Korean student diary/comment modal. Image 2 is the current student's ACTUAL chosen Maple-style 2D pixel avatar reference. User can select their configured image or their purchased/saved shop outfit, so diary must use that same selected image as the student's home card. Replace ONLY the top-left student's mint-hoodie cartoon avatar with the FULL BODY pixel character from image 2, matching black hair buns, turquoise earrings, outfit, proportions, crisp pixels, inside a pale lilac softly rounded square with enough padding that feet and accessories are not cropped. Keep title '별이의 마음 일기'. Add a small tasteful adjacent status chip '상점 코디' if space allows.\nPreserve all mood icons, writing area, Korean diary text, audience choices, date, save button, existing comments and layout exactly. In friend strip and comment author avatars, 민준 retains his blue-glasses uploaded illustration, 하린 uses a different Maple-style 2D pixel character with white bunny-eared hat and pastel outfit (full body, crisp pixels) consistently in both locations, 지우 retains her purple-haired uploaded illustration. This demonstrates each person independently chooses an uploaded image or a purchased shop avatar; do not replace everyone's image with the logged-in student's avatar.\nEverything else keep same. No unrelated changes, no technical labels, no watermark. Excellent Korean legibility, polished finished UI screenshot. Keep the main mood/activity artwork in original 2.5D style; only shop avatars are 2D pixel art, never re-render those as 3D clay."
+    }
+  ]
+}

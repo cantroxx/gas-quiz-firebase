@@ -1,0 +1,23 @@
+[
+  {
+    "key": "bank",
+    "prompt": "Use case: stylized-concept. Create one premium children's classroom game navigation icon: a little sage-green ceramic piggy bank, one warm golden coin partly inserted in its slot, a tiny growing leaf beside it. Cozy miniature clay / storybook 3D illustration with softly rounded shapes, matte tactile materials, ivory, sage and honey palette, gentle warm studio lighting. Front three-quarter view, centered compact silhouette filling 85% of square canvas, easily recognizable at 40 pixels. Truly transparent background, no base tile, no scenery, no lettering, no symbols or watermark. Match the softly modeled miniature classroom props, no vector outlines.",
+    "source": "/Users/kdw/.codex/generated_images/01a148bb-3174-7fb3-bb83-7480ff39d1d8/exec-d19aabe3-6b4c-4eb5-9494-0c623cb72cf1.png",
+    "tool": "built-in image_gen",
+    "transparent": true
+  },
+  {
+    "key": "home",
+    "prompt": "Use case: stylized-concept. Create one premium children's classroom game navigation icon: a charming tiny ivory cottage with sage-green rounded gable roof, warm wooden door, one glowing honey window and a tiny plant beside the doorstep. Cozy miniature clay / storybook 3D illustration, softly rounded shapes, matte tactile materials, ivory, sage and honey palette, gentle warm studio lighting. Front three-quarter view, centered compact silhouette filling 85% of square canvas, easily recognizable at 40 pixels. Truly transparent background, no tile or platform, no scenery, no lettering, no watermark. No vector outlines.",
+    "source": "/Users/kdw/.codex/generated_images/01a148bb-3174-7fb3-bb83-7480ff39d1d8/exec-5d1d38b4-3db3-46b4-8237-f28640d19150.png",
+    "tool": "built-in image_gen",
+    "transparent": true
+  },
+  {
+    "key": "job",
+    "prompt": "Use case: stylized-concept. Create one premium children's classroom game icon meaning 'find my helpful classroom role': a small sage-green open wooden tool caddy with a rounded carry handle, containing a short honey yellow pencil, a little cream notebook and a coral paintbrush, a tiny gold star charm on the front. Friendly school supplies, no industrial tools. Cozy miniature clay / storybook 3D illustration, softly rounded shapes, matte tactile materials, ivory, sage, muted coral and honey palette, gentle warm studio lighting. Front three-quarter view, centered compact silhouette filling 85% of square canvas, recognizable at 80 pixels. Truly transparent background, no tile or scenery, no lettering, no watermark, no vector outlines.",
+    "source": "/Users/kdw/.codex/generated_images/01a148bb-3174-7fb3-bb83-7480ff39d1d8/exec-90c6a7c8-c7f7-4315-84d2-8d303e281433.png",
+    "tool": "built-in image_gen",
+    "transparent": true
+  }
+]

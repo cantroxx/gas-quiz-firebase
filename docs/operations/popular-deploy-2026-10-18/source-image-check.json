@@ -1,0 +1,189 @@
+[
+  {
+    "quizId": "flag-country",
+    "count": 249,
+    "valid": 249,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "tiniping",
+    "count": 151,
+    "valid": 151,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen1",
+    "count": 151,
+    "valid": 151,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen2",
+    "count": 100,
+    "valid": 100,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen3",
+    "count": 135,
+    "valid": 135,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen4",
+    "count": 107,
+    "valid": 107,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen5",
+    "count": 156,
+    "valid": 156,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen6",
+    "count": 72,
+    "valid": 72,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen7",
+    "count": 88,
+    "valid": 88,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen8",
+    "count": 96,
+    "valid": 96,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "quizId": "pokemon-gen9",
+    "count": 120,
+    "valid": 120,
+    "sample": [
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      },
+      {
+        "ok": true,
+        "status": 200,
+        "type": "image/png"
+      }
+    ]
+  }
+]

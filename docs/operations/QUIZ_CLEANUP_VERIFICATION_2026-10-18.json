@@ -1,0 +1,201 @@
+{
+  "scope": "Local changes only; no production deployment or data deletion",
+  "files": [
+    {
+      "path": "public/index.html",
+      "beforeSha256": "2a464892f5941a827157f325f45893943b87265ddc61b39ffd0ad0cfa84b0196",
+      "afterSha256": "751c91884ac2c292af9ed60faf07325dea1a866a7392d515c4cac93d40a8411a"
+    },
+    {
+      "path": "public/js/app.bundle.js",
+      "beforeSha256": "7b90aed5de9c4c6ca67fc89dc7656ba80fdad022731018412135d7d4f5ceffc1",
+      "afterSha256": "58788b5261c19e3bb4a32eaf4324573909308e38f5dff459f81e6f4ddbd70083"
+    },
+    {
+      "path": "public/js/infrastructure/admin-repository.js",
+      "beforeSha256": "283b3066536e548c7f627f98779f6e17b9b70c14697f111fb29d51ff23742759",
+      "afterSha256": "4c16b44e4195889162827880d4f94676b19422b61098c65455abe203b6ccec7e"
+    },
+    {
+      "path": "public/js/infrastructure/ranking-repository.js",
+      "beforeSha256": "60f4b6f0b73f1585355af75bb5239cd37aad0766828ac1fdc8c7ebdb3d62d86b",
+      "afterSha256": "7ce8318926b352d7880a5a3a71e54f131cc00c3edfc80037eaf93caf263b87ec"
+    },
+    {
+      "path": "public/js/application/ranking-usecases.js",
+      "beforeSha256": "85e9992d99c3890a572aa476025b574d6916cd0aaafe69d0f447291a6f915614",
+      "afterSha256": "c8dffd2cfc6e40da70ee2dbb50a48ad33be35014a72f6dbbad961d1099d69d3e"
+    },
+    {
+      "path": "functions/index.js",
+      "beforeSha256": "3bd37ef8985abf1111426f9921cc467c2911f3c6aa49cb39079db561dff88740",
+      "afterSha256": "c76e6054ae86cc6e41528a63e72ee807b578dafbaf84ea64e61ce9c404c11cb3"
+    },
+    {
+      "path": "functions/subject-quiz/service.js",
+      "beforeSha256": "8ce1afaf297aafef658e5cb1a78980d9af5be82cc0692c741ab4aee92601f053",
+      "afterSha256": "5c163d0236c37613ab54dc169ddae364afc1b4123d786b8b783d3d79c04cf1b1"
+    },
+    {
+      "path": "tests/infrastructure/admin-repository.test.js",
+      "beforeSha256": "673af8ab6c7689b37e1f2b4ddc97f6071863f67e1ef8835c58eaddefb1630ef4",
+      "afterSha256": "5a8d46609f794ed4da97002a754f671e74e4529ead54890ea14ee903de3800f6"
+    },
+    {
+      "path": "tests/infrastructure/ranking-repository.test.js",
+      "beforeSha256": "05a9598d3d0fbbbc195fc5b95c5d50fe62a1b976d507a9eb1188a6aac751f50f",
+      "afterSha256": "4ee5c83e833fdd415e52e122e69f00e41750eda199614014e4ee513c938c3a34"
+    },
+    {
+      "path": "tests/application/ranking-usecases.test.js",
+      "beforeSha256": "e8fb7a2afa5609c687b669243e36041608309edc8edcfa2ff1f41f43df38b91d",
+      "afterSha256": "9375fce53317bac1383cf086ae15f8f95d0736297ec4b25101e2a04630161b68"
+    },
+    {
+      "path": "tests/subject-quiz/service.test.js",
+      "beforeSha256": "b27b017ff4db9c138fa6566d44e9d7ffb384f3f10224ce9b4ef7b036d87da432",
+      "afterSha256": "ba0835b22c02293ce50ca1c59a8ea34e5a7937dcdd31d17cdeb4779eb4e1c1da"
+    },
+    {
+      "path": "package.json",
+      "beforeSha256": "04f38e14f93bab8b2e2cb842bd276ec7242dc620a8447134f6b729e5f313291a",
+      "afterSha256": "240be2bd0f315949789df720f26838632953f1899aea881ff128d6e5b27820b6"
+    },
+    {
+      "path": "public/js/features/admin-render.js",
+      "beforeSha256": "c0626b7b3186a201e535c9348f60dc107fee76619db6466533e754fc5f757d00",
+      "afterSha256": "b753abda2a1a47ebd8a1314109814ede974991484b4d4e3dda70b69efbbd3491"
+    },
+    {
+      "path": "scripts/audit/quiz-cleanup-audit.js",
+      "beforeSha256": "154b93e82955ac1dd6e693bd83b83325d832066f2fcb05d8500c32d9c01d81aa",
+      "afterSha256": "7964e3d5eb249b4b7e30855939cd9ed62810bfa318451adaac63b7c0e9e08c85"
+    },
+    {
+      "path": "functions/quiz-quality-scope.js",
+      "beforeSha256": null,
+      "afterSha256": "88afbbf3b094504daf626ba8459b558e0cde838fb37a13521646404536feee13"
+    },
+    {
+      "path": "tests/subject-quiz/ranking-reads.test.js",
+      "beforeSha256": null,
+      "afterSha256": "ac8679a0b9c222c749d299df3e1d4aeed47faea8cccad5fa76a5624b415526a7"
+    },
+    {
+      "path": "tests/admin/quiz-quality-scope.test.js",
+      "beforeSha256": null,
+      "afterSha256": "37ac467e788c726c8291a5182a7a1694341732a0e575ad688e012ef218d92324"
+    },
+    {
+      "path": "tests/admin/quiz-quality-online.test.js",
+      "beforeSha256": null,
+      "afterSha256": "28d40d1962562f8d3478c1734220832ee3190eb30ed6c5ea1cf3649de93c6b4d"
+    },
+    {
+      "path": "scripts/smoke/quiz-cleanup-browser.js",
+      "beforeSha256": null,
+      "afterSha256": "f224825326399e92fbaf4ffd46cd18ade113275ed757c01e58f38711bb7ba8a0"
+    },
+    {
+      "path": "tests/growth/legacy-progress-cleanup.integration.test.js",
+      "beforeSha256": null,
+      "afterSha256": "95329b47d2307625b7f0ae0087a8100eaffc84d9ace35c1ffd1741cc4f42a48b"
+    }
+  ],
+  "checks": [
+    {
+      "log": "/tmp/quiz-cleanup-stages-20261018/full-check.log",
+      "sha256": "bb5b6f0cf491f46ddc2fcbf851ab607b217212d1ae32cfbc820dd973fcb68f30",
+      "exitCode": 0,
+      "tail": [
+        "Classroom UI passed: 76 responsive role/tab cases, actions, navigation, errors, keyboard, counters, rewards, student/quest/job/review filters, product selection/purchase delegation, exchange validation/previews, portrait upload/avatar/source switching, retry and stale-account rejection.",
+        "[{\"role\":\"student\",\"width\":1440,\"taskTop\":112},{\"role\":\"student\",\"width\":768,\"taskTop\":1029},{\"role\":\"student\",\"width\":390,\"taskTop\":1075},{\"role\":\"student\",\"width\":320,\"taskTop\":1088},{\"role\":\"teacher\",\"width\":1440,\"taskTop\":219},{\"role\":\"teacher\",\"width\":768,\"taskTop\":329},{\"role\":\"teacher\",\"width\":390,\"taskTop\":438},{\"role\":\"teacher\",\"width\":320,\"taskTop\":438}]",
+        "PASS classroom loading: partial compact home, market navigation, all role/tab loading, no false zero, locked pending actions, merged refresh, retained home, stale account response ignored.",
+        "PASS diary browser: real service with offline adapter, card entry, selected avatar, private/public saves, XSS text, comments/retry/edit/delete, dirty close/navigation, error drafts, moderation, account cleanup, 320–1440px layout.",
+        "",
+        "> smoke:subject",
+        "> node scripts/smoke/subject-quiz-browser.js && node scripts/smoke/subject-quiz-resume-browser.js",
+        "",
+        "PASS subject browser: 49 units, 834 base/expanded/pool tasks × 1440/390/320px (2502 screens), all menu levels, four choices, retry, feedback, hearts, 5-minute expiry, cumulative scores, graphs, rankings. /tmp/subject-quiz-browser",
+        "PASS subject auto-close: no resume UI, fresh starts, authenticated pagehide keepalive, reload/closed-tab recovery, dropped exit cleanup, cross-tab race, finish/start retry, BFCache, unchanged scores, 1440/390/320px."
+      ]
+    },
+    {
+      "log": "/tmp/quiz-cleanup-stages-20261018/subject-online-final.log",
+      "sha256": "775ad8581408fdbe592754474b2bf07b11be5a844942b5e2a652f3290a9b4a2c",
+      "exitCode": 0,
+      "tail": [
+        "evaluation error at L717:24 for 'create' @ L717, false for 'create' @ L909, false for 'update' @ L718, false for 'update' @ L909, false for 'create' @ L717, false for 'create' @ L909",
+        "PASS subject sessions: cumulative 17+20+22=59, hearts/time, full-cycle persistent nonrepeat questions across exits/modes/restarts, exhaustion, start/resume retries, deck/reward atomic rollback, private history denied, legacy exclusion.",
+        "(node:11652) MetadataLookupWarning: received unexpected error = All promises were rejected code = UNKNOWN",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "PASS actual callable reward integration: shared 50 coin cap, duplicate immunity, today quiz alias +2 XP, education unlock, ranking no per-answer coin.",
+        "✔  Script exited successfully (code 0)",
+        "i  emulators: Shutting down emulators.",
+        "i  firestore: Stopping Firestore Emulator",
+        "i  hub: Stopping emulator hub",
+        "i  logging: Stopping Logging Emulator"
+      ]
+    },
+    {
+      "log": "/tmp/quiz-cleanup-stages-20261018/admin-online.log",
+      "sha256": "0fa7a9dc149225fc21f1ba5b7ebceafed694e86466637d27a62d98414937f3d5",
+      "exitCode": 0,
+      "tail": [
+        "✔  firestore: Firestore Emulator UI websocket is running on 9150.",
+        "i  Running script: node tests/admin/quiz-quality-online.test.js",
+        "(node:9787) MetadataLookupWarning: received unexpected error = All promises were rejected code = UNKNOWN",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "PASS quality audit callable: admin authorization, current/archive scope, missing data and preservation",
+        "✔  Script exited successfully (code 0)",
+        "i  emulators: Shutting down emulators.",
+        "i  firestore: Stopping Firestore Emulator",
+        "i  hub: Stopping emulator hub",
+        "i  logging: Stopping Logging Emulator"
+      ]
+    },
+    {
+      "log": "/tmp/quiz-cleanup-stages-20261018/cleanup-browser.log",
+      "sha256": "82bf84277053c97d7e3de6bbb2bf8612cbf964752535d0571a179998b22e2694",
+      "exitCode": 0,
+      "tail": [
+        "PASS cleanup admin UI: scope, partial/truncated/read-failure notice, complete refresh, 390/1440px, no network"
+      ]
+    },
+    {
+      "log": "/tmp/quiz-cleanup-stages-20261018/cleanup-rewards.log",
+      "sha256": "e01e774e879445dc47273be3d11646a78ef5e9681da04f82ed04d60c39e88ce5",
+      "exitCode": 0,
+      "tail": [
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "PASS cleanup: legacy writes absent; practice/subject coins, XP, caps, concurrent dedup, flags, authorization, growth trigger replay and claims, ranking completion preserved.",
+        "(node:12893) MetadataLookupWarning: received unexpected error = All promises were rejected code = UNKNOWN",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "PASS actual popular callable: common XP/coin caps shared, partial XP at cap, duplicate immunity, disabled rewards, ranking no practice payout, no usage lock writes.",
+        "✔  Script exited successfully (code 0)",
+        "i  emulators: Shutting down emulators.",
+        "i  firestore: Stopping Firestore Emulator",
+        "i  hub: Stopping emulator hub",
+        "i  logging: Stopping Logging Emulator"
+      ]
+    },
+    {
+      "log": "/tmp/quiz-cleanup-stages-20261018/static-final.log",
+      "sha256": "7bfee7e85167e205bff66c730cfd65434a78ff8df5e8a079c0299be4b9a2485d",
+      "exitCode": 0,
+      "tail": [
+        "> node scripts/build-coordi-display-catalog.js",
+        "",
+        "Coordi display catalog built: 775072 bytes",
+        "",
+        "> build:app",
+        "> node scripts/build-app-bundle.js",
+        "",
+        "Built public/js/app.bundle.js from 81 files.",
+        "Project static check passed: 488 JS files, 1 inline scripts, 9 required paths.",
+        "Mathsurvivor checks passed: DOM ids, cache versions, grades, semesters, subjects, and unit filters."
+      ]
+    }
+  ],
+  "fullCheckTiming": "npm run check passed before final backend tie/reward refinements; those were subsequently covered by subject-online-final, cleanup-rewards and static-final."
+}

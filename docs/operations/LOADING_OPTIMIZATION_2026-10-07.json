@@ -1,0 +1,442 @@
+{
+  "date": "2026-10-07",
+  "catalogSummary": {
+    "before": {
+      "readyMedianMs": 3635.199999988079,
+      "wireMedianBytes": 1718023
+    },
+    "after": {
+      "readyMedianMs": 465.5999999642372,
+      "wireMedianBytes": 135666
+    },
+    "timeReductionPercent": 87.19190140939249,
+    "transferReductionPercent": 92.1033653216517
+  },
+  "catalogBefore": {
+    "measuredAt": "2026-10-07T06:35:45.518Z",
+    "scope": "Public static catalog fetches only, not complete shop readiness. 4 Mbps down, 80 ms latency, CPU 4x; cache:no-store as in application. Empty same-origin audit document, no app scripts.",
+    "runs": [
+      {
+        "sample": 1,
+        "readyMs": 3758.900000035763,
+        "catalogs": [
+          {
+            "file": "maple-cosmetics-catalog.json",
+            "readyMs": 672.4000000357628,
+            "parseMs": 11.300000011920929,
+            "decodedCharacters": 1808491
+          },
+          {
+            "file": "maple-featured-hair-catalog.json",
+            "readyMs": 293.30000001192093,
+            "parseMs": 0,
+            "decodedCharacters": 16718
+          },
+          {
+            "file": "verified-top50.json",
+            "readyMs": 3758.900000035763,
+            "parseMs": 15.900000035762787,
+            "decodedCharacters": 4669950
+          },
+          {
+            "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+            "readyMs": 282,
+            "parseMs": 0.2999999523162842,
+            "decodedCharacters": 9351
+          }
+        ],
+        "network": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1624554
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 90596
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1312
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1561
+          }
+        ],
+        "wireBytes": 1718023
+      },
+      {
+        "sample": 2,
+        "readyMs": 3605.800000011921,
+        "catalogs": [
+          {
+            "file": "maple-cosmetics-catalog.json",
+            "readyMs": 497.19999998807907,
+            "parseMs": 8.300000011920929,
+            "decodedCharacters": 1808491
+          },
+          {
+            "file": "maple-featured-hair-catalog.json",
+            "readyMs": 128,
+            "parseMs": 0,
+            "decodedCharacters": 16718
+          },
+          {
+            "file": "verified-top50.json",
+            "readyMs": 3605.699999988079,
+            "parseMs": 14.599999964237213,
+            "decodedCharacters": 4669950
+          },
+          {
+            "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+            "readyMs": 125.69999998807907,
+            "parseMs": 0.09999996423721313,
+            "decodedCharacters": 9351
+          }
+        ],
+        "network": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 90747
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1626066
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1259
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1508
+          }
+        ],
+        "wireBytes": 1719580
+      },
+      {
+        "sample": 3,
+        "readyMs": 3635.199999988079,
+        "catalogs": [
+          {
+            "file": "maple-cosmetics-catalog.json",
+            "readyMs": 555.6999999880791,
+            "parseMs": 8.300000011920929,
+            "decodedCharacters": 1808491
+          },
+          {
+            "file": "maple-featured-hair-catalog.json",
+            "readyMs": 302.69999998807907,
+            "parseMs": 0.09999996423721313,
+            "decodedCharacters": 16718
+          },
+          {
+            "file": "verified-top50.json",
+            "readyMs": 3635.199999988079,
+            "parseMs": 6.5,
+            "decodedCharacters": 4669950
+          },
+          {
+            "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+            "readyMs": 164.10000002384186,
+            "parseMs": 0.20000004768371582,
+            "decodedCharacters": 9351
+          }
+        ],
+        "network": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 90684
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1267
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1624518
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1508
+          }
+        ],
+        "wireBytes": 1717977
+      }
+    ]
+  },
+  "catalogAfter": {
+    "measuredAt": "2026-10-07T06:37:42.453Z",
+    "scope": "Public static catalog fetches only, not complete shop readiness. 4 Mbps down, 80 ms latency, CPU 4x; cache:no-store as in application. Empty same-origin audit document, no app scripts.",
+    "runs": [
+      {
+        "sample": 1,
+        "readyMs": 465.5999999642372,
+        "catalogs": [
+          {
+            "file": "maple-cosmetics-catalog.json",
+            "readyMs": 465.5999999642372,
+            "parseMs": 11.099999964237213,
+            "decodedCharacters": 1808491
+          },
+          {
+            "file": "maple-featured-hair-catalog.json",
+            "readyMs": 203.39999997615814,
+            "parseMs": 0,
+            "decodedCharacters": 16718
+          },
+          {
+            "file": "verified-top50-display.json",
+            "readyMs": 344.7999999523163,
+            "parseMs": 4.799999952316284,
+            "decodedCharacters": 729448
+          },
+          {
+            "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+            "readyMs": 162.0999999642372,
+            "parseMs": 0.09999996423721313,
+            "decodedCharacters": 9351
+          }
+        ],
+        "network": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 91039
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1311
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50-display.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 41972
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1561
+          }
+        ],
+        "wireBytes": 135883
+      },
+      {
+        "sample": 2,
+        "readyMs": 507.69999998807907,
+        "catalogs": [
+          {
+            "file": "maple-cosmetics-catalog.json",
+            "readyMs": 368.30000001192093,
+            "parseMs": 10.300000011920929,
+            "decodedCharacters": 1808491
+          },
+          {
+            "file": "maple-featured-hair-catalog.json",
+            "readyMs": 154.60000002384186,
+            "parseMs": 0.699999988079071,
+            "decodedCharacters": 16718
+          },
+          {
+            "file": "verified-top50-display.json",
+            "readyMs": 507.69999998807907,
+            "parseMs": 4.5,
+            "decodedCharacters": 729448
+          },
+          {
+            "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+            "readyMs": 152.80000001192093,
+            "parseMs": 0.800000011920929,
+            "decodedCharacters": 9351
+          }
+        ],
+        "network": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1540
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 90660
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1259
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50-display.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 42109
+          }
+        ],
+        "wireBytes": 135568
+      },
+      {
+        "sample": 3,
+        "readyMs": 446.89999997615814,
+        "catalogs": [
+          {
+            "file": "maple-cosmetics-catalog.json",
+            "readyMs": 446.89999997615814,
+            "parseMs": 8.5,
+            "decodedCharacters": 1808491
+          },
+          {
+            "file": "maple-featured-hair-catalog.json",
+            "readyMs": 149.60000002384186,
+            "parseMs": 0,
+            "decodedCharacters": 16718
+          },
+          {
+            "file": "verified-top50-display.json",
+            "readyMs": 338.60000002384186,
+            "parseMs": 4.200000047683716,
+            "decodedCharacters": 729448
+          },
+          {
+            "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+            "readyMs": 152.39999997615814,
+            "parseMs": 0,
+            "decodedCharacters": 9351
+          }
+        ],
+        "network": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 90738
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1507
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 1267
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50-display.json",
+            "status": 200,
+            "encoding": "br",
+            "cacheControl": "no-cache, no-store, must-revalidate",
+            "wireBytes": 42154
+          }
+        ],
+        "wireBytes": 135666
+      }
+    ]
+  },
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1791355026840000",
+    "version": "sites/dj48-quiztown-firebase/versions/94c428f45c154e41",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/0762dc3c35eff717",
+    "changed": [
+      "/coordi-shop/index.html",
+      "/coordi-shop/town-bridge.js",
+      "/coordi-shop/dressing-room.js",
+      "/coordi-shop/data/verified-top50-display.json"
+    ]
+  },
+  "function": {
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/getClassroomEconomyBoard",
+    "beforeUpdateTime": "2026-09-09T03:20:51.925121078Z",
+    "updateTime": "2026-10-07T06:37:27.791533778Z",
+    "state": "ACTIVE",
+    "serviceSettingsPreserved": true,
+    "revision": "getclassroomeconomyboard-00080-dih"
+  },
+  "verification": {
+    "hostingVersion": "sites/dj48-quiztown-firebase/versions/94c428f45c154e41",
+    "verifiedHostingFiles": [
+      "coordi-shop/index.html",
+      "coordi-shop/town-bridge.js",
+      "coordi-shop/dressing-room.js",
+      "coordi-shop/data/verified-top50-display.json"
+    ],
+    "function": {
+      "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/getClassroomEconomyBoard",
+      "updateTime": "2026-10-07T06:37:27.791533778Z",
+      "state": "ACTIVE",
+      "sourceVerified": true
+    }
+  },
+  "syntheticQueryComparison": {
+    "scope": "Actual deployed read phase vs candidate, mock DB with 20ms latency per read; excludes actual Firebase auth/server/whole-page latency",
+    "student": {
+      "beforeMs": 212,
+      "afterMs": 21,
+      "beforeReads": 20,
+      "afterReads": 20
+    },
+    "teacher": {
+      "beforeMs": 211,
+      "afterMs": 21,
+      "beforeReads": 20,
+      "afterReads": 20
+    }
+  }
+}

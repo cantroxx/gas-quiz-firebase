@@ -1,0 +1,2382 @@
+{
+  "before": [
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 20.2,
+          "min": 19.8,
+          "max": 27.6
+        },
+        "skeletonPaint": {
+          "median": 20.2,
+          "min": 19.8,
+          "max": 27.6
+        },
+        "corePaint": {
+          "median": 219.5,
+          "min": 215.4,
+          "max": 220.1
+        },
+        "ready": {
+          "median": 219.5,
+          "min": 215.4,
+          "max": 220.1
+        }
+      },
+      "background": {
+        "median": 307.6,
+        "min": 307.3,
+        "max": 308.2
+      },
+      "renderMs": {
+        "median": 2.0,
+        "min": 1.8,
+        "max": 2.1
+      },
+      "domNodes": {
+        "median": 2495,
+        "min": 2495,
+        "max": 2495
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 8414,
+        "min": 8414,
+        "max": 8414
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 49.8,
+            "min": 49.8,
+            "max": 50
+          },
+          "skeletonPaint": {
+            "median": 49.8,
+            "min": 49.8,
+            "max": 50
+          },
+          "corePaint": {
+            "median": 49.9,
+            "min": 49.8,
+            "max": 50.1
+          },
+          "ready": {
+            "median": 49.9,
+            "min": 49.9,
+            "max": 50.1
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 29,
+          "min": 28.8,
+          "max": 31.6
+        },
+        "skeletonPaint": {
+          "median": 29,
+          "min": 28.8,
+          "max": 31.6
+        },
+        "corePaint": {
+          "median": 243.3,
+          "min": 242.8,
+          "max": 244.8
+        },
+        "ready": {
+          "median": 243.3,
+          "min": 242.8,
+          "max": 244.8
+        }
+      },
+      "background": {
+        "median": 328.9,
+        "min": 328.9,
+        "max": 331.7
+      },
+      "renderMs": {
+        "median": 2.3,
+        "min": 1.4,
+        "max": 2.5
+      },
+      "domNodes": {
+        "median": 2495,
+        "min": 2495,
+        "max": 2495
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 8414,
+        "min": 8414,
+        "max": 8414
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 49.2,
+            "min": 49,
+            "max": 66.5
+          },
+          "skeletonPaint": {
+            "median": 49.2,
+            "min": 49,
+            "max": 66.6
+          },
+          "corePaint": {
+            "median": 49.2,
+            "min": 49,
+            "max": 66.6
+          },
+          "ready": {
+            "median": 49.2,
+            "min": 49,
+            "max": 66.6
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 32.3,
+          "min": 32,
+          "max": 33.5
+        },
+        "skeletonPaint": {
+          "median": 32.3,
+          "min": 32,
+          "max": 33.5
+        },
+        "corePaint": {
+          "median": 244.7,
+          "min": 243.1,
+          "max": 245.4
+        },
+        "ready": {
+          "median": 244.7,
+          "min": 243.1,
+          "max": 245.4
+        }
+      },
+      "background": {
+        "median": 332.6,
+        "min": 331.8,
+        "max": 333.5
+      },
+      "renderMs": {
+        "median": 2.5,
+        "min": 2.1,
+        "max": 3.7
+      },
+      "domNodes": {
+        "median": 2495,
+        "min": 2495,
+        "max": 2495
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 8414,
+        "min": 8414,
+        "max": 8414
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 49.8,
+            "min": 49.3,
+            "max": 66.2
+          },
+          "skeletonPaint": {
+            "median": 49.8,
+            "min": 49.3,
+            "max": 66.2
+          },
+          "corePaint": {
+            "median": 49.8,
+            "min": 49.3,
+            "max": 66.2
+          },
+          "ready": {
+            "median": 49.8,
+            "min": 49.3,
+            "max": 66.2
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 21.1,
+          "min": 19.2,
+          "max": 32.5
+        },
+        "skeletonPaint": {
+          "median": 21.1,
+          "min": 19.2,
+          "max": 32.5
+        },
+        "corePaint": {
+          "median": 219,
+          "min": 216.6,
+          "max": 220.5
+        },
+        "ready": {
+          "median": 219.1,
+          "min": 216.6,
+          "max": 220.5
+        }
+      },
+      "background": {
+        "median": 1010.3,
+        "min": 1010.2,
+        "max": 1011.3
+      },
+      "renderMs": {
+        "median": 2.0,
+        "min": 1.9,
+        "max": 2.3
+      },
+      "domNodes": {
+        "median": 2577,
+        "min": 2577,
+        "max": 2577
+      },
+      "providerCalls": {
+        "median": 10,
+        "min": 10,
+        "max": 10
+      },
+      "providerPayloadBytes": {
+        "median": 8430,
+        "min": 8430,
+        "max": 8430
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 51.2,
+            "min": 49.2,
+            "max": 52.6
+          },
+          "skeletonPaint": {
+            "median": 51.2,
+            "min": 49.2,
+            "max": 52.6
+          },
+          "corePaint": {
+            "median": 51.2,
+            "min": 49.2,
+            "max": 52.6
+          },
+          "ready": {
+            "median": 51.2,
+            "min": 49.2,
+            "max": 52.6
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 33.6,
+          "min": 32.8,
+          "max": 34
+        },
+        "skeletonPaint": {
+          "median": 33.6,
+          "min": 32.8,
+          "max": 34
+        },
+        "corePaint": {
+          "median": 243.4,
+          "min": 243.2,
+          "max": 243.5
+        },
+        "ready": {
+          "median": 243.4,
+          "min": 243.2,
+          "max": 243.5
+        }
+      },
+      "background": {
+        "median": 1035.4,
+        "min": 1033.4,
+        "max": 1035.9
+      },
+      "renderMs": {
+        "median": 2.1,
+        "min": 2.0,
+        "max": 2.2
+      },
+      "domNodes": {
+        "median": 2577,
+        "min": 2577,
+        "max": 2577
+      },
+      "providerCalls": {
+        "median": 10,
+        "min": 10,
+        "max": 10
+      },
+      "providerPayloadBytes": {
+        "median": 8430,
+        "min": 8430,
+        "max": 8430
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 46.2,
+            "min": 39.7,
+            "max": 53.4
+          },
+          "skeletonPaint": {
+            "median": 46.2,
+            "min": 39.7,
+            "max": 53.4
+          },
+          "corePaint": {
+            "median": 46.2,
+            "min": 39.7,
+            "max": 53.4
+          },
+          "ready": {
+            "median": 46.2,
+            "min": 39.7,
+            "max": 53.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 32.7,
+          "min": 31.4,
+          "max": 32.8
+        },
+        "skeletonPaint": {
+          "median": 32.8,
+          "min": 31.4,
+          "max": 32.8
+        },
+        "corePaint": {
+          "median": 244.7,
+          "min": 244.2,
+          "max": 245
+        },
+        "ready": {
+          "median": 244.7,
+          "min": 244.2,
+          "max": 245
+        }
+      },
+      "background": {
+        "median": 1034.1,
+        "min": 1033.1,
+        "max": 1034.4
+      },
+      "renderMs": {
+        "median": 2.6,
+        "min": 1.6,
+        "max": 3.8
+      },
+      "domNodes": {
+        "median": 2577,
+        "min": 2577,
+        "max": 2577
+      },
+      "providerCalls": {
+        "median": 10,
+        "min": 10,
+        "max": 10
+      },
+      "providerPayloadBytes": {
+        "median": 8430,
+        "min": 8430,
+        "max": 8430
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 49.6,
+            "min": 49.2,
+            "max": 54.7
+          },
+          "skeletonPaint": {
+            "median": 49.6,
+            "min": 49.2,
+            "max": 54.7
+          },
+          "corePaint": {
+            "median": 49.6,
+            "min": 49.2,
+            "max": 54.8
+          },
+          "ready": {
+            "median": 49.6,
+            "min": 49.2,
+            "max": 54.8
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 31.9,
+          "min": 31.8,
+          "max": 32.3
+        },
+        "skeletonPaint": {
+          "median": 31.9,
+          "min": 31.8,
+          "max": 32.3
+        },
+        "corePaint": {
+          "median": 824.2,
+          "min": 819.2,
+          "max": 827.5
+        },
+        "ready": {
+          "median": 824.2,
+          "min": 819.2,
+          "max": 827.5
+        }
+      },
+      "background": {
+        "median": 824.2,
+        "min": 819.2,
+        "max": 827.5
+      },
+      "renderMs": {
+        "median": 32.2,
+        "min": 28.3,
+        "max": 34.0
+      },
+      "domNodes": {
+        "median": 2410,
+        "min": 2410,
+        "max": 2410
+      },
+      "providerCalls": {
+        "median": 7,
+        "min": 7,
+        "max": 7
+      },
+      "providerPayloadBytes": {
+        "median": 2129,
+        "min": 2129,
+        "max": 2129
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 27.1,
+            "min": 24.4,
+            "max": 27.6
+          },
+          "skeletonPaint": {
+            "median": 27.1,
+            "min": 24.4,
+            "max": 27.7
+          },
+          "corePaint": {
+            "median": 27.2,
+            "min": 24.4,
+            "max": 27.7
+          },
+          "ready": {
+            "median": 27.2,
+            "min": 24.4,
+            "max": 27.7
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 26.6,
+          "min": 26.2,
+          "max": 26.7
+        },
+        "skeletonPaint": {
+          "median": 26.6,
+          "min": 26.2,
+          "max": 26.7
+        },
+        "corePaint": {
+          "median": 193.2,
+          "min": 193.1,
+          "max": 198.8
+        },
+        "ready": {
+          "median": 193.3,
+          "min": 193.1,
+          "max": 198.9
+        }
+      },
+      "background": {
+        "median": 193.2,
+        "min": 193.1,
+        "max": 198.8
+      },
+      "renderMs": {
+        "median": 8.1,
+        "min": 7.1,
+        "max": 10.8
+      },
+      "domNodes": {
+        "median": 2410,
+        "min": 2410,
+        "max": 2410
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 549,
+        "min": 549,
+        "max": 549
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.2,
+            "min": 27.7,
+            "max": 33.3
+          },
+          "skeletonPaint": {
+            "median": 33.2,
+            "min": 27.7,
+            "max": 33.3
+          },
+          "corePaint": {
+            "median": 33.2,
+            "min": 27.8,
+            "max": 33.4
+          },
+          "ready": {
+            "median": 33.2,
+            "min": 27.8,
+            "max": 33.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 26.2,
+          "min": 24.7,
+          "max": 27.7
+        },
+        "skeletonPaint": {
+          "median": 26.2,
+          "min": 24.7,
+          "max": 27.7
+        },
+        "corePaint": {
+          "median": 198.5,
+          "min": 195.3,
+          "max": 201.9
+        },
+        "ready": {
+          "median": 198.5,
+          "min": 195.3,
+          "max": 201.9
+        }
+      },
+      "background": {
+        "median": 198.5,
+        "min": 195.3,
+        "max": 201.9
+      },
+      "renderMs": {
+        "median": 11.3,
+        "min": 10.6,
+        "max": 12.5
+      },
+      "domNodes": {
+        "median": 2410,
+        "min": 2410,
+        "max": 2410
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 549,
+        "min": 549,
+        "max": 549
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 26.9,
+            "min": 25.7,
+            "max": 29.2
+          },
+          "skeletonPaint": {
+            "median": 26.9,
+            "min": 25.7,
+            "max": 29.2
+          },
+          "corePaint": {
+            "median": 26.9,
+            "min": 25.7,
+            "max": 29.2
+          },
+          "ready": {
+            "median": 26.9,
+            "min": 25.7,
+            "max": 29.2
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 35.5,
+          "min": 34.2,
+          "max": 35.7
+        },
+        "skeletonPaint": {
+          "median": 35.5,
+          "min": 34.2,
+          "max": 35.7
+        },
+        "corePaint": {
+          "median": 732.3,
+          "min": 724.8,
+          "max": 732.9
+        },
+        "ready": {
+          "median": 732.3,
+          "min": 724.8,
+          "max": 732.9
+        }
+      },
+      "background": {
+        "median": 732.3,
+        "min": 724.8,
+        "max": 732.9
+      },
+      "renderMs": {
+        "median": 37.9,
+        "min": 32.0,
+        "max": 38.6
+      },
+      "domNodes": {
+        "median": 3038,
+        "min": 3038,
+        "max": 3038
+      },
+      "providerCalls": {
+        "median": 7,
+        "min": 7,
+        "max": 7
+      },
+      "providerPayloadBytes": {
+        "median": 2131,
+        "min": 2131,
+        "max": 2131
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 25.4,
+            "min": 20.4,
+            "max": 32.3
+          },
+          "skeletonPaint": {
+            "median": 25.4,
+            "min": 20.4,
+            "max": 32.3
+          },
+          "corePaint": {
+            "median": 25.4,
+            "min": 20.5,
+            "max": 32.4
+          },
+          "ready": {
+            "median": 25.5,
+            "min": 20.5,
+            "max": 32.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 27.1,
+          "min": 26.1,
+          "max": 27.8
+        },
+        "skeletonPaint": {
+          "median": 27.1,
+          "min": 26.1,
+          "max": 27.8
+        },
+        "corePaint": {
+          "median": 27.1,
+          "min": 26.2,
+          "max": 27.9
+        },
+        "ready": {
+          "median": 27.1,
+          "min": 26.2,
+          "max": 27.9
+        }
+      },
+      "background": {
+        "median": 27.1,
+        "min": 26.2,
+        "max": 27.9
+      },
+      "renderMs": {
+        "median": 7.5,
+        "min": 6.4,
+        "max": 7.5
+      },
+      "domNodes": {
+        "median": 3038,
+        "min": 3038,
+        "max": 3038
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.2,
+            "min": 33,
+            "max": 33.3
+          },
+          "skeletonPaint": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.3
+          },
+          "corePaint": {
+            "median": 33.3,
+            "min": 33.1,
+            "max": 33.4
+          },
+          "ready": {
+            "median": 33.3,
+            "min": 33.1,
+            "max": 33.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 27.8,
+          "min": 26,
+          "max": 28
+        },
+        "skeletonPaint": {
+          "median": 27.9,
+          "min": 26,
+          "max": 28
+        },
+        "corePaint": {
+          "median": 27.9,
+          "min": 26,
+          "max": 28
+        },
+        "ready": {
+          "median": 27.9,
+          "min": 26,
+          "max": 28
+        }
+      },
+      "background": {
+        "median": 27.9,
+        "min": 26,
+        "max": 28
+      },
+      "renderMs": {
+        "median": 7.2,
+        "min": 6.4,
+        "max": 7.7
+      },
+      "domNodes": {
+        "median": 3038,
+        "min": 3038,
+        "max": 3038
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.3
+          },
+          "skeletonPaint": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.3
+          },
+          "corePaint": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.4
+          },
+          "ready": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "screen": "shop",
+      "role": "student",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 208.6,
+          "min": 161.1,
+          "max": 210.3
+        },
+        "skeletonPaint": {
+          "median": 208.6,
+          "min": 161.1,
+          "max": 210.3
+        },
+        "corePaint": {
+          "median": 734.6,
+          "min": 728.9,
+          "max": 735.5
+        },
+        "ready": {
+          "median": 734.6,
+          "min": 728.9,
+          "max": 735.5
+        }
+      },
+      "background": {
+        "median": 1800.4,
+        "min": 1796.7,
+        "max": 1809.7
+      },
+      "renderMs": null,
+      "domNodes": {
+        "median": 1506,
+        "min": 1506,
+        "max": 1506
+      },
+      "browserNetwork": {
+        "status": 1,
+        "preview": 1,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0,
+        "browserRequests": 43,
+        "servedBodyBytes": 3273817
+      }
+    },
+    {
+      "screen": "shop",
+      "role": "student",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 27.3,
+          "min": 22.8,
+          "max": 29.5
+        },
+        "skeletonPaint": {
+          "median": 27.3,
+          "min": 22.8,
+          "max": 29.5
+        },
+        "corePaint": {
+          "median": 27.3,
+          "min": 22.8,
+          "max": 29.5
+        },
+        "ready": {
+          "median": 27.3,
+          "min": 22.8,
+          "max": 29.5
+        }
+      },
+      "background": {
+        "median": 27.3,
+        "min": 22.8,
+        "max": 29.5
+      },
+      "renderMs": null,
+      "domNodes": {
+        "median": 1506,
+        "min": 1506,
+        "max": 1506
+      },
+      "browserNetwork": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0,
+        "browserRequests": 0,
+        "servedBodyBytes": 0
+      }
+    },
+    {
+      "screen": "shop",
+      "role": "student",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 24.9,
+          "min": 23.9,
+          "max": 25.1
+        },
+        "skeletonPaint": {
+          "median": 24.9,
+          "min": 23.9,
+          "max": 25.1
+        },
+        "corePaint": {
+          "median": 24.9,
+          "min": 23.9,
+          "max": 25.1
+        },
+        "ready": {
+          "median": 24.9,
+          "min": 23.9,
+          "max": 25.1
+        }
+      },
+      "background": {
+        "median": 24.9,
+        "min": 23.9,
+        "max": 25.1
+      },
+      "renderMs": null,
+      "domNodes": {
+        "median": 1506,
+        "min": 1506,
+        "max": 1506
+      },
+      "browserNetwork": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0,
+        "browserRequests": 0,
+        "servedBodyBytes": 0
+      }
+    }
+  ],
+  "after": [
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 21.1,
+          "min": 20.3,
+          "max": 22.5
+        },
+        "skeletonPaint": {
+          "median": 21.1,
+          "min": 20.3,
+          "max": 22.5
+        },
+        "corePaint": {
+          "median": 220.9,
+          "min": 220.4,
+          "max": 222.3
+        },
+        "ready": {
+          "median": 220.9,
+          "min": 220.4,
+          "max": 222.3
+        }
+      },
+      "background": {
+        "median": 220.9,
+        "min": 220.4,
+        "max": 222.3
+      },
+      "renderMs": {
+        "median": 0.3,
+        "min": 0.2,
+        "max": 0.4
+      },
+      "domNodes": {
+        "median": 1536,
+        "min": 1536,
+        "max": 1536
+      },
+      "providerCalls": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "providerPayloadBytes": {
+        "median": 76,
+        "min": 76,
+        "max": 76
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.1,
+            "min": 32.8,
+            "max": 33.5
+          },
+          "skeletonPaint": {
+            "median": 33.1,
+            "min": 32.8,
+            "max": 33.5
+          },
+          "corePaint": {
+            "median": 343.2,
+            "min": 333.2,
+            "max": 351.2
+          },
+          "ready": {
+            "median": 343.2,
+            "min": 333.2,
+            "max": 351.2
+          }
+        },
+        "providerCalls": {
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "renderMs": {
+          "median": 1.7,
+          "min": 1,
+          "max": 1.8
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 31.5,
+          "min": 29.5,
+          "max": 32.4
+        },
+        "skeletonPaint": {
+          "median": 31.5,
+          "min": 29.5,
+          "max": 32.4
+        },
+        "corePaint": {
+          "median": 31.5,
+          "min": 29.5,
+          "max": 32.4
+        },
+        "ready": {
+          "median": 31.5,
+          "min": 29.5,
+          "max": 32.4
+        }
+      },
+      "background": {
+        "median": 31.5,
+        "min": 29.5,
+        "max": 32.4
+      },
+      "renderMs": {
+        "median": 0.1,
+        "min": 0,
+        "max": 0.2
+      },
+      "domNodes": {
+        "median": 2496,
+        "min": 2496,
+        "max": 2496
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.3,
+            "min": 33.2,
+            "max": 33.3
+          },
+          "skeletonPaint": {
+            "median": 33.3,
+            "min": 33.2,
+            "max": 33.3
+          },
+          "corePaint": {
+            "median": 33.3,
+            "min": 33.2,
+            "max": 33.4
+          },
+          "ready": {
+            "median": 33.3,
+            "min": 33.2,
+            "max": 33.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.8,
+          "min": 0.8,
+          "max": 0.9
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 28.7,
+          "min": 27.7,
+          "max": 29.7
+        },
+        "skeletonPaint": {
+          "median": 28.7,
+          "min": 27.7,
+          "max": 29.7
+        },
+        "corePaint": {
+          "median": 28.8,
+          "min": 27.7,
+          "max": 29.7
+        },
+        "ready": {
+          "median": 28.8,
+          "min": 27.7,
+          "max": 29.7
+        }
+      },
+      "background": {
+        "median": 28.8,
+        "min": 27.7,
+        "max": 29.7
+      },
+      "renderMs": {
+        "median": 0,
+        "min": 0,
+        "max": 0.1
+      },
+      "domNodes": {
+        "median": 2496,
+        "min": 2496,
+        "max": 2496
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.2
+          },
+          "skeletonPaint": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.2
+          },
+          "corePaint": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.2
+          },
+          "ready": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.2
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.8,
+          "min": 0.8,
+          "max": 0.9
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 19.5,
+          "min": 17.8,
+          "max": 26.7
+        },
+        "skeletonPaint": {
+          "median": 19.5,
+          "min": 17.8,
+          "max": 26.7
+        },
+        "corePaint": {
+          "median": 219.6,
+          "min": 218.1,
+          "max": 227
+        },
+        "ready": {
+          "median": 219.6,
+          "min": 218.1,
+          "max": 227
+        }
+      },
+      "background": {
+        "median": 219.6,
+        "min": 218.1,
+        "max": 227
+      },
+      "renderMs": {
+        "median": 0.4,
+        "min": 0.3,
+        "max": 0.4
+      },
+      "domNodes": {
+        "median": 1538,
+        "min": 1538,
+        "max": 1538
+      },
+      "providerCalls": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "providerPayloadBytes": {
+        "median": 76,
+        "min": 76,
+        "max": 76
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.1,
+            "min": 33,
+            "max": 33.3
+          },
+          "skeletonPaint": {
+            "median": 33.2,
+            "min": 33,
+            "max": 33.4
+          },
+          "corePaint": {
+            "median": 352.9,
+            "min": 352,
+            "max": 355.1
+          },
+          "ready": {
+            "median": 352.9,
+            "min": 352,
+            "max": 355.1
+          }
+        },
+        "providerCalls": {
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "renderMs": {
+          "median": 2.7,
+          "min": 2.5,
+          "max": 3.2
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 32.9,
+          "min": 31.8,
+          "max": 33.5
+        },
+        "skeletonPaint": {
+          "median": 32.9,
+          "min": 31.8,
+          "max": 33.5
+        },
+        "corePaint": {
+          "median": 32.9,
+          "min": 31.8,
+          "max": 33.5
+        },
+        "ready": {
+          "median": 32.9,
+          "min": 31.8,
+          "max": 33.5
+        }
+      },
+      "background": {
+        "median": 32.9,
+        "min": 31.8,
+        "max": 33.5
+      },
+      "renderMs": {
+        "median": 0.1,
+        "min": 0,
+        "max": 0.1
+      },
+      "domNodes": {
+        "median": 2578,
+        "min": 2578,
+        "max": 2578
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.4,
+            "min": 31.8,
+            "max": 50
+          },
+          "skeletonPaint": {
+            "median": 33.4,
+            "min": 31.8,
+            "max": 50
+          },
+          "corePaint": {
+            "median": 33.4,
+            "min": 31.8,
+            "max": 50
+          },
+          "ready": {
+            "median": 33.4,
+            "min": 31.8,
+            "max": 50
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.8,
+          "min": 0.7,
+          "max": 0.9
+        }
+      }
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 30.9,
+          "min": 30.8,
+          "max": 31.2
+        },
+        "skeletonPaint": {
+          "median": 30.9,
+          "min": 30.8,
+          "max": 31.2
+        },
+        "corePaint": {
+          "median": 30.9,
+          "min": 30.8,
+          "max": 31.2
+        },
+        "ready": {
+          "median": 30.9,
+          "min": 30.8,
+          "max": 31.2
+        }
+      },
+      "background": {
+        "median": 30.9,
+        "min": 30.8,
+        "max": 31.2
+      },
+      "renderMs": {
+        "median": 0.1,
+        "min": 0,
+        "max": 0.2
+      },
+      "domNodes": {
+        "median": 2578,
+        "min": 2578,
+        "max": 2578
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "members": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.3
+          },
+          "skeletonPaint": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.3
+          },
+          "corePaint": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.4
+          },
+          "ready": {
+            "median": 33.2,
+            "min": 33.2,
+            "max": 33.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.8,
+          "min": 0.8,
+          "max": 0.8
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 32.7,
+          "min": 31.1,
+          "max": 34.1
+        },
+        "skeletonPaint": {
+          "median": 32.7,
+          "min": 31.1,
+          "max": 34.1
+        },
+        "corePaint": {
+          "median": 266.1,
+          "min": 263.1,
+          "max": 266.6
+        },
+        "ready": {
+          "median": 266.1,
+          "min": 263.1,
+          "max": 266.6
+        }
+      },
+      "background": {
+        "median": 266.1,
+        "min": 263.1,
+        "max": 266.6
+      },
+      "renderMs": {
+        "median": 12.1,
+        "min": 11.1,
+        "max": 12.4
+      },
+      "domNodes": {
+        "median": 1547,
+        "min": 1547,
+        "max": 1547
+      },
+      "providerCalls": {
+        "median": 5,
+        "min": 5,
+        "max": 5
+      },
+      "providerPayloadBytes": {
+        "median": 644,
+        "min": 644,
+        "max": 644
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 32.2,
+            "min": 28.9,
+            "max": 33.2
+          },
+          "skeletonPaint": {
+            "median": 32.2,
+            "min": 28.9,
+            "max": 33.2
+          },
+          "corePaint": {
+            "median": 617.3,
+            "min": 616,
+            "max": 617.5
+          },
+          "ready": {
+            "median": 617.4,
+            "min": 616,
+            "max": 617.5
+          }
+        },
+        "providerCalls": {
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "renderMs": {
+          "median": 3.9,
+          "min": 3.7,
+          "max": 4.3
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 26.3,
+          "min": 25.6,
+          "max": 26.6
+        },
+        "skeletonPaint": {
+          "median": 26.3,
+          "min": 25.6,
+          "max": 26.6
+        },
+        "corePaint": {
+          "median": 193.1,
+          "min": 192.9,
+          "max": 193.2
+        },
+        "ready": {
+          "median": 193.1,
+          "min": 193,
+          "max": 193.2
+        }
+      },
+      "background": {
+        "median": 193.1,
+        "min": 192.9,
+        "max": 193.2
+      },
+      "renderMs": {
+        "median": 1.8,
+        "min": 1.6,
+        "max": 2.3
+      },
+      "domNodes": {
+        "median": 1584,
+        "min": 1584,
+        "max": 1584
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 549,
+        "min": 549,
+        "max": 549
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 32.8,
+            "min": 32.7,
+            "max": 33.4
+          },
+          "skeletonPaint": {
+            "median": 32.8,
+            "min": 32.7,
+            "max": 33.4
+          },
+          "corePaint": {
+            "median": 32.8,
+            "min": 32.8,
+            "max": 33.5
+          },
+          "ready": {
+            "median": 32.8,
+            "min": 32.8,
+            "max": 33.5
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.9,
+          "min": 0.8,
+          "max": 1.1
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 25.9,
+          "min": 23.8,
+          "max": 26.3
+        },
+        "skeletonPaint": {
+          "median": 25.9,
+          "min": 23.8,
+          "max": 26.3
+        },
+        "corePaint": {
+          "median": 192.5,
+          "min": 190.8,
+          "max": 192.8
+        },
+        "ready": {
+          "median": 192.5,
+          "min": 190.8,
+          "max": 192.8
+        }
+      },
+      "background": {
+        "median": 192.5,
+        "min": 190.8,
+        "max": 192.8
+      },
+      "renderMs": {
+        "median": 1.3,
+        "min": 0.7,
+        "max": 1.6
+      },
+      "domNodes": {
+        "median": 1584,
+        "min": 1584,
+        "max": 1584
+      },
+      "providerCalls": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "providerPayloadBytes": {
+        "median": 549,
+        "min": 549,
+        "max": 549
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.3,
+            "min": 32.3,
+            "max": 33.4
+          },
+          "skeletonPaint": {
+            "median": 33.3,
+            "min": 32.3,
+            "max": 33.4
+          },
+          "corePaint": {
+            "median": 33.4,
+            "min": 32.3,
+            "max": 33.4
+          },
+          "ready": {
+            "median": 33.4,
+            "min": 32.3,
+            "max": 33.4
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.7,
+          "min": 0.3,
+          "max": 0.8
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 34.7,
+          "min": 34.5,
+          "max": 35.2
+        },
+        "skeletonPaint": {
+          "median": 34.7,
+          "min": 34.5,
+          "max": 35.2
+        },
+        "corePaint": {
+          "median": 156.3,
+          "min": 155.8,
+          "max": 157.9
+        },
+        "ready": {
+          "median": 156.3,
+          "min": 155.8,
+          "max": 157.9
+        }
+      },
+      "background": {
+        "median": 156.3,
+        "min": 155.8,
+        "max": 157.9
+      },
+      "renderMs": {
+        "median": 11.7,
+        "min": 9.6,
+        "max": 12.6
+      },
+      "domNodes": {
+        "median": 1536,
+        "min": 1536,
+        "max": 1536
+      },
+      "providerCalls": {
+        "median": 4,
+        "min": 4,
+        "max": 4
+      },
+      "providerPayloadBytes": {
+        "median": 644,
+        "min": 644,
+        "max": 644
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 21.1,
+            "min": 19.2,
+            "max": 21.3
+          },
+          "skeletonPaint": {
+            "median": 21.1,
+            "min": 19.2,
+            "max": 21.3
+          },
+          "corePaint": {
+            "median": 619,
+            "min": 618.7,
+            "max": 636.7
+          },
+          "ready": {
+            "median": 619,
+            "min": 618.7,
+            "max": 636.7
+          }
+        },
+        "providerCalls": {
+          "median": 1,
+          "min": 1,
+          "max": 1
+        },
+        "renderMs": {
+          "median": 3.5,
+          "min": 3.3,
+          "max": 4.1
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 24.7,
+          "min": 24.5,
+          "max": 26.3
+        },
+        "skeletonPaint": {
+          "median": 24.7,
+          "min": 24.5,
+          "max": 26.3
+        },
+        "corePaint": {
+          "median": 24.7,
+          "min": 24.5,
+          "max": 26.4
+        },
+        "ready": {
+          "median": 24.7,
+          "min": 24.5,
+          "max": 26.4
+        }
+      },
+      "background": {
+        "median": 24.7,
+        "min": 24.5,
+        "max": 26.4
+      },
+      "renderMs": {
+        "median": 0.9,
+        "min": 0.8,
+        "max": 1
+      },
+      "domNodes": {
+        "median": 1583,
+        "min": 1583,
+        "max": 1583
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.1,
+            "min": 33.1,
+            "max": 33.2
+          },
+          "skeletonPaint": {
+            "median": 33.1,
+            "min": 33.1,
+            "max": 33.2
+          },
+          "corePaint": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.3
+          },
+          "ready": {
+            "median": 33.2,
+            "min": 33.1,
+            "max": 33.3
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.6,
+          "min": 0.6,
+          "max": 0.9
+        }
+      }
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 25.5,
+          "min": 24.1,
+          "max": 25.9
+        },
+        "skeletonPaint": {
+          "median": 25.5,
+          "min": 24.1,
+          "max": 25.9
+        },
+        "corePaint": {
+          "median": 25.5,
+          "min": 24.1,
+          "max": 25.9
+        },
+        "ready": {
+          "median": 25.5,
+          "min": 24.1,
+          "max": 25.9
+        }
+      },
+      "background": {
+        "median": 25.5,
+        "min": 24.1,
+        "max": 25.9
+      },
+      "renderMs": {
+        "median": 0.7,
+        "min": 0.7,
+        "max": 0.8
+      },
+      "domNodes": {
+        "median": 1583,
+        "min": 1583,
+        "max": 1583
+      },
+      "providerCalls": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "providerPayloadBytes": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "market": {
+        "stages": {
+          "firstVisual": {
+            "median": 33.4,
+            "min": 33.3,
+            "max": 33.4
+          },
+          "skeletonPaint": {
+            "median": 33.4,
+            "min": 33.3,
+            "max": 33.4
+          },
+          "corePaint": {
+            "median": 33.4,
+            "min": 33.4,
+            "max": 33.5
+          },
+          "ready": {
+            "median": 33.4,
+            "min": 33.4,
+            "max": 33.5
+          }
+        },
+        "providerCalls": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "renderMs": {
+          "median": 0.7,
+          "min": 0.6,
+          "max": 0.8
+        }
+      }
+    },
+    {
+      "screen": "shop",
+      "role": "student",
+      "visit": "first",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 20.7,
+          "min": 17.6,
+          "max": 31.4
+        },
+        "skeletonPaint": {
+          "median": 20.7,
+          "min": 17.6,
+          "max": 31.4
+        },
+        "corePaint": {
+          "median": 735.2,
+          "min": 717.8,
+          "max": 736.6
+        },
+        "ready": {
+          "median": 735.2,
+          "min": 717.8,
+          "max": 736.6
+        }
+      },
+      "background": {
+        "median": 1814.6,
+        "min": 1785.9,
+        "max": 1817.4
+      },
+      "renderMs": null,
+      "domNodes": {
+        "median": 1507,
+        "min": 1507,
+        "max": 1507
+      },
+      "browserNetwork": {
+        "status": 1,
+        "preview": 1,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0,
+        "browserRequests": 43,
+        "servedBodyBytes": 3274264
+      }
+    },
+    {
+      "screen": "shop",
+      "role": "student",
+      "visit": "reentry",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 27.8,
+          "min": 27.5,
+          "max": 29.1
+        },
+        "skeletonPaint": {
+          "median": 27.8,
+          "min": 27.5,
+          "max": 29.1
+        },
+        "corePaint": {
+          "median": 27.8,
+          "min": 27.5,
+          "max": 29.1
+        },
+        "ready": {
+          "median": 27.8,
+          "min": 27.5,
+          "max": 29.1
+        }
+      },
+      "background": {
+        "median": 27.8,
+        "min": 27.5,
+        "max": 29.1
+      },
+      "renderMs": null,
+      "domNodes": {
+        "median": 1507,
+        "min": 1507,
+        "max": 1507
+      },
+      "browserNetwork": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0,
+        "browserRequests": 0,
+        "servedBodyBytes": 0
+      }
+    },
+    {
+      "screen": "shop",
+      "role": "student",
+      "visit": "after-three-switches",
+      "samples": 3,
+      "stages": {
+        "firstVisual": {
+          "median": 26.5,
+          "min": 23.5,
+          "max": 26.7
+        },
+        "skeletonPaint": {
+          "median": 26.5,
+          "min": 23.5,
+          "max": 26.7
+        },
+        "corePaint": {
+          "median": 26.5,
+          "min": 23.5,
+          "max": 26.7
+        },
+        "ready": {
+          "median": 26.5,
+          "min": 23.5,
+          "max": 26.7
+        }
+      },
+      "background": {
+        "median": 26.5,
+        "min": 23.5,
+        "max": 26.7
+      },
+      "renderMs": null,
+      "domNodes": {
+        "median": 1507,
+        "min": 1507,
+        "max": 1507
+      },
+      "browserNetwork": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0,
+        "browserRequests": 0,
+        "servedBodyBytes": 0
+      }
+    }
+  ]
+}

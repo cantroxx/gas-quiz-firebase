@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-18T06:58:16.509Z",
+  "targets": [
+    "popularQuizAction",
+    "auditPopularQuizSources"
+  ],
+  "endpoints": {
+    "popularQuizAction": {
+      "state": "ACTIVE",
+      "updateTime": "2026-10-18T06:58:03.917852019Z",
+      "uri": "https://popularquizaction-lvgwneybea-du.a.run.app",
+      "revision": "popularquizaction-00001-gox"
+    },
+    "auditPopularQuizSources": {
+      "state": "ACTIVE",
+      "updateTime": "2026-10-18T06:58:09.040588813Z",
+      "uri": "https://auditpopularquizsources-lvgwneybea-du.a.run.app",
+      "revision": "auditpopularquizsources-00001-nup"
+    }
+  },
+  "unrelatedChanges": []
+}

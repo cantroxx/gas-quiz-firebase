@@ -1,0 +1,16 @@
+{
+  "diagnosisDateKST": "2026-10-07",
+  "primaryDesktop": "measurements.json and ground-measurements.json, desktop rows only",
+  "primaryMobile": "mobile-complete.json",
+  "superseded": "ground-measurements.json mobile rows had incomplete resources; do not use for full LCP/byte comparison",
+  "scope": "Public static pages with backend blocked; anonymous profiles; no production auth, writes or student records. Lab only.",
+  "units": "Time ms; bytes decimal; CLS unitless; blockingExcess is not standardized TBT; interaction is not INP.",
+  "existingSourceChangesObserved": [
+    "public/classroom.css",
+    "public/js/features/classroom-workspace.js",
+    "public/js/features/classroom-render.js",
+    "public/js/app.bundle.js"
+  ],
+  "productEditsByThisDiagnosis": [],
+  "baselineComparedProductFiles": 3944
+}

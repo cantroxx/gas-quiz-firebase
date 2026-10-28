@@ -1,0 +1,783 @@
+{
+  "admin/classAdmin/first": {
+    "firstVisual": {
+      "median": 20.69999998807907,
+      "min": 17,
+      "max": 23.30000001192093
+    },
+    "skeletonPaint": {
+      "median": 20.69999998807907,
+      "min": 17,
+      "max": 23.30000001192093
+    },
+    "coreDom": {
+      "median": 208.9000000357628,
+      "min": 208.69999998807907,
+      "max": 210
+    },
+    "corePaint": {
+      "median": 320.30000001192093,
+      "min": 317,
+      "max": 323.19999998807907
+    },
+    "ready": {
+      "median": 320.30000001192093,
+      "min": 317,
+      "max": 323.19999998807907
+    },
+    "backgroundDependencies": {
+      "median": 320.5,
+      "min": 317.10000002384186,
+      "max": 323.5
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      2,
+      2,
+      2
+    ],
+    "dom": [
+      2493,
+      2493,
+      2493
+    ],
+    "renderLast": [
+      1.4000000357627869,
+      2,
+      1.899999976158142
+    ]
+  },
+  "admin/classAdmin/reentry": {
+    "firstVisual": {
+      "median": 31.299999952316284,
+      "min": 29.900000035762787,
+      "max": 34.59999996423721
+    },
+    "skeletonPaint": {
+      "median": 31.399999976158142,
+      "min": 29.900000035762787,
+      "max": 34.69999998807907
+    },
+    "coreDom": {
+      "median": 230.0999999642372,
+      "min": 229.70000004768372,
+      "max": 230.89999997615814
+    },
+    "corePaint": {
+      "median": 341.7000000476837,
+      "min": 334.39999997615814,
+      "max": 346.5
+    },
+    "ready": {
+      "median": 341.7000000476837,
+      "min": 334.39999997615814,
+      "max": 346.5
+    },
+    "backgroundDependencies": {
+      "median": 341.80000001192093,
+      "min": 334.69999998807907,
+      "max": 346.5999999642372
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      2,
+      2,
+      2
+    ],
+    "dom": [
+      2493,
+      2493,
+      2493
+    ],
+    "renderLast": [
+      0.800000011920929,
+      2.799999952316284,
+      0.699999988079071
+    ]
+  },
+  "admin/classAdmin/after-three-switches": {
+    "firstVisual": {
+      "median": 31.399999976158142,
+      "min": 26.69999998807907,
+      "max": 31.5
+    },
+    "skeletonPaint": {
+      "median": 31.399999976158142,
+      "min": 26.69999998807907,
+      "max": 31.5
+    },
+    "coreDom": {
+      "median": 231.5,
+      "min": 226.60000002384186,
+      "max": 231.80000001192093
+    },
+    "corePaint": {
+      "median": 336.69999998807907,
+      "min": 333.69999998807907,
+      "max": 344.80000001192093
+    },
+    "ready": {
+      "median": 336.69999998807907,
+      "min": 333.69999998807907,
+      "max": 344.80000001192093
+    },
+    "backgroundDependencies": {
+      "median": 336.80000001192093,
+      "min": 333.89999997615814,
+      "max": 345.10000002384186
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      2,
+      2,
+      2
+    ],
+    "dom": [
+      2493,
+      2493,
+      2493
+    ],
+    "renderLast": [
+      1.199999988079071,
+      1.800000011920929,
+      0.699999988079071
+    ]
+  },
+  "admin/superAdmin/first": {
+    "firstVisual": {
+      "median": 28.799999952316284,
+      "min": 20.599999964237213,
+      "max": 31.899999976158142
+    },
+    "skeletonPaint": {
+      "median": 28.799999952316284,
+      "min": 20.599999964237213,
+      "max": 31.899999976158142
+    },
+    "coreDom": {
+      "median": 209.0999999642372,
+      "min": 207.89999997615814,
+      "max": 210
+    },
+    "corePaint": {
+      "median": 314.5999999642372,
+      "min": 311.5999999642372,
+      "max": 321
+    },
+    "ready": {
+      "median": 314.69999998807907,
+      "min": 311.5999999642372,
+      "max": 321
+    },
+    "backgroundDependencies": {
+      "median": 1010.6999999880791,
+      "min": 1009.1999999880791,
+      "max": 1010.8999999761581
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      10,
+      10,
+      10
+    ],
+    "dom": [
+      2575,
+      2575,
+      2575
+    ],
+    "renderLast": [
+      1.300000011920929,
+      2,
+      0.8999999761581421
+    ]
+  },
+  "admin/superAdmin/reentry": {
+    "firstVisual": {
+      "median": 41,
+      "min": 39.60000002384186,
+      "max": 42.30000001192093
+    },
+    "skeletonPaint": {
+      "median": 41,
+      "min": 39.60000002384186,
+      "max": 42.30000001192093
+    },
+    "coreDom": {
+      "median": 241.29999995231628,
+      "min": 239.30000001192093,
+      "max": 241.30000001192093
+    },
+    "corePaint": {
+      "median": 346,
+      "min": 342.19999998807907,
+      "max": 348.5
+    },
+    "ready": {
+      "median": 346,
+      "min": 342.19999998807907,
+      "max": 348.5
+    },
+    "backgroundDependencies": {
+      "median": 1042.699999988079,
+      "min": 1041.1000000238419,
+      "max": 1042.8999999761581
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      10,
+      10,
+      10
+    ],
+    "dom": [
+      2575,
+      2575,
+      2575
+    ],
+    "renderLast": [
+      1.199999988079071,
+      3.300000011920929,
+      1.899999976158142
+    ]
+  },
+  "admin/superAdmin/after-three-switches": {
+    "firstVisual": {
+      "median": 43.80000001192093,
+      "min": 37.39999997615814,
+      "max": 47.80000001192093
+    },
+    "skeletonPaint": {
+      "median": 43.80000001192093,
+      "min": 37.39999997615814,
+      "max": 47.80000001192093
+    },
+    "coreDom": {
+      "median": 244.5,
+      "min": 236.89999997615814,
+      "max": 248
+    },
+    "corePaint": {
+      "median": 357.30000001192093,
+      "min": 345.7999999523163,
+      "max": 362.10000002384186
+    },
+    "ready": {
+      "median": 357.30000001192093,
+      "min": 345.7999999523163,
+      "max": 362.10000002384186
+    },
+    "backgroundDependencies": {
+      "median": 1046.6000000238419,
+      "min": 1038.5999999642372,
+      "max": 1049.7000000476837
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      10,
+      10,
+      10
+    ],
+    "dom": [
+      2575,
+      2575,
+      2575
+    ],
+    "renderLast": [
+      1.300000011920929,
+      3.599999964237213,
+      2.400000035762787
+    ]
+  },
+  "classroom/student/first": {
+    "firstVisual": {
+      "median": 32.299999952316284,
+      "min": 31.599999964237213,
+      "max": 39.90000003576279
+    },
+    "skeletonPaint": {
+      "median": 32.299999952316284,
+      "min": 31.599999964237213,
+      "max": 39.90000003576279
+    },
+    "coreDom": {
+      "median": 806,
+      "min": 805.7999999523163,
+      "max": 818.5
+    },
+    "corePaint": {
+      "median": 825,
+      "min": 823,
+      "max": 838
+    },
+    "ready": {
+      "median": 825,
+      "min": 823,
+      "max": 838
+    },
+    "backgroundDependencies": {
+      "median": 825.5999999642372,
+      "min": 823.5999999642372,
+      "max": 838.5
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      7,
+      7,
+      7
+    ],
+    "dom": [
+      2409,
+      2409,
+      2409
+    ],
+    "renderLast": [
+      17.700000047683716,
+      18.599999964237213,
+      21.80000001192093
+    ]
+  },
+  "classroom/student/reentry": {
+    "firstVisual": {
+      "median": 29.5,
+      "min": 16.899999976158142,
+      "max": 32.10000002384186
+    },
+    "skeletonPaint": {
+      "median": 29.5,
+      "min": 16.899999976158142,
+      "max": 32.10000002384186
+    },
+    "coreDom": {
+      "median": 190.10000002384186,
+      "min": 177.30000001192093,
+      "max": 192.9000000357628
+    },
+    "corePaint": {
+      "median": 196.30000001192093,
+      "min": 183.69999998807907,
+      "max": 198.60000002384186
+    },
+    "ready": {
+      "median": 196.39999997615814,
+      "min": 183.69999998807907,
+      "max": 198.60000002384186
+    },
+    "backgroundDependencies": {
+      "median": 196.80000001192093,
+      "min": 184.30000001192093,
+      "max": 199.10000002384186
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      2,
+      2,
+      2
+    ],
+    "dom": [
+      2409,
+      2409,
+      2409
+    ],
+    "renderLast": [
+      6.900000035762787,
+      7.100000023841858,
+      7.300000011920929
+    ]
+  },
+  "classroom/student/after-three-switches": {
+    "firstVisual": {
+      "median": 28.100000023841858,
+      "min": 27.19999998807907,
+      "max": 28.600000023841858
+    },
+    "skeletonPaint": {
+      "median": 28.100000023841858,
+      "min": 27.19999998807907,
+      "max": 28.600000023841858
+    },
+    "coreDom": {
+      "median": 189.89999997615814,
+      "min": 188.5,
+      "max": 190.10000002384186
+    },
+    "corePaint": {
+      "median": 195,
+      "min": 193.89999997615814,
+      "max": 195.70000004768372
+    },
+    "ready": {
+      "median": 195,
+      "min": 193.89999997615814,
+      "max": 195.70000004768372
+    },
+    "backgroundDependencies": {
+      "median": 195.39999997615814,
+      "min": 194.39999997615814,
+      "max": 196.20000004768372
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      2,
+      2,
+      2
+    ],
+    "dom": [
+      2409,
+      2409,
+      2409
+    ],
+    "renderLast": [
+      7.899999976158142,
+      8.100000023841858,
+      7.900000035762787
+    ]
+  },
+  "classroom/teacher/first": {
+    "firstVisual": {
+      "median": 35.59999996423721,
+      "min": 35.39999997615814,
+      "max": 38.10000002384186
+    },
+    "skeletonPaint": {
+      "median": 35.59999996423721,
+      "min": 35.39999997615814,
+      "max": 38.10000002384186
+    },
+    "coreDom": {
+      "median": 712,
+      "min": 708.5999999642372,
+      "max": 713.2000000476837
+    },
+    "corePaint": {
+      "median": 733,
+      "min": 731.6999999880791,
+      "max": 733.2999999523163
+    },
+    "ready": {
+      "median": 733,
+      "min": 731.6999999880791,
+      "max": 733.2999999523163
+    },
+    "backgroundDependencies": {
+      "median": 733.6000000238419,
+      "min": 732.2999999523163,
+      "max": 733.8999999761581
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      7,
+      7,
+      7
+    ],
+    "dom": [
+      3037,
+      3037,
+      3037
+    ],
+    "renderLast": [
+      26,
+      24,
+      27
+    ]
+  },
+  "classroom/teacher/reentry": {
+    "firstVisual": {
+      "median": 31.30000001192093,
+      "min": 25.400000035762787,
+      "max": 31.399999976158142
+    },
+    "skeletonPaint": {
+      "median": 31.30000001192093,
+      "min": 25.400000035762787,
+      "max": 31.399999976158142
+    },
+    "coreDom": {
+      "median": 9.699999988079071,
+      "min": 9.5,
+      "max": 10.5
+    },
+    "corePaint": {
+      "median": 31.30000001192093,
+      "min": 25.400000035762787,
+      "max": 31.399999976158142
+    },
+    "ready": {
+      "median": 31.30000001192093,
+      "min": 25.400000035762787,
+      "max": 31.399999976158142
+    },
+    "backgroundDependencies": {
+      "median": 66,
+      "min": 59.40000003576279,
+      "max": 66.19999998807907
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      0,
+      0,
+      0
+    ],
+    "dom": [
+      3037,
+      3037,
+      3037
+    ],
+    "renderLast": [
+      7.699999988079071,
+      8.099999964237213,
+      7.600000023841858
+    ]
+  },
+  "classroom/teacher/after-three-switches": {
+    "firstVisual": {
+      "median": 28.599999964237213,
+      "min": 27,
+      "max": 29.100000023841858
+    },
+    "skeletonPaint": {
+      "median": 28.599999964237213,
+      "min": 27,
+      "max": 29.100000023841858
+    },
+    "coreDom": {
+      "median": 7.799999952316284,
+      "min": 7.600000023841858,
+      "max": 7.900000035762787
+    },
+    "corePaint": {
+      "median": 28.69999998807907,
+      "min": 27,
+      "max": 29.19999998807907
+    },
+    "ready": {
+      "median": 28.69999998807907,
+      "min": 27,
+      "max": 29.19999998807907
+    },
+    "backgroundDependencies": {
+      "median": 62.799999952316284,
+      "min": 61.10000002384186,
+      "max": 63.40000003576279
+    },
+    "backgroundPreview": null,
+    "genderClick": null,
+    "calls": [
+      0,
+      0,
+      0
+    ],
+    "dom": [
+      3037,
+      3037,
+      3037
+    ],
+    "renderLast": [
+      6.699999988079071,
+      6.400000035762787,
+      6.799999952316284
+    ]
+  },
+  "shop//first": {
+    "firstVisual": {
+      "median": 161,
+      "min": 157.60000002384186,
+      "max": 161.30000001192093
+    },
+    "skeletonPaint": {
+      "median": 161,
+      "min": 157.60000002384186,
+      "max": 161.30000001192093
+    },
+    "coreDom": null,
+    "corePaint": {
+      "median": 724.2998046875,
+      "min": 723.7998046875,
+      "max": 731.000244140625
+    },
+    "ready": {
+      "median": 1091.599853515625,
+      "min": 1086.7001953125,
+      "max": 1104.7998046875
+    },
+    "backgroundDependencies": null,
+    "backgroundPreview": {
+      "median": 2144.400146484375,
+      "min": 2140.7998046875,
+      "max": 2153.599853515625
+    },
+    "genderClick": {
+      "median": 1048.500244140625,
+      "min": 1046,
+      "max": 1060
+    },
+    "calls": [
+      {
+        "status": 1,
+        "preview": 2,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      {
+        "status": 1,
+        "preview": 2,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      {
+        "status": 1,
+        "preview": 2,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0
+      }
+    ],
+    "dom": [
+      1506,
+      1506,
+      1506
+    ],
+    "renderLast": [
+      null,
+      null,
+      null
+    ]
+  },
+  "shop//reentry": {
+    "firstVisual": {
+      "median": 23.80000001192093,
+      "min": 22.600000023841858,
+      "max": 25.19999998807907
+    },
+    "skeletonPaint": {
+      "median": 24,
+      "min": 22.600000023841858,
+      "max": 25.19999998807907
+    },
+    "coreDom": null,
+    "corePaint": {
+      "median": 28.30000001192093,
+      "min": 26.5,
+      "max": 29.399999976158142
+    },
+    "ready": {
+      "median": 32.69999998807907,
+      "min": 31.100000023841858,
+      "max": 34
+    },
+    "backgroundDependencies": null,
+    "backgroundPreview": {
+      "median": 33.60000002384186,
+      "min": 32.10000002384186,
+      "max": 34.89999997615814
+    },
+    "genderClick": null,
+    "calls": [
+      {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      }
+    ],
+    "dom": [
+      1506,
+      1506,
+      1506
+    ],
+    "renderLast": [
+      null,
+      null,
+      null
+    ]
+  },
+  "shop//after-three-switches": {
+    "firstVisual": {
+      "median": 26.600000023841858,
+      "min": 26.30000001192093,
+      "max": 28.80000001192093
+    },
+    "skeletonPaint": {
+      "median": 26.600000023841858,
+      "min": 26.30000001192093,
+      "max": 28.80000001192093
+    },
+    "coreDom": null,
+    "corePaint": {
+      "median": 29.900000035762787,
+      "min": 29.5,
+      "max": 31.80000001192093
+    },
+    "ready": {
+      "median": 34.30000001192093,
+      "min": 33.90000003576279,
+      "max": 36.19999998807907
+    },
+    "backgroundDependencies": null,
+    "backgroundPreview": {
+      "median": 35.40000003576279,
+      "min": 34.80000001192093,
+      "max": 37.09999996423721
+    },
+    "genderClick": null,
+    "calls": [
+      {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      }
+    ],
+    "dom": [
+      1506,
+      1506,
+      1506
+    ],
+    "renderLast": [
+      null,
+      null,
+      null
+    ]
+  }
+}

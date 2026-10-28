@@ -8,6 +8,7 @@ function createCollectionSnapshot(docs = []) {
 async function testHomeRepositoryReadsMemberCollections() {
   const calls = [];
   const repository = createHomeRepository({
+    getFirebaseFunctions:()=>({httpsCallable:name=>async()=>({data:{records:[{badgeId:'math',answered:101}],catalog:[{titleId:'title-1',titleName:'Title 1'}]}})}),
     getUserEconomyForRender: async () => ({ djCoin: 9 }),
     getFirestoreDb: () => ({
       collection: name => ({
@@ -39,17 +40,14 @@ async function testHomeRepositoryReadsMemberCollections() {
   assert.deepEqual(await repository.getUserEconomyForRender(), { djCoin: 9 });
   assert.deepEqual((await repository.getUserTitleSummary('member-1')).data(), { id: 'member-1' });
   assert.deepEqual(await repository.getUserTitles('member-1'), createCollectionSnapshot([{ id: 'titles' }]));
-  assert.deepEqual(await repository.getUserBadges('member-1'), createCollectionSnapshot([{ id: 'badges' }]));
+  const progress=await repository.getUserBadges('member-1');assert.equal(progress.docs[0].data().starCount,1);assert.equal(progress.docs[0].data().correct,1);
   assert.deepEqual(await repository.loadTitleCatalog({
     normalizeTitleCatalogDoc: doc => ({ titleId: doc.id, titleName: doc.data().titleName })
   }), [{ titleId: 'title-1', titleName: 'Title 1' }]);
   assert.deepEqual(calls, [
     ['doc', 'userTitleSummary', 'member-1'],
     ['doc', 'userTitles', 'member-1'],
-    ['sub', 'userTitles', 'member-1', 'titles'],
-    ['doc', 'userBadges', 'member-1'],
-    ['sub', 'userBadges', 'member-1', 'badges'],
-    ['order', 'titleCatalog', 'order']
+    ['sub', 'userTitles', 'member-1', 'titles']
   ]);
 }
 

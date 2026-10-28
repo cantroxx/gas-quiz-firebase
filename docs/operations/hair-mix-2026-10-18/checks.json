@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "candidateDigest": "c60418b5568b909315e19b82b1eb0841d19c13b7824893e8bc3cf4921f9210be",
+  "checks": [
+    "npm run check (isolated demo ports)",
+    "candidate commerce emulator",
+    "candidate browser and mobile",
+    "legacy HSL and native town/classroom payload",
+    "actual native rendering and UI"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "before": {
+    "render": 32.2,
+    "tabSwitch": 31.6,
+    "productSelect": 2.8,
+    "scrollLayout": 0
+  },
+  "after": {
+    "render": 35.6,
+    "tabSwitch": 10.6,
+    "productSelect": 2,
+    "scrollLayout": 0
+  }
+}

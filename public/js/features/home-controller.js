@@ -64,11 +64,6 @@
 
   function bindProfileHomeEvents(deps = {}) {
     document.getElementById('profile-card-root')?.addEventListener('click', event => {
-      const todayQuizButton = event.target.closest('[data-today-quiz-id]');
-      if(todayQuizButton) {
-        deps.showQuizSelectView?.(todayQuizButton.dataset.todayQuizId || '');
-        return;
-      }
       const profileToggle = event.target.closest('[data-profile-detail-toggle]');
       if(profileToggle) {
         const key = profileToggle.dataset.profileDetailToggle || '';
@@ -121,25 +116,8 @@
         deps.saveProfilePasswordFromHome?.();
         return;
       }
-      if(event.target.closest('#profile-image-search-button')) {
-        deps.searchProfileImageCandidatesFromHome?.().catch(error => {
-          console.warn('Firestore profile image search failed.', error);
-          const status = document.getElementById('profile-image-search-status');
-          if(status) status.textContent = '이미지를 검색하지 못했습니다.';
-        });
-        return;
-      }
       if(event.target.closest('#profile-image-upload-button')) {
         document.getElementById('profile-image-upload-input')?.click();
-        return;
-      }
-      const imageOption = event.target.closest('[data-profile-image-index]');
-      if(imageOption) {
-        deps.saveSelectedProfileImageFromHome?.(imageOption.dataset.profileImageIndex).catch(error => {
-          console.warn('Firestore profile image select failed.', error);
-          const status = document.getElementById('profile-image-search-status');
-          if(status) status.textContent = '이미지를 저장하지 못했습니다.';
-        });
         return;
       }
       if(event.target.closest('#profile-ranking-message-save-button')) {
@@ -165,6 +143,7 @@
         homeToggle.setAttribute('aria-expanded', 'true');
         const panel = homeView.querySelector(`[data-home-detail-panel="${key}"]`);
         panel?.classList.add('is-active');
+        deps.loadHomeDetail?.(key);
       }
     });
 
@@ -178,15 +157,6 @@
       }).finally(() => {
         event.target.value = '';
       });
-    });
-
-    document.getElementById('profile-card-root')?.addEventListener('keydown', event => {
-      if(event.key === 'Enter' && event.target?.id === 'profile-image-search-input') {
-        event.preventDefault();
-        deps.searchProfileImageCandidatesFromHome?.().catch(error => {
-          console.warn('Firestore profile image search failed.', error);
-        });
-      }
     });
 
     document.querySelectorAll('[data-close-profile-image-editor]').forEach(button => {

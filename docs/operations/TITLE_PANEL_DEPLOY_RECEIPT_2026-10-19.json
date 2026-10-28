@@ -1,0 +1,15 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792379785961000",
+  "version": "sites/dj48-quiztown-firebase/versions/aa8039091afca798",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/16a94539c73e5554",
+  "changed": [
+    "index.html",
+    "styles.css",
+    "js/features/home-render.js",
+    "js/app.bundle.js"
+  ],
+  "fullCheckPassed": true,
+  "candidateBrowserPassed": true,
+  "httpHashesVerified": true,
+  "preservedConcurrentRelease": "16a94539c73e5554"
+}

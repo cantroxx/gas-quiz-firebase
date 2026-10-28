@@ -1,0 +1,652 @@
+{
+  "observed": [
+    {
+      "width": 1440,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "50 P"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "100 P"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "50 P"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "100 P"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "150 P"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "30 P"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "300 DJ코인"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "50 P"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "100 P"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "50 P"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "100 P"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "150 P"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "30 P"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "300 DJ코인"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "50 P"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "100 P"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "50 P"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "100 P"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "150 P"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "30 P"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 129,
+          "reward": "300 DJ코인"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "50 P"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "100 P"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "50 P"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "100 P"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "150 P"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "30 P"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 94,
+          "reward": "300 DJ코인"
+        }
+      ]
+    }
+  ],
+  "fallback": {
+    "custom": "/images/classroom/market-v2/music-320.webp",
+    "replacement": "/images/classroom/market-v2/seat-320.webp"
+  }
+}

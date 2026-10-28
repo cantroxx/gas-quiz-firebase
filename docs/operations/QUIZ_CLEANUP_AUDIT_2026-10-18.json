@@ -1,0 +1,1463 @@
+{
+  "generatedAt": "2026-10-18T07:27:32.454Z",
+  "scope": "Local functions/public sources only; excludes private, exports, root Apps Script, remote data and credentials.",
+  "limitations": [
+    "Lexical references include strings/comments, not a complete call graph.",
+    "Scheduled/Firestore triggers and external clients do not require public callsites.",
+    "No collection counts, orphan determinations, runtime traffic or production Functions source verification."
+  ],
+  "git": {
+    "head": "eb2ac8b4572dd22ef012680bc7b8eea17834690d",
+    "trackedModifiedEntries": 123,
+    "untrackedFiles": 5990
+  },
+  "sourceHashes": [
+    {
+      "path": "functions/index.js",
+      "sha256": "3bd37ef8985abf1111426f9921cc467c2911f3c6aa49cb39079db561dff88740"
+    },
+    {
+      "path": "functions/growth/quests.js",
+      "sha256": "bf5cf66a7fc9a1f4c184ad8fa4dafd53908608c8a1eafcb6a9161c124f05aa1c"
+    },
+    {
+      "path": "functions/subject-quiz/service.js",
+      "sha256": "8ce1afaf297aafef658e5cb1a78980d9af5be82cc0692c741ab4aee92601f053"
+    },
+    {
+      "path": "functions/popular-quiz/service.js",
+      "sha256": "1e03807fad26904ad63cd12f35305fc987d211e03c5bc5e9a000a5bae21b60d7"
+    },
+    {
+      "path": "public/index.html",
+      "sha256": "2a464892f5941a827157f325f45893943b87265ddc61b39ffd0ad0cfa84b0196"
+    },
+    {
+      "path": "public/js/app.bundle.js",
+      "sha256": "7b90aed5de9c4c6ca67fc89dc7656ba80fdad022731018412135d7d4f5ceffc1"
+    },
+    {
+      "path": "public/js/infrastructure/ranking-repository.js",
+      "sha256": "60f4b6f0b73f1585355af75bb5239cd37aad0766828ac1fdc8c7ebdb3d62d86b"
+    },
+    {
+      "path": "public/js/application/ranking-usecases.js",
+      "sha256": "85e9992d99c3890a572aa476025b574d6916cd0aaafe69d0f447291a6f915614"
+    },
+    {
+      "path": "public/js/infrastructure/admin-repository.js",
+      "sha256": "283b3066536e548c7f627f98779f6e17b9b70c14697f111fb29d51ff23742759"
+    }
+  ],
+  "effectiveCatalog": {
+    "subjects": {
+      "korean": [
+        "generated-korean-4-1",
+        "generated-korean-4-2",
+        "generated-korean-spelling"
+      ],
+      "social": [
+        "generated-social-4-1",
+        "generated-social-4-2",
+        "generated-social-korean-history"
+      ],
+      "popular": [
+        "flag-country",
+        "idol",
+        "anime",
+        "tiniping",
+        "pokemon"
+      ],
+      "science": [
+        "generated-science-4-1",
+        "generated-science-4-2"
+      ],
+      "math": [
+        "generated-math-4-1",
+        "generated-math-4-2"
+      ]
+    },
+    "legacySubjectIds": [
+      "reading",
+      "gmo",
+      "time_store",
+      "spelling",
+      "word-relation",
+      "spacing",
+      "proverb",
+      "idiom",
+      "samgukji",
+      "ancient-history",
+      "history-people",
+      "unified-silla-balhae",
+      "cultural_heritage",
+      "multiplication_division",
+      "random-basic",
+      "fraction-basic",
+      "calculation_practice",
+      "science-general"
+    ],
+    "disabled": [
+      "dad-joke",
+      "emoji",
+      "emoji-kpop",
+      "emoji-anime",
+      "emoji-tiniping",
+      "snack-food",
+      "calculation_practice"
+    ]
+  },
+  "probes": {
+    "personalRanking": {
+      "invocations": 2,
+      "callableCalls": [
+        {
+          "name": "subjectQuizAction",
+          "action": "rankingSnapshot"
+        },
+        {
+          "name": "subjectQuizAction",
+          "action": "rankingSnapshot"
+        }
+      ]
+    },
+    "subjectRankingSnapshot": {
+      "syntheticMembersPerCollection": 30,
+      "returnedRecords": 120,
+      "documentGets": 4,
+      "queries": [
+        {
+          "path": "subjectQuizRankings/subject-2022-v1/korean",
+          "kind": "query",
+          "limit": 501
+        },
+        {
+          "path": "subjectQuizRankings/subject-2022-v1/math",
+          "kind": "query",
+          "limit": 501
+        },
+        {
+          "path": "subjectQuizRankings/subject-2022-v1/social",
+          "kind": "query",
+          "limit": 501
+        },
+        {
+          "path": "subjectQuizRankings/subject-2022-v1/science",
+          "kind": "query",
+          "limit": 501
+        },
+        {
+          "path": "quizKingSummary",
+          "kind": "query",
+          "limit": 501
+        }
+      ],
+      "modeledDocumentsReturned": 154,
+      "caveat": "One synthetic transaction attempt; not measured production usage or billing."
+    },
+    "freshnessReads": [
+      "appSettings/featureFlags",
+      "appSettings/externalQuizzes",
+      "appSettings/seasonEvents",
+      "noticeBoard/current"
+    ],
+    "legacyEventWrites": [
+      {
+        "quizId": "subject-korean",
+        "date": "2026-10-18",
+        "legacyProgressWrites": 3
+      },
+      {
+        "quizId": "subject-math",
+        "date": "2026-10-18",
+        "legacyProgressWrites": 2
+      },
+      {
+        "quizId": "subject-social",
+        "date": "2026-10-18",
+        "legacyProgressWrites": 2
+      },
+      {
+        "quizId": "subject-science",
+        "date": "2026-10-18",
+        "legacyProgressWrites": 1
+      },
+      {
+        "quizId": "flag-country",
+        "date": "2026-10-18",
+        "legacyProgressWrites": 1
+      },
+      {
+        "quizId": "idol",
+        "date": "2026-10-18",
+        "legacyProgressWrites": 0
+      }
+    ]
+  },
+  "localFunctionExportCount": 126,
+  "exportsWithoutPublicTextReferences": [
+    {
+      "name": "auditPopularQuizSources",
+      "trigger": "onSchedule",
+      "line": 79,
+      "publicReferences": []
+    },
+    {
+      "name": "verifyMemberAccessCode",
+      "trigger": "onCall",
+      "line": 3097,
+      "publicReferences": []
+    },
+    {
+      "name": "linkMemberAuthUid",
+      "trigger": "onCall",
+      "line": 3129,
+      "publicReferences": []
+    },
+    {
+      "name": "startMemberPasswordSetup",
+      "trigger": "onCall",
+      "line": 3205,
+      "publicReferences": []
+    },
+    {
+      "name": "setMemberPassword",
+      "trigger": "onCall",
+      "line": 3307,
+      "publicReferences": []
+    },
+    {
+      "name": "resetHousingWeeklyCoupons",
+      "trigger": "onSchedule",
+      "line": 9244,
+      "publicReferences": []
+    },
+    {
+      "name": "wbCleanupOldRooms",
+      "trigger": "onSchedule",
+      "line": 10272,
+      "publicReferences": []
+    },
+    {
+      "name": "ingestGrowthActivity",
+      "trigger": "onDocumentCreated",
+      "line": 10298,
+      "publicReferences": []
+    },
+    {
+      "name": "ingestPracticeGrowth",
+      "trigger": "onDocumentCreated",
+      "line": 10299,
+      "publicReferences": []
+    },
+    {
+      "name": "prepareMonthlySeasonDraft",
+      "trigger": "onSchedule",
+      "line": 10320,
+      "publicReferences": []
+    }
+  ],
+  "singleOccurrenceServerFunctionCandidates": [
+    {
+      "name": "publicSeasonEvents",
+      "line": 897,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            897
+          ]
+        }
+      ]
+    },
+    {
+      "name": "getSeasonEventsUpdateLock",
+      "line": 957,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            957
+          ]
+        }
+      ]
+    },
+    {
+      "name": "getTodayQuizIds",
+      "line": 1765,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            1765
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mirrorDjCoinRewardToClassroomPoint",
+      "line": 2279,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2279
+          ]
+        }
+      ]
+    },
+    {
+      "name": "getRecordAreaKey",
+      "line": 2682,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2682
+          ]
+        }
+      ]
+    },
+    {
+      "name": "buildEventQuestRows",
+      "line": 2686,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2686
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loadMemberPracticeRecords",
+      "line": 2801,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2801
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loadEventClaimMap",
+      "line": 2809,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2809
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loadEventProgressMap",
+      "line": 2833,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2833
+          ]
+        }
+      ]
+    },
+    {
+      "name": "loadClassEventProgress",
+      "line": 2845,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            2845
+          ]
+        }
+      ]
+    },
+    {
+      "name": "getTodayQuizNoticeText",
+      "line": 5117,
+      "references": [
+        {
+          "path": "functions/index.js",
+          "count": 1,
+          "lines": [
+            5117
+          ]
+        }
+      ]
+    }
+  ],
+  "publicFiles": {
+    "fileCount": 4769,
+    "totalBytes": 578810053,
+    "duplicateGroupCount": 97,
+    "duplicateBytes": 5309061,
+    "largest": [
+      {
+        "path": "public/popular-quiz/assets/ab57453bcf859dbd5d3b7b2c20bcf54a37a3b275a68028283a18d8e712208f5b.jpg",
+        "bytes": 13485055,
+        "sha256": "ab57453bcf859dbd5d3b7b2c20bcf54a37a3b275a68028283a18d8e712208f5b"
+      },
+      {
+        "path": "public/popular-quiz/assets/e3e3a04ec4c240309d00df08bb90e936c30c1f23dca9f82ec70fe280e3c5def8.jpg",
+        "bytes": 12888731,
+        "sha256": "e3e3a04ec4c240309d00df08bb90e936c30c1f23dca9f82ec70fe280e3c5def8"
+      },
+      {
+        "path": "public/popular-quiz/assets/95630f86c1396bd50a34f3e7acebaa42749162fbdf3dce92103d597378252583.jpg",
+        "bytes": 12662225,
+        "sha256": "95630f86c1396bd50a34f3e7acebaa42749162fbdf3dce92103d597378252583"
+      },
+      {
+        "path": "public/popular-quiz/assets/742047ca5c15b4a1718f8d459eb341e8a9741ccc82b2d8dd7dd14c3197e7efca.jpg",
+        "bytes": 12339338,
+        "sha256": "742047ca5c15b4a1718f8d459eb341e8a9741ccc82b2d8dd7dd14c3197e7efca"
+      },
+      {
+        "path": "public/popular-quiz/assets/5d654d6e24958922df0a484eb3afbe2934cbb9d74bedf0dec06a742895b21340.jpg",
+        "bytes": 9935833,
+        "sha256": "5d654d6e24958922df0a484eb3afbe2934cbb9d74bedf0dec06a742895b21340"
+      },
+      {
+        "path": "public/popular-quiz/assets/9d4878ea092600d6dfd9e862858cc374a8dd59d3837a064c352d24e76c529cc7.jpg",
+        "bytes": 8629942,
+        "sha256": "9d4878ea092600d6dfd9e862858cc374a8dd59d3837a064c352d24e76c529cc7"
+      },
+      {
+        "path": "public/popular-quiz/assets/703426f44a779ee0e714b2c8ffd44a205fa29b24e4ee6b91a2a494d5ee08afc0.jpg",
+        "bytes": 8598247,
+        "sha256": "703426f44a779ee0e714b2c8ffd44a205fa29b24e4ee6b91a2a494d5ee08afc0"
+      },
+      {
+        "path": "public/popular-quiz/assets/04a8fa21922cf52cd5a952124ffee756de082679ac66b70e97195bd9b2a62ab1.jpg",
+        "bytes": 8031295,
+        "sha256": "04a8fa21922cf52cd5a952124ffee756de082679ac66b70e97195bd9b2a62ab1"
+      },
+      {
+        "path": "public/popular-quiz/assets/1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab.png",
+        "bytes": 7591610,
+        "sha256": "1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab"
+      },
+      {
+        "path": "public/popular-quiz/assets/c2ca0926105ec8201c641d4a69836e5a9e796327f98cd399502843405cef6f5a.jpg",
+        "bytes": 7293300,
+        "sha256": "c2ca0926105ec8201c641d4a69836e5a9e796327f98cd399502843405cef6f5a"
+      },
+      {
+        "path": "public/popular-quiz/assets/82b3cce9435901476656b6c9b59ec562014dbf38d777ca187157f726447a6da3.jpg",
+        "bytes": 7280439,
+        "sha256": "82b3cce9435901476656b6c9b59ec562014dbf38d777ca187157f726447a6da3"
+      },
+      {
+        "path": "public/popular-quiz/assets/798c4aa788619a631e3411a05af37ebfe1526e343a33179434e5502b1e3f787a.jpg",
+        "bytes": 7040934,
+        "sha256": "798c4aa788619a631e3411a05af37ebfe1526e343a33179434e5502b1e3f787a"
+      },
+      {
+        "path": "public/popular-quiz/assets/a6a5a2e6e9d586534fc42b17d5f6171fd43359ebc2346b76b851eeebf2a9691f.jpg",
+        "bytes": 6765078,
+        "sha256": "a6a5a2e6e9d586534fc42b17d5f6171fd43359ebc2346b76b851eeebf2a9691f"
+      },
+      {
+        "path": "public/popular-quiz/assets/450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506.png",
+        "bytes": 6676901,
+        "sha256": "450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506"
+      },
+      {
+        "path": "public/popular-quiz/assets/8feb628751fc99d9bedf49561332a2c833dbdd68565bfe272d968c4cd3b4baaf.jpg",
+        "bytes": 6656529,
+        "sha256": "8feb628751fc99d9bedf49561332a2c833dbdd68565bfe272d968c4cd3b4baaf"
+      },
+      {
+        "path": "public/popular-quiz/assets/adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab.png",
+        "bytes": 6224081,
+        "sha256": "adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab"
+      },
+      {
+        "path": "public/popular-quiz/assets/7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55.png",
+        "bytes": 5857579,
+        "sha256": "7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55"
+      },
+      {
+        "path": "public/popular-quiz/assets/58bf616883b1e9e38a75c6a75443dc407de240a13140861b3fe99d06dd622920.jpg",
+        "bytes": 5848156,
+        "sha256": "58bf616883b1e9e38a75c6a75443dc407de240a13140861b3fe99d06dd622920"
+      },
+      {
+        "path": "public/popular-quiz/assets/551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75.png",
+        "bytes": 5832210,
+        "sha256": "551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75"
+      },
+      {
+        "path": "public/popular-quiz/assets/522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5.png",
+        "bytes": 5537176,
+        "sha256": "522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5"
+      }
+    ],
+    "duplicates": [
+      {
+        "bytesEach": 3229947,
+        "duplicateBytes": 3229947,
+        "paths": [
+          "public/images/town-storybook-plazas-v2.png",
+          "public/town-preview/assets/village-b-plazas-v2.png"
+        ]
+      },
+      {
+        "bytesEach": 2908,
+        "duplicateBytes": 93056,
+        "paths": [
+          "public/coordi-shop/verified/female-1102766.png",
+          "public/coordi-shop/verified/female-1102858.png",
+          "public/coordi-shop/verified/female-1102946.png",
+          "public/coordi-shop/verified/female-1102976.png",
+          "public/coordi-shop/verified/female-1103013.png",
+          "public/coordi-shop/verified/female-1103053.png",
+          "public/coordi-shop/verified/female-1103115.png",
+          "public/coordi-shop/verified/female-1103127.png",
+          "public/coordi-shop/verified/female-1103219.png",
+          "public/coordi-shop/verified/female-1103244.png",
+          "public/coordi-shop/verified/female-1103257.png",
+          "public/coordi-shop/verified/female-1103262.png",
+          "public/coordi-shop/verified/female-1103287.png",
+          "public/coordi-shop/verified/female-1103357.png",
+          "public/coordi-shop/verified/female-1103441.png",
+          "public/coordi-shop/verified/female-1103459.png",
+          "public/coordi-shop/verified/female-1103469.png",
+          "public/coordi-shop/verified/female-1103503.png",
+          "public/coordi-shop/verified/female-1103557.png",
+          "public/coordi-shop/verified/female-1103587.png",
+          "public/coordi-shop/verified/female-1103617.png",
+          "public/coordi-shop/verified/female-1103618.png",
+          "public/coordi-shop/verified/female-1103628.png",
+          "public/coordi-shop/verified/female-1103693.png",
+          "public/coordi-shop/verified/female-1103709.png",
+          "public/coordi-shop/verified/female-1103772.png",
+          "public/coordi-shop/verified/female-1103799.png",
+          "public/coordi-shop/verified/female-1103817.png",
+          "public/coordi-shop/verified/female-1103984.png",
+          "public/coordi-shop/verified/female-1104007.png",
+          "public/coordi-shop/verified/female-1104028.png",
+          "public/coordi-shop/verified/female-1104059.png",
+          "public/coordi-shop/verified/female-1104060.png"
+        ]
+      },
+      {
+        "bytesEach": 2641,
+        "duplicateBytes": 84512,
+        "paths": [
+          "public/coordi-shop/verified/male-1102766.png",
+          "public/coordi-shop/verified/male-1102858.png",
+          "public/coordi-shop/verified/male-1102946.png",
+          "public/coordi-shop/verified/male-1102976.png",
+          "public/coordi-shop/verified/male-1103013.png",
+          "public/coordi-shop/verified/male-1103053.png",
+          "public/coordi-shop/verified/male-1103115.png",
+          "public/coordi-shop/verified/male-1103127.png",
+          "public/coordi-shop/verified/male-1103219.png",
+          "public/coordi-shop/verified/male-1103244.png",
+          "public/coordi-shop/verified/male-1103257.png",
+          "public/coordi-shop/verified/male-1103262.png",
+          "public/coordi-shop/verified/male-1103287.png",
+          "public/coordi-shop/verified/male-1103357.png",
+          "public/coordi-shop/verified/male-1103441.png",
+          "public/coordi-shop/verified/male-1103459.png",
+          "public/coordi-shop/verified/male-1103469.png",
+          "public/coordi-shop/verified/male-1103503.png",
+          "public/coordi-shop/verified/male-1103557.png",
+          "public/coordi-shop/verified/male-1103587.png",
+          "public/coordi-shop/verified/male-1103617.png",
+          "public/coordi-shop/verified/male-1103618.png",
+          "public/coordi-shop/verified/male-1103628.png",
+          "public/coordi-shop/verified/male-1103693.png",
+          "public/coordi-shop/verified/male-1103709.png",
+          "public/coordi-shop/verified/male-1103772.png",
+          "public/coordi-shop/verified/male-1103799.png",
+          "public/coordi-shop/verified/male-1103817.png",
+          "public/coordi-shop/verified/male-1103984.png",
+          "public/coordi-shop/verified/male-1104007.png",
+          "public/coordi-shop/verified/male-1104028.png",
+          "public/coordi-shop/verified/male-1104059.png",
+          "public/coordi-shop/verified/male-1104060.png"
+        ]
+      },
+      {
+        "bytesEach": 2691,
+        "duplicateBytes": 67275,
+        "paths": [
+          "public/coordi-shop/verified/female-1032331.png",
+          "public/coordi-shop/verified/female-1103157.png",
+          "public/coordi-shop/verified/female-1103240.png",
+          "public/coordi-shop/verified/female-1103305.png",
+          "public/coordi-shop/verified/female-1103314.png",
+          "public/coordi-shop/verified/female-1103399.png",
+          "public/coordi-shop/verified/female-1103402.png",
+          "public/coordi-shop/verified/female-1103462.png",
+          "public/coordi-shop/verified/female-1103581.png",
+          "public/coordi-shop/verified/female-1103629.png",
+          "public/coordi-shop/verified/female-1103651.png",
+          "public/coordi-shop/verified/female-1103823.png",
+          "public/coordi-shop/verified/female-1103862.png",
+          "public/coordi-shop/verified/female-1103893.png",
+          "public/coordi-shop/verified/female-1103904.png",
+          "public/coordi-shop/verified/female-1103978.png",
+          "public/coordi-shop/verified/female-1104029.png",
+          "public/coordi-shop/verified/female-1104030.png",
+          "public/coordi-shop/verified/female-1104033.png",
+          "public/coordi-shop/verified/female-1104043.png",
+          "public/coordi-shop/verified/female-1104072.png",
+          "public/coordi-shop/verified/female-1104087.png",
+          "public/coordi-shop/verified/female-1104092.png",
+          "public/coordi-shop/verified/female-1104111.png",
+          "public/coordi-shop/verified/female-1104119.png",
+          "public/coordi-shop/verified/female-1104122.png"
+        ]
+      },
+      {
+        "bytesEach": 2448,
+        "duplicateBytes": 61200,
+        "paths": [
+          "public/coordi-shop/verified/male-1032331.png",
+          "public/coordi-shop/verified/male-1103157.png",
+          "public/coordi-shop/verified/male-1103240.png",
+          "public/coordi-shop/verified/male-1103305.png",
+          "public/coordi-shop/verified/male-1103314.png",
+          "public/coordi-shop/verified/male-1103399.png",
+          "public/coordi-shop/verified/male-1103402.png",
+          "public/coordi-shop/verified/male-1103462.png",
+          "public/coordi-shop/verified/male-1103581.png",
+          "public/coordi-shop/verified/male-1103629.png",
+          "public/coordi-shop/verified/male-1103651.png",
+          "public/coordi-shop/verified/male-1103823.png",
+          "public/coordi-shop/verified/male-1103862.png",
+          "public/coordi-shop/verified/male-1103893.png",
+          "public/coordi-shop/verified/male-1103904.png",
+          "public/coordi-shop/verified/male-1103978.png",
+          "public/coordi-shop/verified/male-1104029.png",
+          "public/coordi-shop/verified/male-1104030.png",
+          "public/coordi-shop/verified/male-1104033.png",
+          "public/coordi-shop/verified/male-1104043.png",
+          "public/coordi-shop/verified/male-1104072.png",
+          "public/coordi-shop/verified/male-1104087.png",
+          "public/coordi-shop/verified/male-1104092.png",
+          "public/coordi-shop/verified/male-1104111.png",
+          "public/coordi-shop/verified/male-1104119.png",
+          "public/coordi-shop/verified/male-1104122.png"
+        ]
+      },
+      {
+        "bytesEach": 41361,
+        "duplicateBytes": 41361,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-48-v1.png",
+          "public/images/classroom-assets/medals/levels/level-48-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 41308,
+        "duplicateBytes": 41308,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-29-v1.png",
+          "public/images/classroom-assets/medals/levels/level-29-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 40149,
+        "duplicateBytes": 40149,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-28-v1.png",
+          "public/images/classroom-assets/medals/levels/level-28-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 38157,
+        "duplicateBytes": 38157,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-27-v1.png",
+          "public/images/classroom-assets/medals/levels/level-27-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 37842,
+        "duplicateBytes": 37842,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-19-v1.png",
+          "public/images/classroom-assets/medals/levels/level-19-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 37665,
+        "duplicateBytes": 37665,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-26-v1.png",
+          "public/images/classroom-assets/medals/levels/level-26-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 36060,
+        "duplicateBytes": 36060,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-20-v1.png",
+          "public/images/classroom-assets/medals/levels/level-20-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 35222,
+        "duplicateBytes": 35222,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-50-v1.png",
+          "public/images/classroom-assets/medals/levels/level-50-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 34582,
+        "duplicateBytes": 34582,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-40-v1.png",
+          "public/images/classroom-assets/medals/levels/level-40-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 34113,
+        "duplicateBytes": 34113,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-49-v1.png",
+          "public/images/classroom-assets/medals/levels/level-49-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 33618,
+        "duplicateBytes": 33618,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-35-v1.png",
+          "public/images/classroom-assets/medals/levels/level-35-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 33326,
+        "duplicateBytes": 33326,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-39-v1.png",
+          "public/images/classroom-assets/medals/levels/level-39-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 33151,
+        "duplicateBytes": 33151,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-38-v1.png",
+          "public/images/classroom-assets/medals/levels/level-38-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 32950,
+        "duplicateBytes": 32950,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-32-v1.png",
+          "public/images/classroom-assets/medals/levels/level-32-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 32802,
+        "duplicateBytes": 32802,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-37-v1.png",
+          "public/images/classroom-assets/medals/levels/level-37-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 32750,
+        "duplicateBytes": 32750,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-31-v1.png",
+          "public/images/classroom-assets/medals/levels/level-31-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 31985,
+        "duplicateBytes": 31985,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-34-v1.png",
+          "public/images/classroom-assets/medals/levels/level-34-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 2904,
+        "duplicateBytes": 31944,
+        "paths": [
+          "public/coordi-shop/verified/female-1002186.png",
+          "public/coordi-shop/verified/female-1003271.png",
+          "public/coordi-shop/verified/female-1003276.png",
+          "public/coordi-shop/verified/female-1022079.png",
+          "public/coordi-shop/verified/female-1032024.png",
+          "public/coordi-shop/verified/female-1072153.png",
+          "public/coordi-shop/verified/female-1082102.png",
+          "public/coordi-shop/verified/female-1102039.png",
+          "public/coordi-shop/verified/female-1702099.png",
+          "public/coordi-shop/verified/female-1702190.png",
+          "public/coordi-shop/verified/female-1702653.png",
+          "public/coordi-shop/verified/female-1703129.png"
+        ]
+      },
+      {
+        "bytesEach": 30698,
+        "duplicateBytes": 30698,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-33-v1.png",
+          "public/images/classroom-assets/medals/levels/level-33-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 30205,
+        "duplicateBytes": 30205,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-30-v1.png",
+          "public/images/classroom-assets/medals/levels/level-30-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 29944,
+        "duplicateBytes": 29944,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-36-v1.png",
+          "public/images/classroom-assets/medals/levels/level-36-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 29870,
+        "duplicateBytes": 29870,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-47-v1.png",
+          "public/images/classroom-assets/medals/levels/level-47-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 29700,
+        "duplicateBytes": 29700,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-25-v1.png",
+          "public/images/classroom-assets/medals/levels/level-25-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 29221,
+        "duplicateBytes": 29221,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-05-v1.png",
+          "public/images/classroom-assets/medals/levels/level-05-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 2637,
+        "duplicateBytes": 29007,
+        "paths": [
+          "public/coordi-shop/verified/male-1002186.png",
+          "public/coordi-shop/verified/male-1003271.png",
+          "public/coordi-shop/verified/male-1003276.png",
+          "public/coordi-shop/verified/male-1022079.png",
+          "public/coordi-shop/verified/male-1032024.png",
+          "public/coordi-shop/verified/male-1072153.png",
+          "public/coordi-shop/verified/male-1082102.png",
+          "public/coordi-shop/verified/male-1102039.png",
+          "public/coordi-shop/verified/male-1702099.png",
+          "public/coordi-shop/verified/male-1702190.png",
+          "public/coordi-shop/verified/male-1702653.png",
+          "public/coordi-shop/verified/male-1703129.png"
+        ]
+      },
+      {
+        "bytesEach": 28846,
+        "duplicateBytes": 28846,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-45-v1.png",
+          "public/images/classroom-assets/medals/levels/level-45-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 28689,
+        "duplicateBytes": 28689,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-46-v1.png",
+          "public/images/classroom-assets/medals/levels/level-46-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 28643,
+        "duplicateBytes": 28643,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-04-v1.png",
+          "public/images/classroom-assets/medals/levels/level-04-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 28267,
+        "duplicateBytes": 28267,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-10-v1.png",
+          "public/images/classroom-assets/medals/levels/level-10-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 28197,
+        "duplicateBytes": 28197,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-07-v1.png",
+          "public/images/classroom-assets/medals/levels/level-07-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27992,
+        "duplicateBytes": 27992,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-03-v1.png",
+          "public/images/classroom-assets/medals/levels/level-03-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27934,
+        "duplicateBytes": 27934,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-08-v1.png",
+          "public/images/classroom-assets/medals/levels/level-08-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27921,
+        "duplicateBytes": 27921,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-09-v1.png",
+          "public/images/classroom-assets/medals/levels/level-09-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27863,
+        "duplicateBytes": 27863,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-43-v1.png",
+          "public/images/classroom-assets/medals/levels/level-43-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27813,
+        "duplicateBytes": 27813,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-44-v1.png",
+          "public/images/classroom-assets/medals/levels/level-44-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27436,
+        "duplicateBytes": 27436,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-06-v1.png",
+          "public/images/classroom-assets/medals/levels/level-06-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 27419,
+        "duplicateBytes": 27419,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-15-v1.png",
+          "public/images/classroom-assets/medals/levels/level-15-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 26903,
+        "duplicateBytes": 26903,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-13-v1.png",
+          "public/images/classroom-assets/medals/levels/level-13-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 26855,
+        "duplicateBytes": 26855,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-14-v1.png",
+          "public/images/classroom-assets/medals/levels/level-14-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 26506,
+        "duplicateBytes": 26506,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-41-v1.png",
+          "public/images/classroom-assets/medals/levels/level-41-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 26387,
+        "duplicateBytes": 26387,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-42-v1.png",
+          "public/images/classroom-assets/medals/levels/level-42-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 26290,
+        "duplicateBytes": 26290,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-11-v1.png",
+          "public/images/classroom-assets/medals/levels/level-11-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 26127,
+        "duplicateBytes": 26127,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-12-v1.png",
+          "public/images/classroom-assets/medals/levels/level-12-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25910,
+        "duplicateBytes": 25910,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-18-v1.png",
+          "public/images/classroom-assets/medals/levels/level-18-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25865,
+        "duplicateBytes": 25865,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-23-v1.png",
+          "public/images/classroom-assets/medals/levels/level-23-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25859,
+        "duplicateBytes": 25859,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-16-v1.png",
+          "public/images/classroom-assets/medals/levels/level-16-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25774,
+        "duplicateBytes": 25774,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-22-v1.png",
+          "public/images/classroom-assets/medals/levels/level-22-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25716,
+        "duplicateBytes": 25716,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-21-v1.png",
+          "public/images/classroom-assets/medals/levels/level-21-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25671,
+        "duplicateBytes": 25671,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-17-v1.png",
+          "public/images/classroom-assets/medals/levels/level-17-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 25646,
+        "duplicateBytes": 25646,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-24-v1.png",
+          "public/images/classroom-assets/medals/levels/level-24-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 23211,
+        "duplicateBytes": 23211,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-02-v1.png",
+          "public/images/classroom-assets/medals/levels/level-02-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 23044,
+        "duplicateBytes": 23044,
+        "paths": [
+          "public/images/classroom-assets/medals/candidates/level-01-v1.png",
+          "public/images/classroom-assets/medals/levels/level-01-v1.png"
+        ]
+      },
+      {
+        "bytesEach": 2444,
+        "duplicateBytes": 19552,
+        "paths": [
+          "public/coordi-shop/verified/male-1007121.png",
+          "public/coordi-shop/verified/male-1022328.png",
+          "public/coordi-shop/verified/male-1022388.png",
+          "public/coordi-shop/verified/male-1040001.png",
+          "public/coordi-shop/verified/male-1060001.png",
+          "public/coordi-shop/verified/male-1073469.png",
+          "public/coordi-shop/verified/male-12000.png",
+          "public/coordi-shop/verified/male-20000.png",
+          "public/coordi-shop/verified/male-30000.png"
+        ]
+      },
+      {
+        "bytesEach": 2687,
+        "duplicateBytes": 13435,
+        "paths": [
+          "public/coordi-shop/verified/female-1007121.png",
+          "public/coordi-shop/verified/female-1022328.png",
+          "public/coordi-shop/verified/female-1022344.png",
+          "public/coordi-shop/verified/female-1022388.png",
+          "public/coordi-shop/verified/female-1073469.png",
+          "public/coordi-shop/verified/female-12000.png"
+        ]
+      },
+      {
+        "bytesEach": 2743,
+        "duplicateBytes": 10972,
+        "paths": [
+          "public/coordi-shop/verified/female-1082695.png",
+          "public/coordi-shop/verified/female-1082696.png",
+          "public/coordi-shop/verified/female-1082697.png",
+          "public/coordi-shop/verified/female-1082698.png",
+          "public/coordi-shop/verified/female-1082699.png"
+        ]
+      },
+      {
+        "bytesEach": 2707,
+        "duplicateBytes": 10828,
+        "paths": [
+          "public/coordi-shop/verified/female-1082636.png",
+          "public/coordi-shop/verified/female-1082637.png",
+          "public/coordi-shop/verified/female-1082638.png",
+          "public/coordi-shop/verified/female-1082639.png",
+          "public/coordi-shop/verified/female-1082640.png"
+        ]
+      },
+      {
+        "bytesEach": 2482,
+        "duplicateBytes": 9928,
+        "paths": [
+          "public/coordi-shop/verified/male-1082695.png",
+          "public/coordi-shop/verified/male-1082696.png",
+          "public/coordi-shop/verified/male-1082697.png",
+          "public/coordi-shop/verified/male-1082698.png",
+          "public/coordi-shop/verified/male-1082699.png"
+        ]
+      },
+      {
+        "bytesEach": 2460,
+        "duplicateBytes": 9840,
+        "paths": [
+          "public/coordi-shop/verified/male-1082636.png",
+          "public/coordi-shop/verified/male-1082637.png",
+          "public/coordi-shop/verified/male-1082638.png",
+          "public/coordi-shop/verified/male-1082639.png",
+          "public/coordi-shop/verified/male-1082640.png"
+        ]
+      },
+      {
+        "bytesEach": 2737,
+        "duplicateBytes": 8211,
+        "paths": [
+          "public/coordi-shop/verified/female-1082760.png",
+          "public/coordi-shop/verified/female-1082761.png",
+          "public/coordi-shop/verified/female-1082762.png",
+          "public/coordi-shop/verified/female-1082763.png"
+        ]
+      },
+      {
+        "bytesEach": 2485,
+        "duplicateBytes": 7455,
+        "paths": [
+          "public/coordi-shop/verified/male-1082760.png",
+          "public/coordi-shop/verified/male-1082761.png",
+          "public/coordi-shop/verified/male-1082762.png",
+          "public/coordi-shop/verified/male-1082763.png"
+        ]
+      },
+      {
+        "bytesEach": 2863,
+        "duplicateBytes": 5726,
+        "paths": [
+          "public/coordi-shop/verified/female-1082743.png",
+          "public/coordi-shop/verified/female-1082803.png",
+          "public/coordi-shop/verified/female-1082804.png"
+        ]
+      },
+      {
+        "bytesEach": 2748,
+        "duplicateBytes": 5496,
+        "paths": [
+          "public/coordi-shop/verified/female-1012401.png",
+          "public/coordi-shop/verified/female-1012402.png",
+          "public/coordi-shop/verified/female-1012404.png"
+        ]
+      },
+      {
+        "bytesEach": 2632,
+        "duplicateBytes": 5264,
+        "paths": [
+          "public/coordi-shop/verified/male-1082743.png",
+          "public/coordi-shop/verified/male-1082803.png",
+          "public/coordi-shop/verified/male-1082804.png"
+        ]
+      },
+      {
+        "bytesEach": 5119,
+        "duplicateBytes": 5119,
+        "paths": [
+          "public/coordi-shop/verified/female-1092057.png",
+          "public/coordi-shop/verified/female-1092092.png"
+        ]
+      },
+      {
+        "bytesEach": 2519,
+        "duplicateBytes": 5038,
+        "paths": [
+          "public/coordi-shop/verified/male-1012401.png",
+          "public/coordi-shop/verified/male-1012402.png",
+          "public/coordi-shop/verified/male-1012404.png"
+        ]
+      },
+      {
+        "bytesEach": 2481,
+        "duplicateBytes": 4962,
+        "paths": [
+          "public/coordi-shop/verified/male-1073158.png",
+          "public/coordi-shop/verified/male-1073159.png",
+          "public/coordi-shop/verified/male-1073160.png"
+        ]
+      },
+      {
+        "bytesEach": 4919,
+        "duplicateBytes": 4919,
+        "paths": [
+          "public/coordi-shop/verified/male-1092057.png",
+          "public/coordi-shop/verified/male-1092092.png"
+        ]
+      },
+      {
+        "bytesEach": 4333,
+        "duplicateBytes": 4333,
+        "paths": [
+          "public/coordi-shop/verified/female-1098003.png",
+          "public/coordi-shop/verified/female-1098009.png"
+        ]
+      },
+      {
+        "bytesEach": 4108,
+        "duplicateBytes": 4108,
+        "paths": [
+          "public/coordi-shop/verified/male-1098003.png",
+          "public/coordi-shop/verified/male-1098009.png"
+        ]
+      },
+      {
+        "bytesEach": 3822,
+        "duplicateBytes": 3822,
+        "paths": [
+          "public/coordi-shop/verified/female-1099004.png",
+          "public/coordi-shop/verified/female-1099017.png"
+        ]
+      },
+      {
+        "bytesEach": 3668,
+        "duplicateBytes": 3668,
+        "paths": [
+          "public/coordi-shop/verified/female-1102940.png",
+          "public/coordi-shop/verified/female-1102941.png"
+        ]
+      },
+      {
+        "bytesEach": 3587,
+        "duplicateBytes": 3587,
+        "paths": [
+          "public/coordi-shop/verified/male-1099004.png",
+          "public/coordi-shop/verified/male-1099017.png"
+        ]
+      },
+      {
+        "bytesEach": 3434,
+        "duplicateBytes": 3434,
+        "paths": [
+          "public/coordi-shop/verified/male-1102940.png",
+          "public/coordi-shop/verified/male-1102941.png"
+        ]
+      },
+      {
+        "bytesEach": 3020,
+        "duplicateBytes": 3020,
+        "paths": [
+          "public/coordi-shop/verified/female-1092003.png",
+          "public/coordi-shop/verified/female-1092090.png"
+        ]
+      },
+      {
+        "bytesEach": 3003,
+        "duplicateBytes": 3003,
+        "paths": [
+          "public/coordi-shop/verified/female-1042214.png",
+          "public/coordi-shop/verified/female-1042250.png"
+        ]
+      },
+      {
+        "bytesEach": 2992,
+        "duplicateBytes": 2992,
+        "paths": [
+          "public/coordi-shop/verified/female-1041073.png",
+          "public/coordi-shop/verified/female-1041156.png"
+        ]
+      },
+      {
+        "bytesEach": 2989,
+        "duplicateBytes": 2989,
+        "paths": [
+          "public/coordi-shop/verified/female-1061138.png",
+          "public/coordi-shop/verified/female-1062212.png"
+        ]
+      },
+      {
+        "bytesEach": 2967,
+        "duplicateBytes": 2967,
+        "paths": [
+          "public/coordi-shop/verified/female-1042161.png",
+          "public/coordi-shop/verified/female-1042245.png"
+        ]
+      },
+      {
+        "bytesEach": 2941,
+        "duplicateBytes": 2941,
+        "paths": [
+          "public/coordi-shop/verified/female-1061067.png",
+          "public/coordi-shop/verified/female-1061198.png"
+        ]
+      },
+      {
+        "bytesEach": 2889,
+        "duplicateBytes": 2889,
+        "paths": [
+          "public/coordi-shop/verified/female-1062139.png",
+          "public/coordi-shop/verified/female-1062162.png"
+        ]
+      },
+      {
+        "bytesEach": 2875,
+        "duplicateBytes": 2875,
+        "paths": [
+          "public/coordi-shop/verified/female-1061068.png",
+          "public/coordi-shop/verified/female-1061166.png"
+        ]
+      },
+      {
+        "bytesEach": 2776,
+        "duplicateBytes": 2776,
+        "paths": [
+          "public/coordi-shop/verified/male-1092003.png",
+          "public/coordi-shop/verified/male-1092090.png"
+        ]
+      },
+      {
+        "bytesEach": 2773,
+        "duplicateBytes": 2773,
+        "paths": [
+          "public/coordi-shop/verified/male-1042214.png",
+          "public/coordi-shop/verified/male-1042250.png"
+        ]
+      },
+      {
+        "bytesEach": 2734,
+        "duplicateBytes": 2734,
+        "paths": [
+          "public/coordi-shop/verified/female-1062293.png",
+          "public/coordi-shop/verified/female-1062294.png"
+        ]
+      },
+      {
+        "bytesEach": 2733,
+        "duplicateBytes": 2733,
+        "paths": [
+          "public/coordi-shop/verified/female-1062148.png",
+          "public/coordi-shop/verified/female-1062158.png"
+        ]
+      },
+      {
+        "bytesEach": 2727,
+        "duplicateBytes": 2727,
+        "paths": [
+          "public/coordi-shop/verified/female-1073158.png",
+          "public/coordi-shop/verified/female-1073159.png"
+        ]
+      },
+      {
+        "bytesEach": 2726,
+        "duplicateBytes": 2726,
+        "paths": [
+          "public/coordi-shop/verified/male-1042161.png",
+          "public/coordi-shop/verified/male-1042245.png"
+        ]
+      },
+      {
+        "bytesEach": 2716,
+        "duplicateBytes": 2716,
+        "paths": [
+          "public/coordi-shop/verified/female-1032328.png",
+          "public/coordi-shop/verified/female-1032329.png"
+        ]
+      },
+      {
+        "bytesEach": 2643,
+        "duplicateBytes": 2643,
+        "paths": [
+          "public/coordi-shop/verified/male-1062139.png",
+          "public/coordi-shop/verified/male-1062162.png"
+        ]
+      },
+      {
+        "bytesEach": 2492,
+        "duplicateBytes": 2492,
+        "paths": [
+          "public/coordi-shop/verified/male-1062293.png",
+          "public/coordi-shop/verified/male-1062294.png"
+        ]
+      },
+      {
+        "bytesEach": 2489,
+        "duplicateBytes": 2489,
+        "paths": [
+          "public/coordi-shop/verified/male-1062148.png",
+          "public/coordi-shop/verified/male-1062158.png"
+        ]
+      },
+      {
+        "bytesEach": 2475,
+        "duplicateBytes": 2475,
+        "paths": [
+          "public/coordi-shop/verified/male-1032328.png",
+          "public/coordi-shop/verified/male-1032329.png"
+        ]
+      }
+    ],
+    "caveat": "Byte duplicates only; independent entrypoints and generated outputs may require both copies. Not download or database-read savings."
+  },
+  "popularAssets": {
+    "questions": 551,
+    "files": 551,
+    "totalBytes": 385232240,
+    "largerThanOneMillionBytes": 66,
+    "notReferencedByCurrentPack": [],
+    "missingFromDisk": [],
+    "caveat": "Current local catalog only; old in-flight runs can retain earlier image URLs."
+  }
+}

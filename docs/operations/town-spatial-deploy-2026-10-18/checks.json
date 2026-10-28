@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "candidateDigest": "0fd66cad1448c1eb2daa4db90f5e2b0f1a235daf405dfc79ede44985bbefa73b",
+  "fullCheck": "passed in spatial implementation, source manifest unchanged",
+  "candidateSpatial": "passed exit 0",
+  "candidateShell": "passed exit 0"
+}

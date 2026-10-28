@@ -1,0 +1,5 @@
+{
+  "mode": "builtin",
+  "asset": "public/word-bomb/assets/bomb-body-v6.png",
+  "prompt": "Edit this reference game bomb into an animation-ready body layer. Preserve its realistic matte charcoal metal material, spherical shape, top fuse cap, soft studio light and perspective. REMOVE the entire rope fuse and glowing ember, leaving only the spherical bomb body and its small empty cap/socket at top center. No rope, no flame, no smoke, no sparks, no text. Center the body in a square image, whole body and cap visible occupying about 90% height with small safe margins. Genuine transparent alpha background, no floor or backdrop. The game will draw an animated rope separately."
+}

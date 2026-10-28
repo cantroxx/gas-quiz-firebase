@@ -41,18 +41,16 @@ async function testLoadRankingPlazaData() {
 
   assert.equal(initialized, true);
   assert.deepEqual(model.cards.map(card => card.rankId), [
-    'quiz_king',
     'korean_king',
     'social_king',
     'math_king',
     'science_king',
-    'popular_king',
+    'flags_king',
     'pokemon_king',
     'tiniping_king'
   ]);
-  assert.equal(model.cards[0].nickname, 'Student One');
-  assert.equal(model.cards[1].score, 90);
-  assert.equal(model.cards[2].score, 0);
+  assert.equal(model.cards[0].score, 90);
+  assert.equal(model.cards[1].score, 0);
   assert.equal(model.boards[0].records.length, 1);
 }
 
@@ -141,13 +139,57 @@ async function testRenderCurrentMemberProfileRankingFlow() {
   assert.deepEqual(rendered.rankContext.bestIds, ['r1']);
 }
 
+async function testOnlySelectedBoardLoads() {
+  let calls = [];
+  const deps = {
+    getRankingRepository: () => ({
+      loadQuizKingSummaries: async () => { calls.push('quizKing'); return [{ memberUserId: 'u1' }]; },
+      loadLimitedRankingRecordsForPlaza: async keys => { calls.push(keys); return []; },
+      loadSeasonRankingRecordsForPlaza: async keys => { calls.push(['season', ...keys]); return []; },
+      loadMemberProfilesForRankingRows: async () => ({})
+    }),
+    loadSeasonEventsForRanking: async () => { calls.push('events'); return [{ id: 'season-event' }]; },
+    getSeasonRankingCategoryKeys: events => events.length ? ['season-key'] : [],
+    getRankingBoardModels: () => [{ id: 'math', groups: [{ keys: ['math1', 'math2'] }, { keys: ['math1'] }] }],
+    buildQuizKingSummariesFromRankingRecords: rows => rows,
+    getTopQuizKingSummaries: rows => rows,
+    buildQuizKingCard: () => ({}), buildRankingRecordCard: () => ({})
+  };
+  await rankingUsecases.loadRankingPlazaData({ boardId: 'math' }, deps);
+  assert.deepEqual(calls, [['math1', 'math2']]);
+  calls = [];
+  await rankingUsecases.loadRankingPlazaData({ boardId: 'quizKing' }, deps);
+  assert.deepEqual(calls, ['quizKing']);
+  calls = [];
+  await rankingUsecases.loadRankingPlazaData({ boardId: 'season' }, deps);
+  assert.deepEqual(calls, ['events', ['season', 'season-key']]);
+}
+
 async function run() {
   await testLoadRankingPlazaData();
   await testRenderRankingViewSuccess();
   await testRenderRankingViewFallback();
   await testRenderProfileRankingRecordsFlow();
   await testRenderCurrentMemberProfileRankingFlow();
+  await testOnlySelectedBoardLoads();
+  await testGeneratedBoardAvoidsFullSnapshot();
   console.log('Application tests passed: ranking-usecases');
+}
+
+async function testGeneratedBoardAvoidsFullSnapshot() {
+  const calls=[];
+  const result=await rankingUsecases.loadRankingPlazaData({boardId:'math',rowLimit:10},{
+    getRankingRepository:()=>({
+      loadSubjectRankingSnapshot:async()=>assert.fail('single subject requested full snapshot'),
+      loadSubjectRankingRecords:async(subject,limit)=>{calls.push([subject,limit]);return {records:[{recordId:'math-1',subject:'math',score:9}]};},
+      loadLimitedRankingRecordsForPlaza:async()=>assert.fail('generated board queried legacy records'),
+      loadMemberProfilesForRankingRows:async rows=>{assert.equal(rows.length,1);return {};}
+    }),
+    getRankingBoardModels:(summaries,records)=>[{id:'math',groups:[{keys:['subject-math']}],records}],
+    buildQuizKingSummariesFromRankingRecords:()=>[],getTopQuizKingSummaries:()=>[],
+    buildQuizKingCard:()=>({}),buildRankingRecordCard:()=>({})
+  });
+  assert.deepEqual(calls,[['math',10]]);assert.equal(result.boards[0].records.length,1);
 }
 
 run().catch(error => {

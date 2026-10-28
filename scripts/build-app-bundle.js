@@ -5,9 +5,14 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT_PATH = path.join(ROOT, 'public', 'js', 'app.bundle.js');
+require('./build-subject-quiz-catalog');
+require('./build-securities-fixture');
+fs.copyFileSync(path.join(ROOT, 'functions/classroom/board-domain.js'), path.join(ROOT, 'public/js/domain/classroom-board-domain.js'));
 const SCRIPT_PATHS = [
   '/js/data/place-details.js',
   '/js/data/quiz-catalog.js',
+  '/js/data/subject-quiz-catalog.js',
+  '/js/data/popular-quiz-catalog.js',
   '/js/core/format.js',
   '/js/core/firebase.js',
   '/js/features/admin-render.js',
@@ -44,11 +49,25 @@ const SCRIPT_PATHS = [
   '/js/features/event-render.js',
   '/js/features/event-controller.js',
   '/js/domain/classroom-domain.js',
+  '/js/domain/classroom-board-domain.js',
+  '/js/features/classroom-board.js',
+  '/js/features/classroom-followup.js',
   '/js/application/classroom-usecases.js',
   '/js/features/classroom-state.js',
+  '/js/domain/securities-domain.js',
+  '/js/features/securities-state.js',
+  '/js/features/securities-render.js',
+  '/js/features/securities-controller.js',
+  '/js/infrastructure/securities-repository.js',
+  '/js/features/securities-server-controller.js',
   '/js/features/classroom-data.js',
   '/js/infrastructure/classroom-repository.js',
   '/js/features/classroom-form.js',
+  '/js/features/classroom-portrait.js',
+  '/js/features/classroom-card-home.js',
+  '/js/features/classroom-diary.js',
+  '/js/features/classroom-shop-art.js',
+  '/js/features/classroom-workspace.js',
   '/js/features/classroom-render.js',
   '/js/features/classroom-controller.js',
   '/js/domain/shop-domain.js',

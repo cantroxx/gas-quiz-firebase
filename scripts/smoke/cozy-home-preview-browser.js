@@ -1,0 +1,62 @@
+/* Local-only prototype verification. Start public HTTP server on port 5328 first. */
+const assert = require('node:assert/strict');
+const { chromium } = require('playwright-core');
+const BASE = process.env.COZY_PREVIEW_URL || 'http://127.0.0.1:5328/cozy-home-preview/';
+const KEY = 'quiztown-original-home-prototype-v1';
+(async () => {
+  const browser = await chromium.launch({executablePath:process.env.SMOKE_CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+  try {
+    const context = await browser.newContext({viewport:{width:1440,height:1050}});
+    const page = await context.newPage(), errors=[], backend=[];
+    page.on('pageerror', e=>errors.push(e.message));
+    page.on('request', r=>{if(/firestore|identitytoolkit|cloudfunctions|firebaseio|habbo/i.test(r.url()))backend.push(r.url());});
+    const state = () => page.evaluate(key=>JSON.parse(localStorage.getItem(key)), KEY);
+    const cell = async(x,y) => {
+      const box=await page.locator('#room').boundingBox();
+      await page.mouse.click(box.x+(500+(x-y)*46)*box.width/1000,box.y+(260+(x+y+1)*23)*box.height/820);
+    };
+    await page.goto(BASE,{waitUntil:'networkidle'});
+    assert.equal(await page.locator('#coins').innerText(),'300');
+    assert.equal(await page.locator('.product canvas').count(),6);
+    await page.screenshot({path:'/tmp/cozy-home-desktop.png',fullPage:true});
+    await page.click('[data-tab="avatar"]');
+    for(const option of ['species-cat','shirt-1','outfit-overall','hat-flower'])await page.click(`[data-option="${option}"]`);
+    assert.equal((await state()).avatar.outfit,'overall');
+    await page.locator('#room-name').fill('나의 숲속 실험실');await page.locator('#room-name').press('Tab');
+    await page.screenshot({path:'/tmp/cozy-home-avatar.png',fullPage:true});
+    await page.click('[data-tab="shop"]');await page.click('[data-buy="plant"]');
+    assert.equal((await state()).coins,275);assert.equal((await state()).owned.plant,2);
+    await cell(1,1);assert.equal((await state()).items.length,6);assert(await page.locator('#placement-actions').isVisible());
+    await cell(7,7);assert.equal((await state()).items.length,7);
+    await page.click('#rotate');assert.equal((await state()).items.find(x=>x.uid===7).rot,1);
+    await page.click('#store');assert.equal((await state()).items.length,6);assert.equal((await state()).coins,275);
+    await page.click('[data-buy="bed"]');await page.click('#place-cancel');
+    assert.equal((await state()).owned.bed,2);assert.equal((await state()).items.filter(x=>x.id==='bed').length,1);
+    await page.click('[data-tab="bag"]');await page.click('[data-bag="desk"]');await page.click('#rotate');
+    assert.equal((await state()).items.find(x=>x.id==='desk').rot,1);
+    await page.click('#move');await cell(7,7);assert(await page.locator('#placement-actions').isVisible());
+    await cell(6,5);assert.equal((await state()).items.find(x=>x.id==='desk').x,6);
+    await page.click('[data-bag="chair"]');await page.click('#move');await page.click('#place-cancel');
+    assert.equal((await state()).items.find(x=>x.id==='chair').x,5);
+    await page.click('[data-bag="chair"]');await page.click('#sit');
+    await page.waitForFunction(()=>document.querySelector('#room').getAttribute('aria-label').includes('앉아 있음'));
+    await page.screenshot({path:'/tmp/cozy-home-sitting.png',fullPage:true});
+    await page.click('#stand');await page.locator('#room').focus();await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(()=>document.querySelector('#room').getAttribute('aria-label').includes('6열 6행'));
+    const before=await state();await page.reload({waitUntil:'networkidle'});assert.deepEqual(await state(),before);
+    assert.equal(await page.locator('#coins').innerText(),'195');assert.equal(await page.locator('#room-name').inputValue(),'나의 숲속 실험실');
+    await page.setViewportSize({width:390,height:844});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    assert(await page.locator('.room-viewport').evaluate(el=>el.scrollWidth>el.clientWidth));
+    await page.locator('.room-viewport').evaluate(el=>el.scrollLeft=120);
+    await page.click('[data-tab="avatar"]');await page.click('[data-option="species-bear"]');
+    await page.screenshot({path:'/tmp/cozy-home-mobile.png',fullPage:true});
+    await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#room').focus();await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(()=>document.querySelector('#room').getAttribute('aria-label').includes('5열 7행'));
+    await page.click('[data-tab="shop"]');await page.click('[data-buy="bed"]');await page.click('#place-cancel');await page.click('[data-buy="bed"]');await page.click('#place-cancel');
+    assert.equal(await page.locator('#coins').innerText(),'35');assert(await page.locator('[data-buy="bed"]').isDisabled());
+    const broken=await context.newPage();await broken.addInitScript(()=>{Storage.prototype.setItem=function(){throw new Error('no storage');};});await broken.goto(BASE,{waitUntil:'networkidle'});await broken.click('[data-tab="avatar"]');await broken.click('[data-option="species-cat"]');assert.match(await broken.locator('#save-status').innerText(),/저장 공간/);
+    assert.deepEqual(errors,[]);assert.deepEqual(backend,[]);
+    console.log('Original housing passed: generated atlas, outfit/species changes, purchase limits, collision/out-of-bounds rejection, placement/rotation/storage/move/cancel, path to chair, sitting/standing, keyboard, reload persistence, mobile pan, reduced motion, storage fallback, no production/Habbo requests.');
+  } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

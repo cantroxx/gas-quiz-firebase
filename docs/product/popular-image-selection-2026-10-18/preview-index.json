@@ -1,0 +1,3859 @@
+{
+  "anime-pixar-fe862495e3": {
+    "sheet": "v2-anime-01.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-pixar-7806c4ea4c": {
+    "sheet": "v2-anime-01.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-pixar-0988f0dc02": {
+    "sheet": "v2-anime-01.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-pixar-94f6185909": {
+    "sheet": "v2-anime-01.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-pixar-79770b10a6": {
+    "sheet": "v2-anime-01.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-pixar-2dc2a1a8d4": {
+    "sheet": "v2-anime-01.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory-08bb39b964": {
+    "sheet": "v2-anime-01.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory-2d22f600ae": {
+    "sheet": "v2-anime-01.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory-2798d31124": {
+    "sheet": "v2-anime-01.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory-80f1e148f1": {
+    "sheet": "v2-anime-01.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory-77e85094e2": {
+    "sheet": "v2-anime-01.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-coco-977af12772": {
+    "sheet": "v2-anime-01.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-coco-c3a9ee8224": {
+    "sheet": "v2-anime-01.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-coco-c06770b581": {
+    "sheet": "v2-anime-01.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-coco-672092277a": {
+    "sheet": "v2-anime-01.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-coco-4f8e63f62e": {
+    "sheet": "v2-anime-01.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-2b413b8fae": {
+    "sheet": "v2-anime-01.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-f59d15c333": {
+    "sheet": "v2-anime-01.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-bf66f3e41e": {
+    "sheet": "v2-anime-01.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-5050e462e6": {
+    "sheet": "v2-anime-01.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-3402a862c7": {
+    "sheet": "v2-anime-01.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-efad034bd2": {
+    "sheet": "v2-anime-01.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monsters-7ca0e69e14": {
+    "sheet": "v2-anime-01.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-luca-a17d690cd6": {
+    "sheet": "v2-anime-01.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-luca-7251720db8": {
+    "sheet": "v2-anime-01.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-luca-e5c1b86178": {
+    "sheet": "v2-anime-01.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-luca-36b47e112c": {
+    "sheet": "v2-anime-01.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-luca-5a7548a78f": {
+    "sheet": "v2-anime-01.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-luca-dd018748b7": {
+    "sheet": "v2-anime-01.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-elemental-63630c02e2": {
+    "sheet": "v2-anime-01.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-elemental-18e9c05230": {
+    "sheet": "v2-anime-02.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-elemental-c1b9c67619": {
+    "sheet": "v2-anime-02.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-elemental-c2850e380b": {
+    "sheet": "v2-anime-02.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-elemental-cd2f2b603c": {
+    "sheet": "v2-anime-02.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-nemo-624b14e41e": {
+    "sheet": "v2-anime-02.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-nemo-6a6786c59c": {
+    "sheet": "v2-anime-02.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-nemo-139b255d5c": {
+    "sheet": "v2-anime-02.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-nemo-4c42ab6e87": {
+    "sheet": "v2-anime-02.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-cars-192dfec5b1": {
+    "sheet": "v2-anime-02.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-cars-161c61c5b0": {
+    "sheet": "v2-anime-02.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-cars-07170e251c": {
+    "sheet": "v2-anime-02.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-cars-786bed9a61": {
+    "sheet": "v2-anime-02.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-incredibles-a03ea2713b": {
+    "sheet": "v2-anime-02.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-incredibles-dc4baf67be": {
+    "sheet": "v2-anime-02.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-incredibles-5c2a687059": {
+    "sheet": "v2-anime-02.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-incredibles-43a03b2850": {
+    "sheet": "v2-anime-02.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-totoro-034": {
+    "sheet": "v2-anime-02.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-totoro-016": {
+    "sheet": "v2-anime-02.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-totoro-043": {
+    "sheet": "v2-anime-02.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-totoro-046": {
+    "sheet": "v2-anime-02.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ponyo-034": {
+    "sheet": "v2-anime-02.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ponyo-019": {
+    "sheet": "v2-anime-02.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-kiki-013": {
+    "sheet": "v2-anime-02.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-kiki-016": {
+    "sheet": "v2-anime-02.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-spirited-019": {
+    "sheet": "v2-anime-02.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-spirited-022": {
+    "sheet": "v2-anime-02.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-spirited-016": {
+    "sheet": "v2-anime-02.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-spirited-013": {
+    "sheet": "v2-anime-02.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-spirited-025": {
+    "sheet": "v2-anime-02.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-howl-046": {
+    "sheet": "v2-anime-02.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-howl-004": {
+    "sheet": "v2-anime-03.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-howl-016": {
+    "sheet": "v2-anime-03.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-howl-010": {
+    "sheet": "v2-anime-03.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-howl-007": {
+    "sheet": "v2-anime-03.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-arrietty-046": {
+    "sheet": "v2-anime-03.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-arrietty-025": {
+    "sheet": "v2-anime-03.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-2aeb41ef18": {
+    "sheet": "v2-anime-03.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-fdc129de85": {
+    "sheet": "v2-anime-03.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-bd28b4d088": {
+    "sheet": "v2-anime-03.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-5568050c33": {
+    "sheet": "v2-anime-03.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-f94e6b73db": {
+    "sheet": "v2-anime-03.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a1ce8e5242": {
+    "sheet": "v2-anime-03.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a0177acd0d": {
+    "sheet": "v2-anime-03.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-91eda35e4b": {
+    "sheet": "v2-anime-03.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-98faac02aa": {
+    "sheet": "v2-anime-03.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a04a76ddd4": {
+    "sheet": "v2-anime-03.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-867ba1ccf1": {
+    "sheet": "v2-anime-03.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-af76c195ed": {
+    "sheet": "v2-anime-03.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-788893f640": {
+    "sheet": "v2-anime-03.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-edfb016b1c": {
+    "sheet": "v2-anime-03.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-457d16cf97": {
+    "sheet": "v2-anime-03.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-95d9da9a27": {
+    "sheet": "v2-anime-03.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-e2cd5bfb72": {
+    "sheet": "v2-anime-03.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a9701e9595": {
+    "sheet": "v2-anime-03.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-2a9bea3eb7": {
+    "sheet": "v2-anime-03.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-b2bc2741d4": {
+    "sheet": "v2-anime-03.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-c24b44dc0f": {
+    "sheet": "v2-anime-03.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-bf8acb1999": {
+    "sheet": "v2-anime-03.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a1ed43964d": {
+    "sheet": "v2-anime-03.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-cbdebfbd9b": {
+    "sheet": "v2-anime-03.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-cb0ab78e7a": {
+    "sheet": "v2-anime-04.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-b85a49fcf5": {
+    "sheet": "v2-anime-04.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-199a381cc6": {
+    "sheet": "v2-anime-04.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-b13601d935": {
+    "sheet": "v2-anime-04.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-ebcb4e786d": {
+    "sheet": "v2-anime-04.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-7ed5eb61ea": {
+    "sheet": "v2-anime-04.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-2eb3920992": {
+    "sheet": "v2-anime-04.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-6084078e8b": {
+    "sheet": "v2-anime-04.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-306b109a67": {
+    "sheet": "v2-anime-04.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-1d8fc6f78b": {
+    "sheet": "v2-anime-04.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-1857a6faf5": {
+    "sheet": "v2-anime-04.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-642ecd035b": {
+    "sheet": "v2-anime-04.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-fe87d53d3e": {
+    "sheet": "v2-anime-04.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-dc6f395a0c": {
+    "sheet": "v2-anime-04.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-562771c211": {
+    "sheet": "v2-anime-04.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-26e853bb5e": {
+    "sheet": "v2-anime-04.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-05eac75aa7": {
+    "sheet": "v2-anime-04.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-494400c3d5": {
+    "sheet": "v2-anime-04.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-1fb3bdcd78": {
+    "sheet": "v2-anime-04.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-c156d6e11a": {
+    "sheet": "v2-anime-04.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-f4647a4ca6": {
+    "sheet": "v2-anime-04.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a724152f21": {
+    "sheet": "v2-anime-04.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-a8d20e4e73": {
+    "sheet": "v2-anime-04.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-092272df05": {
+    "sheet": "v2-anime-04.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-c45c72423a": {
+    "sheet": "v2-anime-04.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-e4f123164d": {
+    "sheet": "v2-anime-04.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-8699f35844": {
+    "sheet": "v2-anime-04.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-conan-0dab5c234e": {
+    "sheet": "v2-anime-04.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-45d3d77973": {
+    "sheet": "v2-anime-04.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-86a59c1eba": {
+    "sheet": "v2-anime-04.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-1145199a3f": {
+    "sheet": "v2-anime-05.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-9c6ab73efb": {
+    "sheet": "v2-anime-05.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-47f22f4600": {
+    "sheet": "v2-anime-05.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-7abb601d1e": {
+    "sheet": "v2-anime-05.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-bc43fc05be": {
+    "sheet": "v2-anime-05.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-e337d2c848": {
+    "sheet": "v2-anime-05.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-1026cef75f": {
+    "sheet": "v2-anime-05.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-0341cb6503": {
+    "sheet": "v2-anime-05.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-c70421406e": {
+    "sheet": "v2-anime-05.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-51be1ad280": {
+    "sheet": "v2-anime-05.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-0f1d738c37": {
+    "sheet": "v2-anime-05.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-026e824449": {
+    "sheet": "v2-anime-05.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-72260d021d": {
+    "sheet": "v2-anime-05.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-e6cbefb8a8": {
+    "sheet": "v2-anime-05.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-fa0df4560d": {
+    "sheet": "v2-anime-05.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-c2b9890343": {
+    "sheet": "v2-anime-05.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-1f1c4e9947": {
+    "sheet": "v2-anime-05.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-4ca40fd302": {
+    "sheet": "v2-anime-05.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-5aef70888b": {
+    "sheet": "v2-anime-05.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-shinchan-dd89e5c684": {
+    "sheet": "v2-anime-05.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-d6f8fb35c8": {
+    "sheet": "v2-anime-05.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-ac2178f118": {
+    "sheet": "v2-anime-05.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-dd2ee94e55": {
+    "sheet": "v2-anime-05.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-f94c0a8fb8": {
+    "sheet": "v2-anime-05.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-9917e2551a": {
+    "sheet": "v2-anime-05.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-e5951d6343": {
+    "sheet": "v2-anime-05.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-61970d5df9": {
+    "sheet": "v2-anime-05.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-6a9ce7a3b7": {
+    "sheet": "v2-anime-05.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-139a913a09": {
+    "sheet": "v2-anime-05.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-a4a24c52f1": {
+    "sheet": "v2-anime-05.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-8b70528afa": {
+    "sheet": "v2-anime-06.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-2fcd66f3d8": {
+    "sheet": "v2-anime-06.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-61625a2987": {
+    "sheet": "v2-anime-06.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-a7cb070584": {
+    "sheet": "v2-anime-06.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-dff277a641": {
+    "sheet": "v2-anime-06.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-49d7ffd537": {
+    "sheet": "v2-anime-06.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-48e7ea980f": {
+    "sheet": "v2-anime-06.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-b38d8ec122": {
+    "sheet": "v2-anime-06.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-8db140dd70": {
+    "sheet": "v2-anime-06.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-b17db8f902": {
+    "sheet": "v2-anime-06.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-e8d9a4ce83": {
+    "sheet": "v2-anime-06.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-eab54bb19d": {
+    "sheet": "v2-anime-06.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-52517a9bb3": {
+    "sheet": "v2-anime-06.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-887f8e77a1": {
+    "sheet": "v2-anime-06.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-c561ba6fdf": {
+    "sheet": "v2-anime-06.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-22ed0e76a5": {
+    "sheet": "v2-anime-06.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-a1e3999592": {
+    "sheet": "v2-anime-06.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-1572b0e7d3": {
+    "sheet": "v2-anime-06.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-76ac2a9a31": {
+    "sheet": "v2-anime-06.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-heroacamovie-35b1e80c74": {
+    "sheet": "v2-anime-06.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-8eeb81c2cd": {
+    "sheet": "v2-anime-06.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-3be9ed54b6": {
+    "sheet": "v2-anime-06.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-7b40a00127": {
+    "sheet": "v2-anime-06.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-c6bae04359": {
+    "sheet": "v2-anime-06.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-24f1055c66": {
+    "sheet": "v2-anime-06.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-8d124a36c7": {
+    "sheet": "v2-anime-06.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-b8ff42147d": {
+    "sheet": "v2-anime-06.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-e4f21efe28": {
+    "sheet": "v2-anime-06.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-dd50840b37": {
+    "sheet": "v2-anime-06.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-4da2128608": {
+    "sheet": "v2-anime-06.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-df35b66c19": {
+    "sheet": "v2-anime-07.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-3bf8bbb2cf": {
+    "sheet": "v2-anime-07.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-44501cc81f": {
+    "sheet": "v2-anime-07.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-e9bd4d19df": {
+    "sheet": "v2-anime-07.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-bf094a4e77": {
+    "sheet": "v2-anime-07.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-c6a82a053d": {
+    "sheet": "v2-anime-07.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-f7cf013fcb": {
+    "sheet": "v2-anime-07.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-809f53b5cd": {
+    "sheet": "v2-anime-07.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-dc92270bae": {
+    "sheet": "v2-anime-07.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-2fd86753d9": {
+    "sheet": "v2-anime-07.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-7e6076556c": {
+    "sheet": "v2-anime-07.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-b9fef1fffa": {
+    "sheet": "v2-anime-07.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-06bc74542a": {
+    "sheet": "v2-anime-07.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-8b9f652acf": {
+    "sheet": "v2-anime-07.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-c4e21e177a": {
+    "sheet": "v2-anime-07.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-6d91e79b5b": {
+    "sheet": "v2-anime-07.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-47b8061ead": {
+    "sheet": "v2-anime-07.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-9797b1a6e7": {
+    "sheet": "v2-anime-07.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-3ca4ca5123": {
+    "sheet": "v2-anime-07.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-11d21c4ab4": {
+    "sheet": "v2-anime-07.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-ea4c7a74c6": {
+    "sheet": "v2-anime-07.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-d38fbe981a": {
+    "sheet": "v2-anime-07.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-54ea2044a8": {
+    "sheet": "v2-anime-07.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-514e30e6a3": {
+    "sheet": "v2-anime-07.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-6bd77256b9": {
+    "sheet": "v2-anime-07.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-31be749385": {
+    "sheet": "v2-anime-07.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-8aab296081": {
+    "sheet": "v2-anime-07.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-94e5fb66be": {
+    "sheet": "v2-anime-07.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-7ab8728422": {
+    "sheet": "v2-anime-07.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-02a90a1ee2": {
+    "sheet": "v2-anime-07.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-cab7939c49": {
+    "sheet": "v2-anime-08.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-0e179a2329": {
+    "sheet": "v2-anime-08.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-3bfeb2636a": {
+    "sheet": "v2-anime-08.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-8954b2c761": {
+    "sheet": "v2-anime-08.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-d8c14e6eb7": {
+    "sheet": "v2-anime-08.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-c51c5dab1e": {
+    "sheet": "v2-anime-08.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-ab67d7f35c": {
+    "sheet": "v2-anime-08.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-e2f499a915": {
+    "sheet": "v2-anime-08.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-796bf29137": {
+    "sheet": "v2-anime-08.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-4de37062b8": {
+    "sheet": "v2-anime-08.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-780b381062": {
+    "sheet": "v2-anime-08.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-f7d6f10acb": {
+    "sheet": "v2-anime-08.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-74f5c0c1e8": {
+    "sheet": "v2-anime-08.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-a56ea4922d": {
+    "sheet": "v2-anime-08.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-a3a149d690": {
+    "sheet": "v2-anime-08.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-e008b2eee9": {
+    "sheet": "v2-anime-08.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-b5cdcc700d": {
+    "sheet": "v2-anime-08.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-cea03a5f2c": {
+    "sheet": "v2-anime-08.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-52540977e2": {
+    "sheet": "v2-anime-08.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-6bdd87448f": {
+    "sheet": "v2-anime-08.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-58982101fe": {
+    "sheet": "v2-anime-08.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-4a4eb2297a": {
+    "sheet": "v2-anime-08.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-4986399e8d": {
+    "sheet": "v2-anime-08.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-f8ad2c5cd8": {
+    "sheet": "v2-anime-08.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-d0be9204c9": {
+    "sheet": "v2-anime-08.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-ab4800e4e8": {
+    "sheet": "v2-anime-08.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-5dc423eebc": {
+    "sheet": "v2-anime-08.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-c6c1bfb9a7": {
+    "sheet": "v2-anime-08.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-da50601f0f": {
+    "sheet": "v2-anime-08.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-5a5e8559de": {
+    "sheet": "v2-anime-08.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-c7100e99fa": {
+    "sheet": "v2-anime-09.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-a5af57dab6": {
+    "sheet": "v2-anime-09.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-8bd43a8c66": {
+    "sheet": "v2-anime-09.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-b40b5c6ae4": {
+    "sheet": "v2-anime-09.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-5d3c528dcc": {
+    "sheet": "v2-anime-09.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-39dfc4e63e": {
+    "sheet": "v2-anime-09.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-ab692abed7": {
+    "sheet": "v2-anime-09.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-230adc8252": {
+    "sheet": "v2-anime-09.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-678d936e28": {
+    "sheet": "v2-anime-09.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onepiece-572153c4f8": {
+    "sheet": "v2-anime-09.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-65f5750690": {
+    "sheet": "v2-anime-09.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-279e301a0d": {
+    "sheet": "v2-anime-09.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-7d551c8de2": {
+    "sheet": "v2-anime-09.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-a00dedb74e": {
+    "sheet": "v2-anime-09.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-8a037f28c3": {
+    "sheet": "v2-anime-09.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-26114e7182": {
+    "sheet": "v2-anime-09.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-ratatouille-4445d918df": {
+    "sheet": "v2-anime-09.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-wall-e-6a04998446": {
+    "sheet": "v2-anime-09.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-wall-e-0286249762": {
+    "sheet": "v2-anime-09.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-wall-e-2e786c488b": {
+    "sheet": "v2-anime-09.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-wall-e-6df15e22da": {
+    "sheet": "v2-anime-09.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-brave-34f44d862b": {
+    "sheet": "v2-anime-09.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-brave-8cd7bf74e3": {
+    "sheet": "v2-anime-09.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-brave-7e23f65bee": {
+    "sheet": "v2-anime-09.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-brave-9aa386e102": {
+    "sheet": "v2-anime-09.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-brave-9747108e0a": {
+    "sheet": "v2-anime-09.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-gooddinosaur-fc9cdf5b60": {
+    "sheet": "v2-anime-09.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-gooddinosaur-74f8092562": {
+    "sheet": "v2-anime-09.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-gooddinosaur-f29e2abdde": {
+    "sheet": "v2-anime-09.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-gooddinosaur-0afc21f676": {
+    "sheet": "v2-anime-09.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-gooddinosaur-ce872eac5d": {
+    "sheet": "v2-anime-10.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-gooddinosaur-7e4a6c94d9": {
+    "sheet": "v2-anime-10.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onward-7294576134": {
+    "sheet": "v2-anime-10.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onward-b85824cf40": {
+    "sheet": "v2-anime-10.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onward-229ea23e86": {
+    "sheet": "v2-anime-10.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onward-ecd700f005": {
+    "sheet": "v2-anime-10.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onward-170f0b3455": {
+    "sheet": "v2-anime-10.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-onward-8c0ca815ba": {
+    "sheet": "v2-anime-10.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-2c78f13fb2": {
+    "sheet": "v2-anime-10.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-785f3ec7eb": {
+    "sheet": "v2-anime-10.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-d8325218c0": {
+    "sheet": "v2-anime-10.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-b50c59c07d": {
+    "sheet": "v2-anime-10.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-525687f926": {
+    "sheet": "v2-anime-10.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-3e3a67a44b": {
+    "sheet": "v2-anime-10.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-soul-cbdcbba82c": {
+    "sheet": "v2-anime-10.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-a324735ca0": {
+    "sheet": "v2-anime-10.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-3f55246900": {
+    "sheet": "v2-anime-10.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-1b4c9af1f8": {
+    "sheet": "v2-anime-10.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-ddd20d6881": {
+    "sheet": "v2-anime-10.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-fa2f5fcf34": {
+    "sheet": "v2-anime-10.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-25d61bfa0a": {
+    "sheet": "v2-anime-10.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-turningred-bcf251e9bc": {
+    "sheet": "v2-anime-10.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-b9d4cffb1e": {
+    "sheet": "v2-anime-10.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-b3cd90b170": {
+    "sheet": "v2-anime-10.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-fd0e1c17ad": {
+    "sheet": "v2-anime-10.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-1a45be7f63": {
+    "sheet": "v2-anime-10.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-7289968bd2": {
+    "sheet": "v2-anime-10.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-1617de94ce": {
+    "sheet": "v2-anime-10.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-a33fbcf83f": {
+    "sheet": "v2-anime-10.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-a731a58c4c": {
+    "sheet": "v2-anime-10.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory3-687fe0595b": {
+    "sheet": "v2-anime-11.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory4-245c67cd16": {
+    "sheet": "v2-anime-11.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory4-fcdab18791": {
+    "sheet": "v2-anime-11.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory4-efd82bd571": {
+    "sheet": "v2-anime-11.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory4-329d4c227c": {
+    "sheet": "v2-anime-11.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-toystory4-83c033b256": {
+    "sheet": "v2-anime-11.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monstersuniversity-cec4849493": {
+    "sheet": "v2-anime-11.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monstersuniversity-facb8893e0": {
+    "sheet": "v2-anime-11.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monstersuniversity-38734d7c36": {
+    "sheet": "v2-anime-11.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-monstersuniversity-75df3579c7": {
+    "sheet": "v2-anime-11.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-0b474b86a3": {
+    "sheet": "v2-anime-11.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-bd4acffe83": {
+    "sheet": "v2-anime-11.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-599079bc01": {
+    "sheet": "v2-anime-11.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-879687ceb6": {
+    "sheet": "v2-anime-11.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-e2aae930fa": {
+    "sheet": "v2-anime-11.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-2ea25f21b6": {
+    "sheet": "v2-anime-11.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-ea53b1cb30": {
+    "sheet": "v2-anime-11.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-ccdff1053c": {
+    "sheet": "v2-anime-11.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-853936f8e5": {
+    "sheet": "v2-anime-11.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-4e61bf4653": {
+    "sheet": "v2-anime-11.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-f716c5fd8c": {
+    "sheet": "v2-anime-11.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-bugs-821f58b8a2": {
+    "sheet": "v2-anime-11.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-dory-f759561678": {
+    "sheet": "v2-anime-11.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-dory-ceb32b9393": {
+    "sheet": "v2-anime-11.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-dory-373d368333": {
+    "sheet": "v2-anime-11.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "anime-dory-4e96934aad": {
+    "sheet": "v2-anime-11.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-006f778c3c": {
+    "sheet": "v2-idol-01.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-7c55bc034a": {
+    "sheet": "v2-idol-01.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-f7593abcd3": {
+    "sheet": "v2-idol-01.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-09f57f6b88": {
+    "sheet": "v2-idol-01.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-9938a1bd57": {
+    "sheet": "v2-idol-01.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-41b68f1714": {
+    "sheet": "v2-idol-01.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-737a501263": {
+    "sheet": "v2-idol-01.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-501c016beb": {
+    "sheet": "v2-idol-01.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-twice-189f2f3245": {
+    "sheet": "v2-idol-01.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-itzy-5876bc090d": {
+    "sheet": "v2-idol-01.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-itzy-8ec57bc8a9": {
+    "sheet": "v2-idol-01.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-itzy-4db45b9b09": {
+    "sheet": "v2-idol-01.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-itzy-c503889652": {
+    "sheet": "v2-idol-01.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-itzy-d445994f6a": {
+    "sheet": "v2-idol-01.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nmixx-40612bd7ed": {
+    "sheet": "v2-idol-01.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nmixx-562e42c315": {
+    "sheet": "v2-idol-01.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nmixx-707ba0d284": {
+    "sheet": "v2-idol-01.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nmixx-b1b059cad3": {
+    "sheet": "v2-idol-01.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nmixx-d04b10de79": {
+    "sheet": "v2-idol-01.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nmixx-39060ed6ef": {
+    "sheet": "v2-idol-01.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-f8384454c7": {
+    "sheet": "v2-idol-01.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-d734b63149": {
+    "sheet": "v2-idol-01.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-1a5a76a2d8": {
+    "sheet": "v2-idol-01.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-7b89b91666": {
+    "sheet": "v2-idol-01.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-17bad68cf3": {
+    "sheet": "v2-idol-01.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-d63a136f62": {
+    "sheet": "v2-idol-01.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-4351b5b374": {
+    "sheet": "v2-idol-01.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-skz-09ccdf8205": {
+    "sheet": "v2-idol-01.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-7922085d21": {
+    "sheet": "v2-idol-01.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-4b017fd4a0": {
+    "sheet": "v2-idol-01.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-f170fab979": {
+    "sheet": "v2-idol-02.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-042019ea66": {
+    "sheet": "v2-idol-02.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-3a68eb83df": {
+    "sheet": "v2-idol-02.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-f9b441e92a": {
+    "sheet": "v2-idol-02.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-nexz-ae6e4b8c51": {
+    "sheet": "v2-idol-02.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-day6-08b1f05903": {
+    "sheet": "v2-idol-02.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-day6-3ee7923905": {
+    "sheet": "v2-idol-02.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-day6-5230bddad9": {
+    "sheet": "v2-idol-02.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-day6-4e10afb2a2": {
+    "sheet": "v2-idol-02.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-2pm-6776dba6cb": {
+    "sheet": "v2-idol-02.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-2pm-521df4ddc4": {
+    "sheet": "v2-idol-02.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-2pm-014674398d": {
+    "sheet": "v2-idol-02.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-2pm-6406a3a8c9": {
+    "sheet": "v2-idol-02.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-2pm-d1bb75a448": {
+    "sheet": "v2-idol-02.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-2pm-16bbf10914": {
+    "sheet": "v2-idol-02.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-jyp-6cde376c6a": {
+    "sheet": "v2-idol-02.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-e110661315": {
+    "sheet": "v2-idol-02.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-7f3cee14f1": {
+    "sheet": "v2-idol-02.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-27e0c1953f": {
+    "sheet": "v2-idol-02.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-49e5a75658": {
+    "sheet": "v2-idol-02.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-092e39f521": {
+    "sheet": "v2-idol-02.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-de5a6f7811": {
+    "sheet": "v2-idol-02.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-ecbdedf765": {
+    "sheet": "v2-idol-02.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-illit-fd05cf82cc": {
+    "sheet": "v2-idol-02.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-illit-f62e1bd093": {
+    "sheet": "v2-idol-02.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-illit-b6764bcc67": {
+    "sheet": "v2-idol-02.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-illit-870c30fc78": {
+    "sheet": "v2-idol-02.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-illit-ba554738b7": {
+    "sheet": "v2-idol-02.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-enhypen-133fd3f202": {
+    "sheet": "v2-idol-02.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-enhypen-324a53a495": {
+    "sheet": "v2-idol-02.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-enhypen-1f49a74b6c": {
+    "sheet": "v2-idol-03.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-enhypen-21ca2a315a": {
+    "sheet": "v2-idol-03.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-enhypen-7e9cdf7edd": {
+    "sheet": "v2-idol-03.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-enhypen-d172d400aa": {
+    "sheet": "v2-idol-03.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-blackpink-64de3444ac": {
+    "sheet": "v2-idol-03.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-blackpink-577b74297b": {
+    "sheet": "v2-idol-03.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-blackpink-4e6008ea9e": {
+    "sheet": "v2-idol-03.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-blackpink-ce9f7e3e65": {
+    "sheet": "v2-idol-03.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-6b0646f67d": {
+    "sheet": "v2-idol-03.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-c795318dda": {
+    "sheet": "v2-idol-03.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-b76acf30d3": {
+    "sheet": "v2-idol-03.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-3bccf6e015": {
+    "sheet": "v2-idol-03.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-ca81bfc714": {
+    "sheet": "v2-idol-03.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-d4f47b4b9f": {
+    "sheet": "v2-idol-03.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-a780bd0ddc": {
+    "sheet": "v2-idol-03.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-2560373ae9": {
+    "sheet": "v2-idol-03.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-72cca15e8e": {
+    "sheet": "v2-idol-03.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-e5964c8783": {
+    "sheet": "v2-idol-03.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-a489b010bb": {
+    "sheet": "v2-idol-03.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-5cc7557791": {
+    "sheet": "v2-idol-03.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-28e8bd6267": {
+    "sheet": "v2-idol-03.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-4606aa8a4c": {
+    "sheet": "v2-idol-03.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-e54ec6b5c0": {
+    "sheet": "v2-idol-03.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-4161ccf5cd": {
+    "sheet": "v2-idol-03.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-e51fe6b877": {
+    "sheet": "v2-idol-03.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-aespa-5793ec2596": {
+    "sheet": "v2-idol-03.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-aespa-a7e721a9ec": {
+    "sheet": "v2-idol-03.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-aespa-5fe707fdd2": {
+    "sheet": "v2-idol-03.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-aespa-e0ff50b410": {
+    "sheet": "v2-idol-03.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-lesserafim-f4ec1b8ad6": {
+    "sheet": "v2-idol-03.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-lesserafim-8b3229c409": {
+    "sheet": "v2-idol-04.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-lesserafim-dda4bd43da": {
+    "sheet": "v2-idol-04.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-lesserafim-a734ed3d81": {
+    "sheet": "v2-idol-04.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-lesserafim-759c4e36fa": {
+    "sheet": "v2-idol-04.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ive-88af145b82": {
+    "sheet": "v2-idol-04.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ive-31c54e6546": {
+    "sheet": "v2-idol-04.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ive-b7f3cfe79c": {
+    "sheet": "v2-idol-04.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ive-77c00fe4bc": {
+    "sheet": "v2-idol-04.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ive-02b49b47ad": {
+    "sheet": "v2-idol-04.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ive-b3f9bc3614": {
+    "sheet": "v2-idol-04.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-xdh-3a41490340": {
+    "sheet": "v2-idol-04.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-xdh-b46028be15": {
+    "sheet": "v2-idol-04.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-xdh-5e7935a1cb": {
+    "sheet": "v2-idol-04.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-xdh-6aab764d12": {
+    "sheet": "v2-idol-04.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-xdh-7bc36a2542": {
+    "sheet": "v2-idol-04.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-41fdcea0c2": {
+    "sheet": "v2-idol-04.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-cbec2f7073": {
+    "sheet": "v2-idol-04.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-29d53db659": {
+    "sheet": "v2-idol-04.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-74a7dacc3e": {
+    "sheet": "v2-idol-04.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-e8a27e3c10": {
+    "sheet": "v2-idol-04.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-faa7a863bb": {
+    "sheet": "v2-idol-04.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-5ede991b2b": {
+    "sheet": "v2-idol-04.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-0d55d044cd": {
+    "sheet": "v2-idol-04.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-niziu-63eaa51a63": {
+    "sheet": "v2-idol-04.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-c883d5ba08": {
+    "sheet": "v2-idol-04.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-628049a7f8": {
+    "sheet": "v2-idol-04.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-922fe10d61": {
+    "sheet": "v2-idol-04.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-50fef10c37": {
+    "sheet": "v2-idol-04.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-4697171ff7": {
+    "sheet": "v2-idol-04.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-2e4ec20f00": {
+    "sheet": "v2-idol-04.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tws-eff518865e": {
+    "sheet": "v2-idol-05.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-ebfd48bd4d": {
+    "sheet": "v2-idol-05.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-6cf878c074": {
+    "sheet": "v2-idol-05.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-497e4eb927": {
+    "sheet": "v2-idol-05.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-e628480ff1": {
+    "sheet": "v2-idol-05.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-efd5bd9f88": {
+    "sheet": "v2-idol-05.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-44d85ba44b": {
+    "sheet": "v2-idol-05.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bnd-0258e3be00": {
+    "sheet": "v2-idol-05.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-ce5a30a24f": {
+    "sheet": "v2-idol-05.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-a288d44620": {
+    "sheet": "v2-idol-05.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-306aaa3e02": {
+    "sheet": "v2-idol-05.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-5cc6f10903": {
+    "sheet": "v2-idol-05.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-9207820cd0": {
+    "sheet": "v2-idol-05.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-6fb72323ee": {
+    "sheet": "v2-idol-05.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-riize-8de4dd515b": {
+    "sheet": "v2-idol-05.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kiss-92eda53cf5": {
+    "sheet": "v2-idol-05.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kiss-4e4e64878b": {
+    "sheet": "v2-idol-05.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kiss-172d94e03c": {
+    "sheet": "v2-idol-05.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kiss-66f04352e3": {
+    "sheet": "v2-idol-05.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-c9300e3fb8": {
+    "sheet": "v2-idol-05.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-693b4d7b33": {
+    "sheet": "v2-idol-05.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-ea7dd1e9b1": {
+    "sheet": "v2-idol-05.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-206ec3f17e": {
+    "sheet": "v2-idol-05.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-a4acb3608f": {
+    "sheet": "v2-idol-05.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-d2bc8c6243": {
+    "sheet": "v2-idol-05.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-218e94bfdb": {
+    "sheet": "v2-idol-05.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-ateez-6d302ab8d6": {
+    "sheet": "v2-idol-05.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-8374c25b65": {
+    "sheet": "v2-idol-05.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-766b8d96bb": {
+    "sheet": "v2-idol-05.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-c3f1ec9d39": {
+    "sheet": "v2-idol-05.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-24186e8826": {
+    "sheet": "v2-idol-06.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-8c7b91b101": {
+    "sheet": "v2-idol-06.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-79829350e4": {
+    "sheet": "v2-idol-06.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-89012e5bce": {
+    "sheet": "v2-idol-06.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-d57168399f": {
+    "sheet": "v2-idol-06.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-2c47846d4a": {
+    "sheet": "v2-idol-06.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-6f0dd0517b": {
+    "sheet": "v2-idol-06.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-84041be6a1": {
+    "sheet": "v2-idol-06.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-bc73144a0b": {
+    "sheet": "v2-idol-06.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-3befec5a33": {
+    "sheet": "v2-idol-06.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-seventeenjp-55a728e7b1": {
+    "sheet": "v2-idol-06.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-txt-ccc685e63e": {
+    "sheet": "v2-idol-06.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-txt-fb9668973b": {
+    "sheet": "v2-idol-06.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-txt-1503065151": {
+    "sheet": "v2-idol-06.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-txt-0e765ca46f": {
+    "sheet": "v2-idol-06.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-txt-e725db1ec0": {
+    "sheet": "v2-idol-06.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-2643cf4b7e": {
+    "sheet": "v2-idol-06.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-6c83a44f75": {
+    "sheet": "v2-idol-06.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-16d16662a8": {
+    "sheet": "v2-idol-06.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-b8b4929785": {
+    "sheet": "v2-idol-06.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-e0d936dd8a": {
+    "sheet": "v2-idol-06.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-1cbb35f769": {
+    "sheet": "v2-idol-06.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-1a0c7a0b98": {
+    "sheet": "v2-idol-06.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-eff2cda2a1": {
+    "sheet": "v2-idol-06.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-4ea282a054": {
+    "sheet": "v2-idol-06.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-andteam-781390ed21": {
+    "sheet": "v2-idol-06.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-redvelvet-6e284e3158": {
+    "sheet": "v2-idol-06.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-redvelvet-41a18875b8": {
+    "sheet": "v2-idol-06.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-redvelvet-657e82beb2": {
+    "sheet": "v2-idol-06.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-redvelvet-43f811ce7b": {
+    "sheet": "v2-idol-06.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-redvelvet-f945abf3ea": {
+    "sheet": "v2-idol-07.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-redvelvet-77c20fd9e7": {
+    "sheet": "v2-idol-07.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-a9a04d6604": {
+    "sheet": "v2-idol-07.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-677f54de51": {
+    "sheet": "v2-idol-07.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-9d204cdd28": {
+    "sheet": "v2-idol-07.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-da2201642e": {
+    "sheet": "v2-idol-07.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-e1eb85fccc": {
+    "sheet": "v2-idol-07.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-967cd5d5f0": {
+    "sheet": "v2-idol-07.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-fcaf484954": {
+    "sheet": "v2-idol-07.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-47e01ab22f": {
+    "sheet": "v2-idol-07.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-2031e1adf9": {
+    "sheet": "v2-idol-07.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-superjunior-53375b4077": {
+    "sheet": "v2-idol-07.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tvxq-b4de5870ad": {
+    "sheet": "v2-idol-07.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tvxq-542918bf1e": {
+    "sheet": "v2-idol-07.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-tvxq-8b0fc7c604": {
+    "sheet": "v2-idol-07.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-idle-8e0744e181": {
+    "sheet": "v2-idol-07.png",
+    "x": 731,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-idle-257997229f": {
+    "sheet": "v2-idol-07.png",
+    "x": 967,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-idle-d1706fda7f": {
+    "sheet": "v2-idol-07.png",
+    "x": 1203,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-idle-3e79bb8dd2": {
+    "sheet": "v2-idol-07.png",
+    "x": 23,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-idle-c8c34d5a77": {
+    "sheet": "v2-idol-07.png",
+    "x": 259,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-idle-3d959740e1": {
+    "sheet": "v2-idol-07.png",
+    "x": 495,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-646ad1b90a": {
+    "sheet": "v2-idol-07.png",
+    "x": 731,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-d79770d217": {
+    "sheet": "v2-idol-07.png",
+    "x": 967,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-02ef22a918": {
+    "sheet": "v2-idol-07.png",
+    "x": 1203,
+    "y": 758.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-bc39775b4d": {
+    "sheet": "v2-idol-07.png",
+    "x": 23,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-8ad19ee8d8": {
+    "sheet": "v2-idol-07.png",
+    "x": 259,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-4694da6d05": {
+    "sheet": "v2-idol-07.png",
+    "x": 495,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-kep1er-d36ca557a8": {
+    "sheet": "v2-idol-07.png",
+    "x": 731,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-stayc-003df6b7d5": {
+    "sheet": "v2-idol-07.png",
+    "x": 967,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-stayc-7e4a01a228": {
+    "sheet": "v2-idol-07.png",
+    "x": 1203,
+    "y": 991.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-stayc-788f109061": {
+    "sheet": "v2-idol-08.png",
+    "x": 23,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-stayc-d0ef86c3aa": {
+    "sheet": "v2-idol-08.png",
+    "x": 259,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-stayc-bdaf591bfa": {
+    "sheet": "v2-idol-08.png",
+    "x": 495,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-stayc-a7200792ec": {
+    "sheet": "v2-idol-08.png",
+    "x": 731,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-p1harmony-e7fb2831bd": {
+    "sheet": "v2-idol-08.png",
+    "x": 967,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-p1harmony-6619254f0b": {
+    "sheet": "v2-idol-08.png",
+    "x": 1203,
+    "y": 59.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-p1harmony-0202067562": {
+    "sheet": "v2-idol-08.png",
+    "x": 23,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-p1harmony-ad339da2be": {
+    "sheet": "v2-idol-08.png",
+    "x": 259,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-p1harmony-21b2fd2752": {
+    "sheet": "v2-idol-08.png",
+    "x": 495,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-p1harmony-f1e312a906": {
+    "sheet": "v2-idol-08.png",
+    "x": 731,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-bts-group": {
+    "sheet": "v2-idol-08.png",
+    "x": 967,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-blackpink-group": {
+    "sheet": "v2-idol-08.png",
+    "x": 1203,
+    "y": 292.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-babymonster-group": {
+    "sheet": "v2-idol-08.png",
+    "x": 23,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-treasure-group": {
+    "sheet": "v2-idol-08.png",
+    "x": 259,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  },
+  "idol-lesserafim-group": {
+    "sheet": "v2-idol-08.png",
+    "x": 495,
+    "y": 525.390625,
+    "width": 214,
+    "height": 177
+  }
+}

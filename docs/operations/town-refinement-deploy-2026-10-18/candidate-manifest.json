@@ -1,0 +1,15 @@
+{
+  "source": "projects/584571538436/sites/dj48-quiztown-firebase/versions/2883f013195d482e",
+  "rawHashes": {
+    "index.html": "18e72548ea04950a4db8156352150be33de4c303a5076e54aa6e565ecea14734",
+    "town-spatial.css": "b1b974eb60dcae592a1172c42e3de1ada96beb187cdc9f0b7a6c73561fcb4236",
+    "js/town-spatial.js": "e5fb61ee7effc1ceb5bded69c1f1c072bded6169335f56ac18b7e1a9699f254d",
+    "js/town-avatar.js": "2b656542e9a3e133b2a3594bf209fd455603b20242707d141019e91bb038a8ca",
+    "js/school-rooms.js": "54aa41d988484ed6b12d5af6d502c189af45de3ff1d418232ceccdd113a896ae",
+    "js/features/ranking-render.js": "d3ec04fdebcf75f1fc22fedf71ffbd075b929b8d0986af8bad847a2684531904",
+    "js/features/event-render.js": "efbbfc4a69f2532886e5d6af469ff485c189f61874aa866b125fd16d1a2ee29f",
+    "js/features/quiz-render.js": "e67d33e438269f3cafcf5f64430a66be1463eb9ad88ab5eee3b5ae454bca9644",
+    "js/app.bundle.js": "fd2e00e1288df2c625c74b6be1496327af41a925e6f61d4f7e90009ebab7d6fa",
+    "images/town-spatial-20261018/school-v2.webp": "5c35ff697a81498e10f31cd4eebdcd1ef4a5a0f54f995eba8a64b7da35b2a38d"
+  }
+}

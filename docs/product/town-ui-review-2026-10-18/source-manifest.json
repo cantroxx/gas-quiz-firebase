@@ -1,0 +1,45 @@
+{
+  "note": "Start-of-task comparison, not git HEAD. Only snapshotted production source files; new CSS, assets, tests and generated app bundle are listed in the report.",
+  "files": [
+    {
+      "file": "public/coordi-shop/index.html",
+      "beforeSha256": "e7f8807a6ff80b1aac57ecce5c84dced6be1a0b48ae213a9b4dfbfcf9abb58c2",
+      "afterSha256": "f8d92a01229448cf17a5afcc63868f0b8987eeb8ac5509832c77a91081490e0a"
+    },
+    {
+      "file": "public/index.html",
+      "beforeSha256": "ad31420ace58d702d3f15902503f1987669ffbe0982d8708f4b8b22c69db7daf",
+      "afterSha256": "973497da8413e0edb387cf79a46a77b2f00b6355e18b36306e90f44939bfde1b"
+    },
+    {
+      "file": "public/js/data/place-details.js",
+      "beforeSha256": "242ca394fb5191999cd566b9dfd55d96b4809a023760f6b5d71d47d1fd599194",
+      "afterSha256": "f9457556fc67442cfc9f5476286f4d19704f64e9808df518548b3114307290d1"
+    },
+    {
+      "file": "public/js/features/home-render.js",
+      "beforeSha256": "80de0c0cae7901d38d347641e33809d50cfd1a7f686ba087dc2449da861b3587",
+      "afterSha256": "f6fd37561658a7342863b6d5ef937a1b50bdd373b71ef5b56df039ff6523c4ed"
+    },
+    {
+      "file": "public/js/player-status-shortcut.js",
+      "beforeSha256": "9fb2ad04a290c8c48dda2342c2489e74802dc14b379e1612b0d2510582205898",
+      "afterSha256": "ef7438eafa636a8bb7034e88ae2274efe3c1689907b9e334f6da41afb9e3995b"
+    },
+    {
+      "file": "public/player-status/index.html",
+      "beforeSha256": "e3ff9b70171ae8ea68a744569e77ea01e4e538318ea92bab25ab744de611ddf2",
+      "afterSha256": "032b33bdf77c41e011af4f3e2aa74d6fbefa91d4852d97fbe2faf80990f4e6aa"
+    },
+    {
+      "file": "public/player-status/status.js",
+      "beforeSha256": "55285448aca725c8080f9138aa4502c514a21aba8444d9dc1c286cabb36e2f68",
+      "afterSha256": "296dbb2bab8cae759c5e469acf9f8e1deafe46cfa6edf2ed51f68005a8619d4b"
+    },
+    {
+      "file": "public/player-status/style.css",
+      "beforeSha256": "229852cc59f014f21330571c65ded9e79ae257bf9a8030cbe5eef53362f656c1",
+      "afterSha256": "ff3a0fa69036df2cdc977143c810d452a2eba2b29643c086558307329d0251b8"
+    }
+  ]
+}

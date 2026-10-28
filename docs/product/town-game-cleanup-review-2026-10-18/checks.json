@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "candidateDigest": "17b42d0e3e068dee82fdff794035a49735f9faf7ee515298bdd96197af14cbc7",
+  "checks": [
+    "npm run check exit 0",
+    "candidate status/spatial/game browsers exit 0",
+    "survivor server grading regression exit 0",
+    "Vercel exact candidate camp boot exit 0",
+    "town-marble source build exit 0"
+  ]
+}

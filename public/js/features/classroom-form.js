@@ -34,12 +34,47 @@
     return `${settings.name || fallbackName} 교실에 입장했습니다.`;
   }
 
+  const CLASSROOM_GROUPS = {
+    home: ['today'], activity: ['quest', 'routine'], growth: ['gems'],
+    economy: ['market', 'bank', 'securities'], class: ['classroom', 'jobs', 'mission'], manage: ['teacher']
+  };
+  const lastGroupTabs = {};
+
+  function setActiveClassroomGroup(group) {
+    if(!CLASSROOM_GROUPS[group]) return;
+    setActiveClassroomTab(lastGroupTabs[group] || CLASSROOM_GROUPS[group][0]);
+  }
+
   function setActiveClassroomTab(tabName = 'classroom') {
     const subtabAliases = new Set(['student-card']);
     const requestedTab = String(tabName || 'classroom');
-    const panelTab = subtabAliases.has(requestedTab) ? 'classroom' : requestedTab;
+    let panelTab = subtabAliases.has(requestedTab) ? 'classroom' : requestedTab;
+    if(!Object.values(CLASSROOM_GROUPS).some(tabs => tabs.includes(panelTab))) panelTab = 'today';
+    if(panelTab === 'securities' && !window.DJ48Securities?.isEnabled()) panelTab = 'market';
+    const view = document.getElementById('classroom-view');
+    if(panelTab === 'teacher' && view?.dataset.classroomRole !== 'teacher') panelTab = 'today';
+    const group = Object.keys(CLASSROOM_GROUPS).find(key => CLASSROOM_GROUPS[key].includes(panelTab));
+    lastGroupTabs[group] = panelTab;
+    const previousTab = view?.dataset.activeTab;
+    if(view) view.dataset.activeTab = panelTab;
+    document.querySelectorAll('[data-classroom-group]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.classroomGroup === group));
+    });
+    const tablist = document.querySelector('.classroom-tabs');
+    if(tablist) tablist.hidden = CLASSROOM_GROUPS[group].length < 2 || group === 'economy';
     document.querySelectorAll('[data-classroom-tab]').forEach(button => {
       const active = button.dataset.classroomTab === panelTab;
+      button.hidden = !CLASSROOM_GROUPS[group].includes(button.dataset.classroomTab)
+        || (button.dataset.classroomTab === 'securities' && !window.DJ48Securities?.isEnabled());
+      button.id = `classroom-tab-${button.dataset.classroomTab}`;
+      button.tabIndex = active ? 0 : -1;
+      const panels = Array.from(document.querySelectorAll(`[data-classroom-panel="${button.dataset.classroomTab}"]`));
+      button.setAttribute('aria-controls', panels.map((panel, index) => {
+        if(!panel.id) panel.id = `classroom-panel-${button.dataset.classroomTab}-${index}`;
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', button.id);
+        return panel.id;
+      }).join(' '));
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-selected', String(active));
     });
@@ -47,6 +82,12 @@
       panel.classList.toggle('is-active', panel.dataset.classroomPanel === panelTab);
     });
     window.DJ48ClassroomRender?.applyClassroomOverviewTabVisibility?.(panelTab);
+    window.DJ48ClassroomWorkspace?.syncEconomyNavigation?.(panelTab);
+    if(previousTab !== panelTab) {
+      if(panelTab === 'securities') window.DJ48Securities?.enter();
+      else window.DJ48Securities?.closeOrder();
+      view?.dispatchEvent(new CustomEvent('classroom-tab-changed'));
+    }
     if(subtabAliases.has(requestedTab)) {
       document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
         const active = button.dataset.classroomSubtab === requestedTab;
@@ -82,9 +123,12 @@
       targetStudentIds,
       repeatRule: String(document.getElementById('classroom-quest-repeat-input')?.value || 'once').trim(),
       linkedGemName,
-      linkedGemId: deps.slugifyClassroomGemId?.(linkedGemName) || '',
+      linkedGemId: String(document.getElementById('classroom-quest-gem-name-input')?.dataset.gemIds || '').split(',')[0] || deps.slugifyClassroomGemId?.(linkedGemName) || '',
       linkedGemNames,
-      linkedGemIds: linkedGemNames.map(name => deps.slugifyClassroomGemId?.(name) || '').filter(Boolean),
+      linkedGemIds: (document.getElementById('classroom-quest-gem-name-input')?.dataset.gemIds || '').split(',').filter(Boolean),
+      gemSelectionInvalid: document.getElementById('classroom-quest-gem-name-input')?.dataset.unresolved === 'true',
+      submissionType: document.getElementById('classroom-quest-submission-input')?.value || 'complete',
+      checklistItems: (document.getElementById('classroom-quest-checklist-input')?.value || '').split('\n').map(v=>v.trim()).filter(Boolean).slice(0,10),
       gemXp: linkedGemName ? 1 : 0,
       gemTargetXp: Math.max(1, Math.round(Number(document.getElementById('classroom-quest-gem-target-input')?.value) || 10)),
       gemRewardPoint: Math.max(0, Math.min(1000, Math.round(Number(document.getElementById('classroom-quest-gem-reward-input')?.value) || 0))),
@@ -119,7 +163,9 @@
     if(start) start.value = '';
     if(end) end.value = '';
     if(repeat) repeat.value = 'once';
-    if(gemName) gemName.value = '';
+    if(gemName) { gemName.value = ''; gemName.dataset.gemIds = ''; }
+    const submission = document.getElementById('classroom-quest-submission-input'), checklist = document.getElementById('classroom-quest-checklist-input');
+    if(submission) submission.value='complete'; if(checklist) checklist.value='';
     if(gemXp) gemXp.value = '1';
     if(gemTarget) gemTarget.value = '10';
     if(gemReward) gemReward.value = '0';
@@ -142,6 +188,9 @@
     const gemTarget = document.getElementById('classroom-quest-gem-target-input');
     const gemReward = document.getElementById('classroom-quest-gem-reward-input');
     const gemCoin = document.getElementById('classroom-quest-gem-coin-input');
+    if(gemName) gemName.dataset.gemIds = (quest.linkedGemIds || [quest.linkedGemId]).filter(Boolean).join(',');
+    const submission = document.getElementById('classroom-quest-submission-input'), checklist = document.getElementById('classroom-quest-checklist-input');
+    if(submission) submission.value=quest.submissionType || 'complete'; if(checklist) checklist.value=(quest.checklistItems || []).join('\n');
     if(questId) questId.value = quest.id || quest.questId || '';
     if(title) title.value = quest.title || '';
     if(desc) desc.value = quest.desc || '';
@@ -250,6 +299,7 @@
     if(price) price.value = '50';
     if(priceType) priceType.value = 'point';
     if(icon) icon.value = 'pointShop';
+    window.DJ48ClassroomShopArt?.updatePicker();
   }
 
   function setClassroomShopItemFormValues(item = {}) {
@@ -272,6 +322,7 @@
     if(price) price.value = String(Number(nextPriceType === 'djCoin' ? (item.priceCoin || item.priceDjCoin || item.price || 50) : (item.pricePoint || item.price || 50)));
     if(priceType) priceType.value = nextPriceType;
     if(icon) icon.value = item.icon || 'pointShop';
+    window.DJ48ClassroomShopArt?.updatePicker();
   }
 
   function getClassroomNoticeFormValues() {
@@ -444,6 +495,11 @@
     };
   }
 
+  function updateClassroomRoutineItemCount() {
+    const count = document.getElementById('classroom-routine-item-count');
+    if(count) count.textContent = `${Array.from(document.querySelectorAll('.classroom-routine-item-input')).filter(input => input.value.trim()).length}/10`;
+  }
+
   function setClassroomRoutineItemInputs(items = []) {
     const inputs = Array.from(document.querySelectorAll('.classroom-routine-item-input'));
     const labels = Array.isArray(items)
@@ -452,9 +508,11 @@
     inputs.forEach((input, index) => {
       input.value = labels[index] || '';
       input.hidden = index >= Math.max(2, labels.length);
+      if(input.closest('.classroom-routine-item-row')) input.closest('.classroom-routine-item-row').hidden = input.hidden;
     });
     const addButton = document.getElementById('classroom-routine-add-item-button');
     if(addButton) addButton.hidden = inputs.every(input => !input.hidden);
+    updateClassroomRoutineItemCount();
   }
 
   function showNextClassroomRoutineItemInput() {
@@ -462,12 +520,15 @@
     const nextInput = inputs.find(input => input.hidden);
     if(!nextInput) return;
     nextInput.hidden = false;
+    if(nextInput.closest('.classroom-routine-item-row')) nextInput.closest('.classroom-routine-item-row').hidden = false;
     nextInput.focus();
     const addButton = document.getElementById('classroom-routine-add-item-button');
     if(addButton) addButton.hidden = !inputs.some(input => input.hidden);
   }
 
   function resetClassroomRoutineForm() {
+    const editor = document.getElementById('classroom-routine-editor');
+    if(editor) editor.open = false;
     const routineId = document.getElementById('classroom-routine-id-input');
     const title = document.getElementById('classroom-routine-title-input');
     const target = document.getElementById('classroom-routine-target-input');
@@ -507,6 +568,8 @@
   }
 
   window.DJ48ClassroomForm = {
+    updateClassroomRoutineItemCount,
+    setActiveClassroomGroup,
     setClassroomStatusElement,
     setClassroomUnlocked,
     getClassroomEntryCode,

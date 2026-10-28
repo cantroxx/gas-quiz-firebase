@@ -13,8 +13,9 @@ const referencedIds = new Set([...game.matchAll(/\$\('([^']+)'\)/g)].map((m) => 
 const missingIds = [...referencedIds].filter((id) => !ids.has(id));
 assert.deepEqual(missingIds, [], `mathsurvivor DOM ids missing: ${missingIds.join(', ')}`);
 
-for (const asset of ['style.css', 'problems.js', 'bank.js', 'game.js']) {
-  assert.match(html, new RegExp(`${asset.replace('.', '\\.')}\\?v=8`), `${asset} cache version must be 8`);
+for (const asset of ['style.css', 'problems.js', 'bank.js', 'game.js', 'net.js']) {
+  const version = asset === 'net.js' ? 'achievements-20261019' : asset === 'game.js' ? 'plaza-20261019' : asset === 'style.css' ? 10 : 8;
+  assert.match(html, new RegExp(`${asset.replace('.', '\\.')}\\?v=${version}`), `${asset} cache version must be ${version}`);
 }
 
 const sandbox = { window: {}, console };

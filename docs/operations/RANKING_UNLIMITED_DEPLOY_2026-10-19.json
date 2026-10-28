@@ -1,0 +1,38 @@
+{
+  "functions": {
+    "verified": [
+      {
+        "target": "popularQuizAction",
+        "updateTime": "2026-10-19T01:43:47.224250178Z",
+        "sourceFiles": 96,
+        "state": "ACTIVE"
+      }
+    ],
+    "unrelatedChanges": [],
+    "verifiedAt": "2026-10-19T01:43:53.839Z"
+  },
+  "hosting": {
+    "at": "2026-10-19T01:44:05.218Z",
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792374244323000",
+    "version": "sites/dj48-quiztown-firebase/versions/2aaf317f940065ed",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/010192af06a97061",
+    "changedFiles": 1,
+    "preservedFiles": 4671
+  },
+  "hostingVerification": {
+    "passed": true,
+    "at": "2026-10-19T01:44:15.407Z",
+    "version": "projects/584571538436/sites/dj48-quiztown-firebase/versions/2aaf317f940065ed",
+    "fileCount": 1,
+    "allHostedBytesMatch": true
+  },
+  "publicSmoke": {
+    "at": "2026-10-19T01:44:17.754Z",
+    "pageStatus": 200,
+    "callableUnauthenticatedStatus": 401,
+    "authGate": true,
+    "directEntryChecked": false,
+    "jsErrors": [],
+    "studentWrites": false
+  }
+}

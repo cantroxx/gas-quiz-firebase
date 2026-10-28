@@ -117,6 +117,10 @@
     document.querySelectorAll('[data-admin-section-target]').forEach(control => {
       control.addEventListener('click', () => {
         deps.setActiveAdminSection?.(control.dataset.adminSectionTarget);
+        if(control.hasAttribute('data-admin-special-shortcut')) {
+          const panel = document.getElementById('admin-special-rewards');
+          if(panel) { panel.open = true; panel.querySelector('summary')?.focus(); panel.scrollIntoView({block:'nearest'}); }
+        }
       });
     });
 
@@ -190,12 +194,6 @@
       });
     });
 
-    document.getElementById('admin-today-quiz-shuffle-now')?.addEventListener('click', () => {
-      deps.shuffleTodayQuizNow?.().catch(error => {
-        console.warn('Admin today quiz shuffle failed.', error);
-        deps.setAdminFeatureFlagsStatus?.(window.DJ48AdminForm.getAdminFeatureFlagsSaveErrorMessage(error), true);
-      });
-    });
 
     document.getElementById('admin-permission-grant')?.addEventListener('click', () => {
       deps.setClassAdminPermission?.(true).catch(error => {

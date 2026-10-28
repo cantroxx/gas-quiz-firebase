@@ -1,0 +1,51 @@
+{
+  "students": [
+    {
+      "memberUserId": "DEMO-A"
+    },
+    {
+      "memberUserId": "DEMO-B"
+    }
+  ],
+  "quests": [
+    {
+      "id": "reading",
+      "repeatRule": "daily"
+    }
+  ],
+  "gems": [
+    {
+      "gemId": "reading-gem-a",
+      "gemName": "독서젬"
+    },
+    {
+      "gemId": "reading-gem-b",
+      "gemName": "독서젬"
+    }
+  ],
+  "shopItems": [
+    {
+      "itemId": "demo-coupon",
+      "pricePoint": 20
+    }
+  ],
+  "snapshotAt": "2026-10-21T12:05:00+09:00",
+  "continuityItems": [
+    {
+      "id": "seed-a",
+      "kind": "seed"
+    }
+  ],
+  "wallets": [
+    {
+      "memberUserId": "DEMO-A",
+      "point": 100,
+      "djCoin": 20
+    },
+    {
+      "memberUserId": "DEMO-B",
+      "point": 50,
+      "djCoin": 10
+    }
+  ]
+}

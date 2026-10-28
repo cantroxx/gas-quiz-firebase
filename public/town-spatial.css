@@ -1,0 +1,161 @@
+/* Interactive village scenes. Scope overrides to the existing app shell only. */
+#login-view { background-image:url('/images/town-spatial-20261018/entrance-v1.webp'); background-position:center; }
+#login-view .storybook-welcome { align-self:start; margin-top:24px; }
+#town-view .town-map { background-image:url('/images/town-spatial-20261018/town-v1.webp'); min-width:640px; aspect-ratio:3/2; }
+#town-view .town-map .school { left:13%; top:3%; width:31%; height:33%; }
+#town-view .town-map .my-home { left:66%; top:3%; width:27%; height:33%; }
+#town-view .town-map .ranking { left:42%; top:31%; width:22%; height:28%; }
+#town-view .town-map .event { left:5%; top:49%; width:32%; height:28%; }
+#town-view .town-map .shop { left:69%; top:47%; width:28%; height:32%; }
+#town-view .town-map .place-name { background:#fff9e9; border:2px solid #ac8b51; box-shadow:0 4px 0 #704a3438; }
+.spatial-guide { position:absolute; width:8%; max-width:88px; aspect-ratio:1; transform:translate(-50%,-88%); z-index:6; pointer-events:none; transition-property:left,top; transition-timing-function:linear; filter:drop-shadow(0 5px 2px #59412240); }
+.spatial-guide img { display:block; width:100%; height:100%; object-fit:contain; }
+.spatial-guide img[hidden] { display:none; }
+.spatial-guide[data-avatar-state="fallback"]::after { content:""; position:absolute; bottom:0; left:35%; width:30%; aspect-ratio:1; border-radius:50%; background:#f9dc7c; border:3px solid #fffdf4; box-shadow:0 2px 4px #64523560; }
+.spatial-walk-status { font-size:13px; line-height:1.7; margin:12px 2px; color:#506744; min-height:23px; }
+.spatial-nav-label { font:15px 'Jua',sans-serif; margin:12px 2px 8px; color:#5f6c46; }
+.spatial-zoom { display:none; }
+.spatial-room-ready .plaza-hero,.spatial-room-ready .profile-intro { display:none !important; }
+.spatial-room-ready .home-topbar,.spatial-room-ready .ranking-topbar,.spatial-room-ready .event-topbar { margin-bottom:14px; }
+.spatial-room-ready .shop-topbar { background:#fffaf0 !important; min-height:0 !important; padding:0 !important; border:0 !important; }
+.spatial-room-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:8px 0 18px; }
+.spatial-room-heading h2 { font:32px/1.3 'Jua',sans-serif !important; color:#3e583d; margin:0; flex-shrink:0; }
+.spatial-room-heading p { margin:0; font-size:14px; color:#627151; line-height:1.7; max-width:460px; }
+.spatial-scene-scroll { overflow-x:auto; border:3px solid #c7b187; border-radius:22px; background:#e5d6af; scrollbar-width:thin; scrollbar-color:#a7936c #f8efd8; }
+.spatial-scene { position:relative; width:100%; min-width:600px; aspect-ratio:3/2; overflow:hidden; isolation:isolate; }
+.spatial-scene-art { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; }
+.spatial-hotspot { position:absolute; display:flex; align-items:flex-end; justify-content:center; padding:0 4px; border:0; border-radius:18px; background:transparent; cursor:pointer; color:#4b5735; text-decoration:none; box-shadow:none; -webkit-tap-highlight-color:transparent; }
+.spatial-sign { display:block; padding:10px 18px; border:2px solid #bda16d; border-radius:14px; background:#fff9e8; color:#4c5739; font:18px/1.3 'Jua',sans-serif; box-shadow:0 4px 0 #68452335; white-space:nowrap; transition:transform .15s,background .15s; }
+.spatial-hotspot:hover { background:#fffde710; }
+.spatial-hotspot:hover .spatial-sign { transform:translateY(-4px); background:#fff0bb; }
+.spatial-hotspot:focus-visible { outline:none; }
+.spatial-hotspot:focus-visible .spatial-sign { outline:3px solid #395d48; outline-offset:4px; }
+.spatial-quick { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px; }
+.spatial-quick-button { display:flex; justify-content:center; align-items:center; flex:1 1 120px; padding:12px 14px; min-height:46px; border:1px solid #cfcead; border-radius:12px; background:#fff9ed; color:#486041; font:15px/1.4 'Jua',sans-serif; cursor:pointer; text-decoration:none; }
+.spatial-quick-button .spatial-sign { padding:0; border:0; background:transparent; box-shadow:none; font:inherit; white-space:normal; }
+.spatial-quick-button:hover { background:#eef1dd; }
+.spatial-quick-button:focus-visible,.spatial-close:focus-visible { outline:3px solid #385a44; outline-offset:2px; }
+.spatial-scene-hint { font-size:12px; color:#687453; line-height:1.7; margin:12px 2px; }
+body.spatial-modal-open { overflow:hidden; }
+.spatial-panel { width:min(1080px,calc(100% - 36px)); max-width:calc(100% - 24px); max-height:90dvh; padding:0; border:3px solid #bca273; border-radius:24px; background:#fffaf0; color:#38523c; box-shadow:0 24px 100px #263b4170; overflow:hidden; }
+.spatial-panel[open] { display:flex; flex-direction:column; }
+.spatial-panel::backdrop { background:#243c359e; backdrop-filter:blur(4px); }
+.spatial-panel-header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 20px; background:#f1e5c9; border-bottom:1px solid #d1bc8f; flex-shrink:0; }
+.spatial-panel-header h2 { font:24px/1.4 'Jua',sans-serif; margin:0; color:#4a5635; }
+.spatial-close { padding:10px 14px; min-height:44px; border:1px solid #bdab82; border-radius:12px; background:#fffaf0; color:#43543b; font:14px/1.3 'Jua',sans-serif; cursor:pointer; flex-shrink:0; }
+.spatial-panel-body { padding:20px; overflow-y:auto; overscroll-behavior:contain; min-height:0; }
+.spatial-panel .home-detail-toggle-grid { position:sticky; top:-20px; z-index:2; background:#fffaf0; padding:10px 0; margin:0 0 16px; }
+.spatial-panel .home-detail-root { margin:0; }
+.spatial-panel #profile-card-root { margin:0; }
+.spatial-panel #shop-avatar-market iframe { width:100%; height:min(900px,74dvh) !important; }
+#school-view .school-scene { background-image:url('/images/town-spatial-20261018/school-v2.webp'); min-width:800px; }
+#school-view :is(.school-homeroom-door,.school-quiz-card) { top:32%; height:27%; width:12%; justify-content:flex-end; }
+#school-view .school-homeroom-door { left:6%; }
+#school-view .school-quiz-card-subjects { left:21%; }
+#school-view .school-quiz-card-learning { left:36%; }
+#school-view .school-quiz-card-popular { left:51%; }
+#school-view .school-quiz-card-concept { left:66%; }
+#school-view .school-quiz-card-battle { left:82%; }
+#school-view :is(#school-concept-label,.school-quiz-card-popular .popular-usage-notice) { position:absolute; top:100%; margin-top:8px; }
+#school-room-view .room-hero { background-image:linear-gradient(90deg,var(--room-soft) 35%,#fffaf060),url('/images/town-spatial-20261018/school-v2.webp'); }
+@media(max-width:560px) {
+  #login-view { background-position:28% top; background-size:auto 540px; background-color:#eaf0d7; }
+  #login-view .storybook-welcome { margin-top:0; }
+  #login-view .login-panel { margin-top:80px; }
+  .spatial-room-heading { flex-direction:column; align-items:flex-start; gap:6px; margin-top:14px; }
+  .spatial-room-heading h2 { font-size:28px !important; }
+  .spatial-room-heading p { font-size:13px; }
+  .spatial-scene-scroll { border-width:2px; border-radius:16px; }
+  .spatial-sign { font-size:16px; padding:9px 12px; }
+  .spatial-quick { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .spatial-quick-button { padding:10px 6px; font-size:14px; }
+  .spatial-panel { width:calc(100% - 16px); max-width:calc(100% - 16px); max-height:94dvh; border-radius:18px; }
+  .spatial-panel-header { padding:12px; align-items:flex-start; }
+  .spatial-panel-header h2 { font-size:19px; }
+  .spatial-close { font-size:12px; max-width:98px; }
+  .spatial-panel-body { padding:12px; }
+  .spatial-panel .home-detail-toggle-grid { top:-12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #spatial-panel-shop .spatial-panel-body { padding:0; }
+  #school-view .school-scene { min-width:800px; }
+  .spatial-zoom { display:block; margin:0 0 8px auto; padding:8px 12px; min-height:44px; background:#fff9e8; border:1px solid #bda879; border-radius:12px; color:#4d6240; font:14px 'Jua',sans-serif; cursor:pointer; }
+  #town-view .spatial-viewport:not(.is-enlarged) .town-map,
+  .spatial-viewport:not(.is-enlarged) .spatial-scene,
+  #school-view .spatial-viewport:not(.is-enlarged) .school-scene { min-width:0; }
+  #town-view .spatial-viewport.is-enlarged > .town-map { min-width:640px; }
+  .spatial-viewport.is-enlarged > .spatial-scene { min-width:600px; }
+  #school-view .spatial-viewport.is-enlarged > .school-scene { min-width:800px; }
+  .spatial-viewport:not(.is-enlarged) .spatial-hotspot,
+  #town-view .spatial-viewport:not(.is-enlarged) .place { min-height:44px; min-width:44px; padding:0; }
+  .spatial-viewport:not(.is-enlarged) .spatial-sign,
+  #town-view .spatial-viewport:not(.is-enlarged) .place-name,
+  #school-view .spatial-viewport:not(.is-enlarged) :is(.school-quiz-card h3,.school-homeroom-door span) { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); border:0; white-space:nowrap; }
+  .spatial-viewport:not(.is-enlarged) [data-scene-number]::after { content:attr(data-scene-number); display:grid; place-items:center; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:29px; height:29px; border:2px solid #9b804d; border-radius:50%; background:#fff9df; color:#3c5034; font:16px 'Jua',sans-serif; box-shadow:0 2px 0 #61492338; pointer-events:none; }
+  .spatial-viewport:not(.is-enlarged) [data-scene-number]:focus-visible::after,
+  .spatial-viewport:not(.is-enlarged) [data-scene-number]:has(:focus-visible)::after { outline:3px solid #315943; outline-offset:2px; }
+  .spatial-quick [data-scene-number]::before,
+  #town-view .map-buttons [data-scene-number]::before { content:attr(data-scene-number); display:inline-grid; place-items:center; min-width:24px; height:24px; margin-right:6px; border-radius:50%; background:#e8e2c8; color:#4b593a; font:14px 'Jua',sans-serif; }
+  #town-view .map-buttons [data-scene-number]::after { display:none; }
+  .spatial-guide { min-width:32px; }
+  #school-view .spatial-viewport:not(.is-enlarged) :is(#school-concept-label,.popular-usage-notice) { display:none; }
+  #school-view .spatial-viewport:not(.is-enlarged) :is(.school-quiz-card,.school-homeroom-door) { min-width:40px; min-height:44px; }
+}
+@media(prefers-reduced-motion:reduce) { .spatial-guide,.spatial-guide img { transition:none !important; animation:none !important; } }
+
+/* Refinement: immediate hall overview and an optional compact reward dropdown. */
+#ranking-view .ranking-hall-shell { grid-template-columns:1fr; }
+#event-loading-status { position:relative; z-index:9; }
+#event-unclaimed-button { font-size:.85rem; padding:7px 11px; min-height:36px; }
+#event-unclaimed-button[hidden],.event-rewards-dropdown[hidden] { display:none !important; }
+.event-rewards-dropdown { position:absolute; right:0; top:calc(100% + 6px); width:min(420px,100%); box-sizing:border-box; max-height:65dvh; overflow:auto; padding:16px; background:#fffdf3; border:2px solid #d2c59c; border-radius:18px; box-shadow:0 12px 32px #40382330; }
+.event-rewards-dropdown .event-rewards-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.event-rewards-dropdown h3 { margin:0; }
+.event-rewards-dropdown .quest-card-grid { grid-template-columns:minmax(0,1fr); }
+
+/* Quiet map: tools stay inside the visible map viewport, including horizontal zoom. */
+.spatial-sr-only,#town-view .town-panel-header,#town-view .spatial-walk-status { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip-path:inset(50%) !important; border:0 !important; }
+#town-view .town-retired-notice,#town-view .town-info-shortcuts { display:none !important; }
+.town-map-frame { position:relative; }
+.town-map-tools { position:absolute; top:12px; z-index:10; display:flex; gap:10px; align-items:flex-start; }
+.town-map-tools-left { left:12px; }.town-map-tools-right { right:12px; }
+.town-map-tools.town-map-tools-bottom-left { top:auto; bottom:12px; left:12px; }
+.app-view .town-map-control { position:relative; display:flex; justify-content:center; align-items:center; width:56px; height:56px; min-width:0; min-height:44px; padding:4px; border:2px solid #b99c66; border-radius:50%; background:#fff9e8e8; box-shadow:0 3px 8px #49391830; color:#3c5237; cursor:pointer; }
+.app-view .town-map-control[hidden] { display:none; }
+.app-view .town-map-control::before,.app-view .town-map-control::after { content:none; }
+.town-map-control img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
+#town-friends-count { position:absolute; bottom:-4px; right:-4px; border:1px solid #b99c66; border-radius:10px; padding:1px 5px; min-width:18px; font:13px/1.3 'Jua',sans-serif; background:#fff9df; }
+#town-notes-badge { position:absolute; top:-6px; right:-5px; }
+#town-view #global-refresh-button.needs-refresh { border-color:#efa833; animation:town-news-glow 1.6s ease-in-out infinite alternate; }
+#town-view #global-refresh-button:disabled { opacity:.65; cursor:wait; }
+@keyframes town-news-glow { from {box-shadow:0 0 0 3px #ffe7a6,0 0 9px #f5b94490;} to {box-shadow:0 0 0 5px #ffd270,0 0 20px #ffc842c0;} }
+.town-map-control:focus-visible { outline:3px solid #315943; outline-offset:3px; }
+@media(min-width:561px) { .spatial-quick {display:none;} #town-view .map-buttons [data-place] {display:none;} }
+@media(max-width:560px) { .town-map-tools {top:7px;gap:7px;}.town-map-tools-left{left:7px}.town-map-tools-right{right:7px} .app-view .town-map-control{width:46px;height:46px;padding:3px;} }
+@media(max-width:560px) { .town-map-tools.town-map-tools-bottom-left {bottom:7px;left:7px;} }
+@media(prefers-reduced-motion:reduce) { #town-view #global-refresh-button.needs-refresh {animation:none;box-shadow:0 0 0 3px #ffd270,0 0 12px #ffc84290;} }
+
+/* The surrounding panel supplies the heading; keep one visible heading/control. */
+#spatial-panel-quests .event-section-heading,#spatial-panel-hall .plaza-section-title {display:none;}
+#spatial-panel-quests .event-section {margin:0;padding:0;border:0;background:none;box-shadow:none;}
+#spatial-panel-quests .event-card-icon {display:none;}
+#spatial-panel-collection .collection-heading .eyebrow {display:none;}
+#home-view [data-home-detail-panel="items"],#home-view [data-home-detail-toggle="items"] {display:none !important;}
+/* The people control already opens friends/messages; retain the fallback only before it is available. */
+#town-view:has(#town-friends-button:not([hidden])) #btn-open-friends {display:none;}
+@media(min-width:561px) { #town-view .map-buttons:not(.town-info-shortcuts) {justify-content:flex-end;margin-top:10px;} #town-view .map-buttons #btn-open-inquiry {flex:0 0 auto;min-height:40px;} }
+
+/* Every illustrated place owns its navigation and personal controls. */
+.place-controls-ready .spatial-room-heading,.place-controls-ready .school-topbar,.place-controls-ready .school-map-hint,
+.place-controls-ready .spatial-scene-hint:not(.is-feedback){position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;margin:-1px!important;padding:0!important;}
+.place-controls-ready :is(.ranking-topbar,.event-topbar,.shop-topbar),.place-controls-ready .home-topbar:has(#home-classroom-return[hidden]){display:none!important;}
+.place-controls-ready .spatial-room{margin-top:0}.place-map-frame .town-map-tools{z-index:12}.place-status-slot{display:flex}
+.town-map-control svg{width:100%;height:100%}
+.spatial-logout-dialog{max-width:calc(100vw - 32px);padding:28px;border:3px solid #b99c66;border-radius:24px;background:#fff9e9;color:#40563c;box-shadow:0 12px 40px #40382340;font:18px 'Jua',sans-serif;text-align:center}
+.spatial-logout-dialog::backdrop{background:#233d2b66}.spatial-logout-dialog button{min-height:44px;padding:10px 18px;margin:8px;border:1px solid #bda879;border-radius:14px;background:#edf2df;color:#40563c;font:inherit;cursor:pointer}
+.spatial-logout-dialog button:last-child{background:#496a4c;color:#fffdf3}.spatial-logout-dialog button:focus-visible{outline:3px solid #cf994b;outline-offset:3px}
+.legacy-title-group{grid-column:1/-1;min-width:0}.legacy-title-group h4{margin:8px 0}.legacy-title-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}
+
+/* A single quest shortcut lives inside the ranking map. */
+#ranking-view .ranking-map-quest { position:absolute; left:3%; bottom:4%; z-index:3; display:flex; flex-direction:column; align-items:center; gap:4px; min-height:44px; padding:8px 12px; border:2px solid #bda16d; border-radius:16px; background:#fff9e8ed; color:#4c5739; font:clamp(13px,2vw,18px)/1.3 'Jua',sans-serif; box-shadow:0 3px 8px #49391830; cursor:pointer; }
+.ranking-map-quest-icon { font-size:clamp(30px,4vw,48px); line-height:1; }
+#ranking-view .ranking-map-quest:hover { background:#fff0bb; }
+#ranking-view .ranking-map-quest:focus-visible { outline:3px solid #395d48; outline-offset:3px; }

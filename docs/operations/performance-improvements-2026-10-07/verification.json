@@ -1,0 +1,36 @@
+{
+  "finalNpmRunCheck": {
+    "exitCode": 0,
+    "newEntryRegressionTests": 10,
+    "responsiveClassroomCases": 76,
+    "rules": "local demo-dj48-rules Firestore/Storage emulators",
+    "publicSmoke": "offline local source + installed SDK + synthetic config; all external/API HTTP requests blocked"
+  },
+  "npmRunCheckStatic": {
+    "exitCode": 0
+  },
+  "coordiLoadingBrowser": {
+    "exitCode": 0,
+    "cases": [
+      "status-first",
+      "catalogs-first",
+      "status-error"
+    ]
+  },
+  "serverScopeEquivalence": {
+    "exitCode": 0,
+    "samplesPerRole": 3
+  },
+  "performanceMeasurements": "offline synthetic only",
+  "operatingLinkedStudentLoginOrTransactions": false,
+  "deployCommitPush": false,
+  "legacyPublicSmokeIncident": {
+    "runs": 3,
+    "approximateKstWindow": "2026-10-07 16:50-17:09",
+    "pages": "main / wordbattle / housing in fresh contexts",
+    "potentialSideEffect": "Automatic anonymous Firebase Auth creation; success/count not observed. No claim of zero operating writes.",
+    "completedAccountCreationConfirmed": false,
+    "remoteCleanupOrBulkAuditPerformed": false,
+    "remediation": "public-only smoke now always uses offline fixture origin and blocks backend requests; final full check passed"
+  }
+}

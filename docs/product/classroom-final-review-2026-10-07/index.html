@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>교실 최종 점검 · 동일 조건 비교</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f4f1;color:#28372f;font:15px/1.6 system-ui,sans-serif}main{max-width:1600px;margin:auto;padding:24px}h1{font-size:25px;margin:0 0 6px}p{color:#526157}a{color:#225e44}.controls{display:flex;gap:16px;flex-wrap:wrap;padding:14px;background:white;border:1px solid #dae1d8;margin:20px 0}label{display:flex;align-items:center;gap:8px}select{font:inherit;min-height:44px;padding:6px;border:1px solid #aebaae;background:white;border-radius:6px}select:focus-visible,a:focus-visible{outline:3px solid #3379af;outline-offset:3px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;width:100%;margin:auto}figure{margin:0;min-width:0;background:white}figcaption{padding:10px 14px;border-bottom:1px solid #dfe4dd;font-weight:600}.shot{width:100%;height:auto;display:block}.pair.mobile{max-width:792px}.note{font-size:13px}.assets{display:flex;flex-wrap:wrap;gap:18px;align-items:start;padding:16px;background:white}.assets img{display:block;max-width:none}.assets figcaption{font-size:13px;max-width:170px}.assets .small{padding-top:14px}.capture main{padding:0;max-width:none}.capture .noncapture{display:none}.capture .pair{max-width:none}.capture figcaption{height:42px;padding:8px 12px}.capture .pair{gap:12px}table{border-collapse:collapse;width:100%;background:white}th,td{padding:10px;text-align:left;border-bottom:1px solid #dfe4dd}section{margin-top:28px}@media(max-width:650px){main{padding:12px}.pair{grid-template-columns:1fr}.capture .pair{grid-template-columns:1fr 1fr}}
+</style>
+<main>
+<div class="noncapture">
+<h1>교실 최종 점검 · 동일 조건 비교</h1>
+<p>왼쪽은 개편 전, 오른쪽은 최종 보완 후입니다. 두 화면의 데이터·창 크기·선택 상품을 맞췄습니다.</p>
+<p class="note">보존된 개편 전 로컬 소스로 재현했습니다. 최초 첨부 화면의 실계정 데이터와 배율을 그대로 재현한 것은 아닙니다. 운영 데이터는 사용하지 않았습니다. 데스크톱 1440×1000, 태블릿 768×1024, 모바일 390×844.</p>
+<div class="controls">
+<label>역할 <select id="role"><option value="student">학생</option><option value="teacher">교사</option></select></label>
+<label>화면 <select id="tab"><option value="quest">퀘스트</option><option value="market">마켓</option></select></label>
+<label>창 크기 <select id="width"><option value="1440">1440×1000</option><option value="768">768×1024</option><option value="390">390×844</option></select></label>
+<label id="state-wrap">마켓 상태 <select id="state"><option value="">첫 상품 선택 · 상단</option><option value="-selected">간식 선택 직후 · 모바일</option></select></label>
+</div>
+<p class="note">아래 이미지는 공간에 맞춰 같은 비율로 축소됩니다. 이미지를 누르면 원본 크기로 볼 수 있습니다. ‘간식 선택 직후’는 실제 스크롤 위치와 주요 버튼 가시성을 비교합니다.</p>
+</div>
+<div class="pair" id="pair">
+<figure><figcaption>변경 전</figcaption><a id="before-link"><img id="before" class="shot" alt="동일 조건의 개편 전 화면"></a></figure>
+<figure><figcaption>최종 보완 후</figcaption><a id="final-link"><img id="final" class="shot" alt="동일 조건의 최종 보완 후 화면"></a></figure>
+</div>
+<section class="noncapture">
+<h2>실제 표시 크기</h2>
+<p>브라우저에서 요소를 원래 크기로 캡처했습니다. 아래 이미지는 확대하지 않습니다. 상품 그림 80px, 모바일 퀘스트 그림 40px, 빈 상태 88px입니다.</p>
+<div class="assets" id="assets">
+<figure><img src="final/actual-size-snack.png" alt="80px 간식 그림이 있는 실제 상품 카드"><figcaption>간식 · 그림 80×80</figcaption></figure>
+<figure><img src="final/actual-size-lunch.png" alt="80px 식판 그림이 있는 실제 상품 카드"><figcaption>급식 · 그림 80×80</figcaption></figure>
+<figure class="small"><img src="final/actual-size-notebook.png" alt="실제 40px 활동 노트"><figcaption>활동 · 40×40</figcaption></figure>
+<figure class="small"><img src="final/actual-size-empty.png" alt="실제 88px 빈 정리함"><figcaption>빈 상태 · 88×88</figcaption></figure>
+</div>
+<p class="note">작은 크기에서 식판·간식의 의미는 유지됩니다. 제목·가격·행동의 공간을 침범하지 않도록 크기를 맞췄습니다. 종이 질감과 기존 단색 SVG의 화풍 차이는 남아 있습니다.</p>
+</section>
+<section class="noncapture">
+<h2>화면에서 확인한 변화</h2>
+<table><thead><tr><th>동일 조건</th><th>변경 전</th><th>최종</th></tr></thead><tbody>
+<tr><td>교사 퀘스트 첫 활동 · 모바일</td><td>상단에서 561px</td><td>398px</td></tr>
+<tr><td>학생 퀘스트 행 · 데스크톱</td><td>294px 높이</td><td>142px 높이</td></tr>
+<tr><td>학생 마켓 첫 상품 · 모바일</td><td>상단에서 530px</td><td>358px</td></tr>
+<tr><td>마켓 상품 카드 · 모바일</td><td>314px 높이</td><td>248px 높이</td></tr>
+<tr><td>모바일 간식 선택 직후</td><td>핵심 행동이 화면 밖</td><td>구매/수정 버튼이 화면 안</td></tr>
+</tbody></table>
+<p>파스텔 카드와 반복 초록색 면을 줄이고 구분선과 작은 선택 표시를 사용했습니다. 마켓의 ‘경제 → 마켓 → 상품 분류’ 3단계는 유지되어 있습니다. 중복 제목과 시각적 무게를 줄인 것이며 탐색 단계 자체를 줄인 것은 아닙니다.</p>
+<a href="../../operations/CLASSROOM_FINAL_REVIEW_2026-10-07.md">측정 조건·전체 결과·남은 제약</a>
+</section>
+</main>
+<script>
+const params=new URLSearchParams(location.search);
+const ids=['role','tab','width','state'];const controls=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+ids.forEach(id=>{if(params.has(id))controls[id].value=params.get(id)});
+if(params.has('capture'))document.body.classList.add('capture');
+function update(){
+ const {role,tab,width,state}=controls;const mobile=width.value==='390';
+ document.getElementById('pair').className=`pair ${mobile?'mobile':''}`;
+ document.getElementById('state-wrap').hidden=tab.value!=='market'||!mobile;
+ const suffix=tab.value==='market'&&mobile?state.value:'';
+ for(const v of ['before','final']){const source=`${v}/${role.value}-${width.value}-${tab.value}${suffix}.png`;document.getElementById(v).src=source;document.getElementById(`${v}-link`).href=source}
+}
+Object.values(controls).forEach(control=>control.addEventListener('change',update));update();
+</script></html>

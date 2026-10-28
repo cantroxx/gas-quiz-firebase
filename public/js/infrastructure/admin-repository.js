@@ -2,13 +2,29 @@
   async function callAdminCallable(options = {}, deps = {}) {
     const functions = deps.getFirebaseFunctions?.();
     if(!functions) throw new Error('functions-unavailable');
+    const owner = deps.getReadOwner?.();
     await deps.initializeAuthUser?.();
     const callableName = options.callableName || '';
     const callable = functions.httpsCallable(callableName);
-    const response = await callable(options.payload || {});
-    const result = response?.data || {};
-    if(!result.success) throw new Error(options.errorCode || `${callableName || 'admin-call'}-failed`);
-    return result;
+    const mutation = callableName.startsWith('admin') && !/^admin(Get|List)/.test(callableName);
+    if(mutation) deps.invalidateReads?.();
+    const load = async () => {
+      if(owner !== deps.getReadOwner?.()) throw new Error('admin-session-changed');
+      const response = await callable(options.payload || {});
+      if(owner !== deps.getReadOwner?.()) throw new Error('admin-session-changed');
+      const result = response?.data || {};
+      if(!result.success) throw new Error(options.errorCode || `${callableName || 'admin-call'}-failed`);
+      return result;
+    };
+    try {
+      const result = options.cache && deps.readValue
+        ? await deps.readValue(JSON.stringify([owner, callableName, options.payload || {}]), load, options)
+        : await load();
+      if(owner !== deps.getReadOwner?.()) throw new Error('admin-session-changed');
+      return result;
+    } finally {
+      if(mutation) deps.invalidateReads?.();
+    }
   }
 
   function runAdminMemberAction(action, memberUserId, deps = {}) {
@@ -71,7 +87,6 @@
         const watchedDocs = [
           ['featureFlags', db.collection('appSettings').doc('featureFlags')],
           ['externalQuizzes', db.collection('appSettings').doc('externalQuizzes')],
-          ['seasonEvents', db.collection('appSettings').doc('seasonEvents')],
           ['noticeBoard', db.collection('noticeBoard').doc('current')]
         ];
         const snapshots = await Promise.all(watchedDocs.map(([key, ref]) =>
@@ -85,11 +100,14 @@
           return `${item.key}:${options.getTimestampMillis?.(data.updatedAt) || 0}`;
         }).join('|');
       },
-      loadAdminDashboard: () => callAdminCallable({
+      loadAdminDashboard: (options = {}) => callAdminCallable({
+        cache: true,
+        forceRefresh: options.forceRefresh === true,
         callableName: 'adminGetDashboard',
         errorCode: 'admin-dashboard-load-failed'
       }, deps),
-      loadAdminOperationalAudit: () => callAdminCallable({
+      loadAdminOperationalAudit: (payload = {}) => callAdminCallable({
+        payload,
         callableName: 'adminGetOperationalAudit',
         errorCode: 'admin-audit-load-failed'
       }, deps),
@@ -97,7 +115,9 @@
         callableName: 'adminGetQuizQualityAudit',
         errorCode: 'admin-quiz-quality-load-failed'
       }, deps),
-      loadAdminMembers: (payload = {}) => callAdminCallable({
+      loadAdminMembers: (payload = {}, options = {}) => callAdminCallable({
+        cache: true,
+        forceRefresh: options.forceRefresh === true,
         callableName: 'adminListMembers',
         payload,
         errorCode: 'admin-list-failed'

@@ -15,6 +15,22 @@ Start with `architecture/PARALLEL_WORK_PLAN.md` when planning multiple terminals
 
 ## Current Handoff
 
+- `operations/COORDI_WINDOWS_INTEGRATION_2026-10-28.md`: Windows 묶음 검증·자체 렌더러/상점 연결·26개 픽셀 일치·판매 단품 검사·Windows 보완 요청.
+
+- `architecture/COORDI_RENDERER_WINDOWS_HANDOFF_2026-10-28.md`: 메이플 코디 Windows 인계 요구사항·기존 거래/저장/ID 계약·공통 렌더 교체 경계·검증 상태.
+
+- `operations/CLASSROOM_FOLLOWUP_EXECUTION_2026-10-21.md`: 교실 F-01~F-16 후작업의 구현·이전 정책·릴리스 범위.
+- `operations/CLASSROOM_POST_FOLLOWUP_VERIFICATION_2026-10-21.md`: 후작업 및 최종 총점검 결과, 원본 미처리 계약과 실제 이전 보류 조건.
+
+- `product/CLASSROOM_BOARD_PHASES_1_3_2026-10-21.md`: 전자칠판 수업 보드 1~3차 목표·구현·검증과 그라운드 이전 준비 기준.
+- `operations/CLASSROOM_BOARD_FOLLOWUPS_2026-10-21.md`: 수업 보드 전체 점검 후 후작업·현장 확인·실제 이전 준비.
+
+- `operations/ADMIN_REFRESH_DEPLOYMENT_2026-10-21.md`: 관리자 최신화 운영 배포 완료·후보 검증·소스 및 설정 보존 결과.
+
+- `operations/ADMIN_REFRESH_PLAN_2026-10-19.md`: 관리자 최신화 단계·목표·검증 정본. 증권은 교실 안에서만 관리.
+
+- `product/TOWN_SPATIAL_UX_PLAN_2026-10-18.md`: 새 원화 8개를 사용하는 공간형 UI의 단계별 정본. 마을 산책·건물 입장·실내 사물 선택·실제 기능 패널·모바일 전체/확대 보기. 앞선 배너 개편 이후의 별도 작업.
+- `product/TOWN_UI_SIMPLIFICATION_PLAN_2026-10-18.md`: 로그인·타운·내부 공간 그림책 UI 개편의 단계별 정본. 오늘의 퀘스트 유지, 시즌 이벤트·오늘의 퀴즈 학생 노출 제거, 별도 랭킹 단일화·재화 초기화와의 경계.
 - `operations/FRACTION_WORLD_IMPLEMENTATION_2026-09-11.md`: 분수 월드 두 게임의 구현·실행·검증·로컬 저장 및 배포 범위
 - `product/FRACTION_WORLD_DESIGN_2026-09-11.md`: 균열의 탑 24방과 스타라이트 스튜디오 28일 시즌의 콘텐츠·학습 설계
 - `operations/FULL_HANDOFF_AUDIT_2026-09-09.md`: Claude 이관 완결성, 15개 저장소·자동 검사·공개 배포 대조, 최신 오류와 후속 우선순위의 현재 정본

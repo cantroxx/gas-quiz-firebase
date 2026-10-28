@@ -1,0 +1,25 @@
+'use strict';
+const assert = require('node:assert/strict');
+const D = require('../../public/cloud-tower/domain.js');
+const S = require('../../public/cloud-tower/store.js');
+function solve(s) { D.input(s,D.prompt(s));return D.submit(s); }
+const state=D.create('challenge');
+D.input(state,'구룽');assert.equal(D.submit(state).success,false);assert.equal(state.floor,0);
+D.input(state,'구름');assert.equal(D.submit(state).perfect,false);assert.equal(state.floor,1);assert.equal(state.combo,0);assert.equal(D.accuracy(state),66.7);
+solve(state);solve(state);assert.equal(solve(state).boost,true);assert.equal(state.floor,5);assert.equal(state.score,660);
+assert.equal(D.create('challenge').index,0);assert.equal(D.record(state,'탐험가'),null);
+const ime=D.create('practice');D.input(ime,'구');D.input(ime,'구');D.input(ime,'구름');assert.equal(ime.strokes,2);assert.equal(D.accuracy(ime),100);
+D.input(ime,'구');assert.equal(ime.strokes,2);D.input(ime,'구름');assert.equal(ime.strokes,3);
+const idle=D.create('challenge');D.tick(idle,500);assert.equal(idle.reason,'storm');assert.ok(idle.elapsed>40&&idle.elapsed<42);assert.equal(D.record(idle,'탐험가'),null);
+const practice=D.create('practice');solve(practice);D.tick(practice,99999);assert.equal(practice.phase,'playing');practice.phase='finished';assert.equal(D.record(practice,'탐험가'),null);
+const timed=D.create('challenge');for(let i=0;i<30;i++)solve(timed);D.tick(timed,120);assert.equal(timed.reason,'time');assert.equal(timed.elapsed,120);const rec=D.record(timed,'탐험가',1);assert.ok(rec);assert.equal(D.prompt(timed),D.COURSE[0]);
+const stopped=D.create('challenge');solve(stopped);stopped.phase='finished';stopped.reason='abandon';assert.equal(D.record(stopped,'탐험가'),null);
+let raw='[]';const memory={getItem:()=>raw,setItem:(_,v)=>{raw=v;}};const store=S.create(memory,D);
+assert.equal(store.save(rec).improved,true);assert.equal(store.save({...rec,score:rec.score-1}).improved,false);assert.equal(store.best().length,1);
+store.save({...rec,nickname:'두 번째',accuracy:99});assert.equal(store.best()[0].nickname,'탐험가');
+store.save({...rec,score:rec.score+100});assert.equal(store.best()[0].score,rec.score+100);assert.equal(S.create(memory,D).best().length,2);
+assert.equal(store.save({...rec,score:Infinity}).saved,false);
+raw='{"bad":"shape"}';assert.deepEqual(S.create(memory,D).best(),[]);
+raw='not JSON';const corrupt=S.create(memory,D);assert.equal(corrupt.isAvailable(),false);assert.equal(corrupt.save(rec).saved,true);
+const blocked=S.create({getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}},D);assert.equal(blocked.save(rec).saved,false);assert.equal(blocked.best().length,1);
+console.log('Cloud Tower domain/store: scoring, typo corrections, IME deduplication, combos, fixed course, background deadline, practice/abandon exclusions, best ranking, corruption and unavailable storage passed.');

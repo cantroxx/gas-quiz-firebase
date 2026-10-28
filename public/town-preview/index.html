@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3e8">
+  <title>숲속 마을 — 퀴즈타운 디자인 미리보기</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="#village" aria-label="퀴즈타운 마을로"><span class="brand-mark">✦</span><span>퀴즈타운<small>우리들의 작은 숲속 마을</small></span></a>
+    <div class="header-right"><span class="preview-tag">디자인 미리보기</span><button class="round-button" id="help-button" aria-label="미리보기 안내">?</button></div>
+  </header>
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="welcome"><span class="eyebrow">HELLO, NEIGHBOR!</span><h1>오늘은 어디로 <br>놀러 갈까?</h1><p>작은 도전이 모여<br>우리 마을이 자라나요.</p></div>
+      <div class="passport"><div class="portrait" aria-hidden="true">🌱</div><div><strong>새싹 탐험가</strong><span>마을 둘러보기 체험 중</span></div></div>
+      <div class="wallet"><span>체험 코인<strong><i>✦</i> <span id="coins">120</span></strong></span><span>내 가방<strong><span id="bag-count">0</span> <small>개</small></strong></span></div>
+      <section class="mission"><div class="section-label"><h2>오늘의 작은 모험</h2><span>DEMO</span></div><p>마을의 세 장소를 찾아보세요.</p><ul id="visit-list"><li data-visit="school"><span>○</span>학교에서 문제 풀기</li><li data-visit="shop"><span>○</span>상점에서 소품 고르기</li><li data-visit="home"><span>○</span>내 집에 소품 놓기</li></ul><div class="progress-track"><span id="visit-progress"></span></div><small id="visit-summary">0 / 3개의 장소에서 체험했어요</small></section>
+      <div class="postcard"><span>✉</span><p>이곳의 코인과 물건은<br><b>미리보기 안에서만</b> 사용해요.</p></div>
+    </aside>
+    <section class="world-panel" aria-label="마을 탐험">
+      <div class="world-heading"><div><span class="eyebrow" id="location-kicker">OUR LITTLE VILLAGE</span><h2 id="location-title">햇살 가득 숲속 마을</h2></div><button class="back-button" id="back-button" hidden>← 마을로</button><span class="weather" id="weather">☀ 맑음 · 산책하기 좋은 날</span></div>
+      <div id="village-view">
+        <div class="art-toolbar"><div class="style-picker" role="group" aria-label="마을 그림체 선택"><button data-style="a" aria-pressed="true">A · 발랄한 마을</button><button data-style="b" aria-pressed="false">B · 그림책 마을</button></div><button class="motion-toggle" id="motion-toggle" aria-pressed="false">발걸음 연출 켜짐</button></div>
+        <div class="map-viewport" id="map-viewport" tabindex="0" aria-label="마을 지도. 작은 화면에서는 옆으로 밀어 둘러볼 수 있어요.">
+          <div class="map-world" id="map-world">
+            <img id="map-art" src="assets/village-a.png" alt="학교, 내 집, 가구 상점이 산책길로 연결된 동물 마을" width="1536" height="1024" fetchpriority="high" draggable="false">
+            <button class="hotspot school" data-destination="school" aria-label="학교에 들어가기"><span class="place-sign"><i>✎</i><span>숲속 학교<small>작은 퀴즈, 큰 발견</small></span><b>↗</b></span></button>
+            <button class="hotspot home" data-destination="home" aria-label="내 집에 들어가기"><span class="place-sign"><i>⌂</i><span>나의 작은 집<small>내 취향을 담는 곳</small></span><b>↗</b></span></button>
+            <button class="hotspot shop" data-destination="shop" aria-label="상점에 들어가기"><span class="place-sign"><i>✦</i><span>도토리 잡화점<small>마음에 쏙 드는 소품</small></span><b>↗</b></span></button>
+            <div class="player" id="player" aria-hidden="true"><span>나</span><i></i></div>
+            <div class="map-note">길 위의 작은 일상, 오늘도 반가워!</div>
+          </div>
+        </div>
+        <div class="map-caption"><span><i class="status-dot"></i><span id="map-hint">건물이나 간판을 눌러 들어가 보세요.</span></span><button id="center-map">내 위치 보기 ⊙</button></div>
+      </div>
+      <section class="destination-view" id="destination-view" hidden aria-label="장소 내부">
+        <div class="interior"><img id="interior-art" alt="" width="1536" height="1024"><div class="interior-gradient"></div><div class="scene-greeting"><span id="scene-tag"></span><h3 id="scene-title"></h3><p id="scene-description"></p></div></div>
+        <div class="activity-panel" id="activity-panel"></div>
+      </section>
+      <nav class="quick-nav" aria-label="빠른 장소 이동"><button data-destination="school"><i>✎</i>학교</button><button data-destination="shop"><i>✦</i>상점</button><button data-destination="home"><i>⌂</i>내 집</button><a href="/" class="existing-link">기존 퀴즈타운 ↗</a></nav>
+    </section>
+  </main>
+  <footer class="footer"><span>QUIZTOWN · VILLAGE STUDY 01</span><span>새로운 마을의 첫 산책</span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="help-dialog"><button class="dialog-close" id="close-help" aria-label="안내 닫기">×</button><span class="eyebrow">WELCOME TO THE PREVIEW</span><h2>마을에 온 걸 환영해!</h2><p>A와 B로 그림체를 비교하고, 건물이나 아래 메뉴를 눌러 장소를 둘러보세요.</p><p>학교에서 퀴즈를 풀고, 상점에서 소품을 산 다음 내 집에 놓아볼 수 있어요. 체험 기록은 이 브라우저에만 저장되며 실제 코인·학생 기록에는 반영되지 않아요.</p><p>작은 화면에서는 지도를 옆으로 밀어보세요. 이동 중에는 Esc 키로 취소할 수 있어요.</p><button class="primary" id="reset-demo">체험 기록 초기화</button></dialog>
+</body>
+</html>

@@ -1,0 +1,48 @@
+'use strict';
+const assert=require('node:assert/strict'),path=require('node:path');
+assert.match(process.env.FIRESTORE_EMULATOR_HOST||'',/^127\.0\.0\.1:/);
+process.env.GCLOUD_PROJECT='demo-dj48-rules';
+const api=require('../../functions/index');
+const load=require('node:module').createRequire(path.resolve('functions/package.json'));
+const {getFirestore}=load('firebase-admin/firestore'),{getApps,deleteApp}=load('firebase-admin/app');
+const db=getFirestore(),C=require('../../functions/achievements/catalog');
+const uid='achievements-auth',member='achievements-student';
+const call=(name,data,auth=uid)=>api[name].run({auth:{uid:auth},data});
+(async()=>{
+ await db.doc('users/'+member).set({authUid:uid,status:'active',active:true,role:'student',grade:'4',classNumber:'8',studentNumber:96,nickname:'칭호검사',selectedTitleId:'legacy-owned'});
+ await db.doc('authLinks/'+uid).set({memberUserId:member});
+ await db.doc('userTitles/'+member+'/titles/legacy-owned').set({titleName:'예전 칭호',selected:true});
+ await db.doc('appSettings/featureFlags').set({practiceRewardEnabled:false,practiceXpEnabled:false,rankingEnabled:true});
+ await db.doc('achievementProgress/'+member).set({version:C.VERSION,areas:{korean:{answered:99,perfectRuns:9}}});
+ let time=Date.now();
+ const subject=require('../../functions/subject-quiz/service').createService({db,now:()=>time});
+ const curriculum=require('../../functions/subject-quiz/curriculum');
+ const unit=curriculum.units.find(x=>x.subject==='korean');
+ const act=data=>subject.act(uid,data);
+ let run=await act({action:'start',unitId:unit.id,mode:'practice',requestId:'practice'});
+ let secret=(await db.doc('subjectQuizRuns/'+run.runId).get()).data();time+=500;
+ const answer={action:'answer',runId:run.runId,seq:run.seq,choice:(secret.question.answer+1)%4};
+ const results=await Promise.all([act(answer),act(answer)]);assert.equal(results.filter(x=>x.duplicate).length,1);
+ assert.equal((await db.doc('achievementProgress/'+member).get()).data().areas.korean.answered,100);
+ await act({action:'finish',runId:run.runId});
+ run=await act({action:'start',unitId:unit.id,mode:'ranking',requestId:'ranking'});
+ for(let i=0;i<40;i++){
+  secret=(await db.doc('subjectQuizRuns/'+run.runId).get()).data();time+=500;
+  run=await act({action:'answer',runId:run.runId,seq:run.seq,choice:secret.question.answer});
+ }
+ assert.equal((await db.doc('achievementProgress/'+member).get()).data().areas.korean.perfectRuns,10);
+ await Promise.all([call('syncMemberTitles',{memberUserId:member}),call('syncMemberTitles',{memberUserId:member})]);
+ const owned=await db.collection('userTitles').doc(member).collection('titles').get();assert.equal(owned.size,3);
+ assert.equal((await db.doc('users/'+member).get()).data().selectedTitleId,'legacy-owned');
+ const balance=(await db.doc('userEconomy/'+member).get()).data().djCoin;assert(balance>=60);assert.equal((await db.collection('rewardLogs').where('memberUserId','==',member).where('type','==','title_acquisition_reward').get()).size,2);
+ await call('syncMemberTitles',{memberUserId:member});assert.equal((await db.doc('userEconomy/'+member).get()).data().djCoin,balance);
+ const state=await call('getMemberAchievements',{memberUserId:member});assert.equal(state.catalog.length,63);assert(state.catalog.every(t=>t.titleId.startsWith('a26_')));
+ await assert.rejects(call('getMemberAchievements',{memberUserId:member},'someone-else'));
+ await db.doc('rankingRecords/legacy-pokemon-hell').set({memberUserId:member,quizId:'pokemon-very-hard',score:999});
+ const popular=require('../../functions/popular-quiz/service').createService({db,now:()=>time});
+ const mine=await popular.act(uid,{action:'memberRankings',memberUserId:member});assert.equal(mine.records.length,0);
+ const G=require('../../functions/achievements/games');
+ await db.runTransaction(async tx=>{G.award(tx,db,member,'unit-star','stars');G.award(tx,db,member,'unit-heart','hearts');});
+ const honors=(await call('getMemberAchievements',{memberUserId:member})).gameHonors;assert.equal(honors.stars,1);assert.equal(honors.hearts,1);
+ console.log('PASS real Firestore: concurrent answer and title sync, legacy ownership, exact rewards, 20 streak once, catalog reset, legacy rank exclusion, honors');
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{await Promise.all(getApps().map(deleteApp));});

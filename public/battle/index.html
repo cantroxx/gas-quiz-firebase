@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>온라인 대전 — DJ48 퀴즈타운</title>
+  <title>게임 아지트 — DJ48 퀴즈타운</title>
   <link rel="icon" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,6 +51,10 @@
     .e-text b { display: block; font-size: 1.12rem; font-family: 'Jua', sans-serif; }
     .e-text small { color: #6b6257; }
     .e-go { margin-left: auto; color: #4a6b2a; font-weight: bold; }
+    .entry-cloud { background: #eef9fc; border-color: #80bdcb; }
+    .e-thumb { width: 58px; height: 58px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
+    .e-tag { display: inline-block; margin-top: 6px; padding: 3px 7px; border-radius: 6px; background: #dcedf4; color: #376c82; font-size: 0.73rem; }
+    .entry:focus-visible { outline: 3px solid #218fa4; outline-offset: 3px; }
     .back {
       display: inline-block;
       margin-top: 8px;
@@ -63,32 +67,52 @@
 </head>
 <body>
   <main class="card">
-    <h1>⚔️ 온라인 대전</h1>
-    <p class="sub">친구들과 실시간으로 겨루는 랭크전! 어떤 대전을 할까요?</p>
+    <h1>🎲 게임 아지트</h1>
+    <p class="sub">친구와 대결하고, 나만의 기록에 도전해요! 어떤 게임을 할까요?</p>
 
-    <a class="entry" href="/wordbattle/">
-      <span class="e-emoji" aria-hidden="true">🧩</span>
+    <a class="entry" href="https://dj48-samgukji.web.app/" target="_blank" rel="noopener noreferrer">
+      <span class="e-emoji" aria-hidden="true">⚔️</span>
       <span class="e-text">
-        <b>낱말 대전</b>
-        <small>자음·모음 타일로 낱말 만들기 — 한글판 루미큐브</small>
+        <b>삼국지 조조전</b>
+        <small>장수를 지휘하고 선택으로 이야기를 바꾸는 턴제 전술 모험</small>
+        <span class="e-tag">1인 캠페인 · 30장 · 이 브라우저에 저장</span>
+      </span>
+      <span class="e-go" aria-hidden="true">↗</span>
+    </a>
+
+    <a class="entry" href="/fruit-bell/" style="background:#f8f2d9;border-color:#c9b56d">
+      <span class="e-emoji" aria-hidden="true">🔔</span>
+      <span class="e-text"><b>딩동! 과일종</b><small>같은 과일이 딱 5개! 먼저 종을 쳐서 카드를 가져와요.</small>
+        <span class="e-tag">2~4인 온라인 대전 · 90초 승부 · 아지트 랭킹</span></span>
+      <span class="e-go" aria-hidden="true">▶</span>
+    </a>
+
+    <a class="entry entry-cloud" href="/cloud-tower/">
+      <img class="e-thumb" src="/cloud-tower/assets/sky-kingdom-v2.png" alt="" width="58" height="58">
+      <span class="e-text">
+        <b>타닥타닥 구름탑</b>
+        <small>타자로 달리고 점프! 하늘섬 120초 챌린지</small>
+        <span class="e-tag">공용 랭킹 · 2~4인 실시간 레이스</span>
       </span>
       <span class="e-go" aria-hidden="true">▶</span>
     </a>
 
-    <a class="entry" href="/marble/">
-      <span class="e-emoji" aria-hidden="true">🧑‍🌾</span>
+    <a class="entry" href="/town-marble/?mode=online">
+      <img class="e-thumb" src="/town-marble/art/sky-v2.png" alt="" width="58" height="58" loading="lazy">
       <span class="e-text">
-        <b>특산물 마블</b>
-        <small>싸게 사서 비싸게 팔기! 특산물 무역 1:1 대결</small>
+        <b>두근두근 마블</b>
+        <small>통통 뛰는 캐릭터와 도시를 사고 건물을 세우는 세계여행</small>
+        <span class="e-tag">2~4인 온라인 대전 · 마블 랭킹</span>
       </span>
       <span class="e-go" aria-hidden="true">▶</span>
     </a>
 
-    <a class="entry" href="/geosang/">
-      <span class="e-emoji" aria-hidden="true">🛞</span>
+    <a class="entry" href="/word-bomb/" style="background:#f3edfb;border-color:#c3afe3">
+      <span class="e-emoji" aria-hidden="true">💣</span>
       <span class="e-text">
-        <b>팔도 특산물 대상인</b>
-        <small>전국 지도를 누비는 무역 여행 — 도감 진도로 겨뤄요</small>
+        <b>두근두근 말폭탄</b>
+        <small>끝말잇기로 폭탄을 넘겨요! 일반 대전 · 타임 챌린지</small>
+        <span class="e-tag">2~8인 온라인 대전 · 캐릭터 선택 · 봇 연습</span>
       </span>
       <span class="e-go" aria-hidden="true">▶</span>
     </a>
@@ -96,8 +120,18 @@
     <a class="entry" href="https://dj48-fraction-world.vercel.app/">
       <span class="e-emoji" aria-hidden="true">🌗</span>
       <span class="e-text">
-        <b>스터디 타운</b>
-        <small>균열의 탑 생존 액션 · 스타라이트 아이돌 육성 — 분수로 여는 두 세계</small>
+        <b>균열의 탑</b>
+        <small>문제를 풀고 무기와 유물을 모으며 도전하는 생존 액션 게임</small>
+      </span>
+      <span class="e-go" aria-hidden="true">▶</span>
+    </a>
+
+    <a class="entry" href="https://kbo-owner.vercel.app/">
+      <span class="e-emoji" aria-hidden="true">⚾</span>
+      <span class="e-text">
+        <b>프로야구 구단주</b>
+        <small>선수를 훈련하고 구단을 운영해 한국시리즈 우승에 도전해요!</small>
+        <span class="e-tag">1인 구단 운영 · KBO Owner</span>
       </span>
       <span class="e-go" aria-hidden="true">▶</span>
     </a>

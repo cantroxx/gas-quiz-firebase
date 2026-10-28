@@ -200,7 +200,7 @@
 
   function buildPracticeProgressRecordId(memberUserId, areaKey, deps = {}) {
     const slugKey = deps.slugPracticeKey || (value => String(value || '').trim());
-    return `${memberUserId}__${slugKey(areaKey).replace(/-/g, '_')}`;
+    return `${memberUserId}__practice_20261018__${slugKey(areaKey).replace(/-/g, '_')}`;
   }
 
   function getRankingTargetForQuiz(quizId, deps = {}) {

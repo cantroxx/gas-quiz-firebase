@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "candidateDigest": "427f4c974e0bba0fc80de547c6bdcf5b4756c1881dc3632088ded5109729426e",
+  "checks": [
+    "npm run check exit 0",
+    "candidate current and cached HTML status tests exit 0",
+    "candidate spatial tests exit 0",
+    "100 medal decode/no printed numbers exit 0",
+    "old HTML crash reproduced and compatibility verified"
+  ]
+}

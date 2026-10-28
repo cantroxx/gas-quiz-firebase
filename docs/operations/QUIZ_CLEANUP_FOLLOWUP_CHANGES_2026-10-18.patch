@@ -1,0 +1,1623 @@
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -953,17 +953,6 @@
+   return { items };
+ }
+ 
+-function getSeasonEventsUpdateLock(snapshot) {
+-  if (!snapshot?.exists) return { locked: false, lockedUntilIso: "" };
+-  const updatedAtMillis = timestampToMillis(snapshot.data()?.updatedAt);
+-  if (!updatedAtMillis) return { locked: false, lockedUntilIso: "" };
+-  const lockedUntilMillis = updatedAtMillis + SEASON_EVENTS_UPDATE_LOCK_MS;
+-  const locked = lockedUntilMillis > Date.now();
+-  return {
+-    locked,
+-    lockedUntilIso: locked ? new Date(lockedUntilMillis).toISOString() : ""
+-  };
+-}
+ 
+ function getKstDateKey(date = new Date()) {
+   const parts = new Intl.DateTimeFormat("en-CA", {
+@@ -1761,16 +1750,6 @@
+   });
+ }
+ 
+-function getTodayQuizIds(flags = {}) {
+-  const manualIds = Array.isArray(flags.todayQuizIds) ? flags.todayQuizIds : [];
+-  const poolIds = Array.isArray(flags.todayQuizRandomPoolIds) ? flags.todayQuizRandomPoolIds : [];
+-  const ids = flags.todayQuizMode === "dailyRandom"
+-    ? getDailyShuffledQuizIds(poolIds, `${getKstDateKey()}:${flags.todayQuizShuffleSeed || ""}`).slice(0, Math.max(1, Number(flags.todayQuizDailyCount) || 1))
+-    : manualIds;
+-  return new Set(ids
+-    .map(id => String(id || "").trim())
+-    .filter(Boolean));
+-}
+ 
+ function getPracticeQuestKindsForQuiz(quizId) {
+   const id = String(quizId || "").trim();
+@@ -2275,57 +2254,6 @@
+   };
+ }
+ 
+-function mirrorDjCoinRewardToClassroomPoint(transaction, {
+-  memberUserId,
+-  memberData,
+-  authUid,
+-  rewardAmount,
+-  sourceType,
+-  sourceId
+-}) {
+-  const amount = Math.max(0, Math.round(Number(rewardAmount) || 0));
+-  const classId = getClassIdForMember(memberData);
+-  if (!classId || amount <= 0) return null;
+-  const logId = rewardLogId([
+-    "dj_coin_mirror_point",
+-    classId,
+-    memberUserId,
+-    sourceType || "dj_coin_reward",
+-    sourceId || Date.now()
+-  ]);
+-  const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
+-  const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
+-  transaction.set(walletRef, {
+-    memberUserId,
+-    userId: memberUserId,
+-    classId,
+-    point: FieldValue.increment(amount),
+-    totalEarnedPoint: FieldValue.increment(amount),
+-    updatedAt: FieldValue.serverTimestamp(),
+-    lastDjCoinMirrorPointAt: FieldValue.serverTimestamp(),
+-    source: sourceType || "dj_coin_mirror_point"
+-  }, { merge: true });
+-  transaction.set(pointLogRef, {
+-    type: "dj_coin_mirror_point",
+-    classId,
+-    userId: memberUserId,
+-    memberUserId,
+-    authUid,
+-    rewardCurrency: "point",
+-    rewardPoint: amount,
+-    rewardAmount: amount,
+-    sourceType: sourceType || "dj_coin_reward",
+-    sourceId: sourceId || "",
+-    source: "firebase_function",
+-    createdAt: FieldValue.serverTimestamp()
+-  }, { merge: false });
+-  return {
+-    classId,
+-    rewardPoint: amount,
+-    walletPath: walletRef.path,
+-    pointLogPath: pointLogRef.path
+-  };
+-}
+ 
+ function normalizeClassroomSettings(classId, data = {}) {
+   const fallback = DEFAULT_CLASSROOM_SETTINGS[classId] || {
+@@ -2678,48 +2606,7 @@
+   return correctCount;
+ }
+ 
+-function getRecordAreaKey(record) {
+-  return String(record?.areaKey || `${record?.area || ""}/${record?.detail || ""}`).trim();
+-}
+-
+-function buildEventQuestRows(quests, progressMap, claimMap) {
+-  return quests.map(quest => {
+-    const claim = claimMap[quest.questId] || {};
+-    const repeatLimit = Math.max(1, Math.round(Number(quest.repeatLimit) || 1));
+-    const claimedCount = Math.min(repeatLimit, Math.max(0, Math.round(Number(claim.claimedCount) || 0)));
+-    const target = Math.max(1, Math.round(Number(quest.target) || 1));
+-    const progress = Math.max(0, Math.round(Number(progressMap[quest.questId]?.current) || 0));
+-    const nextTarget = target * Math.min(repeatLimit, claimedCount + 1);
+-    const current = Math.min(nextTarget, progress);
+-    const completed = current >= nextTarget;
+-    const claimed = claimedCount >= repeatLimit || (quest.scope !== "weekly" && claimedCount > 0);
+-    const claimable = completed && !claimed;
+-    const rewardParts = [`XP +${quest.xpReward || 0}`];
+-    if (Number(quest.rewardCoin) > 0) rewardParts.push(`DJ코인 +${quest.rewardCoin}`);
+-    return {
+-      questId: quest.questId,
+-      icon: quest.icon,
+-      title: quest.title,
+-      scope: quest.scope || "daily",
+-      recommended: !!quest.recommended,
+-      current,
+-      target: nextTarget,
+-      baseTarget: target,
+-      progress: `${current}/${nextTarget}`,
+-      xpReward: quest.xpReward || 0,
+-      rewardCoin: quest.rewardCoin || 0,
+-      reward: rewardParts.join(" · "),
+-      claimedCount,
+-      repeatLimit,
+-      completed,
+-      claimed,
+-      claimable,
+-      status: claimed
+-        ? "수령 완료"
+-        : (claimable ? "완료 가능" : (quest.scope === "weekly" ? `주간 반복 ${claimedCount}/${repeatLimit}` : "진행 중"))
+-    };
+-  });
+-}
++
+ 
+ async function loadLinkedMemberForEvent(authUid, memberUserId) {
+   const safeMemberUserId = normalizeId(memberUserId, "memberUserId");
+@@ -2797,111 +2684,9 @@
+   return { success: true, status };
+ });
+ 
+-async function loadMemberPracticeRecords(memberUserId) {
+-  const snapshot = await db.collection("practiceRecords")
+-    .where("memberUserId", "==", memberUserId)
+-    .limit(500)
+-    .get();
+-  return snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
+-}
+-
+-async function loadEventClaimMap(memberUserId, quests, dateKey, weekKey) {
+-  const refs = [];
+-  const keys = [];
+-  quests.forEach(quest => {
+-    const repeatLimit = Math.max(1, Math.round(Number(quest.repeatLimit) || 1));
+-    for (let attempt = 1; attempt <= repeatLimit; attempt += 1) {
+-      refs.push(db.collection("rewardLogs").doc(getEventRewardLogId(memberUserId, quest, dateKey, weekKey, attempt)));
+-      keys.push({ questId: quest.questId, attempt });
+-    }
+-  });
+-  const snapshots = await Promise.all(refs.map(ref => ref.get()));
+-  return snapshots.reduce((map, snapshot, index) => {
+-    if (snapshot.exists) {
+-      const key = keys[index];
+-      const current = map[key.questId] || { claimedCount: 0 };
+-      map[key.questId] = {
+-        claimedCount: current.claimedCount + 1,
+-        lastAttempt: Math.max(current.lastAttempt || 0, key.attempt)
+-      };
+-    }
+-    return map;
+-  }, {});
+-}
+-
+-async function loadEventProgressMap(memberUserId, quests, dateKey, weekKey) {
+-  const snapshots = await Promise.all(quests.map(quest =>
+-    db.collection("eventQuestProgress")
+-      .doc(getEventProgressId(memberUserId, quest, dateKey, weekKey))
+-      .get()
+-  ));
+-  return snapshots.reduce((map, snapshot, index) => {
+-    if (snapshot.exists) map[quests[index].questId] = snapshot.data() || {};
+-    return map;
+-  }, {});
+-}
+-
+-async function loadClassEventProgress(memberData) {
+-  const grade = String(memberData.grade || "");
+-  const classNumber = String(memberData.classNumber || "");
+-  const school = String(memberData.school || DEFAULT_MEMBER_SCHOOL);
+-  if (!grade || !classNumber) return [];
+-
+-  const gradeCandidates = Array.from(new Set([
+-    grade,
+-    Number(grade)
+-  ].filter(value => value !== "" && !Number.isNaN(value))));
+-  const memberSnapshot = await db.collection("users")
+-    .where("grade", "in", gradeCandidates)
+-    .limit(120)
+-    .get();
+-  const memberIds = memberSnapshot.docs
+-    .filter(doc => {
+-      const data = doc.data() || {};
+-      return data.role === "student"
+-        && data.status === "active"
+-        && data.active === true
+-        && String(data.classNumber || "") === classNumber
+-        && String(data.school || DEFAULT_MEMBER_SCHOOL) === school;
+-    })
+-    .map(doc => doc.id);
+-
+-  if (!memberIds.length) {
+-    return CLASS_MISSION_DEFINITIONS.map(mission => ({ ...mission, current: 0, percent: 0 }));
+-  }
+-
+-  let practiceTotal = 0;
+-  let rankingTotal = 0;
+-  let coinTotal = 0;
+-  for (const chunk of chunkArray(memberIds, 30)) {
+-    const [practiceSnapshot, rankingSnapshot, economySnapshots] = await Promise.all([
+-      db.collection("practiceRecords").where("memberUserId", "in", chunk).limit(1000).get(),
+-      db.collection("rankingRecords").where("memberUserId", "in", chunk).limit(1000).get(),
+-      Promise.all(chunk.map(memberId => db.collection("userEconomy").doc(memberId).get()))
+-    ]);
+-    practiceTotal += practiceSnapshot.docs
+-      .map(doc => doc.data() || {})
+-      .reduce((sum, record) => sum + getPracticeSolvedTotal(record), 0);
+-    rankingTotal += rankingSnapshot.size;
+-    coinTotal += economySnapshots
+-      .map(snapshot => snapshot.exists ? snapshot.data() || {} : {})
+-      .reduce((sum, economy) => sum + (Number(economy.totalEarned ?? economy.djCoin ?? 0) || 0), 0);
+-  }
+-
+-  const values = {
+-    class_quiz_100: practiceTotal,
+-    class_coin_2000: coinTotal,
+-    ranking_30: rankingTotal
+-  };
+-  return CLASS_MISSION_DEFINITIONS.map(mission => {
+-    const current = Math.max(0, Math.floor(values[mission.missionId] || 0));
+-    return {
+-      ...mission,
+-      current,
+-      percent: Math.min(100, Math.round((current / mission.target) * 100))
+-    };
+-  });
+-}
++
++
++
+ 
+ async function writeAuthLinkLog(entry) {
+   try {
+@@ -5111,13 +4896,6 @@
+   };
+ }
+ 
+-function getTodayQuizNoticeText(quizIds = []) {
+-  const titles = quizIds
+-    .map(quizId => QUIZ_TITLE_MAP[quizId] || quizId)
+-    .filter(Boolean);
+-  const titleText = titles.length ? titles.join(", ") : "오늘의 퀴즈";
+-  return `오늘의 퀴즈: ${titleText}. 연습전에서 새 정답을 맞히면 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.`;
+-}
+ 
+ async function syncNoticeBoardWithTodayQuizFlags() { return null; }
+ 
+@@ -9376,18 +9154,10 @@
+ });
+ 
+ async function rewardGeneratedSubjectAnswer(transaction, item) {
+-  const dateKey=getKstDateKey(),usageRef=db.collection('dailyUsage').doc(buildDailyUsageRecordId(item.memberId,dateKey));
+-  const snapshot=await transaction.get(usageRef);
+-  const current=normalizeDailyUsageData(snapshot.data()||{},item.memberId,dateKey);
+-  const award=item.mode==='practice' ? await grantPracticeRewardInTransaction(transaction, {
++  return item.mode==='practice' ? grantPracticeRewardInTransaction(transaction, {
+     memberUserId:item.memberId,authUid:item.uid,recordId:`${item.memberId}__subject_${item.subject}`,
+     questionId:`${item.runId}_${item.seq}`,quizId:item.unitId.startsWith('korean:spelling:')?'spelling':`subject-${item.subject}`
+   },true) : {rewardCoin:0,xpDelta:0};
+-  transaction.set(usageRef,{...current,eduCorrectCount:current.eduCorrectCount+1,
+-    unlockBaseEduCorrectCount:current.funSeconds>=POPULAR_USAGE_SOFT_LIMIT_SECONDS&&current.unlockBaseEduCorrectCount<=0?current.eduCorrectCount:current.unlockBaseEduCorrectCount,
+-    updatedAt:FieldValue.serverTimestamp(),...(snapshot.exists?{}:{createdAt:FieldValue.serverTimestamp()}),source:'subject_quiz_server'
+-  },{merge:true});
+-  return award;
+ }
+ 
+ async function grantPracticeRewardInTransaction(transaction, { memberUserId, recordId, questionId, quizId, authUid }, verified = false) {
+--- a/public/index.html
++++ b/public/index.html
+@@ -2732,6 +2732,7 @@
+     let titleCatalogCache = null;
+     let titleCatalogMapCache = null;
+     let serverFreshnessPollTimer = null;
++    let serverFreshnessRequest = null;
+ 
+     function debugLog(...args) {
+       try {
+@@ -2791,26 +2792,38 @@
+     }
+ 
+     async function checkServerFreshness() {
+-      if(!window.DJ48AccountState.getCurrentMemberUserId()) return;
+-      try {
+-        const signature = await loadServerFreshnessSignature();
+-        if(!signature) return;
+-        const stored = getStoredServerFreshnessSignature();
+-        if(!stored) {
+-          storeServerFreshnessSignature(signature);
+-          setGlobalRefreshNeedsAttention(false);
+-          return;
++      const memberId = window.DJ48AccountState.getCurrentMemberUserId();
++      if(!memberId || document.hidden) return;
++      if(serverFreshnessRequest?.memberId === memberId) return serverFreshnessRequest.promise;
++      const request = { memberId, promise: null };
++      serverFreshnessRequest = request;
++      request.promise = (async () => {
++        try {
++          const signature = await loadServerFreshnessSignature();
++          if(!signature || document.hidden || window.DJ48AccountState.getCurrentMemberUserId() !== memberId) return;
++          const stored = getStoredServerFreshnessSignature();
++          if(!stored) {
++            storeServerFreshnessSignature(signature);
++            setGlobalRefreshNeedsAttention(false);
++            return;
++          }
++          setGlobalRefreshNeedsAttention(stored !== signature);
++        } catch(error) {
++          debugLog('Server freshness check skipped.', error);
++        } finally {
++          if(serverFreshnessRequest === request) serverFreshnessRequest = null;
+         }
+-        setGlobalRefreshNeedsAttention(stored !== signature);
+-      } catch(error) {
+-        debugLog('Server freshness check skipped.', error);
+-      }
++      })();
++      return request.promise;
+     }
+ 
+     function startServerFreshnessPolling() {
+       if(serverFreshnessPollTimer) return;
+       window.setTimeout(checkServerFreshness, 2500);
+       serverFreshnessPollTimer = window.setInterval(checkServerFreshness, 60000);
++      document.addEventListener('visibilitychange', () => {
++        if(!document.hidden) void checkServerFreshness();
++      });
+     }
+ 
+     async function refreshCurrentAppData() {
+--- a/package.json
++++ b/package.json
+@@ -28,7 +28,7 @@
+     "check:static": "npm run build:coordi-catalog && npm run build:app && node scripts/smoke/check-project.js && node scripts/smoke/check-mathsurvivor.js",
+     "test:domain": "node tests/domain/shop-domain.test.js && node tests/domain/ranking-domain.test.js && node tests/domain/quiz-domain.test.js && node tests/domain/account-domain.test.js && node tests/domain/classroom-domain.test.js && node tests/domain/event-domain.test.js && node tests/domain/housing-coupons.test.js && node tests/domain/season-period.test.js && node tests/domain/season-ranking-view.test.js",
+     "test:application": "node tests/application/event-usecases.test.js && node tests/application/classroom-usecases.test.js && node tests/classroom/loading.test.js && node tests/application/shop-usecases.test.js && node tests/application/home-usecases.test.js && node tests/application/home-loading.test.js && node tests/application/home-controller.test.js && node tests/application/profile-usecases.test.js && node tests/application/ranking-usecases.test.js && node tests/application/account-usecases.test.js && node tests/application/app-view.test.js && node tests/application/app-bootstrap.test.js && node tests/application/quiz-flow.test.js && node tests/application/quiz-usecases.test.js && node tests/application/admin-usecases.test.js && node tests/classroom/economy-loading.test.js && node --test tests/application/entry-performance.test.js",
+-    "test:infrastructure": "node tests/infrastructure/ranking-repository.test.js && node tests/infrastructure/quiz-repository.test.js && node tests/infrastructure/account-repository.test.js && node tests/infrastructure/home-repository.test.js && node tests/infrastructure/profile-repository.test.js && node tests/infrastructure/shop-repository.test.js && node tests/infrastructure/admin-repository.test.js && node tests/infrastructure/classroom-repository.test.js && node tests/infrastructure/event-repository.test.js",
++    "test:infrastructure": "node tests/infrastructure/ranking-repository.test.js && node tests/infrastructure/quiz-repository.test.js && node tests/infrastructure/account-repository.test.js && node tests/infrastructure/home-repository.test.js && node tests/infrastructure/profile-repository.test.js && node tests/infrastructure/shop-repository.test.js && node tests/infrastructure/admin-repository.test.js && node tests/infrastructure/classroom-repository.test.js && node tests/infrastructure/event-repository.test.js && node --test tests/infrastructure/server-freshness.test.js",
+     "test:rules": "firebase emulators:exec --project demo-dj48-rules --only firestore,storage \"node tests/rules/firebase-rules.test.js && node tests/rules/housing-coupons.test.js && node tests/rules/season-ranking.test.js && node tests/classroom/diary.integration.test.js\"",
+     "smoke:browser": "node scripts/smoke/browser-smoke-test.js",
+     "smoke:classroom": "node tests/classroom/portrait.test.js && node scripts/smoke/classroom-ui-browser.js && node scripts/smoke/classroom-loading-browser.js && node scripts/smoke/classroom-diary-browser.js",
+@@ -50,8 +50,9 @@
+     "serve:securities-server": "node scripts/smoke/run-securities-emulators.js --preview",
+     "check:securities-callable": "node scripts/smoke/run-securities-emulators.js --callable",
+     "test:popular": "node scripts/build-popular-quiz.js --check && node --test tests/popular-quiz/domain.test.js tests/popular-quiz/source-audit.test.js",
+-    "check:popular-online": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/popular-quiz/service.test.js && node tests/popular-quiz/rewards.test.js && node scripts/smoke/popular-quiz-browser.js\"",
+-    "check:cleanup-rewards": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/growth/legacy-progress-cleanup.integration.test.js && node tests/popular-quiz/rewards.test.js\""
++    "check:popular-online": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/popular-quiz/service.test.js && node tests/popular-quiz/rewards.test.js && node tests/popular-quiz/image-compatibility.test.js && node scripts/smoke/popular-quiz-browser.js\"",
++    "check:cleanup-rewards": "firebase emulators:exec --project demo-dj48-rules --only firestore \"node tests/growth/legacy-progress-cleanup.integration.test.js && node tests/popular-quiz/rewards.test.js\"",
++    "check:popular-images": "node scripts/build-popular-quiz.js --check && node scripts/smoke/popular-lossless-images.js"
+   },
+   "devDependencies": {
+     "@firebase/rules-unit-testing": "^5.0.2",
+--- a/tests/growth/legacy-progress-cleanup.integration.test.js
++++ b/tests/growth/legacy-progress-cleanup.integration.test.js
+@@ -22,6 +22,16 @@
+   const legacy = db.doc('eventQuestProgress/cleanup-preserved');
+   await legacy.set({current: 7, memberUserId: member});
+   const legacyBefore = await legacy.get();
++  const wallet = db.doc('classrooms/G4-C8/studentWallets/' + member);
++  await wallet.set({point: 100, totalEarnedPoint: 100, pointBoostAmount: 0.5});
++  const checkpoints = [];
++  async function checkpoint(label) {
++    const money = (await db.doc('userEconomy/' + member).get()).data();
++    const level = (await db.doc('userLevelSummary/' + member).get()).data();
++    const points = (await wallet.get()).data();
++    const caps = await db.collection('levelXpCaps').get();
++    checkpoints.push({label, coin: money.djCoin, xp: level.totalXp, point: points.point, totalEarnedPoint: points.totalEarnedPoint, caps: caps.docs.map(d => ({id: d.id, xp: d.data().xp})).sort((a,b) => a.id.localeCompare(b.id))});
++  }
+   const ids = Array.from({length: 55}, (_, i) => 'q' + i);
+   await db.doc('practiceRecords/' + recordId).set({memberUserId: member, correctIds: ids});
+   const answer = questionId => call('grantPracticeReward', {memberUserId: member, recordId, questionId, quizId: 'fraction-basic'});
+@@ -29,10 +39,14 @@
+   assert.equal(results.filter(result => result.duplicate).length, 1);
+   assert.equal(results.reduce((sum, result) => sum + result.rewardCoin, 0), 1);
+   assert.equal(results.reduce((sum, result) => sum + result.xpDelta, 0), 2);
++  assert.equal((await wallet.get()).data().point, 101.5);
++  await checkpoint('concurrent-first');
+   for(let i = 1; i < 51; i++) await answer('q' + i);
+   assert.equal((await db.doc('userEconomy/' + member).get()).data().djCoin, 50);
+   assert.equal((await db.doc('userEconomy/' + member).get()).data().housingCoupons, 3);
+   assert.equal((await db.doc('userLevelSummary/' + member).get()).data().totalXp, 20);
++  assert.equal((await wallet.get()).data().point, 115, 'existing mirror applies on the ten XP-paying answers');
++  await checkpoint('daily-caps');
+   const status = await call('getDailyRewardStatus', {memberUserId: member});
+   assert.equal(status.coin.remaining, 0); assert.equal(status.practiceXp.remaining, 0);
+   assert.equal(status.todayQuizXp, undefined);
+@@ -55,8 +69,11 @@
+   run = await call('subjectQuizAction', payload);
+   assert.equal(run.feedback.rewardCoin, 1); assert.equal(run.feedback.xpDelta, 2);
+   assert.equal((await call('subjectQuizAction', payload)).duplicate, true);
++  if (process.env.CLEANUP_EXPECT_LEGACY !== '1') assert.equal((await db.doc('dailyUsage/' + member + '__' + date).get()).exists, false, 'generated answers must not create legacy usage');
+   await db.doc('appSettings/featureFlags').set({practiceRewardEnabled: false, practiceXpEnabled: false}, {merge: true});
+   const disabled = await answer('q53'); assert.equal(disabled.rewardCoin, 0); assert.equal(disabled.xpDelta, 0);
++  assert.equal((await wallet.get()).data().point, 116.5);
++  await checkpoint('subject-duplicate-disabled');
+   const logs = await db.collection('rewardLogs').where('memberUserId', '==', member).get();
+   const practiceLogs = logs.docs.filter(doc => doc.data().type === 'practice_correct');
+   assert(practiceLogs.length >= 51);
+@@ -87,7 +104,23 @@
+   assert(ranked.quests.find(q => q.questId === 'v2_daily_ranking').claimable);
+   const legacyAfter = await legacy.get();
+   assert(legacyAfter.updateTime.isEqual(legacyBefore.updateTime), 'legacy document must not be written');
+-  assert.equal((await db.collection('eventQuestProgress').get()).size, 1, 'no new legacy progress documents');
+-  console.log('PASS cleanup: legacy writes absent; practice/subject coins, XP, caps, concurrent dedup, flags, authorization, growth trigger replay and claims, ranking completion preserved.');
++  const legacyCount = (await db.collection('eventQuestProgress').get()).size;
++  if (process.env.CLEANUP_EXPECT_LEGACY === '1') assert(legacyCount > 1, 'baseline must exercise old writes');
++  else assert.equal(legacyCount, 1, 'no new legacy progress documents');
++  await checkpoint('growth-claim-ranking');
++  const weekly = (await db.collection('levelXpCaps').get()).docs.find(doc => doc.id.startsWith('level_xp_weekly__') && doc.id.endsWith('__' + member));
++  assert(weekly);
++  await weekly.ref.update({xp: 499});
++  await db.doc('appSettings/featureFlags').set({practiceRewardEnabled: true, practiceXpEnabled: true}, {merge: true});
++  const partial = await answer('q54'); assert.equal(partial.rewardCoin, 1); assert.equal(partial.xpDelta, 1);
++  assert((await answer('q54')).duplicate);
++  const capped = await answer('q52'); assert.equal(capped.rewardCoin, 1); assert.equal(capped.xpDelta, 0);
++  assert.equal((await weekly.ref.get()).data().xp, 500);
++  assert.equal((await wallet.get()).data().point, 118);
++  await checkpoint('weekly-cap-partial-and-full');
++  if (process.env.CLEANUP_EXPECT_LEGACY !== '1') assert.equal((await db.collection('eventQuestProgress').get()).size, 1);
++
++  if (process.env.CLEANUP_COMPARE_OUTPUT) require('node:fs').writeFileSync(process.env.CLEANUP_COMPARE_OUTPUT, JSON.stringify(checkpoints, null, 2) + '\n');
++  console.log('PASS cleanup (' + (process.env.CLEANUP_EXPECT_LEGACY === '1' ? 'baseline legacy writes observed' : 'legacy writes absent') + '): practice/subject coins, XP, caps, concurrent dedup, flags, authorization, growth trigger replay and claims, ranking completion preserved.');
+ }
+ main().catch(error => {console.error(error); process.exitCode = 1;}).finally(() => Promise.all(getApps().map(deleteApp)));
+--- a/tests/subject-quiz/rewards.test.js
++++ b/tests/subject-quiz/rewards.test.js
+@@ -14,6 +14,9 @@
+   await db.doc('appSettings/featureFlags').set({practiceRewardEnabled:true,practiceXpEnabled:true,todayQuizMode:'manual',todayQuizIds:['fraction-basic']});
+   await db.doc('userEconomy/'+member).set({djCoin:100,totalEarned:100});
+   await db.doc('rewardDailyCaps/practice_coin_daily__'+date+'__'+member).set({usedCoin:49});
++  const usageRef=db.doc('dailyUsage/'+member+'__'+date);
++  await usageRef.set({eduCorrectCount:7,funSeconds:120,source:'legacy-preserved'});
++  const usageBefore=await usageRef.get();
+   let run=await call({action:'start',unitId:'math:4-1:3',mode:'practice',requestId:crypto.randomUUID()});
+   for(let i=0;i<2;i++){
+    await new Promise(r=>setTimeout(r,320));const q=(await db.doc('subjectQuizRuns/'+run.runId).get()).data().question;
+@@ -23,14 +26,14 @@
+   }
+   assert.equal((await db.doc('userEconomy/'+member).get()).data().djCoin,101);
+   assert.equal((await db.doc('rewardDailyCaps/practice_coin_daily__'+date+'__'+member).get()).data().usedCoin,50);
+-  assert.equal((await db.doc('dailyUsage/'+member+'__'+date).get()).data().eduCorrectCount,2);
++  assert((await usageRef.get()).updateTime.isEqual(usageBefore.updateTime));
+   assert.equal((await db.doc('userLevelSummary/'+member).get()).data().quizCorrectRewardCount,2);
+   assert.equal(run.totalScore,0);await call({action:'finish',runId:run.runId});
+   run=await call({action:'start',unitId:'math:4-1:3',mode:'ranking',requestId:crypto.randomUUID()});await new Promise(r=>setTimeout(r,320));
+   const q=(await db.doc('subjectQuizRuns/'+run.runId).get()).data().question;run=await call({action:'answer',runId:run.runId,seq:0,choice:q.answer});
+-  assert.equal(run.totalScore,1);assert.equal(run.feedback.rewardCoin,0);assert.equal((await db.doc('dailyUsage/'+member+'__'+date).get()).data().eduCorrectCount,3);
++  assert.equal(run.totalScore,1);assert.equal(run.feedback.rewardCoin,0);assert((await usageRef.get()).updateTime.isEqual(usageBefore.updateTime));
+   assert.equal((await db.doc('userEconomy/'+member).get()).data().djCoin,101);
+-  console.log('PASS actual callable reward integration: shared 50 coin cap, duplicate immunity, today quiz alias +2 XP, education unlock, ranking no per-answer coin.');
++  console.log('PASS actual callable reward integration: shared 50 coin cap, duplicate immunity, today quiz alias +2 XP, legacy usage unchanged, ranking no per-answer coin.');
+  }finally{await Promise.all(getApps().map(deleteApp));}
+ }
+ main().catch(e=>{console.error(e);process.exitCode=1;});
+--- a/scripts/build-popular-quiz.js
++++ b/scripts/build-popular-quiz.js
+@@ -7,6 +7,13 @@
+ const out=path.join(root,'public/popular-quiz/assets');if(!check)fs.mkdirSync(out,{recursive:true});
+ const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+ function ext(b){if(b.subarray(0,8).toString('hex')==='89504e470d0a1a0a')return 'png';if(b[0]===255&&b[1]===216)return 'jpg';if(b.subarray(0,3).toString()==='GIF')return 'gif';if(b.subarray(8,12).toString()==='WEBP')return 'webp';throw Error('Unsupported original image format');}
++const derivativePath=path.join(root,'functions/popular-quiz/image-derivatives.json');
++const derivatives=fs.existsSync(derivativePath)?JSON.parse(fs.readFileSync(derivativePath)):null;
++if(derivatives&&derivatives.sourceVersion!==source.version)throw Error('Derivative source version mismatch');
++const optimized=new Map((derivatives?.entries||[]).map(entry=>[entry.id,entry]));
++if(optimized.size!==(derivatives?.entries||[]).length)throw Error('Duplicate derivative IDs');
++const selectedIds=new Set(source.selected.map(row=>row.id));
++for(const id of optimized.keys())if(!selectedIds.has(id))throw Error('Unknown derivative ID: '+id);
+ const questions=source.selected.map(row=>{
+  if(!['idol','anime'].includes(row.category)||row.status!=='selected'||!row.imageFetchVerified)throw Error('Unreviewed image');
+  if(row.category==='anime'&&!['전체관람가','7세관람가','12세관람가','15세관람가'].includes(row.rating?.label))throw Error('Unapproved age rating');
+@@ -15,9 +22,18 @@
+  else {if(check||!cache[row.id])throw Error(`Missing asset ${row.id}; use --cache-map with verified original image paths.`);bytes=fs.readFileSync(path.resolve(path.dirname(cachePath),cache[row.id]));}
+  if(hash(bytes)!==row.sha256)throw Error(`Source image changed: ${row.id}`);
+  const file=row.sha256+'.'+ext(bytes);if(!check&&!existing)fs.writeFileSync(path.join(out,file),bytes);
++ const derivative=optimized.get(row.id);
++ let imageUrl='/popular-quiz/assets/'+file;
++ if(derivative){
++  if(derivative.sourceSha256!==row.sha256||derivative.originalUrl!==imageUrl||derivative.decodedPixelsIdentical!==true)throw Error('Invalid derivative provenance: '+row.id);
++  if(!/^\/popular-quiz\/optimized\/[a-f0-9]{64}\.webp$/.test(derivative.imageUrl))throw Error('Invalid derivative path');
++  const display=fs.readFileSync(path.join(root,'public'+derivative.imageUrl));
++  if(hash(display)!==derivative.imageSha256||display.length!==derivative.bytes||display.length>=bytes.length)throw Error('Invalid derivative bytes: '+row.id);
++  imageUrl=derivative.imageUrl;
++ }
+  return {id:row.id,category:row.category,kind:row.questionKind,group:row.group,prompt:row.prompt,answer:row.answer,aliases:row.aliases,
+-  imageUrl:'/popular-quiz/assets/'+file,sourceUrl:row.sourceUrl,sourceImageUrl:row.fetchedImageUrl||row.imageUrl,sha256:row.sha256,groupLabel:row.groupLabel,...(row.rating?{rating:row.rating.label}:{})};
++  imageUrl,...(derivative?{originalImageUrl:derivative.originalUrl,imageSha256:derivative.imageSha256}:{}),sourceUrl:row.sourceUrl,sourceImageUrl:row.fetchedImageUrl||row.imageUrl,sha256:row.sha256,groupLabel:row.groupLabel,...(row.rating?{rating:row.rating.label}:{})};
+ });
+-const pack={version:source.version,questions};const target=path.join(root,'functions/popular-quiz/catalog.json'),serialized=JSON.stringify(pack,null,2)+'\n';
++const pack={version:optimized.size?source.version+'-'+derivatives.version:source.version,questions};const target=path.join(root,'functions/popular-quiz/catalog.json'),serialized=JSON.stringify(pack,null,2)+'\n';
+ if(check){if(fs.readFileSync(target,'utf8')!==serialized)throw Error('Catalog out of date');}else fs.writeFileSync(target,serialized);
+ console.log(`Popular quiz catalog: ${questions.filter(x=>x.kind==='person').length} people, ${questions.filter(x=>x.kind==='group').length} groups, ${questions.filter(x=>x.category==='anime').length} characters; original image hashes verified.`);
+--- a/scripts/audit/quiz-cleanup-audit.js
++++ b/scripts/audit/quiz-cleanup-audit.js
+@@ -64,13 +64,17 @@
+ function popularAssets() {
+   const pack = JSON.parse(read('functions/popular-quiz/catalog.json'));
+   const referenced = new Set(pack.questions.map(q => `public${q.imageUrl}`));
++  const originals = new Set(pack.questions.filter(q => q.originalImageUrl).map(q => `public${q.originalImageUrl}`));
+   const files = walk('public/popular-quiz/assets').map(p => ({ path: p, bytes: fs.statSync(path.join(ROOT, p)).size }));
+   return { questions: pack.questions.length, files: files.length,
+     totalBytes: files.reduce((n, f) => n + f.bytes, 0),
+     largerThanOneMillionBytes: files.filter(f => f.bytes > 1000000).length,
+     notReferencedByCurrentPack: files.filter(f => !referenced.has(f.path)),
++    retainedForSourceValidationAndOldRuns: files.filter(f => originals.has(f.path)),
++    neitherDisplayNorOriginalReference: files.filter(f => !referenced.has(f.path) && !originals.has(f.path)),
++    currentDisplayBytes: [...referenced].reduce((sum, p) => sum + (fs.existsSync(path.join(ROOT, p)) ? fs.statSync(path.join(ROOT, p)).size : 0), 0),
+     missingFromDisk: [...referenced].filter(p => !fs.existsSync(path.join(ROOT, p))),
+-    caveat: 'Current local catalog only; old in-flight runs can retain earlier image URLs.' };
++    caveat: 'Current display references and retained original provenance are distinct. Originals remain necessary for hash validation and old in-flight runs; neither list is a deletion authorization.' };
+ }
+ async function probes() {
+   const context = vm.createContext({ console, URLSearchParams });
+@@ -147,7 +151,9 @@
+       documentGets: reads.filter(r => r.kind === 'document').length, queries: reads.filter(r => r.kind === 'query'),
+       modeledDocumentsReturned: reads.filter(r => r.kind === 'document').length + 30 * 5,
+       caveat: 'One synthetic transaction attempt; not measured production usage or billing.' },
+-    freshnessReads, legacyEventWrites: writes };
++    freshnessReads, legacyEventWrites: writes,
++    legacyEventWriteProbeCaveat: 'Direct invocation of the retained legacy helper only; this does not show writes from current reward callsites.',
++    legacyEventCallsiteTextCount: Math.max(0, (index.match(/\bupdateEventQuestProgressForKinds\b/g) || []).length - 1) };
+ }
+ async function main() {
+   const index = read('functions/index.js');
+--- a/scripts/smoke/popular-quiz-browser.js
++++ b/scripts/smoke/popular-quiz-browser.js
+@@ -17,7 +17,7 @@
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.exposeFunction('popularTestCall',async data=>{if(data.action==='answer'){answerCalls++;await new Promise(r=>setTimeout(r,330));if(failAnswer){failAnswer=false;const committed=await call(data);throw Error('응답 연결이 잠시 끊겼어요.');}}return call(data);});
+  await page.addInitScript(()=>{window.PopularQuizTransport=data=>window.popularTestCall(data);});
+- await page.route('**/popular-quiz/assets/**',route=>failImage?route.abort():route.continue());
++ await page.route(/\/popular-quiz\/(?:assets|optimized)\//,route=>failImage?route.abort():route.continue());
+  await page.route('https://fixture.invalid/**',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="500" height="350"><rect width="500" height="350" fill="#eee7fa"/><text x="130" y="180" font-size="35">테스트 사진</text></svg>'}));
+  const waitHome=()=>page.getByRole('button',{name:'연습 시작 →',exact:true}).waitFor();
+  const privateRun=async()=>{const c=(await db.doc('popularQuizPlayers/'+member).get()).data();return (await db.doc('popularQuizRuns/'+c.runId).get()).data();};
+--- a/functions/popular-quiz/catalog.json
++++ b/functions/popular-quiz/catalog.json
+@@ -1,5 +1,5 @@
+ {
+-  "version": "popular-image-selection-20261018-v2",
++  "version": "popular-image-selection-20261018-v2-lossless-png-v1",
+   "questions": [
+     {
+       "id": "idol-twice-006f778c3c",
+@@ -11,7 +11,9 @@
+       "aliases": [
+         "NAYEON"
+       ],
+-      "imageUrl": "/popular-quiz/assets/adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab.png",
++      "imageUrl": "/popular-quiz/optimized/1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a.webp",
++      "originalImageUrl": "/popular-quiz/assets/adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab.png",
++      "imageSha256": "1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/814a7595f00a4c6895d0d671ca78c949-1%E1%84%82%E1%85%A1%E1%84%8B%E1%85%A7%E1%86%AB.png",
+       "sha256": "adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab",
+@@ -27,7 +29,9 @@
+       "aliases": [
+         "JEONGYEON"
+       ],
+-      "imageUrl": "/popular-quiz/assets/7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55.png",
++      "imageUrl": "/popular-quiz/optimized/0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61.webp",
++      "originalImageUrl": "/popular-quiz/assets/7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55.png",
++      "imageSha256": "0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/cec5840107e942b1beeda32b0c7064dc-2%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8B%E1%85%A7%E1%86%AB.png",
+       "sha256": "7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55",
+@@ -43,7 +47,9 @@
+       "aliases": [
+         "MOMO"
+       ],
+-      "imageUrl": "/popular-quiz/assets/551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75.png",
++      "imageUrl": "/popular-quiz/optimized/282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87.webp",
++      "originalImageUrl": "/popular-quiz/assets/551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75.png",
++      "imageSha256": "282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/1f63eab8fb434eb6a756c0be4eaf0d95-3%E1%84%86%E1%85%A9%E1%84%86%E1%85%A9.png",
+       "sha256": "551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75",
+@@ -59,7 +65,9 @@
+       "aliases": [
+         "SANA"
+       ],
+-      "imageUrl": "/popular-quiz/assets/450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506.png",
++      "imageUrl": "/popular-quiz/optimized/86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2.webp",
++      "originalImageUrl": "/popular-quiz/assets/450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506.png",
++      "imageSha256": "86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/abc9688970fd4b9793fc26b86e8f5dc4-4%E1%84%89%E1%85%A1%E1%84%82%E1%85%A1.png",
+       "sha256": "450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506",
+@@ -75,7 +83,9 @@
+       "aliases": [
+         "JIHYO"
+       ],
+-      "imageUrl": "/popular-quiz/assets/2b76db0f5471ae0f0dfdece74a3a0c06b109042e514c7c185dee762e6dfcf6fc.png",
++      "imageUrl": "/popular-quiz/optimized/93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a.webp",
++      "originalImageUrl": "/popular-quiz/assets/2b76db0f5471ae0f0dfdece74a3a0c06b109042e514c7c185dee762e6dfcf6fc.png",
++      "imageSha256": "93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/2bda6e2820454aa399d69be641da98ed-5%E1%84%8C%E1%85%B5%E1%84%92%E1%85%AD.png",
+       "sha256": "2b76db0f5471ae0f0dfdece74a3a0c06b109042e514c7c185dee762e6dfcf6fc",
+@@ -91,7 +101,9 @@
+       "aliases": [
+         "MINA"
+       ],
+-      "imageUrl": "/popular-quiz/assets/cd9205bf87dc9d6f812cc9732f1273ab73dc838edfc6be2ea0de7812208c145c.png",
++      "imageUrl": "/popular-quiz/optimized/691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf.webp",
++      "originalImageUrl": "/popular-quiz/assets/cd9205bf87dc9d6f812cc9732f1273ab73dc838edfc6be2ea0de7812208c145c.png",
++      "imageSha256": "691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/506c189bfa134a87a02ca6af4b07aa18-6%E1%84%86%E1%85%B5%E1%84%82%E1%85%A1.png",
+       "sha256": "cd9205bf87dc9d6f812cc9732f1273ab73dc838edfc6be2ea0de7812208c145c",
+@@ -107,7 +119,9 @@
+       "aliases": [
+         "DAHYUN"
+       ],
+-      "imageUrl": "/popular-quiz/assets/eb140ca040d8263912902651b509ceee35ff521cb5a5db7bde0a2490d44861f6.png",
++      "imageUrl": "/popular-quiz/optimized/550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd.webp",
++      "originalImageUrl": "/popular-quiz/assets/eb140ca040d8263912902651b509ceee35ff521cb5a5db7bde0a2490d44861f6.png",
++      "imageSha256": "550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/caacf4fa97054bf29465ce9eef579cba-7%E1%84%83%E1%85%A1%E1%84%92%E1%85%A7%E1%86%AB.png",
+       "sha256": "eb140ca040d8263912902651b509ceee35ff521cb5a5db7bde0a2490d44861f6",
+@@ -123,7 +137,9 @@
+       "aliases": [
+         "CHAEYOUNG"
+       ],
+-      "imageUrl": "/popular-quiz/assets/522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5.png",
++      "imageUrl": "/popular-quiz/optimized/1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811.webp",
++      "originalImageUrl": "/popular-quiz/assets/522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5.png",
++      "imageSha256": "1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/ea4e327ee4c8488287840951ba3e1dd7-8%E1%84%8E%E1%85%A2%E1%84%8B%E1%85%A7%E1%86%BC.png",
+       "sha256": "522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5",
+@@ -139,7 +155,9 @@
+       "aliases": [
+         "TZUYU"
+       ],
+-      "imageUrl": "/popular-quiz/assets/a19f6d11c869ebebdca7a2fbc116175d613063c41e8fbec9bdb1f54e42a50a95.png",
++      "imageUrl": "/popular-quiz/optimized/14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215.webp",
++      "originalImageUrl": "/popular-quiz/assets/a19f6d11c869ebebdca7a2fbc116175d613063c41e8fbec9bdb1f54e42a50a95.png",
++      "imageSha256": "14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215",
+       "sourceUrl": "https://twice.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artist/twice/c8911050462d4dec80fb785843a378c9-9%E1%84%8D%E1%85%B3%E1%84%8B%E1%85%B1.png",
+       "sha256": "a19f6d11c869ebebdca7a2fbc116175d613063c41e8fbec9bdb1f54e42a50a95",
+@@ -588,7 +606,9 @@
+         "Young K",
+         "영K"
+       ],
+-      "imageUrl": "/popular-quiz/assets/1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab.png",
++      "imageUrl": "/popular-quiz/optimized/758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760.webp",
++      "originalImageUrl": "/popular-quiz/assets/1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab.png",
++      "imageSha256": "758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760",
+       "sourceUrl": "https://day6.jype.com/profile",
+       "sourceImageUrl": "https://d1meds70430yck.cloudfront.net/artists/day6/profiles/1784124988551-4ea4346c.png",
+       "sha256": "1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab",
+@@ -4481,7 +4501,9 @@
+         "샤오팅",
+         "XIAOTING"
+       ],
+-      "imageUrl": "/popular-quiz/assets/5f47a8f2e077901668cc66357e459e5e0e1b5bb8d656b221cf90c13bc910cfde.png",
++      "imageUrl": "/popular-quiz/optimized/22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1.webp",
++      "originalImageUrl": "/popular-quiz/assets/5f47a8f2e077901668cc66357e459e5e0e1b5bb8d656b221cf90c13bc910cfde.png",
++      "imageSha256": "22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1",
+       "sourceUrl": "https://kep1er.jp/profile/",
+       "sourceImageUrl": "https://kep1er.jp/wp-content/uploads/2026/01/XIAOTING.png",
+       "sha256": "5f47a8f2e077901668cc66357e459e5e0e1b5bb8d656b221cf90c13bc910cfde",
+@@ -4498,7 +4520,9 @@
+         "김채현",
+         "CHAEHYUN"
+       ],
+-      "imageUrl": "/popular-quiz/assets/55f067c3ab0fff0f42f2869e9f8fca2b56664d3dd72265d3f91ec4a8f0227a56.png",
++      "imageUrl": "/popular-quiz/optimized/dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191.webp",
++      "originalImageUrl": "/popular-quiz/assets/55f067c3ab0fff0f42f2869e9f8fca2b56664d3dd72265d3f91ec4a8f0227a56.png",
++      "imageSha256": "dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191",
+       "sourceUrl": "https://kep1er.jp/profile/",
+       "sourceImageUrl": "https://kep1er.jp/wp-content/uploads/2026/01/CHAEHYUN.png",
+       "sha256": "55f067c3ab0fff0f42f2869e9f8fca2b56664d3dd72265d3f91ec4a8f0227a56",
+@@ -7491,7 +7515,9 @@
+         "카이도",
+         "カイドウ"
+       ],
+-      "imageUrl": "/popular-quiz/assets/2cb0c759757308a0ac148da8d8df6886bd827c7e4ffcaac53ddfdc808d36268b.png",
++      "imageUrl": "/popular-quiz/optimized/b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0.webp",
++      "originalImageUrl": "/popular-quiz/assets/2cb0c759757308a0ac148da8d8df6886bd827c7e4ffcaac53ddfdc808d36268b.png",
++      "imageSha256": "b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0",
+       "sourceUrl": "https://one-piece.com/character/Kaido/index.html",
+       "sourceImageUrl": "https://one-piece.com/o/assets/uploads/anime/character/characters/20180126/67ecde9efe451c35f0544d3708dbe085.png",
+       "sha256": "2cb0c759757308a0ac148da8d8df6886bd827c7e4ffcaac53ddfdc808d36268b",
+@@ -7731,7 +7757,9 @@
+         "티치",
+         "マーシャル・Ｄ・ティーチ"
+       ],
+-      "imageUrl": "/popular-quiz/assets/fdbed9504dbe50a09a17616deb6a485c0a2d027a0298c259a6311067cdc132f7.png",
++      "imageUrl": "/popular-quiz/optimized/d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951.webp",
++      "originalImageUrl": "/popular-quiz/assets/fdbed9504dbe50a09a17616deb6a485c0a2d027a0298c259a6311067cdc132f7.png",
++      "imageSha256": "d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951",
+       "sourceUrl": "https://one-piece.com/character/Marshall_D_Teech/index.html",
+       "sourceImageUrl": "https://one-piece.com/o/assets/images/anime/character/data/Marshall_D_Teech/Marshall_D_Teech_face_egghead.png",
+       "sha256": "fdbed9504dbe50a09a17616deb6a485c0a2d027a0298c259a6311067cdc132f7",
+--- /dev/null
++++ b/tests/infrastructure/server-freshness.test.js
+@@ -0,0 +1,51 @@
++'use strict';
++const assert = require('node:assert/strict');
++const fs = require('node:fs');
++const vm = require('node:vm');
++const test = require('node:test');
++const html = fs.readFileSync(require('node:path').resolve(__dirname, '../../public/index.html'), 'utf8');
++const start = html.indexOf('    async function checkServerFreshness() {');
++const end = html.indexOf('    async function refreshCurrentAppData()', start);
++assert(start > 0 && end > start);
++function harness() {
++  let member = 'a', stored = '', loads = 0;
++  const pending = [], attention = [], listeners = [], timers = [];
++  const context = vm.createContext({
++    document: {hidden: false, addEventListener: (name, fn) => listeners.push({name, fn})},
++    window: {DJ48AccountState: {getCurrentMemberUserId: () => member}, setTimeout: fn => timers.push(fn), setInterval: fn => timers.push(fn)},
++    loadServerFreshnessSignature: () => {loads++; return new Promise((resolve, reject) => pending.push({resolve, reject}));},
++    getStoredServerFreshnessSignature: () => stored,
++    storeServerFreshnessSignature: value => {stored = value;},
++    setGlobalRefreshNeedsAttention: value => attention.push(value), debugLog: () => {}
++  });
++  vm.runInContext('let serverFreshnessPollTimer = null, serverFreshnessRequest = null;\n' + html.slice(start, end), context);
++  return {context, pending, attention, listeners, timers, member: value => {member = value;}, loads: () => loads, stored: () => stored};
++}
++test('hidden and signed-out tabs make no reads; one listener and resume refresh', async () => {
++  const h = harness(), c = h.context;
++  c.startServerFreshnessPolling(); c.startServerFreshnessPolling();
++  assert.equal(h.listeners.length, 1); assert.equal(h.timers.length, 2);
++  c.document.hidden = true;
++  await c.checkServerFreshness(); assert.equal(h.loads(), 0);
++  c.document.hidden = false; h.member('');
++  await c.checkServerFreshness(); assert.equal(h.loads(), 0);
++  h.member('a'); h.listeners[0].fn(); assert.equal(h.loads(), 1);
++  h.pending[0].resolve('first'); await c.checkServerFreshness(); assert.equal(h.stored(), 'first');
++});
++test('overlapping requests merge; errors release request; changed signature still alerts', async () => {
++  const h = harness(), c = h.context;
++  const first = c.checkServerFreshness(), second = c.checkServerFreshness();
++  assert.equal(h.loads(), 1); h.pending[0].resolve('first'); await Promise.all([first, second]);
++  const failed = c.checkServerFreshness(); h.pending[1].reject(new Error('offline')); await failed;
++  const changed = c.checkServerFreshness(); h.pending[2].resolve('changed'); await changed;
++  assert.equal(h.loads(), 3); assert.deepEqual(h.attention, [false, true]);
++});
++test('account switch and signout discard stale results without cancelling new request', async () => {
++  const h = harness(), c = h.context;
++  const a = c.checkServerFreshness(); h.member('b'); const b = c.checkServerFreshness();
++  assert.equal(h.loads(), 2); h.pending[0].resolve('old-a'); await a; assert.equal(h.stored(), '');
++  const duplicate = c.checkServerFreshness(); assert.equal(h.loads(), 2);
++  h.pending[1].resolve('new-b'); await Promise.all([b, duplicate]); assert.equal(h.stored(), 'new-b');
++  const signedOut = c.checkServerFreshness(); h.member(''); h.pending[2].resolve('stale'); await signedOut;
++  assert.deepEqual(h.attention, [false]);
++});
+--- /dev/null
++++ b/tests/popular-quiz/image-compatibility.test.js
+@@ -0,0 +1,34 @@
++'use strict';
++const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
++assert.match(process.env.FIRESTORE_EMULATOR_HOST || '', /^127\.0\.0\.1:\d+$/);
++process.env.GCLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT = 'demo-dj48-rules';
++const api = require('../../functions/index');
++const load = require('node:module').createRequire(require.resolve('../../functions/package.json'));
++const {getFirestore} = load('firebase-admin/firestore'), {getApps, deleteApp} = load('firebase-admin/app');
++const pack = require('../../functions/popular-quiz/catalog.json'), manifest = require('../../functions/popular-quiz/image-derivatives.json');
++async function main() {
++  const db = getFirestore(), uid = 'cleanup-image-auth', member = 'G4-C8-N93';
++  const call = data => api.popularQuizAction.run({auth: {uid}, data});
++  for (const entry of manifest.entries) {
++    const q = pack.questions.find(row => row.id === entry.id);
++    assert.equal(q.sha256, entry.sourceSha256, 'source audit hash remains the original hash');
++    assert.equal(q.imageUrl, entry.imageUrl);
++    assert(fs.existsSync(path.resolve(__dirname, '../../public' + entry.originalUrl)), 'old run URL must remain available');
++  }
++  await db.doc('authLinks/' + uid).set({memberUserId: member});
++  await db.doc('users/' + member).set({authUid: uid, active: true, status: 'active', role: 'student', grade: '4', classNumber: '8'});
++  await db.doc('appSettings/featureFlags').set({practiceRewardEnabled: true, practiceXpEnabled: true});
++  const run = await call({action: 'start', category: 'idol', mode: 'practice', requestId: crypto.randomUUID()});
++  assert.equal(run.contentVersion, pack.version);
++  const ref = db.doc('popularQuizRuns/' + run.runId), stored = (await ref.get()).data();
++  const oldUrl = manifest.entries[0].originalUrl;
++  stored.questions[0].imageUrl = oldUrl;
++  await ref.update({questions: stored.questions, contentVersion: manifest.sourceVersion});
++  const resumed = await call({action: 'resume', runId: run.runId});
++  assert.equal(resumed.question.imageUrl, oldUrl); assert.equal(resumed.contentVersion, manifest.sourceVersion);
++  await new Promise(resolve => setTimeout(resolve, 350));
++  const answered = await call({action: 'answer', runId: run.runId, seq: resumed.seq, choice: stored.questions[0].answerIndex});
++  assert.equal(answered.feedback.imageUrl, oldUrl); assert.equal(answered.feedback.correct, true);
++  console.log('PASS original source hashes, retained URLs, new catalog version, old-version session resume and answer.');
++}
++main().catch(error => {console.error(error); process.exitCode = 1;}).finally(() => Promise.all(getApps().map(deleteApp)));
+--- /dev/null
++++ b/scripts/maintenance/build-popular-lossless-images.js
+@@ -0,0 +1,44 @@
++#!/usr/bin/env node
++'use strict';
++// Re-encode PNG files only. Preserve original bytes/URLs and require exact decoded pixels.
++const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto'), assert = require('node:assert/strict');
++const root = path.resolve(__dirname, '../..');
++const sharp = require(require.resolve('sharp', {paths: [root, '/Users/kdw/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules']}));
++const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
++async function main() {
++  const source = JSON.parse(fs.readFileSync(path.join(root, 'docs/product/popular-image-selection-2026-10-18/selection.json')));
++  const dir = path.join(root, 'public/popular-quiz/assets'), out = path.join(root, 'public/popular-quiz/optimized');
++  const originalFiles = fs.readdirSync(dir);
++  fs.mkdirSync(out, {recursive: true});
++  const policy = JSON.parse(fs.readFileSync(path.join(root, 'docs/product/popular-image-selection-2026-10-18/lossless-policy.json')));
++  const exclusions = new Map(policy.exclusions.map(row => [row.id, row]));
++  const entries = [], rejected = [];
++  for (const row of source.selected) {
++    const file = originalFiles.find(name => name === row.sha256 + '.png');
++    if (!file) continue;
++    const exclusion = exclusions.get(row.id);
++    if (exclusion) {
++      assert.equal(exclusion.sourceSha256, row.sha256, 'Excluded source changed; review browser pixels again');
++      rejected.push({id: row.id, reason: exclusion.reason}); continue;
++    }
++    const original = fs.readFileSync(path.join(dir, file));
++    assert.equal(hash(original), row.sha256, 'Source changed: ' + row.id);
++    const metadata = await sharp(original).metadata();
++    if ((metadata.pages || 1) > 1) { rejected.push({id: row.id, reason: 'animated'}); continue; }
++    const bytes = await sharp(original).keepMetadata().webp({lossless: true, effort: 4}).toBuffer();
++    if (bytes.length >= original.length) { rejected.push({id: row.id, reason: 'not-smaller', before: original.length, after: bytes.length}); continue; }
++    const before = await sharp(original).ensureAlpha().raw().toBuffer({resolveWithObject: true});
++    const after = await sharp(bytes).ensureAlpha().raw().toBuffer({resolveWithObject: true});
++    if (JSON.stringify(after.info) !== JSON.stringify(before.info) || !before.data.equals(after.data)) {
++      rejected.push({id: row.id, reason: 'decoded-pixels-differ'}); continue;
++    }
++    const digest = hash(bytes), imageUrl = '/popular-quiz/optimized/' + digest + '.webp';
++    fs.writeFileSync(path.join(root, 'public' + imageUrl), bytes);
++    entries.push({id: row.id, sourceSha256: row.sha256, originalUrl: '/popular-quiz/assets/' + file,
++      imageUrl, imageSha256: digest, originalBytes: original.length, bytes: bytes.length, width: metadata.width, height: metadata.height, decodedPixelsIdentical: true});
++  }
++  const manifest = {version: 'lossless-png-v1', sourceVersion: source.version, policy: 'PNG only, no resize, exact decoded pixel equality, smaller files only; originals retained', entries, rejected};
++  fs.writeFileSync(path.join(root, 'functions/popular-quiz/image-derivatives.json'), JSON.stringify(manifest, null, 2) + '\n');
++  console.log(JSON.stringify({converted: entries.length, rejected: rejected.length, savedBytes: entries.reduce((n,r) => n + r.originalBytes - r.bytes, 0)}));
++}
++main().catch(error => { console.error(error); process.exitCode = 1; });
+--- /dev/null
++++ b/scripts/maintenance/prepare-quiz-cleanup-candidates.py
+@@ -0,0 +1,62 @@
++"""Prepare scoped local candidates from verified 2026-10-18 live source snapshots. No deployment.
++Requires /tmp/quiz-cleanup-followup-20261018 source archives and the documented initial baseline.
++"""
++from pathlib import Path
++import zipfile,re,shutil,json,difflib,hashlib,subprocess
++root=Path.cwd();base=Path('/tmp/quiz-cleanup-followup-20261018');frozen=base/'verified-snapshot'
++assert frozen.exists(), 'Restore the verified scoped patch snapshot first; do not include concurrent workspace edits.'
++expected_hashes={}
++for name in ['QUIZ_CLEANUP_VERIFICATION_2026-10-18.json','QUIZ_CLEANUP_FOLLOWUP_VERIFICATION_2026-10-18.json']:
++ for row in json.loads((root/'docs/operations'/name).read_text())['files']:expected_hashes[row['path']]=row['afterSha256']
++def verified(rel):
++ p=frozen/rel if (frozen/rel).exists() else root/rel
++ assert hashlib.sha256(p.read_bytes()).hexdigest()==expected_hashes[rel], 'Source drift: '+rel
++ return p
++current=verified('functions/index.js').read_text();initial=Path('/tmp/quiz-cleanup-stages-20261018/baseline/functions/index.js').read_text();rows=[]
++for ident in ['subjectQuizAction','popularQuizAction','grantPracticeReward','grantRankingCompleteXp','adminGetQuizQualityAudit']:
++ dst=base/'candidates'/ident/'functions';dst.mkdir(parents=True,exist_ok=True)
++ with zipfile.ZipFile(base/(ident+'.zip')) as z:
++  for name in z.namelist():
++   path=Path(name)
++   if path.is_absolute() or '..' in path.parts:raise ValueError('Unsafe archive path')
++   if name.endswith('/') or any(part.startswith('.env') or part=='node_modules' for part in path.parts):continue
++   target=dst/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(z.read(name))
++ live=(dst/'index.js').read_text();candidate=live
++ if ident in ['subjectQuizAction','popularQuizAction','grantPracticeReward']:
++  names=['grantPracticeRewardInTransaction']+(['rewardGeneratedSubjectAnswer'] if ident=='subjectQuizAction' else [])
++  patterns=[r'^(?:async )?function '+name+r'\([\s\S]*?^\}' for name in names]
++ else:patterns=[r'^exports\.'+ident+r'\s*=\s*onCall\([\s\S]*?^\}\);']
++ for pattern in patterns:
++  old=re.search(pattern,candidate,re.M);expected=re.search(pattern,initial,re.M);new=re.search(pattern,current,re.M)
++  assert old and expected and new,ident
++  assert old.group()==expected.group(),ident+' live section does not match baseline'
++  candidate=candidate[:old.start()]+new.group()+candidate[old.end():]
++ (dst/'index.js').write_text(candidate)
++ extras={'subjectQuizAction':['subject-quiz/service.js'],'popularQuizAction':['popular-quiz/catalog.json'],'adminGetQuizQualityAudit':['quiz-quality-scope.js']}.get(ident,[])
++ for rel in extras:
++  p=dst/rel;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(verified('functions/'+rel),p)
++ if not (dst/'node_modules').exists(): (dst/'node_modules').symlink_to(root/'functions/node_modules',target_is_directory=True)
++ assert (dst/'node_modules').resolve()==(root/'functions/node_modules').resolve()
++ subprocess.run(['node','--check',str(dst/'index.js')],check=True)
++ patch=''.join(difflib.unified_diff(live.splitlines(True),candidate.splitlines(True),fromfile='live/'+ident+'/index.js',tofile='candidate/'+ident+'/index.js'))
++ (base/'candidates'/ident/'index.patch').write_text(patch)
++ rows.append({'function':ident,'sourceDirectory':str(dst),'changedFiles':['index.js']+extras,'indexSha256':hashlib.sha256(candidate.encode()).hexdigest(),'syntaxChecked':True})
++# Create a scoped hosting candidate from the observed live files, not the local full tree.
++host=base/'candidates/hosting';host.mkdir(parents=True,exist_ok=True)
++old=Path('/tmp/quiz-cleanup-stages-20261018/baseline/public/index.html').read_text();new=verified('public/index.html').read_text();patch=''.join(difflib.unified_diff(old.splitlines(True),new.splitlines(True),fromfile='a/index.html',tofile='b/index.html'))
++(base/'candidates/hosting-index.patch').write_text(patch)
++shutil.copyfile('/tmp/quiz-cleanup-public/index.html',host/'index.html')
++subprocess.run(['patch','--fuzz=0',str(host/'index.html'),str(base/'candidates/hosting-index.patch')],check=True,stdout=subprocess.PIPE)
++bundle=Path('/tmp/quiz-cleanup-public/js/app.bundle.js').read_text();mods=['js/features/admin-render.js','js/infrastructure/admin-repository.js','js/infrastructure/ranking-repository.js','js/application/ranking-usecases.js']
++for rel in mods:
++ pattern=r'/\* /'+re.escape(rel)+r' \*/\n([\s\S]*?)\n//# sourceURL=/'+re.escape(rel)
++ m=re.search(pattern,bundle);assert m,rel
++ baseline=Path('/tmp/quiz-cleanup-stages-20261018/baseline/public')/rel
++ assert m.group(1)==baseline.read_text().rstrip(),rel+' live module differs'
++ content=verified('public/'+rel).read_text();bundle=bundle[:m.start(1)]+content.rstrip()+bundle[m.end(1):]
++ p=host/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(content)
++(host/'js/app.bundle.js').write_text(bundle)
++for entry in json.loads((root/'functions/popular-quiz/image-derivatives.json').read_text())['entries']:
++ rel=entry['imageUrl'].lstrip('/');p=host/rel;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(root/'public'/rel,p)
++(base/'candidate-manifest.json').write_text(json.dumps({'functions':rows,'hostingDirectory':str(host),'hostingFiles':[str(p.relative_to(host)) for p in host.rglob('*') if p.is_file()],'releaseExecuted':False},indent=2)+'\n')
++print('Prepared scoped candidates: five function source packages and hosting patch/assets. No deployment.')
+--- /dev/null
++++ b/scripts/smoke/popular-lossless-images.js
+@@ -0,0 +1,44 @@
++'use strict';
++const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
++const {chromium} = require('playwright-core');
++const root = path.resolve(__dirname, '../..');
++async function main() {
++  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'functions/popular-quiz/image-derivatives.json')));
++  const browser = await chromium.launch({executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true});
++  try {
++    const page = await browser.newPage({viewport: {width: 960, height: 1000}});
++    await page.route('**/*', async route => {
++      const url = new URL(route.request().url());
++      if (url.origin !== 'https://quiz-images.invalid') return route.abort();
++      if (url.pathname === '/') return route.fulfill({contentType: 'text/html', body: '<meta charset="utf-8"><style>body{font:16px sans-serif}main{display:grid;grid-template-columns:1fr 1fr;gap:12px}img{width:420px;height:250px;object-fit:contain}figure{margin:0}</style><h1>원본 / 무손실 파생본</h1><main></main>'});
++      const known = manifest.entries.some(row => row.originalUrl === url.pathname || row.imageUrl === url.pathname);
++      if (!known) return route.abort();
++      return route.fulfill({contentType: url.pathname.endsWith('.png') ? 'image/png' : 'image/webp', body: fs.readFileSync(path.join(root, 'public' + url.pathname))});
++    });
++    await page.goto('https://quiz-images.invalid/');
++    const results = await page.evaluate(async entries => {
++      async function pixels(url) {
++        const img = new Image(); img.src = url; await img.decode();
++        const canvas = document.createElement('canvas'); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
++        const context = canvas.getContext('2d', {willReadFrequently: true}); context.drawImage(img, 0, 0);
++        return {width: canvas.width, height: canvas.height, bytes: context.getImageData(0, 0, canvas.width, canvas.height).data};
++      }
++      const rows = [];
++      for (const entry of entries) {
++        const a = await pixels(entry.originalUrl), b = await pixels(entry.imageUrl);
++        rows.push({id: entry.id, same: a.width === b.width && a.height === b.height && a.bytes.length === b.bytes.length && a.bytes.every((value, i) => value === b.bytes[i])});
++      }
++      for (const entry of entries.slice(0, 3)) for (const url of [entry.originalUrl, entry.imageUrl]) {
++        const figure = document.createElement('figure'), img = document.createElement('img'), caption = document.createElement('figcaption');
++        img.src = url; await img.decode(); caption.textContent = entry.id; figure.append(img, caption); document.querySelector('main').append(figure);
++      }
++      return rows;
++    }, manifest.entries);
++    const out = '/tmp/quiz-cleanup-followup-20261018'; fs.mkdirSync(out, {recursive: true});
++    fs.writeFileSync(path.join(out, 'image-browser.json'), JSON.stringify(results, null, 2) + '\n');
++    await page.screenshot({path: path.join(out, 'image-comparison.png'), fullPage: true});
++    assert.deepEqual(results.filter(row => !row.same), [], 'Browser pixels changed');
++    console.log('PASS browser decoded pixels and dimensions: ' + results.length + ' original/derived pairs; all requests local.');
++  } finally { await browser.close(); }
++}
++main().catch(error => {console.error(error); process.exitCode = 1;});
+--- /dev/null
++++ b/functions/popular-quiz/image-derivatives.json
+@@ -0,0 +1,613 @@
++{
++  "version": "lossless-png-v1",
++  "sourceVersion": "popular-image-selection-20261018-v2",
++  "policy": "PNG only, no resize, exact decoded pixel equality, smaller files only; originals retained",
++  "entries": [
++    {
++      "id": "idol-twice-006f778c3c",
++      "sourceSha256": "adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab",
++      "originalUrl": "/popular-quiz/assets/adf157ffceaa8e025345cddf8bd1b06b82b1bcf0aab880c9dc90d557ef8c11ab.png",
++      "imageUrl": "/popular-quiz/optimized/1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a.webp",
++      "imageSha256": "1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a",
++      "originalBytes": 6224081,
++      "bytes": 4382952,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-7c55bc034a",
++      "sourceSha256": "7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55",
++      "originalUrl": "/popular-quiz/assets/7fa13a27e2fb6b264f01d4492d48a5fc1737a34a16eb161b6a7325cd40627c55.png",
++      "imageUrl": "/popular-quiz/optimized/0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61.webp",
++      "imageSha256": "0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61",
++      "originalBytes": 5857579,
++      "bytes": 4032756,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-f7593abcd3",
++      "sourceSha256": "551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75",
++      "originalUrl": "/popular-quiz/assets/551d1559ea765c3d683f2a5464f1978e779d29bb9174cf9cf44e1bf6139dcb75.png",
++      "imageUrl": "/popular-quiz/optimized/282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87.webp",
++      "imageSha256": "282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87",
++      "originalBytes": 5832210,
++      "bytes": 4078484,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-09f57f6b88",
++      "sourceSha256": "450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506",
++      "originalUrl": "/popular-quiz/assets/450b99e5468d7d9dcceab5d3a5c89bc2de6e7217078c97386b049e7c4f3ce506.png",
++      "imageUrl": "/popular-quiz/optimized/86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2.webp",
++      "imageSha256": "86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2",
++      "originalBytes": 6676901,
++      "bytes": 4481456,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-9938a1bd57",
++      "sourceSha256": "2b76db0f5471ae0f0dfdece74a3a0c06b109042e514c7c185dee762e6dfcf6fc",
++      "originalUrl": "/popular-quiz/assets/2b76db0f5471ae0f0dfdece74a3a0c06b109042e514c7c185dee762e6dfcf6fc.png",
++      "imageUrl": "/popular-quiz/optimized/93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a.webp",
++      "imageSha256": "93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a",
++      "originalBytes": 5435703,
++      "bytes": 3813958,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-41b68f1714",
++      "sourceSha256": "cd9205bf87dc9d6f812cc9732f1273ab73dc838edfc6be2ea0de7812208c145c",
++      "originalUrl": "/popular-quiz/assets/cd9205bf87dc9d6f812cc9732f1273ab73dc838edfc6be2ea0de7812208c145c.png",
++      "imageUrl": "/popular-quiz/optimized/691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf.webp",
++      "imageSha256": "691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf",
++      "originalBytes": 5080025,
++      "bytes": 3523148,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-737a501263",
++      "sourceSha256": "eb140ca040d8263912902651b509ceee35ff521cb5a5db7bde0a2490d44861f6",
++      "originalUrl": "/popular-quiz/assets/eb140ca040d8263912902651b509ceee35ff521cb5a5db7bde0a2490d44861f6.png",
++      "imageUrl": "/popular-quiz/optimized/550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd.webp",
++      "imageSha256": "550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd",
++      "originalBytes": 5207589,
++      "bytes": 3687492,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-501c016beb",
++      "sourceSha256": "522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5",
++      "originalUrl": "/popular-quiz/assets/522a9219ba2248d885cb87b990eaae24a3ed2d8c514e8ecf678e4b16f0c308c5.png",
++      "imageUrl": "/popular-quiz/optimized/1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811.webp",
++      "imageSha256": "1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811",
++      "originalBytes": 5537176,
++      "bytes": 3674228,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-twice-189f2f3245",
++      "sourceSha256": "a19f6d11c869ebebdca7a2fbc116175d613063c41e8fbec9bdb1f54e42a50a95",
++      "originalUrl": "/popular-quiz/assets/a19f6d11c869ebebdca7a2fbc116175d613063c41e8fbec9bdb1f54e42a50a95.png",
++      "imageUrl": "/popular-quiz/optimized/14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215.webp",
++      "imageSha256": "14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215",
++      "originalBytes": 5389291,
++      "bytes": 3662426,
++      "width": 1440,
++      "height": 1920,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-day6-3ee7923905",
++      "sourceSha256": "1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab",
++      "originalUrl": "/popular-quiz/assets/1d9642be4e01c9157a3a7ef7cd6262ba99c18d06eadf5723a39a007a9915b5ab.png",
++      "imageUrl": "/popular-quiz/optimized/758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760.webp",
++      "imageSha256": "758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760",
++      "originalBytes": 7591610,
++      "bytes": 5707310,
++      "width": 2000,
++      "height": 2560,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-kep1er-02ef22a918",
++      "sourceSha256": "5f47a8f2e077901668cc66357e459e5e0e1b5bb8d656b221cf90c13bc910cfde",
++      "originalUrl": "/popular-quiz/assets/5f47a8f2e077901668cc66357e459e5e0e1b5bb8d656b221cf90c13bc910cfde.png",
++      "imageUrl": "/popular-quiz/optimized/22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1.webp",
++      "imageSha256": "22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1",
++      "originalBytes": 648605,
++      "bytes": 427344,
++      "width": 586,
++      "height": 782,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "idol-kep1er-bc39775b4d",
++      "sourceSha256": "55f067c3ab0fff0f42f2869e9f8fca2b56664d3dd72265d3f91ec4a8f0227a56",
++      "originalUrl": "/popular-quiz/assets/55f067c3ab0fff0f42f2869e9f8fca2b56664d3dd72265d3f91ec4a8f0227a56.png",
++      "imageUrl": "/popular-quiz/optimized/dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191.webp",
++      "imageSha256": "dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191",
++      "originalBytes": 698901,
++      "bytes": 461670,
++      "width": 586,
++      "height": 782,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "anime-onepiece-02a90a1ee2",
++      "sourceSha256": "2cb0c759757308a0ac148da8d8df6886bd827c7e4ffcaac53ddfdc808d36268b",
++      "originalUrl": "/popular-quiz/assets/2cb0c759757308a0ac148da8d8df6886bd827c7e4ffcaac53ddfdc808d36268b.png",
++      "imageUrl": "/popular-quiz/optimized/b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0.webp",
++      "imageSha256": "b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0",
++      "originalBytes": 106223,
++      "bytes": 76244,
++      "width": 320,
++      "height": 320,
++      "decodedPixelsIdentical": true
++    },
++    {
++      "id": "anime-onepiece-74f5c0c1e8",
++      "sourceSha256": "fdbed9504dbe50a09a17616deb6a485c0a2d027a0298c259a6311067cdc132f7",
++      "originalUrl": "/popular-quiz/assets/fdbed9504dbe50a09a17616deb6a485c0a2d027a0298c259a6311067cdc132f7.png",
++      "imageUrl": "/popular-quiz/optimized/d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951.webp",
++      "imageSha256": "d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951",
++      "originalBytes": 128155,
++      "bytes": 80436,
++      "width": 320,
++      "height": 320,
++      "decodedPixelsIdentical": true
++    }
++  ],
++  "rejected": [
++    {
++      "id": "idol-xdh-3a41490340",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-b46028be15",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-5e7935a1cb",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-6aab764d12",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-7bc36a2542",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-2aeb41ef18",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-fdc129de85",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-bd28b4d088",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-5568050c33",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-f94e6b73db",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a1ce8e5242",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a0177acd0d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-91eda35e4b",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-98faac02aa",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a04a76ddd4",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-867ba1ccf1",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-af76c195ed",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-788893f640",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-edfb016b1c",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-457d16cf97",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-95d9da9a27",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-e2cd5bfb72",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a9701e9595",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-2a9bea3eb7",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-b2bc2741d4",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-c24b44dc0f",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-bf8acb1999",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a1ed43964d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-cbdebfbd9b",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-cb0ab78e7a",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-b85a49fcf5",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-199a381cc6",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-b13601d935",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-ebcb4e786d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-7ed5eb61ea",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-2eb3920992",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-6084078e8b",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-306b109a67",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-1d8fc6f78b",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-1857a6faf5",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-642ecd035b",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-fe87d53d3e",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-dc6f395a0c",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-562771c211",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-26e853bb5e",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-05eac75aa7",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-494400c3d5",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-1fb3bdcd78",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-c156d6e11a",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-f4647a4ca6",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a724152f21",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-a8d20e4e73",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-092272df05",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-c45c72423a",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-e4f123164d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-8699f35844",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-conan-0dab5c234e",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-45d3d77973",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-86a59c1eba",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-1145199a3f",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-9c6ab73efb",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-47f22f4600",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-7abb601d1e",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-bc43fc05be",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-e337d2c848",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-1026cef75f",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-0341cb6503",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-c70421406e",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-51be1ad280",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-0f1d738c37",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-026e824449",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-72260d021d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-e6cbefb8a8",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-fa0df4560d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-c2b9890343",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-1f1c4e9947",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-4ca40fd302",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-5aef70888b",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-shinchan-dd89e5c684",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-d6f8fb35c8",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-ac2178f118",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-dd2ee94e55",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-f94c0a8fb8",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-9917e2551a",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-e5951d6343",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-61970d5df9",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-6a9ce7a3b7",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-139a913a09",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-a4a24c52f1",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-8b70528afa",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-2fcd66f3d8",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-61625a2987",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-a7cb070584",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-dff277a641",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-49d7ffd537",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-48e7ea980f",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-b38d8ec122",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-8db140dd70",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-b17db8f902",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-e8d9a4ce83",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-eab54bb19d",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-52517a9bb3",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-887f8e77a1",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-c561ba6fdf",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-22ed0e76a5",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-a1e3999592",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-1572b0e7d3",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-76ac2a9a31",
++      "reason": "decoded-pixels-differ"
++    },
++    {
++      "id": "anime-heroacamovie-35b1e80c74",
++      "reason": "decoded-pixels-differ"
++    }
++  ]
++}
+--- /dev/null
++++ b/docs/product/popular-image-selection-2026-10-18/lossless-policy.json
+@@ -0,0 +1,30 @@
++{
++  "version": "lossless-png-v1",
++  "exclusions": [
++    {
++      "id": "idol-xdh-3a41490340",
++      "sourceSha256": "5afbd43733af23139fd8e9277583efbfa11d5fb889a4de797c382577b31dd850",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-b46028be15",
++      "sourceSha256": "84dc7dcbd31d1af2ef188b2a911a735db8438e197c34c20a97a7f3b180761d34",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-5e7935a1cb",
++      "sourceSha256": "b26a9d299ccb828c859c6022befcbc397e7491b31e4693f5acc9e0b2fc5e3f24",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-6aab764d12",
++      "sourceSha256": "71649ab3f9a5d64d4fddb4b4d4fbcee2b848bbda7362a3abfd8e8dfb2c7fdc70",
++      "reason": "browser-decoded-pixels-differ"
++    },
++    {
++      "id": "idol-xdh-7bc36a2542",
++      "sourceSha256": "bacfc02a05dcb58f65c15d4549baed745de55985b74cbcd0713af64c9952c014",
++      "reason": "browser-decoded-pixels-differ"
++    }
++  ]
++}

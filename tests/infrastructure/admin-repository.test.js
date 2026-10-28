@@ -19,11 +19,12 @@ async function assertAdminCall(actual, name, payload) {
 }
 
 async function testAdminRepositoryCallsAdminFunctions() {
+  const documentReads = [];
   const repository = createAdminRepository({
     getFirestoreDb: () => ({
       collection: name => ({
         doc: id => ({
-          get: async () => ({
+          get: async () => (documentReads.push(`${name}/${id}`), {
             exists: true,
             data: () => ({ name, id, title: 'Notice', updatedAt: { millis: `${name}-${id}` } })
           })
@@ -56,9 +57,11 @@ async function testAdminRepositoryCallsAdminFunctions() {
     updatedAt: { millis: 'appSettings-externalQuizzes' }
   });
   assert.deepEqual(await repository.loadPublicSeasonEvents(), { items: [{ eventId: 'season-1' }] });
+  documentReads.length = 0;
   assert.equal(await repository.loadServerFreshnessSignature({
     getTimestampMillis: value => value.millis
-  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|seasonEvents:appSettings-seasonEvents|noticeBoard:noticeBoard-current');
+  }), 'featureFlags:appSettings-featureFlags|externalQuizzes:appSettings-externalQuizzes|noticeBoard:noticeBoard-current');
+  assert.deepEqual(documentReads, ['appSettings/featureFlags', 'appSettings/externalQuizzes', 'noticeBoard/current']);
   await assertAdminCall(await repository.loadAdminDashboard(), 'adminGetDashboard', {});
   await assertAdminCall(await repository.loadAdminOperationalAudit(), 'adminGetOperationalAudit', {});
   await assertAdminCall(await repository.loadAdminQuizQualityAudit(), 'adminGetQuizQualityAudit', {});

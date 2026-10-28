@@ -1,0 +1,118 @@
+{
+  "at": "2026-10-07T07:13:39.123Z",
+  "scope": "Public GET only; no raw contents saved",
+  "files": [
+    {
+      "path": "/",
+      "sha256": "98506554a974a4aeb87f25ee222c215e8de8c02a964d013306c69af3254000dc",
+      "bytes": 432726,
+      "localMatches": false
+    },
+    {
+      "path": "/js/app.bundle.js",
+      "sha256": "8c92502e07ebef7bb7b9d411509d434287acd5c41f0e39aac3575719df0b4575",
+      "bytes": 873228,
+      "localMatches": false
+    },
+    {
+      "path": "/coordi-shop/dressing-room.js",
+      "sha256": "358d077a76f2f11270836126d51c4680f556b2822898099bd74d86862f0957f5",
+      "bytes": 67583,
+      "localMatches": true
+    },
+    {
+      "path": "/coordi-shop/town-bridge.js",
+      "sha256": "ee4241617d28ed5ec9c414ac612551d4ef390ad6976d5beddcdf68e6129ab2ff",
+      "bytes": 1368,
+      "localMatches": true
+    }
+  ],
+  "modules": [
+    {
+      "file": "public/js/application/admin-usecases.js",
+      "included": true
+    },
+    {
+      "file": "public/js/infrastructure/admin-repository.js",
+      "included": true
+    },
+    {
+      "file": "public/js/features/admin-render.js",
+      "included": true
+    },
+    {
+      "file": "public/js/features/admin-controller.js",
+      "included": true
+    },
+    {
+      "file": "public/js/application/account-usecases.js",
+      "included": true
+    },
+    {
+      "file": "public/js/application/classroom-usecases.js",
+      "included": true
+    },
+    {
+      "file": "public/js/infrastructure/classroom-repository.js",
+      "included": true
+    },
+    {
+      "file": "public/js/features/classroom-state.js",
+      "included": true
+    },
+    {
+      "file": "public/js/features/classroom-render.js",
+      "included": false
+    },
+    {
+      "file": "public/js/features/classroom-workspace.js",
+      "included": false
+    },
+    {
+      "file": "public/js/features/classroom-controller.js",
+      "included": true
+    },
+    {
+      "file": "public/js/features/app-view.js",
+      "included": true
+    },
+    {
+      "file": "public/js/features/shop-render.js",
+      "included": true
+    }
+  ],
+  "functions": [
+    {
+      "name": "showAdminView",
+      "match": true
+    },
+    {
+      "name": "setActiveAdminSection",
+      "match": true
+    },
+    {
+      "name": "showClassroomView",
+      "match": true
+    },
+    {
+      "name": "setClassroomUnlocked",
+      "match": true
+    },
+    {
+      "name": "handleClassroomEntrySubmit",
+      "match": true
+    },
+    {
+      "name": "showShopView",
+      "match": true
+    },
+    {
+      "name": "loadAdminDashboard",
+      "match": true
+    },
+    {
+      "name": "loadAdminMembers",
+      "match": true
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "dateKst": "2026-10-17T14:34:46.363250+09:00",
+  "status": "deployed-and-verified",
+  "site": "https://dj48-quiztown-firebase.web.app",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792215220709000",
+    "version": "sites/dj48-quiztown-firebase/versions/801c6b893f67c0e9",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/e13bedb27677a818",
+    "changed": [
+      "/index.html",
+      "/js/features/classroom-portrait.js",
+      "/js/features/classroom-render.js",
+      "/js/features/classroom-controller.js",
+      "/js/features/classroom-state.js",
+      "/js/features/classroom-card-home.js",
+      "/js/features/classroom-diary.js",
+      "/js/app.bundle.js",
+      "/classroom-diary.css",
+      "/images/classroom/cards/owl-notice-320.webp",
+      "/images/classroom/cards/fox-quest-320.webp",
+      "/images/classroom/cards/bunny-routine-320.webp",
+      "/images/classroom/stationery/notebook-160.webp",
+      "/images/classroom/community-tree-320.webp"
+    ]
+  },
+  "function": {
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/classroomDiaryAction",
+    "state": "ACTIVE",
+    "updateTime": "2026-10-17T05:31:04.035684401Z",
+    "revision": "classroomdiaryaction-00001-cis",
+    "runtime": "nodejs22",
+    "entryPoint": "classroomDiaryAction",
+    "targetOnly": "classroomDiaryAction",
+    "existingFunctionChangesObserved": []
+  },
+  "preservation": {
+    "unchangedHostingFiles": 3779,
+    "unchangedBundleModules": 66,
+    "hostingSettingsPreserved": true,
+    "sharedHtmlExceptClassroomHooksPreserved": true,
+    "latestLegacyQuizReferencesPreserved": "school-rooms.css/js quiz-roles-20261017",
+    "rulesDeployed": false,
+    "productionStudentDataWritten": false,
+    "rebase": "다른 작업의 live 변경 6f63ba8e46e241a5 → e13bedb27677a818를 감지해 첫 준비를 중단하고 최신본에서 재작성·재검증 후 공개함."
+  },
+  "excluded": [
+    "공유 index.html/app.bundle.js의 로컬 전체 교체",
+    "레거시 과목·인기·학습 퀴즈 관련 코드 변경",
+    "이번 카드·일기 기능과 무관한 기존 로컬 교실 마켓/로딩 개선",
+    "기존 Functions, Firestore/Storage 규칙·인덱스 및 운영 학생 데이터 직접 수정"
+  ],
+  "validation": [
+    "npm run check PASS (일기 권한 검사는 현재 운영 Firestore 규칙 사용)",
+    "운영 소스 기반 후보의 실제 callable 인증·학급·비공개·선택 이미지·숨김 검증 PASS (demo 에뮬레이터)",
+    "최종 Hosting 후보 브라우저 320–1440px 카드·일기·댓글 흐름 PASS",
+    "배포 후 전체 Hosting 매니페스트와 변경 파일 14개 응답 SHA-256 PASS",
+    "신규 함수 ACTIVE, 비로그인 HTTP 401, 기존 함수 변경 0",
+    "배포된 공개 화면의 로그인 폼·새 모듈·CSS/내비게이션 로드 PASS, pageerror/정적 파일 오류 0 (백엔드 데이터 요청 차단)"
+  ],
+  "rawHashes": {
+    "index.html": "499e67068613b2f09c3c328ffca91232485aa549abe8b7dc15a2c8d21dd42816",
+    "js/features/classroom-portrait.js": "cb86951ba56257c411915d9a1f2dd616396324f5f79f79bcd6220b927815b0bb",
+    "js/features/classroom-render.js": "fbabde4894bbb4da0e5e7b69696b92ceef3e8cbd39ee437c16a1114291e49dce",
+    "js/features/classroom-controller.js": "a2d583ca05f489c59b9a32d6a9e2d18512e5795ac019c5f452abd4a500611a98",
+    "js/features/classroom-state.js": "f848f8a5733cc07888c91831c7fee0d2190b8a25a1c315dba3089c037ecaecdc",
+    "js/features/classroom-card-home.js": "57cf0b286cd0674289967e4b15ccfd9fdadfd806bccc6fb3c7f2dd4a725f9552",
+    "js/features/classroom-diary.js": "2904c056977148c6bf1246f74392211baaf88a9f95b59a3f03cef0194f94919f",
+    "js/app.bundle.js": "3e002ee134dbe81cb35e2ab0785d3c9d8702b9e8a43d476a7573a0a578f9ac38",
+    "classroom-diary.css": "d51a51e8a54cbc849a48b3482b090013be8613e19d9ba74fdc98dd1edd205cc0",
+    "images/classroom/cards/owl-notice-320.webp": "20fb6fbbfd0427fed4f32b4440a25e7c7cc706bf0ca209eace96fc5b4f6f3341",
+    "images/classroom/cards/fox-quest-320.webp": "1bb79e50e7130390721ab94f37abc90048fabd45dbeb7a35f3ebec032544842a",
+    "images/classroom/cards/bunny-routine-320.webp": "5077290f487d85ba793fd9ffb5b83bfde2255a10f0a94fa5c9f26b0b66467cec",
+    "images/classroom/stationery/notebook-160.webp": "ea8c5f62a8370b2a97e6d5d98d7fb4f0058c95293052e27eb412652e65ca8272",
+    "images/classroom/community-tree-320.webp": "6e6acce4a56c7acb0ca28abb13c4c2563e677ac220e3cd289d5469aa1c0c316c"
+  },
+  "evidenceDirectory": "docs/product/classroom-card-diary-2026-10-17/deployed",
+  "temporaryStage": "/tmp/classroom-diary-release-20261017",
+  "limitations": [
+    "실제 학생 계정으로 일기·댓글을 쓰는 운영 테스트는 수행하지 않음. 쓰기 동작은 합성 계정과 로컬 에뮬레이터에서 검증함.",
+    "전역 로그인 후 타운 진입은 유지. 우리 교실 진입 첫 화면에 학생 카드 홈이 적용됨."
+  ]
+}

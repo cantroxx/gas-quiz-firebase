@@ -1,5 +1,17 @@
 (function () {
+  let revision = 0;
+  const generations = {};
+  function getGeneration(key) { return generations[key] || 0; }
+  function getRevision() { return revision; }
+  const loadErrors = {};
+  function reportLoadStatus(key, error) {
+    if(error) loadErrors[key] = true;
+    else delete loadErrors[key];
+  }
+  function hasLoadError(key) { return loadErrors[key] === true; }
+  function getLoadErrors() { return Object.keys(loadErrors); }
   const cache = {
+    home: null,
     settings: null,
     progress: null,
     review: null,
@@ -9,6 +21,8 @@
     economy: null
   };
   const loadPromises = {
+    home: null,
+    settings: null,
     progress: null,
     review: null,
     wallet: null,
@@ -36,13 +50,25 @@
   }
 
   function resetClassroomDataCaches(options = {}) {
+    if(options.settings || options.wallet || options.economy || options.students) options = { ...options, home: true };
+    if(Object.keys(options).some(key => options[key] && Object.prototype.hasOwnProperty.call(cache, key))) revision++;
     Object.keys(options).forEach(key => {
-      if(options[key] && Object.prototype.hasOwnProperty.call(cache, key)) cache[key] = null;
+      if(options[key] && Object.prototype.hasOwnProperty.call(cache, key)) {
+        cache[key] = null;
+        loadPromises[key] = null;
+        generations[key] = getGeneration(key) + 1;
+        delete loadErrors[key];
+      }
     });
   }
 
   function resetClassroomRuntimeData() {
+    window.DJ48ClassroomDiary?.close();
+    window.DJ48Securities?.reset();
+    Object.keys(loadErrors).forEach(key => delete loadErrors[key]);
     resetClassroomDataCaches({
+      home: true,
+      settings: true,
       progress: true,
       review: true,
       wallet: true,
@@ -56,6 +82,11 @@
   }
 
   window.DJ48ClassroomState = {
+    getGeneration,
+    getRevision,
+    reportLoadStatus,
+    hasLoadError,
+    getLoadErrors,
     getValue,
     setValue,
     getLoadPromise,

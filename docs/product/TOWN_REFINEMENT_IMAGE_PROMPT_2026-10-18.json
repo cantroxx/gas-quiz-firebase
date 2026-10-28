@@ -1,0 +1,6 @@
+{
+  "tool": "built-in image_gen",
+  "target": "public/images/town-spatial-20261018/school-v1.webp",
+  "output": "public/images/town-spatial-20261018/school-v2.webp",
+  "prompt": "Use case: precise-object-edit. Edit target: attached existing school lobby illustration. Change ONLY the fifth doorway from the left, centered at horizontal 72%: remove its lightbulb emblem, arched door frame and wooden door, and replace that same bounded area with a low cozy wooden bookshelf filled with pastel books, a small green potted plant on top, and plain cream wall above. It must clearly look like decorative furniture rather than an entrance. Preserve all other five doors at their exact positions and sizes, including apple/book/pencil/star/controller symbols; preserve clock, room architecture, colors, hand-drawn texture, floor, rug, lighting, and image dimensions. No text, no new interactive labels, no characters. The reference's existing warm cute browser-game art style must remain unchanged. Only the fifth door is edited."
+}

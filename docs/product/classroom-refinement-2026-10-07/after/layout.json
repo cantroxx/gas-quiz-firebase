@@ -1,0 +1,463 @@
+{
+  "fixture": "classroom-ui-browser.js synthetic demo class",
+  "cases": [
+    {
+      "name": "student-1440-quest",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 293,
+      "cardHeight": 142,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/reading.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/kindness.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        }
+      ]
+    },
+    {
+      "name": "student-1440-market",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 238,
+      "cardHeight": 270,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/seat.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/music.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/freetime.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/snack.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/lunch.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "student-768-quest",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 345,
+      "cardHeight": 142,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/reading.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/kindness.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        }
+      ]
+    },
+    {
+      "name": "student-768-market",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 290,
+      "cardHeight": 270,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/seat.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/music.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/freetime.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/snack.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/lunch.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "student-390-quest",
+      "width": 390,
+      "height": 844,
+      "firstTop": 315,
+      "cardHeight": 196,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/reading.svg",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        },
+        {
+          "src": "/images/classroom/illustrations/kindness.svg",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        }
+      ]
+    },
+    {
+      "name": "student-390-market",
+      "width": 390,
+      "height": 844,
+      "firstTop": 300,
+      "cardHeight": 248,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/seat.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/music.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/freetime.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/snack.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/lunch.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        }
+      ],
+      "selectedActionVisible": true
+    },
+    {
+      "name": "teacher-1440-quest",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 322,
+      "cardHeight": 164,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/reading.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/kindness.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/notebook.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/notebook.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        }
+      ]
+    },
+    {
+      "name": "teacher-1440-market",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 238,
+      "cardHeight": 270,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/seat.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/music.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/freetime.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/snack.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/lunch.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "teacher-768-quest",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 374,
+      "cardHeight": 164,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/reading.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/kindness.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/notebook.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/illustrations/notebook.svg",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        }
+      ]
+    },
+    {
+      "name": "teacher-768-market",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 290,
+      "cardHeight": 270,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/seat.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/music.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/freetime.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/snack.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/illustrations/lunch.svg",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "teacher-390-quest",
+      "width": 390,
+      "height": 844,
+      "firstTop": 369,
+      "cardHeight": 218,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/reading.svg",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        },
+        {
+          "src": "/images/classroom/illustrations/kindness.svg",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        },
+        {
+          "src": "/images/classroom/illustrations/notebook.svg",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        },
+        {
+          "src": "/images/classroom/illustrations/notebook.svg",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        }
+      ]
+    },
+    {
+      "name": "teacher-390-market",
+      "width": 390,
+      "height": 844,
+      "firstTop": 314,
+      "cardHeight": 248,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/illustrations/seat.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/music.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/freetime.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/snack.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/illustrations/lunch.svg",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        }
+      ],
+      "selectedActionVisible": true
+    }
+  ]
+}

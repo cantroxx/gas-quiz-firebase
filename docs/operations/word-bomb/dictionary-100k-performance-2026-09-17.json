@@ -1,0 +1,8 @@
+{
+  "count": 100000,
+  "rawBytes": 1030131,
+  "gzipBytes": 381175,
+  "choicesP95ms": 0.13700000000000045,
+  "choicesMaxMs": 0.32016699999999787,
+  "wordListSha256": "093cdfd4641ad507344f62416e4c27336b1ce3c42533efc844f8600ad4db50be"
+}

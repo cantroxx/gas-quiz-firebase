@@ -1,0 +1,18 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792295177050000",
+  "version": "sites/dj48-quiztown-firebase/versions/5152d1757e48fc7b",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/2883f013195d482e",
+  "changed": [
+    "/index.html",
+    "/town-spatial.css",
+    "/js/town-spatial.js",
+    "/js/town-avatar.js",
+    "/js/school-rooms.js",
+    "/js/features/ranking-render.js",
+    "/js/features/event-render.js",
+    "/js/features/quiz-render.js",
+    "/js/app.bundle.js",
+    "/images/town-spatial-20261018/school-v2.webp"
+  ],
+  "preservedFiles": 3985
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "function": "showRankingView",
+    "same": true,
+    "localLine": 9136,
+    "productionLine": 9150
+  },
+  {
+    "function": "showShopView",
+    "same": true,
+    "localLine": 9149,
+    "productionLine": 9163
+  },
+  {
+    "function": "showQuizSelectView",
+    "same": true,
+    "localLine": 9239,
+    "productionLine": 9253
+  },
+  {
+    "function": "loadFeatureFlags",
+    "same": true,
+    "localLine": 4744,
+    "productionLine": 4743
+  },
+  {
+    "function": "renderClassroomPrototype",
+    "same": true,
+    "localLine": 6443,
+    "productionLine": 6457
+  },
+  {
+    "function": "startTownSocial",
+    "same": true,
+    "localLine": 5407,
+    "productionLine": 5423
+  },
+  {
+    "function": "showTownView",
+    "same": true,
+    "localLine": 9029,
+    "productionLine": 9043
+  }
+]

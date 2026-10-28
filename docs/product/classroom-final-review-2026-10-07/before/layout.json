@@ -1,0 +1,115 @@
+{
+  "fixture": "classroom-ui-browser.js synthetic demo class",
+  "cases": [
+    {
+      "name": "student-1440-quest",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 390,
+      "cardHeight": 294,
+      "scrollWidth": 1440,
+      "images": []
+    },
+    {
+      "name": "student-1440-market",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 467,
+      "cardHeight": 357,
+      "scrollWidth": 1440,
+      "images": []
+    },
+    {
+      "name": "student-768-quest",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 469,
+      "cardHeight": 294,
+      "scrollWidth": 768,
+      "images": []
+    },
+    {
+      "name": "student-768-market",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 545,
+      "cardHeight": 357,
+      "scrollWidth": 768,
+      "images": []
+    },
+    {
+      "name": "student-390-quest",
+      "width": 390,
+      "height": 844,
+      "firstTop": 411,
+      "cardHeight": 278,
+      "scrollWidth": 390,
+      "images": []
+    },
+    {
+      "name": "student-390-market",
+      "width": 390,
+      "height": 844,
+      "firstTop": 530,
+      "cardHeight": 314,
+      "scrollWidth": 390,
+      "images": [],
+      "selectedActionVisible": false
+    },
+    {
+      "name": "teacher-1440-quest",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 432,
+      "cardHeight": 321,
+      "scrollWidth": 1440,
+      "images": []
+    },
+    {
+      "name": "teacher-1440-market",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 467,
+      "cardHeight": 357,
+      "scrollWidth": 1440,
+      "images": []
+    },
+    {
+      "name": "teacher-768-quest",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 511,
+      "cardHeight": 321,
+      "scrollWidth": 768,
+      "images": []
+    },
+    {
+      "name": "teacher-768-market",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 545,
+      "cardHeight": 357,
+      "scrollWidth": 768,
+      "images": []
+    },
+    {
+      "name": "teacher-390-quest",
+      "width": 390,
+      "height": 844,
+      "firstTop": 561,
+      "cardHeight": 305,
+      "scrollWidth": 390,
+      "images": []
+    },
+    {
+      "name": "teacher-390-market",
+      "width": 390,
+      "height": 844,
+      "firstTop": 486,
+      "cardHeight": 314,
+      "scrollWidth": 390,
+      "images": [],
+      "selectedActionVisible": false
+    }
+  ]
+}

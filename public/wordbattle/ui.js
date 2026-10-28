@@ -23,6 +23,9 @@
     let hintText = '';       // 힌트로 추천된 낱말 (없으면 '')
     let ticker = null;       // 타이머 인터벌
     let lastTimeoutTry = 0;  // 시간초과 처리 재시도 간격 조절
+    let timerPending = false;
+    let settledTimeout = '';
+    let boardKey = '';
     let busy = false;        // 서버 응답 대기 중 (버튼 연타·중복 요청 방지)
     let recorded = false;    // 랭크 점수 서버 기록을 한 번만 하기 위한 가드
     let recordMsg = '랭크 점수를 기록하는 중…';
@@ -32,7 +35,7 @@
     function sigOf(room, hand) {
       const b = room.board.map(function (w) { return w.tiles.map(function (t) { return t.id; }).join(','); }).join('|');
       const h = hand.map(function (t) { return t.id; }).join(',');
-      return session.viewerId() + '#' + room.turn + '#' + room.status + '#' + b + '##' + h;
+      return session.viewerId() + '#' + room.turn + '#' + room.turnEndsAt + '#' + room.status + '#' + b + '##' + h;
     }
 
     // 워크스페이스: words 배열의 ★맨 끝 낱말★이 항상 "만드는 중"(활성)이다.
@@ -83,7 +86,24 @@
       notice = ''; render();
     }
 
+    function showConnection() {
+      const state = session.syncState ? session.syncState() : 'ready';
+      let banner = document.getElementById('wb-connection');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'wb-connection'; banner.setAttribute('role', 'status');
+        document.body.appendChild(banner);
+      }
+      banner.hidden = state === 'ready';
+      banner.textContent = state === 'error' ? '연결을 다시 열어야 해요. 새로고침 후 이 방에 다시 들어와 주세요.'
+        : state === 'offline' ? '인터넷 연결이 끊겼어요. 연결되면 이어서 할 수 있어요.'
+        : '방과 손패를 맞추고 있어요. 잠시만 기다려 주세요.';
+      app().inert = state !== 'ready';
+      return state === 'ready';
+    }
+
     function render() {
+      if (!showConnection()) return;
       const room = session.getRoom();
       if (!room) { app().innerHTML = '<div class="loading">방 정보를 기다리는 중…</div>'; return; }
       global.WBRoom.syncApproved(room);   // 이 방에서 동의된 낱말을 판정기에 반영
@@ -91,7 +111,17 @@
 
       const hand = session.currentHand();
       const key = sigOf(room, hand);
-      if (key !== wsKey) { initWs(room, hand); wsKey = key; notice = ''; hintText = ''; }  // 판이 바뀌면 새로 초기화
+      if (key !== wsKey) {
+        const nextBoardKey = key.split('##')[0];
+        // 같은 차례·공용판에서 손패만 추가 수신되면 이미 만든 낱말을 보존한다.
+        const held = ws ? ws.tray.concat.apply(ws.tray, ws.words).filter(function (t) { return t.origin === 'hand'; }) : [];
+        const ids = new Set(hand.map(function (t) { return t.id; }));
+        if (ws && boardKey === nextBoardKey && held.every(function (t) { return ids.has(t.id); })) {
+          const oldIds = new Set(held.map(function (t) { return t.id; }));
+          hand.forEach(function (t) { if (!oldIds.has(t.id)) ws.tray.push(tileRef(t, 'hand')); });
+        } else { initWs(room, hand); notice = ''; hintText = ''; }
+        wsKey = key; boardKey = nextBoardKey;
+      }
 
       if (room.status === 'finished') return renderFinished(room);
       return renderGame(room);
@@ -316,11 +346,12 @@
       const myTurn = session.isMyTurn();
       // 모든 타일: 탭 한 번으로 '만드는 중'에 붙이거나(손패·바닥) 빼기(만드는 중)
       document.querySelectorAll('[data-pick]').forEach(function (btn) {
-        btn.onclick = function () { if (myTurn) onTileTap(btn.getAttribute('data-pick')); };
+        btn.onclick = function () { if (myTurn && !busy && !session.getRoom().paused && showConnection()) onTileTap(btn.getAttribute('data-pick')); };
       });
       // 낱말 하나 더 만들기: 지금 만드는 낱말을 굳히고 새 빈 칸을 연다
       const nw = document.getElementById('btn-newword');
       if (nw) nw.onclick = function () {
+        if (!myTurn || busy || session.getRoom().paused || !showConnection()) return;
         if (ws.words[ws.words.length - 1].length > 0) ws.words.push([]);
         notice = ''; render();
       };
@@ -406,11 +437,17 @@
 
     function stopTicker() { if (ticker) { clearInterval(ticker); ticker = null; } }
     function tick() {
+      const wasWaiting = app().inert;
+      if (!showConnection()) return;
+      if (wasWaiting) render();
       const room = session.getRoom();
       if (!room || room.status !== 'playing') return;
       // 일시정지 자동 해제 (50분 초과)
       if (room.paused) {
-        if (room.pauseEndsAt && Date.now() > room.pauseEndsAt) session.resume().then(function () { render(); });
+        if (!timerPending && room.pauseEndsAt && Date.now() > room.pauseEndsAt) {
+          timerPending = true;
+          session.resume().finally(function () { timerPending = false; render(); });
+        }
         return;
       }
       const el = document.getElementById('timer');
@@ -427,9 +464,15 @@
       const overdue = session.isMyTurn()
         ? remain <= -800
         : (session.mode === 'online' && remain <= -10800);
-      if (overdue && Date.now() - lastTimeoutTry > 3000) {
+      const timeoutKey = room.turn + '#' + room.turnEndsAt;
+      if (overdue && !busy && !timerPending && settledTimeout !== timeoutKey && Date.now() - lastTimeoutTry > 3000) {
         lastTimeoutTry = Date.now();
-        session.timeout().then(function (r) { render(); });
+        timerPending = true;
+        session.timeout().then(function (r) {
+          if (r && r.ok) settledTimeout = timeoutKey;
+        }).catch(function () {
+          notice = '차례를 넘기지 못했어요. 연결되면 다시 확인할게요.';
+        }).finally(function () { timerPending = false; render(); });
       }
     }
 

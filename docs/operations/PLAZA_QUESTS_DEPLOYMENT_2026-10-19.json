@@ -1,0 +1,165 @@
+{
+  "project": "dj48-quiztown-firebase",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792372262720000",
+    "version": "sites/dj48-quiztown-firebase/versions/010192af06a97061",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/77560450f386c2f2",
+    "changed": [
+      "index.html",
+      "styles.css",
+      "js/app.bundle.js",
+      "js/features/ranking-data.js",
+      "js/features/ranking-render.js",
+      "js/application/ranking-usecases.js",
+      "js/ranking-plaza-loader.js",
+      "js/hideout-ranking-plaza.js",
+      "js/town-spatial.js",
+      "js/features/event-render.js",
+      "js/features/home-render.js",
+      "js/town-avatar.js",
+      "js/data/popular-quiz-catalog.js",
+      "popular-quiz/style.css",
+      "popular-quiz/app.js",
+      "player-status/status.js",
+      "mathsurvivor/net.js",
+      "mathsurvivor/game.js",
+      "js/special-rewards.js",
+      "popular-quiz/index.html",
+      "mathsurvivor/index.html",
+      "player-status/index.html"
+    ]
+  },
+  "existingFunctions": {
+    "verified": [
+      {
+        "target": "getEventProgress",
+        "updateTime": "2026-10-19T01:08:52.705038782Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "claimEventQuestReward",
+        "updateTime": "2026-10-19T01:09:00.478959193Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "grantPracticeReward",
+        "updateTime": "2026-10-19T01:09:06.132833080Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "grantRankingCompleteXp",
+        "updateTime": "2026-10-19T01:08:57.062491149Z",
+        "sourceFiles": 25,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "ingestGrowthActivity",
+        "updateTime": "2026-10-19T01:09:00.736109127Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "ingestPracticeGrowth",
+        "updateTime": "2026-10-19T01:09:10.835319740Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "survivorQuestQuiz",
+        "updateTime": "2026-10-19T01:09:17.733822139Z",
+        "sourceFiles": 22,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "wordBombAction",
+        "updateTime": "2026-10-19T01:09:43.731480720Z",
+        "sourceFiles": 22,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "subjectQuizAction",
+        "updateTime": "2026-10-19T01:09:38.934225969Z",
+        "sourceFiles": 92,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "popularQuizAction",
+        "updateTime": "2026-10-19T01:09:43.430695952Z",
+        "sourceFiles": 96,
+        "state": "ACTIVE"
+      }
+    ],
+    "unrelatedChanges": [],
+    "verifiedAt": "2026-10-19T01:09:57.031Z"
+  },
+  "newFunctionsAndAuth": {
+    "verified": [
+      {
+        "target": "specialRewardAction",
+        "state": "ACTIVE",
+        "revision": "specialrewardaction-00001-lal",
+        "updateTime": "2026-10-19T01:10:06.966079563Z"
+      },
+      {
+        "target": "adminSpecialRewardAction",
+        "state": "ACTIVE",
+        "revision": "adminspecialrewardaction-00001-zem",
+        "updateTime": "2026-10-19T01:10:12.306292838Z"
+      }
+    ],
+    "unauthenticatedCallsRejected": [
+      "getEventProgress",
+      "claimEventQuestReward",
+      "grantPracticeReward",
+      "grantRankingCompleteXp",
+      "survivorQuestQuiz",
+      "wordBombAction",
+      "subjectQuizAction",
+      "popularQuizAction",
+      "specialRewardAction",
+      "adminSpecialRewardAction"
+    ],
+    "studentWritesPerformed": 0,
+    "verifiedAt": "2026-10-19T01:10:45.473Z"
+  },
+  "settings": {
+    "eventPlazaEnabled": true,
+    "rankingEnabled": true,
+    "registryExists": false,
+    "studentRecordsChanged": 0,
+    "createdEmptyRegistry": true,
+    "activeRewardCount": 0
+  },
+  "publishedHashes": {
+    "index.html": "1ec0c5f561b3cd12e65c35c7f337b1dbbcdbb9a4f802594efa7e41b22c47a395",
+    "styles.css": "23213c91953ce226824f9126fd2beee05915133a3183594b8da524e33d403a39",
+    "js/app.bundle.js": "8e00822ab587ba76781bccf51608116cfc9121f4722b8f919e45d7a53c40032f",
+    "js/features/ranking-data.js": "7ff684bdb9c5f61257345bb52063954c35edd3512389ab5925987cdb2b49e79b",
+    "js/features/ranking-render.js": "2b67568012748999ba78c0a8e1a3a9d7f3b5fa526d45e4af4f931db188dd8fee",
+    "js/application/ranking-usecases.js": "1b87ef119a63d2a6ce957b80ab462f886b1e8888463e17d0fa2544de1c6c12c2",
+    "js/ranking-plaza-loader.js": "c4b5a6219a356dd1a8d5ac0415280dbd0159d8ed2269cae1ff91274d8ac4ff39",
+    "js/hideout-ranking-plaza.js": "ef26ec0f1c0e13bf2fbb48f321dc54fe7b740a76c017299194be9741d5922f5c",
+    "js/town-spatial.js": "e378fb72676d88e99c6de3a44c80cf7aba3514daa46c19e7df101c65a832b368",
+    "js/features/event-render.js": "19702c9d9c01595bfa83701d557f48f7e707bc7029bba1516db058f2034c560c",
+    "js/features/home-render.js": "b9bb6be2d5743cf4bafbbc7b242404c2154cdb87f5dc50ab1e72da21afea674f",
+    "js/town-avatar.js": "36f80de6fa80dea7e3eaec5ff78364bac2c5406fd0b957d25d1dccd6175b2b8c",
+    "js/data/popular-quiz-catalog.js": "62e710c503f1dc5c88af185ac264484fd93e7e5dfc328604ff2b78f8cd1c5e74",
+    "popular-quiz/style.css": "84847542756245cdfc34b00e153b2c5f237fdb9c4af1055fdd194329d514ec38",
+    "popular-quiz/app.js": "9ebc4c1c9bd4954031b31ecd5eb1726b9a38b9275ab2959b6ccffa10b7281b63",
+    "player-status/status.js": "0545f0dc92ef7f93138ae60cb4c21a2f62cf2475e8db86b49fe9ae4578a52f31",
+    "mathsurvivor/net.js": "cbcc298c38e88a35a64685fbd5a9d34aeb31dd52cf2daa66d597db715d41f640",
+    "mathsurvivor/game.js": "01c2f544b754a9b599cbbcea8fbaf3e93e3197738cc838f52f90221ff98fde4e",
+    "js/special-rewards.js": "74defe499d3b261da4580ee4a37109f9757fd3677075fa6b37c9d8b156bca420",
+    "popular-quiz/index.html": "2935a713071369332f8a39b9c1701ddddd2ef1c309506d3e63b0fe4af2f655ca",
+    "mathsurvivor/index.html": "17908c1e56622dde3544f1b559a4dd468ff4172cd828f8d663befd5ef227c513",
+    "player-status/index.html": "705dd954e4fb2754d6c2818ec80b03204f877a37499bb791a45acbeffd8ebc52"
+  },
+  "hostingVerification": {
+    "fullManifestMatched": true,
+    "all22ChangedHttpHashesMatched": true,
+    "verifiedAt": "2026-10-19T01:12:14.387692+00:00"
+  }
+}

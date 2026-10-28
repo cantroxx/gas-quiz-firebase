@@ -1,0 +1,16 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792298006936000",
+  "version": "sites/dj48-quiztown-firebase/versions/3ae7d832f8da46d7",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/5152d1757e48fc7b",
+  "changed": [
+    "/index.html",
+    "/town-spatial.css",
+    "/js/town-spatial.js",
+    "/js/town-avatar.js",
+    "/js/player-status-shortcut.js",
+    "/images/town-controls-20261018/people.webp",
+    "/images/town-controls-20261018/news.webp",
+    "/images/town-controls-20261018/status.webp"
+  ],
+  "preservedFiles": 3990
+}

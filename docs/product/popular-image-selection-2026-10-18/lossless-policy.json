@@ -1,0 +1,30 @@
+{
+  "version": "lossless-png-v1",
+  "exclusions": [
+    {
+      "id": "idol-xdh-3a41490340",
+      "sourceSha256": "5afbd43733af23139fd8e9277583efbfa11d5fb889a4de797c382577b31dd850",
+      "reason": "browser-decoded-pixels-differ"
+    },
+    {
+      "id": "idol-xdh-b46028be15",
+      "sourceSha256": "84dc7dcbd31d1af2ef188b2a911a735db8438e197c34c20a97a7f3b180761d34",
+      "reason": "browser-decoded-pixels-differ"
+    },
+    {
+      "id": "idol-xdh-5e7935a1cb",
+      "sourceSha256": "b26a9d299ccb828c859c6022befcbc397e7491b31e4693f5acc9e0b2fc5e3f24",
+      "reason": "browser-decoded-pixels-differ"
+    },
+    {
+      "id": "idol-xdh-6aab764d12",
+      "sourceSha256": "71649ab3f9a5d64d4fddb4b4d4fbcee2b848bbda7362a3abfd8e8dfb2c7fdc70",
+      "reason": "browser-decoded-pixels-differ"
+    },
+    {
+      "id": "idol-xdh-7bc36a2542",
+      "sourceSha256": "bacfc02a05dcb58f65c15d4549baed745de55985b74cbcd0713af64c9952c014",
+      "reason": "browser-decoded-pixels-differ"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
  'use strict';
  const C=typeof module!=='undefined'&&module.exports?require('./content.js'):root.FWContent;
  const D=typeof module!=='undefined'&&module.exports?require('./tower-domain.js'):root.FWTowerDomain;
- const kinds={normal:['전투','적을 모두 물리치면 결정 18개와 유물 1개를 받아요.'],elite:['강한 적','적이 더 많고 튼튼해요. 대신 결정 30개와 유물 1개를 받아요!'],treasure:['보물','싸우지 않고, 같은 속성의 유물 중 1개를 골라 받아요.'],forge:['강화소','결정을 써서 무기와 유물을 더 강하게 만들어요. +3 이상 무기는 여기서!'],shop:['상점','결정으로 유물이나 특별한 도구를 사요. 한 번에 1개만 살 수 있어요.'],rest:['회복 샘','결정 25개로 체력을 40까지 채우거나, 무료 보호막 15를 받아요.'],event:['선물 발견','싸우지 않고 열쇠, 결정 18개, 체력 20 중 하나를 공짜로 받아요!'],boss:['보스','이 지역의 가장 강한 적! 이기면 결정 45개와 유물을 받고 다음 지역이 열려요.']};
+ const kinds={normal:['전투','적을 모두 물리치면 결정 코인 18개와 보물 1개를 받아요.'],elite:['강한 적','적이 더 많고 튼튼해요. 대신 결정 코인 30개와 보물 1개를 받아요!'],treasure:['보물','싸우지 않고, 같은 종류의 보물 중 1개를 골라 받아요.'],forge:['강화소','결정 코인을 써서 무기와 보물을 더 강하게 만들어요. +3 이상 무기는 여기서!'],shop:['상점','결정 코인으로 보물이나 특별한 도구를 사요. 한 번에 1개만 살 수 있어요.'],rest:['회복 샘','결정 코인 25개로 체력을 40까지 채우거나, 무료 보호막 15를 받아요.'],event:['선물 발견','싸우지 않고 열쇠, 결정 코인 18개, 체력 20 중 하나를 공짜로 받아요!'],boss:['보스','이 지역의 가장 강한 적! 이기면 결정 코인 45개와 보물을 받고 다음 지역이 열려요.']};
  const depth=s=>s.expedition==='long'?8:6,region=s=>Math.min(3,Math.floor((s.room-1)/depth(s))),step=s=>(s.room-1)%depth(s),total=s=>depth(s)*4;
  function rng(seed){let x=seed>>>0;return()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};}
  function create(weapon,difficulty,mode='short',look='dawn',seed=Math.floor(Math.random()*0xffffffff)){
@@ -24,7 +24,7 @@
   s.forgeUses=s.forgeUses||{};s.activeMixes=s.activeMixes??null;s.discoveredMixes=s.discoveredMixes||[];s.monsterStyle=s.monsterStyle||'cute';
   A.apply(s,s.playMode==='coin'?'beginner':s.difficulty==='expert'?'advanced':'intermediate');s.combat=null;s.guideSeen=[];s.coinFailures=0;s.revivesUsed=0;s.retryPending=s.retryPending&&s.tier!=='advanced';if(s.tier==='beginner')s.runes=0;return true;
  }
- function stock(random,weapon){const tag=['fire','ice','storm','earth','star'][Math.floor(random()*5)];return [{id:'relic',name:'속성 유물 선택',tag,price:40},{id:random()>.5?'mod':'tech',name:random()>.5?'무기·기술 공방':'마법 개조',price:55},{id:'rescue',name:'구조 부적',price:45}];}
+ function stock(random,weapon){const tag=['fire','ice','storm','earth','star'][Math.floor(random()*5)];return [{id:'relic',name:'종류 보물 선택',tag,price:40},{id:random()>.5?'mod':'tech',name:random()>.5?'무기·기술 공방':'마법 개조',price:55},{id:'rescue',name:'구조 부적',price:45}];}
  function current(s){return s.maps[region(s)][step(s)];}
  function select(s,id){if(s.phase!=='route'||s.node)return false;const n=current(s).find(n=>n.id===id);if(!n)return false;s.node=n;s.route=n.type==='elite'?'elite':'normal';
   if(['normal','elite','boss'].includes(n.type)){const r=region(s);s.regionFights[r]++;if(n.type==='elite')s.elites[r]++;s.phase=[1,3].includes(s.regionFights[r])?'charge':'combat';}else if(n.type==='treasure'){s.offers=D.offers(s,rng(s.seed+s.room),n.tag);s.phase='reward';}else s.phase='room';return true;

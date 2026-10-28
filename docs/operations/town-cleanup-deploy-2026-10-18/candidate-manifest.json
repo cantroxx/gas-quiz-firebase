@@ -1,0 +1,13 @@
+{
+  "source": "projects/584571538436/sites/dj48-quiztown-firebase/versions/5152d1757e48fc7b",
+  "rawHashes": {
+    "index.html": "b11bd82f88c6165e60f94d069d25b711739c8687c6b7d9c8118f502af4a988c2",
+    "town-spatial.css": "24206be8372f685d8b6d5e5ed11efb35420e76cda47cc59943bd1b141491e829",
+    "js/town-spatial.js": "64b14e23b191533dd1f63c130f3eaff115e437341c65a4e0e00d3074efc8cba1",
+    "js/town-avatar.js": "29a233b90b1da8d95c7a96df678d13033fc42d12ea911d798d5590714c376547",
+    "js/player-status-shortcut.js": "aa4d3ac130b72563972ec9ef49cdf58e04c99605c86a794ba7b9b0e99efb221d",
+    "images/town-controls-20261018/people.webp": "c2847e90d25ff2dec9261408a9e6ecbb13a13a15b30a033ad5a21f2963e3fe7a",
+    "images/town-controls-20261018/news.webp": "491b0fae5c72f6fec818935288f8806cd20366960efa8024de8fc1b4c99aed7a",
+    "images/town-controls-20261018/status.webp": "cb5a53aa32beb69d29a5fc01e987fd1ab2d2d043b1c2c6be7473babd1b7add65"
+  }
+}

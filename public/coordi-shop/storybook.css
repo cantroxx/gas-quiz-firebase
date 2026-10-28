@@ -1,0 +1,45 @@
+/* Boutique presentation; purchase/preview logic and pixel item assets stay intact. */
+:root { --ink:#3e503b; --muted:#64715b; --line:#ded6bd; --accent:#496a4c; }
+body { background:#fbf7ee; font-size:14px; }
+.dress-shell { padding:0 20px 76px; }
+.topbar { min-height:62px; height:auto; padding:12px 0; gap:10px; }
+.brand { color:#4b5e3e; }
+.brand-dot { color:#b48742; }
+.workspace { gap:20px; }
+.closet-panel { border-radius:18px; background:#fffdf6; border:1px solid #d9c6a1; }
+.closet-toolbar { background:#f1e6cb; border-bottom:1px solid #dfcfab; }
+.closet-toolbar h1 { color:#4c593d; }
+.category-tabs { background:#fcf6e8; }
+.category-tabs button { min-height:40px; border-radius:10px; }
+.category-tabs button.is-active,.shop-mode-tabs button[aria-pressed=true] { background:#496a4c; }
+.catalog-meta { color:#617053; }
+.item-grid { gap:8px; padding:10px; }
+.item-card { background:#f8f0dc; border:1px solid #e5d6b5; border-bottom:4px solid #d8c098; border-radius:12px; }
+.item-card:hover { background:#f4e7c6; border-color:#b99b62; }
+.item-card.is-equipped { background:#eaf0db; border-color:#6f895b; }
+.item-name { color:#45513b; }
+.look-panel { padding:14px; background:#fffdf6; border:1px solid #d9c6a1; border-radius:18px; }
+.look-heading h2 { font-size:16px; }
+.stage-frame[data-background=grid],.stage-frame[data-background=room] { background:#f3e6cd url('/images/town-ui-20261018/boutique-room-v1.webp') center/cover; border:3px solid #d5bd91; border-radius:56px 56px 16px 16px; }
+.background-picker button { min-height:36px; }
+.outfit-price-summary { background:#f4e7c5; border:1px solid #dcc99a; padding:14px; gap:10px; }
+.outfit-price-summary p { font-size:12px; color:#5d654b; }
+.outfit-price-summary strong { font-size:18px; }
+.outfit-price-summary button { min-height:44px; }
+button { border-radius:10px; }
+.api-status { color:#5c6a51; }
+@media(max-width:1000px) { .dress-shell { padding-inline:12px; } .workspace { gap:12px; } .look-panel { padding:10px; } }
+@media(max-width:650px) {
+  .dress-shell { padding:0 8px 76px; }
+  .look-panel { grid-template-columns:minmax(0,140px) minmax(0,1fr); gap:8px; }
+  .stage-frame { height:180px; }
+  .file-actions { flex-wrap:wrap; justify-content:flex-end; }
+  .file-actions button { padding:6px; font-size:11px; }
+  .item-grid { gap:5px; padding:8px; }
+  .item-name { font-size:11px; line-height:13px; }
+  .category-tabs button { min-height:44px; }
+  .outfit-price-summary { padding:12px; }
+  .background-picker button { padding:4px 6px; }
+  #prism-open { grid-column:1/-1; margin:0; }
+}
+@media(max-width:360px) { .look-panel { grid-template-columns:minmax(0,120px) minmax(0,1fr); } .item-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }

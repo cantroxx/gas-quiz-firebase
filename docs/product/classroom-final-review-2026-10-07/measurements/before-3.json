@@ -1,0 +1,72 @@
+{
+  "conditions": "Offline Chromium, CPU 4x, 1440×1000 timing, 24 students / 12 quests / 60 products; synchronous JS + forced layout, warm samples. No server latency or paint FPS measurement.",
+  "render": {
+    "medianMs": 34.3,
+    "p95Ms": 40.4,
+    "samples": 20
+  },
+  "tabSwitch": {
+    "medianMs": 31.4,
+    "p95Ms": 58.7,
+    "samples": 40
+  },
+  "productSelect": {
+    "medianMs": 2.7,
+    "p95Ms": 3.6,
+    "samples": 40
+  },
+  "scrollLayout": {
+    "medianMs": 0,
+    "p95Ms": 0.5,
+    "samples": 20
+  },
+  "selectionMutations": {
+    "min": 246,
+    "max": 248
+  },
+  "nodes": 631,
+  "density": [
+    {
+      "tab": "quest",
+      "width": 1440,
+      "firstTop": 390,
+      "cardHeight": 294,
+      "visibleCards": 4
+    },
+    {
+      "tab": "market",
+      "width": 1440,
+      "firstTop": 467,
+      "cardHeight": 357,
+      "visibleCards": 2
+    },
+    {
+      "tab": "quest",
+      "width": 768,
+      "firstTop": 469,
+      "cardHeight": 294,
+      "visibleCards": 1
+    },
+    {
+      "tab": "market",
+      "width": 768,
+      "firstTop": 545,
+      "cardHeight": 357,
+      "visibleCards": 2
+    },
+    {
+      "tab": "quest",
+      "width": 390,
+      "firstTop": 411,
+      "cardHeight": 278,
+      "visibleCards": 2
+    },
+    {
+      "tab": "market",
+      "width": 390,
+      "firstTop": 530,
+      "cardHeight": 314,
+      "visibleCards": 2
+    }
+  ]
+}

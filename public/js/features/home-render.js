@@ -1,24 +1,7 @@
 (function () {
   function renderProfileAvatar(root, profile, deps = {}) {
-    root.innerHTML = '';
-    const normalizeDisplayImageUrl = deps.normalizeDisplayImageUrl || (value => String(value || '').trim());
-    const applyProfileImageTransform = deps.applyProfileImageTransform || (() => {});
-    const profileImageUrl = normalizeDisplayImageUrl(profile.profileImageUrl);
-    if(profileImageUrl) {
-      const image = document.createElement('img');
-      image.src = profileImageUrl;
-      image.alt = `${profile.nickname || '사용자'} 프로필`;
-      image.loading = 'lazy';
-      image.referrerPolicy = 'no-referrer';
-      applyProfileImageTransform(image, profile);
-      image.addEventListener('error', () => {
-        root.innerHTML = '';
-        root.textContent = profile.avatar || '🙂';
-      });
-      root.appendChild(image);
-      return;
-    }
-    root.textContent = profile.avatar || '🙂';
+    root.classList.add('saved-coordi-avatar');
+    queueMicrotask(() => window.DJ48TownAvatar?.sync());
   }
 
   function renderLevelMedalImage(root, asset, altText) {
@@ -95,14 +78,7 @@
     filters.className = 'profile-level-medal-filter';
     grid.className = 'profile-level-medal-picker-grid';
 
-    [
-      ['all', '전체'],
-      ['1-10', '1-10'],
-      ['11-20', '11-20'],
-      ['21-30', '21-30'],
-      ['31-40', '31-40'],
-      ['41-50', '41-50']
-    ].forEach(([range, text], index) => {
+    [['all','전체'], ...Array.from({length:10},(_,i)=>{const range=`${i*10+1}-${i*10+10}`;return [range,range];})].forEach(([range, text], index) => {
       const button = document.createElement('button');
       button.className = `profile-level-medal-filter-button${index === 0 ? ' is-active' : ''}`;
       button.type = 'button';
@@ -162,53 +138,21 @@
     heading.append(title, date);
     grid.append(
       makeItem('DJ코인 남음', status?.coin, '코인'),
-      makeItem('오늘 퀴즈 XP', status?.todayQuizXp, 'XP'),
       makeItem('주간 XP', status?.weeklyXp, 'XP')
     );
     panel.append(heading, grid);
     return panel;
   }
 
-  function renderTodayQuizPanel(profile) {
-    const summary = profile.todayQuizSummary || {};
-    const quizzes = Array.isArray(summary.quizzes) ? summary.quizzes : [];
-    const panel = document.createElement('section');
-    const heading = document.createElement('div');
-    const title = document.createElement('strong');
-    const mode = document.createElement('span');
-    const list = document.createElement('div');
-    const note = document.createElement('p');
-
-    panel.className = 'profile-today-quiz-panel';
-    heading.className = 'profile-reward-heading';
-    list.className = 'profile-today-quiz-list';
-    note.className = 'profile-reward-note';
-    title.textContent = '오늘의 퀴즈';
-    mode.textContent = summary.modeLabel || '정답 보상';
-    heading.append(title, mode);
-    if(quizzes.length) {
-      quizzes.forEach(quiz => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.dataset.todayQuizId = quiz.quizId || '';
-        button.textContent = quiz.title || quiz.quizId || '퀴즈';
-        list.appendChild(button);
-      });
-    } else {
-      const empty = document.createElement('span');
-      empty.className = 'profile-today-quiz-empty';
-      empty.textContent = '오늘의 퀴즈가 아직 정해지지 않았습니다.';
-      list.appendChild(empty);
-    }
-    note.textContent = '오늘의 퀴즈 연습전은 새 정답마다 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.';
-    panel.append(heading, list, note);
-    return panel;
-  }
 
   function renderProfileCard(rootId, profile, deps = {}) {
     const root = document.getElementById(rootId);
     if(!root) return;
 
+    const openToggle = root.querySelector('[data-profile-detail-toggle][aria-expanded="true"]');
+    const openKey = openToggle?.dataset.profileDetailToggle;
+    const openPanel = openKey ? root.querySelector(`[data-profile-detail-panel="${openKey}"]`) : null;
+    const focused = openPanel?.contains(document.activeElement) ? document.activeElement : null;
     const card = document.createElement('article');
     const avatar = document.createElement('div');
     const body = document.createElement('div');
@@ -229,7 +173,6 @@
     const coinValue = document.createElement('strong');
     const levelPanel = renderProfileLevelPanel(profile, deps);
     const rewardPanel = renderProfileRewardPanel(profile);
-    const todayQuizPanel = renderTodayQuizPanel(profile);
     const nicknamePanel = document.createElement('div');
     const nicknameLabel = document.createElement('label');
     const nicknameRow = document.createElement('div');
@@ -277,9 +220,11 @@
     school.className = 'profile-school';
     school.textContent = profile.school;
     meta.className = 'profile-meta';
-    titleLabel.textContent = '칭호';
+    titleLabel.textContent = '타이틀';
     titleValue.textContent = profile.titleName;
-    badgeLabel.textContent = '대표 뱃지';
+    titleValue.className = 'ranking-title-chip';
+    window.DJ48RankingRender?.applyTitleChipAppearance(titleValue, profile.selectedTitleId);
+    badgeLabel.textContent = '연습 분야';
     badgeValue.textContent = profile.badgeName;
     coinLabel.textContent = '보유 DJ코인';
     coinValue.textContent = profile.coinText;
@@ -345,17 +290,9 @@
     imagePanel.className = 'profile-ranking-message-panel profile-image-url-panel profile-detail-panel';
     imagePanel.dataset.profileDetailPanel = 'image';
     imageLabel.className = 'profile-ranking-message-label profile-image-url-label';
-    imageLabel.htmlFor = 'profile-image-search-input';
+    imageLabel.htmlFor = 'profile-image-upload-input';
     imageLabel.textContent = '프로필 이미지';
     imageRow.className = 'profile-ranking-message-row profile-image-url-row';
-    imageInput.id = 'profile-image-search-input';
-    imageInput.type = 'text';
-    imageInput.value = '';
-    imageInput.placeholder = '카리나, 피카츄처럼 검색';
-    imageButton.id = 'profile-image-search-button';
-    imageButton.className = 'profile-inline-button';
-    imageButton.type = 'button';
-    imageButton.textContent = '검색';
     uploadInput.id = 'profile-image-upload-input';
     uploadInput.type = 'file';
     uploadInput.accept = 'image/png,image/jpeg,image/webp';
@@ -363,15 +300,12 @@
     uploadButton.id = 'profile-image-upload-button';
     uploadButton.className = 'profile-inline-button profile-upload-button';
     uploadButton.type = 'button';
-    uploadButton.textContent = '직접 업로드';
+    uploadButton.textContent = '사진 업로드';
     imageHelp.id = 'profile-image-search-status';
     imageHelp.className = 'profile-ranking-message-help';
-    imageHelp.textContent = '퀴즈 이미지 후보를 고르거나 직접 업로드한 뒤, 원 안에 보일 위치를 조정합니다.';
-    const imageResults = document.createElement('div');
-    imageResults.id = 'profile-image-search-results';
-    imageResults.className = 'profile-image-search-results';
-    imageRow.append(imageInput, imageButton, uploadButton, uploadInput);
-    imagePanel.append(imageLabel, imageRow, imageHelp, imageResults);
+    imageHelp.textContent = '내 사진을 올리고, 원 안에 보일 위치를 조정해 주세요. JPG·PNG·WebP';
+    imageRow.append(uploadButton, uploadInput);
+    imagePanel.append(imageLabel, imageRow, imageHelp);
 
     messagePanel.className = 'profile-ranking-message-panel profile-detail-panel';
     messagePanel.dataset.profileDetailPanel = 'message';
@@ -417,14 +351,31 @@
       actionRow.append(adminButton);
     }
     nameRow.append(name, actionRow);
-    body.append(nameRow, school, levelPanel, rewardPanel, todayQuizPanel, meta, toggleGrid, detailRoot);
+    window.DJ48RankingRender?.appendGameHonors?.(nameRow,profile.gameHonors);
+    body.append(nameRow, school, meta, levelPanel, toggleGrid, detailRoot, rewardPanel);
     card.append(avatar, body);
     root.appendChild(card);
+    if(openPanel) {
+      root.querySelector(`[data-profile-detail-panel="${openKey}"]`)?.replaceWith(openPanel);
+      const toggle = root.querySelector(`[data-profile-detail-toggle="${openKey}"]`);
+      toggle?.classList.add('is-active'); toggle?.setAttribute('aria-expanded', 'true');
+      focused?.focus({ preventScroll: true });
+    }
   }
 
   function renderCollectionCards(rootId, items, className) {
     const root = document.getElementById(rootId);
+    const legacyWasOpen = root.querySelector('details.legacy-title-group')?.open === true;
     root.innerHTML = '';
+    let legacyGroup, legacyGrid;
+    if(className === 'title-card' && items.some(item => item.legacy)) {
+      legacyGroup = document.createElement('details');
+      legacyGroup.open = legacyWasOpen;
+      legacyGroup.className = 'legacy-title-group';
+      const heading = document.createElement('summary');heading.textContent = '(구) 타이틀';
+      legacyGrid = document.createElement('div');legacyGrid.className = 'collection-grid';
+      legacyGroup.append(heading, legacyGrid);
+    }
     items.forEach(item => {
       const card = document.createElement('article');
       const icon = document.createElement('span');
@@ -434,17 +385,19 @@
       card.className = `collection-card ${className}${item.selected ? ' is-selected' : ''}`;
       icon.className = 'collection-icon';
       icon.textContent = item.icon;
-      if(className === 'title-card' && (item.themeClass || item.tierClass || item.effectClass)) {
-        title.className = ['title-badge', item.themeClass, item.tierClass, item.effectClass].filter(Boolean).join(' ');
+      if(className === 'title-card') {
+        title.className = 'ranking-title-chip';
+        window.DJ48RankingRender?.applyTitleChipAppearance(title, item.titleId);
       }
       title.textContent = item.name;
       desc.textContent = item.desc;
 
-      card.append(icon, title, desc);
+      if(className !== 'title-card')card.append(icon);
+      card.append(title, desc);
       if(Number(item.starCount) > 0) {
         const star = document.createElement('span');
         star.className = 'collection-star-badge';
-        star.textContent = `★ ${Number(item.starCount)}회 완주`;
+        star.textContent = `✓ ${Number(item.starCount)}회 완주`;
         card.appendChild(star);
       }
       if(item.actionLabel && item.titleId && item.titleId !== 'none' && item.titleId !== 'loading') {
@@ -455,8 +408,9 @@
         button.textContent = item.actionLabel;
         card.appendChild(button);
       }
-      root.appendChild(card);
+      (item.legacy && legacyGrid ? legacyGrid : root).appendChild(card);
     });
+    if(legacyGroup) root.appendChild(legacyGroup);
   }
 
   function getBadgeGroupLabel(group) {
@@ -528,7 +482,7 @@
           card.append(icon, name, desc, progress);
           if(Number(item.starCount) > 0) {
             star.className = 'collection-star-badge';
-            star.textContent = `★ ${Number(item.starCount)}회 완주`;
+            star.textContent = `✓ ${Number(item.starCount)}회 완주`;
             card.appendChild(star);
           }
           grid.appendChild(card);
@@ -686,7 +640,6 @@
   window.DJ48HomeRender = {
     renderProfileAvatar,
     renderProfileRewardPanel,
-    renderTodayQuizPanel,
     renderProfileCard,
     renderCollectionCards,
     renderBadgeProgressGroups,

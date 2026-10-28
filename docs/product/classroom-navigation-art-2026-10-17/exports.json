@@ -1,0 +1,47 @@
+[
+  {
+    "key": "bank",
+    "size": 96,
+    "bytes": 4800
+  },
+  {
+    "key": "bank",
+    "size": 160,
+    "bytes": 9560
+  },
+  {
+    "key": "bank",
+    "size": 320,
+    "bytes": 23052
+  },
+  {
+    "key": "home",
+    "size": 96,
+    "bytes": 5400
+  },
+  {
+    "key": "home",
+    "size": 160,
+    "bytes": 10130
+  },
+  {
+    "key": "home",
+    "size": 320,
+    "bytes": 23898
+  },
+  {
+    "key": "job",
+    "size": 96,
+    "bytes": 4896
+  },
+  {
+    "key": "job",
+    "size": 160,
+    "bytes": 9016
+  },
+  {
+    "key": "job",
+    "size": 320,
+    "bytes": 21844
+  }
+]

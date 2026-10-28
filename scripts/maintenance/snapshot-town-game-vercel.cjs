@@ -1,0 +1,9 @@
+'use strict';
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),assert=require('assert/strict');
+const auth=JSON.parse(fs.readFileSync('/Users/kdw/Library/Application Support/com.vercel.cli/auth.json')),project=JSON.parse(fs.readFileSync('.vercel/project.json')),stage='/tmp/town-game-vercel-release';
+const sha=b=>crypto.createHash('sha1').update(b).digest('hex');
+async function api(p){const r=await fetch('https://api.vercel.com'+p+'?teamId='+project.orgId,{headers:{Authorization:'Bearer '+auth.token}});assert(r.ok,'Vercel API '+r.status);return r.json()}
+(async()=>{const p=await api('/v9/projects/'+project.projectName),id=p.targets.production.id,tree=await api('/v6/deployments/'+id+'/files'),files=[];function walk(rows,dir=''){for(const f of rows){const rel=dir+f.name;if(f.children)walk(f.children,rel+'/');else files.push({path:rel.replace(/^src\//,''),hash:f.uid})}}walk(tree);fs.mkdirSync(stage,{recursive:true});
+ for(let i=0;i<files.length;i+=6)await Promise.all(files.slice(i,i+6).map(async f=>{let bytes;if(f.path.startsWith('public/fraction-world/')){const r=await fetch('https://dj48-fraction-world.vercel.app/'+f.path.slice('public/fraction-world/'.length)+'?snapshot='+Date.now());assert(r.ok,f.path);bytes=Buffer.from(await r.arrayBuffer())}else{bytes=fs.readFileSync(f.path)}assert.equal(sha(bytes),f.hash,'Live source mismatch '+f.path);const dest=path.join(stage,'before',f.path);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,bytes);}));
+ const latest=await api('/v9/projects/'+project.projectName);assert.equal(latest.targets.production.id,id,'Concurrent production deploy');fs.writeFileSync(stage+'/before.json',JSON.stringify({deployment:id,...project,files},null,2));console.log(JSON.stringify({deployment:id,files:files.length,stage}));
+})().catch(e=>{console.error(e.message);process.exitCode=1});

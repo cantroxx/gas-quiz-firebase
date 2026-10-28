@@ -1,0 +1,105 @@
+{
+  "createdAt": "2026-10-21T13:46:39.222Z",
+  "phase": "final-review-code-checked-migration-blocked",
+  "deployed": false,
+  "migrated": false,
+  "files": [
+    {
+      "file": "functions/index.js",
+      "sha256": "2a65af2c68b557a27a1bb4e2061fb8bb59dbaebc0000274beca2f327e408fcfe"
+    },
+    {
+      "file": "functions/classroom/board.js",
+      "sha256": "237823373c720b12c14262e7bff9a3b71b4a77675f7dc685a9a8b00a890d8c89"
+    },
+    {
+      "file": "functions/classroom/board-domain.js",
+      "sha256": "cf1e6755e2f143dc04b210ccd3b438906ae4a5f196dea19104a84aebecf99934"
+    },
+    {
+      "file": "functions/classroom/followup-domain.js",
+      "sha256": "517e9927ed2d78bcd356eb26f51765433797f1ca72d1804ee940ad8cdf2b077e"
+    },
+    {
+      "file": "functions/classroom/followup.js",
+      "sha256": "582b2e96297a93506323c2e08c61eb5d6ca9ea1c8333b8f6bfddd4079193b99f"
+    },
+    {
+      "file": "functions/classroom/migration-preview.js",
+      "sha256": "8f2fe98b7e1f1cfd354a55da15846882bbe46b768315e29fc7e731a775092928"
+    },
+    {
+      "file": "public/index.html",
+      "sha256": "2199286d3062eef40c24441e7bd8d44217ea048041f004c6424e01714e002176"
+    },
+    {
+      "file": "public/styles.css",
+      "sha256": "67c1ab3ece9e4928c4938e741c463c90ed644a5967f9b858d213086dd5de25aa"
+    },
+    {
+      "file": "public/js/app.bundle.js",
+      "sha256": "105fab525b842dd340bcc1f4790a7934604f621c6d2ea24700ed3e9d13bfa53a"
+    },
+    {
+      "file": "public/js/domain/classroom-board-domain.js",
+      "sha256": "cf1e6755e2f143dc04b210ccd3b438906ae4a5f196dea19104a84aebecf99934"
+    },
+    {
+      "file": "public/js/features/classroom-board.js",
+      "sha256": "9378683a2c324cb4683be2d163ef6adc5d7f85240af23b23c568f43f6865f011"
+    },
+    {
+      "file": "public/js/features/classroom-followup.js",
+      "sha256": "7882a2f15cd5d3c7697fe444a680916aa40f252e030d249cb9c6f7739691099f"
+    },
+    {
+      "file": "public/js/features/classroom-controller.js",
+      "sha256": "93bf0312a3459f2116bd435d9a5d60668283bb2b948636af78b2162bff39a68c"
+    },
+    {
+      "file": "scripts/build-app-bundle.js",
+      "sha256": "a4f7ec9d8871f6d9a7be948b08585727bd76b05c4a02cddbcba3c7cebed720c2"
+    },
+    {
+      "file": "package.json",
+      "sha256": "cf987759becea482462291e7c76366a0bb1359e759ca7afecf9c005c84d36d5d"
+    },
+    {
+      "file": "scripts/migration/preview-grownd-followups.js",
+      "sha256": "3622d9619c4ebfec19937e95169d0cf987239a6d27de6848d423cd2cb6a8a2f0"
+    },
+    {
+      "file": "fixtures/classroom-board/grownd-followups-example.json",
+      "sha256": "5ead39c5021b6338a2f4bd2619acabaf5864d4b49e29e63ea4ef223c70b4fa30"
+    },
+    {
+      "file": "fixtures/classroom-board/target-followups-example.json",
+      "sha256": "9c27d77f5e020ba5ad646acfe7a5db13857b1b60f032879e3e41ffe0a6dddd69"
+    }
+  ],
+  "hosting": [
+    {
+      "file": "public/index.html",
+      "url": "https://dj48-quiztown-firebase.web.app/",
+      "sha256": "822b83af06acec703dc3097ba9a61c7d7149d81dd5e20c30baddcf68c89c5390",
+      "matchesLocal": false
+    },
+    {
+      "file": "public/styles.css",
+      "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+      "sha256": "f65acb7b295adb1b1476dbdf4cb97ac85c5ef2fb972c2cbcbfc9b4f09180dc55",
+      "matchesLocal": false
+    },
+    {
+      "file": "public/js/app.bundle.js",
+      "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+      "sha256": "6c66a9765d9958841827243d811dd8a23da730c3c5665514ae30f8c5839b3f92",
+      "matchesLocal": false
+    }
+  ],
+  "notes": [
+    "Shared files contain pre-existing changes; hashes are candidate identity, not a scoped release patch.",
+    "Functions deployment versions and actual source data remain final-review gates.",
+    "Final audit results and remaining migration gates are recorded in final-audit-evidence.json."
+  ]
+}

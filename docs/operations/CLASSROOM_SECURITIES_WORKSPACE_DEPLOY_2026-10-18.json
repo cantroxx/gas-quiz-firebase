@@ -1,0 +1,36 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792288001860000",
+  "version": "sites/dj48-quiztown-firebase/versions/8e5f97f63c67c665",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/48ffec193675b08b",
+  "changed": [
+    "index.html",
+    "js/app.bundle.js",
+    "js/features/securities-render.js",
+    "js/features/securities-server-controller.js",
+    "classroom-securities.css"
+  ],
+  "preservedFiles": 3974,
+  "preservedAppModules": 76,
+  "rawHashes": {
+    "index.html": "38bc8c287d03811cef5bc6c56a1ded3512cdfe7e6e172f4a27f4d6db8f499d93",
+    "js/app.bundle.js": "999cd0b74bd690f01e13379decc3f08ba10970bbefb3b13ea8f35b0ce4756380",
+    "js/features/securities-render.js": "79bb46ef3de92824a0fc60328d1482d3a9b17e9b10fab47a8743b19c1cc0d9f3",
+    "js/features/securities-server-controller.js": "3bdb95440c47d5a00ecf3da6738f9b2f206822b3c23a596490f082cd4559c4b0",
+    "classroom-securities.css": "ce7d55fbd10680654e15f1a936315b85702b8bc3b235258f60fba4ec8ac9a9ab"
+  },
+  "checks": {
+    "npmRunCheck": "passed",
+    "securitiesEmulatorIntegration": "passed",
+    "coinEmulatorIntegration": "passed",
+    "finalCandidateTeacherBrowser": "passed",
+    "finalCandidateCoinBrowser": "passed",
+    "widths": [
+      390,
+      768,
+      1440
+    ],
+    "productionManifestAndHttpHashes": "passed",
+    "anonymousProductionBrowser": "passed"
+  },
+  "scope": "Hosting UI only; no Functions, rules, production student data or student access setting changes"
+}

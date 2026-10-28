@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "source": "grownd",
+  "asOf": "2026-10-21",
+  "students": [
+    {"sourceId": "source-student-a", "point": 125.25, "heartberry": 80},
+    {"sourceId": "source-student-b", "point": 90.5, "heartberry": 42.5}
+  ],
+  "maps": {
+    "students": {"source-student-a": "DEMO-A", "source-student-b": "DEMO-B"},
+    "quests": {"source-reading": "reading"},
+    "gems": {"source-gem-1": "reading-gem-a"}
+  },
+  "records": [
+    {"sourceId": "source-record-1", "studentId": "source-student-a", "questId": "source-reading", "dateKey": "2026-10-20", "status": "completed", "rewardPaid": true, "gemIds": ["source-gem-1"]}
+  ],
+  "unsupported": []
+}

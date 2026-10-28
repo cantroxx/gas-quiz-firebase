@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "source": "grownd",
+  "asOf": "2026-10-21",
+  "students": [
+    {
+      "sourceId": "source-student-a",
+      "point": 125.25,
+      "heartberry": 80
+    },
+    {
+      "sourceId": "source-student-b",
+      "point": 90.5,
+      "heartberry": 42.5
+    }
+  ],
+  "maps": {
+    "students": {
+      "source-student-a": "DEMO-A",
+      "source-student-b": "DEMO-B"
+    },
+    "quests": {
+      "source-reading": "reading"
+    },
+    "gems": {
+      "source-gem-1": "reading-gem-a"
+    },
+    "items": {
+      "source-seed": {
+        "mode": "seed",
+        "targetId": "seed-a"
+      }
+    }
+  },
+  "records": [
+    {
+      "sourceId": "source-record-1",
+      "studentId": "source-student-a",
+      "questId": "source-reading",
+      "dateKey": "2026-10-20",
+      "status": "completed",
+      "rewardPaid": true,
+      "gemIds": [
+        "source-gem-1"
+      ],
+      "visibility": "owner",
+      "submission": {
+        "type": "text",
+        "text": "합성 원본 독서록 본문"
+      }
+    }
+  ],
+  "unsupported": [],
+  "snapshotAt": "2026-10-21T12:00:00+09:00",
+  "funds": {
+    "point": 0,
+    "heartberry": 10
+  },
+  "routines": [
+    {
+      "sourceId": "demo-routines",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "title": "독서",
+      "policy": "daily",
+      "paid": true,
+      "rewardPoint": 2
+    }
+  ],
+  "jobs": [
+    {
+      "sourceId": "demo-jobs",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "jobName": "도서 도우미",
+      "month": "2026-09",
+      "gross": 10,
+      "tax": 1,
+      "net": 9,
+      "paid": true,
+      "currency": "heartberry"
+    }
+  ],
+  "deposits": [
+    {
+      "sourceId": "demo-deposits",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "principal": 10,
+      "interest": 0.5,
+      "earlyFee": 1,
+      "openedDate": "2026-09-01",
+      "maturityDate": "2026-09-08",
+      "status": "closed",
+      "interestPaid": true,
+      "currency": "heartberry"
+    }
+  ],
+  "exchanges": [
+    {
+      "sourceId": "demo-exchanges",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "from": "point",
+      "to": "heartberry",
+      "debit": 10,
+      "credit": 9,
+      "fee": 1
+    }
+  ],
+  "inventory": [
+    {
+      "sourceId": "demo-inventory",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "itemId": "source-seed",
+      "quantity": 1,
+      "kind": "farm",
+      "effectDescription": "원본 효과는 대응표에서 확인, 자동 보너스 지급 없음"
+    }
+  ],
+  "growth": [
+    {
+      "sourceId": "demo-growth",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "totalXp": 125.25,
+      "level": 3,
+      "rewardedLevels": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "sourceId": "demo-requests",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "amount": 2.5,
+      "reason": "합성 활동 기록",
+      "category": "협력",
+      "status": "approved",
+      "paid": true
+    }
+  ],
+  "observations": [
+    {
+      "sourceId": "demo-observations",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "text": "합성 교사 관찰"
+    }
+  ],
+  "diaries": [
+    {
+      "sourceId": "demo-diaries",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "text": "합성 개인 일기",
+      "visibility": "private"
+    }
+  ],
+  "securities": [
+    {
+      "sourceId": "demo-securities",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "symbol": "DEMO-SOURCE",
+      "quantity": 3.125678,
+      "costBasis": 30,
+      "marketValue": 35.5,
+      "quoteCurrency": "heartberry"
+    }
+  ],
+  "lottery": [
+    {
+      "sourceId": "demo-lottery",
+      "studentId": "source-student-a",
+      "dateKey": "2026-10-20",
+      "roundId": "demo-round",
+      "number": 20,
+      "winningNumber": 20,
+      "ticketPrice": 1,
+      "prize": 10,
+      "status": "won",
+      "paid": true
+    }
+  ],
+  "scope": {
+    "routines": 1,
+    "jobs": 1,
+    "deposits": 1,
+    "exchanges": 1,
+    "inventory": 1,
+    "growth": 1,
+    "requests": 1,
+    "observations": 1,
+    "diaries": 1,
+    "securities": 1,
+    "lottery": 1,
+    "files": 0,
+    "records": 1
+  },
+  "files": []
+}

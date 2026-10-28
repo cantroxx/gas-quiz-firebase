@@ -1,0 +1,348 @@
+{
+  "tight": {
+    "js": {
+      "medianMs": 99.3,
+      "p95Ms": 146.5
+    },
+    "layout": {
+      "medianMs": 29.6,
+      "p95Ms": 37.7
+    },
+    "total": {
+      "medianMs": 129,
+      "p95Ms": 176.3
+    },
+    "samples": [
+      {
+        "js": 80.10000002384186,
+        "layout": 24.099999964237213,
+        "total": 104.19999998807907
+      },
+      {
+        "js": 66.89999997615814,
+        "layout": 29.69999998807907,
+        "total": 96.59999996423721
+      },
+      {
+        "js": 146.5,
+        "layout": 29.600000023841858,
+        "total": 176.10000002384186
+      },
+      {
+        "js": 83.5,
+        "layout": 13.5,
+        "total": 97
+      },
+      {
+        "js": 131.0999999642372,
+        "layout": 37.69999998807907,
+        "total": 168.79999995231628
+      },
+      {
+        "js": 143.80000001192093,
+        "layout": 32.5,
+        "total": 176.30000001192093
+      },
+      {
+        "js": 128.5,
+        "layout": 30.80000001192093,
+        "total": 159.30000001192093
+      },
+      {
+        "js": 115.19999998807907,
+        "layout": 32.40000003576279,
+        "total": 147.60000002384186
+      },
+      {
+        "js": 108.5,
+        "layout": 33.19999998807907,
+        "total": 141.69999998807907
+      },
+      {
+        "js": 111.90000003576279,
+        "layout": 35,
+        "total": 146.9000000357628
+      },
+      {
+        "js": 110.69999998807907,
+        "layout": 31.69999998807907,
+        "total": 142.39999997615814
+      },
+      {
+        "js": 112.60000002384186,
+        "layout": 28.5,
+        "total": 141.10000002384186
+      },
+      {
+        "js": 99.30000001192093,
+        "layout": 29.69999998807907,
+        "total": 129
+      },
+      {
+        "js": 90.60000002384186,
+        "layout": 25.100000023841858,
+        "total": 115.70000004768372
+      },
+      {
+        "js": 80.19999998807907,
+        "layout": 23.5,
+        "total": 103.69999998807907
+      },
+      {
+        "js": 75.09999996423721,
+        "layout": 23.900000035762787,
+        "total": 99
+      },
+      {
+        "js": 71.19999998807907,
+        "layout": 20.80000001192093,
+        "total": 92
+      },
+      {
+        "js": 66.39999997615814,
+        "layout": 21.30000001192093,
+        "total": 87.69999998807907
+      },
+      {
+        "js": 67.80000001192093,
+        "layout": 20.19999998807907,
+        "total": 88
+      },
+      {
+        "js": 65.80000001192093,
+        "layout": 20.399999976158142,
+        "total": 86.19999998807907
+      }
+    ]
+  },
+  "frame": {
+    "js": {
+      "medianMs": 40.9,
+      "p95Ms": 111.9
+    },
+    "layout": {
+      "medianMs": 12.2,
+      "p95Ms": 14
+    },
+    "total": {
+      "medianMs": 53.9,
+      "p95Ms": 124
+    },
+    "samples": [
+      {
+        "js": 41.30000001192093,
+        "layout": 12.900000035762787,
+        "total": 54.200000047683716
+      },
+      {
+        "js": 40.09999996423721,
+        "layout": 12.800000011920929,
+        "total": 52.89999997615814
+      },
+      {
+        "js": 45.19999998807907,
+        "layout": 12.5,
+        "total": 57.69999998807907
+      },
+      {
+        "js": 43.799999952316284,
+        "layout": 11.800000011920929,
+        "total": 55.59999996423721
+      },
+      {
+        "js": 40.90000003576279,
+        "layout": 11.800000011920929,
+        "total": 52.700000047683716
+      },
+      {
+        "js": 42.40000003576279,
+        "layout": 14,
+        "total": 56.40000003576279
+      },
+      {
+        "js": 42.30000001192093,
+        "layout": 13.599999964237213,
+        "total": 55.89999997615814
+      },
+      {
+        "js": 42.89999997615814,
+        "layout": 12.300000011920929,
+        "total": 55.19999998807907
+      },
+      {
+        "js": 111.90000003576279,
+        "layout": 12.099999964237213,
+        "total": 124
+      },
+      {
+        "js": 46.39999997615814,
+        "layout": 13.300000011920929,
+        "total": 59.69999998807907
+      },
+      {
+        "js": 43.5,
+        "layout": 12.200000047683716,
+        "total": 55.700000047683716
+      },
+      {
+        "js": 40,
+        "layout": 13.899999976158142,
+        "total": 53.89999997615814
+      },
+      {
+        "js": 36.10000002384186,
+        "layout": 11.600000023841858,
+        "total": 47.700000047683716
+      },
+      {
+        "js": 38.40000003576279,
+        "layout": 11.699999988079071,
+        "total": 50.10000002384186
+      },
+      {
+        "js": 37.19999998807907,
+        "layout": 12.400000035762787,
+        "total": 49.60000002384186
+      },
+      {
+        "js": 38.200000047683716,
+        "layout": 10,
+        "total": 48.200000047683716
+      },
+      {
+        "js": 36.40000003576279,
+        "layout": 11.799999952316284,
+        "total": 48.19999998807907
+      },
+      {
+        "js": 40.69999998807907,
+        "layout": 11.699999988079071,
+        "total": 52.39999997615814
+      },
+      {
+        "js": 38.60000002384186,
+        "layout": 11.099999964237213,
+        "total": 49.69999998807907
+      },
+      {
+        "js": 35.19999998807907,
+        "layout": 11.300000011920929,
+        "total": 46.5
+      }
+    ]
+  },
+  "phases": {
+    "renderClassroomRoleState": {
+      "medianMs": 0.6,
+      "p95Ms": 2.4
+    },
+    "renderClassroomGrowndOverview": {
+      "medianMs": 2,
+      "p95Ms": 6
+    },
+    "renderClassroomTeacherDashboard": {
+      "medianMs": 0,
+      "p95Ms": 0.2
+    },
+    "renderClassroomTeacherReport": {
+      "medianMs": 0,
+      "p95Ms": 0.1
+    },
+    "renderClassroomQuestPickers": {
+      "medianMs": 0.9,
+      "p95Ms": 1.9
+    },
+    "renderClassroomTodayHome": {
+      "medianMs": 3.1,
+      "p95Ms": 10.5
+    },
+    "renderClassroomActivityFeed": {
+      "medianMs": 0,
+      "p95Ms": 0.7
+    },
+    "renderClassroomReviewPanel": {
+      "medianMs": 0,
+      "p95Ms": 0.1
+    },
+    "renderClassroomQuestCards": {
+      "medianMs": 3.3,
+      "p95Ms": 10
+    },
+    "renderClassroomInactiveQuestCards": {
+      "medianMs": 0,
+      "p95Ms": 0.2
+    },
+    "renderClassroomStudentCards": {
+      "medianMs": 13.7,
+      "p95Ms": 46.7
+    },
+    "renderClassroomGemSummary": {
+      "medianMs": 0.1,
+      "p95Ms": 1
+    },
+    "renderClassroomGemManagementOverview": {
+      "medianMs": 0.1,
+      "p95Ms": 0.7
+    },
+    "renderClassroomGemCards": {
+      "medianMs": 0.8,
+      "p95Ms": 2
+    },
+    "renderClassroomJobSummary": {
+      "medianMs": 0,
+      "p95Ms": 0.2
+    },
+    "renderClassroomJobManagementOverview": {
+      "medianMs": 0,
+      "p95Ms": 0.4
+    },
+    "renderClassroomJobCards": {
+      "medianMs": 0.5,
+      "p95Ms": 1.3
+    },
+    "renderClassroomShopCards": {
+      "medianMs": 14,
+      "p95Ms": 40.1
+    },
+    "renderClassroomShopHistory": {
+      "medianMs": 0.5,
+      "p95Ms": 1.4
+    },
+    "renderClassroomMissionView": {
+      "medianMs": 1.3,
+      "p95Ms": 3.5
+    },
+    "renderClassroomBankOverview": {
+      "medianMs": 0.1,
+      "p95Ms": 1
+    },
+    "renderClassroomExchangeSection": {
+      "medianMs": 0.8,
+      "p95Ms": 1.7
+    },
+    "renderClassroomSavingsSection": {
+      "medianMs": 0.1,
+      "p95Ms": 0.7
+    },
+    "renderClassroomTaxPresetList": {
+      "medianMs": 0,
+      "p95Ms": 0.2
+    },
+    "renderClassroomRoutineTeacherBoard": {
+      "medianMs": 0,
+      "p95Ms": 0.1
+    },
+    "renderClassroomRoutineOverview": {
+      "medianMs": 0,
+      "p95Ms": 0.5
+    },
+    "renderClassroomRoutineCards": {
+      "medianMs": 0.7,
+      "p95Ms": 1.4
+    },
+    "workspace": {
+      "medianMs": 5.2,
+      "p95Ms": 15.3
+    }
+  }
+}

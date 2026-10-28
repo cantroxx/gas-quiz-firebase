@@ -1,0 +1,26 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1789542161642000",
+  "version": "sites/dj48-quiztown-firebase/versions/99a486f7438b094e",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/aef7f1ec15cc53bc",
+  "changed": [
+    "/battle/index.html",
+    "/word-bomb/DICTIONARY_NOTICE.md",
+    "/word-bomb/app.js",
+    "/word-bomb/assets/characters-v2.png",
+    "/word-bomb/dictionary.js",
+    "/word-bomb/domain.js",
+    "/word-bomb/index.html",
+    "/word-bomb/net.js",
+    "/word-bomb/style.css",
+    "/word-bomb/word-policy.js"
+  ],
+  "function": "wordBombAction",
+  "region": "asia-northeast3",
+  "runtime": "nodejs22",
+  "preservedHostingFiles": 378,
+  "fullCheck": "passed in identical-source snapshot with isolated emulator ports",
+  "studentDataChanged": false,
+  "securityRulesChanged": false,
+  "productionSmoke": "passed: public entry, assets, dictionary, bot passing, unauthenticated callable denial",
+  "productionStudentMatchTested": false
+}

@@ -76,9 +76,9 @@
       title: '수학 퀴즈',
       hallTitle: '수학관',
       kicker: 'Math Hall',
-      desc: '곱셈과 나눗셈을 차근차근 풀며 계산 감각을 키웁니다.',
+      desc: '곱셈·나눗셈과 분수를 연습합니다.',
       board: '차근차근 계산해요',
-      cardDesc: '곱셈과 나눗셈, 계산 연습 퀴즈를 고르는 화면입니다.',
+      cardDesc: '계산과 분수 퀴즈를 고르는 화면입니다.',
       quizzes: ['random-basic', 'fraction-basic', 'calculation_practice'],
       enabled: true
     }
@@ -494,6 +494,26 @@
       summary: '분자와 분모, 분수로 나타내기, 같은 크기의 분수를 4지선다로 확인합니다.',
       subjectId: 'math',
       modes: ['practice', 'ranking', 'oneChance', 'records']
+    },
+    'fraction-assessment': {
+      title: '분수 평가',
+      kicker: 'Math Hall',
+      icon: '🍕',
+      desc: '피자를 만들고 배달하며 4학년 2학기 분수 25문항에 도전해요. 선생님이 개설한 학급으로 입장하세요.',
+      subjectId: 'math',
+      standalonePath: '/pizza-assessment/',
+      groupLabel: '4학년 2학기 · 25문항',
+      modes: []
+    },
+    'space-explorer': {
+      title: '1단원 평가 · 우주탐사대',
+      kicker: 'Science Expedition',
+      icon: '🪐',
+      desc: '달·태양계·별자리를 탐사하며 과학 1단원 평가 25문항을 풀어요. 관리자가 개설한 학급으로 입장하세요.',
+      subjectId: 'science',
+      standalonePath: '/space-explorer/',
+      groupLabel: '4학년 2학기 · 1단원 평가 · 25문항',
+      modes: []
     },
     'science-general': {
       title: '과학 상식 퀴즈',

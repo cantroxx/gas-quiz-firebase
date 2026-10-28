@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-14",
+  "tool": "image_gen.imagegen (built-in)",
+  "directory": "town-marble-src/public/art/",
+  "processing": "Original PNGs copied into workspace; no raster edits. Atlas cells are displayed with CSS background-position.",
+  "assets": [
+    {
+      "name": "island.png",
+      "source": "exec-1653c954-3126-4bca-a73d-0c89a1976dd2.png",
+      "prompt": "Use case: stylized-concept. Asset type: production background for a cute children's online property board game. Create a polished square 1024x1024 illustration of a tiny pastel toy world island floating in turquoise mint water, isometric 3D clay diorama, soft ivory sandy island with a charming peach pink castle at center, tiny colorful rounded houses, mint trees, a small blue pond, little white footbridges, pastel hot air balloon at upper right, fluffy clouds, sunny ambient occlusion, handmade vinyl toy materials, calm cheerful premium Nintendo-like original visual quality. Composition: island occupies middle 75 percent, generous plain mint water around edges, clear central focus, no board tiles, no UI, NO TEXT OR LETTERS OR NUMBERS, no characters. Original assets no existing franchise. This will be a square central decorative illustration surrounded by an interactive board rendered in code. Save image as production game asset.",
+      "sha256": "6380d36537ee9d7fe2316c95faf296b1ae2202860d2f8aca6c6a7e631a2f7015",
+      "bytes": 2215302,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "name": "characters.png",
+      "source": "exec-d438d905-cac9-4139-bb56-7183c2c78269.png",
+      "prompt": "Asset type: production character sprite atlas for children's cute property board game. Create ONE perfectly regular 2 by 2 grid sprite sheet, square 1024x1024, genuinely TRANSPARENT background (alpha), no text, no border, no grid lines, no shadow floor. Each quadrant must contain exactly ONE full-body character centered with equal scale, all upright frontal three-quarter view facing slightly right, feet at 85 percent of its quadrant height, 15 percent empty padding around each character, no elements crossing quadrants. Top left: adorable ivory-white bunny with pink inner ears, short mint overalls and tiny peach neckerchief. Top right: butter yellow duckling in sky blue overalls, orange beak and feet. Bottom left: round coral-orange kitten with cream muzzle wearing lilac dungarees. Bottom right: mocha brown baby bear with cream muzzle wearing apricot overalls and tiny mint bow tie. All four have chubby pear shaped bodies, short arms out slightly, enormous cute head, bead eyes, tiny smile, blush cheeks. Premium soft matte vinyl toy / clay 3D render with soft studio lighting. Same visual universe, original characters, child friendly, consistent proportions. No accessories held, no existing franchise. True transparency essential; don't paint checkerboard.",
+      "sha256": "dbbdbc94e9fe698af8b014132663b26f422f70c314506958c05a89fd17b02773",
+      "bytes": 1180898,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "name": "buildings.png",
+      "source": "exec-f3c2ae09-049b-4d25-9b47-511a854ebcd8.png",
+      "prompt": "Production game sprite atlas, square 1024x1024 canvas with true transparent alpha background. Arrange FOUR isolated miniature buildings in exact 2x2 equal quadrants, centered, equal 12 percent padding inside each quadrant, no overlap, no text, no letters, no gridlines, no base plates. Consistent isometric 3D soft clay / matte vinyl toy style, pastel mint pink cream, soft studio lighting, charming children's world travel board game. Top left: a tiny ivory cottage with a rounded coral-pink pitched roof and mint door, one window, cute potted plant. Top right: a taller ivory three story town building, turquoise rounded roof and peach window awnings. Bottom left: grand but cute cream hotel with pink mansard roof, small mint side tower and yellow flags. Bottom right: miniature cream city landmark pavilion with a golden roof and mint foliage. Every object full and not cropped. No characters. Original game assets. Transparent background, not checkerboard.",
+      "sha256": "6d27d532cfc21a882ba5ff671984a2415205f68e5e342798ba2c14c09ce8587f",
+      "bytes": 1482406,
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "name": "sky-v2.png",
+      "source": "/Users/kdw/.codex/generated_images/01a09d5b-ca50-7281-b721-f4856f6532e0/exec-98f92526-89b2-430e-93c6-cccb64b9ee60.png",
+      "prompt": "Use case: stylized-concept. Production environment background for a full-screen 3D children's world-travel property board game. Wide landscape 16:9 composition, premium animated feature film quality, luminous turquoise-to-sky-blue atmosphere, enormous soft fluffy peach and white clouds, whimsical far-away floating grassy islands with waterfalls and tiny pastel European rooftops only at the far left and far right, a small cream and mint airship in upper right, sunlit golden dust motes, a feeling of soaring through a huge magical world. Center and lower center must be mostly uncluttered pale aqua sky and soft clouds because a large interactive 3D board will be composited over it in code. Rich volumetric lighting, painterly 3D clay-toy charm, cinematic depth, joyful adventurous mood. Not a UI mockup, no game board in the picture, no text, no logos, no characters. Full bleed background landscape.",
+      "sha256": "5b1fcdd049320cd4c95fcbbced3af1e2cda88d8fea04ee233f19115e6fdf7e8b",
+      "bytes": 1921473,
+      "width": 1672,
+      "height": 941,
+      "usage": "V2 full-screen sky behind a live Three.js world. Characters and buildings in the world are articulated or procedural geometry; generated portraits remain in HUD."
+    }
+  ]
+}

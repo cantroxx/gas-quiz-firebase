@@ -1,0 +1,8 @@
+'use strict';
+// User-authorized event-plaza switch only; no student documents or other flags.
+const fs=require('fs'),assert=require('assert/strict'),base='/opt/homebrew/lib/node_modules/firebase-tools/lib/',auth=require(base+'auth'),{requireAuth}=require(base+'requireAuth'),{Client}=require(base+'apiv2');
+(async()=>{const project='dj48-quiztown-firebase';await requireAuth({project,...auth.getGlobalDefaultAccount()});const c=new Client({urlPrefix:'https://firestore.googleapis.com',apiVersion:'v1',auth:true});const p='projects/'+project+'/databases/(default)/documents/appSettings/featureFlags';const before=(await c.get(p)).body;console.log(JSON.stringify({eventPlazaEnabled:before.fields?.eventPlazaEnabled,shopEnabled:before.fields?.shopEnabled}));if(!process.argv.includes('--open'))return;
+fs.mkdirSync('/tmp/growth-launch-settings',{recursive:true});fs.writeFileSync('/tmp/growth-launch-settings/before.json',JSON.stringify(before,null,2));
+if(before.fields?.eventPlazaEnabled?.booleanValue!==true)await c.patch(p,{fields:{eventPlazaEnabled:{booleanValue:true}}},{queryParams:{'updateMask.fieldPaths':'eventPlazaEnabled','currentDocument.updateTime':before.updateTime}});
+const after=(await c.get(p)).body;assert.equal(after.fields.eventPlazaEnabled.booleanValue,true);const others=o=>Object.fromEntries(Object.entries(o.fields).filter(([k])=>k!=='eventPlazaEnabled'));assert.deepEqual(others(after),others(before));fs.writeFileSync('/tmp/growth-launch-settings/after.json',JSON.stringify(after,null,2));console.log('Event plaza open verified; every other setting preserved.');
+})().catch(e=>{console.error(e.message);process.exitCode=1});

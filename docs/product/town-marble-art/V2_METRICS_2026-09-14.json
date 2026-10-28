@@ -1,0 +1,14 @@
+{
+  "environment": "One headless macOS Chrome, 1366×900, local server; not a school-device benchmark",
+  "frameMedianMs": 16.699999999999818,
+  "frameP95Ms": 16.799999999999727,
+  "canvas": {
+    "engine": "three.js r186",
+    "actors": "4",
+    "ready": "true",
+    "drawCalls": "277",
+    "frameMs": "16.7",
+    "phase": "idle"
+  },
+  "errors": []
+}

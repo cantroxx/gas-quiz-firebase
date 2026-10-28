@@ -1,0 +1,160 @@
+{
+  "observedAt": "2026-10-21T13:45:55.997Z",
+  "project": "dj48-quiztown-firebase",
+  "mode": "metadata-read-only",
+  "functions": [
+    {
+      "id": "classroomBoardAction",
+      "state": "NOT_DEPLOYED"
+    },
+    {
+      "id": "classroomFollowupAction",
+      "state": "NOT_DEPLOYED"
+    },
+    {
+      "id": "saveClassroomQuest",
+      "state": "ACTIVE",
+      "updateTime": "2026-09-09T03:20:35.202014653Z",
+      "runtime": "nodejs22",
+      "revision": "saveclassroomquest-00083-bey"
+    },
+    {
+      "id": "completeClassroomAutoQuest",
+      "state": "ACTIVE",
+      "updateTime": "2026-09-09T03:20:42.230977801Z",
+      "runtime": "nodejs22",
+      "revision": "completeclassroomautoquest-00083-med"
+    },
+    {
+      "id": "exchangeClassroomCurrency",
+      "state": "ACTIVE",
+      "updateTime": "2026-09-09T03:21:43.254576365Z",
+      "runtime": "nodejs22",
+      "revision": "exchangeclassroomcurrency-00028-wix"
+    },
+    {
+      "id": "claimClassroomJobSalary",
+      "state": "ACTIVE",
+      "updateTime": "2026-09-09T03:21:40.867063601Z",
+      "runtime": "nodejs22",
+      "revision": "claimclassroomjobsalary-00079-wub"
+    },
+    {
+      "id": "purchaseClassroomShopItem",
+      "state": "ACTIVE",
+      "updateTime": "2026-09-09T03:21:41.079297623Z",
+      "runtime": "nodejs22",
+      "revision": "purchaseclassroomshopitem-00079-civ"
+    },
+    {
+      "id": "getClassroomEconomyBoard",
+      "state": "ACTIVE",
+      "updateTime": "2026-10-07T06:37:27.791533778Z",
+      "runtime": "nodejs22",
+      "revision": "getclassroomeconomyboard-00080-dih"
+    }
+  ],
+  "indexes": [
+    {
+      "collectionGroup": "guestbook",
+      "queryScope": "COLLECTION",
+      "state": "READY",
+      "fields": [
+        {
+          "fieldPath": "blinded",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "rankingRecords",
+      "queryScope": "COLLECTION",
+      "state": "READY",
+      "fields": [
+        {
+          "fieldPath": "categoryKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "score",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "elapsedSeconds",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "rankingRecords",
+      "queryScope": "COLLECTION",
+      "state": "READY",
+      "fields": [
+        {
+          "fieldPath": "categoryKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "recordedAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "notes",
+      "queryScope": "COLLECTION",
+      "state": "READY",
+      "fields": [
+        {
+          "fieldPath": "toUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "guestbook",
+      "queryScope": "COLLECTION_GROUP",
+      "state": "READY",
+      "fields": [
+        {
+          "fieldPath": "blinded",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "reportedAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "deployed": false,
+  "migrated": false
+}

@@ -1,0 +1,84 @@
+{
+  "tool": "built-in image_gen",
+  "createdAt": "2026-10-18T00:59:27.876Z",
+  "assets": [
+    {
+      "id": "sprout_food",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a small wicker lunch basket filled with fresh vegetable sandwiches, a neat cream lunchbox and a sprout, representing a healthy snack and lunch company",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-1c9effd2-7550-49a9-8197-d7f6de55970c.png",
+      "output": "public/images/classroom/securities-v2/sprout_food-640.webp"
+    },
+    {
+      "id": "book_tree",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a little stack of beautifully bound children's books with one open illustrated book and a leafy young tree growing beside them, no readable writing",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-1faf95f9-3c00-4593-98f8-5976bd89788a.png",
+      "output": "public/images/classroom/securities-v2/book_tree-640.webp"
+    },
+    {
+      "id": "town_store",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a charming tiny village grocery shop with a sage striped awning and wooden produce crates, no signs or lettering",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-cbc50066-12d7-4d5c-9afe-45c126b953d6.png",
+      "output": "public/images/classroom/securities-v2/town_store-640.webp"
+    },
+    {
+      "id": "sun_farm",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a miniature sunny vegetable garden with tiny carrots, tomatoes, a fruit basket and a rustic wooden fence, single compact island",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-9b940cfc-21f1-4fa8-9e46-bc5816b1638d.png",
+      "output": "public/images/classroom/securities-v2/sun_farm-640.webp"
+    },
+    {
+      "id": "ribbon_clothes",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a charming coral cotton dress with a big butter-yellow bow on a miniature wooden dressmaker stand, sewing basket beside it",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-3c63f8bb-91a1-4e26-9629-fb2443bc075d.png",
+      "output": "public/images/classroom/securities-v2/ribbon_clothes-640.webp"
+    },
+    {
+      "id": "sturdy_build",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a lovingly built miniature cream cottage with terracotta roof, timber details, mint door, little construction bricks and a wooden carpenter tool nearby",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-a7e2f02a-b7eb-457a-a6c1-4463e0166aec.png",
+      "output": "public/images/classroom/securities-v2/sturdy_build-640.webp"
+    },
+    {
+      "id": "wind_bus",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a rounded sage-and-cream miniature school-town bus with brass headlights and wooden trim, clearly a bus, no text",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-551ce893-d9c4-4904-9893-711d3213120c.png",
+      "output": "public/images/classroom/securities-v2/wind_bus-640.webp"
+    },
+    {
+      "id": "clear_power",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a small handcrafted wind turbine and two blue solar panels on a tiny mossy green island, warm wood and ceramic details, compact balanced silhouette",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-c551a932-3d13-4a90-a507-2d49c5d5999c.png",
+      "output": "public/images/classroom/securities-v2/clear_power-640.webp"
+    },
+    {
+      "id": "pixel_play",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a lavender-and-sage toy game controller beside three chunky wooden puzzle blocks and a little golden star, playful educational game company",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-e800f1f5-3781-4c14-89bf-ea4ef5a9613e.png",
+      "output": "public/images/classroom/securities-v2/pixel_play-640.webp"
+    },
+    {
+      "id": "star_lab",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a miniature science workbench with a round glass flask of turquoise liquid, small wooden microscope and brass star ornament, friendly classroom research laboratory",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-35a480fc-8c6b-4791-ba6a-e872a407489d.png",
+      "output": "public/images/classroom/securities-v2/star_lab-640.webp"
+    },
+    {
+      "id": "wave_media",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a charming miniature wooden movie camera with two reels and a little blank clapperboard, teal and cream details, children's educational storytelling company",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-366bde6c-ffe0-4cb3-a415-3caef5267635.png",
+      "output": "public/images/classroom/securities-v2/wave_media-640.webp"
+    },
+    {
+      "id": "securities",
+      "prompt": "Use case: stylized-concept. Asset type: square illustration for a Korean elementary classroom company card. Style: richly detailed handcrafted 3D miniature storybook toy, tactile wood grain, ceramic, fabric and natural materials, soft dimensional shading, premium charming children's game collectible matching a detailed miniature tree, straw scarecrow and mint helper robot. Composition: one isolated compact collectible, three-quarter front view, centered in square, fills about 78% of canvas, entire silhouette and base visible with clear margin. Warm gentle studio light, muted sage/cream palette with natural colorful accents. Transparent background, subtle contact shadow only. No text, numbers, logos, watermark, frame, flat vector outlines or UI. Subject: a charming little classroom stock-exchange cottage, cream walls and sage roof, tiny wooden chart board with a gently zigzagging line and two brass coins, small leafy base, no numbers or words",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-9bb6fd93-bebb-4f0b-8e1d-4fc5a2a0ee70.png",
+      "output": "public/images/classroom/securities-v2/securities-640.webp"
+    },
+    {
+      "id": "cloud_robot",
+      "prompt": "Use case: stylized-concept. Asset type: square company illustration for a Korean elementary classroom shop-like stock-learning UI. Subject: one adorable mint-green helper robot, rounded body, warm smiling face, small brass antenna, cream belly, standing on a tiny grassy base. Style: richly detailed handcrafted 3D miniature storybook toy, tactile painted wood and ceramic materials, soft dimensional shading, charming premium children's game collectible, like a miniature tree or straw scarecrow product illustration. Composition: single isolated object, three-quarter front view, centered, fills 80% of square, entire silhouette visible with generous clear edge margin. Warm gentle studio light, sage and cream palette with small gold accents. Transparent background with subtle contact shadow only. No text, labels, numbers, logo, frame, flat vector outlines or UI. Save as project asset cloud_robot.",
+      "source": "/Users/kdw/.codex/generated_images/01a148e4-8f9f-7382-87e8-e1ecb816b54f/exec-06c86d1e-49c4-4709-8627-fba0754e1ee3.png",
+      "output": "public/images/classroom/securities-v2/cloud_robot-640.webp"
+    }
+  ]
+}

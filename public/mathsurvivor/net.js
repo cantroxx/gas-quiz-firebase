@@ -55,7 +55,13 @@
       .catch(function () { return '친구' + user.uid.slice(0, 4); });
   }
 
+  let questRun = Promise.resolve(null);
   const MS_Net = {
+    startQuestRun: function () {
+      questRun = firebaseReady() && global.firebase.functions ? ensureAuth().then(() =>
+        global.firebase.app().functions('asia-northeast3').httpsCallable('survivorQuestQuiz')({action:'startRun'})
+      ).then(result => result.data.runId).catch(() => null) : Promise.resolve(null);
+    },
     online: function () { return firebaseReady(); },
 
     /* 게임 종료 시 자기 문서에 기록. 최고 점수만 갱신, 문제 풀이 수는 누적.
@@ -66,6 +72,10 @@
       }
       return ensureAuth().then(function (user) {
         if (!user) throw new Error('no auth');
+        const pendingQuest = questRun.then(runId => {
+          if(!runId) throw Error('quest-session-unavailable');
+          return global.firebase.app().functions('asia-northeast3').httpsCallable('survivorQuestQuiz')({action:'finishRun',runId,score:r.score,victory:r.victory===true});
+        }).then(() => true, () => false);
         const db = global.firebase.firestore();
         const ref = db.collection('mathsurvivorRanking').doc(user.uid);
         return lookupNickname(db, user).then(function (name) {
@@ -102,7 +112,8 @@
               bestVictory: !!(prev.bestVictory || r.victory),
               updatedAt: global.firebase.firestore.FieldValue.serverTimestamp(),
             };
-            return ref.set(data, { merge: true }).then(function () {
+            return ref.set(data, { merge: true }).then(async function () {
+              if(!await pendingQuest) return '랭킹은 저장했지만 퀘스트 기록을 전송하지 못했어요.';
               return isBest
                 ? '🏫 새 최고 기록! 우리 반 명예의 전당에 올라갔어요!'
                 : '🏫 반 랭킹에 기록했어요! (최고 ' + prev.bestScore.toLocaleString('ko-KR') + '점)';

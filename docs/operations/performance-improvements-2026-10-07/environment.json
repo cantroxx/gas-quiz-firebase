@@ -1,0 +1,13 @@
+{
+  "os": "macOS-26.6.2-arm64-arm-64bit",
+  "cpu": "Apple M2 Pro (same host as diagnosis; sysctl unavailable inside sandbox)",
+  "chrome": "154.0.8037.95",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "mode": "headless; new isolated context per role/sample; all requests intercepted",
+  "samples": 3,
+  "productionAuthenticatedMeasurements": false,
+  "gitHead": "eb2ac8b4572dd22ef012680bc7b8eea17834690d"
+}

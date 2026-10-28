@@ -1,0 +1,6 @@
+{
+  "mode": "built-in image_gen",
+  "prompt": "Use case: illustration-story. Asset type: transparent game UI icon for a cozy storybook village map. Primary request: One small rounded red countryside mailbox on a short caramel wooden post, a cream envelope peeking from the mail slot, a small moss green leaf ornament. Immediately recognizable as a mailbox to contact the teacher. Style: warm hand-painted children's picture book, soft gouache shading, caramel brown clean silhouette, gently rounded shapes. Composition: centered compact icon filling 85% of square canvas, no badge/circle/button/container, no floor. Background completely transparent. Must be legible at 44 pixels. No text, numbers, watermark, or background. Match a green forest village with orange tile roofs and warm cream UI.",
+  "asset": "public/images/town-controls-20261018/mailbox.webp",
+  "original": "docs/product/town-avatar-mail-review-2026-10-18/mailbox-original.png"
+}

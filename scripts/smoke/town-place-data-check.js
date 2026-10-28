@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const reset=require('../maintenance/reset-town-practice');
+const doc=(name,fields={})=>({name:reset.PREFIX+name,fields,updateTime:'2026-10-18T00:00:00Z'});
+const documents=[doc('practiceRecords/u__old',{starCount:{integerValue:'3'}}),doc('userPracticeSummary/u'),doc('userBadges/u/badges/math'),doc('userTitles/u/titles/math',{titleId:{stringValue:'math'},selected:{booleanValue:true},titleName:{stringValue:'수학왕'}})];
+const backup={createdAt:'2026-10-18T01:00:00Z',documents};
+const writes=reset.writesFor(backup,documents);assert.equal(writes.filter(w=>w.delete).length,3);assert.equal(writes.filter(w=>w.update).length,1);
+const titleWrite=writes.find(w=>w.update);assert.deepEqual(titleWrite.updateMask.fieldPaths,['legacyGroup','legacyMigratedAt']);
+for(const collection of ['userEconomy','userLevelSummary','userTitleSummary','rankingRecords','rewardLogs'])assert(!reset.allowedDelete(reset.PREFIX+collection+'/u'));
+assert.throws(()=>reset.writesFor(backup,[...documents,doc('practiceRecords/new')]));
+assert.throws(()=>reset.writesFor(backup,documents.map((d,i)=>i===0?{...d,updateTime:'changed'}:d)));
+const migrated={...documents[3],fields:{...documents[3].fields,...titleWrite.update.fields},updateTime:'later'};
+assert.equal(reset.writesFor(backup,[migrated]).length,0,'Partial apply may resume safely');
+assert.throws(()=>reset.writesFor(backup,[]),'Titles must never be deleted');
+const medals=require('../../public/js/data/level-medal-assets');assert.equal(medals.LEVEL_MEDAL_ASSETS.length,100);assert.equal(new Set(medals.LEVEL_MEDAL_ASSETS.map(a=>a.path)).size,100);
+for(const [i,a]of medals.LEVEL_MEDAL_ASSETS.entries()){const svg=fs.readFileSync('public'+a.path.split('?')[0],'utf8');assert(svg.includes('레벨 '+(i+1)+' 훈장'));assert(!svg.includes('<text'),'Medals have no printed numbers');}
+const c={window:{},console};vm.createContext(c);for(const file of ['home-data','quiz-play'])vm.runInContext(fs.readFileSync('public/js/features/'+file+'.js','utf8'),c);
+const title=c.window.DJ48HomeData.normalizeTitleCardFromFirestore({id:'math',data:()=>({titleName:'수학왕',legacyGroup:'pre-20261018'})});assert.equal(title.legacy,true);assert.equal(title.name,'수학왕');
+const recordId=c.window.DJ48QuizPlay.buildPracticeProgressRecordId('u','math');assert.equal(recordId,'u__practice_20261018__math');assert.notEqual(recordId,'u__math');
+console.log('PASS reset allowlist, title preservation/legacy grouping, concurrent-change rejection, resumable batches, new practice namespace, 100 distinct number-free medals.');

@@ -1,0 +1,22 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792306609025000",
+  "version": "sites/dj48-quiztown-firebase/versions/eaacc632540f06ca",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/5a2cb873a4256a98",
+  "changed": [
+    "/index.html",
+    "/js/app.bundle.js",
+    "/player-status/style.css",
+    "/player-status/index.html",
+    "/js/school-rooms.js",
+    "/js/features/quiz-render.js",
+    "/js/player-status-shortcut.js",
+    "/mathsurvivor/index.html",
+    "/mathsurvivor/game.js",
+    "/mathsurvivor/style.css",
+    "/battle/index.html",
+    "/cloud-tower/index.html",
+    "/word-bomb/index.html",
+    "/town-marble/index.html"
+  ],
+  "preservedFiles": 4087
+}

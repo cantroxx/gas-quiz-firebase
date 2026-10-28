@@ -1,0 +1,1374 @@
+--- before/public/index.html
++++ after/public/index.html
+@@ -359,6 +359,7 @@
+       </div>
+ 
+       <div class="shop-intro-strip"><span>🎟️ 코디 구매 쿠폰 20장</span><span>🎨 헤어·의상 염색</span><span>👗 나만의 메이플 코디</span></div>
++      <p id="shop-entry-status" role="status" aria-live="polite" hidden></p>
+       <section id="shop-avatar-market" class="shop-avatar-market" aria-label="메이플 코디 상점"></section>
+ 
+     </section>
+@@ -1324,7 +1325,7 @@
+           <div class="admin-notice-actions">
+             <button id="admin-audit-refresh" class="button secondary" type="button">점검 실행</button>
+           </div>
+-          <p id="admin-audit-status" class="admin-status" aria-live="polite"></p>
++          <p id="admin-audit-status" class="admin-status" aria-live="polite">점검 실행을 누르면 운영 기록을 조회합니다.</p>
+           <div id="admin-audit-summary" class="admin-summary"></div>
+           <div id="admin-audit-list" class="admin-audit-list"></div>
+         </div>
+@@ -1342,7 +1343,7 @@
+           <div class="admin-notice-actions">
+             <button id="admin-quiz-quality-refresh" class="button secondary" type="button">점검 실행</button>
+           </div>
+-          <p id="admin-quiz-quality-status" class="admin-status" aria-live="polite"></p>
++          <p id="admin-quiz-quality-status" class="admin-status" aria-live="polite">점검 실행을 누르면 퀴즈와 문항을 조회합니다.</p>
+           <div id="admin-quiz-quality-summary" class="admin-summary"></div>
+           <div id="admin-quiz-quality-list" class="admin-audit-list"></div>
+         </div>
+@@ -5220,6 +5221,12 @@
+     }
+ 
+     function resetUserScopedRuntimeData() {
++      window.DJ48AdminState.resetAdminState();
++      document.getElementById('shop-avatar-market')?.replaceChildren();
++      const shopView = document.getElementById('shop-view');
++      if(shopView) shopView.shopEntryRequest = null;
++      document.getElementById('admin-member-list')?.replaceChildren();
++      document.getElementById('admin-dashboard-grid')?.replaceChildren();
+       resetShopRuntimeData();
+       resetRoomSettingsCache();
+       resetClassroomRuntimeData();
+@@ -6312,7 +6319,7 @@
+ 
+     function getClassroomRepository() {
+       const state = window.DJ48ClassroomState;
+-      const generations = Object.fromEntries(['settings', 'progress', 'review', 'wallet', 'gems', 'students', 'economy']
++      const generations = Object.fromEntries(['settings', 'progress', 'review', 'wallet', 'gems', 'students', 'economy', 'home']
+         .map(key => [key, state.getGeneration(key)]));
+       return window.DJ48ClassroomRepository.createClassroomRepository({
+         getFirestoreDb,
+@@ -6361,6 +6368,10 @@
+       }, getClassroomCacheDeps());
+     }
+ 
++    async function loadClassroomHomeData(settings, forceRefresh = false) {
++      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('home', { settings, forceRefresh }, getClassroomCacheDeps());
++    }
++
+     async function loadClassroomStudentCards(settings, forceRefresh = false) {
+       return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('students', {
+         forceRefresh,
+@@ -6443,13 +6454,16 @@
+     async function renderClassroomPrototype(forceRefresh = false) {
+       const memberAtStart = window.DJ48AccountState.getCurrentMemberUserId();
+       const revisionAtStart = window.DJ48ClassroomState.getRevision();
++      const activeTab = document.getElementById('classroom-view')?.dataset.activeTab || 'today';
++      const detailMode = document.getElementById('classroom-view')?.dataset.homeDetails === 'true';
+       const active = classroomRenderRequest;
+-      if(active?.member === memberAtStart && active?.revision === revisionAtStart) {
++      if(active?.member === memberAtStart && active?.revision === revisionAtStart && active.tab === activeTab && active.detailMode === detailMode) {
+         if(!forceRefresh) return active.promise;
+         if(!active.refresh) {
+           active.refresh = active.promise.then(() => {
+             if(memberAtStart !== window.DJ48AccountState.getCurrentMemberUserId()
+-              || revisionAtStart !== window.DJ48ClassroomState.getRevision()) return;
++              || revisionAtStart !== window.DJ48ClassroomState.getRevision()
++              || activeTab !== document.getElementById('classroom-view')?.dataset.activeTab) return;
+             return renderClassroomPrototype(true);
+           });
+         }
+@@ -6458,7 +6472,7 @@
+       const keepPreviousHome = classroomLastRenderedMember === memberAtStart;
+       if(!keepPreviousHome) document.getElementById('classroom-today-grid')?.replaceChildren();
+       window.DJ48ClassroomRender.renderClassroomLoadState('loading');
+-      const request = { member: memberAtStart, revision: revisionAtStart, promise: null, refresh: null };
++      const request = { member: memberAtStart, revision: revisionAtStart, tab: activeTab, detailMode, promise: null, refresh: null };
+       let previewFrame = null;
+       let preview = null;
+       const cancelPreview = () => {
+@@ -6471,13 +6485,13 @@
+         && revisionAtStart === window.DJ48ClassroomState.getRevision();
+       request.promise = (async () => {
+         try {
+-          const data = await window.DJ48ClassroomUsecases.getClassroomPrototypeViewData({ forceRefresh }, {
+-            loadClassroomSettings, loadClassroomQuestProgress, loadClassroomReviewItems,
++          const data = await window.DJ48ClassroomUsecases.getClassroomPrototypeViewData({ forceRefresh, activeTab: activeTab === 'today' && document.getElementById('classroom-view').dataset.homeDetails === 'true' ? 'today-full' : activeTab }, {
++            loadClassroomSettings, loadClassroomQuestProgress, loadClassroomReviewItems, loadClassroomHomeData, isCurrentClassroomTeacher,
+             loadClassroomWallet, loadClassroomGemProgress, loadClassroomStudentCards, loadClassroomEconomyBoard,
+             hasLoadError: window.DJ48ClassroomState.hasLoadError,
+             isCurrent,
+             onPartialData: (partial, readyKeys) => {
+-              if(keepPreviousHome || !isCurrent() || window.DJ48ClassroomState.hasLoadError('settings')) return;
++              if(activeTab !== 'today' || keepPreviousHome || !isCurrent() || window.DJ48ClassroomState.hasLoadError('settings')) return;
+               preview = { partial, readyKeys };
+               if(previewFrame !== null) return;
+               previewFrame = window.requestAnimationFrame(() => {
+@@ -6492,12 +6506,12 @@
+           cancelPreview();
+           if(!isCurrent()) return;
+           const failures = window.DJ48ClassroomState.getLoadErrors()
+-            .filter(key => key !== 'review' || isCurrentClassroomTeacher(data.settings));
++            .filter(key => (!data.requiredKeys || data.requiredKeys.includes(key)) && (key !== 'review' || isCurrentClassroomTeacher(data.settings)));
+           if(failures.length) {
+             window.DJ48ClassroomRender.renderClassroomLoadState('error');
+             return;
+           }
+-          window.DJ48ClassroomRender.renderClassroomSections(data, getClassroomRenderDeps());
++          window.DJ48ClassroomRender.renderClassroomSections(data, { ...getClassroomRenderDeps(), activeTab });
+           classroomLastRenderedMember = memberAtStart;
+           window.DJ48ClassroomRender.renderClassroomLoadState('ready');
+         } catch(error) {
+@@ -6510,6 +6524,15 @@
+       })();
+       return request.promise;
+     }
++
++    document.getElementById('classroom-view')?.addEventListener('click', event => {
++      if(!event.target.closest('[data-classroom-home-details]')) return;
++      document.getElementById('classroom-view').dataset.homeDetails = 'true';
++      renderClassroomPrototype();
++    });
++    document.getElementById('classroom-view')?.addEventListener('classroom-tab-changed', () => {
++      if(!document.getElementById('classroom-view')?.hidden && !document.getElementById('classroom-main-panel')?.hidden) renderClassroomPrototype();
++    });
+ 
+     function setClassroomQuestEditorStatus(message, isError = false) {
+       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-quest-editor-status', message, isError);
+@@ -7622,7 +7645,7 @@
+       return window.DJ48AdminForm.setAdminStatusElement('admin-status', message, isError);
+     }
+ 
+-    function setActiveAdminSection(sectionName) {
++    function setActiveAdminSection(sectionName, loadData = true) {
+       const targetName = sectionName || 'members';
+       document.querySelectorAll('[data-admin-section-target]').forEach(control => {
+         const isActive = control.dataset.adminSectionTarget === targetName;
+@@ -7634,6 +7657,25 @@
+       document.querySelectorAll('.admin-section').forEach(section => {
+         section.classList.toggle('is-active', section.id === `admin-section-${targetName}`);
+       });
++      if(!loadData) return;
++      const sectionLoads = {
++        dashboard: () => loadAdminDashboard({ forceRefresh: false }),
++        members: () => loadAdminMembers({ forceRefresh: false }),
++        notice: loadAdminNoticeBoard,
++        'external-quizzes': loadAdminExternalQuizzes,
++        'season-events': loadAdminSeasonEvents,
++        login: loadAdminLoginSettings,
++        features: loadAdminFeatureFlags,
++        logs: loadAdminLogs
++      };
++      if(sectionLoads[targetName]) {
++        sectionLoads[targetName]().catch(error => {
++          if(error.message === 'admin-session-changed' || error.message === 'admin-read-invalidated') return;
++          console.warn('Admin section load failed.', error);
++          const status = document.querySelector(`#admin-section-${targetName} .admin-status`);
++          if(status) status.textContent = '불러오지 못했습니다. 다시 불러오기를 눌러 주세요.';
++        });
++      }
+       if(targetName === 'classroom') {
+         renderAdminClassroomReview(true).catch(error => {
+           console.warn('Admin classroom review load failed.', error);
+@@ -7660,7 +7702,13 @@
+       return window.DJ48AdminRepository.createAdminRepository({
+         getFirestoreDb,
+         getFirebaseFunctions,
+-        initializeAuthUser
++        initializeAuthUser,
++        getReadOwner: () => JSON.stringify([
++          window.DJ48AccountState.getCurrentMemberUserId(),
++          window.DJ48AccountState.getCurrentMemberProfile()
++        ]),
++        readValue: window.DJ48AdminState.readAdminValue,
++        invalidateReads: window.DJ48AdminState.invalidateAdminReads
+       });
+     }
+ 
+@@ -7681,10 +7729,10 @@
+       });
+     }
+ 
+-    async function loadAdminDashboard() {
++    async function loadAdminDashboard(options = { forceRefresh: true }) {
+       return window.DJ48AdminUsecases.loadAdminDashboardFlow({}, {
+         setStatus: setAdminDashboardStatus,
+-        loadDashboard: () => getAdminRepository().loadAdminDashboard(),
++        loadDashboard: () => getAdminRepository().loadAdminDashboard(options),
+         setDashboard: window.DJ48AdminState.setDashboard,
+         setSuperAdminUiEnabled,
+         renderDashboard: renderAdminDashboard
+@@ -7865,7 +7913,7 @@
+       return window.DJ48AdminUsecases.loadAdminMembersFlow(options, {
+         setStatus: setAdminStatus,
+         getFilterValues: getAdminFilterValues,
+-        loadMembers: filters => getAdminRepository().loadAdminMembers(filters),
++        loadMembers: filters => getAdminRepository().loadAdminMembers(filters, { forceRefresh: options.forceRefresh !== false }),
+         renderSummary: renderAdminSummary,
+         renderMemberList: renderAdminMemberList
+       });
+@@ -9044,65 +9092,9 @@
+     function showAdminView() {
+       return window.DJ48AdminUsecases.loadAdminInitialViewFlow({}, {
+         enterAdminView: () => enterAppView({ viewId: 'admin-view' }),
+-        setActiveAdminSection,
+-        loadAdminDashboard,
+-        loadAdminMembers,
+-        getSuperAdminInitialLoads: () => [
+-          {
+-            load: loadAdminNoticeBoard,
+-            warnMessage: 'Admin notice board load failed.',
+-            onError: () => {
+-              setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
+-              setAdminNoticeForm(getFallbackNoticeBoard());
+-            }
+-          },
+-          {
+-            load: loadAdminExternalQuizzes,
+-            warnMessage: 'Admin external quizzes load failed.',
+-            onError: () => {
+-              setAdminExternalQuizzesStatus('학습·컨셉 퀴즈를 불러오지 못했습니다.', true);
+-              renderAdminExternalQuizRows(DEFAULT_EXTERNAL_QUIZZES);
+-            }
+-          },
+-          {
+-            load: loadAdminSeasonEvents,
+-            warnMessage: 'Admin season events load failed.',
+-            onError: () => {
+-              setAdminSeasonEventsStatus('시즌 이벤트를 불러오지 못했습니다.', true);
+-              renderAdminSeasonEventRows({ items: SEASON_EVENT_DATA });
+-            }
+-          },
+-          {
+-            load: loadAdminLoginSettings,
+-            warnMessage: 'Admin login settings load failed.',
+-            onError: () => setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true)
+-          },
+-          {
+-            load: loadAdminFeatureFlags,
+-            warnMessage: 'Admin feature flags load failed.',
+-            onError: () => {
+-              setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
+-              setAdminFeatureFlagsForm(getActiveFeatureFlags());
+-            }
+-          },
+-          {
+-            load: loadAdminLogs,
+-            warnMessage: 'Admin logs load failed.',
+-            onError: () => setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true)
+-          },
+-          {
+-            load: loadAdminOperationalAudit,
+-            warnMessage: 'Admin operational audit load failed.',
+-            onError: () => setAdminAuditStatus('운영 점검을 불러오지 못했습니다.', true)
+-          },
+-          {
+-            load: loadAdminQuizQualityAudit,
+-            warnMessage: 'Admin quiz quality audit load failed.',
+-            onError: () => setAdminQuizQualityStatus('문제 점검을 불러오지 못했습니다.', true)
+-          }
+-        ],
++        setActiveAdminSection: section => setActiveAdminSection(section, false),
++        loadAdminDashboard: () => loadAdminDashboard({ forceRefresh: false }),
+         onDashboardError: () => setAdminDashboardStatus('대시보드를 불러오지 못했습니다.', true),
+-        onMembersError: () => setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true),
+         warn: console.warn
+       });
+     }
+@@ -9147,18 +9139,36 @@
+     }
+ 
+     async function showShopView() {
+-      const flags = await loadFeatureFlags();
+-      if(flags.shopEnabled === false && !isCurrentAdminMember()) {
+-        window.alert('상점은 지금 점검 중입니다.');
+-        return;
+-      }
+-      renderAvatarMarket();
+-      enterAppView({
+-        viewId: 'shop-view',
+-        placeKey: 'shop'
+-      });
+-
+-
++      const view = document.getElementById('shop-view');
++      const market = document.getElementById('shop-avatar-market');
++      const status = document.getElementById('shop-entry-status');
++      const request = {};
++      view.shopEntryRequest = request;
++      const owner = window.DJ48AccountState.getCurrentMemberUserId();
++      enterAppView({ viewId: 'shop-view', placeKey: 'shop' });
++      market.inert = true;
++      status.hidden = false;
++      status.textContent = '상점 이용 설정을 확인하고 있어요…';
++      status.setAttribute('aria-busy', 'true');
++      const current = () => view.shopEntryRequest === request && !view.hidden
++        && owner === window.DJ48AccountState.getCurrentMemberUserId();
++      try {
++        const flags = await loadFeatureFlags();
++        if(!current()) return;
++        if(flags.shopEnabled === false && !isCurrentAdminMember()) {
++          market.hidden = true;
++          status.textContent = '상점은 지금 점검 중입니다.';
++          return;
++        }
++        renderAvatarMarket();
++        market.inert = false;
++        status.hidden = true;
++      } catch(error) {
++        if(current()) status.textContent = '상점을 열지 못했어요. 상점 메뉴를 다시 눌러 주세요.';
++        console.warn('Shop entry failed.', error);
++      } finally {
++        if(current()) status.setAttribute('aria-busy', 'false');
++      }
+     }
+ 
+     async function showEventView() {
+@@ -9186,6 +9196,11 @@
+     }
+ 
+     function showClassroomView(unlocked = false) {
++      const view = document.getElementById('classroom-view');
++      const request = {}; view.classroomEntryRequest = request;
++      const owner = window.DJ48AccountState.getCurrentMemberUserId();
++      document.getElementById('classroom-view').dataset.homeDetails = 'false';
++      window.DJ48ClassroomForm.setClassroomUnlocked(false);
+       setActiveClassroomTab('today');
+       setClassroomUnlocked(unlocked);
+       enterAppView({
+@@ -9193,6 +9208,7 @@
+         placeKey: 'classroom'
+       });
+       initializeAuthUser().then(() => {
++        if(view.hidden || view.classroomEntryRequest !== request || owner !== window.DJ48AccountState.getCurrentMemberUserId()) return;
+         if(isCurrentAdminMember()) {
+           setClassroomUnlocked(true);
+           window.DJ48ClassroomForm.setClassroomEntryStatus('관리자 권한으로 교실에 입장했습니다.');
+--- before/public/js/application/admin-usecases.js
++++ after/public/js/application/admin-usecases.js
+@@ -53,31 +53,14 @@
+     const warn = deps.warn || (() => {});
+ 
+     const dashboardPromise = deps.loadAdminDashboard()
+-      .then(dashboard => {
+-        if(dashboard?.adminLevel !== 'superAdmin') return dashboard;
+-        const optionalLoads = deps.getSuperAdminInitialLoads?.() || [];
+-        optionalLoads.forEach(loadConfig => {
+-          loadConfig.load?.().catch(error => {
+-            warn(loadConfig.warnMessage || 'Admin optional load failed.', error);
+-            loadConfig.onError?.(error);
+-          });
+-        });
+-        return dashboard;
+-      })
+       .catch(error => {
+         warn('Admin dashboard load failed.', error);
+         deps.onDashboardError?.(error);
+         return null;
+       });
+ 
+-    const membersPromise = deps.loadAdminMembers?.().catch(error => {
+-      warn('Admin member list load failed.', error);
+-      deps.onMembersError?.(error);
+-      return null;
+-    });
+-
+-    const [dashboard, members] = await Promise.all([dashboardPromise, membersPromise]);
+-    return { dashboard, members };
++    // Lists and audits belong to their own sections; do not scan them on entry.
++    return { dashboard: await dashboardPromise };
+   }
+ 
+   const api = {
+--- before/public/js/application/classroom-usecases.js
++++ after/public/js/application/classroom-usecases.js
+@@ -41,6 +41,7 @@
+       gems: 'loadClassroomGemProgress',
+       students: 'loadClassroomStudentCards',
+       economy: 'loadClassroomEconomyBoard',
++      home: 'loadClassroomHomeData',
+       review: 'loadClassroomReviewItems'
+     };
+     const loaderName = loaderNames[key];
+@@ -71,6 +72,64 @@
+   async function getClassroomPrototypeViewData(options = {}, deps = {}) {
+     const settings = await deps.loadClassroomSettings(options.forceRefresh === true);
+     if(deps.isCurrent && !deps.isCurrent()) return null;
++    if(options.activeTab) {
++      const teacher = deps.isCurrentClassroomTeacher?.(settings) === true;
++      const keys = {
++        today: ['progress', 'wallet', 'home'],
++        'today-full': ['progress', 'wallet', 'students', 'review', 'economy', 'gems'],
++        quest: ['progress', 'wallet', ...(teacher ? ['students', 'review'] : [])],
++        classroom: ['students', 'economy', 'wallet'],
++        market: ['wallet', 'economy'],
++        bank: ['wallet', 'economy', ...(teacher ? ['students'] : [])],
++        routine: ['economy', ...(teacher ? ['review', 'students'] : [])],
++        gems: ['gems', 'economy', ...(teacher ? ['students'] : [])],
++        jobs: ['economy', 'students'],
++        mission: ['economy'],
++        teacher: ['progress', 'wallet', 'students', 'review', 'economy', 'gems']
++      }[options.activeTab] || ['progress', 'wallet', 'home'];
++      const loaders = {
++        progress: () => deps.loadClassroomQuestProgress(options.forceRefresh === true, settings),
++        wallet: () => deps.loadClassroomWallet(settings, options.forceRefresh === true),
++        home: () => deps.loadClassroomHomeData(settings, options.forceRefresh === true),
++        students: () => deps.loadClassroomStudentCards(settings, options.forceRefresh === true),
++        review: () => deps.loadClassroomReviewItems(settings, options.forceRefresh === true),
++        economy: () => deps.loadClassroomEconomyBoard(settings, options.forceRefresh === true),
++        gems: () => deps.loadClassroomGemProgress(settings, options.forceRefresh === true)
++      };
++      const fields = {progress:'progressMap',wallet:'wallet',home:'home',students:'studentCards',review:'reviewItems',economy:'economyBoard',gems:'gemProgress'};
++      const data = { settings, progressMap: {}, wallet: {}, studentCards: [], reviewItems: [], economyBoard: {}, gemProgress: [] };
++      const loadedKeys = ['settings'];
++      await Promise.all(keys.map(async key => {
++        const value = await loaders[key]();
++        if(deps.hasLoadError?.(key)) return;
++        data[fields[key]] = value;
++        loadedKeys.push(key);
++        deps.onPartialData?.({ ...data }, [...loadedKeys]);
++      }));
++      if(data.home) {
++        data.studentCards = data.home;
++        data.economyBoard = { myDjCoin: Number(data.home[0]?.djCoin || 0) };
++      }
++      if(keys.includes('gems')) {
++    const progressByGemId = new Map(data.gemProgress.map(progress => [String(progress.gemId || progress.id), progress]));
++    (data.economyBoard.classroomGems || []).forEach(gem => {
++      const gemId = String(gem.gemId || gem.id || '');
++      const progress = progressByGemId.get(gemId);
++      progressByGemId.set(gemId, {
++        ...gem,
++        ...(progress || {}),
++        currentXp: Number(progress?.currentXp || 0),
++        targetXp: Number(progress?.targetXp || gem.targetXp || 10),
++        rewardPoint: Number(progress?.rewardPoint || gem.rewardPoint || 0),
++        rewardCoin: Number(progress?.rewardCoin || gem.rewardCoin || 0),
++        completed: progress?.completed === true
++      });
++    });
++    data.gemProgress = Array.from(progressByGemId.values())
++      .sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), 'ko'));
++      }
++      return { ...data, loadedKeys, requiredKeys: ['settings', ...keys], activeTab: options.activeTab };
++    }
+     const partialData = { settings };
+     const loadedKeys = ['settings'];
+     const publish = () => deps.onPartialData?.({ ...partialData }, [...loadedKeys]);
+--- before/public/js/infrastructure/admin-repository.js
++++ after/public/js/infrastructure/admin-repository.js
+@@ -2,13 +2,29 @@
+   async function callAdminCallable(options = {}, deps = {}) {
+     const functions = deps.getFirebaseFunctions?.();
+     if(!functions) throw new Error('functions-unavailable');
++    const owner = deps.getReadOwner?.();
+     await deps.initializeAuthUser?.();
+     const callableName = options.callableName || '';
+     const callable = functions.httpsCallable(callableName);
+-    const response = await callable(options.payload || {});
+-    const result = response?.data || {};
+-    if(!result.success) throw new Error(options.errorCode || `${callableName || 'admin-call'}-failed`);
+-    return result;
++    const mutation = callableName.startsWith('admin') && !/^admin(Get|List)/.test(callableName);
++    if(mutation) deps.invalidateReads?.();
++    const load = async () => {
++      if(owner !== deps.getReadOwner?.()) throw new Error('admin-session-changed');
++      const response = await callable(options.payload || {});
++      if(owner !== deps.getReadOwner?.()) throw new Error('admin-session-changed');
++      const result = response?.data || {};
++      if(!result.success) throw new Error(options.errorCode || `${callableName || 'admin-call'}-failed`);
++      return result;
++    };
++    try {
++      const result = options.cache && deps.readValue
++        ? await deps.readValue(JSON.stringify([owner, callableName, options.payload || {}]), load, options)
++        : await load();
++      if(owner !== deps.getReadOwner?.()) throw new Error('admin-session-changed');
++      return result;
++    } finally {
++      if(mutation) deps.invalidateReads?.();
++    }
+   }
+ 
+   function runAdminMemberAction(action, memberUserId, deps = {}) {
+@@ -85,7 +101,9 @@
+           return `${item.key}:${options.getTimestampMillis?.(data.updatedAt) || 0}`;
+         }).join('|');
+       },
+-      loadAdminDashboard: () => callAdminCallable({
++      loadAdminDashboard: (options = {}) => callAdminCallable({
++        cache: true,
++        forceRefresh: options.forceRefresh === true,
+         callableName: 'adminGetDashboard',
+         errorCode: 'admin-dashboard-load-failed'
+       }, deps),
+@@ -97,7 +115,9 @@
+         callableName: 'adminGetQuizQualityAudit',
+         errorCode: 'admin-quiz-quality-load-failed'
+       }, deps),
+-      loadAdminMembers: (payload = {}) => callAdminCallable({
++      loadAdminMembers: (payload = {}, options = {}) => callAdminCallable({
++        cache: true,
++        forceRefresh: options.forceRefresh === true,
+         callableName: 'adminListMembers',
+         payload,
+         errorCode: 'admin-list-failed'
+--- before/public/js/infrastructure/classroom-repository.js
++++ after/public/js/infrastructure/classroom-repository.js
+@@ -85,21 +85,30 @@
+   }
+ 
+   async function loadClassroomStudentCards(options = {}, deps = {}) {
+-    deps.reportLoadStatus?.('students', null);
++    const statusKey = options.memberOnly ? 'home' : 'students';
++    deps.reportLoadStatus?.(statusKey, null);
+     const { settings = {}, memberUserId = '' } = options;
+     if(!memberUserId) return getEmptyClassroomStudentCards();
+     const functions = getClassroomFunctions(deps);
+-    if(!functions) { deps.reportLoadStatus?.('students', new Error('functions-unavailable')); return getEmptyClassroomStudentCards(); }
++    if(!functions) { deps.reportLoadStatus?.(statusKey, new Error('functions-unavailable')); return getEmptyClassroomStudentCards(); }
+     try {
+       const callable = functions.httpsCallable('getClassroomStudentCards');
+       const response = await callable({
+         classId: settings.classId,
+-        memberUserId
++        memberUserId,
++        ...(options.memberOnly ? { memberOnly: true } : {})
+       });
+       const students = Array.isArray(response?.data?.students) ? response.data.students : getEmptyClassroomStudentCards();
++      // Older deployed Functions remain compatible during a staged release.
++      if(options.memberOnly) {
++        const own = students.filter(student => student.memberUserId === memberUserId);
++        if(own.length !== 1) throw new Error('classroom-home-unavailable');
++        return own;
++      }
++      if(response?.data?.levelSummariesIncluded === true) return students;
+       return mergeClassroomStudentLevelSummaries(students, deps);
+     } catch(error) {
+-      deps.reportLoadStatus?.('students', error);
++      deps.reportLoadStatus?.(statusKey, error);
+       deps.warn?.('Classroom student cards load failed.', error);
+       return getEmptyClassroomStudentCards();
+     }
+@@ -563,6 +572,7 @@
+       loadClassroomQuestProgress: options => loadClassroomQuestProgress(options, firestoreDeps),
+       loadClassroomWallet: options => loadClassroomWallet(options, firestoreDeps),
+       loadClassroomGemProgress: options => loadClassroomGemProgress(options, firestoreDeps),
++      loadClassroomHomeData: options => loadClassroomStudentCards({ ...options, memberOnly: true }, callableDeps),
+       loadClassroomStudentCards: options => loadClassroomStudentCards(options, callableDeps),
+       loadClassroomEconomyBoard: options => loadClassroomEconomyBoard(options, callableDeps),
+       loadClassroomReviewItems: options => loadClassroomReviewItems(options, callableDeps),
+--- before/public/js/features/admin-state.js
++++ after/public/js/features/admin-state.js
+@@ -6,6 +6,35 @@
+   let externalQuizzes = null;
+   let externalQuizzesLoadPromise = null;
+   let seasonEvents = null;
++  let readGeneration = 0;
++  const reads = new Map();
++
++  function invalidateAdminReads() {
++    readGeneration++;
++    reads.clear();
++  }
++
++  async function readAdminValue(key, load, options = {}) {
++    const generation = readGeneration;
++    const now = Date.now();
++    const previous = reads.get(key);
++    if(previous?.promise) return previous.promise;
++    if(!options.forceRefresh && previous && previous.expires > now) return previous.value;
++    const entry = {};
++    entry.promise = Promise.resolve().then(load).then(value => {
++      if(generation !== readGeneration) throw new Error('admin-read-invalidated');
++      entry.value = value;
++      entry.expires = Date.now() + 15000;
++      return value;
++    }).finally(() => {
++      entry.promise = null;
++      if(!entry.expires && reads.get(key) === entry) reads.delete(key);
++    });
++    reads.set(key, entry);
++    // Filters can create many keys; keep this short-lived session cache bounded.
++    if(reads.size > 30) reads.delete(reads.keys().next().value);
++    return entry.promise;
++  }
+ 
+   function getDashboard() {
+     return dashboard;
+@@ -71,6 +100,7 @@
+   }
+ 
+   function resetAdminState() {
++    invalidateAdminReads();
+     dashboard = null;
+     noticeBoard = null;
+     featureFlags = null;
+@@ -81,6 +111,8 @@
+   }
+ 
+   window.DJ48AdminState = {
++    readAdminValue,
++    invalidateAdminReads,
+     getDashboard,
+     setDashboard,
+     getNoticeBoardCache,
+--- before/public/js/features/classroom-state.js
++++ after/public/js/features/classroom-state.js
+@@ -11,6 +11,7 @@
+   function hasLoadError(key) { return loadErrors[key] === true; }
+   function getLoadErrors() { return Object.keys(loadErrors); }
+   const cache = {
++    home: null,
+     settings: null,
+     progress: null,
+     review: null,
+@@ -20,6 +21,7 @@
+     economy: null
+   };
+   const loadPromises = {
++    home: null,
+     settings: null,
+     progress: null,
+     review: null,
+@@ -48,6 +50,7 @@
+   }
+ 
+   function resetClassroomDataCaches(options = {}) {
++    if(options.settings || options.wallet || options.economy || options.students) options = { ...options, home: true };
+     if(Object.keys(options).some(key => options[key] && Object.prototype.hasOwnProperty.call(cache, key))) revision++;
+     Object.keys(options).forEach(key => {
+       if(options[key] && Object.prototype.hasOwnProperty.call(cache, key)) {
+@@ -62,6 +65,7 @@
+   function resetClassroomRuntimeData() {
+     Object.keys(loadErrors).forEach(key => delete loadErrors[key]);
+     resetClassroomDataCaches({
++      home: true,
+       settings: true,
+       progress: true,
+       review: true,
+--- before/public/js/features/classroom-form.js
++++ after/public/js/features/classroom-form.js
+@@ -54,6 +54,7 @@
+     if(panelTab === 'teacher' && view?.dataset.classroomRole !== 'teacher') panelTab = 'today';
+     const group = Object.keys(CLASSROOM_GROUPS).find(key => CLASSROOM_GROUPS[key].includes(panelTab));
+     lastGroupTabs[group] = panelTab;
++    const previousTab = view?.dataset.activeTab;
+     if(view) view.dataset.activeTab = panelTab;
+     document.querySelectorAll('[data-classroom-group]').forEach(button => {
+       button.setAttribute('aria-pressed', String(button.dataset.classroomGroup === group));
+@@ -80,6 +81,7 @@
+     });
+     window.DJ48ClassroomRender?.applyClassroomOverviewTabVisibility?.(panelTab);
+     window.DJ48ClassroomWorkspace?.syncEconomyNavigation?.(panelTab);
++    if(previousTab !== panelTab) view?.dispatchEvent(new CustomEvent('classroom-tab-changed'));
+     if(subtabAliases.has(requestedTab)) {
+       document.querySelectorAll('[data-classroom-subtab]').forEach(button => {
+         const active = button.dataset.classroomSubtab === requestedTab;
+--- before/public/js/features/classroom-render.js
++++ after/public/js/features/classroom-render.js
+@@ -694,6 +694,14 @@
+     const ready = deps.previewReadyKeys ? new Set(deps.previewReadyKeys) : null;
+     const region = (element, name, keys, label) => {
+       element.dataset.classroomHomeRegion = name;
++      if(deps.homeOnly && !['identity','point','coin','quests'].includes(name)) {
++        const button = document.createElement('button');
++        button.type = 'button'; button.className = 'classroom-text-action';
++        button.dataset.classroomHomeDetails = '';
++        button.textContent = `${label} 보기`;
++        element.replaceChildren(button);
++        return element;
++      }
+       if(ready && !keys.every(key => ready.has(key))) {
+         const message = document.createElement('p');
+         message.className = 'classroom-empty-copy';
+@@ -765,8 +773,8 @@
+     const greeting = node('div', 'classroom-home-greeting');
+     greeting.append(node('p', 'classroom-kicker', teacher ? '담임 선생님' : '오늘의 교실'),
+       node('h3', '', teacher ? '우리반의 하루' : `${me.nickname || me.name || '나'}의 오늘`),
+-      node('p', '', teacher ? `학생 ${students.length}명 · 확인을 기다리는 활동 ${reviews.length}건` :
+-        pending.length + checkable.length ? `퀘스트 ${pending.length}개 · 체크할 루틴 ${checkable.length}개` : quests.length || routines.length ? '오늘 할 일을 모두 확인했어요.' : '오늘의 활동을 여기서 확인하세요.'));
++      node('p', '', teacher ? (deps.homeOnly ? '학생과 검토할 활동은 메뉴에서 확인하세요.' : `학생 ${students.length}명 · 확인을 기다리는 활동 ${reviews.length}건`) :
++        deps.homeOnly ? `퀘스트 ${pending.length}개 · 루틴은 메뉴에서 확인하세요.` : pending.length + checkable.length ? `퀘스트 ${pending.length}개 · 체크할 루틴 ${checkable.length}개` : quests.length || routines.length ? '오늘 할 일을 모두 확인했어요.' : '오늘의 활동을 여기서 확인하세요.'));
+     identity.append(portrait, greeting);
+     if(!teacher) {
+       const edit = node('button', 'classroom-text-action classroom-portrait-edit', '이미지 바꾸기');
+@@ -857,7 +865,7 @@
+     }
+ 
+     const mission = economy.classMission;
+-    if((ready && !ready.has('economy')) || (mission && (mission.thresholds || []).length)) {
++    if(deps.homeOnly || (ready && !ready.has('economy')) || (mission && (mission.thresholds || []).length)) {
+       const missionSection = section('우리반 미션', '목표 보기', 'mission');
+       missionSection.classList.add('classroom-mission-section');
+       missionSection.append(artwork('community-tree', 'classroom-mission-art'));
+@@ -3038,6 +3046,7 @@
+   }
+ 
+   function renderClassroomSections(data = {}, deps = {}) {
++    const needs = (...tabs) => !deps.activeTab || tabs.includes(deps.activeTab);
+     const settings = data.settings || {};
+     const economyBoard = data.economyBoard || {};
+     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+@@ -3064,37 +3073,37 @@
+     if(routineForm) routineForm.hidden = canManage;
+     const routineEditor = document.getElementById('classroom-routine-editor');
+     if(routineEditor) routineEditor.hidden = canManage;
+-    renderClassroomRoleState(settings, data.wallet || {}, deps, data);
+-    renderClassroomGrowndOverview(data);
+-    renderClassroomTeacherDashboard(data, deps);
+-    renderClassroomTeacherReport(data, deps);
+-    renderClassroomQuestPickers(data);
+-    renderClassroomTodayHome(data, deps);
+-    renderClassroomActivityFeed(economyBoard);
+-    renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
+-    renderClassroomQuestCards(settings, data.progressMap || {}, deps);
+-    renderClassroomInactiveQuestCards(settings, deps);
+-    renderClassroomStudentCards(data.studentCards || [], settings, deps, economyBoard);
+-    renderClassroomGemSummary(data.gemProgress || [], settings);
+-    renderClassroomGemManagementOverview(data, deps);
+-    renderClassroomGemCards(data.gemProgress || [], economyBoard);
+-    renderClassroomJobSummary(settings, economyBoard, deps);
+-    renderClassroomJobManagementOverview(settings, economyBoard, deps);
+-    renderClassroomJobCards(settings, economyBoard, deps);
+-    renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
+-    renderClassroomShopHistory(settings, economyBoard, deps);
+-    renderClassroomMissionView(economyBoard);
++    if(needs('today')) renderClassroomRoleState(settings, data.wallet || {}, deps, data);
++    if(needs('teacher')) renderClassroomGrowndOverview(data);
++    if(needs('teacher')) renderClassroomTeacherDashboard(data, deps);
++    if(needs('teacher')) renderClassroomTeacherReport(data, deps);
++    if(needs('quest','teacher')) renderClassroomQuestPickers(data);
++    if(needs('today')) renderClassroomTodayHome(data, { ...deps, homeOnly: !!data.home });
++    if(needs('teacher')) renderClassroomActivityFeed(economyBoard);
++    if(needs('teacher')) renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
++    if(needs('quest')) renderClassroomQuestCards(settings, data.progressMap || {}, deps);
++    if(needs('quest')) renderClassroomInactiveQuestCards(settings, deps);
++    if(needs('classroom')) renderClassroomStudentCards(data.studentCards || [], settings, deps, economyBoard);
++    if(needs('gems')) renderClassroomGemSummary(data.gemProgress || [], settings);
++    if(needs('gems')) renderClassroomGemManagementOverview(data, deps);
++    if(needs('gems')) renderClassroomGemCards(data.gemProgress || [], economyBoard);
++    if(needs('jobs')) renderClassroomJobSummary(settings, economyBoard, deps);
++    if(needs('jobs')) renderClassroomJobManagementOverview(settings, economyBoard, deps);
++    if(needs('jobs')) renderClassroomJobCards(settings, economyBoard, deps);
++    if(needs('market')) renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
++    if(needs('market')) renderClassroomShopHistory(settings, economyBoard, deps);
++    if(needs('mission')) renderClassroomMissionView(economyBoard);
+     const bankGrid = document.getElementById('classroom-bank-grid');
+-    if(bankGrid) bankGrid.innerHTML = '';
+-    renderClassroomBankOverview(data, deps);
+-    renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
+-    renderClassroomSavingsSection(bankGrid, economyBoard, deps);
+-    renderClassroomTaxPresetList(economyBoard);
+-    renderClassroomRoutineTeacherBoard(data, deps);
+-    renderClassroomRoutineOverview(settings, economyBoard, deps);
+-    renderClassroomRoutineCards(economyBoard);
+-    deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
+-    deps.setClassroomExchangeSettingsForm?.(economyBoard.exchangeSettings || {});
++    if(needs('bank') && bankGrid) bankGrid.innerHTML = '';
++    if(needs('bank')) renderClassroomBankOverview(data, deps);
++    if(needs('bank')) renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
++    if(needs('bank')) renderClassroomSavingsSection(bankGrid, economyBoard, deps);
++    if(needs('bank')) renderClassroomTaxPresetList(economyBoard);
++    if(needs('routine')) renderClassroomRoutineTeacherBoard(data, deps);
++    if(needs('routine')) renderClassroomRoutineOverview(settings, economyBoard, deps);
++    if(needs('routine')) renderClassroomRoutineCards(economyBoard);
++    if(needs('teacher')) deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
++    if(needs('bank')) deps.setClassroomExchangeSettingsForm?.(economyBoard.exchangeSettings || {});
+     window.DJ48ClassroomWorkspace?.render?.(data, deps);
+     window.DJ48ClassroomForm?.setActiveClassroomTab?.(view?.dataset.activeTab || 'today');
+   }
+--- before/public/js/features/classroom-workspace.js
++++ after/public/js/features/classroom-workspace.js
+@@ -249,6 +249,7 @@
+     }
+   }
+   function render(data = {}, deps = {}) {
++    const needs = name => !deps.activeTab || deps.activeTab === name;
+     const teacher = deps.isCurrentClassroomTeacher?.(data.settings) === true;
+     const key = `${data.settings?.classId}:${deps.currentMemberUserId}:${teacher}`;
+     if(identity !== key) { states.clear(); selectedProducts.clear(); identity = key; }
+@@ -271,12 +272,14 @@
+       ['teacher', '처리할 일', '학생들의 활동과 요청을 차근차근 확인해요.', '선생님 공간', null]
+     ];
+     for(const [name, title, description, kicker, action] of specs) {
++      if(!needs(name)) continue;
+       header(tab(name), title, description, kicker, action ? button(action[0], () => openEditor(action[1]), 'classroom-main-action') : null);
+       const panel = tab(name); if(!panel) continue;
+       const slot = panel.querySelector('.classroom-management-slot');
+       if(slot) { slot.classList.add('classroom-bottom-management'); panel.append(slot); }
+     }
+-    if(teacher) tab('quest').querySelector('.classroom-tab-heading').append(button(`검토 ${(data.reviewItems || []).filter(item => item.itemType !== 'routine').length}건`, () => go('teacher')));
++    if(teacher && needs('quest')) tab('quest').querySelector('.classroom-tab-heading').append(button(`검토 ${(data.reviewItems || []).filter(item => item.itemType !== 'routine').length}건`, () => go('teacher')));
++    if(needs('classroom')) {
+     const students = data.studentCards || [];
+     const studentCards = [...$('classroom-student-card-grid').children].filter(card => card.dataset.classroomStudentId);
+     for(const card of studentCards) {
+@@ -286,14 +289,18 @@
+     toolbar($('classroom-student-card-body'), 'classroom-student-explorer', studentCards, {
+       placeholder: '이름 또는 번호 검색', sort: true, text: card => `${card.dataset.studentName} ${card.dataset.studentNumber}`
+     });
++    }
++    if(needs('quest')) {
+     const questBody = $('classroom-quest-body'); questBody.classList.add('classroom-quest-workspace');
+     // The renderer already applies audience/date rules; read its unfiltered summary counts.
+     const questStats = [...$('classroom-quest-summary')?.querySelectorAll('.classroom-quest-stat-grid article') || []].map(card => [card.querySelector('span').textContent, card.querySelector('strong').textContent]);
+     const questAside = summary(questBody, 'classroom-quest-aside', teacher ? '활동 현황' : '오늘의 진행 상황', questStats, 'reading-sprout');
+     questAside.append(button(teacher ? '검토 요청 확인' : '나의 젬스톤 보기', () => go(teacher ? 'teacher' : 'gems')));
++    }
+     $('classroom-routine-body').hidden = teacher;
+-    $('classroom-gem-management-overview').hidden = !teacher;
+-    $('classroom-job-management-overview').hidden = !teacher;
++    if($('classroom-gem-management-overview')) $('classroom-gem-management-overview').hidden = !teacher;
++    if($('classroom-job-management-overview')) $('classroom-job-management-overview').hidden = !teacher;
++    if(needs('routine')) {
+     if(!teacher) {
+       const routineBody = $('classroom-routine-body'); routineBody.classList.add('classroom-routine-workspace');
+       const routines = (economy.routines || []).filter(r => r.status !== 'deleted');
+@@ -305,9 +312,13 @@
+       aside.append(el('p', '', '오늘 가능한 항목을 하나씩 체크해 보세요.'));
+       routineBody.append($('classroom-routine-editor'));
+     } else $('classroom-routine-aside')?.remove();
++    }
++    if(needs('gems')) {
+     const gemCards = [...$('classroom-gem-grid').querySelectorAll('[data-classroom-gem-state]')];
+     toolbar(tab('gems'), 'classroom-gem-explorer', gemCards, { search: false, filters: [['all', '전체'], ['growing', '성장 중'], ['done', '최고 단계'], ['new', '시작 전']], match: (card, filter) => card.dataset.classroomGemState === filter });
+     tab('gems').querySelector('.classroom-tab-heading').after($('classroom-gem-explorer'));
++    }
++    if(needs('jobs')) {
+     const myJob = economy.myAssignment || (economy.assignments || []).find(a => a.memberUserId === deps.currentMemberUserId && a.status === 'active');
+     let jobBanner = $('classroom-my-job-banner');
+     if(!jobBanner) { jobBanner = el('section', 'classroom-my-job-banner'); jobBanner.id = 'classroom-my-job-banner'; $('classroom-job-summary').before(jobBanner); }
+@@ -316,10 +327,14 @@
+     const jobCards = [...$('classroom-job-grid').querySelectorAll('[data-classroom-job-id]')];
+     toolbar(tab('jobs'), 'classroom-job-explorer', jobCards, { placeholder: '직업 검색', filters: [['all', '전체'], ['open', '모집 중'], ...(!teacher ? [['mine', '내 지원·직업']] : [])], match: (card, filter) => card.dataset[filter === 'open' ? 'classroomJobOpen' : 'classroomJobMine'] === 'true' });
+     $('classroom-job-summary').after($('classroom-job-explorer'));
++    }
++    if(needs('market')) {
+     const marketHead = tab('market').querySelector('.classroom-tab-heading');
+     if(!teacher) {
+       const wallet = el('div', 'classroom-market-wallet'); wallet.append(icon('point-token'), el('strong', '', `교실 포인트 ${point(data.wallet?.point)} P`), el('span', '', `DJ코인 ${point(economy.myDjCoin)}`)); marketHead.append(wallet);
+     }
++    }
++    if(needs('bank')) {
+     enhanceExchange(data);
+     const bank = $('classroom-bank-grid');
+     const ledger = el('section', 'classroom-bank-ledger'); ledger.append(el('h4', '', '최근 포인트 기록'));
+@@ -339,6 +354,8 @@
+       const table = overview.querySelector('.classroom-review-table').parentElement;
+       const details = el('details', 'classroom-bank-students'); details.append(el('summary', '', '학생별 잔액 살펴보기'), table); overview.append(details);
+     }
++    }
++    if(needs('teacher')) {
+     const reviewRoot = $('classroom-review-grid');
+     if(teacher && reviewRoot) {
+       const rows = [...reviewRoot.querySelectorAll('tbody tr')];
+@@ -354,6 +371,7 @@
+         }));
+       });
+     }
++    }
+     decorateTables();
+   }
+   root.DJ48ClassroomWorkspace = { render, enhanceMarket, decorateTables, getPrice, syncEconomyNavigation };
+--- before/public/coordi-shop/dressing-room.js
++++ after/public/coordi-shop/dressing-room.js
+@@ -488,7 +488,7 @@
+   function beginOfficialCoordiRefresh() {
+     officialCoordiRequestId += 1;
+     officialCoordiLoading = true;
+-    setOfficialLookStatus('코디를 입혀보는 중…', 'ready');
++    setOfficialLookStatus('코디를 입혀보는 중…', 'loading');
+   }
+ 
+   function cancelOfficialCoordiRefresh() {
+@@ -564,7 +564,7 @@
+     const requestId = ++officialCoordiRequestId;
+     const payload = buildOfficialCoordiPayload();
+     officialCoordiLoading = true;
+-    setOfficialLookStatus('코디를 입혀보는 중…', 'ready');
++    setOfficialLookStatus('코디를 입혀보는 중…', 'loading');
+     try {
+       const result = await renderHairPrism(payload);
+       const response = {ok: result?.success === true};
+@@ -614,6 +614,7 @@
+     document.getElementById('retry-coordi-preview').hidden = mode !== 'error';
+     if(!elements.officialLookStatus) return;
+     elements.officialLookStatus.textContent = text;
++    elements.officialLookStatus.setAttribute('aria-busy', String(mode === 'loading'));
+     elements.officialLookStatus.classList.toggle('is-ready', mode === 'ready');
+     elements.officialLookStatus.classList.toggle('is-error', mode === 'error');
+   }
+@@ -625,7 +626,7 @@
+       return;
+     }
+     officialCoordiLoading = true;
+-    setOfficialLookStatus('공식 렌더 확인 중', 'ready');
++    setOfficialLookStatus('공식 렌더 확인 중', 'loading');
+     try {
+       const params = new URLSearchParams({
+         input,
+@@ -1530,8 +1531,8 @@
+   // Handle rejection immediately even when a catalog takes longer to respond.
+   const commerceReady = Promise.resolve()
+     .then(() => window.DJ48CoordiBridge.status())
+-    .then(data => ({ data }), error => ({ error }));
+-  const catalogsReady = Promise.all([loadCatalog(), loadFeaturedHair(), loadTopCoordiItems(), loadItemEffects()]);
++    .then(data => { commerceMessage('내 정보 확인 완료 · 상품을 준비하고 있어요.'); return { data }; }, error => ({ error }));
++  const catalogsReady = Promise.all([loadCatalog(), loadFeaturedHair(), loadTopCoordiItems(), loadItemEffects()]).then(() => { commerceMessage('상품 목록 준비 완료 · 내 정보를 확인하고 있어요.'); });
+   Promise.all([catalogsReady, commerceReady]).then(([, result]) => {
+     mergePinnedItemsIntoCatalog();
+     mergeTopCoordiItemsIntoCatalog();
+@@ -1546,5 +1547,8 @@
+     render();
+     showGenderDialogIfNeeded();
+     if(commerce)scheduleOfficialCoordiLook();
++  }).catch(error => {
++    commerceMessage(error.message || '상품을 불러오지 못했어요. 상점을 다시 열어 주세요.');
++    updateCommerce();
+   });
+ })();
+--- before/functions/index.js
++++ after/functions/index.js
+@@ -3856,59 +3856,32 @@
+ exports.adminGetDashboard = onCall({ region: REGION }, async request => {
+   const authUid = requireAuth(request);
+   const adminMember = await getAdminMemberForAuth(authUid);
+-  // orderBy("userId")는 userId 필드가 없는 문서(신규가입 생성분)를 제외하므로 사용하지 않는다.
+-  const userSnapshot = await db.collection("users").limit(1000).get();
+-  let members = userSnapshot.docs.map(publicAdminMemberRow);
+-  if (!adminMember.isSuperAdmin) {
+-    members = members.filter(member => isMemberInAdminScope(adminMember, member));
+-  }
+-
+-  const credentialSnapshots = members.length
+-    ? await db.getAll(...members.map(member => db.collection("memberCredentials").doc(member.userId)))
+-    : [];
++  // Scope checks still finish before content reads. Only independent reads overlap.
++  const kstDayStart = Timestamp.fromDate(getKstDayStartDate());
++  const membersPromise = db.collection("users").limit(1000).get().then(snapshot => {
++    const members = snapshot.docs.map(publicAdminMemberRow);
++    return adminMember.isSuperAdmin ? members : members.filter(member => isMemberInAdminScope(adminMember, member));
++  });
++  const credentialsPromise = membersPromise.then(members => members.length
++    ? db.getAll(...members.map(member => db.collection("memberCredentials").doc(member.userId)))
++    : []);
++  const [members, credentialSnapshots, practiceSnapshot, rewardSnapshot, logSnapshot] = await Promise.all([
++    membersPromise,
++    credentialsPromise,
++    db.collection("practiceRecords").where("updatedAt", ">=", kstDayStart).limit(1000).get()
++      .catch(error => { console.warn("Admin dashboard practice count failed.", error); return null; }),
++    db.collection("rewardLogs").where("createdAt", ">=", kstDayStart).limit(1000).get()
++      .catch(error => { console.warn("Admin dashboard reward count failed.", error); return null; }),
++    adminMember.isSuperAdmin ? db.collection("adminLogs").orderBy("createdAt", "desc").limit(5).get() : null
++  ]);
+   const credentialStates = credentialSnapshots.map(publicAdminCredentialState);
+-  const kstDayStart = Timestamp.fromDate(getKstDayStartDate());
+-  let todayPracticeCount = 0;
+-  let todayRewardCount = 0;
+-  let recentLogs = [];
+-
+-  try {
+-    const practiceSnapshot = await db.collection("practiceRecords")
+-      .where("updatedAt", ">=", kstDayStart)
+-      .limit(1000)
+-      .get();
+-    todayPracticeCount = practiceSnapshot.docs
+-      .map(doc => doc.data() || {})
+-      .filter(record => adminMember.isSuperAdmin || isMemberInAdminScope(adminMember, {
+-        grade: record.grade || "",
+-        classNumber: record.classNumber || "",
+-        userId: record.memberUserId || record.userId || ""
+-      }) || members.some(member => member.userId === (record.memberUserId || record.userId || "")))
+-      .length;
+-  } catch (error) {
+-    console.warn("Admin dashboard practice count failed.", error);
+-  }
+-
+-  try {
+-    const rewardSnapshot = await db.collection("rewardLogs")
+-      .where("createdAt", ">=", kstDayStart)
+-      .limit(1000)
+-      .get();
+-    todayRewardCount = rewardSnapshot.docs
+-      .map(doc => doc.data() || {})
+-      .filter(log => adminMember.isSuperAdmin || members.some(member => member.userId === (log.memberUserId || log.userId || "")))
+-      .length;
+-  } catch (error) {
+-    console.warn("Admin dashboard reward count failed.", error);
+-  }
+-
+-  if (adminMember.isSuperAdmin) {
+-    const logSnapshot = await db.collection("adminLogs")
+-      .orderBy("createdAt", "desc")
+-      .limit(5)
+-      .get();
+-    recentLogs = logSnapshot.docs.map(publicAdminLogRow);
+-  }
++  const todayPracticeCount = (practiceSnapshot?.docs || []).map(doc => doc.data() || {})
++    .filter(record => adminMember.isSuperAdmin || isMemberInAdminScope(adminMember, {
++      grade: record.grade || "", classNumber: record.classNumber || "", userId: record.memberUserId || record.userId || ""
++    }) || members.some(member => member.userId === (record.memberUserId || record.userId || ""))).length;
++  const todayRewardCount = (rewardSnapshot?.docs || []).map(doc => doc.data() || {})
++    .filter(log => adminMember.isSuperAdmin || members.some(member => member.userId === (log.memberUserId || log.userId || ""))).length;
++  const recentLogs = (logSnapshot?.docs || []).map(publicAdminLogRow);
+ 
+   return {
+     success: true,
+@@ -5898,6 +5871,20 @@
+     };
+   });
+   const settings = authResult.settings;
++  // Home needs only this linked member, not the classroom roster or economy board.
++  if(payload.memberOnly === true) {
++    const [wallet, economy, profile, title] = await db.getAll(
++      db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId),
++      db.collection("userEconomy").doc(memberUserId),
++      db.collection("classrooms").doc(classId).collection("studentProfiles").doc(memberUserId),
++      db.collection("userTitleSummary").doc(memberUserId)
++    );
++    return { success: true, classId, levelSummariesIncluded: true, students: [publicClassroomStudentCard(
++      { id: memberUserId, data: () => authResult.memberData },
++      wallet.data() || {}, profile.data() || {}, title.data() || {}, economy.data() || {}
++    )] };
++  }
++
+ 
+   const usersSnapshot = await db.collection("users")
+     .where("role", "==", "student")
+@@ -5924,14 +5911,22 @@
+   const economyRefs = studentDocs.map(doc => db.collection("userEconomy").doc(doc.id));
+   const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
+   const titleRefs = studentDocs.map(doc => db.collection("userTitleSummary").doc(doc.id));
+-  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot, classroomGemSnapshot] = await Promise.all([
++  const levelRefs = studentDocs.map(doc => db.collection("userLevelSummary").doc(doc.id));
++  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot, classroomGemSnapshot, levelSnapshots] = await Promise.all([
+     walletRefs.length ? db.getAll(...walletRefs) : [],
+     economyRefs.length ? db.getAll(...economyRefs) : [],
+     profileRefs.length ? db.getAll(...profileRefs) : [],
+     titleRefs.length ? db.getAll(...titleRefs) : [],
+     db.collection("classrooms").doc(classId).collection("studentGemProgress").limit(1000).get(),
+-    db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get()
++    db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get(),
++    levelRefs.length ? db.getAll(...levelRefs).catch(() => { console.warn('Classroom optional level summaries unavailable.'); return []; }) : []
+   ]);
++  const levelByUserId = new Map(levelSnapshots.map(snapshot => {
++    if(!snapshot.exists) return [snapshot.id, null];
++    const totalXp = Math.max(0, Math.round(Number(snapshot.data()?.totalXp) || 0));
++    const level = Math.min(50, Math.floor(totalXp / 50) + 1);
++    return [snapshot.id, { level, totalXp, xp: level >= 50 ? 0 : totalXp % 50, nextLevelXp: level >= 50 ? 0 : 50 }];
++  }));
+   const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+   const economyByUserId = new Map(economySnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+   const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
+@@ -5980,14 +5975,15 @@
+     success: true,
+     classId,
+     className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
+-    students: studentDocs.map(doc => publicClassroomStudentCard(
++    levelSummariesIncluded: true,
++    students: studentDocs.map(doc => ({ ...publicClassroomStudentCard(
+       doc,
+       walletByUserId.get(doc.id) || {},
+       profileByUserId.get(doc.id) || {},
+       titleByUserId.get(doc.id) || {},
+       economyByUserId.get(doc.id) || {},
+       gemSummaryByUserId.get(doc.id) || {}
+-    ))
++    ), levelSummary: levelByUserId.get(doc.id) || null }))
+   };
+ });
+ 
+@@ -10284,7 +10280,7 @@
+ 
+ // Preview shares commerce access checks; purchases use a separate transactional endpoint.
+ const coordiPreview = require('./coordi-shop/service').createCoordiPreviewService({
+-  authorize: async uid => { await coordiCommerce.act(uid,{action:'status'}); }, ErrorType: HttpsError
++  authorize: uid => coordiCommerce.authorizePreview(uid), ErrorType: HttpsError
+ });
+ exports.renderCoordiShopPreview = onCall({ region: REGION, maxInstances: 2, concurrency: 8, timeoutSeconds: 40 }, request =>
+   coordiPreview(request.auth?.uid, request.data));
+--- before/functions/coordi-shop/commerce.js
++++ after/functions/coordi-shop/commerce.js
+@@ -17,6 +17,15 @@
+ function normalizePrism(v){if(!v||typeof v!=='object')throw Error('염색 값을 확인해 주세요.');const result={};for(const [key,min,max] of [['palette',0,6],['tone',0,359],['chroma',-99,99],['brightness',-99,99],['blackInclusive',0,1]]){const n=v[key]??0;if(!Number.isInteger(n)||n<min||n>max)throw Error('염색 범위를 확인해 주세요.');result[key]=n;}return result;}
+ function createService({db,FieldValue,ErrorType,authorize}){
+  const fail=(code,message)=>{throw new ErrorType(code,message);};
++ async function authorizePreview(uid){
++ if(!uid)fail('unauthenticated','로그인이 필요해요.');
++ return db.runTransaction(async tx=>{
++ const link=(await tx.get(db.collection('authLinks').doc(uid))).data();
++ if(!link?.memberUserId)fail('permission-denied','회원 연결을 확인해 주세요.');
++ const [member,flags]=await Promise.all([authorize(tx,link.memberUserId,uid),tx.get(db.doc('appSettings/featureFlags'))]);
++ if(flags.data()?.shopEnabled===false&&member.role!=='admin')fail('failed-precondition','상점은 지금 쉬고 있어요.');
++ });
++ }
+  async function act(uid,p={}){
+  if(!uid)fail('unauthenticated','로그인이 필요해요.');if(JSON.stringify(p).length>10000)fail('invalid-argument','요청이 너무 커요.');
+  return db.runTransaction(async tx=>{
+@@ -62,6 +71,6 @@
+  tx.create(receipt,{memberUserId:id,action:p.action,fingerprint,result,createdAt:FieldValue.serverTimestamp()});
+  return result;
+  });}
+- return {act};
++ return {act,authorizePreview};
+ }
+ module.exports={createService,normalizePrism,catalog,version};
+--- before/package.json
++++ after/package.json
+@@ -22,7 +22,7 @@
+     "check": "npm run check:static && npm run test:domain && npm run test:application && npm run test:infrastructure && npm run test:fractions && npm run test:pizza && npm run test:space && npm run test:word-bomb && npm run test:fruit-bell && npm run test:growth && npm run test:rules && SMOKE_PUBLIC_ONLY=1 npm run smoke:browser && npm run smoke:classroom",
+     "check:static": "npm run build:coordi-catalog && npm run build:app && node scripts/smoke/check-project.js && node scripts/smoke/check-mathsurvivor.js",
+     "test:domain": "node tests/domain/shop-domain.test.js && node tests/domain/ranking-domain.test.js && node tests/domain/quiz-domain.test.js && node tests/domain/account-domain.test.js && node tests/domain/classroom-domain.test.js && node tests/domain/event-domain.test.js && node tests/domain/housing-coupons.test.js && node tests/domain/season-period.test.js && node tests/domain/season-ranking-view.test.js",
+-    "test:application": "node tests/application/event-usecases.test.js && node tests/application/classroom-usecases.test.js && node tests/classroom/loading.test.js && node tests/application/shop-usecases.test.js && node tests/application/home-usecases.test.js && node tests/application/home-loading.test.js && node tests/application/home-controller.test.js && node tests/application/profile-usecases.test.js && node tests/application/ranking-usecases.test.js && node tests/application/account-usecases.test.js && node tests/application/app-view.test.js && node tests/application/app-bootstrap.test.js && node tests/application/quiz-flow.test.js && node tests/application/quiz-usecases.test.js && node tests/application/admin-usecases.test.js && node tests/classroom/economy-loading.test.js",
++    "test:application": "node tests/application/event-usecases.test.js && node tests/application/classroom-usecases.test.js && node tests/classroom/loading.test.js && node tests/application/shop-usecases.test.js && node tests/application/home-usecases.test.js && node tests/application/home-loading.test.js && node tests/application/home-controller.test.js && node tests/application/profile-usecases.test.js && node tests/application/ranking-usecases.test.js && node tests/application/account-usecases.test.js && node tests/application/app-view.test.js && node tests/application/app-bootstrap.test.js && node tests/application/quiz-flow.test.js && node tests/application/quiz-usecases.test.js && node tests/application/admin-usecases.test.js && node tests/classroom/economy-loading.test.js && node --test tests/application/entry-performance.test.js",
+     "test:infrastructure": "node tests/infrastructure/ranking-repository.test.js && node tests/infrastructure/quiz-repository.test.js && node tests/infrastructure/account-repository.test.js && node tests/infrastructure/home-repository.test.js && node tests/infrastructure/profile-repository.test.js && node tests/infrastructure/shop-repository.test.js && node tests/infrastructure/admin-repository.test.js && node tests/infrastructure/classroom-repository.test.js && node tests/infrastructure/event-repository.test.js",
+     "test:rules": "firebase emulators:exec --project demo-dj48-rules --only firestore,storage \"node tests/rules/firebase-rules.test.js && node tests/rules/housing-coupons.test.js && node tests/rules/season-ranking.test.js\"",
+     "smoke:browser": "node scripts/smoke/browser-smoke-test.js",
+--- before/tests/application/admin-usecases.test.js
++++ after/tests/application/admin-usecases.test.js
+@@ -113,18 +113,12 @@
+   await new Promise(resolve => setTimeout(resolve, 0));
+ 
+   assert.deepEqual(result, {
+-    dashboard: { adminLevel: 'superAdmin' },
+-    members: { members: [] }
++    dashboard: { adminLevel: 'superAdmin' }
+   });
+   assert.deepEqual(calls, [
+     ['enter'],
+     ['section', 'dashboard'],
+-    ['dashboard'],
+-    ['members'],
+-    ['notice'],
+-    ['logs'],
+-    ['warn', 'logs failed'],
+-    ['logs-error']
++    ['dashboard']
+   ]);
+ }
+ 
+@@ -144,15 +138,15 @@
+     warn: message => calls.push(['warn', message])
+   });
+ 
+-  assert.deepEqual(result, { dashboard: null, members: null });
++  assert.deepEqual(result, { dashboard: null });
+   assert.deepEqual(calls.slice(0, 2), [
+     ['enter'],
+     ['section', 'dashboard']
+   ]);
+   assert(calls.some(call => call[0] === 'warn' && call[1] === 'Admin dashboard load failed.'));
+   assert(calls.some(call => call[0] === 'dashboard-error'));
+-  assert(calls.some(call => call[0] === 'warn' && call[1] === 'Admin member list load failed.'));
+-  assert(calls.some(call => call[0] === 'members-error'));
++  assert(!calls.some(call => call[0] === 'warn' && call[1] === 'Admin member list load failed.'));
++  assert(!calls.some(call => call[0] === 'members-error'));
+ }
+ 
+ async function run() {
+--- before/scripts/smoke/classroom-loading-browser.js
++++ after/scripts/smoke/classroom-loading-browser.js
+@@ -12,6 +12,7 @@
+     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+     const errors = [];
+     page.on('pageerror', error => errors.push(error.message));
++    if(process.env.ENTRY_DEBUG) page.on('console', msg=>console.log(msg.type(),msg.text()));
+     await page.route('**/*', route => {
+       const url = new URL(route.request().url());
+       if(url.origin !== 'https://classroom-loading.test') return route.abort();
+@@ -26,14 +27,14 @@
+       await page.addScriptTag({ path: path.join(PUBLIC, 'js', file) });
+     }
+     await page.addScriptTag({ content: `
+-      let member = 'S1', economyReads = 0, settingsReads = 0, releaseEconomy;
+-      let economyGate = new Promise(resolve => releaseEconomy = resolve);
++      let member = 'S1', homeReads = 0, settingsReads = 0, releaseHome;
++      let homeGate = new Promise(resolve => releaseHome = resolve);
+       const fixture = {
+         settings: DJ48ClassroomDomain.normalizeClassroomSettings({classId:'demo',quests:[{id:'q1',title:'샘플 독서 활동',active:true,rewardMode:'auto',rewardCoin:5}]}),
+         economy: {myDjCoin:123, classroomGems:[],routines:[],classNotices:{slots:[]}}
+       };
+       window.DJ48AccountState = {getCurrentMemberUserId:()=>member};
+-      const isCurrentClassroomTeacher = () => false;
++      let teacher = false; const isCurrentClassroomTeacher = () => teacher;
+       const getClassroomRenderDeps = () => ({isCurrentClassroomTeacher,currentMemberUserId:member,getTodayDateKey:()=> '2026-10-04',normalizeDisplayImageUrl:x=>x,getLevelMedalAsset:DJ48LevelMedalAssets.getLevelMedalAsset});
+       const loadClassroomSettings = async () => {settingsReads++;return fixture.settings;};
+       const loadClassroomQuestProgress = async () => ({});
+@@ -41,12 +42,15 @@
+       const loadClassroomWallet = async () => ({point:member==='S1'?17:82});
+       const loadClassroomGemProgress = async () => [];
+       const loadClassroomStudentCards = async () => [{memberUserId:member,nickname:'샘플학생',point:17}];
++      let economyReads = 0, economyGate = Promise.resolve();
++      const loadClassroomHomeData = async () => {homeReads++;await homeGate;return [{memberUserId:member,nickname:'샘플학생',djCoin:123}];};
+       const loadClassroomEconomyBoard = async () => {economyReads++;await economyGate;return fixture.economy;};
+       document.querySelectorAll('.app-view').forEach(view=>view.hidden=view.id!=='classroom-view');
+       DJ48ClassroomForm.setClassroomUnlocked(true);DJ48ClassroomForm.setActiveClassroomTab('today');
+       ${coordinator}
+       window.loadingRun = renderClassroomPrototype();
+     ` });
++    if(process.env.ENTRY_DEBUG) { await page.waitForTimeout(100); console.log(await page.evaluate(()=>({status:document.querySelector('#classroom-load-status').textContent,point:document.querySelector('[data-classroom-home-region="point"]')?.textContent})),errors); }
+     await page.locator('[data-classroom-home-region="point"]').filter({ hasText: '17 P' }).waitFor();
+     assert(await page.locator('[data-classroom-home-region="quests"]').textContent().then(text => text.includes('샘플 독서 활동')));
+     assert.match(await page.locator('[data-classroom-home-region="coin"]').textContent(), /불러오는 중/);
+@@ -54,34 +58,49 @@
+     assert(await page.locator('[data-classroom-panel="today"]').evaluate(node => node.inert));
+     const noReady = await page.evaluate(() => document.getElementById('classroom-view').getAttribute('aria-busy'));
+     assert.equal(noReady, 'true');
+-    await page.evaluate(() => releaseEconomy());
++    await page.evaluate(() => releaseHome());
+     await page.evaluate(() => loadingRun);
+     assert.equal(await page.locator('#classroom-view').getAttribute('aria-busy'), 'false');
+     assert.match(await page.locator('[data-classroom-home-region="coin"]').textContent(), /123 DJ코인/);
+     assert.equal(await page.locator('[data-classroom-home-region="growth"][aria-busy]').count(), 0);
++    assert.equal(await page.evaluate(() => economyReads), 0, 'Today must not load the economy board');
++    const quickSwitch = await page.evaluate(async () => {
++      let release; economyGate = new Promise(r=>release=r);
++      DJ48ClassroomForm.setActiveClassroomTab('market'); const pending=renderClassroomPrototype();
++      await new Promise(r=>setTimeout(r,20));
++      const locked=document.querySelector('[data-classroom-panel="market"]').inert;
++      DJ48ClassroomForm.setActiveClassroomTab('today'); await renderClassroomPrototype();
++      const ready=document.getElementById('classroom-view').getAttribute('aria-busy')==='false';
++      release();await pending;
++      return {locked,ready,active:document.getElementById('classroom-view').dataset.activeTab};
++    });
++    assert.deepEqual(quickSwitch,{locked:true,ready:true,active:'today'});
++
++
++
+ 
+     const refresh = await page.evaluate(async () => {
+-      const before = economyReads;
+-      economyGate = new Promise(resolve => releaseEconomy = resolve);
++      const before = homeReads;
++      homeGate = new Promise(resolve => releaseHome = resolve);
+       const pointNode = document.querySelector('[data-classroom-home-region="point"]');
+       const first = renderClassroomPrototype(true);
+       const second = renderClassroomPrototype(true), third = renderClassroomPrototype(true);
+       await new Promise(resolve => setTimeout(resolve, 40));
+       const nodePreserved = pointNode === document.querySelector('[data-classroom-home-region="point"]');
+-      releaseEconomy(); await Promise.all([first, second, third]);
+-      return { reads: economyReads - before, nodePreserved };
++      releaseHome(); await Promise.all([first, second, third]);
++      return { reads: homeReads - before, nodePreserved };
+     });
+     assert.deepEqual(refresh, { reads: 2, nodePreserved: true });
+ 
+     await page.evaluate(() => {
+-      economyGate = new Promise(resolve => releaseEconomy = resolve);
++      homeGate = new Promise(resolve => releaseHome = resolve);
+       window.oldRun = renderClassroomPrototype(true);
+     });
+     await page.waitForTimeout(40);
+     await page.evaluate(() => {
+-      window.releaseOld = releaseEconomy;
++      window.releaseOld = releaseHome;
+       member = 'S2'; DJ48ClassroomState.resetClassroomRuntimeData();
+-      economyGate = Promise.resolve();
++      homeGate = Promise.resolve();
+       window.newRun = renderClassroomPrototype();
+     });
+     await page.evaluate(() => newRun);
+@@ -91,14 +110,40 @@
+     await page.evaluate(() => {
+       member = 'S3'; DJ48ClassroomState.resetClassroomRuntimeData();
+       DJ48ClassroomState.reportLoadStatus('wallet', new Error('synthetic failure'));
+-      economyGate = new Promise(resolve => releaseEconomy = resolve);
++      homeGate = new Promise(resolve => releaseHome = resolve);
+       window.errorRun = renderClassroomPrototype();
+     });
+     await page.locator('[data-classroom-home-region="point"]').filter({ hasText: '불러오는 중' }).waitFor();
+-    await page.evaluate(() => { releaseEconomy(); return errorRun; });
++    await page.evaluate(() => { releaseHome(); return errorRun; });
+     assert(await page.locator('[data-classroom-retry]').isVisible());
+     assert(await page.locator('[data-classroom-panel="today"]').isHidden());
++    const compact = await page.evaluate(async () => {
++      DJ48ClassroomState.resetClassroomRuntimeData();
++      delete document.getElementById('classroom-view').dataset.homeDetails;
++      const before = economyReads;
++      await renderClassroomPrototype();
++      return {economyReads:economyReads-before, ready:document.getElementById('classroom-view').getAttribute('aria-busy')};
++    });
++    assert.deepEqual(compact, {economyReads:0,ready:'false'});
++    assert.match(await page.locator('[data-classroom-home-region="coin"]').textContent(), /123 DJ코인/);
++    await page.evaluate(() => DJ48ClassroomForm.setActiveClassroomTab('market'));
++    await page.waitForFunction(() => document.getElementById('classroom-view').getAttribute('aria-busy') === 'false');
++    assert(await page.locator('#classroom-economy-navigation').isVisible());
++    assert.equal(await page.locator('#classroom-economy-navigation button').count(), 5);
++    assert(await page.locator('.classroom-tabs').isHidden());
++    await page.evaluate(async () => {
++      DJ48ClassroomState.resetClassroomRuntimeData();
++      homeGate = Promise.resolve();
++      for(const role of [false,true]) {
++        teacher = role;
++        for(const tab of ['today','quest','classroom','market','bank','routine','gems','jobs','mission',...(role?['teacher']:[])]) {
++          DJ48ClassroomForm.setActiveClassroomTab(tab);
++          await renderClassroomPrototype();
++          if(document.getElementById('classroom-view').getAttribute('aria-busy') !== 'false' || document.querySelector('[data-classroom-panel="'+tab+'"]').inert) throw Error('Tab did not become usable: '+tab);
++        }
++      }
++    });
+     assert.deepEqual(errors, []);
+-    console.log('PASS classroom loading: partial home before slow data, no false zero, locked pending actions, merged refresh, retained home, stale account response ignored.');
++    console.log('PASS classroom loading: partial compact home, market navigation, all role/tab loading, no false zero, locked pending actions, merged refresh, retained home, stale account response ignored.');
+   } finally { await browser.close(); }
+ })().catch(error => { console.error(error); process.exitCode = 1; });
+--- before/scripts/smoke/browser-smoke-test.js
++++ after/scripts/smoke/browser-smoke-test.js
+@@ -1,13 +1,14 @@
+ #!/usr/bin/env node
+ 
+ const assert = require('node:assert/strict');
++const publicFixture = require('./public-shell-fixture');
+ 
+ const DEFAULT_BASE_URL = 'https://dj48-quiztown-firebase.web.app';
+ const DEFAULT_CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+ 
+ function getConfig() {
+   return {
+-    baseUrl: process.env.SMOKE_BASE_URL || DEFAULT_BASE_URL,
++    baseUrl: process.env.SMOKE_PUBLIC_ONLY === '1' ? publicFixture.ORIGIN : (process.env.SMOKE_BASE_URL || DEFAULT_BASE_URL),
+     chromePath: process.env.SMOKE_CHROME_PATH || DEFAULT_CHROME_PATH,
+     publicOnly: process.env.SMOKE_PUBLIC_ONLY === '1',
+     headless: process.env.SMOKE_HEADLESS !== '0',
+@@ -560,11 +561,12 @@
+ }
+ 
+ async function runIsolatedShellCheck(browser, config, pageErrors, check) {
+-  const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
++  const context = await browser.newContext({ viewport: { width: 1366, height: 900 }, serviceWorkers: 'block' });
++  if(config.publicOnly) await publicFixture.install(context);
+   const page = await context.newPage();
+   const onPageError = error => pageErrors.push(error);
+   const onConsole = message => {
+-    if(message.type() === 'error') pageErrors.push(new Error(message.text()));
++    if(message.type() === 'error' && !(config.publicOnly && publicFixture.isExpectedBlockedConsole(message.text()))) pageErrors.push(new Error(message.text()));
+   };
+   page.on('pageerror', onPageError);
+   page.on('console', onConsole);
+@@ -587,12 +589,14 @@
+   });
+   const pageErrors = [];
+   const context = await browser.newContext({
+-    viewport: { width: 1366, height: 900 }
++    viewport: { width: 1366, height: 900 },
++    serviceWorkers: 'block'
+   });
++  if(config.publicOnly) await publicFixture.install(context);
+   const page = await context.newPage();
+   page.on('pageerror', error => pageErrors.push(error));
+   page.on('console', message => {
+-    if(message.type() === 'error') {
++    if(message.type() === 'error' && !(config.publicOnly && publicFixture.isExpectedBlockedConsole(message.text()))) {
+       pageErrors.push(new Error(message.text()));
+     }
+   });
+@@ -614,7 +618,7 @@
+       await runFeatureEntryChecks(page);
+     }
+     await expectNoPageErrors(pageErrors);
+-    console.log(`Browser smoke test passed: ${config.publicOnly ? 'public shell' : 'authenticated practice/ranking/home/features'} @ ${config.baseUrl}`);
++    console.log(`Browser smoke test passed: ${config.publicOnly ? 'offline public shell (all backend requests blocked)' : 'authenticated practice/ranking/home/features'} @ ${config.baseUrl}`);
+   } finally {
+     await browser.close();
+   }

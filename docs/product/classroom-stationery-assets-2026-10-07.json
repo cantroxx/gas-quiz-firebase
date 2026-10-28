@@ -1,0 +1,106 @@
+[
+  {
+    "asset": "snack",
+    "sourceBytes": 1174252,
+    "sourceWidth": 1374,
+    "sourceHeight": 1145,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/snack-160.webp",
+    "bytes": 5294,
+    "width": 160,
+    "height": 160
+  },
+  {
+    "asset": "snack",
+    "sourceBytes": 1174252,
+    "sourceWidth": 1374,
+    "sourceHeight": 1145,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/snack-320.webp",
+    "bytes": 12074,
+    "width": 320,
+    "height": 320
+  },
+  {
+    "asset": "lunch",
+    "sourceBytes": 2365882,
+    "sourceWidth": 1536,
+    "sourceHeight": 1024,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/lunch-160.webp",
+    "bytes": 7808,
+    "width": 160,
+    "height": 160
+  },
+  {
+    "asset": "lunch",
+    "sourceBytes": 2365882,
+    "sourceWidth": 1536,
+    "sourceHeight": 1024,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/lunch-320.webp",
+    "bytes": 20520,
+    "width": 320,
+    "height": 320
+  },
+  {
+    "asset": "notebook",
+    "sourceBytes": 1734423,
+    "sourceWidth": 1536,
+    "sourceHeight": 1024,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/notebook-160.webp",
+    "bytes": 4514,
+    "width": 160,
+    "height": 160
+  },
+  {
+    "asset": "notebook",
+    "sourceBytes": 1734423,
+    "sourceWidth": 1536,
+    "sourceHeight": 1024,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/notebook-320.webp",
+    "bytes": 10076,
+    "width": 320,
+    "height": 320
+  },
+  {
+    "asset": "empty",
+    "sourceBytes": 1707547,
+    "sourceWidth": 1536,
+    "sourceHeight": 1024,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/empty-160.webp",
+    "bytes": 3854,
+    "width": 160,
+    "height": 160
+  },
+  {
+    "asset": "empty",
+    "sourceBytes": 1707547,
+    "sourceWidth": 1536,
+    "sourceHeight": 1024,
+    "alpha": true,
+    "file": "public/images/classroom/stationery/empty-320.webp",
+    "bytes": 8662,
+    "width": 320,
+    "height": 320
+  },
+  {
+    "asset": "reading-sprout",
+    "sourceBytes": 1311066,
+    "file": "public/images/classroom/reading-sprout-320.webp",
+    "bytes": 20058,
+    "width": 320,
+    "height": 320
+  },
+  {
+    "asset": "community-tree",
+    "sourceBytes": 2117549,
+    "file": "public/images/classroom/community-tree-320.webp",
+    "bytes": 22572,
+    "width": 320,
+    "height": 320
+  }
+]

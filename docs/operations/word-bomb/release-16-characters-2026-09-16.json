@@ -1,0 +1,22 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1789543823463000",
+  "version": "sites/dj48-quiztown-firebase/versions/8b82b545d3811c89",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/65419bd99c258f76",
+  "changed": [
+    "/battle/index.html",
+    "/word-bomb/app.js",
+    "/word-bomb/assets/people-extra-v4.png",
+    "/word-bomb/assets/people-v3.png",
+    "/word-bomb/domain.js",
+    "/word-bomb/index.html",
+    "/word-bomb/style.css"
+  ],
+  "function": "wordBombAction",
+  "region": "asia-northeast3",
+  "maxPlayers": 8,
+  "characters": 16,
+  "fullCheck": "passed",
+  "onlineEmulator": "passed",
+  "preservedHostingFiles": 394,
+  "studentDataChanged": false
+}

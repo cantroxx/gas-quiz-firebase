@@ -1,0 +1,267 @@
+{
+  "reviewedAt": "2026-10-21T13:50:22.055109+00:00",
+  "phase": "final-review-completed-with-migration-blockers",
+  "codeChecks": "passed",
+  "migrationReadiness": "blocked",
+  "deployed": false,
+  "migrated": false,
+  "productionStudentWrites": false,
+  "checks": [
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "log": "final-audit-check.log",
+      "sha256": "b85533293dfdddf8e138b38373cde85fef44b51d48e3ec2404e58f6596336b70"
+    },
+    {
+      "command": "npm run test:classroom-followups",
+      "exitCode": 0,
+      "log": "final-audit-preview-regression.log",
+      "sha256": "083dec2480355c9314184914ee570ccee6ccc0eba8bf6ae1c54842be6e5cee69"
+    },
+    {
+      "command": "npm run check:static",
+      "exitCode": 0,
+      "log": "final-audit-static.log",
+      "sha256": "a49c2762ea9c9625738fbeb0a30313d1dff2e759ac6a6738886dc64dbdec1d40"
+    }
+  ],
+  "coverageNote": "Full npm check passed. Offline preview validation and its tests changed after the full run started; focused followup tests and static checks were rerun on the corrected files. No production transaction service, rules or UI behavior changed in this audit.",
+  "syntheticPreview": {
+    "ready": true,
+    "executionEnabled": false,
+    "archiveCount": 12,
+    "totals": {
+      "point": 215.75,
+      "djCoin": 122.5
+    },
+    "sourceHash": "60c63f75d47668b3678b32e91054d2219d7119b214431f488135ac78d113eae5",
+    "catalogHash": "74f3042c9692c4ae608ae638f267b7e37597d4d92f2cde08bd384b0e054eb724"
+  },
+  "sourceUIObservation": {
+    "fullExportAvailable": false,
+    "frozenSnapshot": false,
+    "currentLotteryTickets": 8,
+    "pendingRequests": 19,
+    "pendingRequestedPoints": 63,
+    "note": "Aggregate UI observations only; request amounts are not approved liabilities. No student names or original private text copied."
+  },
+  "productionMetadata": "final-production-metadata.json",
+  "indexes": {
+    "count": 5,
+    "allReady": true,
+    "normalizedDefinitionsMatch": true,
+    "fieldOverrides": []
+  },
+  "blockers": [
+    "G-01 source and target snapshots / ID maps",
+    "G-02 open lottery and pending requests",
+    "G-03 actual item effects and policy mapping",
+    "G-04 executable migration and recovery rehearsal absent",
+    "G-05 original attachment requirements unresolved",
+    "G-06 mixed release candidate scope"
+  ],
+  "files": [
+    {
+      "file": "firebase.json",
+      "sha256": "a2c3dbff762243119044663be1be56099933c992dd9bd64ac9c851c31fcd5ad3"
+    },
+    {
+      "file": "firestore.indexes.json",
+      "sha256": "fd021741b5f33eebfff4b5b37cdcd1a2dbe816ac33538a372f9a8b045abe4d13"
+    },
+    {
+      "file": "firestore.rules",
+      "sha256": "9dec7084eb74215bf259605a019708605999eedcfc112fe72f9e354b83351ab8"
+    },
+    {
+      "file": "fixtures/classroom-board/grownd-followups-example.json",
+      "sha256": "5ead39c5021b6338a2f4bd2619acabaf5864d4b49e29e63ea4ef223c70b4fa30"
+    },
+    {
+      "file": "fixtures/classroom-board/target-followups-example.json",
+      "sha256": "9c27d77f5e020ba5ad646acfe7a5db13857b1b60f032879e3e41ffe0a6dddd69"
+    },
+    {
+      "file": "functions/classroom/board-domain.js",
+      "sha256": "cf1e6755e2f143dc04b210ccd3b438906ae4a5f196dea19104a84aebecf99934"
+    },
+    {
+      "file": "functions/classroom/board.js",
+      "sha256": "237823373c720b12c14262e7bff9a3b71b4a77675f7dc685a9a8b00a890d8c89"
+    },
+    {
+      "file": "functions/classroom/followup-domain.js",
+      "sha256": "517e9927ed2d78bcd356eb26f51765433797f1ca72d1804ee940ad8cdf2b077e"
+    },
+    {
+      "file": "functions/classroom/followup.js",
+      "sha256": "582b2e96297a93506323c2e08c61eb5d6ca9ea1c8333b8f6bfddd4079193b99f"
+    },
+    {
+      "file": "functions/classroom/migration-preview.js",
+      "sha256": "8f2fe98b7e1f1cfd354a55da15846882bbe46b768315e29fc7e731a775092928"
+    },
+    {
+      "file": "functions/index.js",
+      "sha256": "2a65af2c68b557a27a1bb4e2061fb8bb59dbaebc0000274beca2f327e408fcfe"
+    },
+    {
+      "file": "functions/package.json",
+      "sha256": "c1440215f2b46029c9aedb8cd52e475c409a4904215b2531b43369067401e687"
+    },
+    {
+      "file": "package-lock.json",
+      "sha256": "80e1a9b7c600a407bd5f08cd2be0b9d6e14625a1b7081c5e453b7ae3dc20ecf0"
+    },
+    {
+      "file": "package.json",
+      "sha256": "cf987759becea482462291e7c76366a0bb1359e759ca7afecf9c005c84d36d5d"
+    },
+    {
+      "file": "public/index.html",
+      "sha256": "2199286d3062eef40c24441e7bd8d44217ea048041f004c6424e01714e002176"
+    },
+    {
+      "file": "public/js/app.bundle.js",
+      "sha256": "105fab525b842dd340bcc1f4790a7934604f621c6d2ea24700ed3e9d13bfa53a"
+    },
+    {
+      "file": "public/js/domain/classroom-board-domain.js",
+      "sha256": "cf1e6755e2f143dc04b210ccd3b438906ae4a5f196dea19104a84aebecf99934"
+    },
+    {
+      "file": "public/js/features/classroom-board.js",
+      "sha256": "9378683a2c324cb4683be2d163ef6adc5d7f85240af23b23c568f43f6865f011"
+    },
+    {
+      "file": "public/js/features/classroom-controller.js",
+      "sha256": "93bf0312a3459f2116bd435d9a5d60668283bb2b948636af78b2162bff39a68c"
+    },
+    {
+      "file": "public/js/features/classroom-followup.js",
+      "sha256": "7882a2f15cd5d3c7697fe444a680916aa40f252e030d249cb9c6f7739691099f"
+    },
+    {
+      "file": "public/styles.css",
+      "sha256": "67c1ab3ece9e4928c4938e741c463c90ed644a5967f9b858d213086dd5de25aa"
+    },
+    {
+      "file": "scripts/audit/classroom-final-metadata.js",
+      "sha256": "693bc8450234debfad8108a22f6b1b55ececb75cfb558e9534270558d65a3788"
+    },
+    {
+      "file": "scripts/build-app-bundle.js",
+      "sha256": "a4f7ec9d8871f6d9a7be948b08585727bd76b05c4a02cddbcba3c7cebed720c2"
+    },
+    {
+      "file": "scripts/migration/preview-grownd-followups.js",
+      "sha256": "3622d9619c4ebfec19937e95169d0cf987239a6d27de6848d423cd2cb6a8a2f0"
+    },
+    {
+      "file": "scripts/smoke/classroom-board-browser.js",
+      "sha256": "779dd0fdf6fe95ce4da01faa1f52dd57a310b4b578ce673ab88ec1ef1dd6e686"
+    },
+    {
+      "file": "scripts/smoke/classroom-diary-browser.js",
+      "sha256": "0e5ee14f6f0d7870f0765d9e9472a344118e7de6fa0c681430207e9800f927fa"
+    },
+    {
+      "file": "scripts/smoke/classroom-followup-browser.js",
+      "sha256": "72a5c89d7aaf7903e8ea0430e3370be99bd2c7760fcb2411d63a980ae9bbfd30"
+    },
+    {
+      "file": "scripts/smoke/classroom-loading-browser.js",
+      "sha256": "ee668fec1ec0614db3a8270e7ffe68a360b1bdccb6bca1391eb0fc784d3cda6f"
+    },
+    {
+      "file": "scripts/smoke/classroom-securities-browser.js",
+      "sha256": "5533dc8440d1edd26c7430ad8330f44b2407f7d1c38a37df3b9785a39461cc13"
+    },
+    {
+      "file": "scripts/smoke/classroom-securities-coin-browser.js",
+      "sha256": "75101749d1681bceabb4a167d38f11dacb610261187c978fbe26329a506f0f1e"
+    },
+    {
+      "file": "scripts/smoke/classroom-securities-server-browser.js",
+      "sha256": "b4c07e08b2f836bdbb53072eb02d57c642099b6b0dccb783cda2dadff3836fb8"
+    },
+    {
+      "file": "scripts/smoke/classroom-ui-browser.js",
+      "sha256": "151f0f40e709d3c90bb00eebd409bd2ec4e42059bd79f1bcc66402f334c375c7"
+    },
+    {
+      "file": "storage.rules",
+      "sha256": "91aedf402807553f9d10e9819d6159075ea42309538a30c4c57918286eb60357"
+    },
+    {
+      "file": "tests/classroom/board-domain.test.js",
+      "sha256": "4de080871c7c1960e4a8a603ff15f831a63f1f59b9f7e28ed1c99885a525c26d"
+    },
+    {
+      "file": "tests/classroom/board-memory.js",
+      "sha256": "cd1978510f54ff825d59a8f89124047d253c1e45982f82f0ec22aa70af733ec9"
+    },
+    {
+      "file": "tests/classroom/board-performance.test.js",
+      "sha256": "77bce10b94c3b54a095d5ff36b2dccb0b10d42aa54c92313514f3260dd2175d1"
+    },
+    {
+      "file": "tests/classroom/board-production.test.js",
+      "sha256": "d013726cc0d740ce7c33e5c1f2f15f3d75f917e51988f0787ac37164ae1446a9"
+    },
+    {
+      "file": "tests/classroom/board.integration.test.js",
+      "sha256": "e4f908cb6051d20ce3d76bb33c27145fadf551ff1b8a230b24f8ed5be987d3ac"
+    },
+    {
+      "file": "tests/classroom/diary-callable.test.js",
+      "sha256": "d1de5e5ca5b5154d55d952d89c30f1073ed025715654e564cf96d8af32598a2a"
+    },
+    {
+      "file": "tests/classroom/diary-memory.js",
+      "sha256": "ff4330654d9c2b4ffb5b9c7e224be9146572e11ef96a61a3c5bc000cee2479f0"
+    },
+    {
+      "file": "tests/classroom/diary.integration.test.js",
+      "sha256": "96a6b370edb720567998e74a02c164dfa2742193bcf38175b962ff9e23e6e194"
+    },
+    {
+      "file": "tests/classroom/economy-loading.test.js",
+      "sha256": "b72b4c506d638bcdff9766bfd0227de6810b47e3d371b01b14a973f67616994a"
+    },
+    {
+      "file": "tests/classroom/followup-files.test.js",
+      "sha256": "a50b8094a5a03650aeb372c9a0f1c2bd64b8018ede975fd7ac4a88cc322567f2"
+    },
+    {
+      "file": "tests/classroom/followup-production.test.js",
+      "sha256": "45b4589bc61ebb00b039dc6b07628cbc38a9c3469668c7fa2b0fc654549a6d4e"
+    },
+    {
+      "file": "tests/classroom/followup-scenarios.js",
+      "sha256": "a4f015a03d37d2f042ed604da5e268928bc671889ba829684c1daa56a6b8fb9f"
+    },
+    {
+      "file": "tests/classroom/followup.integration.test.js",
+      "sha256": "629fae985b79bc420ad31cb7ce2d2abee89f159aaca8a8e1cff5dc2030a74101"
+    },
+    {
+      "file": "tests/classroom/followup.test.js",
+      "sha256": "c246241b42e6e0b55de808618635cdb5a7db1e736006e106c8fba8148925cd97"
+    },
+    {
+      "file": "tests/classroom/loading.test.js",
+      "sha256": "4441d748d0701a78634a0905a48363d496f0c4184e88f76d0f4874dfb0aa0583"
+    },
+    {
+      "file": "tests/classroom/portrait.test.js",
+      "sha256": "198af43a9b206636a93096d9ab9659cd07b401110ceddff48fd15b6343ac2780"
+    }
+  ],
+  "sourceAvailabilityConfirmation": {
+    "source": "user",
+    "separateExportExists": false,
+    "nextRequirement": "Establish a complete source acquisition method; no longer waiting for an existing export path."
+  }
+}

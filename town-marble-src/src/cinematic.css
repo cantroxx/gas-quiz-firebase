@@ -1,0 +1,1824 @@
+:root {
+  background: #b9e6ef;
+  color: #34516d;
+}
+html,
+body,
+#root {
+  min-height: 100%;
+}
+.cinematic {
+  min-height: 100dvh;
+  background: #c3eaf0 url("/art/sky-v2.png") center/cover fixed;
+  overflow: hidden;
+  position: relative;
+}
+.cinematic::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #caf4ff22 50%, #acdbec55);
+}
+.cinematic .app-header {
+  height: 70px;
+  padding: 0 28px;
+  max-width: none;
+  border: 0;
+  background: linear-gradient(#f5fcffcc, #f5fcff66);
+  box-shadow: 0 1px 0 #fff9;
+  position: relative;
+  z-index: 20;
+}
+.cinematic .brand {
+  color: #345d8a;
+  gap: 10px;
+}
+.cinematic .brand-dice {
+  background: linear-gradient(135deg, #ffe8a2, #eeba5b);
+  color: white;
+  box-shadow:
+    0 4px 0 #c9954d,
+    0 8px 18px #caa46044;
+  transform: rotate(-9deg);
+}
+.cinematic .brand b {
+  font-weight: 950;
+  font-size: 23px;
+  letter-spacing: -1px;
+}
+.cinematic .brand small {
+  letter-spacing: 2px;
+  color: #6a8dab;
+}
+.cinematic .nav-active {
+  color: #3774a0;
+  border-color: #6eaeca;
+}
+.cinematic .club-tag {
+  background: #fff9;
+  color: #628399;
+  border: 1px solid #fff;
+}
+.cinematic main {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  height: calc(100dvh - 70px);
+  min-height: 640px;
+}
+.cinematic .workspace {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+.cinematic .board-column {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+}
+.cinematic .page-heading {
+  position: absolute;
+  top: 18px;
+  left: 30px;
+  right: 30px;
+  padding: 0;
+  margin: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.cinematic .page-heading h1 {
+  color: #3b6484;
+  font-size: 23px;
+  text-shadow: 0 2px 0 #fff9;
+}
+.cinematic .eyebrow {
+  color: #548698;
+}
+.cinematic .room-status {
+  background: #f5fdffbf;
+  border: 1px solid white;
+  color: #3d728b;
+  padding: 7px 13px;
+  backdrop-filter: blur(12px);
+  border-radius: 30px;
+}
+.cinematic.in-lobby .room-status {
+  margin-right: 355px;
+}
+.cinematic .board-footnote,
+.cinematic footer,
+.cinematic .journey-panel {
+  display: none;
+}
+.stage3d {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+.world-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+  outline: none;
+}
+.cinematic.in-lobby .stage3d {
+  right: 330px;
+  bottom: 34px;
+}
+.cinematic.in-game .stage3d {
+  top: 15px;
+  bottom: 140px;
+}
+.world-labels,
+.actor-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.city-label {
+  transition:
+    background-color 0.15s,
+    box-shadow 0.15s;
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 43px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #fff9e6e8;
+  color: #45647d;
+  box-shadow: 0 1px 2px #3f676124;
+  white-space: nowrap;
+  pointer-events: auto;
+  line-height: 1.12;
+  text-align: center;
+  border: 1px solid #fff8;
+  will-change: transform;
+}
+.city-label strong {
+  font-size: 10px;
+  font-weight: 900;
+  display: block;
+}
+.city-label small {
+  font-size: 8px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+.city-label.owned {
+  border-bottom: 3px solid var(--owner-color);
+}
+.city-label.selected {
+  background: #fff3b5;
+  box-shadow: 0 0 0 2px #e7bf54;
+  z-index: 2;
+}
+.city-label:hover {
+  background: #fff;
+  z-index: 3;
+}
+.actor-name {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 3px 9px;
+  background: #fff9efef;
+  border: 2px solid var(--actor-color);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+  box-shadow: 0 3px 7px #345c6826;
+  color: #466077;
+}
+.actor-name.active {
+  background: #fff4b7;
+  border-color: #f0bd55;
+}
+.world-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  color: #517b97;
+  background: #d6eef977;
+}
+.loading-die {
+  font-size: 70px;
+  color: #fff;
+  filter: drop-shadow(0 5px 1px #74a2ba);
+  animation: die-wait 1s ease-in-out infinite;
+}
+.scene-controls {
+  position: absolute;
+  bottom: 25px;
+  left: 28px;
+  display: flex;
+  gap: 6px;
+  z-index: 4;
+  padding: 5px;
+  background: #edfaffb3;
+  backdrop-filter: blur(12px);
+  border: 1px solid #fffe;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px #56889e1c;
+}
+.scene-controls button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 48px;
+  font-size: 24px;
+  line-height: 1.2;
+  color: #55819a;
+  border-radius: 12px;
+}
+.scene-controls span {
+  font-size: 8px;
+  margin-top: 1px;
+}
+.scene-controls button:hover,
+.scene-controls .selected {
+  background: #fff9;
+  color: #397eb5;
+}
+.cinematic .sidebar {
+  position: absolute;
+  top: 105px;
+  right: 26px;
+  width: 306px;
+  max-height: calc(100% - 126px);
+  display: block;
+  z-index: 6;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overflow-x: hidden;
+  padding: 0 0 8px;
+}
+.cinematic .panel {
+  border: 2px solid #fff;
+  background: linear-gradient(145deg, #ffffffeb, #f5faf6eb);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow:
+    0 15px 40px #4c86932b,
+    0 5px 0 #b9d6d766;
+  backdrop-filter: blur(20px);
+}
+.cinematic .setup-panel h2,
+.cinematic .lobby-panel h2 {
+  font-size: 25px;
+  color: #436b8b;
+  letter-spacing: -1px;
+}
+.cinematic .section-kicker {
+  color: #80a0a4;
+  font-size: 9px;
+  letter-spacing: 1.7px;
+}
+.cinematic .character-picker {
+  margin: 18px -9px 15px;
+  gap: 4px;
+}
+.cinematic .character-picker button {
+  padding: 5px 0;
+  border-radius: 15px;
+  background: #e8f1f4;
+  border: 2px solid transparent;
+}
+.cinematic .character-picker button.picked {
+  border-color: #ebc45b;
+  background: #fff0bd;
+  box-shadow: 0 3px 0 #ddb752;
+  transform: translateY(-3px);
+}
+.cinematic .character-picker .character {
+  height: 64px;
+  width: 58px;
+}
+.cinematic .field {
+  margin: 12px 0;
+  color: #688397;
+}
+.cinematic input,
+.cinematic select {
+  border-color: #d9e8ec;
+  background: #fff9;
+  color: #46647f;
+}
+.cinematic button.primary {
+  border: 1px solid #61a4bd;
+  background: linear-gradient(#72bad0, #5196b5);
+  color: #fff;
+  text-shadow: 0 1px 1px #4385a2;
+  box-shadow:
+    0 5px 0 #3d7f9a,
+    0 8px 12px #4c849325,
+    inset 0 1px 0 #e1faff88;
+  font-size: 15px;
+}
+.cinematic button.primary:hover:not(:disabled) {
+  background: linear-gradient(#80c8d9, #61a5c2);
+  box-shadow:
+    0 5px 0 #3d7f9a,
+    0 10px 18px #4c849340;
+}
+.cinematic .mode-tabs {
+  background: #e7f0f3;
+}
+.cinematic .mode-tabs .active {
+  background: #fff;
+  color: #5785a1;
+}
+.cinematic .button-note {
+  font-size: 10px;
+  margin-top: 13px;
+}
+.cinematic .player-strip {
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  bottom: 18px;
+  left: 28px;
+  right: 355px;
+  gap: 9px;
+  z-index: 5;
+}
+.cinematic .player-card {
+  display: flex;
+  background: #ffffffe3;
+  border: 2px solid #fff;
+  border-radius: 19px;
+  min-width: 0;
+  min-height: 72px;
+  padding: 8px;
+  box-shadow: 0 6px 18px #48759120;
+  backdrop-filter: blur(12px);
+}
+.cinematic .player-card .avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--player-soft);
+  flex-shrink: 0;
+}
+.cinematic .player-card strong {
+  font-size: 12px;
+}
+.cinematic .player-card span {
+  font-size: 11px;
+}
+.cinematic .player-card.current {
+  border-color: #edc156;
+  background: linear-gradient(120deg, #fff2bd, #fffdfa);
+  box-shadow:
+    0 5px 0 #d4a951,
+    0 8px 24px #a7984928;
+}
+.cinematic.in-game .page-heading > div:first-child {
+  display: none;
+}
+.cinematic.in-game .page-heading {
+  top: 14px;
+  display: flex;
+  justify-content: center;
+}
+.cinematic.in-game .player-strip {
+  inset: 22px 24px auto;
+  display: grid;
+  grid-template-columns: 190px 1fr 190px;
+  grid-template-rows: 80px 80px;
+  row-gap: 12px;
+  pointer-events: none;
+}
+.cinematic.in-game .player-card {
+  pointer-events: auto;
+  min-height: 80px;
+  padding: 10px;
+}
+.cinematic.in-game .player-card:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+.cinematic.in-game .player-card:nth-child(2) {
+  grid-column: 3;
+  grid-row: 1;
+}
+.cinematic.in-game .player-card:nth-child(3) {
+  grid-column: 1;
+  grid-row: 2;
+}
+.cinematic.in-game .player-card:nth-child(4) {
+  grid-column: 3;
+  grid-row: 2;
+}
+.cinematic.in-game .player-card .avatar {
+  width: 58px;
+  height: 58px;
+}
+.cinematic.in-game .player-card strong {
+  font-size: 14px;
+}
+.cinematic.in-game .cash-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #537383;
+}
+.cinematic.in-game .sidebar {
+  inset: auto 24px 18px;
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  pointer-events: none;
+  padding: 0;
+}
+.cinematic .action-panel {
+  pointer-events: auto;
+  max-width: 960px;
+  margin: auto;
+  position: relative;
+  padding: 19px 23px 35px;
+  display: grid;
+  grid-template-columns: 225px 1fr 300px;
+  column-gap: 18px;
+  align-items: center;
+  border-radius: 26px;
+  min-height: 123px;
+}
+.cinematic .action-panel .turn-top {
+  position: absolute;
+  top: -21px;
+  left: 28px;
+  gap: 14px;
+  background: #5f8a9c;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 9px 9px 0 0;
+  font-size: 10px;
+  box-shadow: inset 0 1px 0 #a3c4ce;
+}
+.cinematic .turn-top .section-kicker {
+  color: #e7faff;
+}
+.cinematic .active-player {
+  margin: 0;
+  gap: 10px;
+}
+.cinematic .active-avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+}
+.cinematic .active-player h2 {
+  font-size: 14px;
+  color: #476a80;
+  line-height: 1.5;
+}
+.cinematic .active-player > div > span {
+  font-size: 10px;
+}
+.cinematic .dice-tray,
+.cinematic .golden-card {
+  display: none;
+}
+.cinematic .action-notice {
+  background: none;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #668392;
+}
+.cinematic .action-buttons {
+  flex-direction: row;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  grid-column: 3;
+  grid-row: 1;
+}
+.cinematic .action-buttons button {
+  flex: 1;
+  min-width: 95px;
+  font-size: 14px;
+  min-height: 52px;
+  padding: 9px;
+}
+.cinematic .action-buttons button.primary {
+  background: linear-gradient(#ffdc78, #ecc057);
+  border-color: #dbb046;
+  box-shadow:
+    0 5px 0 #c99d3f,
+    inset 0 1px 0 #fff5c7;
+  color: #705425;
+  text-shadow: 0 1px 0 #fff5;
+}
+.cinematic .action-buttons button.primary:hover:not(:disabled) {
+  background: linear-gradient(#ffe599, #f2ca6a);
+}
+.cinematic .quick-actions {
+  position: absolute;
+  left: 105px;
+  right: 24px;
+  bottom: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+}
+.cinematic .quick-actions button {
+  color: #8aa0a8;
+  font-size: 10px;
+}
+.cinematic .waiting-note {
+  margin: 0;
+  font-size: 11px;
+  grid-column: 3;
+  grid-row: 1;
+}
+.cinematic .turn-timer {
+  position: absolute;
+  left: 25px;
+  right: 25px;
+  bottom: 0;
+  margin: 0;
+  height: 3px;
+}
+.cinematic .turn-timer span {
+  top: -23px;
+  right: 110px;
+  font-size: 10px;
+}
+.cinematic .results-panel {
+  pointer-events: auto;
+  width: 360px;
+  margin: 0 auto 10px;
+}
+.cinematic .error-banner,
+.cinematic .reconnect-banner {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(650px, 85%);
+  z-index: 25;
+}
+.cinematic .toast {
+  z-index: 60;
+  bottom: 165px;
+}
+.scene-cue {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 340px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 12;
+  animation: cue-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.scene-cue small {
+  display: block;
+  color: #fffbe4;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-shadow: 0 2px 3px #488092;
+}
+.scene-cue strong {
+  display: block;
+  color: #fff2ac;
+  font-weight: 1000;
+  font-size: 54px;
+  letter-spacing: -2px;
+  line-height: 1.4;
+  -webkit-text-stroke: 1px #cf9e42;
+  paint-order: stroke fill;
+  text-shadow:
+    0 4px 0 #bf9450,
+    0 8px 22px #6c694951;
+}
+.scene-cue p {
+  display: inline-block;
+  color: #59717e;
+  background: #fffc;
+  border: 2px solid white;
+  padding: 5px 17px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 12px;
+  box-shadow: 0 4px 15px #41677722;
+}
+.cue-spark {
+  font-size: 48px;
+  color: #fff5a2;
+  text-shadow: 0 4px 0 #d2ad57;
+  position: absolute;
+  top: -28px;
+  left: calc(50% - 25px);
+}
+.cue-card {
+  top: 43%;
+  width: 280px;
+  min-width: 0;
+  padding: 36px 22px 30px;
+  background: linear-gradient(130deg, #fff6c8, #f4d984);
+  border: 5px double #d9b254;
+  border-radius: 24px;
+  box-shadow:
+    0 22px 75px #38627540,
+    inset 0 0 0 8px #fffa;
+  animation: card-reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.cue-card strong {
+  font-size: 28px;
+  color: #947133;
+  letter-spacing: -1px;
+  -webkit-text-stroke: 0;
+  text-shadow: 0 2px 0 #fff9;
+  margin: 15px 0;
+}
+.cue-card small {
+  font-size: 10px;
+  color: #a78948;
+  text-shadow: none;
+}
+.cue-card p {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  color: #95804f;
+  font-size: 13px;
+  padding: 0;
+}
+.cue-card .cue-spark {
+  top: -43px;
+  font-size: 65px;
+}
+.travel-instruction {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  transform: translateX(-50%);
+  background: #fff4bc;
+  border: 3px solid #fff;
+  color: #926f34;
+  padding: 12px 22px;
+  border-radius: 20px;
+  font-weight: 850;
+  box-shadow: 0 10px 25px #8c946933;
+  z-index: 6;
+  white-space: nowrap;
+}
+.flat-fallback {
+  max-width: 720px;
+  margin: 30px auto;
+}
+.flat-fallback > p {
+  font-size: 12px;
+  background: #fff9;
+  padding: 8px;
+  text-align: center;
+}
+@keyframes die-wait {
+  50% {
+    transform: translateY(-15px) rotate(35deg);
+  }
+}
+@keyframes cue-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes card-reveal {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) perspective(800px) rotateY(90deg)
+      scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) perspective(800px) rotateY(0) scale(1);
+  }
+}
+.reduced .scene-cue,
+.reduced .loading-die {
+  animation: none;
+}
+@media (min-width: 1600px) {
+  .cinematic.in-lobby .sidebar {
+    width: 340px;
+    right: 40px;
+  }
+  .cinematic.in-lobby .stage3d {
+    right: 370px;
+  }
+  .cinematic .city-label strong {
+    font-size: 12px;
+  }
+  .city-label small {
+    font-size: 9px;
+  }
+}
+@media (max-width: 1100px) {
+  .cinematic .app-header {
+    padding: 0 18px;
+  }
+  .cinematic .club-tag {
+    display: none;
+  }
+  .cinematic .sidebar {
+    right: 18px;
+    width: 280px;
+    top: 96px;
+  }
+  .cinematic .panel {
+    padding: 20px;
+  }
+  .cinematic.in-lobby .stage3d {
+    right: 280px;
+  }
+  .cinematic.in-lobby .room-status {
+    margin-right: 285px;
+  }
+  .cinematic .player-strip {
+    right: 312px;
+    left: 18px;
+    gap: 5px;
+  }
+  .cinematic .player-card {
+    gap: 4px;
+    padding: 6px;
+  }
+  .cinematic .player-card .avatar {
+    width: 35px;
+    height: 40px;
+  }
+  .cinematic .player-card strong {
+    font-size: 11px;
+  }
+  .cinematic .player-card span {
+    font-size: 9px;
+  }
+  .cinematic .action-panel {
+    grid-template-columns: 175px 1fr 270px;
+    gap: 12px;
+    padding: 15px 20px 30px;
+  }
+  .cinematic.in-game .player-strip {
+    grid-template-columns: 165px 1fr 165px;
+  }
+  .cinematic.in-game .player-card .avatar {
+    width: 45px;
+    height: 50px;
+  }
+  .cinematic .page-heading h1 {
+    font-size: 20px;
+  }
+  .scene-controls {
+    left: 18px;
+    bottom: 26px;
+  }
+}
+@media (max-width: 760px) {
+  .cinematic .app-header {
+    height: 58px;
+    padding: 0 12px;
+    gap: 6px;
+  }
+  .cinematic .brand {
+    gap: 6px;
+  }
+  .cinematic .brand b {
+    font-size: 17px;
+  }
+  .cinematic .brand-dice {
+    width: 32px;
+    height: 32px;
+    font-size: 25px;
+  }
+  .cinematic .brand small,
+  .cinematic .nav-active,
+  .cinematic .help-circle {
+    display: none;
+  }
+  .cinematic .app-header nav {
+    display: flex;
+    gap: 3px;
+    margin-left: auto;
+  }
+  .cinematic .app-header nav button {
+    font-size: 10px;
+    padding: 4px;
+  }
+  .cinematic .header-actions {
+    gap: 4px;
+  }
+  .cinematic .motion-button {
+    font-size: 9px;
+    padding: 4px;
+  }
+  .cinematic .header-actions .icon-button {
+    width: 25px;
+    height: 30px;
+  }
+  .cinematic main {
+    height: calc(100dvh - 58px);
+    min-height: 690px;
+  }
+  .cinematic .page-heading {
+    left: 16px;
+    right: 16px;
+    top: 12px;
+  }
+  .cinematic .page-heading h1 {
+    font-size: 18px;
+  }
+  .cinematic .eyebrow {
+    font-size: 8px;
+  }
+  .cinematic.in-lobby .room-status {
+    margin-right: 0;
+    font-size: 9px;
+  }
+  .cinematic.in-lobby .stage3d {
+    inset: 35px 0 auto;
+    height: 380px;
+  }
+  .cinematic.in-lobby .sidebar {
+    top: 420px;
+    left: 15px;
+    right: 15px;
+    width: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .cinematic.in-lobby main {
+    height: 1040px;
+  }
+  .cinematic .setup-panel {
+    padding: 18px 22px;
+  }
+  .cinematic .setup-panel h2 {
+    font-size: 23px;
+  }
+  .cinematic .character-picker {
+    margin: 12px 0;
+  }
+  .cinematic .character-picker .character {
+    height: 64px;
+    width: 62px;
+  }
+  .cinematic.in-lobby .player-strip {
+    display: none;
+  }
+  .scene-controls {
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px;
+    gap: 2px;
+  }
+  .scene-controls button {
+    width: 41px;
+    height: 42px;
+    font-size: 22px;
+  }
+  .city-label {
+    padding: 2px 3px;
+    min-width: 27px;
+    border-radius: 3px;
+  }
+  .city-label strong {
+    font-size: 7px;
+  }
+  .city-label small {
+    font-size: 6px;
+  }
+  .actor-name {
+    font-size: 8px;
+    padding: 2px 5px;
+    border-width: 1px;
+  }
+  .cinematic.in-game .player-strip {
+    inset: 46px 10px auto;
+    grid-template-columns: 120px 1fr 120px;
+    grid-template-rows: 55px 55px;
+    gap: 8px;
+  }
+  .cinematic.in-game .player-card {
+    flex-direction: row;
+    text-align: left;
+    min-height: 55px;
+    padding: 5px;
+    border-radius: 14px;
+  }
+  .cinematic.in-game .player-card .avatar {
+    width: 35px;
+    height: 38px;
+  }
+  .cinematic.in-game .player-card strong {
+    font-size: 10px;
+  }
+  .cinematic.in-game .cash-value {
+    font-size: 13px;
+  }
+  .cinematic.in-game .stage3d {
+    top: 92px;
+    bottom: 167px;
+  }
+  .cinematic.in-game .sidebar {
+    left: 10px;
+    right: 10px;
+    bottom: 14px;
+  }
+  .cinematic .action-panel {
+    min-height: 153px;
+    grid-template-columns: 1fr 145px;
+    padding: 12px 14px 29px;
+    column-gap: 10px;
+    row-gap: 8px;
+    border-radius: 20px;
+  }
+  .cinematic .active-player {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 6px;
+  }
+  .cinematic .active-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .cinematic .active-player h2 {
+    font-size: 10px;
+  }
+  .cinematic .active-player > div > span {
+    font-size: 9px;
+  }
+  .cinematic .action-notice {
+    font-size: 10px;
+    grid-column: 1/-1;
+    grid-row: 2;
+    min-height: 30px;
+  }
+  .cinematic .action-buttons,
+  .cinematic .waiting-note {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .cinematic .action-buttons button {
+    font-size: 11px;
+    min-height: 44px;
+    padding: 7px;
+    min-width: 55px;
+  }
+  .cinematic .quick-actions {
+    left: 20px;
+    right: 15px;
+    bottom: 7px;
+  }
+  .scene-cue {
+    min-width: 260px;
+    top: 36%;
+  }
+  .scene-cue strong {
+    font-size: 36px;
+  }
+  .scene-cue p {
+    font-size: 10px;
+  }
+  .cue-card {
+    min-width: 0;
+    width: 220px;
+  }
+  .cue-card strong {
+    font-size: 25px;
+  }
+  .cue-spark {
+    font-size: 35px;
+    top: -24px;
+  }
+  .cinematic .results-panel {
+    width: 100%;
+  }
+  .cinematic .toast {
+    bottom: 195px;
+  }
+  .travel-instruction {
+    font-size: 11px;
+    padding: 9px 12px;
+  }
+  .flat-fallback {
+    padding-top: 150px;
+  }
+  .cinematic .error-banner,
+  .cinematic .reconnect-banner {
+    font-size: 10px;
+    top: 5px;
+  }
+}
+
+.cinematic.in-lobby .scene-controls {
+  bottom: 98px;
+}
+@media (max-width: 760px) {
+  .cinematic.in-lobby .scene-controls {
+    bottom: 5px;
+  }
+}
+
+/* Dedicated layout tracks keep the world, HUD and controls out of each other's space. */
+.cinematic main {
+  display: grid;
+  grid-template-rows: 76px minmax(0, 1fr);
+  padding: 12px 20px 18px;
+  height: calc(100dvh - 70px);
+  min-height: 720px;
+}
+.cinematic .page-heading {
+  position: static;
+  inset: auto;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  min-width: 0;
+}
+.cinematic .page-heading p {
+  font-size: 11px;
+}
+.cinematic .room-status {
+  flex-shrink: 0;
+  margin: 0;
+}
+.cinematic.in-lobby .room-status {
+  margin: 0;
+}
+.cinematic .workspace {
+  position: relative;
+  inset: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 306px;
+  gap: 20px;
+  min-height: 0;
+}
+.cinematic .board-column {
+  position: static;
+  inset: auto;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 76px;
+  gap: 12px;
+  min-height: 0;
+}
+.cinematic .player-strip {
+  position: static;
+  inset: auto;
+  grid-row: 2;
+  margin: 0;
+  gap: 8px;
+}
+.cinematic .sidebar {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-height: none;
+  padding: 0 0 6px;
+  overflow: auto;
+}
+.cinematic .stage3d,
+.cinematic.in-lobby .stage3d,
+.cinematic.in-game .stage3d {
+  position: relative;
+  inset: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 62px;
+}
+.cinematic .world-viewport {
+  position: relative;
+  inset: auto;
+  min-height: 0;
+  grid-column: 1;
+  grid-row: 1;
+}
+.cinematic .scene-controls,
+.cinematic.in-lobby .scene-controls {
+  position: static;
+  inset: auto;
+  transform: none;
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  justify-self: center;
+  margin: 0;
+  padding: 4px;
+  gap: 4px;
+}
+.cinematic .scene-controls button {
+  width: 44px;
+  height: 44px;
+}
+.cinematic .city-label {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+  min-width: 0;
+  line-height: 1;
+}
+.cinematic .city-label strong,
+.cinematic .city-label small {
+  display: none;
+}
+.cinematic .city-label:hover,
+.cinematic .city-label.selected {
+  background: #e9bd501a;
+  box-shadow: none;
+}
+.cinematic .city-label:focus-visible {
+  outline: none;
+  background: #e9bd5077;
+}
+.cinematic .actor-labels {
+  visibility: hidden;
+}
+.cinematic.in-game main {
+  grid-template-rows: 42px minmax(0, 1fr);
+}
+.cinematic.in-game .page-heading {
+  justify-content: center;
+}
+.cinematic.in-game .workspace {
+  grid-template-columns: 156px minmax(0, 1fr) 156px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+.cinematic.in-game .board-column,
+.cinematic.in-game .player-strip {
+  display: contents;
+}
+.cinematic.in-game .stage3d {
+  grid-column: 2;
+  grid-row: 1;
+}
+.cinematic.in-game .player-card {
+  align-self: start;
+  width: 100%;
+  min-height: 78px;
+  height: 78px;
+  margin: 0;
+  padding: 9px;
+  gap: 7px;
+}
+.cinematic.in-game .player-card:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+.cinematic.in-game .player-card:nth-child(2) {
+  grid-column: 3;
+  grid-row: 1;
+}
+.cinematic.in-game .player-card:nth-child(3) {
+  grid-column: 1;
+  grid-row: 1;
+  margin-top: 90px;
+}
+.cinematic.in-game .player-card:nth-child(4) {
+  grid-column: 3;
+  grid-row: 1;
+  margin-top: 90px;
+}
+.cinematic.in-game .player-card .avatar {
+  width: 44px;
+  height: 50px;
+  margin: 0;
+}
+.cinematic.in-game .player-card strong {
+  font-size: 12px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cinematic.in-game .cash-value {
+  font-size: 17px;
+}
+.cinematic.in-game .sidebar {
+  grid-column: 1/-1;
+  grid-row: 2;
+  position: static;
+  inset: auto;
+  max-height: none;
+  overflow: visible;
+}
+.cinematic .action-panel {
+  max-width: 1100px;
+  min-height: 0;
+  padding: 14px 20px 12px;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) 300px;
+  grid-template-rows: auto auto auto;
+  gap: 7px 24px;
+}
+.cinematic .action-panel .turn-top {
+  position: static;
+  grid-column: 1;
+  grid-row: 1;
+  background: none;
+  color: #7e949d;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.cinematic .turn-top .section-kicker {
+  color: #6b8997;
+}
+.cinematic .active-player {
+  grid-column: 1;
+  grid-row: 2;
+}
+.cinematic .active-avatar {
+  width: 50px;
+  height: 50px;
+}
+.cinematic .active-player h2 {
+  font-size: 13px;
+}
+.cinematic .active-player > div {
+  min-width: 0;
+}
+.cinematic .active-player > div > span {
+  display: block;
+}
+.cinematic .action-notice {
+  grid-column: 2;
+  grid-row: 1/3;
+  align-self: center;
+  overflow-wrap: anywhere;
+}
+.cinematic .action-buttons,
+.cinematic .waiting-note {
+  grid-column: 3;
+  grid-row: 1/3;
+  align-self: center;
+  min-width: 0;
+}
+.cinematic .action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 10px;
+}
+.cinematic .action-buttons button {
+  min-width: 0;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 8px;
+  line-height: 1.4;
+  font-size: 13px;
+  word-break: keep-all;
+}
+.cinematic .action-buttons button.large span {
+  font-size: 15px;
+}
+.cinematic .quick-actions {
+  position: static;
+  grid-column: 1/-1;
+  grid-row: 3;
+  inset: auto;
+  padding-top: 6px;
+  border-top: 1px solid #dbe7e7;
+  gap: 20px;
+  align-items: center;
+}
+.cinematic .quick-actions button {
+  min-height: 24px;
+  padding: 2px 6px;
+  font-size: 11px;
+}
+.cinematic .turn-timer {
+  left: 24px;
+  right: 24px;
+  bottom: 0;
+  height: 3px;
+  overflow: visible;
+}
+.cinematic .turn-timer span {
+  right: 120px;
+  top: -26px;
+}
+.cinematic .scene-cue {
+  position: absolute;
+  top: 200px;
+  left: calc(100% + 12px);
+  right: auto;
+  width: 156px;
+  min-width: 0;
+  max-height: calc(100% - 210px);
+  overflow: auto;
+  transform: none;
+  padding: 20px 12px 14px;
+  animation: cue-in-place 0.35s ease-out both;
+}
+.cinematic .scene-cue strong {
+  font-size: 25px;
+  line-height: 1.25;
+  letter-spacing: -1px;
+  margin: 10px 0;
+}
+.cinematic .scene-cue small {
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.cinematic .scene-cue p {
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 6px;
+  border-radius: 10px;
+}
+.cinematic .scene-cue .cue-spark {
+  font-size: 27px;
+  position: static;
+  line-height: 1;
+}
+.cinematic .cue-card {
+  border-width: 3px;
+  box-shadow: 0 8px 22px #52788824;
+}
+.cinematic .travel-instruction {
+  top: 200px;
+  left: auto;
+  right: calc(100% + 12px);
+  width: 156px;
+  white-space: normal;
+  transform: none;
+  padding: 14px;
+  font-size: 12px;
+}
+.cinematic .results-panel {
+  width: min(420px, 100%);
+}
+.cinematic .flat-fallback {
+  width: 100%;
+  margin: 0;
+  grid-column: 2;
+  grid-row: 1;
+  max-height: 100%;
+  overflow: auto;
+}
+.city-directory {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+.city-directory button {
+  padding: 12px 6px;
+  min-height: 62px;
+  background: #f4f6ef;
+  border: 1px solid #e5e9dc;
+  border-radius: 12px;
+}
+.city-directory strong {
+  display: block;
+  font-size: 13px;
+}
+.city-directory small {
+  display: block;
+  font-size: 10px;
+  color: #82938a;
+  margin-top: 4px;
+}
+@keyframes cue-in-place {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .cinematic main {
+    padding: 10px 14px 14px;
+    min-height: 670px;
+  }
+  .cinematic .workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 14px;
+  }
+  .cinematic.in-game .workspace {
+    grid-template-columns: 136px minmax(0, 1fr) 136px;
+    gap: 10px;
+  }
+  .cinematic.in-game .player-card {
+    padding: 7px;
+    gap: 5px;
+  }
+  .cinematic.in-game .player-card .avatar {
+    width: 36px;
+    height: 42px;
+  }
+  .cinematic.in-game .player-card strong {
+    font-size: 11px;
+  }
+  .cinematic.in-game .cash-value {
+    font-size: 15px;
+  }
+  .cinematic .action-panel {
+    grid-template-columns: 180px minmax(0, 1fr) 266px;
+    gap: 6px 15px;
+    padding: 12px 16px;
+  }
+  .cinematic .action-buttons {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .cinematic .scene-cue {
+    width: 136px;
+    left: calc(100% + 10px);
+  }
+  .cinematic .scene-cue strong {
+    font-size: 22px;
+  }
+}
+@media (max-width: 760px), (max-width: 900px) and (orientation: portrait) {
+  .cinematic main,
+  .cinematic.in-lobby main {
+    height: auto;
+    min-height: calc(100dvh - 58px);
+    padding: 10px 12px 16px;
+    grid-template-rows: 62px auto;
+  }
+  .cinematic .workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cinematic .board-column {
+    display: block;
+    height: 380px;
+  }
+  .cinematic .player-strip {
+    display: none;
+  }
+  .cinematic .sidebar {
+    position: static;
+    inset: auto;
+    width: 100%;
+    overflow: visible;
+  }
+  .cinematic.in-lobby .stage3d {
+    height: 380px;
+  }
+  .cinematic .page-heading h1 {
+    font-size: 17px;
+  }
+  .cinematic .page-heading .room-status {
+    font-size: 8px;
+    padding: 6px 10px;
+    max-width: 150px;
+  }
+  .cinematic .room-status small {
+    font-size: 7px;
+  }
+  .cinematic.in-game main {
+    height: calc(100dvh - 58px);
+    min-height: 786px;
+    grid-template-rows: 38px minmax(0, 1fr);
+  }
+  .cinematic.in-game .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 116px minmax(250px, 1fr) auto;
+    gap: 10px;
+  }
+  .cinematic.in-game .player-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 53px 53px;
+    gap: 10px;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .cinematic.in-game .player-card:nth-child(n) {
+    height: 53px;
+    min-height: 53px;
+    grid-column: auto;
+    grid-row: auto;
+    margin: 0;
+    padding: 5px 10px;
+    gap: 10px;
+  }
+  .cinematic.in-game .player-card .avatar {
+    width: 34px;
+    height: 39px;
+    margin: 0;
+  }
+  .cinematic.in-game .player-card strong {
+    font-size: 11px;
+  }
+  .cinematic.in-game .cash-value {
+    font-size: 14px;
+  }
+  .cinematic.in-game .stage3d,
+  .cinematic .flat-fallback {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .cinematic.in-game .sidebar {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .cinematic .scene-controls {
+    gap: 3px;
+    padding: 4px;
+  }
+  .cinematic .scene-controls button {
+    width: 42px;
+    height: 42px;
+  }
+  .cinematic .action-panel {
+    grid-template-columns: minmax(0, 1fr) 154px;
+    grid-template-rows: auto auto auto auto;
+    gap: 5px 10px;
+    padding: 10px 12px;
+  }
+  .cinematic .action-panel .turn-top {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 8px;
+  }
+  .cinematic .active-player {
+    grid-column: 1;
+    grid-row: 2;
+    gap: 6px;
+  }
+  .cinematic .active-avatar {
+    width: 32px;
+    height: 38px;
+  }
+  .cinematic .active-avatar .character {
+    width: 40px;
+    height: 43px;
+  }
+  .cinematic .active-player h2 {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .cinematic .action-notice {
+    grid-column: 1/-1;
+    grid-row: 3;
+    font-size: 11px;
+    line-height: 1.5;
+    padding-top: 5px;
+    min-height: 24px;
+  }
+  .cinematic .action-buttons,
+  .cinematic .waiting-note {
+    grid-column: 2;
+    grid-row: 1/3;
+  }
+  .cinematic .action-buttons {
+    grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+    gap: 6px;
+  }
+  .cinematic .action-buttons button {
+    min-height: 46px;
+    font-size: 11px;
+    padding: 6px;
+  }
+  .cinematic .action-buttons button.large span {
+    display: none;
+  }
+  .cinematic .quick-actions {
+    grid-row: 4;
+    gap: 10px;
+    padding-top: 4px;
+  }
+  .cinematic .quick-actions button {
+    font-size: 10px;
+  }
+  .cinematic .turn-timer span {
+    font-size: 9px;
+    right: 95px;
+    top: -25px;
+  }
+  .cinematic .scene-cue,
+  .cinematic .cue-card {
+    position: static;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    left: auto;
+    top: auto;
+    width: 100%;
+    max-height: 62px;
+    min-height: 55px;
+    padding: 5px 10px;
+    border: 1px solid #edda9b;
+    border-radius: 14px;
+    box-shadow: none;
+    background: #fff2ce;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    overflow: hidden;
+  }
+  .cinematic .scene-cue small {
+    display: none;
+  }
+  .cinematic .scene-cue strong {
+    font-size: 16px;
+    margin: 0;
+    line-height: 1.4;
+  }
+  .cinematic .scene-cue p {
+    padding: 0;
+    margin: 0;
+    font-size: 10px;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    line-height: 1.5;
+  }
+  .cinematic .has-cue .scene-controls {
+    visibility: hidden;
+  }
+  .cinematic .travel-instruction {
+    position: static;
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    padding: 8px;
+    align-self: end;
+    font-size: 11px;
+  }
+  .cinematic .travel-select .scene-controls {
+    visibility: hidden;
+  }
+  .city-directory {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.cinematic .workspace {
+  align-items: stretch;
+}
+.cinematic .world-canvas {
+  position: absolute;
+  inset: 0;
+}
+.cinematic .room-status,
+.cinematic .page-heading .room-status {
+  padding-left: 28px;
+}
+.cinematic .room-status .status-dot {
+  left: 12px;
+  top: 15px;
+}
+.cinematic .cash-value {
+  display: flex !important;
+  align-items: baseline;
+  gap: 5px;
+  flex-wrap: wrap;
+  line-height: 1.25;
+}
+.cinematic .cash-delta {
+  position: static;
+  display: inline !important;
+  inset: auto;
+  font-size: 9px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  animation: cash-fade 1.7s both;
+}
+@keyframes cash-fade {
+  0%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.cinematic.in-game main {
+  grid-template-rows: 54px minmax(0, 1fr);
+}
+
+.cinematic .board-column {
+  margin: 0;
+  max-width: none;
+  align-self: stretch;
+}
+.cinematic main {
+  min-height: 660px;
+}
+.cinematic.in-game main {
+  min-height: 650px;
+}
+.cinematic .app-header nav {
+  display: flex;
+}
+@media (min-width: 761px) and (max-width: 900px) and (orientation: portrait) {
+  .cinematic.in-game main {
+    height: calc(100dvh - 70px);
+  }
+  .cinematic.in-game .workspace {
+    grid-template-rows: 78px minmax(300px, 1fr) auto;
+  }
+  .cinematic.in-game .player-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: 78px;
+  }
+  .cinematic.in-game .player-card:nth-child(n) {
+    height: 78px;
+    min-height: 78px;
+  }
+  .cinematic.in-lobby .board-column,
+  .cinematic.in-lobby .stage3d {
+    height: 420px;
+  }
+  .cinematic.in-lobby .setup-panel {
+    max-width: 540px;
+    margin: auto;
+  }
+}
+.town-return {
+  color: #386976;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-block;
+  padding: 8px 0;
+}
+.town-return:hover {
+  text-decoration: underline;
+}
+.character[data-emotion] {
+  position: relative;
+}
+.character[data-emotion]::after {
+  position: absolute;
+  right: 0;
+  top: 20%;
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px white);
+}
+.character[data-emotion="sad"]::after,
+.character[data-emotion="cry"]::after {
+  content: "💧";
+}
+.character[data-emotion="happy"]::after {
+  content: "✨";
+}
+.character[data-emotion="surprise"]::after {
+  content: "!";
+  color: #c07235;
+  font-weight: 900;
+}
+.cinematic .speed-control {
+  color: #267c94;
+  font-weight: 800;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .cinematic .speed-word {
+    display: none;
+  }
+  .cinematic.in-game .app-header nav {
+    gap: 0;
+  }
+  .cinematic.in-game .brand {
+    gap: 3px;
+  }
+}

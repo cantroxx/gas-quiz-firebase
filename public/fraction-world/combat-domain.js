@@ -4,7 +4,7 @@
   wand:{name:'별의 파동',desc:'내 주변 적을 공격하고, 날아오는 적의 공격도 지워요',kind:'nova',color:'#9ef6d0'},
   bow:{name:'유성 관통',desc:'앞으로 길게 쏴서 여러 적을 뚫어요',kind:'beam',color:'#ffdb8a'},
   fan:{name:'달의 윤무',desc:'8개의 달날이 주위를 돌며 적을 베어요',kind:'blades',color:'#e6a8ff'},
-  orb:{name:'빙결 지대',desc:'가까운 적을 공격하고 3초 동안 느리게 해요',kind:'frost',color:'#91d8ff'},
+  orb:{name:'얼음 마법',desc:'가까운 적을 공격하고 3초 동안 느리게 해요',kind:'frost',color:'#91d8ff'},
   needle:{name:'연쇄 번개',desc:'번개가 적 6마리까지 이어서 때려요',kind:'chain',color:'#fff18b'},
   comet:{name:'혜성 낙하',desc:'잠깐 뒤, 가까운 적에게 별똥별이 떨어져요',kind:'meteor',color:'#ffa78f'}
  };

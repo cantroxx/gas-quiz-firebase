@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('node:fs/promises'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib');
+function createBundleReader(bundleRoot) {
+  const root=path.resolve(bundleRoot,'web'),cache=new Map();let size=0;
+  async function bytes(relative){if(typeof relative!=='string'||relative.includes('\\')||path.isAbsolute(relative))throw Error('Invalid bundle path');const file=path.resolve(root,relative);if(!file.startsWith(root+path.sep))throw Error('Path outside bundle');const real=await fs.realpath(file);if(!real.startsWith(root+path.sep))throw Error('Bundle symlink outside root');return fs.readFile(real);}
+  async function cached(key,load){if(cache.has(key)){const v=cache.get(key);cache.delete(key);cache.set(key,v);return v.data;}const data=await load(),n=Buffer.byteLength(JSON.stringify(data));while(cache.size&&(size+n>64*1024*1024||cache.size>=128)){const first=cache.keys().next().value;size-=cache.get(first).size;cache.delete(first);}if(n<=64*1024*1024){cache.set(key,{data,size:n});size+=n;}return data;}
+  const json=p=>cached(p,async()=>JSON.parse((await bytes(p)).toString('utf8')));
+  async function asset(d){if(!d)throw Error('Missing asset in Windows bundle');return cached(d.path+'|'+d.sha256,async()=>{const raw=await bytes(d.path);if(raw.length!==d.bytes||crypto.createHash('sha256').update(raw).digest('hex')!==d.sha256)throw Error('Asset hash mismatch: '+d.path);if(d.encoding!=='gzip-json')throw Error('Expected gzip-json');if(!Number.isSafeInteger(d.decodedBytes)||d.decodedBytes>64*1024*1024)throw Error('Decoded asset size limit');const decoded=zlib.gunzipSync(raw,{maxOutputLength:d.decodedBytes});if(decoded.length!==d.decodedBytes)throw Error('Decoded asset length mismatch');return JSON.parse(decoded.toString('utf8'));});}
+  async function manifest(){const m=await json('manifest.json');if(m.schemaVersion!==1||m.bundleKind!=='complete-data'||!/^[A-F0-9]{64}$/.test(m.sourceSnapshot))throw Error('Unsupported bundle manifest');return m;}
+  const base=async key=>asset((await json((await manifest()).baseIndex)).entries[key]);
+  async function item(id){if(!Number.isSafeInteger(id)||id<=0)throw Error('Invalid item ID');let bucket;try{bucket=await json(`index/items/${Math.floor(id/1000)}.json`);}catch(e){if(e.code==='ENOENT')throw Error('Item absent from bundle: '+id);throw e;}const row=bucket.items[String(id)];if(!row||row.id!==id)throw Error('Item absent from bundle: '+id);return row;}
+  return {manifest,item,part:async id=>{const row=await item(id);if(!row.part){const e=Error(row.errors?.item||'Missing asset in Windows bundle');e.code='coordi-unsupported';e.details={itemId:id};throw e;}return asset(row.part);},body:(skin,action)=>base(`base:${skin}:${action}:0:False`),head:(skin,ears=0)=>base(`base:${skin}:head:${ears}:True`),order:()=>base('order'),slots:()=>base('slots'),baseIndex:async()=>json((await manifest()).baseIndex)};
+}
+module.exports={createBundleReader};

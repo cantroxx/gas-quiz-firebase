@@ -1,0 +1,57 @@
+{
+  "conditions": "Chromium offline / CPU 4x / 1440×1000 / 24 students, 12 quests, 60 products. Synchronous JS+layout, not server or decode/paint completion.",
+  "firstModel": {
+    "js": 35.10000002384186,
+    "total": 51.80000001192093
+  },
+  "unchangedMutationRecords": 75,
+  "retainedCard": false,
+  "unchangedHome": {
+    "js": {
+      "medianMs": 27.6,
+      "p95Ms": 34.1,
+      "minMs": 24.9,
+      "maxMs": 34.1,
+      "samples": 20
+    },
+    "total": {
+      "medianMs": 36.7,
+      "p95Ms": 42.5,
+      "minMs": 32.7,
+      "maxMs": 42.5,
+      "samples": 20
+    }
+  },
+  "changedWallet": {
+    "js": {
+      "medianMs": 26.3,
+      "p95Ms": 49.5,
+      "minMs": 24.4,
+      "maxMs": 49.5,
+      "samples": 20
+    },
+    "total": {
+      "medianMs": 34.3,
+      "p95Ms": 62.1,
+      "minMs": 32.2,
+      "maxMs": 62.1,
+      "samples": 20
+    }
+  },
+  "unchangedMarket": {
+    "js": {
+      "medianMs": 26,
+      "p95Ms": 29.8,
+      "minMs": 23.8,
+      "maxMs": 29.8,
+      "samples": 20
+    },
+    "total": {
+      "medianMs": 32.2,
+      "p95Ms": 37.9,
+      "minMs": 31,
+      "maxMs": 37.9,
+      "samples": 20
+    }
+  }
+}

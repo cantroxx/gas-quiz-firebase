@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "sha256": "98506554a974a4aeb87f25ee222c215e8de8c02a964d013306c69af3254000dc"
+  },
+  {
+    "path": "/js/app.bundle.js",
+    "status": 200,
+    "sha256": "8c92502e07ebef7bb7b9d411509d434287acd5c41f0e39aac3575719df0b4575"
+  },
+  {
+    "path": "/styles.css",
+    "status": 200,
+    "sha256": "b3e94ca2ef67e5dd2ef4732a3b190f70d20a62389de08de1eb661f47dc4f6d6d"
+  },
+  {
+    "path": "/classroom.css",
+    "status": 200,
+    "sha256": "13595beb546628f8173de950390b734b3dc585348ef46d6b37e967f63ba000a2"
+  }
+]

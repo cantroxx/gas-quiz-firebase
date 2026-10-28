@@ -24,8 +24,12 @@
       ? rawQuest.rewardMode
       : 'auto';
     const rewardLabel = getClassroomRewardCurrencyLabel(rewardCurrency);
-    const linkedGemName = String(rawQuest.linkedGemName || '').trim();
-    const linkedGemId = String(rawQuest.linkedGemId || slugifyClassroomGemId(linkedGemName)).trim();
+    const linkedGemNames = (Array.isArray(rawQuest.linkedGemNames) ? rawQuest.linkedGemNames : String(rawQuest.linkedGemName || '').split(','))
+      .map(value => String(value || '').trim()).filter(Boolean).slice(0, 12);
+    const linkedGemIds = linkedGemNames.map((name, index) => String(rawQuest.linkedGemIds?.[index]
+      || (index === 0 ? rawQuest.linkedGemId : '') || slugifyClassroomGemId(name)).trim());
+    const linkedGemName = linkedGemNames[0] || '';
+    const linkedGemId = linkedGemIds[0] || String(rawQuest.linkedGemId || '').trim();
     const gemXp = linkedGemId ? Math.max(1, Math.round(Number(rawQuest.gemXp) || 1)) : 0;
     return {
       id,
@@ -33,19 +37,27 @@
       type: String(rawQuest.type || rawQuest.questType || '수락형 · 체크형').trim(),
       title: String(rawQuest.title || '교실 퀘스트').trim(),
       desc: String(rawQuest.desc || '').trim(),
+      submissionType: ['complete','rating','checklist','text','image'].includes(rawQuest.submissionType) ? rawQuest.submissionType : 'complete',
+      checklistItems: Array.isArray(rawQuest.checklistItems) ? rawQuest.checklistItems : [],
       rewardMode,
       rewardCoin,
       rewardCurrency,
       category: String(rawQuest.category || rawQuest.categoryLabel || '').trim(),
       startDate: String(rawQuest.startDate || '').trim(),
       endDate: String(rawQuest.endDate || '').trim(),
+      repeatRule: ['once', 'daily', 'weekly'].includes(rawQuest.repeatRule) ? rawQuest.repeatRule : 'once',
+      targetStudentIds: Array.isArray(rawQuest.targetStudentIds)
+        ? rawQuest.targetStudentIds.map(value => String(value || '').trim()).filter(Boolean) : [],
       status: String(rawQuest.status || (rewardMode === 'auto' ? '완료할 때마다 즉시 지급' : '학생 체크 후 완료 후보')).trim(),
       studentAction: String(rawQuest.studentAction || (rewardMode === 'auto' ? `완료하고 ${rewardCoin} ${rewardLabel} 받기` : '완료 체크')).trim().replace(/코인/g, '포인트').replace(/베리/g, '포인트'),
       linkedGemId,
       linkedGemName,
+      linkedGemIds,
+      linkedGemNames,
       gemXp,
       gemTargetXp: Math.max(1, Math.round(Number(rawQuest.gemTargetXp) || 10)),
       gemRewardPoint: Math.max(0, Math.round(Number(rawQuest.gemRewardPoint) || 0)),
+      gemRewardCoin: Math.max(0, Math.round(Number(rawQuest.gemRewardCoin) || 0)),
       saveEnabled: rawQuest.saveEnabled !== false,
       active: rawQuest.active !== false
     };
@@ -53,7 +65,7 @@
 
   function normalizeClassroomSettings(data = {}, prototype = {}) {
     const prototypeQuests = Array.isArray(prototype.quests) ? prototype.quests : [];
-    const quests = Array.isArray(data.quests) && data.quests.length ? data.quests : prototypeQuests;
+    const quests = Array.isArray(data.quests) ? data.quests : prototypeQuests;
     return {
       ...prototype,
       ...data,

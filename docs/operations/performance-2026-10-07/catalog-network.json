@@ -1,0 +1,189 @@
+{
+  "measuredAt": "2026-10-07T06:43:45.205Z",
+  "scope": "Public static catalog fetches only, not complete shop readiness. 4 Mbps down, 80 ms latency, CPU 4x; cache:no-store as in application. Empty same-origin audit document, no app scripts.",
+  "runs": [
+    {
+      "sample": 1,
+      "readyMs": 602.5999999642372,
+      "catalogs": [
+        {
+          "file": "maple-cosmetics-catalog.json",
+          "readyMs": 602.5999999642372,
+          "parseMs": 11.899999976158142,
+          "decodedCharacters": 1808491
+        },
+        {
+          "file": "maple-featured-hair-catalog.json",
+          "readyMs": 345.5999999642372,
+          "parseMs": 0.09999996423721313,
+          "decodedCharacters": 16718
+        },
+        {
+          "file": "verified-top50-display.json",
+          "readyMs": 481.39999997615814,
+          "parseMs": 4.5,
+          "decodedCharacters": 729448
+        },
+        {
+          "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+          "readyMs": 264.89999997615814,
+          "parseMs": 0.5,
+          "decodedCharacters": 9351
+        }
+      ],
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 1574
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 90804
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50-display.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 42099
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 1561
+        }
+      ],
+      "wireBytes": 136038
+    },
+    {
+      "sample": 2,
+      "readyMs": 407.89999997615814,
+      "catalogs": [
+        {
+          "file": "maple-cosmetics-catalog.json",
+          "readyMs": 407.89999997615814,
+          "parseMs": 8.899999976158142,
+          "decodedCharacters": 1808491
+        },
+        {
+          "file": "maple-featured-hair-catalog.json",
+          "readyMs": 121.59999996423721,
+          "parseMs": 0,
+          "decodedCharacters": 16718
+        },
+        {
+          "file": "verified-top50-display.json",
+          "readyMs": 295.0999999642372,
+          "parseMs": 4.299999952316284,
+          "decodedCharacters": 729448
+        },
+        {
+          "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+          "readyMs": 118.5,
+          "parseMs": 0.10000002384185791,
+          "decodedCharacters": 9351
+        }
+      ],
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 90648
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50-display.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 42108
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 1258
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 1507
+        }
+      ],
+      "wireBytes": 135521
+    },
+    {
+      "sample": 3,
+      "readyMs": 414.30000001192093,
+      "catalogs": [
+        {
+          "file": "maple-cosmetics-catalog.json",
+          "readyMs": 414.30000001192093,
+          "parseMs": 8.199999988079071,
+          "decodedCharacters": 1808491
+        },
+        {
+          "file": "maple-featured-hair-catalog.json",
+          "readyMs": 115.69999998807907,
+          "parseMs": 0,
+          "decodedCharacters": 16718
+        },
+        {
+          "file": "verified-top50-display.json",
+          "readyMs": 302.19999998807907,
+          "parseMs": 4.5,
+          "decodedCharacters": 729448
+        },
+        {
+          "file": "maple-item-effects.json?v=20260703-cape-effects-top50",
+          "readyMs": 118.10000002384186,
+          "parseMs": 0,
+          "decodedCharacters": 9351
+        }
+      ],
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-featured-hair-catalog.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 1507
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-item-effects.json?v=20260703-cape-effects-top50",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 1258
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/maple-cosmetics-catalog.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 90696
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/data/verified-top50-display.json",
+          "status": 200,
+          "encoding": "br",
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "wireBytes": 42109
+        }
+      ],
+      "wireBytes": 135570
+    }
+  ]
+}

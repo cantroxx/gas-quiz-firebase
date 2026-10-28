@@ -1,0 +1,282 @@
+[
+  {
+    "unit": "social:4-1:1",
+    "mode": "practice",
+    "total": 600,
+    "visual": 362,
+    "newVisual": 85
+  },
+  {
+    "unit": "social:4-1:1",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "social:4-1:2",
+    "mode": "practice",
+    "total": 600,
+    "visual": 357,
+    "newVisual": 84
+  },
+  {
+    "unit": "social:4-1:2",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 259,
+    "newVisual": 99
+  },
+  {
+    "unit": "social:4-1:3",
+    "mode": "practice",
+    "total": 600,
+    "visual": 360,
+    "newVisual": 81
+  },
+  {
+    "unit": "social:4-1:3",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "social:4-2:1",
+    "mode": "practice",
+    "total": 600,
+    "visual": 360,
+    "newVisual": 84
+  },
+  {
+    "unit": "social:4-2:1",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 299,
+    "newVisual": 119
+  },
+  {
+    "unit": "social:4-2:2",
+    "mode": "practice",
+    "total": 600,
+    "visual": 365,
+    "newVisual": 88
+  },
+  {
+    "unit": "social:4-2:2",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 298,
+    "newVisual": 118
+  },
+  {
+    "unit": "social:4-2:3",
+    "mode": "practice",
+    "total": 600,
+    "visual": 359,
+    "newVisual": 82
+  },
+  {
+    "unit": "social:4-2:3",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "social:korean-history:1",
+    "mode": "practice",
+    "total": 600,
+    "visual": 203,
+    "newVisual": 203
+  },
+  {
+    "unit": "social:korean-history:1",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 200,
+    "newVisual": 200
+  },
+  {
+    "unit": "social:korean-history:2",
+    "mode": "practice",
+    "total": 600,
+    "visual": 203,
+    "newVisual": 203
+  },
+  {
+    "unit": "social:korean-history:2",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 200,
+    "newVisual": 200
+  },
+  {
+    "unit": "social:korean-history:3",
+    "mode": "practice",
+    "total": 600,
+    "visual": 206,
+    "newVisual": 206
+  },
+  {
+    "unit": "social:korean-history:3",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 200,
+    "newVisual": 200
+  },
+  {
+    "unit": "social:korean-history:4",
+    "mode": "practice",
+    "total": 600,
+    "visual": 204,
+    "newVisual": 204
+  },
+  {
+    "unit": "social:korean-history:4",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 200,
+    "newVisual": 200
+  },
+  {
+    "unit": "social:world-history:1",
+    "mode": "practice",
+    "total": 600,
+    "visual": 201,
+    "newVisual": 201
+  },
+  {
+    "unit": "social:world-history:1",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 200,
+    "newVisual": 200
+  },
+  {
+    "unit": "social:world-history:2",
+    "mode": "practice",
+    "total": 600,
+    "visual": 198,
+    "newVisual": 198
+  },
+  {
+    "unit": "social:world-history:2",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 200,
+    "newVisual": 200
+  },
+  {
+    "unit": "science:4-1:1",
+    "mode": "practice",
+    "total": 600,
+    "visual": 362,
+    "newVisual": 85
+  },
+  {
+    "unit": "science:4-1:1",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "science:4-1:2",
+    "mode": "practice",
+    "total": 600,
+    "visual": 362,
+    "newVisual": 83
+  },
+  {
+    "unit": "science:4-1:2",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 299,
+    "newVisual": 119
+  },
+  {
+    "unit": "science:4-1:3",
+    "mode": "practice",
+    "total": 600,
+    "visual": 364,
+    "newVisual": 87
+  },
+  {
+    "unit": "science:4-1:3",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 299,
+    "newVisual": 119
+  },
+  {
+    "unit": "science:4-1:4",
+    "mode": "practice",
+    "total": 600,
+    "visual": 364,
+    "newVisual": 85
+  },
+  {
+    "unit": "science:4-1:4",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "science:4-2:1",
+    "mode": "practice",
+    "total": 600,
+    "visual": 356,
+    "newVisual": 80
+  },
+  {
+    "unit": "science:4-2:1",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "science:4-2:2",
+    "mode": "practice",
+    "total": 600,
+    "visual": 359,
+    "newVisual": 82
+  },
+  {
+    "unit": "science:4-2:2",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "science:4-2:3",
+    "mode": "practice",
+    "total": 600,
+    "visual": 364,
+    "newVisual": 85
+  },
+  {
+    "unit": "science:4-2:3",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 300,
+    "newVisual": 120
+  },
+  {
+    "unit": "science:4-2:4",
+    "mode": "practice",
+    "total": 600,
+    "visual": 358,
+    "newVisual": 84
+  },
+  {
+    "unit": "science:4-2:4",
+    "mode": "ranking",
+    "total": 600,
+    "visual": 280,
+    "newVisual": 120
+  }
+]

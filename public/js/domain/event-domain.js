@@ -14,6 +14,7 @@
   function getEventProgressRenderData(progress = null, fallback = {}) {
     const data = {
       quests: progress?.quests || fallback.quests || [],
+      ...(progress?.legacyQuests ? {legacyQuests:progress.legacyQuests,legacySeasonKey:progress.legacySeasonKey} : {}),
       classMissions: progress?.classMissions || fallback.classMissions || [],
       seasonEvents: progress?.seasonEvents || fallback.seasonEvents || []
     };

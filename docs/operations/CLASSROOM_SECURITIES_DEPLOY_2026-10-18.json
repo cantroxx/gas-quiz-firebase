@@ -1,0 +1,122 @@
+{
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792283014379000",
+    "version": "sites/dj48-quiztown-firebase/versions/1ecd458f3085156e",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8995f3d7501feb7c",
+    "changed": [
+      "index.html",
+      "js/app.bundle.js",
+      "classroom-securities.css",
+      "images/classroom-icons/securities.svg",
+      "js/domain/securities-domain.js",
+      "js/features/securities-render.js",
+      "js/infrastructure/securities-repository.js",
+      "js/features/securities-server-controller.js",
+      "js/features/classroom-form.js",
+      "js/features/classroom-state.js",
+      "js/features/classroom-workspace.js",
+      "js/application/classroom-usecases.js"
+    ]
+  },
+  "functions": {
+    "targets": [
+      "classroomSecuritiesQuery",
+      "classroomSecuritiesAction",
+      "classroomSecuritiesAdminAction",
+      "classroomSecuritiesTick"
+    ],
+    "functions": {
+      "classroomSecuritiesQuery": {
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T00:23:09.077971339Z",
+        "uri": "https://classroomsecuritiesquery-lvgwneybea-du.a.run.app"
+      },
+      "classroomSecuritiesAction": {
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T00:23:09.180320426Z",
+        "uri": "https://classroomsecuritiesaction-lvgwneybea-du.a.run.app"
+      },
+      "classroomSecuritiesAdminAction": {
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T00:23:09.169247156Z",
+        "uri": "https://classroomsecuritiesadminaction-lvgwneybea-du.a.run.app"
+      },
+      "classroomSecuritiesTick": {
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T00:23:09.516902753Z",
+        "uri": "https://classroomsecuritiestick-lvgwneybea-du.a.run.app"
+      }
+    },
+    "unrelatedChanges": []
+  },
+  "pilot": {
+    "classId": "G4-C8",
+    "marketId": "coin-v1",
+    "startDate": "2026-10-19",
+    "mode": "coin",
+    "lifecycle": "enabled",
+    "studentAccess": false,
+    "configVersion": 2,
+    "accountCount": 0,
+    "initialGrantsMinor": 0,
+    "rulesUnchanged": "projects/dj48-quiztown-firebase/rulesets/83035996-bf9c-428f-8874-0dd9edb69da1",
+    "verifiedAt": "2026-10-18T00:26:38.823Z"
+  },
+  "productionVerification": {
+    "checks": [
+      {
+        "name": "classroomSecuritiesQuery",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "name": "classroomSecuritiesAction",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "name": "classroomSecuritiesAdminAction",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      }
+    ],
+    "schedulerExecution": {
+      "timestamp": "2026-10-18T00:26:05.823775865Z",
+      "httpStatus": 200
+    },
+    "scheduler": {
+      "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/jobs/firebase-schedule-classroomSecuritiesTick-asia-northeast3",
+      "state": "ENABLED",
+      "schedule": "every 1 minutes",
+      "timeZone": "Asia/Seoul"
+    },
+    "verifiedAt": "2026-10-18T00:26:36.867Z"
+  },
+  "preservedHostingFiles": 3942,
+  "changedHostingRawHashes": {
+    "index.html": "19f24bfbc2047c3a8025078f990ac4160d456dcd78b8210aba3cfd236f788f9a",
+    "js/app.bundle.js": "79fc37793db45ebd4de04789d70037abe1fa56a6e7d0c0d8f0e130f5d2f02003",
+    "classroom-securities.css": "a950987081a7a7bde6118427a49070e330cd3065d02c9925d652917401d3104d",
+    "images/classroom-icons/securities.svg": "7d64b4c9d68bd21f44c7a82b1c7f45ceb5ce0b8752eb12557b648cfee844a48e",
+    "js/domain/securities-domain.js": "c8c66b92546feaa3f7dbbc4c6af550abe7d7d82e2b7149128f3c60996dacd1ee",
+    "js/features/securities-render.js": "2ded5f3adb8b1e778898f8a7109c166422fb6c2a0e27f22fe4605a8aedd89cfe",
+    "js/infrastructure/securities-repository.js": "60e747909d86645517b18e70f71e0d95541d83c03a36b1adc819c4d3b30fe742",
+    "js/features/securities-server-controller.js": "39254f243c128cc768aeac86ad9e4c8febfe7820541fc3fb7f4f5904450ca88d",
+    "js/features/classroom-form.js": "b10ddca67a758d799e425d94ed8841218cf4e21e1d54f25a917c58947ac3fa08",
+    "js/features/classroom-state.js": "8d3588f5335ccc5858f1eab58767a5c8a225679db7219671aceaee7d84b28803",
+    "js/features/classroom-workspace.js": "7fbae26cfa493bbdea53f1c51b0ae2d8f685b029c00774e591fc02539a4dcdaa",
+    "js/application/classroom-usecases.js": "f940ae9f887c701bb965fd580390c20ad44c8a125fc9ed238bd16909b59786f3"
+  },
+  "validation": {
+    "unitTests": 14,
+    "fullCheck": "PASS (Java 26 stderr warning suppressed using a temporary executable wrapper)",
+    "emulator": "PASS: production rules, practice and coin transactions, daily reports, frozen accounts",
+    "callableHttp": "PASS: Auth/Functions/Firestore Emulator, production 4-8 scope",
+    "candidateBrowser": "PASS: teacher-only pilot, classroom opening record, transfers/replay, responsive 390/768/1440",
+    "anonymousLiveBrowser": "PASS: module and DOM loaded, hidden tab before classroom, zero securities calls, no JS errors"
+  },
+  "remaining": [
+    "Teacher must conduct at least one classroom pilot session before using the student opening control.",
+    "No student accounts or DJ coins were created or moved during production validation."
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "initial": {
+    "before": {
+      "render": 34.25,
+      "tabSwitch": 32.25,
+      "productSelect": 2.8
+    },
+    "current": {
+      "render": 36.3,
+      "tabSwitch": 10.6,
+      "productSelect": 2.1
+    }
+  },
+  "verified": {
+    "before": {
+      "render": 33.45,
+      "tabSwitch": 33.55,
+      "productSelect": 2.8499999999999996
+    },
+    "final": {
+      "render": 36.5,
+      "tabSwitch": 10.850000000000001,
+      "productSelect": 2.0
+    }
+  },
+  "factorial": {
+    "B": {
+      "tight": {
+        "js": 25.1,
+        "layout": 7.5,
+        "total": 32.7
+      },
+      "frame": {
+        "js": 24.8,
+        "layout": 7.8,
+        "total": 32.55
+      }
+    },
+    "J": {
+      "tight": {
+        "js": 26.9,
+        "layout": 7.800000000000001,
+        "total": 34.85
+      },
+      "frame": {
+        "js": 28.4,
+        "layout": 8.6,
+        "total": 37.05
+      }
+    },
+    "C": {
+      "tight": {
+        "js": 25.85,
+        "layout": 8.7,
+        "total": 34.45
+      },
+      "frame": {
+        "js": 25.05,
+        "layout": 8.649999999999999,
+        "total": 34.099999999999994
+      }
+    },
+    "A": {
+      "tight": {
+        "js": 27.2,
+        "layout": 8.35,
+        "total": 35.5
+      },
+      "frame": {
+        "js": 26.8,
+        "layout": 8.6,
+        "total": 35.3
+      }
+    }
+  }
+}

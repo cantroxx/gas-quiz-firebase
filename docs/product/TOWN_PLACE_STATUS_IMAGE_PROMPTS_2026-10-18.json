@@ -1,0 +1,17 @@
+{
+  "mode": "built-in image_gen",
+  "prompts": {
+    "logout": "Use case: illustration-story. Asset type: transparent icon for cozy children's village game. One cute cream rabbit in moss green vest politely bowing from the waist, head lowered, long ears drooping forward, paws together in front, full body. Clear readable silhouette at 46 pixels. Warm hand-painted gouache, caramel brown outlines, rounded friendly proportions matching a forest village UI. Centered single character, fully visible, fills 85% of square, genuinely transparent background. No text, no badge, no scene, no floor, no watermark.",
+    "statusPaper": "Use case: illustration-story. Asset type: wide header background for a cozy village game's personal status card, landscape 3:2. A warm cream parchment on a small wooden desk, decorative moss green leaves and little white flowers only in the outer corners, a small brass star medal and two golden coins clustered at bottom right. Very large clean empty softly lit pale cream central area for real HTML profile and stats. Warm hand-painted children's storybook gouache matching orange-roof forest village UI. Flat frontal view, softly rounded edges. No characters, no writing, no numbers, no letters, no watermark. Quiet uncluttered decorative frame, dominant cream, subtle honey wood and sage greens."
+  },
+  "assets": [
+    "public/images/town-controls-20261018/logout.webp",
+    "public/images/town-controls-20261018/status-paper.webp"
+  ],
+  "medals": {
+    "mode": "native SVG",
+    "generator": "scripts/maintenance/build-town-medals.py",
+    "assetDirectory": "public/images/town-medals-20261018",
+    "count": 100
+  }
+}

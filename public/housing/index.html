@@ -6,7 +6,7 @@
     <title>내 방 꾸미기</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <!-- ?v= 숫자는 파일을 고칠 때마다 올린다 — 브라우저가 예전 캐시 대신 새 파일을 받게 하는 장치 -->
-    <link rel="stylesheet" href="style.css?v=17">
+    <link rel="stylesheet" href="style.css?v=title-wording-20261019">
 </head>
 <body>
     <div id="hotel-viewport">
@@ -20,16 +20,12 @@
                 <span class="label">크레딧</span>
                 <span id="credits-count" class="value">2,000</span>
             </div>
-            <div class="status-box" id="coupon-box" style="display:none">
-                <span class="label">🎟️ 오늘의 쿠폰</span>
-                <span id="coupon-count" class="value">0</span>
-            </div>
             <div class="status-box" id="room-name-box" title="눌러서 방 이름 바꾸기">
                 <span class="label">방 이름 ✏️</span>
                 <span class="value" id="room-name-label">나의 첫 번째 방</span>
             </div>
             <button id="btn-reset" class="reset-btn" title="방을 처음 상태로 되돌립니다">처음부터</button>
-            <a id="btn-info-screen" class="town-btn" href="/?view=home" title="내 랭킹·칭호·뱃지 전체 화면">📋 정보 화면</a>
+            <a id="btn-info-screen" class="town-btn" href="/?view=home" title="내 랭킹·타이틀·뱃지 전체 화면">📋 정보 화면</a>
             <a id="btn-town" class="town-btn" href="/" title="퀴즈타운 메인으로 돌아갑니다">🏘️ 퀴즈타운</a>
         </div>
 
@@ -142,7 +138,6 @@
                                 <span class="cost"><span id="catalog-detail-price">0</span> <span id="catalog-price-unit">크레딧</span></span>
                                 <button id="btn-fav-item" class="buy-btn fav-btn">⭐ 즐겨찾기</button>
                                 <button id="btn-try-item" class="buy-btn try-btn disabled" disabled>배치해보기</button>
-                                <button id="btn-coupon-item" class="buy-btn coupon-btn hidden">🎟️ 쿠폰으로 받기</button>
                                 <button id="btn-buy-item" class="buy-btn disabled" disabled>사기</button>
                             </div>
                         </div>
@@ -276,20 +271,19 @@
                     <div class="profile-info-top">
                         <img id="profile-info-avatar" src="" alt="내 아바타">
                         <div class="profile-info-name">
-                            <p id="profile-info-title" class="profile-info-title">칭호</p>
+                            <p id="profile-info-title" class="profile-info-title">타이틀</p>
                             <h3 id="profile-info-nickname">닉네임</h3>
                             <p id="profile-info-level" class="profile-info-level">레벨</p>
                         </div>
                     </div>
                     <div class="profile-info-stats">
                         <div class="profile-stat"><span class="profile-stat-num" id="profile-info-coin">0</span><span class="profile-stat-label">DJ코인</span></div>
-                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-coupon">0</span><span class="profile-stat-label">🎟️ 쿠폰</span></div>
-                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-titles">0</span><span class="profile-stat-label">칭호</span></div>
+                        <div class="profile-stat"><span class="profile-stat-num" id="profile-info-titles">0</span><span class="profile-stat-label">타이틀</span></div>
                         <div class="profile-stat"><span class="profile-stat-num" id="profile-info-badges">0</span><span class="profile-stat-label">뱃지</span></div>
                     </div>
                     <div class="profile-info-detail-btns">
                         <button id="profile-open-ranking" class="profile-detail-btn">🏆 랭킹</button>
-                        <button id="profile-open-titles" class="profile-detail-btn">🏅 칭호</button>
+                        <button id="profile-open-titles" class="profile-detail-btn">🏅 타이틀</button>
                         <button id="profile-open-badges" class="profile-detail-btn">🎖️ 뱃지</button>
                     </div>
                     <div class="profile-info-actions">
@@ -311,7 +305,7 @@
                         <p class="home-style-label">타운에서 <b>'내 집'</b>을 누르면 어디로 갈까요?</p>
                         <div class="home-style-toggle">
                             <button id="home-style-room" data-style="room" class="home-style-btn">🏠 내 방<br><small>방을 꾸며요</small></button>
-                            <button id="home-style-dashboard" data-style="dashboard" class="home-style-btn">📋 정보 화면<br><small>랭킹·칭호를 봐요</small></button>
+                            <button id="home-style-dashboard" data-style="dashboard" class="home-style-btn">📋 정보 화면<br><small>랭킹·타이틀을 봐요</small></button>
                         </div>
                         <p class="settings-hint">지금은 <b>내 방</b>이 기본이에요. 언제든 바꿀 수 있어요.</p>
                     </div>
@@ -319,7 +313,7 @@
             </div>
         </div>
 
-        <!-- 내 정보 상세 (랭킹·칭호·뱃지) 공용 모달 -->
+        <!-- 내 정보 상세 (랭킹·타이틀·뱃지) 공용 모달 -->
         <div id="info-list-modal" class="modal hidden">
             <div class="modal-content small">
                 <div class="modal-header">
@@ -361,7 +355,7 @@
                         <h3>👤 내 정보 · 아바타 · 설정</h3>
                         <ul>
                             <li><b>👕 옷 갈아입기</b>: 오른쪽 세로줄 맨 위 <b>옷 갈아입기</b> 단추를 누르면 꾸미기 화면이 열려요.</li>
-                            <li><b>📋 내 정보</b>(하단 버튼): 대표 칭호·레벨·DJ코인과 <b>🏆 랭킹·🏅 칭호·🎖️ 뱃지</b>를 방 안에서 봐요. <b>정보 화면 보기</b>로 전체 화면도 열어요.</li>
+                            <li><b>📋 내 정보</b>(하단 버튼): 대표 타이틀·레벨·DJ코인과 <b>🏆 랭킹·🏅 타이틀·🎖️ 뱃지</b>를 방 안에서 봐요. <b>정보 화면 보기</b>로 전체 화면도 열어요.</li>
                             <li><b>⚙️ 설정</b>(내 정보 카드 안): 타운에서 '내 집'을 누르면 <b>내 방</b>과 <b>정보 화면</b> 중 어디로 갈지 고를 수 있어요.</li>
                         </ul>
                     </section>
@@ -378,7 +372,6 @@
                         <ul>
                             <li>가구·벽지·바닥을 DJ코인으로 살 수 있어요. 산 물건은 <b>가방</b>에 들어가요.</li>
                             <li>사기 전에 <b>배치해보기</b>(가구)나 <b>발라보기</b>(벽지·바닥)로 미리 확인해 보세요. 공짜예요!</li>
-                            <li>매일 처음 접속하면 <b>🎟️ 쿠폰 1장</b>을 받아요. 50코인 이하 물건과 바꿀 수 있어요.</li>
                             <li>상점은 <b>선생님이 열어 줄 때만</b> 이용할 수 있어요.</li>
                         </ul>
                     </section>
@@ -446,8 +439,8 @@
     <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="assets-loader.js?v=7"></script>
-    <script src="housing-data.js?v=9"></script>
+    <script src="housing-data.js?v=title-wording-20261019"></script>
     <script src="housing-catalog.js?v=22"></script>
-    <script src="app.js?v=39"></script>
+    <script src="app.js?v=title-wording-20261019"></script>
 </body>
 </html>

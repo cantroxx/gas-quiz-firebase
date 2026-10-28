@@ -1,0 +1,20 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "loadedIcons": 6,
+      "banner": "tech-helper",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "loadedIcons": 6,
+      "banner": "tech-helper",
+      "overflow": false
+    }
+  ],
+  "semantics": {
+    "library": "http://classroom.test/images/classroom/jobs-v1/library-helper-160.webp",
+    "unknown": "http://classroom.test/images/classroom-icons/student-card.svg"
+  }
+}

@@ -143,6 +143,41 @@ async function testClaimCurrentMemberRewardFlowControlsButton() {
   ]);
 }
 
+async function testScopedCacheAndRaces() {
+  const vm = require('node:vm');
+  const fs = require('node:fs');
+  let member = 'a', now = Date.parse('2026-09-16T12:00:00Z');
+  class Clock extends Date { static now() { return now; } }
+  const context = { window: { DJ48AccountState: { getCurrentMemberUserId: () => member } }, Date: Clock };
+  vm.runInNewContext(fs.readFileSync(require.resolve('../../public/js/features/event-state.js'), 'utf8'), context);
+  const state = context.window.DJ48EventState;
+  const deferred = [];
+  const deps = { ...state, loadEventProgress: () => new Promise(resolve => deferred.push(resolve)) };
+  const first = usecases.loadEventProgressWithCache({ memberUserId: member }, deps);
+  const second = usecases.loadEventProgressWithCache({ memberUserId: member, forceRefresh: true }, deps);
+  assert.equal(deferred.length, 1, 'Concurrent forced reads are coalesced');
+  deferred[0]({ memberUserId: 'a', quests: [] });
+  await Promise.all([first, second]);
+  assert.equal(state.getEventProgress().memberUserId, 'a');
+  now += 60001;
+  assert.equal(state.getEventProgress(), null);
+  assert.equal(state.peekEventProgress().memberUserId, 'a', 'Expired rows remain available while refreshing');
+  const obsolete = usecases.loadEventProgressWithCache({ memberUserId: member }, deps);
+  member = 'b';
+  assert.equal(state.peekEventProgress(), null, 'Different member cannot see cached data');
+  const current = usecases.loadEventProgressWithCache({ memberUserId: member }, deps);
+  deferred[1]({ memberUserId: 'a' }); await obsolete;
+  assert(state.getEventProgressLoadPromise(), 'Obsolete completion cannot clear current request');
+  deferred[2]({ memberUserId: 'b' }); await current;
+  assert.equal(state.getEventProgress().memberUserId, 'b');
+  now = Date.parse('2026-09-16T15:00:01Z');
+  assert.equal(state.peekEventProgress(), null, 'KST midnight expires even stale display');
+  const old = usecases.loadEventProgressWithCache({ memberUserId: member }, deps);
+  state.resetEventProgressCache();
+  deferred[3]({ memberUserId: 'b' }); await old;
+  assert.equal(state.peekEventProgress(), null, 'Reward/quiz invalidation cannot be undone by late reads');
+}
+
 (async () => {
   await testLoadUsesCache();
   await testLoadSetsAndClearsPromise();
@@ -150,4 +185,6 @@ async function testClaimCurrentMemberRewardFlowControlsButton() {
   await testClaimRewardFlowResetsAndRerenders();
   await testClaimRewardFlowReportsError();
   await testClaimCurrentMemberRewardFlowControlsButton();
+  await testScopedCacheAndRaces();
+  console.log('Event cache tests passed: TTL, KST day, member scope, concurrent refresh and invalidation races.');
 })();

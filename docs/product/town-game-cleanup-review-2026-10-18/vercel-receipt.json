@@ -1,0 +1,11 @@
+{
+  "deployment": "dpl_9efqxvASMgFWprGZ9YprWjxxZ347",
+  "previous": "dpl_6GV3Sq6ZURm3fgeiy8wKiGAGZA3P",
+  "files": 67,
+  "preservedFiles": 66,
+  "changed": [
+    "public/fraction-world/index.html"
+  ],
+  "sourceHashesVerified": true,
+  "sharedStatusRemoved": true
+}

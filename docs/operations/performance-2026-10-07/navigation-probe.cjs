@@ -1,0 +1,7 @@
+const fs=require('fs'),vm=require('vm'),{performance}=require('perf_hooks');
+const html=fs.readFileSync(require('path').join(__dirname,'navigation-functions.fixture.txt'),'utf8');
+function extract(name){const re=new RegExp('^    (?:async )?function '+name+'\\(','m'),m=re.exec(html),rest=html.slice(m.index+m[0].length),end=/^    (?:async )?function \w+\(/m.exec(rest);return html.slice(m.index,m.index+m[0].length+end.index)}
+(async()=>{const out=[];for(const name of ['showRankingView','showShopView'])for(const ms of [0,250])for(let sample=1;sample<=3;sample++){
+let enterMs,renderMs,start;const s={loadFeatureFlags:()=>ms?new Promise(r=>setTimeout(()=>r({}),ms)):Promise.resolve({}),isCurrentAdminMember:()=>false,window:{alert:()=>{}},renderRankingView:()=>{renderMs=performance.now()-start},renderAvatarMarket:()=>{renderMs=performance.now()-start},enterAppView:()=>{enterMs=performance.now()-start}};
+vm.runInNewContext(extract(name),s);start=performance.now();await s[name]();out.push({function:name,configuredFlagDelayMs:ms,sample,renderCallMs:renderMs,enterViewCallMs:enterMs});}
+fs.writeFileSync('/tmp/dj48-perf-20261007/navigation-probe.json',JSON.stringify({scope:'Synthetic dependency timing using exact deployed navigation function bodies; no DOM, Firebase, account, requests or production latency. This measures calls to rendering functions, not pixel paint.',runs:out},null,2));console.log(JSON.stringify(out));})()

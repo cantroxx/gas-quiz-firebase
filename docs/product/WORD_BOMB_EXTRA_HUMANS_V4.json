@@ -1,0 +1,6 @@
+{
+  "mode": "builtin",
+  "asset": "public/word-bomb/assets/people-extra-v4.png",
+  "reference": "public/word-bomb/assets/people-v3.png",
+  "prompt": "Create a transparent 4 columns by 2 rows landscape sprite atlas of eight NEW realistic Korean student human game characters, four boys and four girls alternating. Match reference natural human proportions, front-facing full body seated on wooden stools, open hands above lap, consistent scale and lighting. Distinct new outfits: mustard jacket boy, lilac cardigan bob-haired girl, teal polo curly-haired boy, denim jacket ponytail girl, gray hoodie glasses boy, red check shirt wavy-haired girl, green track jacket center-part boy, cream sweatshirt high-bun girl. Full heads and shoes contained in equal cells, transparent margins. Refined realistic 3D game artwork, no chibi, no oversized eyes, no text, no borders, genuine transparent alpha. Reference is style and pose only; new faces and clothes."
+}

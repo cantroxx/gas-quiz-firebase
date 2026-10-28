@@ -76,6 +76,7 @@
   function normalizeRankingCategoryKey(categoryKey, category = '') {
     const key = String(categoryKey || '').trim();
     const label = String(category || '').trim();
+    if(key.startsWith('popular-v2-')) return key;
     if(key === '티니핑' || key === '인물티니핑' || label.includes('티니핑')) return '티니핑';
     return key;
   }

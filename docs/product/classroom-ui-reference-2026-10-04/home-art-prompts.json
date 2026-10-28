@@ -1,0 +1,19 @@
+{
+  "tool": "Built-in ImageGen",
+  "assets": [
+    {
+      "file": "public/images/classroom/reading-sprout.png",
+      "prompt": {
+        "key": "classroom-growth-art",
+        "prompt": "Create a single original UI illustration asset: an adorable small round cream-colored sprout creature with two fresh green leaves on its head, sitting reading an open dark-green book beside 3 tiny grass leaves. Hand-painted soft gouache with clean crisp silhouette, sophisticated warm classroom storybook style. Forest green, ivory and pale mint, tiny warm ochre accents. Front 3/4 view, compact centered composition filling canvas with generous safe padding, no text, no frame, no badge, no UI, no shadow rectangle. This is decorative growth art not a student avatar. Genuinely transparent background, clean alpha, square asset."
+      }
+    },
+    {
+      "file": "public/images/classroom/community-tree.png",
+      "prompt": {
+        "key": "classroom-community-art",
+        "prompt": "Create a single original UI illustration asset: a small storybook tree growing from a neat stack of three books, green leafy branches, one tiny round cream-colored sprout creature watering the tree with a small can. Warm cooperative classroom growth symbol. Hand-painted soft gouache, clean crisp silhouette, forest green, ivory, muted golden ochre and pale mint. Compact horizontal composition centered with generous safe padding. No text, no frame, no UI, no giant landscape or background. Genuinely transparent background, clean alpha."
+      }
+    }
+  ]
+}

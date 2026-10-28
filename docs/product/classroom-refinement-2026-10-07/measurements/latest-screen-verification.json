@@ -1,0 +1,74 @@
+[
+  {
+    "file": "actual-size-empty.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "actual-size-lunch.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "actual-size-notebook.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "actual-size-snack.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-1440-market.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-1440-quest.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-390-market-selected.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-390-market.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-390-quest.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-768-market.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "student-768-quest.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "teacher-1440-market.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "teacher-1440-quest.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "teacher-390-market-selected.png",
+    "identicalBytes": false
+  },
+  {
+    "file": "teacher-390-market.png",
+    "identicalBytes": true
+  },
+  {
+    "file": "teacher-390-quest.png",
+    "identicalBytes": false
+  },
+  {
+    "file": "teacher-768-market.png",
+    "identicalBytes": false
+  },
+  {
+    "file": "teacher-768-quest.png",
+    "identicalBytes": false
+  }
+]

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>우주탐사대 · 총괄 관리자</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🪐%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="admin.css?v=layout-20260921">
+  <script defer src="net.js"></script><script defer src="admin.js?v=layout-20260921"></script>
+</head>
+<body>
+  <header class="site-header"><a id="game-link" class="brand" href="./">🪐 우주탐사대</a><span class="header-note">퀴즈타운 총괄 관리자</span></header>
+  <main class="admin-dashboard"><div class="page-top"><div><span class="eyebrow">QUIZTOWN ADMIN</span><h1>우주 평가 학급 관리</h1><p>퀴즈타운 총관리자 계정으로 개설된 평가 회차를 관리합니다.</p></div><button id="refresh" class="secondary">다시 연결 · 새로고침</button></div>
+    <p id="admin-status" role="status" aria-live="polite">퀴즈타운 로그인 상태를 확인하고 있어요.</p>
+    <section id="login-panel" class="panel" hidden><h2>총관리자 로그인이 필요해요</h2><p>같은 브라우저에서 퀴즈타운에 로그인한 뒤 이 화면의 ‘다시 연결’을 눌러 주세요.</p><a class="primary" href="/" target="_blank" rel="noopener">퀴즈타운 로그인 열기 ↗</a></section>
+    <section id="list-panel" class="panel" hidden><div class="section-title"><h2>개설된 평가 회차</h2><span>최근 개설 순 · 페이지당 최대 25개</span></div><p><a href="./">새 학급 개설하기 ↗</a></p><div id="rooms"></div><div class="admin-pages"><button class="secondary" id="previous" disabled>← 이전</button><span id="page-number"></span><button class="secondary" id="next" disabled>다음 →</button></div></section>
+  </main>
+  <dialog id="detail-dialog"><button id="close-detail" type="button">닫기</button><h2 id="detail-title"></h2><div id="detail-body"></div></dialog>
+  <dialog id="delete-dialog"><form method="dialog"><span class="eyebrow">평가 회차 영구 삭제</span><h2 id="delete-title"></h2><p id="delete-detail"></p><p>이 회차의 학생 답안과 채점 결과도 함께 삭제되며 복구할 수 없습니다. 퀴즈타운 회원·코인과 다른 평가 회차는 유지됩니다.</p><label>확인을 위해 아래의 학급명을 그대로 입력하세요.<strong id="delete-label"></strong><input id="delete-input" autocomplete="off" required></label><p id="delete-error" role="alert"></p><div class="button-row"><button id="cancel-delete" type="button" class="secondary">취소</button><button id="confirm-delete" type="button" class="primary" disabled>이 회차 영구 삭제</button></div></form></dialog>
+</body>
+</html>

@@ -302,6 +302,7 @@ service cloud.firestore {
 
     function hasValidRankingRecordShape(recordId) {
       return isSignedIn()
+        && canWriteCurrentQuizRanking()
         && request.resource.data.memberUserId is string
         && canAccessUserScopedData(request.resource.data.memberUserId)
         && request.resource.data.recordId == recordId
@@ -346,6 +347,15 @@ service cloud.firestore {
           'migrationSource',
           'migratedAt'
         ]);
+    }
+
+    // Enabled only at generated-subject cutover. Old clients cannot recreate retired subject scores.
+    function canWriteCurrentQuizRanking() {
+      let migrated = exists(/databases/$(database)/documents/appSettings/featureFlags)
+        && get(/databases/$(database)/documents/appSettings/featureFlags).data.get('subjectQuizEnabled', false) == true;
+      let oldQuiz = request.resource.data.get('quizId', '') in ['reading','gmo','time_store','spelling','word-relation','spacing','proverb','idiom','samgukji','ancient-history','history-people','unified-silla-balhae','cultural_heritage','multiplication_division','random-basic','fraction-basic','calculation_practice','science-general'];
+      let oldCategory = request.resource.data.get('categoryKey', '') in ['맞춤법','단어다의어-동형이의어','국어띄어쓰기','국어속담','국어사자성어','독서지엠오-아이','독서시간가게','사회삼국지','사회고대사-삼국시대','사회통일신라-발해','사회문화유산','인물역사-인물','역사-인물','수학곱셈과-나눗셈','수학분수','수학분수-기초','과학과학-상식'];
+      return !migrated || !(oldQuiz || oldCategory);
     }
 
     function hasValidUserRankingSummaryShape(userId) {
@@ -721,6 +731,42 @@ service cloud.firestore {
       allow update: if canUpdateQuizKingSummary(userId);
       allow delete: if false;
     }
+
+    // 구름탑: 점수·입력 검증·진행은 cloudTowerAction 서버 함수만 변경한다.
+    function isCloudTowerMember() {
+      return isClassMember()
+        && get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/authLinks/$(request.auth.uid)).data.memberUserId)).data.authUid == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/authLinks/$(request.auth.uid)).data.memberUserId)).data.status == 'active'
+        && get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/authLinks/$(request.auth.uid)).data.memberUserId)).data.get('active', true) == true;
+    }
+    match /cloudTowerRanking/{course}/entries/{uid} {
+      allow read: if isCloudTowerMember();
+      allow write: if false;
+    }
+    match /cloudTowerRooms/{code} {
+      allow get: if isCloudTowerMember() && request.auth.uid in resource.data.participantIds;
+      allow list, write: if false;
+    }
+    match /cloudTowerRuns/{id} { allow read, write: if false; }
+    match /cloudTowerPlayers/{uid} { allow read, write: if false; }
+
+    // 두근두근 마블: 서버가 주사위·진행·최종 순위를 검증한다.
+    function isTownMarbleMember() {
+      return isClassMember()
+        && get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/authLinks/$(request.auth.uid)).data.memberUserId)).data.authUid == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/authLinks/$(request.auth.uid)).data.memberUserId)).data.status == 'active'
+        && get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/authLinks/$(request.auth.uid)).data.memberUserId)).data.get('active', true) == true;
+    }
+    match /townMarbleRooms/{code} {
+      allow get: if isTownMarbleMember() && request.auth.uid in resource.data.participantIds;
+      allow list, write: if false;
+    }
+    match /townMarbleRanking/{version}/entries/{memberId} {
+      allow read: if isTownMarbleMember();
+      allow write: if false;
+    }
+    match /townMarbleResults/{code} { allow read, write: if false; }
+    match /townMarblePlayers/{memberId} { allow read, write: if false; }
 
     // ── 낱말 대전 (자음·모음 루미큐브) ──────────────────────────
     // 로그인한(익명 포함) 학생이 방을 만들고 실시간으로 함께 플레이한다.

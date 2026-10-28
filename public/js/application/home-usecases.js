@@ -12,6 +12,7 @@
     const dataOwnerId = deps.getCurrentDataOwnerId?.() || '';
     const memberUserId = options.memberUserId || '';
     const profile = options.profile || null;
+    if(memberUserId && repository.syncTitles) await repository.syncTitles(memberUserId);
     const economyPromise = repository.getUserEconomyForRender()
       .catch(error => {
         deps.warn?.('Home userEconomy read failed. Using profile fallback economy.', error);
@@ -42,10 +43,10 @@
       levelSummaryPromise,
       titlesPromise,
       badgesPromise,
-      rewardStatusPromise
+      options.deferRewardStatus ? Promise.resolve(null) : rewardStatusPromise
     ]);
 
-    return deps.buildHomeMemberModel({
+    const modelData = {
       profile,
       profileData: options.profileData,
       userRewardData: options.userRewardData,
@@ -58,13 +59,20 @@
       featureFlags,
       dataOwnerId,
       memberUserId
-    });
+    };
+    const model = deps.buildHomeMemberModel(modelData);
+    if(options.deferRewardStatus) model.rewardProfilePromise = rewardStatusPromise.then(rewardStatus => deps.buildHomeMemberModel({ ...modelData, rewardStatus }).profile);
+    return model;
   }
 
   async function renderHomeMemberData(options = {}, deps = {}) {
     try {
       const model = await deps.loadHomeMemberData();
+      if(deps.isCurrent && !deps.isCurrent()) return { model: null, error: null };
       deps.renderProfileCard?.(model.profile);
+      if(model.rewardProfilePromise) model.rewardProfilePromise.then(profile => {
+        if(!deps.isCurrent || deps.isCurrent()) deps.renderRewardProfile?.(profile);
+      }).catch(error => deps.warn?.('Home reward display failed.', error));
       const selectedTitleId = model.profile?.selectedTitleId || options.selectedTitleId || '';
       const titleCards = deps.buildTitleCardsForRender(model.titleCards, selectedTitleId);
       deps.renderCollectionCards?.(

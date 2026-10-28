@@ -1,0 +1,15 @@
+{
+  "combination": "pre-journal HTML + places-20261018 status.js",
+  "error": "Cannot read properties of null (reading 'replaceChildren')",
+  "profileText": "",
+  "remainingButtons": [
+    "전체",
+    "오늘",
+    "이번 주"
+  ],
+  "fixedBy": [
+    "Upgrade old quest DOM before auth callbacks",
+    "Versioned explicit index.html popup URL"
+  ],
+  "currentAndLegacyCandidateTests": "passed"
+}

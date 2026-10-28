@@ -1,0 +1,52 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792223766780000",
+  "version": "sites/dj48-quiztown-firebase/versions/171b34a296492bb0",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8a4f09caa04e5008",
+  "changed": [
+    "/index.html",
+    "/js/features/classroom-render.js",
+    "/js/features/classroom-workspace.js",
+    "/js/app.bundle.js",
+    "/classroom.css",
+    "/images/classroom/economy-v2/point-shop-96.webp",
+    "/images/classroom/economy-v2/point-shop-160.webp",
+    "/images/classroom/economy-v2/point-shop-320.webp",
+    "/images/classroom/economy-v2/coin-shop-96.webp",
+    "/images/classroom/economy-v2/coin-shop-160.webp",
+    "/images/classroom/economy-v2/coin-shop-320.webp",
+    "/images/classroom/economy-v2/exchange-96.webp",
+    "/images/classroom/economy-v2/exchange-160.webp",
+    "/images/classroom/economy-v2/exchange-320.webp"
+  ],
+  "date": "2026-10-17",
+  "scope": "Classroom economy UI only: themed icons and removal of recent-point display",
+  "authorization": "User explicitly requested classroom-only deployment after disclosure of unrelated failing subject quiz test.",
+  "preservedFiles": 3934,
+  "hostingConfigPreserved": true,
+  "unrelatedBundleModulesPreserved": true,
+  "productionDataWrites": false,
+  "functionsOrRulesDeployed": false,
+  "rawHashes": {
+    "index.html": "1265c966daa6bf9c84320b306f7a47f4f2d9ca1c951d3a73cfce9c0b0fb48a02",
+    "js/features/classroom-render.js": "732a086000173bac16012997efd586e953c48c305d8abad1fe99414196abfd91",
+    "js/features/classroom-workspace.js": "9fa52501f63f1d1819c649e7b2089138dce3f369b7b5a52b6938b5af49fb6463",
+    "js/app.bundle.js": "30dad8f01fbcf0f1b9fb99d5795f2a2db31dc84a26055061d9fa011b833f8dbc",
+    "classroom.css": "5b04d8baa1f4cc035c7f1cc0398830053fba6ccac754e62618637ef9a93def84",
+    "images/classroom/economy-v2/point-shop-96.webp": "1a599b375c82e14140309b1486979f40f846cf6b765ce5609b11e04bf7fcdb50",
+    "images/classroom/economy-v2/point-shop-160.webp": "a16b9d3b5cc9137a10cbec9306bffe2eddbe5e8c157d33e2d5530578368af5f9",
+    "images/classroom/economy-v2/point-shop-320.webp": "0b774afd8cd646eba7a996fb13924d271c54858d9a812ba4b823e1f8f7bdc15c",
+    "images/classroom/economy-v2/coin-shop-96.webp": "02447213c48d6137bbee7a2efbd7cb9a4034f8d5b7f5f0737799f2ccc1b91208",
+    "images/classroom/economy-v2/coin-shop-160.webp": "f92fb71df6bfed8b226c7a410d6aeb7668a4658cfc6976e6de2966c8a55aa15f",
+    "images/classroom/economy-v2/coin-shop-320.webp": "c142e38d3a8003ce180b95a00d1a91b727cd9cc574e55228fb88a736a7bba801",
+    "images/classroom/economy-v2/exchange-96.webp": "333255f0ae2602a1ae133a30620c92287ab434ff82ffa32f784ccbbf1789a61b",
+    "images/classroom/economy-v2/exchange-160.webp": "2008e46686a8b7baf7763395295bb854d5e6da1a1f68b0fb0e81e27abbf8be82",
+    "images/classroom/economy-v2/exchange-320.webp": "894704c1d866eb6296ec9f678ba85e89d4730d582dc429b2c1b90812e296cb4b"
+  },
+  "checks": {
+    "priorFullCheck": "Failed unrelated test:subject korean:4-1:4 collapsed to too few concepts; not claimed green",
+    "classroomSmoke": "PASS 76 role/viewport/tab cases and related checks",
+    "candidateBrowser": "PASS student/teacher 320–1440px",
+    "liveManifestAndFileHashes": "PASS",
+    "liveBrowser": "PASS student/teacher 320–1440px; backend requests blocked"
+  }
+}

@@ -9,7 +9,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Jua&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
   <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=4">
+  <link rel="stylesheet" href="/styles.css?v=workspace-20261028">
+  <link rel="stylesheet" href="/classroom.css?v=classroom-economy-v2-20261017">
+  <link rel="stylesheet" href="/classroom-diary.css?v=20261017">
+  <link rel="stylesheet" href="/classroom-securities.css?v=20261017">
+  <link rel="stylesheet" href="/classroom-market-art.css?v=classroom-consolidated-20261017">
+  <link rel="stylesheet" href="/town-entry.css?v=2">
+  <link rel="stylesheet" href="/school-entry.css?v=3">
+  <link rel="stylesheet" href="/school-rooms.css?v=quiz-roles-20261017">
+  <link rel="stylesheet" href="/town-shop.css?v=20261017">
+  <link rel="stylesheet" href="/plaza-views.css?v=workspace-20261028">
+  <link rel="stylesheet" href="/profile-view.css?v=1">
+  <link rel="stylesheet" href="/town-ui-refresh.css?v=20261018">
+  <link rel="stylesheet" href="/town-spatial.css?v=ranking-quest-20261019">
+  <script src="/js/town-avatar.js?v=workspace-20261028" defer></script>
+  <script src="/js/town-spatial.js?v=ranking-quest-20261019" defer></script>
+  <script src="/js/special-rewards.js?v=20261019" defer></script>
+  <script defer src="/js/player-status-shortcut.js?v=readable-games-20261018"></script>
 </head>
 <body>
   <main class="shell">
@@ -31,10 +47,16 @@
         <span class="login-grass login-grass-left"></span>
         <span class="login-grass login-grass-right"></span>
       </div>
+      <div class="storybook-welcome">
+        <span class="storybook-kicker">우리들의 작은 숲속 마을</span>
+        <h2>퀴즈타운</h2>
+        <p>배우고, 놀고, 함께 자라는 곳.<br>오늘도 우리 마을에서 만나요.</p>
+        <span class="storybook-stamp">🌱 새로운 하루, 작은 모험</span>
+      </div>
       <div class="login-panel">
         <div class="collection-heading login-sign">
           <p class="eyebrow">마을 입구</p>
-          <h2 id="member-link-heading">입장</h2>
+          <h2 id="member-link-heading">마을에 들어가기</h2>
           <p class="login-welcome">어서오세요! 로그인하고 나만의 마을로 들어가요.</p>
         </div>
         <div class="login-mode-tabs" aria-label="입장 방식 선택">
@@ -106,8 +128,8 @@
       <div class="town-panel-header">
         <div>
           <p class="eyebrow">Quiz Town</p>
-          <h2 id="town-title">퀴즈타운 지도</h2>
-          <p>지도에서 장소를 선택해 퀴즈, 랭킹, 상점, 내 집으로 이동합니다.</p>
+          <h2 id="town-title">퀴즈타운</h2>
+          <p>건물과 간판을 눌러 우리 마을을 둘러보세요.</p>
         </div>
         <div class="town-header-actions">
           <button id="town-friends-button" class="town-friends-button" type="button" title="지금 접속중인 친구와 내 쪽지함을 봅니다." hidden>👥 접속중 <span id="town-friends-count">0</span>명<span id="town-notes-badge" class="notes-badge" hidden>0</span></button>
@@ -115,16 +137,22 @@
         </div>
       </div>
 
+      <nav class="map-buttons town-info-shortcuts" aria-label="마을 알림과 이용안내">
+        <button type="button" data-place="notice">알림판</button>
+        <button type="button" data-place="guide">이용안내</button>
+      </nav>
+
       <section id="daily-notice-drop" class="daily-notice-drop" aria-label="오늘 알림" hidden>
         <button class="daily-notice-drop-close" type="button" aria-label="오늘 알림 닫기" data-dismiss-daily-notice>×</button>
         <button class="daily-notice-drop-body" type="button" data-dismiss-daily-notice>
           <span class="daily-notice-drop-kicker">오늘의 알림</span>
-          <strong id="daily-notice-drop-title">오늘의 퀴즈</strong>
-          <span id="daily-notice-drop-quest">오늘의 퀴즈를 불러오는 중입니다.</span>
+          <strong id="daily-notice-drop-title">마을 알림</strong>
+          <span id="daily-notice-drop-quest" hidden></span>
           <span id="daily-notice-drop-announcement">공지 내용을 확인하고 있어요.</span>
         </button>
       </section>
 
+      <div class="storybook-map-scroll" tabindex="0" aria-label="마을 지도. 작은 화면에서는 옆으로 밀어 둘러보세요.">
       <div class="town-map" aria-label="퀴즈타운 장소 지도">
         <div class="sky-layer" aria-hidden="true">
           <span class="sun"></span>
@@ -166,14 +194,6 @@
           <span class="grass-tuft grass-c"></span>
         </div>
 
-        <button class="notice-board-button" type="button" data-place="notice">
-          <span class="notice-board-icon" aria-hidden="true"></span>
-          <span>알림판</span>
-        </button>
-        <button class="guide-board-button" type="button" data-place="guide">
-          <span>이용안내</span>
-        </button>
-
         <button class="place my-home" type="button" data-place="home">
           <span class="place-art building home-building" aria-hidden="true">
             <span class="roof"></span>
@@ -214,16 +234,6 @@
           <span class="place-tag">순위</span>
         </button>
 
-        <button class="place classroom" type="button" data-place="classroom">
-          <span class="place-art building classroom-building" aria-hidden="true">
-            <span class="roof"></span>
-            <span class="wall"></span>
-            <span class="door"></span>
-          </span>
-          <span class="place-name">우리 교실</span>
-          <span class="place-tag">학급</span>
-        </button>
-
         <button class="place event" type="button" data-place="event">
           <span class="place-art tent-building" aria-hidden="true">
             <span class="tent-top"></span>
@@ -238,12 +248,12 @@
         <div class="road road-cross" aria-hidden="true"></div>
       </div>
 
+      </div>
+      <p class="storybook-map-tip">🌿 건물이나 간판을 누르면 입장해요. <span>작은 화면에서는 지도를 옆으로 밀어보세요.</span></p>
+
       <nav class="map-buttons" aria-label="지도 이동 버튼">
-        <button type="button" data-place="notice">알림판</button>
-        <button type="button" data-place="guide">이용안내</button>
         <button type="button" data-place="home">내 집</button>
         <button type="button" data-place="school">학교</button>
-        <button type="button" data-place="classroom">우리 교실</button>
         <button type="button" data-place="shop">상점</button>
         <button type="button" data-place="ranking">랭킹 광장</button>
         <button type="button" data-place="event">이벤트 광장</button>
@@ -270,22 +280,22 @@
 
     <section id="home-view" class="home-view app-view" aria-labelledby="home-title" hidden>
       <div class="home-topbar">
+        <button id="home-classroom-return" class="button secondary" type="button" hidden>← 우리 교실로 돌아가기</button>
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
         <button class="button secondary danger" type="button" data-member-unlink>로그아웃</button>
-        <div>
-          <p class="eyebrow">My Room</p>
-          <h2 id="home-title">내 집</h2>
-          <p>내 프로필, 칭호, 뱃지, 보유 아이템을 확인하고 정리합니다.</p>
+        <div class="profile-intro">
+          <p class="eyebrow">MY TOWN JOURNAL</p>
+          <h2 id="home-title">나의 마을 수첩</h2>
+          <p>내 정보와 성장 기록, 차곡차곡 모은 보물을 만나보세요.</p>
         </div>
       </div>
 
       <div id="profile-card-root" class="profile-card-root" aria-label="프로필 카드"></div>
       <div class="home-detail-toggle-grid" aria-label="내 집 상세 메뉴">
-        <a class="home-detail-toggle home-housing-link" href="/housing/">🏠 우리집 꾸미기</a>
         <button class="home-detail-toggle" type="button" data-home-detail-toggle="ranking" aria-expanded="false">내 랭킹 기록</button>
-        <button class="home-detail-toggle" type="button" data-home-detail-toggle="titles" aria-expanded="false">보유 칭호</button>
-        <button class="home-detail-toggle" type="button" data-home-detail-toggle="badges" aria-expanded="false">뱃지·연습 현황</button>
-        <button class="home-detail-toggle" type="button" data-home-detail-toggle="items" aria-expanded="false">보유 아이템</button>
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="titles" aria-expanded="false">타이틀</button>
+        <button class="home-detail-toggle" type="button" data-home-detail-toggle="badges" aria-expanded="false">연습기록</button>
+        
       </div>
       <div class="home-detail-root">
         <section class="collection-panel profile-ranking-panel home-detail-panel" data-home-detail-panel="ranking" aria-labelledby="profile-ranking-heading">
@@ -303,21 +313,23 @@
           <div class="collection-heading collection-heading-row">
             <div>
               <p class="eyebrow">Titles</p>
-              <h3 id="title-list-heading">보유 칭호</h3>
+              <h3 id="title-list-heading">타이틀</h3>
             </div>
             <div class="collection-heading-actions">
-              <button id="title-sync-button" class="mini-pill-button" type="button">칭호 확인</button>
+              <div class="title-sync-control">
+                <button id="title-sync-button" class="mini-pill-button" type="button">타이틀 확인</button>
+                <span id="title-sync-status" class="title-sync-feedback" role="status" aria-live="polite" hidden></span>
+              </div>
               <button id="title-catalog-button" class="mini-pill-button" type="button">타이틀 목록</button>
             </div>
           </div>
-          <p id="title-sync-status" class="profile-ranking-message-help" aria-live="polite"></p>
           <div id="title-card-grid" class="collection-grid"></div>
         </section>
 
         <section class="collection-panel home-detail-panel" data-home-detail-panel="badges" aria-labelledby="badge-list-heading">
           <div class="collection-heading">
             <p class="eyebrow">Badges</p>
-            <h3 id="badge-list-heading">뱃지·연습 현황</h3>
+            <h3 id="badge-list-heading">연습기록</h3>
           </div>
           <div id="badge-card-grid" class="collection-grid"></div>
         </section>
@@ -334,64 +346,44 @@
 
     <section id="ranking-view" class="ranking-view app-view" aria-labelledby="ranking-title" hidden>
       <div class="ranking-topbar">
-        <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
-        <div>
-          <p class="eyebrow">Ranking Plaza</p>
-          <h2 id="ranking-title">DJ48 명예의 전당</h2>
-          <p>랭킹전 기록을 기준으로 주요 1위와 분야별 순위를 보여줍니다.</p>
+        <div class="plaza-toolbar"><button class="button secondary back-to-town" type="button" data-back-to-town>← 마을로 돌아가기</button></div>
+        <div class="plaza-hero ranking-plaza-hero">
+          <img class="plaza-hero-art" loading="lazy" src="/images/ranking-plaza-storybook-v1.webp" alt="" decoding="async">
+          <div class="plaza-hero-copy"><p class="eyebrow">우리 마을의 도전 기록</p><h2 id="ranking-title">랭킹 광장</h2><p>친구들의 기록을 만나고<br>나의 다음 도전에 함께해요.</p><a class="plaza-jump" href="#ranking-board-root">순위 보기 ↓</a></div>
         </div>
-        <a class="button hall-of-fame-link" href="/housing/?hall=1">🏛️ 하보 명예의 전당</a>
       </div>
+      <div class="plaza-section-title"><div><p class="eyebrow">OUR HALL OF FAME</p><h3>우리 마을 명예의 전당</h3></div><span>각 분야에서 빛나는 친구들</span></div>
 
       <div id="ranking-card-grid" class="ranking-card-grid" aria-label="명예의 전당 랭킹 카드"></div>
-      <!-- 온라인 대전(낱말대전) 탭은 wb-ranking-plaza.js 가 아래 탭 줄에 끼워 넣는다 -->
+      <!-- 아지트의 네 분야 랭킹은 hideout-ranking-plaza.js에서 연결한다. -->
       <div id="ranking-board-root" class="ranking-board-root" aria-label="랭킹 상세 목록"></div>
     </section>
 
     <section id="shop-view" class="shop-view app-view" aria-labelledby="shop-title" hidden>
       <div class="shop-topbar">
         <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
-        <div>
-          <p class="eyebrow">Town Shop</p>
-          <h2 id="shop-title">DJ48 상점</h2>
-          <p>퀴즈 보상으로 얻은 코인으로 프로필 아이템을 살 수 있는 공간입니다.</p>
-        </div>
+        <h2 id="shop-title">상점</h2>
       </div>
 
-      <div id="shop-category-list" class="shop-category-list" aria-label="상점 카테고리"></div>
+      <p id="shop-entry-status" role="status" aria-live="polite" hidden></p>
+      <section id="shop-avatar-market" class="shop-avatar-market" aria-label="메이플 코디 상점"></section>
 
-      <div id="shop-wallet" class="shop-wallet" aria-label="상점 보유 코인"></div>
-      <section id="shop-avatar-market" class="shop-avatar-market" aria-label="아바타 마켓"></section>
-      <div class="shop-avatar-layout">
-        <section id="shop-avatar-preview" class="shop-avatar-preview" aria-label="아바타 미리보기"></section>
-        <div id="shop-item-grid" class="shop-item-grid" aria-label="상점 아이템 카드"></div>
-      </div>
     </section>
 
     <section id="event-view" class="event-view app-view" aria-labelledby="event-title" hidden>
       <div class="event-topbar">
-        <button class="button secondary back-to-town" type="button" data-back-to-town>타운으로 돌아가기</button>
-        <div>
-          <p class="eyebrow">Event Plaza</p>
-          <h2 id="event-title">이벤트 광장</h2>
-          <p>오늘의 퀘스트와 학급 이벤트를 확인하는 공간입니다.</p>
+        <div class="plaza-toolbar"><button class="button secondary back-to-town" type="button" data-back-to-town>← 마을로 돌아가기</button><span class="plaza-location">꽃길 따라, 이벤트광장</span></div>
+        <div class="plaza-hero event-plaza-hero">
+          <img class="plaza-hero-art" loading="lazy" src="/images/event-plaza-storybook-v1.webp" alt="" decoding="async">
+          <div class="plaza-hero-copy"><p class="eyebrow">작은 도전, 차곡차곡 보상</p><h2 id="event-title">이벤트 광장</h2><p>오늘의 퀘스트를 완성하고<br>준비된 보상을 받아요.</p><nav class="plaza-hero-links" aria-label="퀘스트 바로가기"><a class="plaza-jump" href="#quest-heading">퀘스트 보기 ↓</a></nav></div>
         </div>
       </div>
 
-      <section class="event-section" aria-labelledby="quest-heading">
-        <div class="event-section-heading">
-          <p class="eyebrow">Daily Quests</p>
-          <h3 id="quest-heading">오늘의 퀘스트</h3>
+      <section class="event-section" aria-label="오늘의 퀘스트">
+        <div class="event-section-heading event-section-switcher">
+          <h3 id="quest-heading" class="spatial-sr-only">오늘의 퀘스트</h3>
         </div>
-        <div id="quest-card-grid" class="quest-card-grid"></div>
-      </section>
-
-      <section class="event-section" aria-labelledby="season-event-heading">
-        <div class="event-section-heading">
-          <p class="eyebrow">Season Events</p>
-          <h3 id="season-event-heading">시즌 이벤트</h3>
-        </div>
-        <div id="season-event-grid" class="season-event-grid"></div>
+        <div id="quest-card-grid" class="quest-card-grid" role="region" aria-labelledby="quest-heading"></div>
       </section>
     </section>
 
@@ -405,7 +397,7 @@
 
       <section id="classroom-gate-panel" class="classroom-gate-panel" aria-labelledby="classroom-gate-heading">
         <div>
-          <p class="eyebrow">Prototype Gate</p>
+          <p class="eyebrow">우리반 공간</p>
           <h3 id="classroom-gate-heading">교실 비밀번호 입력</h3>
           <p>교실 비밀번호를 입력하면 우리반 활동판으로 이동합니다.</p>
         </div>
@@ -420,6 +412,32 @@
       </section>
 
       <section id="classroom-main-panel" class="classroom-main-panel" hidden>
+        <div id="classroom-load-status" class="classroom-load-status" role="status" aria-live="polite" hidden></div>
+        <nav class="classroom-navigation" aria-label="교실 탐색">
+          <div class="classroom-group-nav">
+            <button type="button" data-classroom-group="home" aria-pressed="true">홈</button>
+            <button type="button" data-classroom-group="activity" aria-pressed="false">할 일</button>
+            <button type="button" data-classroom-group="growth" aria-pressed="false">내 성장</button>
+            <button type="button" data-classroom-group="economy" aria-pressed="false">경제</button>
+            <button type="button" data-classroom-group="class" aria-pressed="false">우리반</button>
+            <button type="button" data-classroom-open-home title="내 상태와 타이틀 확인">내 집</button>
+            <button type="button" data-classroom-group="manage" aria-pressed="false" hidden>처리할 일</button>
+          </div>
+          <button type="button" class="classroom-diary-nav" data-classroom-diary="friends">마음 일기</button>
+          <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
+            <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">홈</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">학생카드</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="quest" role="tab" aria-selected="false">퀘스트</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="routine" role="tab" aria-selected="false">성장루틴</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="bank" role="tab" aria-selected="false">은행</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="securities" role="tab" aria-selected="false" hidden>증권</button>
+            <button class="classroom-tab" type="button" data-classroom-tab="mission" role="tab" aria-selected="false">학급미션</button>
+            <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>처리할 일</button>
+          </div>
+        </nav>
         <div class="classroom-summary-grid" aria-label="교실 요약">
           <article class="classroom-summary-alert-card">
             <span>알림</span>
@@ -435,18 +453,6 @@
         </div>
         <div id="classroom-grownd-overview" class="classroom-grownd-overview" aria-label="교실 경제 요약"></div>
 
-        <div class="classroom-tabs" role="tablist" aria-label="우리 교실 메뉴">
-          <button class="classroom-tab is-active" type="button" data-classroom-tab="today" role="tab" aria-selected="true">홈</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="classroom" role="tab" aria-selected="false">학생카드</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="quest" role="tab" aria-selected="false">퀘스트</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="routine" role="tab" aria-selected="false">성장루틴</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="gems" role="tab" aria-selected="false">젬스톤</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="jobs" role="tab" aria-selected="false">직업</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="market" role="tab" aria-selected="false">마켓</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="bank" role="tab" aria-selected="false">은행</button>
-          <button class="classroom-tab" type="button" data-classroom-tab="mission" role="tab" aria-selected="false">학급미션</button>
-          <button id="classroom-teacher-tab" class="classroom-tab" type="button" data-classroom-tab="teacher" role="tab" aria-selected="false" hidden>처리할 일</button>
-        </div>
 
         <section id="classroom-teacher-dashboard" class="classroom-panel classroom-teacher-dashboard" data-classroom-panel="teacher" aria-labelledby="classroom-teacher-dashboard-heading" hidden>
           <div class="event-section-heading">
@@ -454,7 +460,7 @@
             <p>오늘 처리할 검토, 요청, 직업 지원, 최근 활동을 한눈에 확인합니다.</p>
           </div>
           <div id="classroom-teacher-dashboard-grid" class="classroom-teacher-dashboard-grid"></div>
-          <div id="classroom-teacher-report" class="classroom-teacher-report"></div>
+          <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
         </section>
 
         <section id="classroom-teacher-review-panel" class="classroom-panel classroom-teacher-review-panel" data-classroom-panel="teacher" aria-labelledby="classroom-review-heading" hidden>
@@ -472,9 +478,9 @@
               </summary>
               <div class="classroom-icon-catalog" aria-label="교실 아이콘 전체 목록">
                 <span><img loading="lazy" decoding="async" src="images/classroom-icons/student-card.svg" alt="">학생카드</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/quest.svg" alt="">퀘스트</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/routine.svg" alt="">성장루틴</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/mission.svg" alt="">미션</span>
+                <span><img loading="lazy" decoding="async" data-classroom-icon-file="quest" src="images/classroom/cards/fox-quest-320.webp" alt="">퀘스트</span>
+                <span><img loading="lazy" decoding="async" data-classroom-icon-file="routine" src="images/classroom/cards/bunny-routine-320.webp" alt="">성장루틴</span>
+                <span><img loading="lazy" decoding="async" data-classroom-icon-file="mission" src="images/classroom/community-tree-320.webp" alt="">미션</span>
                 <span><img loading="lazy" decoding="async" src="images/classroom-icons/bank.svg" alt="">은행</span>
                 <span><img loading="lazy" decoding="async" src="images/classroom-icons/exchange.svg" alt="">환전</span>
                 <span><img loading="lazy" decoding="async" src="images/classroom-icons/point-token.svg" alt="">포인트</span>
@@ -566,6 +572,10 @@
                   <option value="quizAchieved">퀴즈 달성형</option>
                 </select>
               </label>
+              <label>제출 유형
+                <select id="classroom-quest-submission-input"><option value="complete">완료 체크</option><option value="rating">상·중·하 자기 평가</option><option value="checklist">체크리스트</option><option value="text">글 제출</option><option value="image">이미지 제출</option></select>
+              </label>
+              <label>체크리스트 항목 (한 줄에 하나, 최대 10개)<textarea id="classroom-quest-checklist-input" maxlength="1210" rows="3"></textarea></label>
               <input id="classroom-quest-targets-input" type="hidden">
               <div id="classroom-quest-target-picker" class="classroom-picker-grid" aria-label="대상 학생 선택"></div>
               <label>
@@ -881,6 +891,22 @@
                   <option value="shopHelperTicket">도우미권</option>
                   <option value="shopMusicCoupon">음악 쿠폰</option>
                   <option value="shopFreeTime">자유시간권</option>
+                  <option value="shopSnack">간식 쿠폰</option>
+                  <option value="shopLunch">급식 순서</option>
+                  <option value="shopGift">선물 상자</option>
+                  <option value="shopReserveReading">독서 시간권</option>
+                  <option value="shopReservePainting">미술 활동권</option>
+                  <option value="shopReserveSports">체육 활동권</option>
+                  <option value="shopReserveScience">과학 실험권</option>
+                  <option value="shopReserveCinema">영화 감상권</option>
+                  <option value="shopReserveCamera">사진 촬영권</option>
+                  <option value="shopReserveFlowers">꽃 화분</option>
+                  <option value="shopReserveWateringcan">물뿌리개</option>
+                  <option value="shopReserveBench">정원 벤치</option>
+                  <option value="shopReserveMailbox">마음 우체통</option>
+                  <option value="shopReserveTreasure">보물 상자</option>
+                  <option value="shopReserveAquarium">작은 수족관</option>
+
                   <option value="boost-farmer-friend">허수아비</option>
                   <option value="boost-big-tree">나무</option>
                   <option value="boost-fountain">분수</option>
@@ -898,30 +924,7 @@
                   <option value="effectStarClassroom">별빛 교실 효과</option>
                 </select>
               </label>
-              <div class="classroom-icon-picker-preview classroom-icon-picker-preview--wide" aria-label="상점 아이콘 미리보기">
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/point-shop.svg" alt="">포인트샵</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/coin-shop.svg" alt="">코인샵</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/billboard.svg" alt="">전광판</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/inventory.svg" alt="">보관함</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/bank.svg" alt="">은행</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/exchange.svg" alt="">환전</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/student-card.svg" alt="">학생카드</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/quest.svg" alt="">퀘스트</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/mission.svg" alt="">미션</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-homework-pass.svg" alt="">숙제 면제권</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-seat-choice.svg" alt="">자리 선택권</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-praise-card.svg" alt="">칭찬 카드</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-presentation-pass.svg" alt="">발표 패스</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-mini-badge.svg" alt="">미니 배지</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-helper-ticket.svg" alt="">도우미권</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-music-coupon.svg" alt="">음악 쿠폰</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/shop-free-time.svg" alt="">자유시간권</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/boost-greenhouse.svg" alt="">온실</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/boost-sprinkler.svg" alt="">스프링클러</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/boost-sun-lamp.svg" alt="">햇빛 램프</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/effect-golden-garden.svg" alt="">황금 텃밭</span>
-                <span><img loading="lazy" decoding="async" src="images/classroom-icons/effect-star-classroom.svg" alt="">별빛 교실</span>
-              </div>
+              <div id="classroom-shop-art-preview" class="classroom-shop-art-preview" aria-label="선택한 상품 이미지 미리보기" aria-live="polite"></div>
               <button class="button primary" type="submit">상품 저장</button>
             </form>
             <p id="classroom-shop-editor-status" class="classroom-review-status" aria-live="polite"></p>
@@ -1119,20 +1122,25 @@
           </div>
           <p id="classroom-review-status" class="classroom-review-status" aria-live="polite"></p>
           <div id="classroom-review-grid" class="classroom-review-grid"></div>
+          <details class="classroom-report-details">
+            <summary>학급 현황과 기록 보기</summary>
+            <div id="classroom-teacher-report" class="classroom-teacher-report"></div>
+          </details>
         </section>
 
+        <div class="classroom-followup-entry"><button class="button secondary" type="button" data-classroom-followup-open>농장·교실 생활과 경제</button></div>
+        <div class="classroom-board-entry" data-classroom-board-entry hidden><button class="button primary" type="button" data-classroom-board-open>전자칠판 수업 보드</button></div>
         <section class="classroom-panel is-active" data-classroom-panel="today" aria-labelledby="classroom-today-heading">
           <h3 id="classroom-today-heading" class="sr-only">오늘</h3>
           <div id="classroom-today-grid" class="classroom-today-grid"></div>
-          <div id="classroom-activity-feed" class="classroom-activity-feed"></div>
           <div id="classroom-home-management-slot" class="classroom-management-slot"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="classroom" aria-label="학생카드">
-          <div id="classroom-card-management-slot" class="classroom-management-slot"></div>
           <div id="classroom-student-card-body" class="classroom-subsection-body">
             <div id="classroom-student-card-grid" class="classroom-card-grid"></div>
           </div>
+          <div id="classroom-card-management-slot" class="classroom-management-slot"></div>
         </section>
 
         <section class="classroom-panel" data-classroom-panel="quest" aria-label="퀘스트">
@@ -1146,54 +1154,61 @@
         <section class="classroom-panel" data-classroom-panel="routine" aria-label="성장루틴">
           <div id="classroom-routine-teacher-board" class="classroom-routine-board" hidden></div>
           <div id="classroom-routine-body" class="classroom-subsection-body">
-            <form id="classroom-routine-form" class="classroom-quest-form">
+            <details id="classroom-routine-editor" class="classroom-routine-editor">
+              <summary>새 루틴 만들기</summary>
+            <form id="classroom-routine-form" class="classroom-quest-form classroom-routine-planner">
               <input id="classroom-routine-id-input" type="hidden">
-              <label>
-                루틴 이름
-                <input id="classroom-routine-title-input" type="text" maxlength="40" placeholder="예: 아침 독서">
-              </label>
-              <div class="classroom-routine-items-field" id="classroom-routine-checklist-fields">
-                <span>체크리스트</span>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="1" type="text" maxlength="40" placeholder="예: 10분 독서">
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="2" type="text" maxlength="40" placeholder="예: 읽은 쪽수 기록">
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="3" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="4" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="5" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="6" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="7" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="8" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="9" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <input class="classroom-routine-item-input" data-classroom-routine-item-index="10" type="text" maxlength="40" placeholder="체크 항목 추가" hidden>
-                <button id="classroom-routine-add-item-button" class="button secondary" type="button">항목 추가</button>
-              </div>
               <input id="classroom-routine-target-input" type="hidden" value="5">
-              <label>
-                시작일
-                <input id="classroom-routine-start-input" type="date">
-              </label>
-              <label>
-                종료일
-                <input id="classroom-routine-end-input" type="date">
-              </label>
-              <label>
-                검토 보상 포인트
-                <input id="classroom-routine-reward-input" type="number" min="0" max="20" inputmode="numeric" value="10">
-              </label>
-              <fieldset class="classroom-weekday-fieldset">
-                <legend>체크 요일</legend>
-                <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
-                <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
-                <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
-                <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
-                <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
-              </fieldset>
-              <button class="button primary" type="submit">내 루틴 저장</button>
+              <div class="classroom-routine-plan-settings">
+                <div class="classroom-routine-mode-card">
+                  <img src="images/classroom/cards/bunny-routine-320.webp" alt="" width="88" height="88">
+                  <div><span>루틴 방식</span><h4>목표일 달성 루틴</h4><p>정해진 기간 동안 실천하고, 선생님의 검토를 받아요.</p></div>
+                </div>
+                <label>루틴 꾸러미 이름 <span class="sr-only">필수</span>
+                  <input id="classroom-routine-title-input" type="text" maxlength="40" required placeholder="예: 아침 등교 준비 완성">
+                </label>
+                <label>기준 보상 <span class="classroom-routine-hint">포인트 · 최대 20</span>
+                  <input id="classroom-routine-reward-input" type="number" min="0" max="20" inputmode="numeric" value="10" aria-describedby="classroom-routine-reward-help">
+                </label>
+                <p id="classroom-routine-reward-help" class="classroom-routine-hint">선생님이 실제 달성률을 살펴보고 최종 보상을 정해요.</p>
+                <div class="classroom-routine-dates">
+                  <label>루틴 시작일<input id="classroom-routine-start-input" type="date" required></label>
+                  <label>목표 종료일<input id="classroom-routine-end-input" type="date" required></label>
+                </div>
+                <p class="classroom-routine-hint">시작일부터 종료일까지, 선택한 요일에 체크할 수 있어요.</p>
+                <fieldset class="classroom-weekday-fieldset">
+                  <legend>반복 요일 설정</legend>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="1" checked> 월</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="2" checked> 화</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="3" checked> 수</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="4" checked> 목</label>
+                  <label><input type="checkbox" name="classroom-routine-weekday" value="5" checked> 금</label>
+                </fieldset>
+              </div>
+              <div class="classroom-routine-items-field" id="classroom-routine-checklist-fields">
+                <div class="classroom-routine-list-heading"><strong>성장 루틴 <small>최대 10개</small></strong><output id="classroom-routine-item-count" aria-live="polite">0/10</output></div>
+                <p class="classroom-routine-hint">매일 실천할 작은 습관을 하나씩 적어 주세요.</p>
+                    <label class="classroom-routine-item-row"><span>01</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="1" type="text" maxlength="40" aria-label="성장 루틴 1" placeholder="예: 10분 독서"></label>
+                    <label class="classroom-routine-item-row"><span>02</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="2" type="text" maxlength="40" aria-label="성장 루틴 2" placeholder="예: 읽은 내용 한 줄 기록"></label>
+                    <label class="classroom-routine-item-row" hidden><span>03</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="3" type="text" maxlength="40" aria-label="성장 루틴 3" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>04</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="4" type="text" maxlength="40" aria-label="성장 루틴 4" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>05</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="5" type="text" maxlength="40" aria-label="성장 루틴 5" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>06</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="6" type="text" maxlength="40" aria-label="성장 루틴 6" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>07</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="7" type="text" maxlength="40" aria-label="성장 루틴 7" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>08</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="8" type="text" maxlength="40" aria-label="성장 루틴 8" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>09</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="9" type="text" maxlength="40" aria-label="성장 루틴 9" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                    <label class="classroom-routine-item-row" hidden><span>10</span><input class="classroom-routine-item-input" data-classroom-routine-item-index="10" type="text" maxlength="40" aria-label="성장 루틴 10" placeholder="실천할 습관을 적어 주세요" hidden></label>
+                <button id="classroom-routine-add-item-button" class="button secondary" type="button">+ 성장 루틴 추가</button>
+              </div>
+              <div class="classroom-routine-save-row"><span>작은 실천을 모아 나만의 습관을 만들어요.</span><button class="button primary" type="submit">내 루틴 저장</button></div>
             </form>
+            </details>
             <p id="classroom-routine-status" class="classroom-review-status" aria-live="polite"></p>
             <div id="classroom-routine-grid" class="classroom-card-grid"></div>
           </div>
         </section>
 
+        <section id="classroom-securities-panel" class="classroom-panel" data-classroom-panel="securities" aria-label="우리반 증권소"></section>
         <section class="classroom-panel" data-classroom-panel="bank" aria-label="은행">
           <div id="classroom-bank-management-slot" class="classroom-management-slot"></div>
           <div id="classroom-bank-body" class="classroom-subsection-body">
@@ -1248,22 +1263,32 @@
         </div>
       </div>
 
-      <div class="admin-section-tabs" aria-label="관리자 메뉴">
-        <button class="admin-section-tab is-active" type="button" data-admin-section-target="dashboard">대시보드</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="classroom">우리 교실</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="audit" data-super-admin-only>운영 점검</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="quiz-quality" data-super-admin-only>문제 점검</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="student-economy">학생 재화</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="communications">소통 관리</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>외부 퀴즈</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="season-events" data-super-admin-only>시즌 이벤트</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="login" data-super-admin-only>로그인 설정</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="features" data-super-admin-only>기능 관리</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="permissions" data-super-admin-only>권한 관리</button>
-        <button class="admin-section-tab" type="button" data-admin-section-target="logs" data-super-admin-only>작업 이력</button>
-      </div>
+      <nav class="admin-section-tabs" aria-label="관리자 메뉴">
+        <div class="admin-nav-group"><strong>운영 요약</strong><div class="admin-nav-items">
+          <button class="admin-section-tab is-active" type="button" data-admin-section-target="dashboard">대시보드</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="audit" data-super-admin-only>운영 점검</button>
+        </div></div>
+        <div class="admin-nav-group"><strong>학생 관리</strong><div class="admin-nav-items">
+          <button class="admin-section-tab" type="button" data-admin-section-target="members">회원 목록</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="student-economy">학생 재화</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="communications">소통 관리</button>
+        </div></div>
+        <div class="admin-nav-group"><strong>학습·보상</strong><div class="admin-nav-items">
+          <button class="admin-section-tab" type="button" data-admin-section-target="quiz-quality" data-super-admin-only>문제 점검</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="external-quizzes" data-super-admin-only>학습·컨셉 퀴즈</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="dashboard" data-admin-special-shortcut>특별 보상</button>
+        </div></div>
+        <div class="admin-nav-group"><strong>교실·경제</strong><div class="admin-nav-items">
+          <button class="admin-section-tab" type="button" data-admin-section-target="classroom">우리 교실</button>
+        </div></div>
+        <div class="admin-nav-group" data-super-admin-only><strong>시스템</strong><div class="admin-nav-items">
+          <button class="admin-section-tab" type="button" data-admin-section-target="notice" data-super-admin-only>알림판 관리</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="login" data-super-admin-only>로그인 설정</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="features" data-super-admin-only>기능 관리</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="permissions" data-super-admin-only>권한 관리</button>
+          <button class="admin-section-tab" type="button" data-admin-section-target="logs" data-super-admin-only>작업 이력</button>
+        </div></div>
+      </nav>
 
       <section id="admin-section-dashboard" class="admin-section is-active" aria-labelledby="admin-dashboard-heading">
         <button class="admin-section-toggle" type="button" data-admin-section-target="dashboard" aria-expanded="true">
@@ -1278,6 +1303,11 @@
             <button id="admin-dashboard-refresh" class="button secondary" type="button">새로고침</button>
           </div>
           <p id="admin-dashboard-status" class="admin-status" aria-live="polite"></p>
+          <div class="admin-quick-actions" aria-label="자주 쓰는 작업">
+            <button type="button" class="button secondary" data-admin-section-target="members">학생 찾기</button>
+            <button type="button" class="button secondary" data-admin-section-target="classroom">교실 확인 대기</button>
+            <button type="button" class="button secondary" data-admin-section-target="dashboard" data-admin-special-shortcut>특별 보상 관리</button>
+          </div>
           <div id="admin-dashboard-grid" class="admin-dashboard-grid"></div>
           <div id="admin-dashboard-recent" class="admin-dashboard-recent"></div>
         </div>
@@ -1311,9 +1341,10 @@
         </button>
         <div class="admin-section-body">
           <div class="admin-notice-actions">
+            <label>점검 범위 <select id="admin-audit-scope"><option value="current">현재 운영 기록</option><option value="archive">과거 보관 자료</option></select></label>
             <button id="admin-audit-refresh" class="button secondary" type="button">점검 실행</button>
           </div>
-          <p id="admin-audit-status" class="admin-status" aria-live="polite"></p>
+          <p id="admin-audit-status" class="admin-status" aria-live="polite">점검 실행을 누르면 운영 기록을 조회합니다.</p>
           <div id="admin-audit-summary" class="admin-summary"></div>
           <div id="admin-audit-list" class="admin-audit-list"></div>
         </div>
@@ -1331,7 +1362,7 @@
           <div class="admin-notice-actions">
             <button id="admin-quiz-quality-refresh" class="button secondary" type="button">점검 실행</button>
           </div>
-          <p id="admin-quiz-quality-status" class="admin-status" aria-live="polite"></p>
+          <p id="admin-quiz-quality-status" class="admin-status" aria-live="polite">점검 실행을 누르면 퀴즈와 문항을 조회합니다.</p>
           <div id="admin-quiz-quality-summary" class="admin-summary"></div>
           <div id="admin-quiz-quality-list" class="admin-audit-list"></div>
         </div>
@@ -1491,7 +1522,7 @@
               <textarea id="admin-notice-announcement-input" maxlength="160"></textarea>
             </label>
             <label>
-              오늘의 퀴즈
+              학습 안내
               <textarea id="admin-notice-quest-input" maxlength="160"></textarea>
             </label>
           </div>
@@ -1507,12 +1538,18 @@
         <button class="admin-section-toggle" type="button" data-admin-section-target="external-quizzes" aria-expanded="false">
           <span>
             <span class="eyebrow">External</span>
-            <strong id="admin-external-quizzes-heading">외부 퀴즈 관리</strong>
+            <strong id="admin-external-quizzes-heading">학습·컨셉 퀴즈 관리</strong>
           </span>
           <span aria-hidden="true">⌄</span>
         </button>
         <div class="admin-section-body">
-          <div id="admin-external-quiz-list" class="admin-external-quiz-list" aria-label="외부 퀴즈 입력 목록"></div>
+          <p>학교 파란 문은 학습 퀴즈, 노란 문은 컨셉 퀴즈입니다. 기존 외부 퀴즈는 학습 분류로 유지됩니다.</p>
+          <div class="admin-notice-actions">
+            <label>컨셉 월 <select id="admin-concept-month"><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select></label>
+            <label>컨셉 주제 <input id="admin-concept-theme" type="text" maxlength="40" placeholder="예: 경제"></label>
+          </div>
+          <p>각 링크의 분류를 선택하세요. 컨셉 주제를 비워두면 학생에게 준비 중으로 표시합니다.</p>
+          <div id="admin-external-quiz-list" class="admin-external-quiz-list" aria-label="학습·컨셉 퀴즈 입력 목록"></div>
           <div class="admin-notice-actions">
             <button id="admin-external-quizzes-load" class="button secondary" type="button">불러오기</button>
             <button id="admin-external-quizzes-save" class="button primary" type="button">저장</button>
@@ -1521,23 +1558,6 @@
         </div>
       </section>
 
-      <section id="admin-section-season-events" class="admin-section" aria-labelledby="admin-season-events-heading" data-super-admin-only>
-        <button class="admin-section-toggle" type="button" data-admin-section-target="season-events" aria-expanded="false">
-          <span>
-            <span class="eyebrow">Season</span>
-            <strong id="admin-season-events-heading">시즌 이벤트 설계</strong>
-          </span>
-          <span aria-hidden="true">⌄</span>
-        </button>
-        <div class="admin-section-body">
-          <div id="admin-season-event-list" class="admin-external-quiz-list" aria-label="시즌 이벤트 입력 목록"></div>
-          <div class="admin-notice-actions">
-            <button id="admin-season-events-load" class="button secondary" type="button">불러오기</button>
-            <button id="admin-season-events-save" class="button primary" type="button">저장</button>
-          </div>
-          <p id="admin-season-events-status" class="admin-status" aria-live="polite"></p>
-        </div>
-      </section>
 
       <section id="admin-section-login" class="admin-section" aria-labelledby="admin-login-heading" data-super-admin-only>
         <button class="admin-section-toggle" type="button" data-admin-section-target="login" aria-expanded="false">
@@ -1592,15 +1612,15 @@
             <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-practice-reward" type="checkbox">
               <span>
-                <strong>연습전 DJ코인 지급</strong>
-                <small>새 correctId가 저장될 때만 코인을 지급합니다.</small>
+                <strong>과목 연습 DJ코인 지급</strong>
+                <small>과목 연습의 새 정답에 DJ코인 1개를 지급합니다. 하루 최대 50개이며 인기퀴즈는 지급하지 않습니다.</small>
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-practice-xp" type="checkbox">
               <span>
-                <strong>오늘의 퀴즈 XP 지급</strong>
-                <small>끄면 오늘의 퀴즈 연습전 정답 XP가 쌓이지 않습니다.</small>
+                <strong>과목 연습 XP 지급</strong>
+                <small>과목 연습의 새 정답에 XP 2를 지급합니다. 하루 최대 20 XP이며 공통 주간 한도를 적용합니다. 인기퀴즈는 지급하지 않으며 퀘스트 보상은 별도 한도로 처리합니다.</small>
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
@@ -1613,8 +1633,8 @@
             <label class="admin-checkbox-label admin-feature-switch">
               <input id="admin-feature-external-quizzes" type="checkbox">
               <span>
-                <strong>외부 퀴즈 열기</strong>
-                <small>닫으면 등록된 외부 퀴즈를 학생 화면에서 숨기고 진입을 막습니다.</small>
+                <strong>학습·컨셉 퀴즈 열기</strong>
+                <small>닫으면 학습·컨셉 퀴즈 진입을 막고 등록된 링크의 활성 체크를 모두 해제합니다.</small>
               </span>
             </label>
             <label class="admin-checkbox-label admin-feature-switch">
@@ -1632,31 +1652,7 @@
               </span>
             </label>
           </div>
-          <div class="admin-settings-form">
-            <label>
-              오늘의 퀴즈 방식
-              <select id="admin-feature-today-quiz-mode">
-                <option value="manual">지정 퀴즈</option>
-                <option value="dailyRandom">매일 자정 랜덤 셔플</option>
-              </select>
-            </label>
-            <label>
-              오늘의 퀴즈 ID
-              <input id="admin-feature-today-quiz-ids" type="text" placeholder="예: gmo, unified-silla-balhae">
-            </label>
-            <input id="admin-feature-today-quiz-pool-ids" type="hidden">
-            <label>
-              하루 선택 수
-              <input id="admin-feature-today-quiz-count" type="number" min="1" max="10" inputmode="numeric" value="1">
-            </label>
-          </div>
-          <div class="admin-quiz-toggle-panel">
-            <div class="admin-panel-subhead">
-              <strong>오늘의 퀴즈 랜덤 후보</strong>
-              <span>영어 ID 입력 대신 후보 퀴즈를 체크해서 고릅니다.</span>
-            </div>
-            <div id="admin-today-quiz-pool-grid" class="admin-quiz-toggle-grid"></div>
-          </div>
+
           <div class="admin-quiz-toggle-panel">
             <div class="admin-panel-subhead">
               <strong>퀴즈별 열기/닫기</strong>
@@ -1666,7 +1662,6 @@
           </div>
           <div class="admin-notice-actions">
             <button id="admin-feature-flags-load" class="button secondary" type="button">불러오기</button>
-            <button id="admin-today-quiz-shuffle-now" class="button secondary" type="button">오늘의 퀴즈 즉시 셔플</button>
             <button id="admin-feature-flags-save" class="button primary" type="button">저장</button>
           </div>
           <p id="admin-feature-flags-status" class="admin-status" aria-live="polite"></p>
@@ -1718,13 +1713,14 @@
               작업 종류
               <select id="admin-logs-action-filter">
                 <option value="">전체</option>
+                <option value="adminPublishSpecialReward">특별 보상 게시</option>
+                <option value="adminCloseSpecialReward">특별 보상 종료</option>
                 <option value="adminResetMemberPassword">비밀번호 초기화</option>
                 <option value="adminUpdateMemberStatus">회원 상태 변경</option>
                 <option value="adminUpdateMemberVisibility">교실 표시 설정</option>
                 <option value="adminUnlinkMemberAuth">연결 해제</option>
                 <option value="adminUpdateNoticeBoard">알림판 수정</option>
-                <option value="adminUpdateExternalQuizzes">외부 퀴즈 수정</option>
-                <option value="adminUpdateSeasonEvents">시즌 이벤트 수정</option>
+                <option value="adminUpdateExternalQuizzes">학습·컨셉 퀴즈 수정</option>
                 <option value="adminUpdatePasswordSetupSettings">로그인 설정 변경</option>
                 <option value="adminUpdateFeatureFlags">기능 설정 변경</option>
                 <option value="adminGrantClassAdmin">반 관리자 지정</option>
@@ -1755,23 +1751,23 @@
         </div>
       </div>
 
-      <!-- 온라인 대전 진입: js/battle-hub.js 가 학교 퀴즈 카드 줄에 '온라인 대전' 카드를
-           과목 카드와 같은 모양으로 끼워 넣는다 (클릭 → 낱말 대전/특산물 마블 선택 화면) -->
+      <!-- 게임 아지트 입구: 기존 /battle/ 게임 선택 화면으로 이동 -->
 
-      <div class="school-scene">
-        <span class="school-scene-title" aria-hidden="true">퀴즈 학교</span>
-        <span class="school-board">오늘의 수업</span>
-        <span class="school-desk desk-a"></span>
-        <span class="school-desk desk-b"></span>
-        <span class="school-window"></span>
-        <div id="school-quiz-grid" class="school-quiz-grid" aria-label="학교 퀴즈 카드"></div>
+      <div class="school-map-scroll" tabindex="0" aria-label="학교 로비. 작은 화면에서는 옆으로 밀어 입구를 찾아보세요.">
+        <div class="school-scene">
+          <button class="school-homeroom-door" type="button" data-place="classroom"><span>우리 교실</span></button>
+          <div id="school-quiz-grid" class="school-quiz-grid" aria-label="과목관과 게임 아지트 입구"></div>
+        </div>
       </div>
+      <p class="school-map-hint">🌿 문을 누르면 입장해요. 작은 화면에서는 옆으로 밀어 둘러보세요.</p>
 
       <section id="external-quiz-section" class="external-quiz-section" aria-label="외부 퀴즈 링크" hidden>
         <div id="external-quiz-grid" class="external-quiz-grid" aria-label="외부 퀴즈 링크"></div>
         <p id="external-quiz-status" class="external-quiz-status" aria-live="polite"></p>
       </section>
     </section>
+
+    <section id="school-room-view" class="school-room app-view" aria-labelledby="school-room-title" hidden></section>
 
     <section id="subject-view" class="subject-view app-view" aria-labelledby="subject-title" hidden>
       <div class="subject-topbar">
@@ -1963,12 +1959,13 @@
   <script src="/__/firebase/10.12.2/firebase-storage-compat.js"></script>
   <script src="/__/firebase/10.12.2/firebase-functions-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
-  <script src="/js/app.bundle.js"></script>
-  <script src="/js/wb-ranking-plaza.js?v=4"></script>
-  <script src="/js/mb-ranking-plaza.js?v=2"></script>
-  <script src="/js/battle-hub.js?v=3"></script>
-  <script src="/js/gs-ranking-plaza.js?v=2"></script>
-  <script src="/js/geosang-hub.js?v=1"></script>
+  <script src="/js/app.bundle.js?v=workspace-20261028"></script>
+  <script src="/js/ranking-visibility.js?v=1"></script>
+  <script src="/js/ranking-plaza-loader.js?v=1"></script>
+  <script src="/js/event-plaza-loader.js?v=1"></script>
+  <script src="/js/hideout-ranking-plaza.js?v=fruit-bell-emotes-20260929"></script>
+  <script src="/js/battle-hub.js?v=workspace-20261028"></script>
+  <script src="/js/school-rooms.js?v=popular-completion-20261018"></script>
   <script>
     const PLACE_DETAILS = window.DJ48_PLACE_DETAILS;
 
@@ -2110,25 +2107,25 @@
         titleId: 'legend_quiz_king',
         icon: '👑',
         name: '전설의 퀴즈왕',
-        desc: '여러 과목 퀴즈에서 꾸준히 좋은 성과를 낸 학생에게 어울리는 칭호입니다.'
+        desc: '여러 과목 퀴즈에서 꾸준히 좋은 성과를 낸 학생에게 어울리는 타이틀입니다.'
       },
       {
         titleId: 'korean_master',
         icon: '📚',
         name: '국어 마스터',
-        desc: '맞춤법과 독서 퀴즈를 즐겨 푼 학생에게 어울리는 칭호입니다.'
+        desc: '맞춤법과 독서 퀴즈를 즐겨 푼 학생에게 어울리는 타이틀입니다.'
       },
       {
         titleId: 'three_kingdoms_expert',
         icon: '🏯',
         name: '삼국시대 전문가',
-        desc: '삼국시대 문제를 자신 있게 풀 수 있는 학생을 위한 칭호입니다.'
+        desc: '삼국시대 문제를 자신 있게 풀 수 있는 학생을 위한 타이틀입니다.'
       },
       {
         titleId: 'reading_king',
         icon: '📖',
         name: '독서왕',
-        desc: '책 속 인물과 사건을 꼼꼼히 살펴보는 학생에게 어울리는 칭호입니다.'
+        desc: '책 속 인물과 사건을 꼼꼼히 살펴보는 학생에게 어울리는 타이틀입니다.'
       }
     ];
     const TITLE_NAME_BY_ID = {
@@ -2142,26 +2139,7 @@
       quiz_mania: '퀴즈매니아'
     };
 
-    const BADGE_DATA = [
-      {
-        badgeId: 'reading_king',
-        icon: '📖',
-        name: '독서왕',
-        desc: '독서 퀴즈 활동을 나타내는 뱃지입니다.'
-      },
-      {
-        badgeId: 'quiz_king',
-        icon: '🏆',
-        name: '퀴즈왕',
-        desc: '여러 퀴즈를 골고루 풀어본 학생을 위한 뱃지입니다.'
-      },
-      {
-        badgeId: 'ranking_challenger',
-        icon: '🏅',
-        name: '랭킹전 챌린저',
-        desc: '나중에 랭킹전 참여 기록과 연결할 수 있는 뱃지입니다.'
-      }
-    ];
+    const BADGE_DATA = [{badgeId:'none',icon:'📖',name:'연습기록',desc:'100번 답하면 1회 완주로 기록돼요.'}];
 
     const SHOP_ITEMS = [
       {
@@ -2289,41 +2267,41 @@
       },
       {
         itemId: 'gold_title_frame',
-        category: '칭호 프레임',
-        name: '금빛 칭호 프레임',
-        desc: '대표 칭호를 더 돋보이게 보여주는 프레임 아이템입니다.',
+        category: '타이틀 프레임',
+        name: '금빛 타이틀 프레임',
+        desc: '대표 타이틀을 더 돋보이게 보여주는 프레임 아이템입니다.',
         price: ECONOMY_CONSTANTS.shopPriceTable.titleFrame,
         icon: '🟨'
       },
       {
         itemId: 'chalk_nameplate_frame',
-        category: '칭호 프레임',
+        category: '타이틀 프레임',
         name: '칠판 이름표',
-        desc: '랭킹과 프로필에서 대표 칭호를 칠판 느낌으로 보여주는 이름표입니다.',
+        desc: '랭킹과 프로필에서 대표 타이틀을 칠판 느낌으로 보여주는 이름표입니다.',
         price: 160,
         icon: '▰'
       },
       {
         itemId: 'notebook_nameplate_frame',
-        category: '칭호 프레임',
+        category: '타이틀 프레임',
         name: '공책 이름표',
-        desc: '대표 칭호에 공책 라벨 같은 깔끔한 테두리를 더합니다.',
+        desc: '대표 타이틀에 공책 라벨 같은 깔끔한 테두리를 더합니다.',
         price: 180,
         icon: '▣'
       },
       {
         itemId: 'starlight_nameplate_frame',
-        category: '칭호 프레임',
+        category: '타이틀 프레임',
         name: '별빛 이름표',
-        desc: '랭킹에서 대표 칭호를 반짝이는 별빛 분위기로 보여줍니다.',
+        desc: '랭킹에서 대표 타이틀을 반짝이는 별빛 분위기로 보여줍니다.',
         price: 320,
         icon: '✦'
       },
       {
         itemId: 'honor_nameplate_frame',
-        category: '칭호 프레임',
+        category: '타이틀 프레임',
         name: '명예의 전당 이름표',
-        desc: '상위 랭킹에 어울리는 묵직한 명예 배지를 대표 칭호에 붙입니다.',
+        desc: '상위 랭킹에 어울리는 묵직한 명예 배지를 대표 타이틀에 붙입니다.',
         price: 520,
         icon: '◆'
       }
@@ -2332,7 +2310,7 @@
     const SHOP_CATEGORY_LABELS = {
       background: '배경',
       avatar: '아바타',
-      titleFrame: '칭호 프레임'
+      titleFrame: '타이틀 프레임'
     };
 
     const SHOP_ICON_FALLBACKS = {
@@ -2373,12 +2351,6 @@
       externalQuizzesEnabled: true,
       eventPlazaEnabled: true,
       rankingEnabled: true,
-      todayQuizMode: 'dailyRandom',
-      todayQuizIds: [],
-      todayQuizRandomPoolIds: [],
-      todayQuizDailyCount: 1,
-      todayQuizShuffleSeed: '',
-      todayQuizShuffledAtIso: '',
       disabledQuizIds: []
     };
     const DEFAULT_EXTERNAL_QUIZZES = {
@@ -2425,7 +2397,7 @@
         eventId: 'reading_king_season',
         icon: '📖',
         title: '독서왕 시즌',
-        desc: '독서 퀴즈를 중심으로 시즌 칭호와 뱃지를 모으는 이벤트입니다.',
+        desc: '독서 퀴즈를 중심으로 시즌 타이틀과 뱃지를 모으는 이벤트입니다.',
         period: '이번 달',
         periodType: 'monthly',
         quizIds: ['gmo', 'time_store']
@@ -2551,40 +2523,6 @@
       'pokemon-gen9'
     ]);
 
-    const TODAY_QUIZ_ELIGIBLE_IDS = new Set([
-      'spelling',
-      'word-relation',
-      'spacing',
-      'proverb',
-      'idiom',
-      'gmo',
-      'time_store',
-      'fraction-basic',
-      'science-general',
-      'samgukji',
-      'ancient-history',
-      'unified-silla-balhae',
-      'cultural_heritage',
-      'history-people',
-      'idol',
-      'anime',
-      'flag-country',
-      'snack-food',
-      'emoji-kpop',
-      'emoji-anime',
-      'emoji-tiniping',
-      'dad-joke',
-      'tiniping',
-      'pokemon-gen1',
-      'pokemon-gen2',
-      'pokemon-gen3',
-      'pokemon-gen4',
-      'pokemon-gen5',
-      'pokemon-gen6',
-      'pokemon-gen7',
-      'pokemon-gen8',
-      'pokemon-gen9'
-    ]);
 
     const QUESTION_BANK = {
       spelling: [
@@ -2763,6 +2701,7 @@
     let titleCatalogCache = null;
     let titleCatalogMapCache = null;
     let serverFreshnessPollTimer = null;
+    let serverFreshnessRequest = null;
 
     function debugLog(...args) {
       try {
@@ -2796,12 +2735,14 @@
       const button = document.getElementById('global-refresh-button');
       if(!button) return;
       button.classList.toggle('needs-refresh', !!needsAttention);
-      button.textContent = needsAttention ? '새 정보 있음' : '최신 정보';
+      (button.querySelector('.town-refresh-label') || button).textContent = needsAttention ? '새 정보 있음' : '최신 정보';
+      button.setAttribute('aria-label', needsAttention ? '새 소식 있음 — 최신 정보 확인' : '새 소식 확인');
       button.title = message || (needsAttention ? '서버에 새 운영 정보가 있습니다. 눌러서 다시 불러오세요.' : '서버의 최신 정보를 다시 불러옵니다.');
     }
 
     function clearRuntimeDataCaches() {
       window.DJ48RankingState.resetPlazaModel();
+      window.dispatchEvent(new Event('dj48-ranking-invalidated'));
       titleCatalogCache = null;
       titleCatalogMapCache = null;
       window.DJ48HomeState.resetHomeState();
@@ -2820,33 +2761,45 @@
     }
 
     async function checkServerFreshness() {
-      if(!window.DJ48AccountState.getCurrentMemberUserId()) return;
-      try {
-        const signature = await loadServerFreshnessSignature();
-        if(!signature) return;
-        const stored = getStoredServerFreshnessSignature();
-        if(!stored) {
-          storeServerFreshnessSignature(signature);
-          setGlobalRefreshNeedsAttention(false);
-          return;
+      const memberId = window.DJ48AccountState.getCurrentMemberUserId();
+      if(!memberId || document.hidden) return;
+      if(serverFreshnessRequest?.memberId === memberId) return serverFreshnessRequest.promise;
+      const request = { memberId, promise: null };
+      serverFreshnessRequest = request;
+      request.promise = (async () => {
+        try {
+          const signature = await loadServerFreshnessSignature();
+          if(!signature || document.hidden || window.DJ48AccountState.getCurrentMemberUserId() !== memberId) return;
+          const stored = getStoredServerFreshnessSignature();
+          if(!stored) {
+            storeServerFreshnessSignature(signature);
+            setGlobalRefreshNeedsAttention(false);
+            return;
+          }
+          setGlobalRefreshNeedsAttention(stored !== signature);
+        } catch(error) {
+          debugLog('Server freshness check skipped.', error);
+        } finally {
+          if(serverFreshnessRequest === request) serverFreshnessRequest = null;
         }
-        setGlobalRefreshNeedsAttention(stored !== signature);
-      } catch(error) {
-        debugLog('Server freshness check skipped.', error);
-      }
+      })();
+      return request.promise;
     }
 
     function startServerFreshnessPolling() {
       if(serverFreshnessPollTimer) return;
       window.setTimeout(checkServerFreshness, 2500);
       serverFreshnessPollTimer = window.setInterval(checkServerFreshness, 60000);
+      document.addEventListener('visibilitychange', () => {
+        if(!document.hidden) void checkServerFreshness();
+      });
     }
 
     async function refreshCurrentAppData() {
       const button = document.getElementById('global-refresh-button');
       if(button) {
         button.disabled = true;
-        button.textContent = '불러오는 중';
+        (button.querySelector('.town-refresh-label') || button).textContent = '불러오는 중';
       }
       try {
         clearRuntimeDataCaches();
@@ -2868,6 +2821,8 @@
           await renderClassroomPrototype(true);
         } else if(!document.getElementById('school-view')?.hidden) {
           renderSchoolQuizCards();
+        } else if(!document.getElementById('school-room-view')?.hidden) {
+          await window.DJ48SchoolHubs.refresh();
         } else if(!document.getElementById('subject-view')?.hidden) {
           renderSubjectQuizCards(window.DJ48QuizSessionState.getCurrentSubjectId());
         } else if(!document.getElementById('quiz-select-view')?.hidden) {
@@ -2879,25 +2834,19 @@
         const signature = await loadServerFreshnessSignature().catch(() => '');
         if(signature) storeServerFreshnessSignature(signature);
         setGlobalRefreshNeedsAttention(false, '최신 정보를 다시 불러왔습니다.');
+        await window.DJ48TownAvatar?.refresh(true);
+        if(!document.getElementById('town-view')?.hidden) openPlaceModal('notice');
       } finally {
         if(button) {
           button.disabled = false;
-          if(!button.classList.contains('needs-refresh')) button.textContent = '최신 정보';
+          if(!button.classList.contains('needs-refresh')) (button.querySelector('.town-refresh-label') || button).textContent = '최신 정보';
         }
       }
     }
 
     function openPlaceModal(placeId) {
       if(placeId === 'home') {
-        // 내 집 기본 화면은 각자 설정을 따름 (기본값 = 하보형 내 방).
-        // 'dashboard'로 정한 사람만 기존 대시보드로. 설정은 localStorage(사이트 공유).
-        let style = 'room';
-        try { style = window.localStorage.getItem('dj48HomeViewStyle') || 'room'; } catch(e) {}
-        if(style === 'dashboard') {
-          showHomeView();
-        } else {
-          window.location.href = '/housing/';
-        }
+        showHomeView();
         return;
       }
       if(placeId === 'school') {
@@ -2913,9 +2862,7 @@
         return;
       }
       if(placeId === 'shop') {
-        // 상점은 하우징(내 방 꾸미기) 상점으로 통합됨 — 기존 DJ48 상점 화면(showShopView)은 보존만
-        // 관리자가 기능 관리에서 상점을 닫아뒀으면 이동하지 않고 안내
-        openHousingShopRespectingFlag();
+        showShopView();
         return;
       }
       if(placeId === 'event') {
@@ -2943,7 +2890,7 @@
         desc: PLACE_DETAILS.notice.desc,
         summary: '',
         announcement: PLACE_DETAILS.notice.features[0]?.value || '',
-        quest: '오늘의 퀴즈 연습전에서 새 정답을 맞히면 XP +2가 추가돼요.',
+        quest: '',
         recommendedQuizLabel: PLACE_DETAILS.notice.features[2]?.value || '',
         recommendedQuizId: '',
         recommendedQuiz2Label: '',
@@ -2984,16 +2931,14 @@
         { label: '이벤트 보기', enabled: true, action: 'openEvent' },
         { label: '랭킹 보기', enabled: true, action: 'openRanking' }
       ];
-      const todayQuizText = data.quest || '오늘의 퀴즈를 풀고 보상을 받아요.';
       return {
         icon: PLACE_DETAILS.notice.icon,
         kicker: PLACE_DETAILS.notice.kicker,
         title: data.title,
-        desc: '공지와 오늘의 퀴즈를 확인하세요.',
+        desc: '선생님이 전하는 마을 소식을 확인하세요.',
         summary: '',
         features: [
-          { label: '공지', value: data.announcement },
-          { label: '오늘의 퀴즈', value: todayQuizText, note: '오늘의 퀴즈 XP +2 추가 · DJ코인은 모든 연습전 새 정답에 지급' }
+          { label: '공지', value: data.announcement }
         ],
         hideSummary: true,
         hideStatus: true,
@@ -3025,26 +2970,16 @@
       if(drop) drop.hidden = true;
     }
 
-    function getNoticeBoardForDailyDrop(notice, flags = getActiveFeatureFlags()) {
-      const data = normalizeNoticeBoardData(notice);
-      const quizIds = getActiveTodayQuizIdsForNotice(flags);
-      if(!quizIds.length) return data;
-      return normalizeNoticeBoardData({
-        ...data,
-        quest: getTodayQuizNoticeText(quizIds),
-        recommendedQuizLabel: QUIZ_CATALOG[quizIds[0]]?.title || quizIds[0] || data.recommendedQuizLabel,
-        recommendedQuizId: quizIds[0] || data.recommendedQuizId,
-        recommendedQuiz2Label: QUIZ_CATALOG[quizIds[1]]?.title || quizIds[1] || data.recommendedQuiz2Label,
-        recommendedQuiz2Id: quizIds[1] || data.recommendedQuiz2Id
-      });
+    function getNoticeBoardForDailyDrop(notice) {
+      return normalizeNoticeBoardData(notice);
     }
 
     function renderDailyNoticeDrop(notice) {
       const drop = document.getElementById('daily-notice-drop');
       if(!drop || hasDismissedDailyNoticeDropToday()) return;
       const data = normalizeNoticeBoardData(notice);
-      document.getElementById('daily-notice-drop-title').textContent = data.title || '오늘의 퀴즈';
-      document.getElementById('daily-notice-drop-quest').textContent = data.quest || '오늘의 퀴즈를 풀고 보상을 받아요.';
+      document.getElementById('daily-notice-drop-title').textContent = '마을 알림';
+      document.getElementById('daily-notice-drop-quest').textContent = '';
       document.getElementById('daily-notice-drop-announcement').textContent = data.announcement || '선생님 공지를 확인하세요.';
       drop.hidden = false;
     }
@@ -3072,7 +3007,7 @@
         desc: '경험치와 DJ코인을 얻는 방법입니다.',
         summary: '',
         features: [
-          { label: '연습전', value: '새 문제를 맞히면 DJ코인을 받을 수 있어요.', note: 'DJ코인은 오늘 받을 수 있는 한도가 적용됩니다. 오늘의 퀴즈 연습전은 XP +2가 추가됩니다.' },
+          { label: '연습전', value: '새 문제를 맞히면 DJ코인을 받을 수 있어요.', note: 'DJ코인은 오늘 받을 수 있는 한도가 적용됩니다.' },
           { label: '랭킹전', value: '랭킹전에 참여하고 좋은 기록을 남기면 보상을 받을 수 있어요.', note: '너무 오래 걸린 기록은 랭킹 보상에서 제외될 수 있습니다.' },
           { label: '이벤트 광장', value: '오늘의 퀘스트를 완료하면 XP와 DJ코인을 추가로 받을 수 있어요.', note: '완료 후 이벤트 광장에서 보상 받기를 눌러야 지급됩니다.' },
           { label: '우리 교실', value: '교실 퀘스트, 직업, 루틴, 교환 기능으로 포인트와 DJ코인을 관리할 수 있어요.', note: '교실 기능은 학급 설정과 선생님 승인 상태에 따라 달라집니다.' }
@@ -3149,7 +3084,7 @@
         kicker: 'Title Catalog',
         title: '타이틀 목록',
         desc: '타이틀 목록을 불러오는 중입니다.',
-        summary: '보유한 타이틀은 내 집에서 대표 칭호로 선택할 수 있고, 선택한 칭호는 랭킹에 표시됩니다.',
+        summary: '보유한 타이틀은 내 집에서 대표 타이틀로 선택할 수 있고, 선택한 타이틀은 랭킹에 표시됩니다.',
         features: [{ label: '불러오는 중', value: '타이틀 목록을 확인하고 있습니다.' }],
         actions: []
       };
@@ -3158,14 +3093,14 @@
       loadTitleCatalogFromFirestore()
         .then(titles => {
           renderTitleCatalogPanel(titles);
-          document.getElementById('modal-status').textContent = '잠긴 타이틀은 조건을 달성하면 보유 칭호에 나타납니다.';
+          document.getElementById('modal-status').textContent = '잠긴 타이틀은 조건을 달성하면 보유 타이틀에 나타납니다.';
         })
         .catch(error => {
           console.warn('Firestore titleCatalog read failed.', error);
           renderPlacePanel({
             ...place,
             desc: '타이틀 목록을 불러오지 못했습니다.',
-            features: TITLE_DATA.map(title => ({ label: title.name, value: title.desc }))
+            features: [{label:'다시 시도',value:'새 타이틀 목록을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.'}]
           });
         });
     }
@@ -3191,11 +3126,12 @@
     }
 
     function renderTitleCatalogPanel(titles) {
+      titles = titles.filter(title => String(title.titleId || '').startsWith('a26_'));
       document.getElementById('modal-icon').textContent = '🏷️';
       document.getElementById('modal-kicker').textContent = 'Title Catalog';
       document.getElementById('modal-title').textContent = '타이틀 목록';
       document.getElementById('modal-desc').textContent = `총 ${titles.length}개의 타이틀과 획득 조건입니다.`;
-      document.getElementById('modal-summary').textContent = '분야별로 타이틀 조건을 확인할 수 있습니다. 보유한 타이틀은 내 집에서 대표 칭호로 선택합니다.';
+      document.getElementById('modal-summary').textContent = '분야별로 타이틀 조건을 확인할 수 있습니다. 보유한 타이틀은 내 집에서 대표 타이틀로 선택합니다.';
       renderPanelActions([]);
 
       const root = document.getElementById('modal-features');
@@ -3230,7 +3166,8 @@
               const name = document.createElement('strong');
               const condition = document.createElement('p');
               item.className = 'title-catalog-item';
-              name.className = ['title-badge', title.themeClass, title.tierClass, title.effectClass].filter(Boolean).join(' ');
+              name.className = 'ranking-title-chip';
+              window.DJ48RankingRender?.applyTitleChipAppearance(name, title.titleId);
               name.textContent = title.titleName || title.titleId;
               condition.textContent = title.conditionText || title.description || title.titleId;
               item.append(name, condition);
@@ -3292,6 +3229,7 @@
       return {
         titleId: data.titleId || doc.id || '',
         titleName: data.titleName || data.title || data.name || data.titleId || doc.id || '',
+        imageUrl: data.imageUrl || '',
         conditionText: data.conditionText || data.description || '획득 조건을 확인 중입니다.',
         description: data.description || data.conditionText || '',
         category: data.category || '',
@@ -3307,7 +3245,7 @@
       if(titleCatalogCache && !forceRefresh) return titleCatalogCache;
       await initializeAuthUser();
       titleCatalogCache = await window.DJ48HomeRepository.createHomeRepository({
-        getFirestoreDb
+        getFirestoreDb, getFirebaseFunctions
       }).loadTitleCatalog({
         normalizeTitleCatalogDoc
       });
@@ -3322,28 +3260,64 @@
       return BADGE_DATA.find(badge => badge.badgeId === badgeId) || BADGE_DATA[0];
     }
 
+    let homeLoadEpoch = 0;
+    let homeLoadEntry = null;
+    let homeRenderEpoch = 0;
+    let homeRenderedOwner = '';
+    const homeDetailLoads = new Map();
+
+    function invalidateHomeLoading() {
+      homeLoadEpoch++;
+      homeRenderEpoch++;
+      homeLoadEntry = null;
+      homeDetailLoads.clear();
+    }
+
+    function getHomeLoadKey() {
+      return `${getFirebaseAuthUser()?.uid || ''}:${window.DJ48AccountState.getCurrentMemberUserId() || ''}:${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })}`;
+    }
+
+    function loadHomeMemberDataCached(force = false) {
+      const key = getHomeLoadKey();
+      if(!force && homeLoadEntry?.key === key && (homeLoadEntry.pending || Date.now() - homeLoadEntry.time < 30000)) return homeLoadEntry.promise;
+      const entry = { key, pending: true, time: 0 };
+      entry.promise = loadHomeMemberDataFromFirestore().then(model => {
+        entry.pending = false; entry.time = Date.now(); return model;
+      }, error => { if(homeLoadEntry === entry) homeLoadEntry = null; throw error; });
+      homeLoadEntry = entry;
+      return entry.promise;
+    }
+
+    function loadHomeDetail(key) {
+      if(key !== 'ranking' && key !== 'items') return Promise.resolve();
+      const loadKey = getHomeLoadKey() + ':' + key;
+      const cached = homeDetailLoads.get(loadKey);
+      if(cached && (cached.pending || Date.now() - cached.time < 30000)) return cached.promise;
+      const entry = { pending: true, time: 0 };
+      entry.promise = Promise.resolve(key === 'ranking' ? renderProfileRankingRecordsFromFirestore() : renderHomeOwnedItemsFromFirestore())
+        .then(result => { if(result?.error) throw result.error; entry.pending = false; entry.time = Date.now(); })
+        .catch(error => { homeDetailLoads.delete(loadKey); console.warn('Home detail load failed.', error); });
+      homeDetailLoads.set(loadKey, entry);
+      return entry.promise;
+    }
+
     function renderHomeView() {
-      renderProfileCard();
-      renderMemberLinkPanel();
-      renderCollectionCards('title-card-grid', window.DJ48AccountState.getCurrentMemberUserId() ? [{
-        titleId: 'loading',
-        icon: '🏷️',
-        name: '칭호 불러오는 중',
-        desc: '보유 칭호를 확인하고 있습니다.'
-      }] : TITLE_DATA, 'title-card');
-      renderCollectionCards('badge-card-grid', window.DJ48AccountState.getCurrentMemberUserId() ? [{
-        badgeId: 'loading',
-        icon: '🏅',
-        name: '연습 현황 불러오는 중',
-        desc: '연습기록 기반 뱃지 현황을 확인하고 있습니다.'
-      }] : BADGE_DATA, 'badge-card');
-      renderHomeOwnedItemsFallback();
-      renderHomeOwnedItemsFromFirestore();
-      const profileRankingRoot = document.getElementById('profile-ranking-root');
-      if(profileRankingRoot) {
-        profileRankingRoot.innerHTML = '<p class="profile-ranking-empty">내 랭킹 기록을 불러오는 중입니다...</p>';
+      const owner = getHomeLoadKey();
+      if(homeRenderedOwner !== owner) {
+        homeRenderedOwner = owner;
+        document.getElementById('profile-card-root').replaceChildren();
+        document.querySelectorAll('#home-view [data-home-detail-toggle]').forEach(button => { button.classList.remove('is-active'); button.setAttribute('aria-expanded', 'false'); });
+        document.querySelectorAll('#home-view [data-home-detail-panel]').forEach(panel => panel.classList.remove('is-active'));
+        renderProfileCard();
+        renderHomeOwnedItemsFallback();
+        renderCollectionCards('title-card-grid', [], 'title-card');
+        renderCollectionCards('badge-card-grid', [], 'badge-card');
+        document.getElementById('profile-ranking-root').textContent = '내 랭킹 기록을 열면 불러옵니다.';
       }
-      renderHomeMemberDataFromFirestore();
+      renderMemberLinkPanel();
+      renderHomeMemberDataFromFirestore(false);
+      const active = document.querySelector('#home-view [data-home-detail-toggle].is-active');
+      if(active) loadHomeDetail(active.dataset.homeDetailToggle);
     }
 
     function getFallbackProfileModel() {
@@ -3365,7 +3339,6 @@
         rankingMessage: '',
         levelSummary: window.DJ48HomeData.computeHomeLevelSummary(USER_REWARD_DATA.exp),
         dailyRewardStatus: null,
-        todayQuizSummary: buildTodayQuizSummary(getActiveFeatureFlags())
       };
     }
 
@@ -3404,24 +3377,7 @@
       image.style.transformOrigin = 'center center';
     }
 
-    function getActiveTodayQuizIds(flags = getActiveFeatureFlags()) {
-      const ids = Array.isArray(flags.activeTodayQuizIds) && flags.activeTodayQuizIds.length
-        ? flags.activeTodayQuizIds
-        : flags.todayQuizIds;
-      return Array.from(new Set((ids || []).map(id => normalizeFirebaseQuizId(id)).filter(Boolean)))
-        .filter(quizId => isQuizEnabledByFlags(quizId, flags));
-    }
 
-    function buildTodayQuizSummary(flags = getActiveFeatureFlags()) {
-      const quizIds = getActiveTodayQuizIds(flags);
-      return {
-        modeLabel: flags.todayQuizMode === 'dailyRandom' ? '매일 랜덤' : '오늘 지정',
-        quizzes: quizIds.slice(0, 4).map(quizId => ({
-          quizId,
-          title: QUIZ_CATALOG[quizId]?.title || quizId
-        }))
-      };
-    }
 
     function renderProfileAvatar(root, profile) {
       return window.DJ48HomeRender.renderProfileAvatar(root, profile, {
@@ -3474,7 +3430,8 @@
         profile: window.DJ48AccountState.getCurrentMemberProfile() || null,
         profileData: PROFILE_DATA,
         userRewardData: USER_REWARD_DATA,
-        memberUserId: window.DJ48AccountState.getCurrentMemberUserId() || ''
+        memberUserId: window.DJ48AccountState.getCurrentMemberUserId() || '',
+        deferRewardStatus: true
       }, {
         homeRepository: window.DJ48HomeRepository.createHomeRepository({
           getFirestoreDb,
@@ -3488,7 +3445,6 @@
         buildHomeMemberModel: data => window.DJ48HomeData.buildHomeMemberModel(data, {
           isPracticeBadgeVisibleByFlags,
           getLevelMedalAsset: level => window.DJ48LevelMedalAssets?.getLevelMedalAsset(level),
-          buildTodayQuizSummary,
           getKnownTitleName,
           fallbackTitleName: findTitle(PROFILE_DATA.mainTitleId).name,
           fallbackBadgeName: findBadge(PROFILE_DATA.mainBadgeId).name
@@ -3496,20 +3452,28 @@
       });
     }
 
-    function renderHomeMemberDataFromFirestore() {
+    function renderHomeMemberDataFromFirestore(force = true) {
+      const key = getHomeLoadKey(), epoch = homeLoadEpoch, renderEpoch = ++homeRenderEpoch;
+      const isCurrent = () => key === getHomeLoadKey() && epoch === homeLoadEpoch && renderEpoch === homeRenderEpoch && !document.getElementById('home-view')?.hidden;
       return window.DJ48HomeUsecases.renderHomeMemberData({
         selectedTitleId: window.DJ48AccountState.getCurrentMemberProfile()?.selectedTitleId || ''
       }, {
-        loadHomeMemberData: loadHomeMemberDataFromFirestore,
+        loadHomeMemberData: () => loadHomeMemberDataCached(force),
+        isCurrent,
+        renderRewardProfile: profile => {
+          const panel = document.querySelector('#profile-card-root .profile-reward-panel');
+          if(panel) {
+            const next = window.DJ48HomeRender.renderProfileRewardPanel(profile);
+            if(!profile.dailyRewardStatus) next.querySelectorAll('.profile-reward-grid strong').forEach(value => value.textContent = '다시 확인 필요');
+            panel.replaceWith(next);
+          }
+        },
         renderProfileCard,
         buildTitleCardsForRender: window.DJ48HomeData.buildTitleCardsForRender,
         getDefaultTitleCards: window.DJ48HomeData.getDefaultTitleCards,
         getDefaultBadgeCards: window.DJ48HomeData.getDefaultBadgeCards,
         renderCollectionCards,
         renderBadgeProgressGroups,
-        renderProfileRankingRecords: () => renderProfileRankingRecordsFromFirestore().catch(error => {
-          console.warn('Firestore profile ranking records refresh failed.', error);
-        }),
         warn: console.warn
       });
     }
@@ -3544,10 +3508,17 @@
     }
 
     function runProfileHomeAction(action, options = {}) {
-      return window.DJ48HomeController.runProfileHomeAction(action, options, {
+      const result = window.DJ48HomeController.runProfileHomeAction(action, options, {
         profileUsecases: window.DJ48ProfileUsecases,
         getActionDeps: getProfileHomeActionDeps
       });
+      if(['saveImageEditorSelection', 'saveRankingMessage', 'saveNickname', 'saveSelectedTitle'].includes(action)) {
+        return Promise.resolve(result).then(value => {
+          window.dispatchEvent(new Event('dj48-ranking-invalidated'));
+          return value;
+        });
+      }
+      return result;
     }
 
     async function searchProfileImageCandidatesFromHome() {
@@ -3772,9 +3743,10 @@
 
     async function syncCurrentMemberTitlesFromHome(button = null) {
       const memberUserId = window.DJ48AccountState.getCurrentMemberUserId();
-      const status = document.getElementById('title-sync-status');
+      const status = button ? document.getElementById('title-sync-status') : null;
+      if(status) status.hidden = false;
       if(!memberUserId) {
-        if(status) status.textContent = '회원 연결 후 칭호를 확인할 수 있습니다.';
+        if(status) status.textContent = '회원 연결 후 타이틀을 확인할 수 있습니다.';
         return null;
       }
       const originalText = button?.textContent || '';
@@ -3782,25 +3754,25 @@
         button.disabled = true;
         button.textContent = '확인 중...';
       }
-      if(status) status.textContent = '받을 수 있는 칭호를 확인하고 있습니다.';
+      if(status) status.textContent = '받을 수 있는 타이틀을 확인하고 있습니다.';
       try {
         const result = await getProfileRepository().syncMemberTitlesForMember({ memberUserId });
         await renderHomeMemberDataFromFirestore();
         const awardedTitles = Array.isArray(result.awardedTitles) ? result.awardedTitles : [];
         if(status) {
           status.textContent = awardedTitles.length
-            ? `새 칭호 ${awardedTitles.length}개를 받았습니다: ${awardedTitles.map(item => item.titleName || item.titleId).join(', ')}`
-            : '새로 받을 칭호는 없습니다.';
+            ? `새 타이틀 ${awardedTitles.length}개를 받았습니다: ${awardedTitles.map(item => item.titleName || item.titleId).join(', ')}`
+            : '새로 받을 타이틀은 없습니다.';
         }
         return result;
       } catch(error) {
         console.warn('Home title sync failed.', error);
-        if(status) status.textContent = '칭호 확인 중 문제가 생겼습니다.';
+        if(status) status.textContent = '타이틀 확인 중 문제가 생겼습니다.';
         return null;
       } finally {
         if(button) {
           button.disabled = false;
-          button.textContent = originalText || '칭호 확인';
+          button.textContent = originalText || '타이틀 확인';
         }
       }
     }
@@ -3828,7 +3800,8 @@
     async function renderHomeOwnedItemsFromFirestore() {
       const root = document.getElementById('owned-item-grid');
       if(!root) return;
-      await window.DJ48HomeUsecases.renderHomeOwnedItems({
+      const key = getHomeLoadKey(), epoch = homeLoadEpoch;
+      return window.DJ48HomeUsecases.renderHomeOwnedItems({
         memberUserId: window.DJ48AccountState.getCurrentMemberUserId()
       }, {
         getShopItemsForRender,
@@ -3837,7 +3810,7 @@
         getRoomSettingsForRender,
         getOwnedShopItems: window.DJ48ShopData.getOwnedShopItems,
         getDefaultRoomSettings,
-        renderHomeOwnedItems,
+        renderHomeOwnedItems: (...args) => { if(key === getHomeLoadKey() && epoch === homeLoadEpoch) renderHomeOwnedItems(...args); },
         warn: console.warn
       });
     }
@@ -3853,17 +3826,32 @@
       return window.DJ48RankingRender.renderRankingCards(entries);
     }
 
+    let displayedSeasonMonth = '';
+    function getCurrentSeasonMonth() {
+      return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 7);
+    }
+
     function renderRankingView() {
-      return window.DJ48RankingUsecases.renderRankingView({
+      displayedSeasonMonth = getCurrentSeasonMonth();
+      return window.DJ48RankingPlaza.show({
         fallbackCards: RANKING_DATA,
-        loadingTitle: '랭킹 불러오는 중'
-      }, {
-        renderRankingCards,
-        renderRankingBoards,
-        loadRankingPlazaCards: loadRankingPlazaCardsFromFirestore,
-        warn: console.warn
+        scope: () => [window.DJ48AccountState.getFirebaseAuthUser()?.uid || '', window.DJ48AccountState.getCurrentMemberUserId(), displayedSeasonMonth, JSON.stringify(getActiveFeatureFlags())].join('|'),
+        emptyBoards: () => getRankingBoardModels([], [], []),
+        activeBoard: () => window.DJ48RankingState.getActiveBoardId(),
+        renderCards: renderRankingCards,
+        renderBoards: renderRankingBoards,
+        renderPanel: (panel, board) => window.DJ48RankingRender.renderRankingBoardPanel(panel, board, getRankingRenderDeps()),
+        setModel: window.DJ48RankingState.setPlazaModel,
+        loadBoard: boardId => loadRankingPlazaCardsFromFirestore(boardId)
       });
     }
+
+    function refreshSeasonRankingAfterMonthChange() {
+      if(document.hidden || document.getElementById('ranking-view')?.hidden !== false) return;
+      if(displayedSeasonMonth !== getCurrentSeasonMonth()) renderRankingView();
+    }
+    setInterval(refreshSeasonRankingAfterMonthChange, 60000);
+    document.addEventListener('visibilitychange', refreshSeasonRankingAfterMonthChange);
 
     function normalizeRankingDisplayName(data) {
       return String(data?.displayNickname || data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
@@ -3979,6 +3967,7 @@
     }
 
     async function renderProfileRankingRecordsFromFirestore() {
+      const key = getHomeLoadKey(), epoch = homeLoadEpoch;
       return window.DJ48RankingUsecases.renderCurrentMemberProfileRankingFlow({
         recordLimit: PROFILE_RANKING_RECORD_LIMIT,
         bestContextLimit: 5
@@ -3988,7 +3977,7 @@
         isRankingRowEnabledByFlags,
         getProfileBestRankingRecords,
         compareProfileBestRankingRecords: (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0) || (Number(a.elapsedSeconds) || 999999) - (Number(b.elapsedSeconds) || 999999),
-        renderProfileRankingRecords,
+        renderProfileRankingRecords: (...args) => { if(key === getHomeLoadKey() && epoch === homeLoadEpoch) renderProfileRankingRecords(...args); },
         setProfileRankingLoading: () => {
           const root = document.getElementById('profile-ranking-root');
           if(root) {
@@ -4072,6 +4061,7 @@
     const PROFILE_RANKING_RECORD_LIMIT = 500;
     const PROFILE_RANKING_CONTEXT_LIMIT = 240;
     const POKEMON_RANKING_CATEGORY_KEYS = [
+      'popular-v2-pokemon',
       '포켓몬1세대',
       '포켓몬2세대',
       '포켓몬3세대',
@@ -4086,8 +4076,9 @@
       '포켓몬어려움',
       '포켓몬헬'
     ];
-    const TINIPING_RANKING_CATEGORY_KEYS = ['티니핑', '인물티니핑', '인기이모지-티니핑'];
+    const TINIPING_RANKING_CATEGORY_KEYS = ['popular-v2-tiniping', '티니핑', '인물티니핑', '인기이모지-티니핑'];
     const RANKING_PLAZA_CATEGORY_KEYS = [
+      ...(window.DJ48PopularQuiz?.rankingKeys || []),
       '맞춤법',
       '아재개그',
       '단어다의어-동형이의어',
@@ -4112,6 +4103,7 @@
       ...POKEMON_RANKING_CATEGORY_KEYS
     ];
     const RANKING_CATEGORY_QUIZ_ID_MAP = {
+      ...Object.fromEntries((window.DJ48PopularQuiz?.ids || []).map(id => ['popular-v2-' + id, id])),
       '맞춤법': 'spelling',
       '아재개그': 'dad-joke',
       '단어다의어-동형이의어': 'word-relation',
@@ -4255,6 +4247,7 @@
         getPopularFilteredRows,
         onRankingBoardSelect: boardId => {
           window.DJ48RankingState.setActiveBoardId(boardId);
+          window.DJ48RankingPlaza.select(boardId);
         },
         onPopularAreaSelect: areaId => {
           window.DJ48RankingState.selectPopularArea(areaId);
@@ -4311,6 +4304,10 @@
     }
 
     function getPopularRankingAreas() {
+      if(window.DJ48PopularQuiz) return [
+        { id: 'all', label: '전체', keys: getEnabledRankingCategoryKeys(window.DJ48PopularQuiz.rankingKeys) },
+        ...window.DJ48PopularQuiz.ids.map(id => ({ id: id === 'flag-country' ? 'flag' : id, label: QUIZ_CATALOG[id].title.replace(' 퀴즈', ''), keys: getEnabledRankingCategoryKeys(['popular-v2-' + id]) }))
+      ];
       const areas = [
         { id: 'all', label: '전체', keys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'] },
         { id: 'dadJoke', label: '아재개그', keys: ['아재개그'] },
@@ -4329,6 +4326,7 @@
     }
 
     function getPopularPokemonDifficulties() {
+      if(window.DJ48PopularQuiz) return [{ id: 'all', label: '선택 세대 최고 기록', keys: ['popular-v2-pokemon'] }];
       const difficulties = [
         { id: 'all', label: '전체', keys: POKEMON_RANKING_CATEGORY_KEYS },
         { id: 'easy', label: '쉬움', keys: ['포켓몬쉬움'] },
@@ -4345,6 +4343,7 @@
     }
 
     function getPopularModeOptions(records, areaId) {
+      if(window.DJ48PopularQuiz) return [{ id: 'normal', label: '랭킹전', value: 'normal' }];
       return [
         { id: 'all', label: '전체', value: '' },
         { id: 'normal', label: '일반', value: 'normal' },
@@ -4356,6 +4355,10 @@
 
     function getPopularAreaForRecord(record) {
       const key = getRankingCategoryKey(record);
+      if(key.startsWith('popular-v2-')) {
+        const id = key.slice('popular-v2-'.length);
+        return { id: id === 'flag-country' ? 'flag' : id, label: (QUIZ_CATALOG[id]?.title || id).replace(' 퀴즈', '') };
+      }
       if(key === '아재개그') return { id: 'dadJoke', label: '아재개그' };
       if(key === '인물아이돌') return { id: 'idol', label: '아이돌' };
       if(key === '인물애니') return { id: 'anime', label: '애니' };
@@ -4482,17 +4485,18 @@
     }
 
     function getRankingBoardModels(quizKingSummaries, rankingRecords, seasonEvents = []) {
-      return window.DJ48RankingData.getRankingBoardModels(quizKingSummaries, rankingRecords, seasonEvents, getRankingDataDeps());
+      return window.DJ48RankingData.getRankingBoardModels(quizKingSummaries, rankingRecords, [], getRankingDataDeps()).filter(board => board.id !== 'season');
     }
 
-    async function loadRankingPlazaCardsFromFirestore() {
+    async function loadRankingPlazaCardsFromFirestore(boardId = '') {
       return window.DJ48RankingUsecases.loadRankingPlazaData({
+        boardId,
         rowLimit: RANKING_PLAZA_ROW_LIMIT,
-        koreanCategoryKeys: ['맞춤법', '단어다의어-동형이의어', '국어띄어쓰기', '국어속담', '국어사자성어', '독서지엠오-아이', '독서시간가게'],
-        socialCategoryKeys: ['사회삼국지', '사회고대사-삼국시대', '사회통일신라-발해'],
-        mathCategoryKeys: ['수학곱셈과-나눗셈', '수학분수', '수학분수-기초'],
-        scienceCategoryKeys: ['과학과학-상식'],
-        popularCategoryKeys: ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'],
+        koreanCategoryKeys: ['subject-korean'],
+        socialCategoryKeys: ['subject-social'],
+        mathCategoryKeys: ['subject-math'],
+        scienceCategoryKeys: ['subject-science'],
+        popularCategoryKeys: window.DJ48PopularQuiz?.rankingKeys || ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'],
         pokemonCategoryKeys: POKEMON_RANKING_CATEGORY_KEYS,
         tinipingCategoryKeys: TINIPING_RANKING_CATEGORY_KEYS
       }, {
@@ -4505,15 +4509,7 @@
         getBestRankingRecordByCategoryKeys,
         buildQuizKingCard: buildQuizKingRankingCard,
         buildRankingRecordCard,
-        loadSeasonEventsForRanking: async () => {
-          try {
-            const seasonEvents = normalizeSeasonEvents(await getAdminRepository().loadPublicSeasonEvents());
-            return seasonEvents.items;
-          } catch(error) {
-            console.warn('Public season events read failed. Season rankings will stay empty.', error);
-            return [];
-          }
-        },
+        loadSeasonEventsForRanking: async () => [],
         getSeasonRankingCategoryKeys: seasonEvents => window.DJ48RankingData.getSeasonRankingCategoryKeys(seasonEvents, getRankingDataDeps()),
         getRankingBoardModels
       });
@@ -4532,18 +4528,9 @@
     }
 
     function normalizeFeatureFlags(data = {}) {
-      const normalizeQuizIds = value => Array.isArray(value)
-        ? Array.from(new Set(value.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
-        : [];
-      const filterTodayQuizIds = ids => ids.filter(id => TODAY_QUIZ_ELIGIBLE_IDS.has(id));
       const disabledQuizIds = Array.isArray(data.disabledQuizIds)
         ? Array.from(new Set(data.disabledQuizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean)))
         : [];
-      const todayQuizIds = filterTodayQuizIds(normalizeQuizIds(data.todayQuizIds));
-      const activeTodayQuizIds = Array.isArray(data.activeTodayQuizIds)
-        ? filterTodayQuizIds(normalizeQuizIds(data.activeTodayQuizIds))
-        : todayQuizIds;
-      const todayQuizRandomPoolIds = filterTodayQuizIds(normalizeQuizIds(data.todayQuizRandomPoolIds));
       return {
         practiceRewardEnabled: data.practiceRewardEnabled !== false,
         practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -4551,13 +4538,6 @@
         externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
         eventPlazaEnabled: data.eventPlazaEnabled !== false,
         rankingEnabled: data.rankingEnabled !== false,
-        todayQuizMode: data.todayQuizMode === 'manual' ? 'manual' : 'dailyRandom',
-        todayQuizIds,
-        activeTodayQuizIds,
-        todayQuizRandomPoolIds,
-        todayQuizDailyCount: Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1))),
-        todayQuizShuffleSeed: String(data.todayQuizShuffleSeed || '').trim(),
-        todayQuizShuffledAtIso: String(data.todayQuizShuffledAtIso || '').trim(),
         disabledQuizIds
       };
     }
@@ -4579,6 +4559,7 @@
     }
 
     function isRankingRowEnabledByFlags(row, flags = getActiveFeatureFlags()) {
+      if(window.DJ48SubjectQuiz?.isLegacyRecord(row)) return false;
       if(isCurrentAdminMember()) return true;
       const quizId = normalizeFirebaseQuizId(row?.quizId || '');
       if(quizId) return isQuizEnabledByFlags(quizId, flags);
@@ -4699,6 +4680,7 @@
         return {
           id: String(item?.id || `external-${index + 1}`).trim().replace(/[^0-9A-Za-z_-]/g, '-').slice(0, 40) || `external-${index + 1}`,
           title,
+          group: item?.group === 'concept' ? 'concept' : 'learning',
           description: String(item?.description || '').trim().slice(0, 120),
           url,
           active: item?.active !== false,
@@ -4706,7 +4688,7 @@
         };
       }).filter(item => item.title && item.url)
         .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
-      return { items };
+      return { items, concept: { month: Math.min(12, Math.max(1, Math.trunc(Number(data.concept?.month) || 1))), theme: String(data.concept?.theme || '').trim().slice(0, 40) } };
     }
 
     async function loadExternalQuizzes(forceRefresh = false) {
@@ -4746,41 +4728,7 @@
     }
 
     function getRankingModeOptionsForQuiz(quizId) {
-      const id = normalizeFirebaseQuizId(quizId);
-      const base = [
-        { label: '일반', value: 'normal' },
-        { label: '원코', value: 'onechance' },
-        { label: '노힌트', value: 'nohint' },
-        { label: '스피드', value: 'speed' }
-      ];
-      if(id === 'spelling') {
-        return base.filter(item => item.value === 'normal' || item.value === 'onechance' || item.value === 'speed');
-      }
-      const limitedToNormalAndOneChance = new Set([
-        'random-basic',
-        'gmo',
-        'time_store',
-        'spacing',
-        'fraction-basic',
-        'cultural_heritage'
-      ]);
-      if(limitedToNormalAndOneChance.has(id)) {
-        return base.filter(item => item.value === 'normal' || item.value === 'onechance');
-      }
-      const noHintDisabled = new Set([
-        'proverb',
-        'cultural_heritage',
-        'science-general',
-        'flag-country',
-        'snack-food',
-        'emoji-kpop',
-        'emoji-anime',
-        'emoji-tiniping'
-      ]);
-      if(noHintDisabled.has(id)) {
-        return base.filter(item => item.value !== 'nohint');
-      }
-      return base;
+      return [{ label: '랭킹전', value: 'normal' }];
     }
 
     function getSupportedRankingModeForQuiz(quizId, rankingMode) {
@@ -4848,87 +4796,20 @@
     }
 
     async function refreshPopularUsageNotices() {
-      const targets = Array.from(document.querySelectorAll('[data-popular-usage-notice]'));
-      if(!targets.length) return;
-      if(isCurrentAdminMember()) {
-        targets.forEach(target => {
-          const card = target.closest('.school-quiz-card, .subject-quiz-card');
-          target.hidden = false;
-          target.textContent = '관리자 자유 접근';
-          target.dataset.state = 'available';
-          target.dataset.urgency = 'low';
-          if(card) card.classList.remove('is-popular-locked');
-        });
-        return;
-      }
-      const memberUserId = getCurrentDataOwnerId();
-      targets.forEach(target => {
+      document.querySelectorAll('[data-popular-usage-notice]').forEach(target => {
         target.hidden = false;
-        target.textContent = memberUserId && memberUserId !== TEST_SHOP_USER_ID
-          ? '확인 중'
-          : '로그인 후 표시';
+        target.textContent = '시간 제한 없음';
+        target.dataset.state = 'available';
+        target.closest('.school-quiz-card, .subject-quiz-card')?.classList.remove('is-popular-locked');
       });
-      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return;
-      try {
-        const usage = await getDailyUsageForToday(memberUserId);
-        const status = getDailyUsageAccessStatus(usage);
-        targets.forEach(target => {
-          const card = target.closest('.school-quiz-card, .subject-quiz-card');
-          const noticeText = getPopularUsageNoticeText(status);
-          target.textContent = noticeText;
-          target.dataset.state = status.locked ? 'locked' : 'available';
-          if(status.locked) {
-            delete target.dataset.urgency;
-          } else {
-            target.dataset.urgency = noticeText === '끝이 보여요' ? 'low' : 'normal';
-          }
-          if(card) card.classList.toggle('is-popular-locked', !!status.locked);
-        });
-      } catch(error) {
-        console.warn('Popular usage notice refresh failed.', error);
-        targets.forEach(target => {
-          target.textContent = '확인 실패';
-          target.dataset.state = 'error';
-        });
-      }
     }
 
-    async function ensurePopularQuizAccess(quizId) {
-      if(!isPopularQuiz(quizId)) return { canAccess: true };
-      if(isCurrentAdminMember()) return { canAccess: true, status: { adminBypass: true } };
-      const memberUserId = getCurrentDataOwnerId();
-      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return { canAccess: true };
-      try {
-        const usage = await getDailyUsageForToday(memberUserId);
-        const status = getDailyUsageAccessStatus(usage);
-        if(status.locked) {
-          window.alert(status.message || '오늘은 인기퀴즈를 더 이용할 수 없어요. 국어·수학·사회 퀴즈를 풀고 다시 도전해 주세요.');
-          return { canAccess: false, status };
-        }
-        return { canAccess: true, status };
-      } catch(error) {
-        console.warn('Popular quiz access check failed.', error);
-        window.alert('인기퀴즈 이용 시간을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
-        return { canAccess: false, error };
-      }
+    async function ensurePopularQuizAccess() {
+      return { canAccess: true };
     }
 
     async function ensurePopularSubjectAccess() {
-      if(isCurrentAdminMember()) return true;
-      const memberUserId = getCurrentDataOwnerId();
-      if(!memberUserId || memberUserId === TEST_SHOP_USER_ID) return true;
-      try {
-        const usage = await getDailyUsageForToday(memberUserId);
-        const status = getDailyUsageAccessStatus(usage);
-        await refreshPopularUsageNotices();
-        if(!status.locked) return true;
-        window.alert(status.message || '인기퀴즈 시간이 끝났어요. 국어·수학·사회 퀴즈를 먼저 풀고 다시 도전해 주세요.');
-        return false;
-      } catch(error) {
-        console.warn('Popular subject access check failed.', error);
-        window.alert('인기퀴즈 이용 시간을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
-        return false;
-      }
+      return true;
     }
 
     async function updateDailyUsageForToday(delta = {}) {
@@ -5131,6 +5012,12 @@
     }
 
     function resetUserScopedRuntimeData() {
+      window.DJ48AdminState.resetAdminState();
+      document.getElementById('shop-avatar-market')?.replaceChildren();
+      const shopView = document.getElementById('shop-view');
+      if(shopView) shopView.shopEntryRequest = null;
+      document.getElementById('admin-member-list')?.replaceChildren();
+      document.getElementById('admin-dashboard-grid')?.replaceChildren();
       resetShopRuntimeData();
       resetRoomSettingsCache();
       resetClassroomRuntimeData();
@@ -5192,22 +5079,13 @@
       const destination = window.DJ48AccountData.getRestoredMemberDestination(profile);
       // 하우징 '내 정보 → 자세히 보기'에서 넘어온 경우(?view=home): 내 집 상세 대시보드로
       const wantsHome = new URLSearchParams(window.location.search).get('view') === 'home';
-      if(wantsHome) showHomeView();
+      const subjectReturn = new URLSearchParams(window.location.search).get('subjectQuizReturn');
+      if(['korean', 'math', 'social', 'science'].includes(subjectReturn)) showSubjectView(subjectReturn);
+      else if(new URLSearchParams(window.location.search).has('popularQuizReturn')) showSchoolView();
+      else if(wantsHome) showHomeView();
       else if(destination === 'admin') showAdminView();
       else if(destination === 'town') showTownView();
-      claimHousingDailyCouponSilently(profile);
       startTownSocial();
-    }
-
-    // 하우징 일일 쿠폰: 퀴즈타운에 접속하면 자동 지급 (하루 1장, 중복은 서버가 방지)
-    // 실패해도 앱 이용에 지장 없도록 조용히 넘어간다
-    function claimHousingDailyCouponSilently(profile) {
-      try {
-        const memberUserId = profile?.userId || window.DJ48AccountState.getCurrentMemberUserId?.();
-        const functions = getFirebaseFunctions();
-        if(!memberUserId || !functions) return;
-        functions.httpsCallable('claimHousingDailyCoupon')({ memberUserId }).catch(() => {});
-      } catch (error) { /* 무시 */ }
     }
 
     // ---- 문의하기 (학생 → 선생님, 관리자 센터 '소통 관리'에서 확인) ----
@@ -5938,14 +5816,21 @@
     }
 
     function resetShopRuntimeData() {
+      invalidateHomeLoading();
       window.DJ48ShopState.resetShopRuntimeData();
     }
 
     function resetUserEconomyCache() {
+      invalidateHomeLoading();
       window.DJ48ShopState.resetUserEconomyCache();
     }
+    window.addEventListener('dj48-special-reward-updated', () => {
+      resetUserEconomyCache();
+      resetEventProgressCache();
+    });
 
     function resetRoomSettingsCache() {
+      invalidateHomeLoading();
       window.DJ48ShopState.resetRoomSettingsCache();
     }
 
@@ -6115,14 +6000,16 @@
 
     function renderShopItems(items = SHOP_ITEMS, assetCatalogMap = {}, economy = null, inventoryItemIds = new Set()) {
       const filteredItems = window.DJ48ShopData.filterShopItemsByTab(
-        items,
+        window.DJ48ShopData.withShopShowcase(items),
         window.DJ48ShopState.getActiveShopTab()
       );
       return window.DJ48ShopRender.renderShopItems(filteredItems, assetCatalogMap, economy, inventoryItemIds, {
         userRewardData: USER_REWARD_DATA,
         isUsableImageUrl,
         getShopFallbackIcon,
-        getAvatarEquipment: window.DJ48ShopState.getAvatarEquipment
+        getAvatarEquipment: window.DJ48ShopState.getAvatarEquipment,
+        currentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
+        applyOwnedItem: saveRoomItemSelection
       });
     }
 
@@ -6178,12 +6065,7 @@
     }
 
     async function renderShopFromFirestore() {
-      const { items, assetCatalogMap, economy, inventoryItemIds } = await getShopRenderData();
-      renderShopTabs();
-      renderShopWallet(economy);
       renderAvatarMarket();
-      renderAvatarPreview(items, inventoryItemIds);
-      renderShopItems(items, assetCatalogMap, economy, inventoryItemIds);
     }
 
     async function saveRoomItemSelection(itemId) {
@@ -6195,12 +6077,14 @@
     }
 
     function renderEventLoadingState() {
-      const data = window.DJ48EventData.getEventLoadingRenderData({
+      const cached = window.DJ48EventState.peekEventProgress();
+      const data = cached ? window.DJ48EventData.getEventProgressRenderData(cached) : window.DJ48EventData.getEventLoadingRenderData({
         quests: [],
         classMissions: [],
         seasonEvents: []
       });
       renderEventSections(data);
+      window.DJ48EventRender.renderEventStatus(cached ? '' : '이벤트 기록을 불러오는 중…', !cached, () => renderEventProgressFromFunctions(true));
     }
 
     function getEventRepository() {
@@ -6224,6 +6108,10 @@
       }, {
         getValue: window.DJ48ClassroomState.getValue,
         setValue: window.DJ48ClassroomState.setValue,
+        hasLoadError: window.DJ48ClassroomState.hasLoadError,
+        getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
+        setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        getGeneration: window.DJ48ClassroomState.getGeneration,
         loadClassroomSettings: options => getClassroomRepository().loadClassroomSettings(options)
       });
     }
@@ -6233,12 +6121,18 @@
     }
 
     function getClassroomRepository() {
+      const state = window.DJ48ClassroomState;
+      const generations = Object.fromEntries(['settings', 'progress', 'review', 'wallet', 'gems', 'students', 'economy', 'home']
+        .map(key => [key, state.getGeneration(key)]));
       return window.DJ48ClassroomRepository.createClassroomRepository({
         getFirestoreDb,
         getFirestoreFieldValue,
         getFirebaseFunctions,
         isFirestorePermissionDeniedError,
-        warn: console.warn
+        warn: console.warn,
+        reportLoadStatus: (key, error) => {
+          if(generations[key] === state.getGeneration(key)) state.reportLoadStatus(key, error);
+        }
       });
     }
 
@@ -6248,13 +6142,15 @@
         setValue: window.DJ48ClassroomState.setValue,
         getLoadPromise: window.DJ48ClassroomState.getLoadPromise,
         setLoadPromise: window.DJ48ClassroomState.setLoadPromise,
+        hasLoadError: window.DJ48ClassroomState.hasLoadError,
+        getGeneration: window.DJ48ClassroomState.getGeneration,
         getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
         getRepository: getClassroomRepository
       };
     }
 
-    async function loadClassroomQuestProgress(forceRefresh = false) {
-      const settings = await loadClassroomSettings();
+    async function loadClassroomQuestProgress(forceRefresh = false, loadedSettings = null) {
+      const settings = loadedSettings || await loadClassroomSettings();
       return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('progress', {
         forceRefresh,
         settings
@@ -6273,6 +6169,10 @@
         forceRefresh,
         settings
       }, getClassroomCacheDeps());
+    }
+
+    async function loadClassroomHomeData(settings, forceRefresh = false) {
+      return window.DJ48ClassroomUsecases.loadClassroomRepositoryCachedValue('home', { settings, forceRefresh }, getClassroomCacheDeps());
     }
 
     async function loadClassroomStudentCards(settings, forceRefresh = false) {
@@ -6352,20 +6252,90 @@
       });
     }
 
+    let classroomRenderRequest = null;
+    let classroomLastRenderedMember = null;
     async function renderClassroomPrototype(forceRefresh = false) {
-      const data = await window.DJ48ClassroomUsecases.getClassroomPrototypeViewData({
-        forceRefresh
-      }, {
-        loadClassroomSettings,
-        loadClassroomQuestProgress,
-        loadClassroomReviewItems,
-        loadClassroomWallet,
-        loadClassroomGemProgress,
-        loadClassroomStudentCards,
-        loadClassroomEconomyBoard
-      });
-      window.DJ48ClassroomRender.renderClassroomSections(data, getClassroomRenderDeps());
+      const memberAtStart = window.DJ48AccountState.getCurrentMemberUserId();
+      const revisionAtStart = window.DJ48ClassroomState.getRevision();
+      const activeTab = document.getElementById('classroom-view')?.dataset.activeTab || 'today';
+      const detailMode = document.getElementById('classroom-view')?.dataset.homeDetails === 'true';
+      const active = classroomRenderRequest;
+      if(active?.member === memberAtStart && active?.revision === revisionAtStart && active.tab === activeTab && active.detailMode === detailMode) {
+        if(!forceRefresh) return active.promise;
+        if(!active.refresh) {
+          active.refresh = active.promise.then(() => {
+            if(memberAtStart !== window.DJ48AccountState.getCurrentMemberUserId()
+              || revisionAtStart !== window.DJ48ClassroomState.getRevision()
+              || activeTab !== document.getElementById('classroom-view')?.dataset.activeTab) return;
+            return renderClassroomPrototype(true);
+          });
+        }
+        return active.refresh;
+      }
+      const keepPreviousHome = classroomLastRenderedMember === memberAtStart;
+      if(!keepPreviousHome) document.getElementById('classroom-today-grid')?.replaceChildren();
+      window.DJ48ClassroomRender.renderClassroomLoadState('loading');
+      const request = { member: memberAtStart, revision: revisionAtStart, tab: activeTab, detailMode, promise: null, refresh: null };
+      let previewFrame = null;
+      let preview = null;
+      const cancelPreview = () => {
+        if(previewFrame !== null) window.cancelAnimationFrame(previewFrame);
+        previewFrame = null;
+      };
+      classroomRenderRequest = request;
+      const isCurrent = () => classroomRenderRequest === request
+        && memberAtStart === window.DJ48AccountState.getCurrentMemberUserId()
+        && revisionAtStart === window.DJ48ClassroomState.getRevision();
+      request.promise = (async () => {
+        try {
+          const data = await window.DJ48ClassroomUsecases.getClassroomPrototypeViewData({ forceRefresh, activeTab: activeTab === 'today' && document.getElementById('classroom-view').dataset.homeDetails === 'true' ? 'today-full' : activeTab }, {
+            loadClassroomSettings, loadClassroomQuestProgress, loadClassroomReviewItems, loadClassroomHomeData, isCurrentClassroomTeacher,
+            loadClassroomWallet, loadClassroomGemProgress, loadClassroomStudentCards, loadClassroomEconomyBoard,
+            hasLoadError: window.DJ48ClassroomState.hasLoadError,
+            isCurrent,
+            onPartialData: (partial, readyKeys) => {
+              if(activeTab !== 'today' || keepPreviousHome || !isCurrent() || window.DJ48ClassroomState.hasLoadError('settings')) return;
+              preview = { partial, readyKeys };
+              if(previewFrame !== null) return;
+              previewFrame = window.requestAnimationFrame(() => {
+                previewFrame = null;
+                if(!isCurrent()) return;
+                window.DJ48ClassroomRender.renderClassroomTodayHome(preview.partial, {
+                  ...getClassroomRenderDeps(), previewReadyKeys: preview.readyKeys
+                });
+              });
+            }
+          });
+          cancelPreview();
+          if(!isCurrent()) return;
+          const failures = window.DJ48ClassroomState.getLoadErrors()
+            .filter(key => (!data.requiredKeys || data.requiredKeys.includes(key)) && (key !== 'review' || isCurrentClassroomTeacher(data.settings)));
+          if(failures.length) {
+            window.DJ48ClassroomRender.renderClassroomLoadState('error');
+            return;
+          }
+          window.DJ48ClassroomRender.renderClassroomSections(data, { ...getClassroomRenderDeps(), activeTab });
+          classroomLastRenderedMember = memberAtStart;
+          window.DJ48ClassroomRender.renderClassroomLoadState('ready');
+        } catch(error) {
+          console.warn('Classroom view load failed.', error);
+          if(isCurrent()) window.DJ48ClassroomRender.renderClassroomLoadState('error');
+        } finally {
+          cancelPreview();
+          if(classroomRenderRequest === request) classroomRenderRequest = null;
+        }
+      })();
+      return request.promise;
     }
+
+    document.getElementById('classroom-view')?.addEventListener('click', event => {
+      if(!event.target.closest('[data-classroom-home-details]')) return;
+      document.getElementById('classroom-view').dataset.homeDetails = 'true';
+      renderClassroomPrototype();
+    });
+    document.getElementById('classroom-view')?.addEventListener('classroom-tab-changed', () => {
+      if(!document.getElementById('classroom-view')?.hidden && !document.getElementById('classroom-main-panel')?.hidden) renderClassroomPrototype();
+    });
 
     function setClassroomQuestEditorStatus(message, isError = false) {
       return window.DJ48ClassroomForm.setClassroomStatusElement('classroom-quest-editor-status', message, isError);
@@ -6639,6 +6609,8 @@
         validateValues: values => {
           if(!values.title) return '퀘스트 이름을 입력해 주세요.';
           if(values.rewardCoin <= 0) return '지급 포인트는 1 이상이어야 합니다.';
+          if(values.gemSelectionInvalid) return '연결할 젬을 ID로 다시 선택해 주세요.';
+          if(values.submissionType === 'checklist' && !values.checklistItems.length) return '체크리스트 항목을 입력해 주세요.';
           if(values.startDate && values.endDate && values.startDate > values.endDate) return '노출 종료일은 시작일 이후여야 합니다.';
           return '';
         },
@@ -7332,6 +7304,8 @@
         return;
       }
       window.DJ48ClassroomForm.setClassroomRoutineFormValues(routine);
+      const editor = document.getElementById('classroom-routine-editor');
+      if(editor) editor.open = true;
       setClassroomRoutineStatus('성장루틴 내용을 불러왔습니다. 수정 후 저장해 주세요.');
       document.getElementById('classroom-routine-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -7356,28 +7330,29 @@
       return runClassroomEconomyAction('checkClassroomRoutine', routineId, button, payload);
     }
 
+    function classroomBoardDependencies(settings) {
+      return {
+        classId: settings.classId,
+        getMemberUserId: () => window.DJ48AccountState.getCurrentMemberUserId(),
+        getAuthUid: () => getFirebaseAuthUser()?.uid || '', normalizeDisplayImageUrl,
+        call: async payload => (await getFirebaseFunctions().httpsCallable('classroomBoardAction')(payload)).data,
+        onSaved: async () => { resetClassroomDataCaches({ progress: true, wallet: true, economy: true, gems: true, students: true, review: true }); resetUserEconomyCache(); await renderClassroomPrototype(true); },
+        onClosed: () => { resetUserEconomyCache(); resetClassroomDataCaches({ progress: true, wallet: true, economy: true, gems: true, students: true, review: true }); renderClassroomPrototype(true); }
+      };
+    }
     async function completeClassroomCheckQuest(questId) {
-      return window.DJ48ClassroomUsecases.completeCurrentMemberClassroomQuestFlow({
-        questId
-      }, {
-        loadClassroomSettings,
-        findClassroomQuest: window.DJ48ClassroomData.findClassroomQuest,
-        getCurrentMemberUserId: window.DJ48AccountState.getCurrentMemberUserId,
-        getTodayDateKey: getKstDateKey,
-        getQuestActionButton: id => document.querySelector(`[data-classroom-quest-action="${id}"]`),
-        completeAutoQuest: options => getClassroomRepository().completeClassroomAutoQuest(options),
-        saveManualQuestProgress: options => getClassroomRepository().saveClassroomManualQuestProgress(options),
-        resetClassroomCaches: resetClassroomDataCaches,
-        resetUserEconomyCache,
-        renderClassroom: renderClassroomPrototype,
-        getClassroomRewardCurrencyLabel,
-        alert: message => showAppToastMessage(message),
-        warn: console.warn
-      });
+      const settings = await loadClassroomSettings();
+      const quest = settings.quests.find(q => q.id === questId);
+      if(quest) return window.DJ48ClassroomBoard.submit(classroomBoardDependencies(settings), quest);
     }
 
     async function reviewClassroomQuestProgress(recordId, nextStatus, button = null) {
       let rewardPointOverride;
+      let reason = '';
+      if(nextStatus === 'rejected' && button?.dataset?.classroomReviewItemType !== 'routine') {
+        reason = await askClassroomActionMemo('취소 또는 반려 사유를 적어 주세요.', { title: '처리 사유' });
+        if(!reason?.trim()) return { skipped: true, reason: 'cancelled' };
+      }
       if(nextStatus === 'approved' && button?.dataset?.classroomReviewItemType === 'routine') {
         const suggested = Math.max(0, Math.min(20, Math.round(Number(button.dataset.classroomRoutineSuggestedReward || 0) || 0)));
         const rawReward = await askClassroomActionMemo('성장루틴 보상 포인트를 입력하세요. 0~20 사이에서 정할 수 있습니다.', {
@@ -7402,7 +7377,7 @@
         getReviewButtons: id => document.querySelectorAll(`[data-classroom-review-id="${id}"]`),
         loadClassroomSettings,
         isCurrentClassroomTeacher,
-        reviewProgress: options => getClassroomRepository().reviewClassroomQuestProgress(options),
+        reviewProgress: options => getClassroomRepository().reviewClassroomQuestProgress({ ...options, reason }),
         resetClassroomCaches: resetClassroomDataCaches,
         resetUserEconomyCache,
         renderClassroom: renderClassroomPrototype,
@@ -7423,29 +7398,35 @@
         getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
         setEventProgress: window.DJ48EventState.setEventProgress,
         setEventProgressLoadPromise: window.DJ48EventState.setEventProgressLoadPromise,
+        isEventProgressRequestCurrent: window.DJ48EventState.isEventProgressRequestCurrent,
         loadEventProgress: options => getEventRepository().loadEventProgress(options)
       });
     }
 
     async function renderEventProgressFromFunctions(forceRefresh = false) {
+      const state = window.DJ48EventState;
+      const version = state.getCacheVersion();
+      const cached = state.peekEventProgress();
+      if(!window.DJ48AccountState.getCurrentMemberUserId()) return;
+      const needsLoad = forceRefresh || !state.getEventProgress();
+      if(needsLoad) window.DJ48EventRender.renderEventStatus(cached ? '최신 기록을 확인하는 중…' : '이벤트 기록을 불러오는 중…', true);
       const result = await window.DJ48EventUsecases.getEventProgressViewData({
         forceRefresh,
         memberUserId: window.DJ48AccountState.getCurrentMemberUserId(),
-        fallback: {
-          quests: QUEST_DATA,
-          classMissions: CLASS_MISSION_DATA,
-          seasonEvents: SEASON_EVENT_DATA
-        }
+        fallback: cached ? window.DJ48EventData.getEventProgressRenderData(cached) : { quests: [], classMissions: [], seasonEvents: [] }
       }, {
         getEventProgress: window.DJ48EventState.getEventProgress,
         getEventProgressLoadPromise: window.DJ48EventState.getEventProgressLoadPromise,
         setEventProgress: window.DJ48EventState.setEventProgress,
         setEventProgressLoadPromise: window.DJ48EventState.setEventProgressLoadPromise,
+        isEventProgressRequestCurrent: window.DJ48EventState.isEventProgressRequestCurrent,
         loadEventProgress: options => getEventRepository().loadEventProgress(options),
         getEventProgressRenderData: window.DJ48EventData.getEventProgressRenderData,
         warn: console.warn
       });
+      if(version !== state.getCacheVersion()) return;
       renderEventSections(result.data);
+      window.DJ48EventRender.renderEventStatus(result.error ? '기록을 불러오지 못했어요. 새로고침해 주세요.' : '', false, () => renderEventProgressFromFunctions(true));
     }
 
     async function claimEventQuestReward(questId) {
@@ -7470,11 +7451,12 @@
       return window.DJ48AdminForm.setAdminStatusElement('admin-status', message, isError);
     }
 
-    function setActiveAdminSection(sectionName) {
+    function setActiveAdminSection(sectionName, loadData = true) {
       const targetName = sectionName || 'members';
       document.querySelectorAll('[data-admin-section-target]').forEach(control => {
         const isActive = control.dataset.adminSectionTarget === targetName;
         control.classList.toggle('is-active', isActive);
+        if(control.classList.contains('admin-section-tab')) control.setAttribute('aria-current', isActive ? 'page' : 'false');
         if(control.classList.contains('admin-section-toggle')) {
           control.setAttribute('aria-expanded', String(isActive));
         }
@@ -7482,6 +7464,24 @@
       document.querySelectorAll('.admin-section').forEach(section => {
         section.classList.toggle('is-active', section.id === `admin-section-${targetName}`);
       });
+      if(!loadData) return;
+      const sectionLoads = {
+        dashboard: () => loadAdminDashboard({ forceRefresh: false }),
+        members: () => loadAdminMembers({ forceRefresh: false }),
+        notice: loadAdminNoticeBoard,
+        'external-quizzes': loadAdminExternalQuizzes,
+        login: loadAdminLoginSettings,
+        features: loadAdminFeatureFlags,
+        logs: loadAdminLogs
+      };
+      if(sectionLoads[targetName]) {
+        sectionLoads[targetName]().catch(error => {
+          if(error.message === 'admin-session-changed' || error.message === 'admin-read-invalidated') return;
+          console.warn('Admin section load failed.', error);
+          const status = document.querySelector(`#admin-section-${targetName} .admin-status`);
+          if(status) status.textContent = '불러오지 못했습니다. 다시 불러오기를 눌러 주세요.';
+        });
+      }
       if(targetName === 'classroom') {
         renderAdminClassroomReview(true).catch(error => {
           console.warn('Admin classroom review load failed.', error);
@@ -7508,7 +7508,13 @@
       return window.DJ48AdminRepository.createAdminRepository({
         getFirestoreDb,
         getFirebaseFunctions,
-        initializeAuthUser
+        initializeAuthUser,
+        getReadOwner: () => JSON.stringify([
+          window.DJ48AccountState.getCurrentMemberUserId(),
+          window.DJ48AccountState.getCurrentMemberProfile()
+        ]),
+        readValue: window.DJ48AdminState.readAdminValue,
+        invalidateReads: window.DJ48AdminState.invalidateAdminReads
       });
     }
 
@@ -7529,10 +7535,10 @@
       });
     }
 
-    async function loadAdminDashboard() {
+    async function loadAdminDashboard(options = { forceRefresh: true }) {
       return window.DJ48AdminUsecases.loadAdminDashboardFlow({}, {
         setStatus: setAdminDashboardStatus,
-        loadDashboard: () => getAdminRepository().loadAdminDashboard(),
+        loadDashboard: () => getAdminRepository().loadAdminDashboard(options),
         setDashboard: window.DJ48AdminState.setDashboard,
         setSuperAdminUiEnabled,
         renderDashboard: renderAdminDashboard
@@ -7555,7 +7561,7 @@
         getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
       }, {
         setStatus: setAdminAuditStatus,
-        loadAudit: () => getAdminRepository().loadAdminOperationalAudit(),
+        loadAudit: () => getAdminRepository().loadAdminOperationalAudit({scope: document.getElementById('admin-audit-scope')?.value || 'current'}),
         renderAudit: renderAdminOperationalAudit
       });
     }
@@ -7571,7 +7577,7 @@
     async function loadAdminQuizQualityAudit() {
       return window.DJ48AdminUsecases.loadAdminAuditFlow({
         loadingMessage: '문제 데이터를 점검하는 중입니다...',
-        getSuccessMessage: audit => `읽기 전용 점검 완료 · ${formatAdminTimestamp(audit?.checkedAt)}`
+        getSuccessMessage: audit => `${audit?.complete === false ? '일부 범위 점검 미완료' : '요청 범위 점검 완료'} · ${formatAdminTimestamp(audit?.checkedAt)}`
       }, {
         setStatus: setAdminQuizQualityStatus,
         loadAudit: () => getAdminRepository().loadAdminQuizQualityAudit(),
@@ -7713,7 +7719,7 @@
       return window.DJ48AdminUsecases.loadAdminMembersFlow(options, {
         setStatus: setAdminStatus,
         getFilterValues: getAdminFilterValues,
-        loadMembers: filters => getAdminRepository().loadAdminMembers(filters),
+        loadMembers: filters => getAdminRepository().loadAdminMembers(filters, { forceRefresh: options.forceRefresh !== false }),
         renderSummary: renderAdminSummary,
         renderMemberList: renderAdminMemberList
       });
@@ -7919,10 +7925,13 @@
           icon: String(item.icon || '✨').trim() || '✨',
           title: String(item.title || '').trim(),
           desc: String(item.desc || item.description || '').trim(),
+          goals: Array.isArray(item.goals) ? item.goals : [],
+          leaderboard: Array.isArray(item.leaderboard) ? item.leaderboard : [],
           quizIds: Array.isArray(item.quizIds)
             ? Array.from(new Set(item.quizIds.map(id => normalizeFirebaseQuizId(String(id || '').trim())).filter(Boolean))).slice(0, 20)
             : [],
           periodType: item.periodType === 'weekly' ? 'weekly' : 'monthly',
+          autoRenew: item.periodType !== 'weekly' && item.autoRenew === true,
           period: String(item.period || (item.periodType === 'weekly' ? '이번 주' : '이번 달')).trim(),
           periodKey: String(item.periodKey || '').trim(),
           targetMonth: String(item.targetMonth || item.month || '').trim(),
@@ -7937,21 +7946,22 @@
     }
 
     async function loadAdminExternalQuizzes() {
-      setAdminExternalQuizzesStatus('외부 퀴즈를 불러오는 중입니다...');
+      setAdminExternalQuizzesStatus('학습·컨셉 퀴즈를 불러오는 중입니다...');
       const result = await getAdminRepository().loadAdminExternalQuizzes();
       const externalQuizzes = window.DJ48AdminState.setExternalQuizzesCache(normalizeExternalQuizzes(result.externalQuizzes));
       renderAdminExternalQuizRows(externalQuizzes);
-      setAdminExternalQuizzesStatus('외부 퀴즈를 불러왔습니다.');
+      setAdminExternalQuizzesStatus('학습·컨셉 퀴즈를 불러왔습니다.');
       return externalQuizzes;
     }
 
     async function saveAdminExternalQuizzes() {
       const externalQuizzes = getAdminExternalQuizzesFormValues();
-      setAdminExternalQuizzesStatus('외부 퀴즈를 저장하는 중입니다...');
+      setAdminExternalQuizzesStatus('학습·컨셉 퀴즈를 저장하는 중입니다...');
       const result = await getAdminRepository().saveAdminExternalQuizzes(externalQuizzes);
       const savedExternalQuizzes = window.DJ48AdminState.setExternalQuizzesCache(normalizeExternalQuizzes(result.externalQuizzes));
       renderAdminExternalQuizRows(savedExternalQuizzes);
-      setAdminExternalQuizzesStatus('외부 퀴즈를 저장했습니다.');
+      window.DJ48SchoolHubs?.refreshLabel();
+      setAdminExternalQuizzesStatus('학습·컨셉 퀴즈를 저장했습니다.');
       return savedExternalQuizzes;
     }
 
@@ -8023,21 +8033,13 @@
       return window.DJ48AdminForm.setAdminFeatureFlagsForm(flags, {
         normalizeFeatureFlags,
         renderAdminQuizToggleGrid,
-        renderAdminTodayQuizPoolGrid
       });
     }
 
-    function getAdminFeatureFlagsFormValues(options = {}) {
-      const currentFlags = getActiveFeatureFlags();
+    function getAdminFeatureFlagsFormValues() {
       return window.DJ48AdminForm.getAdminFeatureFlagsFormValues({
         normalizeFeatureFlags,
-        normalizeFirebaseQuizId,
-        todayQuizShuffleSeed: Object.prototype.hasOwnProperty.call(options, 'todayQuizShuffleSeed')
-          ? options.todayQuizShuffleSeed
-          : currentFlags.todayQuizShuffleSeed,
-        todayQuizShuffledAtIso: Object.prototype.hasOwnProperty.call(options, 'todayQuizShuffledAtIso')
-          ? options.todayQuizShuffledAtIso
-          : currentFlags.todayQuizShuffledAtIso
+        normalizeFirebaseQuizId
       });
     }
 
@@ -8078,14 +8080,6 @@
         .map(label => ({ label, quizIds: groups[label] }));
     }
 
-    function getAdminTodayQuizToggleGroups() {
-      return getAdminQuizToggleGroups()
-        .map(group => ({
-          ...group,
-          quizIds: group.quizIds.filter(quizId => TODAY_QUIZ_ELIGIBLE_IDS.has(quizId))
-        }))
-        .filter(group => group.quizIds.length);
-    }
 
     function renderAdminQuizToggleGrid(flags) {
       return window.DJ48AdminRender.renderAdminQuizToggleGrid(flags, {
@@ -8095,88 +8089,17 @@
       });
     }
 
-    function renderAdminTodayQuizPoolGrid(flags) {
-      return window.DJ48AdminRender.renderAdminTodayQuizPoolGrid(flags, {
-        getAdminQuizToggleGroups: getAdminTodayQuizToggleGroups,
-        quizCatalog: QUIZ_CATALOG
-      });
-    }
 
-    function getActiveTodayQuizIdsForNotice(flags = {}) {
-      const ids = Array.isArray(flags.activeTodayQuizIds) && flags.activeTodayQuizIds.length
-        ? flags.activeTodayQuizIds
-        : flags.todayQuizIds;
-      return Array.from(new Set((ids || []).map(id => normalizeFirebaseQuizId(id)).filter(Boolean))).slice(0, 2);
-    }
 
-    function getTodayQuizNoticeText(quizIds = []) {
-      const titles = quizIds
-        .map(quizId => QUIZ_CATALOG[quizId]?.title || quizId)
-        .filter(Boolean);
-      const titleText = titles.length ? titles.join(', ') : '오늘의 퀴즈';
-      return `오늘의 퀴즈: ${titleText}. 연습전에서 새 정답을 맞히면 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.`;
-    }
 
-    function getTodayQuizShuffleCooldownInfo(flags = getActiveFeatureFlags()) {
-      const cooldownMs = 60 * 60 * 1000;
-      const lastMillis = Date.parse(String(flags.todayQuizShuffledAtIso || ''));
-      if(!lastMillis || Number.isNaN(lastMillis)) return { active: false, remainingMs: 0 };
-      const remainingMs = cooldownMs - (Date.now() - lastMillis);
-      return {
-        active: remainingMs > 0,
-        remainingMs: Math.max(0, remainingMs)
-      };
-    }
 
-    function formatCooldownRemaining(ms) {
-      const totalMinutes = Math.ceil(Math.max(0, Number(ms) || 0) / 60000);
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      if(hours && minutes) return `${hours}시간 ${minutes}분`;
-      if(hours) return `${hours}시간`;
-      return `${Math.max(1, minutes)}분`;
-    }
 
-    async function syncNoticeBoardWithTodayQuiz(featureFlags = {}) {
-      const quizIds = getActiveTodayQuizIdsForNotice(featureFlags);
-      if(!quizIds.length) return null;
-      let notice = window.DJ48AdminState.getNoticeBoardCache();
-      if(!notice) {
-        const result = await getAdminRepository().loadAdminNoticeBoard();
-        notice = normalizeNoticeBoardData(result.notice);
-      }
-      const nextNotice = normalizeNoticeBoardData({
-        ...notice,
-        quest: getTodayQuizNoticeText(quizIds),
-        recommendedQuizLabel: QUIZ_CATALOG[quizIds[0]]?.title || quizIds[0] || '',
-        recommendedQuizId: quizIds[0] || '',
-        recommendedQuiz2Label: QUIZ_CATALOG[quizIds[1]]?.title || quizIds[1] || '',
-        recommendedQuiz2Id: quizIds[1] || ''
-      });
-      const noticeChanged = notice.quest !== nextNotice.quest
-        || notice.recommendedQuizId !== nextNotice.recommendedQuizId
-        || notice.recommendedQuiz2Id !== nextNotice.recommendedQuiz2Id
-        || notice.recommendedQuizLabel !== nextNotice.recommendedQuizLabel
-        || notice.recommendedQuiz2Label !== nextNotice.recommendedQuiz2Label;
-      if(!noticeChanged) {
-        const cachedNotice = window.DJ48AdminState.setNoticeBoardCache(nextNotice);
-        setAdminNoticeForm(cachedNotice);
-        return cachedNotice;
-      }
-      const result = await getAdminRepository().saveAdminNoticeBoard(nextNotice);
-      const savedNotice = window.DJ48AdminState.setNoticeBoardCache(normalizeNoticeBoardData(result.notice));
-      setAdminNoticeForm(savedNotice);
-      return savedNotice;
-    }
 
     async function loadAdminFeatureFlags() {
       setAdminFeatureFlagsStatus('기능 설정을 불러오는 중입니다...');
       const result = await getAdminRepository().loadAdminFeatureFlags();
       const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
       setAdminFeatureFlagsForm(featureFlags);
-      await syncNoticeBoardWithTodayQuiz(featureFlags).catch(error => {
-        console.warn('Today quiz notice sync after feature flag load failed.', error);
-      });
       setAdminFeatureFlagsStatus('기능 설정을 불러왔습니다.');
       return featureFlags;
     }
@@ -8192,57 +8115,12 @@
           console.warn('Admin external quizzes refresh after feature flag save failed.', error);
         });
       }
-      let noticeSynced = false;
-      await syncNoticeBoardWithTodayQuiz(featureFlags).then(result => {
-        noticeSynced = !!result;
-      }).catch(error => {
-        console.warn('Today quiz notice sync after feature flag save failed.', error);
-      });
-      const noticeText = noticeSynced ? ' 알림판 오늘의 퀴즈도 갱신했습니다.' : '';
       setAdminFeatureFlagsStatus(featureFlags.externalQuizzesEnabled === false
-        ? `기능 설정을 저장했고 외부 퀴즈 활성 체크를 모두 해제했습니다.${noticeText}`
-        : `기능 설정을 저장했습니다.${noticeText}`);
+        ? `기능 설정을 저장했고 학습·컨셉 퀴즈 활성 체크를 모두 해제했습니다.`
+        : `기능 설정을 저장했습니다.`);
       return featureFlags;
     }
 
-    async function shuffleTodayQuizNow() {
-      const cooldown = getTodayQuizShuffleCooldownInfo();
-      let forced = false;
-      if(cooldown.active) {
-        const remainingText = formatCooldownRemaining(cooldown.remainingMs);
-        const confirmed = window.confirm(`오늘의 퀴즈 즉시 셔플은 1시간에 한 번 권장됩니다.\n\n아직 ${remainingText} 정도 남았습니다.\n그래도 강제로 셔플할까요?`);
-        if(!confirmed) {
-          setAdminFeatureFlagsStatus(`오늘의 퀴즈 셔플을 취소했습니다. ${remainingText} 뒤 다시 시도할 수 있습니다.`, true);
-          return null;
-        }
-        forced = true;
-      }
-      const seed = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const shuffledAtIso = new Date().toISOString();
-      const flags = {
-        ...getAdminFeatureFlagsFormValues({
-          todayQuizShuffleSeed: seed,
-          todayQuizShuffledAtIso: shuffledAtIso
-        }),
-        todayQuizMode: 'dailyRandom',
-        todayQuizShuffleSeed: seed,
-        todayQuizShuffledAtIso: shuffledAtIso
-      };
-      if(!flags.todayQuizRandomPoolIds.length) {
-        setAdminFeatureFlagsStatus('랜덤 후보 퀴즈를 먼저 선택해 주세요.', true);
-        return null;
-      }
-      setAdminFeatureFlagsStatus('오늘의 퀴즈를 즉시 셔플하는 중입니다...');
-      const result = await getAdminRepository().saveAdminFeatureFlags(flags);
-      const featureFlags = window.DJ48AdminState.setFeatureFlagsCache(normalizeFeatureFlags(result.flags));
-      setAdminFeatureFlagsForm(featureFlags);
-      await syncNoticeBoardWithTodayQuiz(featureFlags);
-      const selectedTitles = getActiveTodayQuizIdsForNotice(featureFlags)
-        .map(quizId => QUIZ_CATALOG[quizId]?.title || quizId)
-        .join(', ');
-      setAdminFeatureFlagsStatus(`${forced ? '경고를 확인하고 ' : ''}오늘의 퀴즈를 즉시 셔플했고 알림판에 반영했습니다.${selectedTitles ? ` (${selectedTitles})` : ''}`);
-      return featureFlags;
-    }
 
     function setAdminLogsStatus(message, isError = false) {
       return window.DJ48AdminForm.setAdminStatusElement('admin-logs-status', message, isError);
@@ -8253,13 +8131,15 @@
     }
 
     function formatAdminLogAction(action) {
+      if(action === "adminPublishSpecialReward") return "특별 보상 게시";
+      if(action === "adminCloseSpecialReward") return "특별 보상 종료";
       return {
         adminResetMemberPassword: '비밀번호 초기화',
         adminUpdateMemberStatus: '회원 상태 변경',
         adminUpdateMemberVisibility: '교실 표시 설정',
         adminUnlinkMemberAuth: '연결 해제',
         adminUpdateNoticeBoard: '알림판 수정',
-        adminUpdateExternalQuizzes: '외부 퀴즈 수정',
+        adminUpdateExternalQuizzes: '학습·컨셉 퀴즈 수정',
         adminUpdateSeasonEvents: '시즌 이벤트 수정',
         adminUpdatePasswordSetupSettings: '로그인 설정 변경',
         adminUpdateFeatureFlags: '기능 설정 변경',
@@ -8311,7 +8191,16 @@
     }
 
     function renderSchoolQuizCards() {
-      return window.DJ48QuizRender.renderSchoolQuizCards(getQuizRenderDeps());
+      window.DJ48QuizRender.renderSchoolQuizCards(getQuizRenderDeps());
+      window.DJ48SchoolHubs?.configure({
+        loadConfig: loadExternalQuizzes, loadFlags: loadFeatureFlags, isAdmin: isCurrentAdminMember,
+        subjectCatalog: SUBJECT_CATALOG, getRenderDeps: getQuizRenderDeps,
+        showSchoolView, showQuizSelectView, startQuiz: showQuizPlayView, enterView: enterAppView,
+        ensurePopularSubjectAccess, refreshPopularUsageNotices,
+        memberId: () => window.DJ48AccountState.getCurrentMemberUserId(),
+        setSubject: id => window.DJ48QuizSessionState.setCurrentSubjectId(id),
+        setLastQuiz: id => window.DJ48QuizSessionState.setLastQuizId(id)
+      });
     }
 
     function renderExternalQuizLinks(externalQuizzes) {
@@ -8402,6 +8291,10 @@
     }
 
     async function showQuizPlayView(quizId, modeId, rankingModeId = 'normal') {
+      const popularTarget = window.DJ48PopularQuiz?.targetForQuiz(quizId, modeId);
+      if(popularTarget) { window.location.assign(popularTarget); return; }
+      const generatedTarget = window.DJ48SubjectQuiz?.targetForQuiz(quizId);
+      if(generatedTarget) { window.location.assign(generatedTarget); return; }
       return window.DJ48QuizUsecases.startQuizPlayFlow({
         quizId,
         modeId,
@@ -8601,6 +8494,17 @@
     }
 
     function startRankingSessionTimerIfNeeded() {
+      const deps = getQuizPlayDeps();
+      window.DJ48RankingQuestSession = null;
+      if (deps.getCurrentModeId() === 'ranking') {
+        const memberUserId = getCurrentDataOwnerId(), quizId = normalizeFirebaseQuizId(deps.getCurrentQuizId());
+        window.DJ48RankingQuestSession = Promise.resolve().then(() => getFirebaseFunctions().httpsCallable('startRankingQuestSession')({
+          memberUserId, quizId
+        })).then(result => result.data?.sessionId || '').catch(error => {
+          console.warn('Ranking quest start failed.', error);
+          return '';
+        });
+      }
       return getRankingTimerController().startRankingSessionTimerIfNeeded();
     }
 
@@ -8770,6 +8674,8 @@
     }
 
     function showQuizComplete(options = {}) {
+      invalidateHomeLoading();
+      resetEventProgressCache();
       return window.DJ48QuizFlow.showQuizComplete(options, getQuizPlayDeps(), {
         getQuizPlayDeps,
         testShopUserId: TEST_SHOP_USER_ID,
@@ -8782,10 +8688,12 @@
     }
 
     function renderRankingSaveStatus(result) {
+      if(result && !result.error && !result.skipped) window.dispatchEvent(new Event('dj48-ranking-invalidated'));
       return window.DJ48QuizRender.renderRankingSaveStatus(result, getQuizPlayDeps());
     }
 
     function leaveQuizPlaySession() {
+      resetEventProgressCache();
       return window.DJ48QuizFlow.leaveQuizPlaySession({
         clearRankingQuestionTimer,
         clearRankingSessionTimer,
@@ -8821,6 +8729,7 @@
       'quiz-select-view',
       'subject-view',
       'school-view',
+      'school-room-view',
       'town-view',
       'classroom-view'
     ];
@@ -8863,70 +8772,29 @@
     function showAdminView() {
       return window.DJ48AdminUsecases.loadAdminInitialViewFlow({}, {
         enterAdminView: () => enterAppView({ viewId: 'admin-view' }),
-        setActiveAdminSection,
-        loadAdminDashboard,
-        loadAdminMembers,
-        getSuperAdminInitialLoads: () => [
-          {
-            load: loadAdminNoticeBoard,
-            warnMessage: 'Admin notice board load failed.',
-            onError: () => {
-              setAdminNoticeStatus('알림판을 불러오지 못했습니다.', true);
-              setAdminNoticeForm(getFallbackNoticeBoard());
-            }
-          },
-          {
-            load: loadAdminExternalQuizzes,
-            warnMessage: 'Admin external quizzes load failed.',
-            onError: () => {
-              setAdminExternalQuizzesStatus('외부 퀴즈를 불러오지 못했습니다.', true);
-              renderAdminExternalQuizRows(DEFAULT_EXTERNAL_QUIZZES);
-            }
-          },
-          {
-            load: loadAdminSeasonEvents,
-            warnMessage: 'Admin season events load failed.',
-            onError: () => {
-              setAdminSeasonEventsStatus('시즌 이벤트를 불러오지 못했습니다.', true);
-              renderAdminSeasonEventRows({ items: SEASON_EVENT_DATA });
-            }
-          },
-          {
-            load: loadAdminLoginSettings,
-            warnMessage: 'Admin login settings load failed.',
-            onError: () => setAdminLoginSettingsStatus('로그인 설정을 불러오지 못했습니다.', true)
-          },
-          {
-            load: loadAdminFeatureFlags,
-            warnMessage: 'Admin feature flags load failed.',
-            onError: () => {
-              setAdminFeatureFlagsStatus('기능 설정을 불러오지 못했습니다.', true);
-              setAdminFeatureFlagsForm(getActiveFeatureFlags());
-            }
-          },
-          {
-            load: loadAdminLogs,
-            warnMessage: 'Admin logs load failed.',
-            onError: () => setAdminLogsStatus('작업 이력을 불러오지 못했습니다.', true)
-          },
-          {
-            load: loadAdminOperationalAudit,
-            warnMessage: 'Admin operational audit load failed.',
-            onError: () => setAdminAuditStatus('운영 점검을 불러오지 못했습니다.', true)
-          },
-          {
-            load: loadAdminQuizQualityAudit,
-            warnMessage: 'Admin quiz quality audit load failed.',
-            onError: () => setAdminQuizQualityStatus('문제 점검을 불러오지 못했습니다.', true)
-          }
-        ],
+        setActiveAdminSection: section => setActiveAdminSection(section, false),
+        loadAdminDashboard: () => loadAdminDashboard({ forceRefresh: false }),
         onDashboardError: () => setAdminDashboardStatus('대시보드를 불러오지 못했습니다.', true),
-        onMembersError: () => setAdminStatus('관리자 회원 목록을 불러오지 못했습니다.', true),
         warn: console.warn
       });
     }
 
-    function showHomeView() {
+    let classroomHomeReturnContext = null;
+    function returnHomeToClassroom() {
+      const context = classroomHomeReturnContext;
+      classroomHomeReturnContext = null;
+      document.getElementById('home-classroom-return').hidden = true;
+      if(context && context.memberId === window.DJ48AccountState.getCurrentMemberUserId()) {
+        showClassroomView(context.unlocked);
+      }
+    }
+
+    function showHomeView(options = {}) {
+      classroomHomeReturnContext = options.fromClassroom === true ? {
+        memberId: window.DJ48AccountState.getCurrentMemberUserId(),
+        unlocked: document.getElementById('classroom-main-panel')?.hidden === false
+      } : null;
+      document.getElementById('home-classroom-return').hidden = !classroomHomeReturnContext;
       if(window.DJ48AccountState.getCurrentMemberUserId()) {
         renderHomeView();
       } else {
@@ -8966,22 +8834,36 @@
     }
 
     async function showShopView() {
-      const flags = await loadFeatureFlags();
-      if(flags.shopEnabled === false && !isCurrentAdminMember()) {
-        window.alert('상점은 지금 점검 중입니다.');
-        return;
+      const view = document.getElementById('shop-view');
+      const market = document.getElementById('shop-avatar-market');
+      const status = document.getElementById('shop-entry-status');
+      const request = {};
+      view.shopEntryRequest = request;
+      const owner = window.DJ48AccountState.getCurrentMemberUserId();
+      enterAppView({ viewId: 'shop-view', placeKey: 'shop' });
+      market.inert = true;
+      status.hidden = false;
+      status.textContent = '상점 이용 설정을 확인하고 있어요…';
+      status.setAttribute('aria-busy', 'true');
+      const current = () => view.shopEntryRequest === request && !view.hidden
+        && owner === window.DJ48AccountState.getCurrentMemberUserId();
+      try {
+        const flags = await loadFeatureFlags();
+        if(!current()) return;
+        if(flags.shopEnabled === false && !isCurrentAdminMember()) {
+          market.hidden = true;
+          status.textContent = '상점은 지금 점검 중입니다.';
+          return;
+        }
+        renderAvatarMarket();
+        market.inert = false;
+        status.hidden = true;
+      } catch(error) {
+        if(current()) status.textContent = '상점을 열지 못했어요. 상점 메뉴를 다시 눌러 주세요.';
+        console.warn('Shop entry failed.', error);
+      } finally {
+        if(current()) status.setAttribute('aria-busy', 'false');
       }
-      renderShopTabs();
-      renderShopWallet();
-      renderAvatarMarket();
-      renderAvatarPreview(SHOP_ITEMS, new Set());
-      renderShopItems(SHOP_ITEMS, {}, { djCoin: 0 }, new Set());
-      enterAppView({
-        viewId: 'shop-view',
-        placeKey: 'shop'
-      });
-
-      initializeAuthUser().then(renderShopFromFirestore);
     }
 
     async function showEventView() {
@@ -8990,13 +8872,14 @@
         viewId: 'event-view',
         placeKey: 'event'
       });
+      const progress = renderEventProgressFromFunctions();
       const flags = await loadFeatureFlags(false);
       if(flags.eventPlazaEnabled === false && !isCurrentAdminMember()) {
         window.alert('이벤트 광장은 지금 점검 중입니다.');
-        showTownView();
+        if(!document.getElementById('event-view').hidden) showTownView();
         return;
       }
-      renderEventProgressFromFunctions();
+      await progress;
     }
 
     function setClassroomUnlocked(unlocked) {
@@ -9008,6 +8891,11 @@
     }
 
     function showClassroomView(unlocked = false) {
+      const view = document.getElementById('classroom-view');
+      const request = {}; view.classroomEntryRequest = request;
+      const owner = window.DJ48AccountState.getCurrentMemberUserId();
+      document.getElementById('classroom-view').dataset.homeDetails = 'false';
+      window.DJ48ClassroomForm.setClassroomUnlocked(false);
       setActiveClassroomTab('today');
       setClassroomUnlocked(unlocked);
       enterAppView({
@@ -9015,6 +8903,7 @@
         placeKey: 'classroom'
       });
       initializeAuthUser().then(() => {
+        if(view.hidden || view.classroomEntryRequest !== request || owner !== window.DJ48AccountState.getCurrentMemberUserId()) return;
         if(isCurrentAdminMember()) {
           setClassroomUnlocked(true);
           window.DJ48ClassroomForm.setClassroomEntryStatus('관리자 권한으로 교실에 입장했습니다.');
@@ -9047,6 +8936,11 @@
     }
 
     function showSubjectView(subjectId) {
+      if(subjectId === 'popular') { window.location.assign('/popular-quiz/'); return; }
+      if(window.DJ48SchoolHubs?.open) {
+        renderSchoolQuizCards();
+        return window.DJ48SchoolHubs.open(subjectId === 'popular' ? 'popular' : 'subjects', { subject: subjectId === 'popular' ? undefined : subjectId });
+      }
       window.DJ48QuizSessionState.setCurrentSubjectId(subjectId);
       renderSubjectQuizCards(subjectId);
       enterAppView({
@@ -9055,6 +8949,10 @@
     }
 
     function showQuizSelectView(quizId) {
+      const popularTarget = window.DJ48PopularQuiz?.targetForQuiz(quizId);
+      if(popularTarget) { window.location.assign(popularTarget); return; }
+      const generatedTarget = window.DJ48SubjectQuiz?.targetForQuiz(quizId);
+      if(generatedTarget) { window.location.assign(generatedTarget); return; }
       clearRankingQuestionTimer();
       const quiz = QUIZ_CATALOG[quizId] || QUIZ_CATALOG.spelling;
       window.DJ48QuizSessionState.setLastQuizId(quizId);
@@ -9108,7 +9006,47 @@
 
     function getClassroomControllerEvents() {
       return {
+        returnToClassroom: returnHomeToClassroom,
+        openHome: () => {
+          showHomeView({ fromClassroom: true });
+          const titles = document.querySelector('#home-view [data-home-detail-toggle="titles"]');
+          if(titles && titles.getAttribute('aria-expanded') !== 'true') titles.click();
+        },
+        openClassroomFollowup: async () => {
+          const settings = await loadClassroomSettings();
+          const deps = classroomBoardDependencies(settings);
+          deps.call = async payload => (await getFirebaseFunctions().httpsCallable('classroomFollowupAction')(payload)).data;
+          return window.DJ48ClassroomFollowup.open(deps);
+        },
+        openClassroomBoard: async () => {
+          const settings = await loadClassroomSettings();
+          if(isCurrentClassroomTeacher(settings)) return window.DJ48ClassroomBoard.open(classroomBoardDependencies(settings));
+        },
+        openClassroomDiary: async options => {
+          const memberAtStart = window.DJ48AccountState.getCurrentMemberUserId();
+          const settings = await loadClassroomSettings();
+          if(memberAtStart !== window.DJ48AccountState.getCurrentMemberUserId()) return;
+          return window.DJ48ClassroomDiary.open({
+            classId: settings.classId,
+            getMemberUserId: () => window.DJ48AccountState.getCurrentMemberUserId(),
+            getAuthUid: () => getFirebaseAuthUser()?.uid || '',
+            today: getKstDateKey, normalizeDisplayImageUrl,
+            call: async payload => (await getFirebaseFunctions().httpsCallable('classroomDiaryAction')(payload)).data
+          }, options);
+        },
         handleClassroomEntrySubmit,
+        retryClassroom: () => renderClassroomPrototype(true),
+        editClassroomPortrait: async () => {
+          const settings = await loadClassroomSettings();
+          return window.DJ48ClassroomPortrait.open({
+            classId: settings.classId,
+            getMemberUserId: () => window.DJ48AccountState.getCurrentMemberUserId(),
+            getAuthUid: () => getFirebaseAuthUser()?.uid || '',
+            getFunctions: getFirebaseFunctions,
+            getStorage: getFirebaseStorage,
+            onSaved: () => renderClassroomPrototype(true)
+          });
+        },
         saveClassroomQuestFromForm,
         editClassroomQuest,
         duplicateClassroomQuest,
@@ -9177,6 +9115,7 @@
     function getHomeControllerEvents() {
       return {
         showAdminView,
+        loadHomeDetail,
         saveProfileNicknameFromHome,
         saveProfilePasswordFromHome,
         searchProfileImageCandidatesFromHome,
@@ -9234,7 +9173,6 @@
         loadAdminFeatureFlags,
         setAdminFeatureFlagsStatus,
         saveAdminFeatureFlags,
-        shuffleTodayQuizNow,
         setClassAdminPermission,
         setAdminPermissionStatus,
         loadAdminLogs,

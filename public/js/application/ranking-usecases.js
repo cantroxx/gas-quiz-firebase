@@ -5,21 +5,40 @@
     await deps.initializeAuthUser?.();
 
     const rowLimit = Number(options.rowLimit) || 10;
-    const seasonEvents = await deps.loadSeasonEventsForRanking?.().catch(error => {
+    const boardId = options.boardId || '';
+    const subjectBoard = ['korean','math','social','science'].includes(boardId) && repository.loadSubjectRankingRecords;
+    const generated = subjectBoard
+      ? { ...(await repository.loadSubjectRankingRecords(boardId, rowLimit)), summaries: [] }
+      : repository.loadSubjectRankingSnapshot && (!boardId || boardId === 'quizKing')
+        ? await repository.loadSubjectRankingSnapshot() : null;
+    const needsSeason = !boardId || boardId === 'season';
+    const seasonEvents = needsSeason ? await deps.loadSeasonEventsForRanking?.().catch(error => {
       deps.warn?.('Season events for ranking load failed.', error);
       return [];
-    }) || [];
+    }) || [] : [];
     const seasonRankingCategoryKeys = deps.getSeasonRankingCategoryKeys?.(seasonEvents) || [];
-    const [rawQuizKingSummaries, rankingRecords, seasonRankingRecords] = await Promise.all([
-      repository.loadQuizKingSummaries(rowLimit),
-      repository.loadLimitedRankingRecordsForPlaza(),
+    const definitions = boardId ? deps.getRankingBoardModels([], [], seasonEvents) : [];
+    const board = definitions.find(item => item.id === boardId);
+    const categoryKeys = boardId === 'popular' ? options.popularCategoryKeys
+      : boardId === 'pokemon' ? options.pokemonCategoryKeys
+        : boardId === 'tiniping' ? options.tinipingCategoryKeys
+          : Array.from(new Set((board?.groups || []).flatMap(group => group.keys || [])));
+    const [rawQuizKingSummaries, selectedRecords, seasonRankingRecords] = await Promise.all([
+      generated ? generated.summaries.slice(0,rowLimit) : !boardId || boardId === 'quizKing' ? repository.loadQuizKingSummaries(rowLimit) : [],
+      subjectBoard ? [] : !boardId ? repository.loadLimitedRankingRecordsForPlaza()
+        : categoryKeys?.length && boardId !== 'season' ? repository.loadLimitedRankingRecordsForPlaza(categoryKeys) : [],
       seasonRankingCategoryKeys.length
-        ? repository.loadSeasonRankingRecordsForPlaza?.(seasonRankingCategoryKeys)
+        ? repository.loadSeasonRankingRecordsForPlaza?.(seasonRankingCategoryKeys, seasonEvents)
         : []
     ]);
+    // Preserve the legacy aggregate fallback only when its summary is absent.
+    const rankingRecords = boardId === 'quizKing' && !rawQuizKingSummaries.length
+      ? await repository.loadLimitedRankingRecordsForPlaza() : selectedRecords;
 
     const byRecordId = new Map();
-    [...(rankingRecords || []), ...(seasonRankingRecords || [])].forEach(row => {
+    const subjectRows = generated ? ['korean','math','social','science'].flatMap(subject => generated.records.filter(row => row.subject === subject).sort((a,b) => b.score-a.score).slice(0,rowLimit)) : [];
+    [...(rankingRecords || []), ...(seasonRankingRecords || []), ...subjectRows].forEach(row => {
+      if(root.DJ48SubjectQuiz?.isLegacyRecord(row)) return;
       const key = row?.recordId || `${row?.memberUserId || row?.userId || ''}::${row?.categoryKey || row?.category || ''}::${row?.createdAt || ''}`;
       if(key) byRecordId.set(key, row);
     });
@@ -42,12 +61,11 @@
 
     return {
       cards: [
-        deps.buildQuizKingCard(quizKing),
         deps.buildRankingRecordCard('korean_king', '📚', '국어왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.koreanCategoryKeys || [])),
         deps.buildRankingRecordCard('social_king', '🏛️', '사회왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.socialCategoryKeys || [])),
         deps.buildRankingRecordCard('math_king', '➗', '수학왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, options.mathCategoryKeys || [])),
         deps.buildRankingRecordCard('science_king', '🔬', '과학왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, scienceCategoryKeys)),
-        deps.buildRankingRecordCard('popular_king', '⭐', '인기왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, popularCategoryKeys)),
+        deps.buildRankingRecordCard('flags_king', '🏳️', '국기왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, ['popular-v2-flag-country'])),
         deps.buildRankingRecordCard('pokemon_king', '⚡', '포켓몬왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, pokemonCategoryKeys)),
         deps.buildRankingRecordCard('tiniping_king', '💎', '티니핑왕', getBestRankingRecordByCategoryKeys(enrichedRankingRecords, tinipingCategoryKeys))
       ],

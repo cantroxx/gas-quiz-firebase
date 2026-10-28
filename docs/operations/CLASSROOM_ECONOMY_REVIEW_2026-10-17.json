@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-17",
+  "status": "deployed_after_explicit_classroom_only_authorization",
+  "changes": [
+    "Economy navigation and exchange/savings headings use transparent storybook artwork",
+    "Recent point history card removed from UI; underlying point records, balances, exchange and savings logic retained"
+  ],
+  "candidateSourceVersion": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8a4f09caa04e5008",
+  "candidateChangedFileCount": 14,
+  "newArtwork": {
+    "tool": "built-in image_gen",
+    "originals": 3,
+    "webpVariants": 9,
+    "prompts": "docs/product/classroom-economy-art-2026-10-17/prompts.json"
+  },
+  "verification": {
+    "focusedCandidateBrowser": "passed student/teacher, 320/390/768/1440px, visible bank panel/navigation, all seven artwork images, card removed with point log fixture present, savings retained; backend requests blocked",
+    "classroomSmoke": "passed 76 role/viewport/tab cases and exchange validation/preview, loading and diary checks",
+    "fullCheck": "failed at test:subject: korean:4-1:4 collapsed to too few concepts",
+    "subjectRecheck": "same failure reproduced",
+    "requiredGate": "AGENTS.md:41 requires npm run check to pass before production screen deployment"
+  },
+  "scopeNote": "Original full-check failure remains outside this change. Following explicit classroom-only authorization, deployed only reviewed Hosting changes; no Functions, rules or production data writes.",
+  "sha256": {
+    "public/classroom.css": "5b04d8baa1f4cc035c7f1cc0398830053fba6ccac754e62618637ef9a93def84",
+    "public/js/features/classroom-workspace.js": "9fa52501f63f1d1819c649e7b2089138dce3f369b7b5a52b6938b5af49fb6463",
+    "public/js/features/classroom-render.js": "732a086000173bac16012997efd586e953c48c305d8abad1fe99414196abfd91"
+  },
+  "deploymentReceipt": "docs/operations/CLASSROOM_ECONOMY_DEPLOY_2026-10-17.json"
+}

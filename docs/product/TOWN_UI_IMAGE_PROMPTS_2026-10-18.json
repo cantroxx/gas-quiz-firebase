@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-18",
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "file": "public/images/town-ui-20261018/login-village-v1.webp",
+      "source": "exec-299f908b-3aed-4328-bdcd-5457f5fc31cf.png",
+      "prompt": "Use case: illustration-story. Asset type: production login background for a Korean elementary classroom quiz village website. Create a wide landscape illustration, aspect ratio 3:2. A welcoming little storybook village entrance with cream plaster cottages, warm orange roofs, a distant school clock tower, a little stream and footbridge, spring green foliage and tiny daisies. Hand painted watercolor and gouache storybook texture, softly outlined, readable simple shapes, charming and calm, matches an existing cozy village with cream paper, sage green and honey wood palette. Composition: village scenery concentrated in the left two thirds; right third is quiet pale cream sunlit path/sky with little detail so an HTML login card can overlay there. No characters necessary. No text, letters, numbers, logo, signs with lettering, UI buttons, frames or watermark. Avoid dense tiny decorative details, photorealism, oversaturated colors and dramatic lighting. The image must work behind a real accessible login form, not be a screenshot of a website."
+    },
+    {
+      "file": "public/images/town-ui-20261018/boutique-room-v1.webp",
+      "source": "exec-2ff69d1b-86c0-4b49-a95d-a0efdcb5b2a3.png",
+      "prompt": "Use case: illustration-story. Asset type: actual background artwork for the avatar fitting area of a cozy classroom quiz town boutique. Wide landscape 3:2 composition. A tiny inviting clothing boutique interior, cream plaster walls, honey colored wooden floor, rounded arch window with greenery outside, a wooden clothing rail with a few pastel jackets and hats at the far left edge, folded clothing on a small shelf at the far right edge, soft sage green curtain pulled aside. Center 55 percent is uncluttered softly illuminated pale wall and floor, a quiet small oval rug at bottom center, where an existing pixel avatar will be composited by HTML. No person, no mannequin, no reflections, no text, no UI, no lettering or numbers. Soft watercolor/gouache children's storybook illustration, gentle outlines, delicate paper grain, natural spring daylight, cream/sage/peach/honey palette, restrained details. This is a usable fitting-room stage asset, not a website mockup. Keep center clear and do not draw an avatar or character."
+    }
+  ]
+}

@@ -34,20 +34,22 @@
         if(!db || !memberUserId) return null;
         return db.collection('userTitles').doc(memberUserId).collection('titles').get().catch(() => null);
       },
+      async syncTitles(memberUserId) {
+        const response=await getFirebaseFunctions().httpsCallable('syncMemberTitles')({memberUserId});
+        return response.data;
+      },
       async getUserBadges(memberUserId) {
-        const db = getFirestoreDb();
-        if(!db || !memberUserId) return null;
-        return db.collection('userBadges').doc(memberUserId).collection('badges').get().catch(() => null);
+        const response=await getFirebaseFunctions().httpsCallable('getMemberAchievements')({memberUserId});
+        return {gameHonors:response.data.gameHonors||{},docs:response.data.records.map(row=>({id:row.badgeId,data:()=>({...row,
+          correct:row.answered%100,total:100,starCount:Math.floor(row.answered/100),
+          completed:row.answered>=100,progressPercent:row.answered%100
+        })}))};
       },
       async loadTitleCatalog(options = {}) {
-        const db = getFirestoreDb();
-        if(!db) throw new Error('firestore-unavailable');
-        const snapshot = await db.collection('titleCatalog').orderBy('order').get();
-        const normalizeTitleCatalogDoc = options.normalizeTitleCatalogDoc || (doc => ({
-          titleId: doc.id,
-          ...(doc.data?.() || {})
-        }));
-        return snapshot.docs.map(normalizeTitleCatalogDoc);
+        const memberUserId=root.DJ48AccountState?.getCurrentMemberUserId?.();
+        const response=await getFirebaseFunctions().httpsCallable('getMemberAchievements')({memberUserId});
+        const normalize=options.normalizeTitleCatalogDoc||(doc=>doc.data());
+        return response.data.catalog.map(row=>normalize({id:row.titleId,data:()=>row}));
       }
     };
   }

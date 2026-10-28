@@ -3,16 +3,16 @@
   const CLASSROOM_ICON_ASSETS = {
     djCoin: `${CLASSROOM_ICON_BASE}dj-coin.svg`,
     pointToken: `${CLASSROOM_ICON_BASE}point-token.svg`,
-    bank: `${CLASSROOM_ICON_BASE}bank.svg`,
-    exchange: `${CLASSROOM_ICON_BASE}exchange.svg`,
-    pointShop: `${CLASSROOM_ICON_BASE}point-shop.svg`,
-    coinShop: `${CLASSROOM_ICON_BASE}coin-shop.svg`,
-    groupPurchase: `${CLASSROOM_ICON_BASE}group-purchase.svg`,
-    inventory: `${CLASSROOM_ICON_BASE}inventory.svg`,
+    bank: '/images/classroom/navigation-v2/bank-320.webp',
+    exchange: '/images/classroom/economy-v2/exchange-320.webp',
+    pointShop: '/images/classroom/economy-v2/point-shop-320.webp',
+    coinShop: '/images/classroom/economy-v2/coin-shop-320.webp',
+    groupPurchase: '/images/classroom/market-v2/gift-320.webp',
+    inventory: '/images/classroom/market-reserve-v1/treasure-320.webp',
     studentCard: `${CLASSROOM_ICON_BASE}student-card.svg`,
-    quest: `${CLASSROOM_ICON_BASE}quest.svg`,
-    routine: `${CLASSROOM_ICON_BASE}routine.svg`,
-    mission: `${CLASSROOM_ICON_BASE}mission.svg`,
+    quest: '/images/classroom/cards/fox-quest-320.webp',
+    routine: '/images/classroom/cards/bunny-routine-320.webp',
+    mission: '/images/classroom/community-tree-320.webp',
     keyringStar: `${CLASSROOM_ICON_BASE}keyring-star.svg`,
     keyringGem: `${CLASSROOM_ICON_BASE}keyring-gem.svg`,
     keyringHeart: `${CLASSROOM_ICON_BASE}keyring-heart.svg`,
@@ -87,6 +87,8 @@
     status: 'all',
     audience: 'all'
   };
+  let classroomStudentQuestFilter = 'all';
+  let classroomShopRenderState = null;
 
   function isHiddenClassroomMember(memberUserId = '') {
     return HIDDEN_CLASSROOM_MEMBER_IDS.has(String(memberUserId || '').trim().toUpperCase());
@@ -121,6 +123,7 @@
     ].find(value => Number(value) > 0);
     if(direct) return Number(direct);
     const timestamp = item.createdAt || item.updatedAt || item.requestedAt || item.approvedAt || item.usedAt || item.reviewedAt;
+    if(typeof timestamp === 'number' && Number.isFinite(timestamp)) return timestamp;
     if(timestamp && typeof timestamp.toMillis === 'function') return timestamp.toMillis();
     if(timestamp && Number(timestamp.seconds) > 0) return Number(timestamp.seconds) * 1000;
     return 0;
@@ -145,7 +148,8 @@
   }
 
   function createClassroomIconImage(key, alt = '', className = 'classroom-inline-icon') {
-    const src = getClassroomIconAssetUrl(key);
+    const src = window.DJ48ClassroomShopArt?.hasIcon(key)
+      ? window.DJ48ClassroomShopArt.getSource({icon:key}) : getClassroomIconAssetUrl(key);
     if(!src) return null;
     const image = document.createElement('img');
     image.className = className;
@@ -155,15 +159,70 @@
     return image;
   }
 
-  function getClassroomShopIconKey(item = {}) {
-    if(item.imageUrl || item.iconUrl || item.thumbnailUrl) return '';
-    if(item.itemId && getClassroomIconAssetUrl(item.itemId)) return item.itemId;
-    if(item.icon && getClassroomIconAssetUrl(item.icon)) return item.icon;
-    if(item.itemType === 'billboardTicket') return 'billboard';
-    if(item.priceType === 'djCoin') return 'coinShop';
-    return 'pointShop';
+  function createClassroomJobIcon(job = {}) {
+    const roles = [
+      ['board-manager', /게시판|공지/],
+      ['library-helper', /독서|도서|책/],
+      ['clean-desk-leader', /정리|청소|환경|칠판/],
+      ['tech-helper', /기기|태블릿|컴퓨터|디지털/],
+      ['mission-reporter', /미션|리포터|방송|소식/],
+      ['kindness-captain', /친절|칭찬|배려|친구/]
+    ];
+    const role = roles.find(([id]) => id === job.jobId)
+      || roles.find(([, pattern]) => pattern.test(job.title || job.jobTitle || ''));
+    const defaultBase = '/images/classroom/navigation-v2/job';
+    const base = role ? `/images/classroom/jobs-v1/${role[0]}` : defaultBase;
+    const image = document.createElement('img');
+    image.className = 'classroom-feature-visual classroom-job-art';
+    image.alt = ''; image.width = 80; image.height = 80;
+    image.decoding = 'async'; image.loading = 'lazy';
+    image.srcset = `${base}-160.webp 1x, ${base}-320.webp 2x`;
+    image.addEventListener('error', () => {
+      image.removeAttribute('srcset');
+      image.src = `${defaultBase}-160.webp`;
+    }, { once: true });
+    image.src = `${base}-160.webp`;
+    return image;
   }
 
+  const CLASSROOM_ILLUSTRATION_BASE = '/images/classroom/illustrations/';
+  const CLASSROOM_SHOP_ILLUSTRATIONS = {
+    shopSeatChoice: 'seat', shopMusicCoupon: 'music', shopHomeworkPass: 'homework',
+    shopPresentationPass: 'presentation', shopPraiseCard: 'praise', shopHelperTicket: 'helper',
+    shopFreeTime: 'freetime', billboard: 'billboard'
+  };
+  function createClassroomIllustration(src, className, eager = false, fallback = `${CLASSROOM_ILLUSTRATION_BASE}empty.svg`) {
+    const image = document.createElement('img');
+    image.className = className; image.alt = ''; image.width = 160; image.height = 160;
+    image.decoding = 'async'; image.loading = eager ? 'eager' : 'lazy';
+    image.src = src;
+    if(src.includes('/stationery/') && src.endsWith('-160.webp')) image.srcset = `${src} 1x, ${src.replace('-160.webp','-320.webp')} 2x`;
+    image.addEventListener('error', () => {
+      image.removeAttribute('srcset');
+      if(image.getAttribute('src') !== fallback) image.src = fallback;
+      else { image.hidden = true; image.parentElement?.classList.add('has-missing-image'); }
+    });
+    return image;
+  }
+  function getClassroomShopArt(item = {}) {
+    const title = String(item.title || '');
+    if(/간식|과자|음료|주스/.test(title)) return `${CLASSROOM_ILLUSTRATION_BASE}snack.svg`;
+    if(/급식|식판|배식/.test(title)) return `${CLASSROOM_ILLUSTRATION_BASE}lunch.svg`;
+    const meanings = [[/자리|좌석/,'shopSeatChoice'],[/음악|노래|DJ/i,'shopMusicCoupon'],[/숙제/,'shopHomeworkPass'],[/발표/,'shopPresentationPass'],[/칭찬/,'shopPraiseCard'],[/도우미|도움/,'shopHelperTicket'],[/자유|보드게임|놀이/,'shopFreeTime']];
+    const semantic = meanings.find(([pattern]) => pattern.test(title));
+    const explicit = [item.itemId,item.icon].find(key => !['pointShop','coinShop'].includes(key) && getClassroomIconAssetUrl(key));
+    const key = explicit || semantic?.[1] || (item.itemType === 'billboardTicket' ? 'billboard' : '');
+    if(CLASSROOM_SHOP_ILLUSTRATIONS[key]) return `${CLASSROOM_ILLUSTRATION_BASE}${CLASSROOM_SHOP_ILLUSTRATIONS[key]}.svg`;
+    const iconUrl = getClassroomIconAssetUrl(key);
+    if(/\/(boost-|effect-|shop-mini-badge)/.test(iconUrl)) return CLASSROOM_ILLUSTRATION_BASE + iconUrl.split('/').pop();
+    return iconUrl || `${CLASSROOM_ILLUSTRATION_BASE}empty.svg`;
+  }
+  function getClassroomQuestArt(quest) {
+    const title = String(quest.title || '');
+    const key = /독서|책|읽/.test(title) ? 'reading' : /친구|도움|돕|배려/.test(title) ? 'kindness' : /발표|말하기/.test(title) ? 'speech' : /청소|정리/.test(title) ? 'diligence' : 'notebook';
+    const artwork = {reading: 'reading-sprout-320.webp', kindness: 'jobs-v1/kindness-captain-160.webp', speech: 'market-v2/presentation-320.webp', diligence: 'jobs-v1/clean-desk-leader-160.webp', notebook: 'stationery/notebook-160.webp'};
+    return `/images/classroom/${artwork[key]}`;
+  }
   function getClassroomKeyringIconKey(student = {}) {
     const keyring = student.selectedKeyring || {};
     const badge = student.selectedBadge || {};
@@ -371,10 +430,10 @@
     // '내 포인트' 배지는 학생 전용 — 교사 뷰에서는 숨긴다
     if(pointCard) pointCard.hidden = deps.isCurrentClassroomTeacher?.(settings) === true;
     const progressMap = data.progressMap || {};
-    const quests = (settings.quests || []).filter(quest => quest.active !== false && quest.saveEnabled !== false);
+    const quests = getVisibleClassroomQuests(settings, deps);
     const pendingQuestCount = quests.filter(quest => !progressMap[quest.id]).length;
     const routines = Array.isArray(data.economyBoard?.routines) ? data.economyBoard.routines : [];
-    const pendingRoutineCount = routines.filter(routine => routine.reviewPending === true).length;
+    const pendingRoutineCount = routines.filter(routine => routine.status === 'active' && routine.canCheckToday && !routine.checkedToday && !routine.reviewPending).length;
     if(pointCount) pointCount.textContent = `${formatClassroomPoint(wallet.point || 0)}점`;
     if(questAlert) {
       questAlert.classList.toggle('is-active', pendingQuestCount > 0);
@@ -400,39 +459,13 @@
     if(!canManage) return;
 
     const economyBoard = data.economyBoard || {};
-    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
-    // 하단 '검토 처리' 목록과 같은 기준을 쓰도록 reviewItems는 숨김 학생 필터를 거치지 않는다
-    const reviewItems = Array.isArray(data.reviewItems) ? data.reviewItems : [];
-    const applications = (Array.isArray(economyBoard.applications) ? economyBoard.applications : [])
-      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
-    const assignments = (Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [])
-      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
-    const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
-    const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
-    // '쿠폰 요청' 카운터는 마켓 탭 처리 목록과 같은 기준을 쓰도록 숨김 학생 필터를 거치지 않는다
-    const purchases = Array.isArray(economyBoard.purchases) ? economyBoard.purchases : [];
-    const pointLogs = (Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [])
-      .filter(item => !isHiddenClassroomMember(item.memberUserId || item.userId));
-    const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
-    const pendingApplications = applications.filter(item => item.status === 'pending').length;
-    const activeAssignments = assignments.filter(item => item.status === 'active').length;
-    const activeRoutines = routines.filter(item => item.status !== 'deleted').length;
-    const pendingUseRequests = purchases.filter(item => item.status === 'use_requested').length;
-    const unassignedStudents = studentCards.filter(student => !assignments.some(item => item.memberUserId === student.memberUserId && item.status === 'active')).length;
-    const earnedPoint = pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) > 0)
-      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0);
-    const spentPoint = Math.abs(pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) < 0)
-      .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0));
+    const reviewItems = (data.reviewItems || []).filter(item => item.reviewMode !== 'cancelOnly');
+    const pendingApplications = (economyBoard.applications || []).filter(item => item.status === 'pending').length;
+    const pendingUseRequests = (economyBoard.purchases || []).filter(item => item.status === 'use_requested').length;
     const items = [
-      ['오늘 처리할 일', `${reviewItems.length}건`, '퀘스트와 성장루틴 검토 대기', 'review'],
-      ['쿠폰 요청', `${pendingUseRequests}건`, '학생이 사용 승인을 기다리는 상점 쿠폰', 'shop'],
-      ['직업 지원', `${pendingApplications}건`, `${activeAssignments}명이 현재 직업을 맡고 있습니다`, 'job'],
-      ['미배정 학생', `${unassignedStudents}명`, `전체 학생 ${studentCards.length}명 중 직업 미배정`, 'student'],
-      ['포인트 지급', formatClassroomPoint(earnedPoint), '최근 교실 활동으로 지급된 포인트', 'reward'],
-      ['포인트 사용', formatClassroomPoint(spentPoint), '최근 상점 구매로 사용된 포인트', 'shop'],
-      ['학생 현황', `${studentCards.length}명`, `전체 보유 포인트 ${formatClassroomPoint(totalPoint)}`, 'student'],
-      ['상점 상품', `${shopItems.length}개`, '학생이 포인트로 구매할 수 있는 상품', 'shop'],
-      ['성장루틴', `${activeRoutines}개`, '학생이 체크하고 담임이 검토하는 루틴', 'routine']
+      ['활동 검토', `${reviewItems.length}건`, '퀘스트와 성장루틴 확인 대기', 'review'],
+      ['쿠폰 요청', `${pendingUseRequests}건`, '마켓에서 사용 요청을 처리해 주세요.', 'shop'],
+      ['직업 지원', `${pendingApplications}건`, '직업에서 지원 학생을 확인해 주세요.', 'job']
     ];
 
     items.forEach(([label, value, detail, tone]) => {
@@ -554,7 +587,7 @@
     const gems = Array.isArray(economyBoard.classroomGems) ? economyBoard.classroomGems : [];
     const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
     const savingsProducts = Array.isArray(economyBoard.savingsProducts) ? economyBoard.savingsProducts : [];
-    const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
+    const totalPoint = Number(economyBoard.classMission?.totalPoint ?? studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0));
     const totalCoin = studentCards.reduce((sum, student) => sum + Number(student.djCoin || 0), 0);
     const nextMission = mission?.thresholds?.find(step => !step.achieved);
     const missionTotal = Number(mission?.totalPoint || 0);
@@ -579,10 +612,10 @@
         key: 'mission',
         icon: 'mission',
         label: '다음 학급 미션',
-        value: nextMission ? `${formatClassroomPoint(nextMission.targetPoint || 0)}점` : '전체 달성',
+        value: nextMission ? `${formatClassroomPoint(nextMission.targetPoint || 0)}점` : mission?.thresholds?.length ? '전체 달성' : '등록 전',
         detail: nextMission
           ? `${formatClassroomPoint(missionTotal)} / ${formatClassroomPoint(missionTarget)}점 · ${missionPercent}% · ${nextMission.rewardText || '보상 준비'}`
-          : '등록된 목표를 모두 달성했습니다.'
+          : mission?.thresholds?.length ? '등록된 목표를 모두 달성했습니다.' : '아직 등록된 학급 미션이 없습니다.'
       },
       {
         key: 'exchange',
@@ -632,17 +665,17 @@
     applyClassroomOverviewTabVisibility();
   }
 
-  // 탭별로 표시할 상단 요약 카드 매핑 — 홈 탭은 7장 전체, 나머지는 탭과 직접 관련된 카드만
+  // 요약은 홈과 각 기능의 본문에서 제공한다. 이전 상단 요약 슬롯은 호환성을 위해 유지한다.
   const CLASSROOM_OVERVIEW_TAB_CARD_KEYS = {
-    today: ['point', 'coin', 'mission', 'exchange', 'savings', 'gems', 'market'],
-    classroom: ['point'],
+    today: [],
+    classroom: [],
     quest: [],
     routine: [],
-    gems: ['gems'],
+    gems: [],
     jobs: [],
-    market: ['market', 'coin'],
-    bank: ['exchange', 'savings', 'coin'],
-    mission: ['mission'],
+    market: [],
+    bank: [],
+    mission: [],
     teacher: []
   };
 
@@ -662,234 +695,257 @@
     wrap.hidden = visibleCount === 0;
   }
 
+  function fillClassroomPortrait(portrait, student = {}, deps = {}) {
+    portrait.classList.add('classroom-member-portrait');
+    portrait.classList.toggle('is-avatar', student.portraitSource === 'avatar');
+    const fallback = () => { portrait.textContent = Array.from(student.nickname || student.name || '나')[0]; };
+    const url = deps.normalizeDisplayImageUrl?.(student.profileImageUrl || '') || '';
+    if(!url) { fallback(); return; }
+    const image = document.createElement('img');
+    const avatarSource = student.portraitSource === 'avatar' && window.DJ48ClassroomPortrait?.setAvatarImageSource;
+    if(avatarSource) avatarSource(image, url, fallback);
+    else image.src = url;
+    image.alt = `${student.nickname || student.name || '내'} ${student.portraitSource === 'avatar' ? '아바타' : '프로필 사진'}`;
+    image.loading = 'lazy';
+    if(student.portraitSource !== 'avatar') {
+      const scale = Math.max(.7, Math.min(2.2, Number(student.profileImageScale) || 1));
+      const x = Math.max(-45, Math.min(45, Number(student.profileImageOffsetX) || 0));
+      const y = Math.max(-45, Math.min(45, Number(student.profileImageOffsetY) || 0));
+      image.style.transform = `translate(${x}%, ${y}%) scale(${scale})`;
+    }
+    if(!avatarSource) image.addEventListener('error', fallback, { once: true });
+    portrait.append(image);
+  }
+
   function renderClassroomTodayHome(data = {}, deps = {}) {
+    if(deps.isCurrentClassroomTeacher?.(data.settings || {}) !== true && rootCardHome()) {
+      window.DJ48ClassroomCardHome.render(data, deps, { fillPortrait: fillClassroomPortrait, quests: getVisibleClassroomQuests(data.settings || {}, deps) });
+      return;
+    }
     const grid = document.getElementById('classroom-today-grid');
     if(!grid) return;
+    const previousRegions = new Map(Array.from(grid.querySelectorAll('[data-classroom-home-region]'))
+      .map(element => [element.dataset.classroomHomeRegion, element]));
+    const ready = deps.previewReadyKeys ? new Set(deps.previewReadyKeys) : null;
+    const region = (element, name, keys, label) => {
+      element.dataset.classroomHomeRegion = name;
+      if(deps.homeOnly && !['identity','point','coin','quests'].includes(name)) {
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'classroom-text-action';
+        button.dataset.classroomHomeDetails = '';
+        button.textContent = `${label} 보기`;
+        element.replaceChildren(button);
+        return element;
+      }
+      if(ready && !keys.every(key => ready.has(key))) {
+        const message = document.createElement('p');
+        message.className = 'classroom-empty-copy';
+        message.textContent = `${label} 불러오는 중…`;
+        element.replaceChildren(message);
+        element.setAttribute('aria-busy', 'true');
+      }
+      return element;
+    };
     const settings = data.settings || {};
-    const economyBoard = data.economyBoard || {};
-    const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
-    const progressMap = data.progressMap || {};
-    const currentMemberUserId = deps.currentMemberUserId || '';
-    const todayKey = deps.getTodayDateKey?.() || '';
-    const quests = (settings.quests || [])
-      .filter(quest => quest.active !== false && quest.saveEnabled !== false)
-      .filter(quest => isClassroomQuestVisibleForMember(quest, currentMemberUserId, todayKey, canManage));
-    const pendingQuests = quests.filter(quest => !progressMap[quest.id]);
-    const routines = Array.isArray(economyBoard.routines) ? economyBoard.routines : [];
-    const reviewPendingRoutines = routines.filter(routine => routine.reviewPending === true);
-    const gemProgress = Array.isArray(data.gemProgress) ? data.gemProgress : [];
-    const completedGems = gemProgress.filter(gem => gem.completed === true);
-    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
-    const myStudentCard = studentCards.find(student => student.memberUserId === currentMemberUserId) || {};
-    const studentNameMap = Object.fromEntries(studentCards.map(student => [
-      String(student.memberUserId || ''),
-      student.nickname || student.name || ''
-    ]).filter(([id]) => id));
-    const selectedKeyringLabel = myStudentCard.selectedKeyring?.label || myStudentCard.selectedBadge?.label || '';
-    const classMission = economyBoard.classMission || null;
-    const shopItems = Array.isArray(economyBoard.shopItems) ? economyBoard.shopItems : [];
-    const billboardMessages = Array.isArray(economyBoard.billboardMessages) ? economyBoard.billboardMessages : [];
-    const noticeSlots = Array.isArray(economyBoard.classNotices?.slots) ? economyBoard.classNotices.slots : [];
-    const activeNoticeSlots = noticeSlots.filter(slot => String(slot.text || '').trim());
-    grid.innerHTML = '';
-    const map = document.createElement('article');
-    const profileSection = document.createElement('section');
-    const boardSection = document.createElement('section');
-    const boardHeading = document.createElement('h3');
-    const board = document.createElement('div');
-    const noteGrid = document.createElement('div');
-    const marquee = document.createElement('div');
-    const featureGrid = document.createElement('div');
-    const checklistSection = document.createElement('section');
-    const checklistHeading = document.createElement('h3');
-    const checklistGrid = document.createElement('div');
-    const visibleRoutineCount = routines.filter(routine => routine.status !== 'deleted').length;
-    const todayCheckableRoutineCount = routines.filter(routine => routine.canCheckToday && !routine.checkedToday && !routine.reviewPending).length;
-    const profileName = myStudentCard.nickname || myStudentCard.name || (canManage ? '담임' : '학생');
-    const profilePoint = formatClassroomPoint(myStudentCard.point || 0);
-    const profileCoin = Number(myStudentCard.djCoin || myStudentCard.coin || 0).toLocaleString('ko-KR');
-    const messageItems = billboardMessages.length
-      ? billboardMessages.slice(0, 5).map(item => {
-        const nickname = studentNameMap[String(item.memberUserId || '')] || '';
-        return {
-          id: item.messageId || '',
-          text: nickname ? `${nickname}: ${item.text}` : item.text
-        };
-      })
-      : [];
-    const featureItems = [
-      ['학생카드', '+', 'classroom', 'secondary'],
-      ['퀘스트', '▣', 'quest', 'assignment'],
-      ['성장루틴', '✓', 'routine', 'routine'],
-      ['젬스톤', '◇', 'gems', 'primary'],
-      ['직업', '■', 'jobs', 'secondary'],
-      ['마켓', '▥', 'market', 'shop'],
-      ['은행', 'P', 'bank', 'secondary'],
-      ['학급미션', '!', 'mission', 'mission']
-    ];
-    const checklistItems = [
-      classMission ? ['학급 미션', classMission.remainingPoint ? `${formatClassroomPoint(classMission.remainingPoint || 0)}점 남음` : '전체 달성!', 'mission', 'mission'] : null,
-      ['체크할 퀘스트', `${pendingQuests.length}건 대기중`, 'quest', 'assignment'],
-      ['성장루틴', reviewPendingRoutines.length ? `${reviewPendingRoutines.length}건 검토 대기` : `${todayCheckableRoutineCount}건 체크 가능`, 'routine', 'routine']
-    ].filter(Boolean).concat(canManage ? [['승인 대기', `${(Array.isArray(data.reviewItems) ? data.reviewItems.length : 0)}건 확인`, 'teacher', 'review']] : []);
-    const marqueeText = activeNoticeSlots[0]?.text || '이번 주 금요일은 현장체험학습일입니다. 준비물을 꼭 확인해 주세요.';
-
-    const createNavButton = (tabName, teacherTarget = '') => {
-      const button = document.createElement('button');
-      button.className = 'classroom-feature-button';
+    const economy = data.economyBoard || {};
+    const teacher = deps.isCurrentClassroomTeacher?.(settings) === true;
+    const students = data.studentCards || [];
+    const me = students.find(student => student.memberUserId === deps.currentMemberUserId) || {};
+    const progress = data.progressMap || {};
+    const quests = getVisibleClassroomQuests(settings, deps);
+    const pending = quests.filter(quest => !progress[quest.id]);
+    const routines = (economy.routines || []).filter(item => item.status !== 'deleted');
+    const checkable = routines.filter(item => item.canCheckToday && !item.checkedToday && !item.reviewPending && item.status === 'active');
+    const reviews = (data.reviewItems || []).filter(item => item.reviewMode !== 'cancelOnly');
+    const node = (tag, className, text) => {
+      const element = document.createElement(tag);
+      element.className = className;
+      if(text !== undefined) element.textContent = text;
+      return element;
+    };
+    const link = (label, tab, className = 'classroom-text-action') => {
+      const button = node('button', className, label);
       button.type = 'button';
-      button.dataset.classroomTodayTab = tabName;
-      if(teacherTarget) button.dataset.classroomTeacherTarget = teacherTarget;
+      button.dataset.classroomTodayTab = tab;
       return button;
     };
-
-    map.className = 'classroom-visual-map classroom-today-card';
-    profileSection.className = 'classroom-profile-snapshot';
-    [
-      ['내 카드', profileName],
-      ['포인트', `${profilePoint}점`],
-      ['DJ코인', profileCoin],
-      ['젬스톤', `${completedGems.length}/${gemProgress.length || 0}개`],
-      ['성장루틴', `${visibleRoutineCount}개`],
-      ['대표 키링', selectedKeyringLabel || '미설정']
-    ].forEach(([label, value]) => {
-      const item = document.createElement('span');
-      const labelEl = document.createElement('small');
-      const valueEl = document.createElement('strong');
-      labelEl.textContent = label;
-      valueEl.textContent = value;
-      item.append(labelEl, valueEl);
-      profileSection.appendChild(item);
-    });
-    boardSection.className = 'classroom-bulletin-section';
-    boardHeading.className = 'classroom-visual-section-title';
-    boardHeading.textContent = '우리반 게시판';
-    board.className = 'classroom-bulletin-board';
-    noteGrid.className = 'classroom-bulletin-notes';
-    if(!messageItems.length) {
-      const emptyNote = document.createElement('article');
-      emptyNote.className = 'classroom-bulletin-note classroom-bulletin-note--empty';
-      emptyNote.textContent = '아직 올라온 한마디가 없습니다.';
-      noteGrid.appendChild(emptyNote);
-    }
-    messageItems.forEach((message, index) => {
-      const note = document.createElement('article');
-      const text = document.createElement('span');
-      note.className = `classroom-bulletin-note classroom-bulletin-note--${(index % 4) + 1}`;
-      text.textContent = message.text || '';
-      note.appendChild(text);
-      if(canManage && message.id) {
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'classroom-billboard-delete-button';
-        deleteButton.type = 'button';
-        deleteButton.dataset.classroomBillboardDeleteId = message.id;
-        deleteButton.setAttribute('aria-label', '전광판 글 삭제');
-        deleteButton.textContent = '×';
-        note.appendChild(deleteButton);
+    const section = (title, label, tab) => {
+      const wrap = node('section', 'classroom-home-section');
+      const heading = node('div', 'classroom-section-heading');
+      heading.append(node('h3', '', title));
+      if(label) heading.append(link(label, tab));
+      wrap.append(heading);
+      return wrap;
+    };
+    const row = (title, detail, button, iconKey) => {
+      const wrap = node('div', 'classroom-action-row');
+      const copy = node('div', 'classroom-action-copy');
+      copy.append(node('strong', '', title), node('span', '', detail));
+      if(iconKey) {
+        const icon = createClassroomIconImage(iconKey, '', 'classroom-task-icon');
+        if(icon) wrap.append(icon);
       }
-      noteGrid.appendChild(note);
-    });
-    marquee.className = 'classroom-bulletin-marquee';
-    marquee.innerHTML = '<span aria-hidden="true">📣</span>';
-    const marqueeCopy = document.createElement('p');
-    marqueeCopy.textContent = marqueeText;
-    marquee.appendChild(marqueeCopy);
-    board.append(noteGrid, marquee);
-    if(activeNoticeSlots.length) {
-      const noticePanel = document.createElement('details');
-      const noticeSummary = document.createElement('summary');
-      const noticeList = document.createElement('div');
-      noticePanel.className = 'classroom-notice-panel';
-      noticeSummary.textContent = '학급 알림';
-      noticeList.className = 'classroom-notice-slot-list';
-      activeNoticeSlots.forEach(slot => {
-        const item = document.createElement('article');
-        const label = document.createElement('strong');
-        const text = document.createElement('p');
-        item.className = 'classroom-notice-slot';
-        item.style.setProperty('--notice-slot-color', slot.color || '#64a8fe');
-        label.textContent = slot.label || '알림';
-        text.textContent = slot.text || '';
-        item.append(label, text);
-        noticeList.appendChild(item);
-      });
-      noticePanel.append(noticeSummary, noticeList);
-      board.appendChild(noticePanel);
+      wrap.append(copy, button);
+      return wrap;
+    };
+    const artwork = (name, className) => {
+      const image = document.createElement('img');
+      image.src = `/images/classroom/${name}-320.webp`; image.alt = ''; image.className = `classroom-home-art ${className}`;
+      image.loading = 'lazy'; image.width = 160; image.height = 160; image.decoding = 'async'; image.setAttribute('aria-hidden', 'true');
+      return image;
+    };
+    grid.replaceChildren();
+    const hero = node('section', 'classroom-home-hero');
+    const identity = node('div', 'classroom-home-identity');
+    const portrait = node(teacher ? 'div' : 'button', 'classroom-home-avatar');
+    if(teacher) portrait.append(createClassroomIconImage('studentCard', '', 'classroom-home-avatar-icon'));
+    else {
+      portrait.type = 'button'; portrait.dataset.classroomEditPortrait = '';
+      portrait.setAttribute('aria-label', '내 교실 이미지 설정');
+      portrait.title = '사진 또는 마켓 아바타 선택';
+      fillClassroomPortrait(portrait, me, deps);
     }
-    boardSection.append(boardHeading, board);
+    const greeting = node('div', 'classroom-home-greeting');
+    greeting.append(node('p', 'classroom-kicker', teacher ? '담임 선생님' : '오늘의 교실'),
+      node('h3', '', teacher ? '우리반의 하루' : `${me.nickname || me.name || '나'}의 오늘`),
+      node('p', '', teacher ? (deps.homeOnly ? '학생과 검토할 활동은 메뉴에서 확인하세요.' : `학생 ${students.length}명 · 확인을 기다리는 활동 ${reviews.length}건`) :
+        deps.homeOnly ? `퀘스트 ${pending.length}개 · 루틴은 메뉴에서 확인하세요.` : pending.length + checkable.length ? `퀘스트 ${pending.length}개 · 체크할 루틴 ${checkable.length}개` : quests.length || routines.length ? '오늘 할 일을 모두 확인했어요.' : '오늘의 활동을 여기서 확인하세요.'));
+    identity.append(portrait, greeting);
+    if(!teacher) {
+      const edit = node('button', 'classroom-text-action classroom-portrait-edit', '이미지 바꾸기');
+      edit.type = 'button'; edit.dataset.classroomEditPortrait = '';
+      greeting.append(edit);
+    }
+    hero.append(identity);
+    region(identity, 'identity', ['students', 'progress', 'economy', 'review'], '내 교실 정보');
+    const wallet = node('div', 'classroom-home-wallet');
+    if(teacher) {
+      wallet.append(link('학생 살펴보기', 'classroom', 'classroom-main-action'), link('처리할 일', 'teacher'));
+    } else {
+      wallet.append(region(link(`${formatClassroomPoint(data.wallet?.point || 0)} P`, 'bank', 'classroom-wallet-link'), 'point', ['wallet'], '포인트'),
+        region(link(`${Number(economy.myDjCoin ?? me.djCoin ?? 0).toLocaleString('ko-KR')} DJ코인`, 'market', 'classroom-wallet-link'), 'coin', ['economy'], 'DJ코인'));
+    }
+    hero.append(wallet);
+    grid.append(hero);
+    const layout = node('div', 'classroom-home-layout');
+    const main = node('div', 'classroom-home-main');
+    const aside = node('div', 'classroom-home-aside');
+    layout.append(main, aside);
+    grid.append(layout);
 
-    if(classMission) {
-      const missionPanel = document.createElement('section');
-      const missionTitle = document.createElement('h3');
-      const missionDesc = document.createElement('p');
-      const missionTrack = document.createElement('div');
-      const missionList = document.createElement('div');
-      const targetMax = Math.max(...(classMission.thresholds || []).map(item => Number(item.targetPoint || 0)), 1);
-      missionPanel.className = 'classroom-mission-panel';
-      missionTitle.className = 'classroom-visual-section-title';
-      missionTitle.textContent = classMission.title || '학급 미션';
-      missionDesc.textContent = `${formatClassroomPoint(classMission.totalPoint || 0)}점 모음${classMission.remainingPoint ? ` · 다음 목표까지 ${formatClassroomPoint(classMission.remainingPoint || 0)}점` : ' · 모든 목표 달성'}`;
-      missionTrack.className = 'classroom-mission-track';
-      missionList.className = 'classroom-mission-step-list';
-      (classMission.thresholds || []).forEach(step => {
-        const marker = document.createElement('span');
-        const row = document.createElement('span');
-        marker.className = `classroom-mission-marker${step.achieved ? ' is-achieved' : ''}`;
-        marker.style.setProperty('--mission-position', `${Math.min(100, Math.round((Number(step.targetPoint || 0) / targetMax) * 100))}%`);
-        marker.textContent = step.achieved ? '✓' : Number(step.targetPoint || 0).toLocaleString('ko-KR');
-        marker.title = `${step.label || '목표'} ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}`;
-        missionTrack.appendChild(marker);
-        row.className = `classroom-mission-step${step.achieved ? ' is-achieved' : ''}`;
-        row.textContent = `${step.achieved ? '✓ ' : ''}${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`} · ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}${step.achievedDateKey ? ` · 달성일 ${step.achievedDateKey}` : ''}`;
-        missionList.appendChild(row);
+    const tasks = section(teacher ? '지금 처리할 일' : '오늘 할 일', teacher ? '모두 보기' : '퀘스트 전체', teacher ? 'teacher' : 'quest');
+    tasks.classList.add('classroom-checklist-section');
+    if(teacher) {
+      const requests = (economy.purchases || []).filter(item => item.status === 'use_requested').length;
+      const applications = (economy.applications || []).filter(item => item.status === 'pending').length;
+      [['활동 검토', `${reviews.length}건 대기`, 'teacher'], ['쿠폰 사용 요청', `${requests}건 대기`, 'market'],
+        ['직업 지원', `${applications}건 대기`, 'jobs']].forEach(([label, detail, tab]) => {
+        const button = link('확인하기', tab, 'classroom-main-action');
+        if(tab === 'market') button.dataset.classroomMarketTarget = 'inventory';
+        tasks.append(row(label, detail, button, tab === 'teacher' ? 'quest' : tab === 'market' ? 'inventory' : 'studentCard'));
       });
-      missionPanel.append(missionTitle, missionDesc, missionTrack, missionList);
-      boardSection.appendChild(missionPanel);
+      region(tasks, 'reviews', ['review', 'economy'], '처리할 일');
+    } else {
+      const questTasks = node('div', 'classroom-home-task-group');
+      pending.slice(0, 3).forEach(quest => {
+        const button = node('button', 'classroom-main-action', quest.rewardMode === 'auto' ? '완료 체크' : '검토 요청');
+        button.type = 'button';
+        button.dataset.classroomQuestAction = quest.id;
+        questTasks.append(row(quest.title, getClassroomQuestRewardText(quest), button, 'quest'));
+      });
+      if(!pending.length) questTasks.append(node('p', 'classroom-empty-copy', quests.length ? '퀘스트를 모두 확인했어요.' : '오늘 등록된 퀘스트가 없습니다.'));
+      tasks.append(region(questTasks, 'quests', ['settings', 'progress'], '오늘 할 일'));
+      const routineTasks = node('div', 'classroom-home-task-group');
+      const routineHeading = node('div', 'classroom-section-heading classroom-routine-home-heading');
+      routineHeading.append(node('h4', '', '성장루틴'), link('루틴 보기', 'routine'));
+      routineTasks.append(routineHeading);
+      checkable.slice(0, 2).forEach(routine => routineTasks.append(row(routine.title || '성장루틴',
+        `${routine.currentCount || 0}/${routine.targetCount || 1}회 · 오늘 체크할 수 있어요`, link('체크하러 가기', 'routine', 'classroom-main-action'), 'routine')));
+      if(!checkable.length) routineTasks.append(node('p', 'classroom-empty-copy', routines.length ? '오늘 체크할 루틴을 모두 확인했어요.' : '반복하고 싶은 습관을 루틴으로 만들어 보세요.'));
+      tasks.append(region(routineTasks, 'routines', ['economy'], '성장루틴'));
+    }
+    main.append(tasks);
+
+    if(teacher) {
+      const roster = section('우리반 학생', '전체 학생', 'classroom');
+      const list = node('div', 'classroom-home-roster');
+      students.slice().sort((a, b) => Number(a.studentNumber || 0) - Number(b.studentNumber || 0)).slice(0, 8).forEach(student => {
+        const button = link('', 'classroom', 'classroom-roster-link');
+        button.dataset.classroomStudentTarget = student.memberUserId || '';
+        const face = node('span', 'classroom-roster-portrait');
+        fillClassroomPortrait(face, student, deps);
+        button.append(face, node('span', '', getClassroomMemberDisplayName(student)), node('small', '', `${formatClassroomPoint(student.point || 0)} P`));
+        list.append(button);
+      });
+      if(!students.length) roster.append(node('p', 'classroom-empty-copy', '아직 등록된 학생이 없습니다.'));
+      roster.append(list);
+      main.append(region(roster, 'students', ['students'], '학생 목록'));
+    } else {
+      const growth = section('나의 성장', '젬스톤 보기', 'gems');
+      growth.classList.add('classroom-growth-section');
+      growth.append(artwork('reading-sprout', 'classroom-growth-art'));
+      const gems = data.gemProgress || [];
+      const next = gems.find(gem => !gem.completed);
+      if(next) {
+        const stage = getClassroomGemStage(next, Number(next.currentXp || 0));
+        const target = Math.max(1, Number(stage.next?.xp || next.targetXp || 1));
+        growth.append(node('strong', 'classroom-growth-name', next.gemName || '성장 중인 젬스톤'),
+          node('p', '', `${next.currentXp || 0}/${target}회 · ${stage.next ? `${stage.next.label}까지 ${Math.max(0, target - Number(next.currentXp || 0))}회` : '목표 달성'}`),
+          createClassroomProgressMeter(Math.min(100, Math.round(Number(next.currentXp || 0) / target * 100))));
+      } else growth.append(node('p', 'classroom-empty-copy', gems.length ? '모든 젬스톤 목표를 달성했어요!' : '활동과 연결된 젬스톤이 이곳에 표시됩니다.'));
+      const assignment = economy.myAssignment || (economy.assignments || []).find(item => item.memberUserId === deps.currentMemberUserId && item.status === 'active');
+      growth.append(row('내 직업', assignment?.jobTitle || '아직 맡은 직업이 없어요.', link('직업 보기', 'jobs')));
+      // The completed model merges authorized gem metadata before showing growth.
+      aside.append(region(growth, 'growth', ['mergedGems'], '나의 성장'));
     }
 
-    featureGrid.className = 'classroom-feature-grid';
-    featureItems.forEach(([label, icon, tabName, tone, teacherTarget]) => {
-      const button = createNavButton(tabName, teacherTarget);
-      const iconEl = document.createElement('span');
-      const labelEl = document.createElement('strong');
-      button.classList.add('classroom-today-card', `classroom-feature-button--${tone}`);
-      iconEl.className = 'classroom-feature-icon';
-      iconEl.textContent = icon;
-      labelEl.textContent = label;
-      button.append(iconEl, labelEl);
-      featureGrid.appendChild(button);
+    const mission = economy.classMission;
+    if(deps.homeOnly || (ready && !ready.has('economy')) || (mission && (mission.thresholds || []).length)) {
+      const missionSection = section('우리반 미션', '목표 보기', 'mission');
+      missionSection.classList.add('classroom-mission-section');
+      missionSection.append(artwork('community-tree', 'classroom-mission-art'));
+      const next = mission?.thresholds?.find(step => !step.achieved);
+      missionSection.append(node('strong', '', mission?.title || '함께 모으는 포인트'));
+      if(next) {
+        missionSection.append(node('p', '', `${formatClassroomPoint(mission.totalPoint || 0)} / ${formatClassroomPoint(next.targetPoint || 0)} P`),
+          createClassroomProgressMeter(Math.min(100, Math.round(Number(mission.totalPoint || 0) / Math.max(1, Number(next.targetPoint || 0)) * 100))),
+          node('p', '', next.rewardText || '다음 목표를 향해 함께 도전해요.'));
+      } else missionSection.append(node('p', '', '등록된 목표를 모두 달성했어요!'));
+      (teacher ? aside : main).append(region(missionSection, 'mission', ['economy'], '우리반 미션'));
+    }
+    const notices = (economy.classNotices?.slots || []).filter(slot => String(slot.text || '').trim());
+    const messages = economy.billboardMessages || [];
+    const bulletin = section('우리반 소식');
+    notices.slice(0, 2).forEach(slot => {
+      const notice = node('article', 'classroom-home-notice');
+      notice.append(node('strong', '', slot.label || '학급 알림'), node('p', '', slot.text));
+      bulletin.append(notice);
     });
-
-    checklistSection.className = 'classroom-checklist-section';
-    checklistHeading.className = 'classroom-visual-section-title classroom-visual-section-title--checklist';
-    checklistHeading.textContent = '오늘 확인할 일';
-    checklistGrid.className = 'classroom-checklist-grid';
-    checklistItems.forEach(([label, detail, tabName, tone, teacherTarget]) => {
-      const item = document.createElement('button');
-      const iconEl = document.createElement('span');
-      const copy = document.createElement('span');
-      const labelEl = document.createElement('strong');
-      const detailEl = document.createElement('small');
-      const arrow = document.createElement('span');
-      item.className = `classroom-today-card classroom-checklist-item classroom-checklist-item--${tone}`;
-      item.type = 'button';
-      item.dataset.classroomTodayTab = tabName;
-      if(teacherTarget) item.dataset.classroomTeacherTarget = teacherTarget;
-      iconEl.className = 'classroom-checklist-icon';
-      copy.className = 'classroom-checklist-copy';
-      arrow.className = 'classroom-checklist-arrow';
-      iconEl.textContent = tone === 'assignment' ? '▣' : tone === 'routine' ? '✓' : '!';
-      labelEl.textContent = label;
-      detailEl.textContent = detail;
-      arrow.textContent = '›';
-      copy.append(labelEl, detailEl);
-      item.append(iconEl, copy, arrow);
-      checklistGrid.appendChild(item);
+    if(notices.length > 2) {
+      const more = node('details', 'classroom-notices-more');
+      more.append(node('summary', '', `알림 ${notices.length - 2}개 더 보기`));
+      notices.slice(2).forEach(slot => more.append(row(slot.label || '학급 알림', slot.text, node('span', ''))));
+      bulletin.append(more);
+    }
+    messages.slice(0, 5).forEach(message => {
+      const note = node('div', 'classroom-home-message');
+      const student = students.find(item => item.memberUserId === message.memberUserId);
+      note.append(node('small', '', student ? getClassroomMemberDisplayName(student) : '우리반 한마디'), node('p', '', message.text || ''));
+      if(teacher && message.messageId) {
+        const button = node('button', 'classroom-text-action', '삭제');
+        button.type = 'button';
+        button.dataset.classroomBillboardDeleteId = message.messageId;
+        button.setAttribute('aria-label', '게시판 한마디 삭제');
+        note.append(button);
+      }
+      bulletin.append(note);
     });
-    checklistSection.append(checklistHeading, checklistGrid);
-
-    map.append(profileSection, boardSection, featureGrid, checklistSection);
-    grid.appendChild(map);
+    if(!notices.length && !messages.length) bulletin.append(node('p', 'classroom-empty-copy', '새로운 학급 소식이 없습니다.'));
+    aside.append(region(bulletin, 'notices', ['economy', 'students'], '우리반 소식'));
+    grid.querySelectorAll('[data-classroom-home-region]').forEach(element => {
+      const previous = previousRegions.get(element.dataset.classroomHomeRegion);
+      if(previous?.outerHTML === element.outerHTML) element.replaceWith(previous);
+    });
   }
 
   function getClassroomPurchaseStatusLabel(status = '') {
@@ -940,16 +996,10 @@
       .sort((a, b) => (b.createdAtMillis || 0) - (a.createdAtMillis || 0))
       .slice(0, 10);
     feed.innerHTML = '';
+    if(!activities.length) return;
     const title = document.createElement('h4');
     const list = document.createElement('ul');
     title.textContent = '최근 교실 활동';
-    if(!activities.length) {
-      const row = document.createElement('li');
-      row.textContent = '아직 표시할 교실 활동이 없습니다.';
-      list.appendChild(row);
-      feed.append(title, list);
-      return;
-    }
     activities.forEach(item => {
       const row = document.createElement('li');
       row.textContent = item.label;
@@ -1023,6 +1073,7 @@
       });
     }
     if(gemPicker && gemInput) {
+      if(data.requiredKeys?.includes('economy') && !data.loadedKeys?.includes('economy')) { gemPicker.textContent = window.DJ48ClassroomState?.hasLoadError?.('economy') ? '젬 목록을 불러오지 못했습니다. 다시 불러와 주세요.' : '젬 목록 로딩 중 · 계속 표시되면 다시 불러와 주세요.'; return; }
       const currentGems = new Set(String(gemInput.value || '')
         .split(',')
         .map(value => value.trim())
@@ -1030,8 +1081,10 @@
       gemPicker.innerHTML = '';
       const syncGemInput = () => {
         const checkedNames = Array.from(gemPicker.querySelectorAll('input[data-classroom-gem-choice]:checked'))
-          .map(input => input.value)
+          .map(input => input.dataset.gemName)
           .filter(Boolean);
+        gemInput.dataset.unresolved = '';
+        gemInput.dataset.gemIds = Array.from(gemPicker.querySelectorAll('input[data-classroom-gem-choice]:checked')).map(input => input.value).join(',');
         gemInput.value = checkedNames.join(', ');
       };
       const noneLabel = document.createElement('label');
@@ -1047,11 +1100,14 @@
             input.checked = false;
           });
           gemInput.value = '';
+          gemInput.dataset.gemIds = '';
+          gemInput.dataset.unresolved = '';
         }
       });
       noneText.textContent = '연결 없음';
       noneLabel.append(noneInput, noneText);
       gemPicker.appendChild(noneLabel);
+      if(!classroomGems.length) { const empty=document.createElement('p'); empty.textContent='등록된 젬이 없습니다.'; gemPicker.appendChild(empty); }
       classroomGems.forEach(gem => {
         const gemName = String(gem.gemName || gem.title || gem.gemId || '').trim();
         if(!gemName) return;
@@ -1061,17 +1117,26 @@
         const targetCount = Math.max(1, Math.round(Number(gem.targetXp || gem.gemTargetXp || 10) || 10));
         input.type = 'checkbox';
         input.dataset.classroomGemChoice = 'true';
-        input.value = gemName;
-        input.checked = currentGems.has(gemName) || currentGems.has(String(gem.gemId || ''));
+        input.value = String(gem.gemId || gem.id || '');
+        input.dataset.gemName = gemName;
+        const selectedIds = (gemInput.dataset.gemIds || '').split(',').filter(Boolean);
+        input.checked = selectedIds.length ? selectedIds.includes(input.value) : currentGems.has(gemName) && classroomGems.filter(g => g.gemName === gemName).length === 1;
         input.addEventListener('change', () => {
           if(input.checked) noneInput.checked = false;
           if(!gemPicker.querySelectorAll('input[data-classroom-gem-choice]:checked').length) noneInput.checked = true;
           syncGemInput();
         });
-        name.textContent = `${gemName} · 완료 1회 누적 · ${targetCount}회 달성`;
+        name.textContent = `${gemName} (${input.value}) · ${targetCount}회 달성`;
         label.append(input, name);
         gemPicker.appendChild(label);
       });
+      const savedIds = (gemInput.dataset.gemIds || '').split(',').filter(Boolean);
+      const choices = Array.from(gemPicker.querySelectorAll('input[data-classroom-gem-choice]'));
+      const unresolved = savedIds.length ? savedIds.some(id => !choices.some(n => n.value === id))
+        : Array.from(currentGems).some(name => choices.filter(n => n.dataset.gemName === name).length !== 1);
+      gemInput.dataset.unresolved = unresolved ? 'true' : '';
+      if(unresolved) { const warning=document.createElement('p'); warning.textContent='기존 젬을 구분할 수 없습니다. ID를 확인하여 다시 선택하거나 연결 없음을 선택해 주세요.'; gemPicker.appendChild(warning); }
+      else if(!savedIds.length && currentGems.size) syncGemInput();
     }
   }
 
@@ -1094,9 +1159,22 @@
 
   function formatClassroomPoint(value) {
     return Number(value || 0).toLocaleString('ko-KR', {
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
       maximumFractionDigits: 2
     });
+  }
+
+  function getVisibleClassroomQuests(settings = {}, deps = {}) {
+    const teacher = deps.isCurrentClassroomTeacher?.(settings) === true;
+    return (settings.quests || []).filter(quest => quest.active !== false && (teacher || quest.saveEnabled !== false))
+      .filter(quest => isClassroomQuestVisibleForMember(quest, deps.currentMemberUserId || '', deps.getTodayDateKey?.() || '', teacher));
+  }
+
+  function getClassroomQuestRewardText(quest = {}) {
+    const currency = quest.rewardCurrency === 'coin' || quest.rewardCurrency === 'djCoin' ? 'DJ코인' : 'P';
+    const amount = Number(quest.rewardPoint ?? quest.rewardCoin ?? 0);
+    const gems = quest.linkedGemNames?.length ? quest.linkedGemNames : quest.linkedGemName ? [quest.linkedGemName] : [];
+    return [`+${formatClassroomPoint(amount)} ${currency}`, ...gems.map(name => `${name} +1`)].join(' · ');
   }
 
   function isClassroomQuestVisibleForMember(quest = {}, memberUserId = '', todayKey = '', canManage = false) {
@@ -1153,6 +1231,7 @@
     }
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     const activeQuests = (settings.quests || []).filter(quest => quest.active !== false);
+    const filtersWereExpanded = canManage && wrap.querySelector('[data-classroom-quest-filter-toggle]')?.getAttribute('aria-expanded') === 'true';
     const reviewCount = visibleQuests.filter(quest => getClassroomQuestStatusBucket(quest, progressMap[quest.id] || null) === 'review').length;
     const doneCount = visibleQuests.filter(quest => getClassroomQuestStatusBucket(quest, progressMap[quest.id] || null) === 'done').length;
     const categories = Array.from(new Set(activeQuests.map(quest => quest.category || '미분류'))).sort((a, b) => a.localeCompare(b, 'ko-KR'));
@@ -1172,6 +1251,7 @@
       select.addEventListener('change', () => {
         classroomQuestFilterState[key] = select.value || 'all';
         renderClassroomQuestCards(settings, progressMap, deps);
+        wrap.querySelector(`[data-classroom-quest-filter="${key}"]`)?.focus({ preventScroll: true });
       });
       label.append(labelSpan, select);
       return label;
@@ -1181,13 +1261,15 @@
     const filterBar = document.createElement('div');
     statGrid.className = 'classroom-quest-stat-grid';
     filterBar.className = 'classroom-quest-filter-bar';
-    [
-      ['전체 퀘스트', `${activeQuests.length}개`],
-      ['오늘 노출', `${visibleQuests.length}개`],
-      ['완료/승인', `${doneCount}개`],
-      ['검토 대기', `${reviewCount}개`],
+    (canManage ? [
+      ['등록 퀘스트', `${activeQuests.length}개`],
+      ['검토 요청', `${(deps.reviewItems || []).filter(item => item.itemType !== 'routine' && item.reviewMode !== 'cancelOnly').length}건`],
       ['현재 표시', `${filteredQuests.length}개`]
-    ].forEach(([label, value]) => {
+    ] : [
+      ['할 일', `${visibleQuests.filter(quest => !progressMap[quest.id]).length}개`],
+      ['검토 중', `${reviewCount}개`],
+      ['완료', `${doneCount}개`]
+    ]).forEach(([label, value]) => {
       const card = document.createElement('article');
       const labelEl = document.createElement('span');
       const valueEl = document.createElement('strong');
@@ -1200,9 +1282,7 @@
       createSelect('카테고리', 'category', [['all', '전체'], ...categories.map(category => [category, category])]),
       createSelect('상태', 'status', [
         ['all', '전체'],
-        ['todo', '진행 가능'],
-        ['review', '검토/저장'],
-        ['done', '완료/승인']
+        ['review', '검토 요청 있음']
       ]),
       createSelect('대상', 'audience', [
         ['all', '전체'],
@@ -1210,23 +1290,57 @@
         ['none', '대상 없음']
       ])
     );
-    if(!canManage) filterBar.hidden = true;
-    wrap.append(statGrid, filterBar);
+    if(!canManage) {
+      filterBar.replaceChildren();
+      filterBar.classList.add('classroom-filter-pills');
+      [['all', '전체'], ['todo', '할 일'], ['review', '검토 중'], ['done', '완료']].forEach(([key, label]) => {
+        const button = document.createElement('button');
+        button.type = 'button'; button.dataset.classroomStudentQuestFilter = key;
+        button.className = 'classroom-filter-pill';
+        button.setAttribute('aria-pressed', String(classroomStudentQuestFilter === key));
+        const count = key === 'all' ? visibleQuests.length : visibleQuests.filter(quest => getClassroomQuestStatusBucket(quest, progressMap[quest.id]) === key).length;
+        button.textContent = `${label} ${count}`;
+        button.addEventListener('click', () => {
+          classroomStudentQuestFilter = key;
+          renderClassroomQuestCards(settings, progressMap, deps);
+          wrap.querySelector(`[data-classroom-student-quest-filter="${key}"]`)?.focus();
+        });
+        filterBar.append(button);
+      });
+    }
+    wrap.append(statGrid);
+    if(canManage) {
+      const activeFilterCount = Object.values(classroomQuestFilterState).filter(value => value !== 'all').length;
+      const toggle = document.createElement('button');
+      toggle.type = 'button'; toggle.className = 'classroom-quest-filter-toggle classroom-soft-action';
+      toggle.dataset.classroomQuestFilterToggle = '';
+      toggle.textContent = activeFilterCount ? `필터 · ${activeFilterCount}개 적용 중` : '필터';
+      filterBar.id = 'classroom-quest-filters';
+      toggle.setAttribute('aria-controls', filterBar.id);
+      const setExpanded = expanded => {
+        toggle.setAttribute('aria-expanded', String(expanded));
+        filterBar.classList.toggle('is-collapsed', !expanded);
+      };
+      setExpanded(filtersWereExpanded || activeFilterCount > 0);
+      toggle.addEventListener('click', () => setExpanded(toggle.getAttribute('aria-expanded') !== 'true'));
+      wrap.append(toggle);
+    }
+    wrap.append(filterBar);
   }
 
   function renderClassroomQuestCards(settings = {}, progressMap = {}, deps = {}) {
     const grid = document.getElementById('classroom-quest-grid');
     if(!grid) return;
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
-    const currentMemberUserId = deps.currentMemberUserId || '';
     const todayKey = deps.getTodayDateKey?.() || '';
     grid.innerHTML = '';
-    const visibleQuests = (settings.quests || [])
-      .filter(quest => quest.active !== false)
-      .filter(quest => isClassroomQuestVisibleForMember(quest, currentMemberUserId, todayKey, canManage));
+    const visibleQuests = getVisibleClassroomQuests(settings, deps);
     const filteredQuests = canManage
-      ? visibleQuests.filter(quest => isClassroomQuestMatchedByFilter(quest, progressMap[quest.id] || null))
-      : visibleQuests;
+      ? visibleQuests.filter(quest => {
+        const hasReview = (deps.reviewItems || []).some(item => item.questId === quest.id && item.itemType !== 'routine' && item.reviewMode !== 'cancelOnly');
+        return isClassroomQuestMatchedByFilter(quest, hasReview ? { rewardStatus: 'pending_teacher_review' } : null);
+      })
+      : visibleQuests.filter(quest => classroomStudentQuestFilter === 'all' || getClassroomQuestStatusBucket(quest, progressMap[quest.id]) === classroomStudentQuestFilter);
     renderClassroomQuestSummary(settings, visibleQuests, filteredQuests, progressMap, deps);
     if(!visibleQuests.length) {
       renderEmptyClassroomCard(grid, '오늘 할 일', '표시할 교실 퀘스트가 없습니다', '담임이 퀘스트를 열면 이곳에 나타납니다.');
@@ -1239,7 +1353,7 @@
     filteredQuests.forEach(quest => {
       const progress = progressMap[quest.id] || null;
       const card = document.createElement('article');
-      const icon = createClassroomCardIcon('quest', 'Q');
+      const icon = createClassroomIllustration(getClassroomQuestArt(quest), 'classroom-feature-visual', document.getElementById('classroom-view')?.dataset.activeTab === 'quest');
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const desc = document.createElement('p');
@@ -1247,38 +1361,34 @@
       const status = document.createElement('span');
       const button = document.createElement('button');
       const actions = document.createElement('div');
-      const rewardCurrencyLabel = deps.getClassroomRewardCurrencyLabel?.(quest.rewardCurrency) || '포인트';
-      const rewardAmount = rewardCurrencyLabel === '포인트'
-        ? formatClassroomPoint(quest.rewardPoint || quest.rewardCoin || 0)
-        : Number(quest.rewardCoin || quest.rewardPoint || 0).toLocaleString('ko-KR');
       const repeatLabel = quest.repeatRule === 'daily' ? '매일' : quest.repeatRule === 'weekly' ? '매주' : '한 번';
       const categoryLabel = quest.category ? `${quest.category} · ` : '';
-      const linkedGemNames = Array.isArray(quest.linkedGemNames) && quest.linkedGemNames.length
-        ? quest.linkedGemNames
-        : (quest.linkedGemName ? [quest.linkedGemName] : []);
-      const linkedGemLabel = linkedGemNames.length
-        ? `${linkedGemNames.slice(0, 3).join(', ')}${linkedGemNames.length > 3 ? ` 외 ${linkedGemNames.length - 3}개` : ''} 1회 누적`
-        : '';
       card.className = `classroom-card classroom-card--quest${progress ? ' is-complete' : ''}`;
       card.dataset.classroomQuestId = quest.id;
       badge.className = 'classroom-card-badge';
-      badge.textContent = '';
-      badge.hidden = true;
+      badge.textContent = `${categoryLabel}${repeatLabel}`;
       title.textContent = quest.title;
       desc.textContent = quest.desc;
       reward.className = 'classroom-card-reward';
-      reward.hidden = true;
-      reward.textContent = '';
+      reward.textContent = getClassroomQuestRewardText(quest);
       status.className = `quest-status ${progress ? getClassroomProgressStatusClass(progress) : 'quest-status-active'}`;
-      status.textContent = progress ? getClassroomProgressStatusLabel(progress) : quest.status;
+      status.textContent = canManage
+        ? (quest.startDate && todayKey < quest.startDate ? '시작 전' : quest.endDate && todayKey > quest.endDate ? '기간 종료' : '게시 중')
+        : progress ? getClassroomProgressStatusLabel(progress) : (quest.status || '진행 가능');
       actions.className = 'classroom-review-actions';
       if(!canManage) {
         button.className = 'quest-claim-button';
         button.type = 'button';
         button.dataset.classroomQuestAction = quest.id;
         button.disabled = !quest.saveEnabled || !!progress;
-        button.textContent = progress ? getClassroomProgressButtonLabel(progress) : (quest.studentAction || '저장 연결 예정');
+        button.textContent = progress ? getClassroomProgressButtonLabel(progress) : !quest.saveEnabled ? '준비 중' : quest.rewardMode === 'auto' ? '완료 체크' : '검토 요청';
         actions.appendChild(button);
+        if(progress) {
+          const details = document.createElement('button');
+          details.type = 'button'; details.className = 'quest-claim-button';
+          details.dataset.classroomQuestAction = quest.id; details.textContent = '내 제출·피드백 보기';
+          actions.appendChild(details);
+        }
       }
       if(canManage) {
         const editButton = document.createElement('button');
@@ -1313,9 +1423,29 @@
         deleteButton.type = 'button';
         deleteButton.dataset.classroomQuestDeleteId = quest.id || '';
         deleteButton.textContent = '삭제';
-        actions.append(editButton, duplicateButton, upButton, downButton, deactivateButton, deleteButton);
+        const more = document.createElement('details');
+        more.className = 'classroom-card-more';
+        const summary = document.createElement('summary');
+        summary.textContent = '더보기';
+        const menu = document.createElement('div');
+        menu.className = 'classroom-more-actions';
+        menu.append(duplicateButton, upButton, downButton, deactivateButton, deleteButton);
+        more.append(summary, menu);
+        actions.append(editButton, more);
+        const audience = document.createElement('p');
+        audience.className = 'classroom-quest-audience';
+        audience.textContent = `${getClassroomQuestAudienceLabel(quest)} · ${getClassroomQuestPeriodLabel(quest)}`;
+        card.append(audience);
       }
-      card.append(icon, badge, title, desc, reward, status, actions);
+      const copy = document.createElement('div'); copy.className = 'classroom-quest-copy';
+      const footer = document.createElement('div'); footer.className = 'classroom-quest-action-area';
+      copy.append(badge, title, desc, reward, ...Array.from(card.childNodes));
+      if(!canManage && (quest.startDate || quest.endDate)) {
+        const period = document.createElement('p'); period.className = 'classroom-quest-period';
+        period.textContent = getClassroomQuestPeriodLabel(quest); copy.append(period);
+      }
+      footer.append(status, actions);
+      card.replaceChildren(icon, copy, footer);
       grid.appendChild(card);
     });
   }
@@ -1365,7 +1495,7 @@
     badge.textContent = badgeText;
     title.textContent = titleText;
     desc.textContent = descText;
-    card.append(badge, title, desc);
+    card.append(createClassroomIllustration('/images/classroom/stationery/empty-160.webp', 'classroom-empty-art'), badge, title, desc);
     grid.appendChild(card);
   }
 
@@ -1437,6 +1567,7 @@
       const detailSummary = document.createElement('summary');
       const detailBody = document.createElement('div');
       card.className = `classroom-card classroom-card--gem${completed ? ' is-complete' : ''}`;
+      card.dataset.classroomGemState = completed ? 'done' : currentXp > 0 ? 'growing' : 'new';
       badge.className = 'classroom-card-badge';
       badge.textContent = completed ? '최고 단계' : currentXp > 0 ? '성장 중' : '시작 전';
       title.textContent = gem.gemName || gem.gemId || '교실 젬';
@@ -1452,6 +1583,7 @@
       status.className = `quest-status ${completed ? 'quest-status-claimed' : 'quest-status-active'}`;
       status.textContent = stage.next ? '연결 퀘스트를 완료해 경험치를 모으세요' : '젬스톤 최고 단계입니다';
       detail.className = 'classroom-gem-progress-toggle';
+      detail.open = true;
       detailSummary.textContent = '내 경험치 보기';
       detailBody.className = 'classroom-gem-progress-detail';
       stage.milestones.forEach(item => {
@@ -1526,7 +1658,7 @@
       })
       .sort((a, b) => b.totalXp - a.totalXp);
     const { wrap, tbody } = createClassroomDataTable(['학생', '완료 젬', '누적 경험치', '진행 중인 젬', '다음 단계']);
-    studentGemRows.slice(0, 20).forEach(item => {
+    studentGemRows.forEach(item => {
       const row = document.createElement('tr');
       const leadingGem = item.gems.slice().sort((a, b) => Number(b.currentXp || 0) - Number(a.currentXp || 0))[0] || null;
       const currentXp = Number(leadingGem?.currentXp || 0);
@@ -1550,6 +1682,8 @@
   function renderClassroomStudentCards(students = [], settings = {}, deps = {}, economyBoard = {}) {
     const grid = document.getElementById('classroom-student-card-grid');
     if(!grid) return;
+    const openStudentIds = new Set(Array.from(grid.querySelectorAll('.classroom-student-detail[open]'))
+      .map(item => item.dataset.classroomStudentId));
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     const assignments = Array.isArray(economyBoard.assignments) ? economyBoard.assignments : [];
     const activeAssignmentByMember = new Map(assignments
@@ -1558,7 +1692,7 @@
     const visibleStudents = students.filter(student => canManage || !isHiddenClassroomMember(student.memberUserId));
     grid.innerHTML = '';
     if(!visibleStudents.length) {
-      renderEmptyClassroomCard(grid, '준비 중', '학생카드를 불러오지 못했습니다', '교실 입장 상태를 확인한 뒤 다시 열어 주세요.');
+      renderEmptyClassroomCard(grid, '우리반', '아직 등록된 학생이 없습니다', '학생이 연결되면 이곳에 표시됩니다.');
       return;
     }
     visibleStudents.forEach(student => {
@@ -1567,7 +1701,6 @@
       const identity = document.createElement('div');
       const title = document.createElement('h4');
       const portrait = document.createElement('div');
-      const imageUrl = deps.normalizeDisplayImageUrl?.(student.profileImageUrl || '') || '';
       const levelSummary = student.levelSummary || {};
       const level = Math.max(1, Math.round(Number(student.level || levelSummary.level) || 1));
       const medalAsset = level ? deps.getLevelMedalAsset?.(level) : null;
@@ -1591,6 +1724,7 @@
       const boostItems = Array.isArray(student.boostItems) ? student.boostItems : [];
       const equippedItems = Array.isArray(student.equippedItems) ? student.equippedItems : [];
       const effectItemIds = boostItems.map(item => String(item.itemId || ''));
+      card.dataset.classroomStudentId = student.memberUserId || '';
       card.className = [
         'classroom-card',
         'classroom-card--student',
@@ -1613,14 +1747,7 @@
       identity.className = 'classroom-student-identity';
       title.textContent = student.nickname || student.name || student.memberUserId || '학생';
       portrait.className = 'classroom-student-portrait';
-      if(imageUrl) {
-        const image = document.createElement('img');
-        image.src = imageUrl;
-        image.alt = `${student.nickname || student.name || '학생'} 프로필`;
-        portrait.appendChild(image);
-      } else {
-        portrait.textContent = '🙂';
-      }
+      fillClassroomPortrait(portrait, student, deps);
       if(level) {
         const levelImage = document.createElement('img');
         levelBadge.className = 'classroom-student-level-badge';
@@ -1636,6 +1763,11 @@
         levelBadge.appendChild(levelText);
       }
       identity.append(title, portrait);
+      if(student.memberUserId === deps.currentMemberUserId) {
+        const edit = document.createElement('button');
+        edit.type = 'button'; edit.className = 'classroom-text-action'; edit.textContent = '이미지 바꾸기';
+        edit.dataset.classroomEditPortrait = ''; identity.append(edit);
+      }
       levelRow.className = 'classroom-student-level-row';
       if(level) levelRow.appendChild(levelBadge);
       if(selectedTitleName) {
@@ -1738,7 +1870,24 @@
       if(metaGrid.children.length) card.appendChild(metaGrid);
       if(boostGrid.children.length) card.appendChild(boostGrid);
       if(teacherActions.children.length) card.appendChild(teacherActions);
-      grid.appendChild(card);
+      if(canManage) {
+        const detail = document.createElement('details');
+        const summary = document.createElement('summary');
+        const number = document.createElement('span');
+        const name = document.createElement('strong');
+        const balances = document.createElement('small');
+        detail.className = 'classroom-student-detail';
+        detail.dataset.classroomStudentId = student.memberUserId || '';
+        detail.open = openStudentIds.has(student.memberUserId);
+        card.removeAttribute('data-classroom-student-id');
+        number.className = 'classroom-student-number';
+        fillClassroomPortrait(number, student, deps);
+        name.textContent = getClassroomMemberDisplayName(student);
+        balances.textContent = `${formatClassroomPoint(student.point || 0)} P · ${Number(student.djCoin || 0).toLocaleString('ko-KR')} DJ`;
+        summary.append(number, name, balances);
+        detail.append(summary, card);
+        grid.append(detail);
+      } else grid.appendChild(card);
     });
   }
 
@@ -1758,7 +1907,7 @@
     }
     jobs.forEach(job => {
       const card = document.createElement('article');
-      const icon = createClassroomCardIcon('job', 'JOB');
+      const icon = createClassroomJobIcon(job);
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const desc = document.createElement('p');
@@ -1773,6 +1922,9 @@
       const maxAssignees = Math.max(1, Number(job.maxAssignees || 1));
       const isFull = assignedList.length >= maxAssignees;
       card.className = `classroom-card classroom-card--job${assignedHere ? ' is-complete' : ''}`;
+      card.dataset.classroomJobId = job.jobId || '';
+      card.dataset.classroomJobOpen = String(!isFull);
+      card.dataset.classroomJobMine = String(!!ownApplication || myAssignment?.jobId === job.jobId);
       badge.className = 'classroom-card-badge';
       badge.textContent = isFull ? '정원 마감' : assignedHere ? '배정 중' : '모집 중';
       title.textContent = job.title || '교실 직업';
@@ -1875,7 +2027,7 @@
     const openJobs = Math.max(0, capacity - assigned);
     const items = canManage
       ? [['등록 직업', `${jobs.length}개`], ['대기 지원', `${pending}건`], ['남은 자리', `${openJobs}자리`], ['배정 학생', `${assigned}명`]]
-      : [['지원 가능', `${openJobs}자리`], ['내 지원', `${applications.length}건`], ['배정 현황', assigned ? `${assigned}명 활동 중` : '모집 중']];
+      : [['지원 가능', `${openJobs}자리`], ['내 지원', `${applications.filter(item => item.memberUserId === deps.currentMemberUserId).length}건`], ['배정 현황', assigned ? `${assigned}명 활동 중` : '모집 중']];
     summary.innerHTML = '';
     items.forEach(([label, value]) => {
       const item = document.createElement('span');
@@ -1959,6 +2111,11 @@
       .filter(purchase => ['purchased', 'use_requested', 'use_approved', 'used'].includes(purchase.status))
       .map(purchase => String(purchase.itemId || ''))
       .filter(Boolean));
+    // Retain the live catalog (including focus/selection) when its actual inputs did not change.
+    // This is a presentation snapshot only; fresh server data still reaches every render.
+    const imageUrls = new Map(items.map(item => [item, deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '']));
+    const signature = JSON.stringify([settings.classId, deps.currentMemberUserId, canManage, items, point, djCoin, [...ownedItemIds].sort(), [...imageUrls.values()]]);
+    if(classroomShopRenderState?.grid === grid && classroomShopRenderState.signature === signature && grid.firstElementChild) return;
     grid.innerHTML = '';
     const activeMarketPane = document.querySelector('[data-classroom-market-tab].is-active')?.dataset.classroomMarketTab || 'point';
     const renderShopSection = (paneKey, titleText, noteText, sectionItems, emptyText = '') => {
@@ -1982,18 +2139,18 @@
         const empty = document.createElement('p');
         empty.className = 'classroom-review-status';
         empty.textContent = emptyText || '아직 등록된 상품이 없습니다.';
-        list.appendChild(empty);
+        list.append(createClassroomIllustration('/images/classroom/stationery/empty-160.webp', 'classroom-empty-art'), empty);
       }
-      sectionItems.forEach(item => {
+      sectionItems.forEach((item, itemIndex) => {
       const priceType = item.priceType === 'djCoin' ? 'djCoin' : 'point';
-      const price = priceType === 'djCoin' ? Number(item.priceCoin || 0) : Number(item.pricePoint || 0);
-      const canAfford = priceType === 'djCoin' ? djCoin >= price : point >= price;
+      const priceInfo = window.DJ48ClassroomWorkspace.getPrice(item);
+      const price = priceInfo.value;
+      const canAfford = priceInfo.valid && (priceType === 'djCoin' ? djCoin >= price : point >= price);
       const isBoostItem = item.itemType === 'pointBoost' || item.itemType === 'pointBoostEffect';
       const isOwned = isBoostItem && ownedItemIds.has(String(item.itemId || ''));
       const card = document.createElement('article');
       const visual = document.createElement('div');
-      const imageUrl = deps.normalizeDisplayImageUrl?.(item.imageUrl || item.iconUrl || item.thumbnailUrl || '') || '';
-      const assetIcon = createClassroomIconImage(getClassroomShopIconKey(item), item.title || '교실 상품', 'classroom-shop-card-image');
+      const imageUrl = imageUrls.get(item);
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const desc = document.createElement('p');
@@ -2001,33 +2158,25 @@
       const status = document.createElement('span');
       const button = document.createElement('button');
       card.className = `classroom-card classroom-card--shop${canAfford ? ' is-affordable' : ''}${isOwned ? ' is-complete' : ''}`;
+      card.dataset.classroomShopItemId = item.itemId || '';
+      card.dataset.classroomShopKind = isBoostItem ? 'decoration' : 'coupon';
       visual.className = 'classroom-shop-card-visual';
-      if(imageUrl) {
-        const image = document.createElement('img');
-        image.src = imageUrl;
-        image.alt = `${item.title || '교실 상품'} 이미지`;
-        image.loading = 'lazy';
-        visual.appendChild(image);
-      } else if(assetIcon) {
-        visual.appendChild(assetIcon);
-      } else {
-        visual.textContent = item.icon || (item.itemType === 'billboardTicket' ? '📣' : '선물');
-      }
+      const eager = document.getElementById('classroom-view')?.dataset.activeTab === 'market' && activeMarketPane === paneKey && itemIndex < 6;
+      visual.append(window.DJ48ClassroomShopArt.createImage(item, imageUrl, eager));
       badge.className = 'classroom-card-badge';
       badge.textContent = isOwned ? '보유중' : item.itemType === 'pointBoostEffect' ? '적용 효과' : item.itemType === 'pointBoost' ? '배치 아이템' : item.itemType === 'billboardTicket' ? '전광판' : '쿠폰';
       title.textContent = item.title || '교실 상품';
       desc.textContent = item.desc || '상품 설명이 없습니다.';
       reward.className = 'classroom-card-reward';
-      reward.textContent = isBoostItem
-        ? `효과: +${formatClassroomPoint(item.boostPoint)}P · 가격: ${price.toLocaleString('ko-KR')} DJ코인`
-        : `가격: ${priceType === 'djCoin' ? price.toLocaleString('ko-KR') : formatClassroomPoint(price)} ${priceType === 'djCoin' ? 'DJ코인' : '포인트'}`;
-      status.className = `quest-status ${isOwned ? 'quest-status-claimed' : canAfford ? 'quest-status-active' : 'quest-status-ready'}`;
-      status.textContent = isOwned ? '학생카드에 배치됨' : canAfford ? '구매 가능' : `${priceType === 'djCoin' ? 'DJ코인' : '포인트'}가 부족합니다`;
+      reward.textContent = priceInfo.valid ? `${formatClassroomPoint(price)} ${priceInfo.unit}` : '가격 미등록';
+      if(isBoostItem) desc.textContent = `${item.desc || ''} · 효과 +${formatClassroomPoint(item.boostPoint)}P`;
+      status.className = `quest-status ${isOwned ? 'quest-status-claimed' : canAfford && price > 0 ? 'quest-status-active' : 'quest-status-ready'}`;
+      // Keep the existing purchase gate: the server enforces a minimum price of 1.
+      status.textContent = isOwned ? '학생카드에 배치됨' : !priceInfo.valid ? '가격 확인 필요' : price === 0 ? '0원 등록 · 구매 준비 중' : canAfford ? '구매 가능' : `${priceInfo.unit} 부족`;
       button.className = 'quest-claim-button';
-      button.type = 'button';
-      button.dataset.classroomShopBuyId = item.itemId || '';
-      button.disabled = price <= 0 || !canAfford || isOwned;
-      button.textContent = isOwned ? '보유중' : '구매하기';
+      button.type = 'button'; button.dataset.classroomShopBuyId = item.itemId || '';
+      button.disabled = !priceInfo.valid || price <= 0 || !canAfford || isOwned;
+      button.textContent = isOwned ? '보유중' : !priceInfo.valid ? '가격 확인 필요' : price === 0 ? '구매 준비 중' : '구매하기';
       if(canManage) {
         const actions = document.createElement('div');
         const editButton = document.createElement('button');
@@ -2056,6 +2205,8 @@
     renderShopSection('point', '포인트샵', '', pointItems, '포인트로 살 수 있는 상품이 없습니다.');
     renderShopSection('coin', '배치 아이템', '', coinItems, 'DJ코인으로 살 수 있는 배치 아이템이 없습니다.');
     renderShopSection('coin', '적용 효과', '', coinEffectItems, 'DJ코인으로 살 수 있는 적용 효과가 없습니다.');
+    window.DJ48ClassroomWorkspace?.enhanceMarket?.(economyBoard, wallet, canManage);
+    classroomShopRenderState = { grid, signature };
   }
 
   function renderClassroomShopHistory(settings, economyBoard = {}, deps = {}) {
@@ -2255,6 +2406,12 @@
       ? `${formatClassroomPoint(currentPoint)} / ${formatClassroomPoint(nextTarget)}점 · 다음 보상: ${nextStep.rewardText || nextStep.label || '보상 준비'}`
       : `${formatClassroomPoint(currentPoint)}점 · 모든 기준 달성`;
     hero.append(title, desc, createClassroomProgressMeter(nextPercent));
+    const art = document.createElement('img');
+    art.src = '/images/classroom/community-tree-320.webp'; art.width = 320; art.height = 320; art.loading = 'lazy'; art.decoding = 'async'; art.alt = ''; art.className = 'classroom-mission-illustration';
+    hero.append(art);
+    const current = document.createElement('strong'); current.className = 'classroom-mission-total';
+    current.textContent = `${formatClassroomPoint(currentPoint)} P`;
+    title.after(current);
     track.className = 'classroom-mission-track';
     list.className = 'classroom-mission-step-list';
     (mission.thresholds || []).forEach(step => {
@@ -2266,7 +2423,11 @@
       marker.title = `${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`}${step.rewardText ? ` · ${step.rewardText}` : ''}`;
       track.appendChild(marker);
       row.className = `classroom-mission-step${step.achieved ? ' is-achieved' : ''}`;
-      row.textContent = `${step.achieved ? '✓ ' : ''}${step.label || `${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점`} · ${Number(step.targetPoint || 0).toLocaleString('ko-KR')}점${step.rewardText ? ` · ${step.rewardText}` : ''}${step.achievedDateKey ? ` · 달성일 ${step.achievedDateKey}` : ''}`;
+      const state = document.createElement('small'); state.textContent = step.achieved ? '✓ 달성' : step === nextStep ? '다음 목표' : '도전할 목표';
+      const label = document.createElement('strong'); label.textContent = step.label || `${formatClassroomPoint(step.targetPoint)} P`;
+      const reward = document.createElement('span'); reward.textContent = step.rewardText || '보상이 아직 정해지지 않았어요.';
+      const target = document.createElement('small'); target.textContent = `${formatClassroomPoint(step.targetPoint)} P${step.achievedDateKey ? ` · ${step.achievedDateKey} 달성` : ''}`;
+      row.append(state, label, reward, target);
       list.appendChild(row);
     });
     panel.append(hero, track, list);
@@ -2281,7 +2442,9 @@
       appendClassroomTableCell(row, step.achievedDateKey || '-');
       tbody.appendChild(row);
     });
-    wrap.appendChild(tableWrap);
+    const history = document.createElement('details'); history.className = 'classroom-mission-history';
+    const summary = document.createElement('summary'); summary.textContent = '전체 목표 기록 보기';
+    history.append(summary, tableWrap); wrap.append(history);
   }
 
   function renderClassroomGroupPurchaseSection(wrap, economyBoard = {}, deps = {}) {
@@ -2509,11 +2672,11 @@
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
     const panel = ensureClassroomPanelIntro('classroom-bank-overview', 'classroom-bank-grid');
     if(!panel) return;
-    const studentCards = Array.isArray(data.studentCards) ? data.studentCards : [];
+    const studentCards = Array.isArray(data.studentCards) ? data.studentCards.filter(student => student.classroomHidden !== true) : [];
     const savingsProducts = Array.isArray(economyBoard.savingsProducts) ? economyBoard.savingsProducts : [];
     const savingsAccounts = Array.isArray(economyBoard.savingsAccounts) ? economyBoard.savingsAccounts : [];
     const pointLogs = Array.isArray(economyBoard.pointLogs) ? economyBoard.pointLogs : [];
-    const totalPoint = studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0);
+    const totalPoint = Number(economyBoard.classMission?.totalPoint ?? studentCards.reduce((sum, student) => sum + Number(student.point || 0), 0));
     const totalCoin = studentCards.reduce((sum, student) => sum + Number(student.djCoin || 0), 0);
     const earnedPoint = pointLogs.filter(item => Number(item.rewardAmount || item.rewardPoint || 0) > 0)
       .reduce((sum, item) => sum + Number(item.rewardAmount || item.rewardPoint || 0), 0);
@@ -2525,7 +2688,7 @@
     );
     if(!canManage) return;
     const { wrap, tbody } = createClassroomDataTable(['번호', '학생', '포인트', 'DJ코인', '대표 타이틀']);
-    studentCards.slice().sort((a, b) => Number(b.point || 0) - Number(a.point || 0)).slice(0, 30).forEach(student => {
+    studentCards.slice().sort((a, b) => Number(b.point || 0) - Number(a.point || 0)).forEach(student => {
       const row = document.createElement('tr');
       appendClassroomTableCell(row, student.studentNumber ? `${student.studentNumber}번` : '-', 'td', 'classroom-review-table-kind');
       appendClassroomTableCell(row, getClassroomMemberDisplayName(student), 'td', 'classroom-review-table-student');
@@ -2709,23 +2872,41 @@
       : items;
 
     if(activeTab === 'ongoing') {
-      const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '진행', '기간', '기준 보상']);
+      const cards = document.createElement('div');
+      cards.className = 'classroom-routine-teacher-cards';
       const rows = filterByStudent(ongoing);
       rows.forEach(item => {
-        const row = document.createElement('tr');
-        appendClassroomTableCell(row, getClassroomMemberDisplayName(item), 'td', 'classroom-review-table-student');
-        appendClassroomTableCell(row, item.routineTitle || '성장루틴', 'td', 'classroom-review-table-title');
-        appendClassroomTableCell(row, `${item.currentCount}/${item.targetCount}회 (${item.achievementPercent}%)`);
-        appendClassroomTableCell(row, `${item.startDate || '-'} ~ ${item.endDate || '-'}`);
-        appendClassroomTableCell(row, `최대 ${formatClassroomPoint(item.baseRewardPoint || 0)}P`);
-        tbody.appendChild(row);
+        const card = document.createElement('article');
+        card.className = 'classroom-card classroom-card--routine';
+        const heading = document.createElement('div');
+        heading.className = 'classroom-routine-card-heading';
+        const copy = document.createElement('div');
+        const student = document.createElement('span');
+        student.className = 'classroom-card-badge';
+        student.textContent = getClassroomMemberDisplayName(item);
+        const title = document.createElement('h4');
+        title.textContent = item.routineTitle || '성장루틴';
+        const period = document.createElement('p');
+        period.textContent = `${item.startDate || '-'} ~ ${item.endDate || '-'}`;
+        copy.append(student, title, period);
+        heading.append(createClassroomIconImage('routine', '', 'classroom-feature-visual'), copy);
+        const progress = document.createElement('p');
+        const percent = Math.max(0, Math.min(100, Number(item.achievementPercent) || 0));
+        progress.className = 'classroom-card-progress';
+        progress.textContent = `전체 달성률 ${percent}% · ${item.currentCount || 0}/${item.targetCount || 0}회`;
+        const reward = document.createElement('p');
+        reward.className = 'classroom-card-reward';
+        reward.textContent = `기준 보상 ${formatClassroomPoint(item.baseRewardPoint || 0)} P`;
+        card.append(heading, progress, createClassroomProgressMeter(percent), reward);
+        cards.append(card);
       });
       if(!rows.length) {
-        appendClassroomRoutineBoardNoticeRow(tbody, hasBoardData
-          ? '진행 중인 성장루틴이 없습니다.'
-          : '진행중 목록은 서버 배포 후 표시됩니다.', 5);
+        const empty = document.createElement('p');
+        empty.textContent = hasBoardData ? '진행 중인 성장루틴이 없습니다.'
+          : '진행 현황을 아직 불러오지 못했어요. 교실을 다시 열어 주세요.';
+        cards.append(empty);
       }
-      detail.appendChild(wrap);
+      detail.appendChild(cards);
     } else if(activeTab === 'review') {
       const { wrap, tbody } = createClassroomDataTable(['학생', '루틴', '달성', '지급 예정', '처리']);
       const rows = filterByStudent(reviewPending);
@@ -2776,13 +2957,14 @@
       if(!rows.length) {
         appendClassroomRoutineBoardNoticeRow(tbody, hasBoardData
           ? '처리 완료된 성장루틴이 없습니다.'
-          : '처리 완료 목록은 서버 배포 후 표시됩니다.', 5);
+          : '처리 기록을 아직 불러오지 못했어요. 교실을 다시 열어 주세요.', 5);
       }
       detail.appendChild(wrap);
     }
 
     layout.append(aside, detail);
     boardRoot.appendChild(layout);
+    window.DJ48ClassroomWorkspace?.decorateTables?.();
   }
 
   function renderClassroomRoutineOverview(settings = {}, economyBoard = {}, deps = {}) {
@@ -2845,7 +3027,6 @@
         && routine.canCheckToday === true
         && routine.reviewPending !== true;
       const card = document.createElement('article');
-      const icon = createClassroomCardIcon('routine', completed ? 'OK' : 'DAY');
       const badge = document.createElement('span');
       const title = document.createElement('h4');
       const desc = document.createElement('p');
@@ -2855,6 +3036,7 @@
       const editButton = document.createElement('button');
       const actions = document.createElement('div');
       card.className = `classroom-card classroom-card--routine${completed ? ' is-complete' : ''}`;
+      card.dataset.classroomRoutineState = completed ? 'done' : routine.reviewPending ? 'review' : 'active';
       badge.className = 'classroom-card-badge';
       badge.textContent = completed
         ? '검토 완료'
@@ -2867,10 +3049,9 @@
       title.textContent = routine.title || '성장루틴';
       desc.textContent = getClassroomRoutineScheduleLabel(routine);
       progress.className = 'classroom-card-progress';
-      progress.textContent = `체크 ${currentCount}/${targetCount}회`;
+      progress.textContent = `전체 달성률 ${percent}% · ${currentCount}/${targetCount}회`;
       reward.className = 'classroom-card-reward';
-      reward.hidden = true;
-      reward.textContent = '';
+      reward.textContent = `검토 보상 ${formatClassroomPoint(routine.rewardPoint ?? routine.baseRewardPoint ?? 0)} P`;
       checklist.className = 'classroom-routine-checklist';
       routineItems.forEach(item => {
         const row = document.createElement('button');
@@ -2889,16 +3070,65 @@
       editButton.textContent = '수정';
       actions.className = 'classroom-review-actions';
       actions.appendChild(editButton);
-      card.append(icon, badge, title, desc, progress, createClassroomProgressMeter(percent), checklist, reward, actions);
+      const visual = createClassroomIconImage('routine', '', 'classroom-feature-visual');
+      const top = document.createElement('div'); top.className = 'classroom-routine-card-heading';
+      const copy = document.createElement('div'); copy.append(badge, title, desc);
+      top.append(visual, copy, progress);
+      const checks = document.createElement('details'); checks.className = 'classroom-routine-checks'; checks.open = canCheck;
+      const summary = document.createElement('summary');
+      const checkedCount = routineItems.filter(item => checkedItemIds.has(String(item.itemId))).length;
+      summary.textContent = `오늘의 실천 ${routineItems.length ? Math.round(checkedCount / routineItems.length * 100) : 0}% · ${checkedCount}/${routineItems.length}개`;
+      checks.append(summary, checklist);
+      card.append(top, createClassroomProgressMeter(percent), checks, reward, actions);
       grid.appendChild(card);
       });
     });
   }
 
+  function renderClassroomLoadState(state) {
+    const view = document.getElementById('classroom-view');
+    const status = document.getElementById('classroom-load-status');
+    if(!view || !status) return;
+    view.classList.toggle('is-loading', state === 'loading');
+    view.classList.toggle('has-load-error', state === 'error');
+    view.setAttribute('aria-busy', String(state === 'loading'));
+    view.querySelectorAll('[data-classroom-panel]').forEach(panel => { panel.inert = state !== 'ready'; });
+    status.replaceChildren();
+    status.hidden = state === 'ready';
+    status.classList.toggle('is-error', state === 'error');
+    if(state === 'ready') return;
+    const message = document.createElement('span');
+    message.textContent = state === 'error'
+      ? '교실 기록을 불러오지 못했어요. 다시 시도해 주세요.'
+      : '교실 기록을 불러오고 있어요. 확인이 끝나면 버튼을 누를 수 있어요.';
+    status.append(message);
+    if(state === 'error') {
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'classroom-main-action';
+      retry.dataset.classroomRetry = '';
+      retry.textContent = '다시 시도';
+      status.append(retry);
+    }
+  }
+
   function renderClassroomSections(data = {}, deps = {}) {
+    const needs = (...tabs) => !deps.activeTab || tabs.includes(deps.activeTab);
     const settings = data.settings || {};
     const economyBoard = data.economyBoard || {};
     const canManage = deps.isCurrentClassroomTeacher?.(settings) === true;
+    deps = { ...deps, reviewItems: data.reviewItems || [] };
+    const view = document.getElementById('classroom-view');
+    if(view) {
+      view.dataset.classroomRole = canManage ? 'teacher' : 'student';
+      view.classList.toggle('is-teacher', canManage);
+    }
+    const boardEntry = document.querySelector('[data-classroom-board-entry]');
+    if(boardEntry) boardEntry.hidden = !canManage;
+    const manageGroup = document.querySelector('[data-classroom-group="manage"]');
+    if(manageGroup) manageGroup.hidden = !canManage;
+    const growthGroup = document.querySelector('[data-classroom-group="growth"]');
+    if(growthGroup) growthGroup.textContent = canManage ? '성장' : '내 성장';
     const teacherTab = document.getElementById('classroom-teacher-tab');
     if(teacherTab) {
       teacherTab.hidden = !canManage;
@@ -2907,43 +3137,58 @@
       }
     }
     arrangeClassroomManagementPanels(canManage);
+    document.querySelectorAll('#classroom-icon-catalog-panel img').forEach(image => {
+      const file = image.dataset.classroomIconFile || image.getAttribute('src').split('/').pop().replace('.svg', '');
+      image.dataset.classroomIconFile = file;
+      const key = file.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const source = window.DJ48ClassroomShopArt?.hasIcon(key)
+        ? window.DJ48ClassroomShopArt.getSource({icon: key}) : getClassroomIconAssetUrl(key);
+      if(source) image.src = source;
+    });
     // '내 루틴 저장' 폼은 학생 전용 — 교사 뷰에서는 렌더 시점에 숨긴다
     const routineForm = document.getElementById('classroom-routine-form');
     if(routineForm) routineForm.hidden = canManage;
-    renderClassroomRoleState(settings, data.wallet || {}, deps, data);
-    renderClassroomGrowndOverview(data);
-    renderClassroomTeacherDashboard(data, deps);
-    renderClassroomTeacherReport(data, deps);
-    renderClassroomQuestPickers(data);
-    renderClassroomTodayHome(data, deps);
-    renderClassroomActivityFeed(economyBoard);
-    renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
-    renderClassroomQuestCards(settings, data.progressMap || {}, deps);
-    renderClassroomInactiveQuestCards(settings, deps);
-    renderClassroomStudentCards(data.studentCards || [], settings, deps, economyBoard);
-    renderClassroomGemSummary(data.gemProgress || [], settings);
-    renderClassroomGemManagementOverview(data, deps);
-    renderClassroomGemCards(data.gemProgress || [], economyBoard);
-    renderClassroomJobSummary(settings, economyBoard, deps);
-    renderClassroomJobManagementOverview(settings, economyBoard, deps);
-    renderClassroomJobCards(settings, economyBoard, deps);
-    renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
-    renderClassroomShopHistory(settings, economyBoard, deps);
-    renderClassroomMissionView(economyBoard);
+    const routineEditor = document.getElementById('classroom-routine-editor');
+    if(routineEditor) routineEditor.hidden = canManage;
+    if(needs('today')) renderClassroomRoleState(settings, data.wallet || {}, deps, data);
+    if(needs('teacher')) renderClassroomGrowndOverview(data);
+    if(needs('teacher')) renderClassroomTeacherDashboard(data, deps);
+    if(needs('teacher')) renderClassroomTeacherReport(data, deps);
+    if(needs('quest','teacher')) renderClassroomQuestPickers(data);
+    if(needs('today')) renderClassroomTodayHome(data, { ...deps, homeOnly: !!data.home });
+    if(needs('teacher')) renderClassroomActivityFeed(economyBoard);
+    if(needs('teacher')) renderClassroomReviewPanel(settings, data.reviewItems || [], deps);
+    if(needs('quest')) renderClassroomQuestCards(settings, data.progressMap || {}, deps);
+    if(needs('quest')) renderClassroomInactiveQuestCards(settings, deps);
+    if(needs('classroom')) renderClassroomStudentCards(data.studentCards || [], settings, deps, economyBoard);
+    if(needs('gems')) renderClassroomGemSummary(data.gemProgress || [], settings);
+    if(needs('gems')) renderClassroomGemManagementOverview(data, deps);
+    if(needs('gems')) renderClassroomGemCards(data.gemProgress || [], economyBoard);
+    if(needs('jobs')) renderClassroomJobSummary(settings, economyBoard, deps);
+    if(needs('jobs')) renderClassroomJobManagementOverview(settings, economyBoard, deps);
+    if(needs('jobs')) renderClassroomJobCards(settings, economyBoard, deps);
+    if(needs('market')) renderClassroomShopCards(settings, economyBoard, data.wallet || {}, deps);
+    if(needs('market')) renderClassroomShopHistory(settings, economyBoard, deps);
+    if(needs('mission')) renderClassroomMissionView(economyBoard);
     const bankGrid = document.getElementById('classroom-bank-grid');
-    if(bankGrid) bankGrid.innerHTML = '';
-    renderClassroomBankOverview(data, deps);
-    renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
-    renderClassroomSavingsSection(bankGrid, economyBoard, deps);
-    renderClassroomTaxPresetList(economyBoard);
-    renderClassroomRoutineTeacherBoard(data, deps);
-    renderClassroomRoutineOverview(settings, economyBoard, deps);
-    renderClassroomRoutineCards(economyBoard);
-    deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
-    deps.setClassroomExchangeSettingsForm?.(economyBoard.exchangeSettings || {});
+    if(needs('bank') && bankGrid) bankGrid.innerHTML = '';
+    if(needs('bank')) renderClassroomBankOverview(data, deps);
+    if(needs('bank')) renderClassroomExchangeSection(bankGrid, economyBoard, data.wallet || {});
+    if(needs('bank')) renderClassroomSavingsSection(bankGrid, economyBoard, deps);
+    if(needs('bank')) renderClassroomTaxPresetList(economyBoard);
+    if(needs('routine')) renderClassroomRoutineTeacherBoard(data, deps);
+    if(needs('routine')) renderClassroomRoutineOverview(settings, economyBoard, deps);
+    if(needs('routine')) renderClassroomRoutineCards(economyBoard);
+    if(needs('teacher')) deps.setClassroomNoticeForm?.(economyBoard.classNotices?.slots || []);
+    if(needs('bank')) deps.setClassroomExchangeSettingsForm?.(economyBoard.exchangeSettings || {});
+    window.DJ48ClassroomWorkspace?.render?.(data, deps);
+    window.DJ48ClassroomForm?.setActiveClassroomTab?.(view?.dataset.activeTab || 'today');
   }
 
   window.DJ48ClassroomRender = {
+    createClassroomJobIcon,
+    fillClassroomPortrait,
+    renderClassroomLoadState,
     getClassroomQuestTitle,
     getClassroomProgressStatusLabel,
     getClassroomProgressButtonLabel,
@@ -2972,4 +3217,5 @@
     applyClassroomOverviewTabVisibility,
     renderClassroomSections
   };
+  function rootCardHome() { return typeof window.DJ48ClassroomCardHome?.render === 'function'; }
 })();

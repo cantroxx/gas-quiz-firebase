@@ -1,0 +1,16 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792299256240000",
+  "version": "sites/dj48-quiztown-firebase/versions/0c9342e1af0bfaa8",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/1bb4f18aeaecc7bf",
+  "changed": [
+    "/index.html",
+    "/town-spatial.css",
+    "/js/town-spatial.js",
+    "/js/town-avatar.js",
+    "/coordi-shop/index.html",
+    "/coordi-shop/town-bridge.js",
+    "/coordi-shop/dressing-room.js",
+    "/images/town-controls-20261018/mailbox.webp"
+  ],
+  "preservedFiles": 3991
+}

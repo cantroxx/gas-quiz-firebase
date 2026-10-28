@@ -1,0 +1,34 @@
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -9499,15 +9499,6 @@
+       quizCorrectRewardCount: nextQuizCorrectCount,
+       updatedAt: FieldValue.serverTimestamp()
+     }, { merge: true });
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: getPracticeQuestKindsForQuiz(quizId),
+-      amount: 1,
+-      sourceType: "practice_correct",
+-      sourceId: `${recordId}__${questionId}`
+-    });
+     transaction.set(logRef, {
+       type: "practice_correct",
+       todayQuiz: false,
+@@ -9707,15 +9698,6 @@
+     transaction.set(activityRef,{source:'ranking:'+recordId,memberId:memberUserId,uid:authUid,quizId,counts:{rankingComplete:1},time:Date.now()});
+     const dateKey = getKstDateKey();
+     const weekKey = getKstWeekKey();
+-    updateEventQuestProgressForKinds(transaction, {
+-      memberUserId,
+-      dateKey,
+-      weekKey,
+-      kinds: new Set(["rankingComplete"]),
+-      amount: 1,
+-      sourceType: "ranking_complete",
+-      sourceId: recordId
+-    });
+     transaction.set(recordRef, {
+       levelXpDelta: 0,
+       levelAfter: null,

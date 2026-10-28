@@ -5,18 +5,20 @@
 })(typeof globalThis !== 'undefined' ? globalThis : window, function () {
   async function loadEventProgressWithCache(options = {}, deps = {}) {
     const forceRefresh = options.forceRefresh === true;
+    const activeLoadPromise = deps.getEventProgressLoadPromise?.();
+    if(activeLoadPromise) return activeLoadPromise;
     const cachedProgress = deps.getEventProgress?.();
     if(cachedProgress && !forceRefresh) return cachedProgress;
-
-    const activeLoadPromise = deps.getEventProgressLoadPromise?.();
-    if(activeLoadPromise && !forceRefresh) return activeLoadPromise;
 
     const loadPromise = deps.loadEventProgress({
       memberUserId: options.memberUserId
     })
-      .then(progress => deps.setEventProgress?.(progress) || progress)
+      .then(progress => {
+        if(deps.isEventProgressRequestCurrent?.(loadPromise) === false) return progress;
+        return deps.setEventProgress?.(progress) || progress;
+      })
       .finally(() => {
-        deps.setEventProgressLoadPromise?.(null);
+        if(deps.isEventProgressRequestCurrent?.(loadPromise) !== false) deps.setEventProgressLoadPromise?.(null);
       });
 
     deps.setEventProgressLoadPromise?.(loadPromise);

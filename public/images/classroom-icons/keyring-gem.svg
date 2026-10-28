@@ -1,6 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <circle cx="64" cy="25" r="13" fill="#f7fbff" stroke="#7c91aa" stroke-width="5"/>
-  <path d="M64 39v14" stroke="#7c91aa" stroke-width="6" stroke-linecap="round"/>
-  <path d="M42 55h44l14 23-36 36-36-36 14-23Z" fill="#7db8ff" stroke="#285b9b" stroke-width="5" stroke-linejoin="round"/>
-  <path d="M42 55l22 59 22-59M28 78h72" stroke="#d8edff" stroke-width="4" opacity=".85"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="보석 키링 젬">
+  <defs>
+    <linearGradient id="stone" x1=".2" y1="0" x2=".8" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#8acbf1"/><stop offset=".52" stop-color="#6862c5"/><stop offset="1" stop-color="#8acbf1"/></linearGradient>
+    <linearGradient id="gold" x2=".65" y2="1"><stop stop-color="#fff6d5"/><stop offset=".35" stop-color="#e8cc95"/><stop offset=".7" stop-color="#b58a52"/><stop offset="1" stop-color="#f9e4b1"/></linearGradient>
+    <linearGradient id="face" x2=".7" y2="1"><stop stop-color="#fff" stop-opacity=".6"/><stop offset=".6" stop-color="#8acbf1" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity=".32"/></linearGradient>
+    <clipPath id="cut"><path d="M36 39H92L110 65 93 99 64 115 35 99 18 65Z"/></clipPath>
+  </defs>
+  <ellipse cx="64" cy="117" rx="31" ry="4" fill="#6862c5" opacity=".12"/>
+  <circle cx="64" cy="22" r="14" fill="none" stroke="#9f835e" stroke-width="6"/><circle cx="64" cy="21" r="14" fill="none" stroke="url(#gold)" stroke-width="4"/>
+  <path d="M36 39H92L110 65 93 99 64 115 35 99 18 65Z" transform="translate(0 3)" fill="#6862c5" opacity=".8"/>
+  <path d="M36 39H92L110 65 93 99 64 115 35 99 18 65Z" fill="url(#stone)" stroke="#a07c53" stroke-width="3" stroke-linejoin="round"/>
+  <g clip-path="url(#cut)">
+    <path d="M10 12 41 17 45 40 20 66Z" fill="#fff" opacity=".5"/>
+    <path d="m41 17 46 0-7 23H45Z" fill="#fff" opacity=".65"/>
+    <path d="m87 17 30 26-21 25-16-28Z" fill="#fff" opacity=".18"/>
+    <path d="m96 68 22 12-31 35-7-27Z" fill="#6862c5" opacity=".65"/>
+    <path d="m80 88 7 27H41l4-27Z" fill="#fff" opacity=".25"/>
+    <path d="m20 66 25 22-4 27L10 83Z" fill="#6862c5" opacity=".5"/>
+    <path d="M45 36H80L96 52V78L80 94H45L31 78V52Z" fill="url(#face)" stroke="#fff" stroke-opacity=".45" stroke-width="1.5"/>
+    <path d="m26 41 18-18h37" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".65"/>
+  </g>
+  <path d="M36 39H92L110 65 93 99 64 115 35 99 18 65Z" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linejoin="round"/>
+  <g transform="translate(0 2)" fill="#6862c5" stroke="#6862c5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".5"><path d="M45 54h38l10 14-29 25-29-25Z"/><path d="m45 54 19 39 19-39M35 68h58M57 54l-6 14m20-14 6 14" fill="none"/></g>
+  <g fill="#fff6dc" stroke="#6862c5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M45 54h38l10 14-29 25-29-25Z"/><path d="m45 54 19 39 19-39M35 68h58M57 54l-6 14m20-14 6 14" fill="none"/></g>
+  <path d="m104 17 2 7 7 2-7 2-2 7-2-7-7-2 7-2Z" fill="#e8c780"/>
+  <path d="m26 84 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fff9e6"/>
+  <circle cx="19" cy="35" r="2" fill="#8acbf1"/>
 </svg>

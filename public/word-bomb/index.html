@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#6a50c7" />
+    <title>두근두근 말폭탄 · DJ48 퀴즈타운</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="style.css?v=11" />
+    <script defer src="dictionary.js?v=11"></script>
+    <script defer src="word-policy.js?v=11"></script>
+    <script defer src="domain.js?v=11"></script>
+    <script defer src="net.js?v=11"></script>
+    <script defer src="app.js?v=11"></script>
+</head>
+  <body>
+    <header class="topbar">
+      <a class="back" href="/battle/" aria-label="게임 아지트로 돌아가기"
+        >← <span>게임 아지트</span></a
+      >
+      <span class="brand">DJ48 <span>PLAY CLUB</span></span>
+      <div class="tools">
+        <button id="sound" aria-pressed="false" title="효과음">소리 꺼짐</button
+        ><button id="motion" aria-pressed="false" title="움직임 줄이기">
+          움직임 줄이기</button
+        ><button id="help" aria-label="게임 방법">?</button>
+      </div>
+    </header>
+    <main>
+      <section class="heading">
+        <div>
+          <div class="eyebrow">
+            <span class="live-dot"></span> 친구와 잇는 한 글자, 두근거리는 한 판
+          </div>
+          <h1>
+            두근두근 <span>말폭탄</span
+            ><span class="title-bomb" aria-hidden="true">✹</span>
+          </h1>
+          <p>낱말을 잇고, 폭탄을 넘겨요. 다음은 너의 차례!</p>
+        </div>
+        <div class="mode-summary">
+          <span id="mode-tag">친구랑 해요</span
+          ><strong id="top-timer">시간 제한 없이</strong
+          ><small id="turn-summary">한 차례 10초 · 하트 2개</small>
+        </div>
+      </section>
+      <div class="game-layout">
+        <section class="play-panel" aria-label="끝말잇기 경기장">
+          <div class="arena-top">
+            <span class="arena-title"><i></i> 말잇기 라운지</span
+            ><span id="connection-status">봇과 가볍게 연습해 봐요</span>
+          </div>
+          <div class="word-board" id="word-board">
+            <span id="word-caption">마음을 모아, 낱말을 이어요</span
+            ><strong id="current-word">사<span>과</span></strong>
+            <div id="next-letter">다음 낱말은 <b>과</b>로 시작!</div>
+          </div>
+          <div
+            class="arena"
+            id="arena"
+            tabindex="0"
+            aria-label="참가자 경기장, 좌우로 스크롤"
+          >
+            <div id="arena-stage" class="arena-stage">
+              <div class="sky-orb orb-one"></div>
+              <div class="sky-orb orb-two"></div>
+              <div class="cloud cloud-one"></div>
+              <div class="cloud cloud-two"></div>
+              <div class="hill hill-back"></div>
+              <div class="hill hill-front"></div>
+              <div class="island"></div>
+              <span class="flower flower-one">✿</span
+              ><span class="flower flower-two">✿</span
+              ><span class="leaf leaf-one"></span
+              ><span class="leaf leaf-two"></span>
+              <div id="seats" class="seats"></div>
+              <div id="flight" class="flight" hidden aria-hidden="true"></div>
+              <div id="burst" class="burst" hidden aria-hidden="true">
+                <span>펑!</span><i>✦</i><i>✦</i><i>✦</i><i>✦</i>
+              </div>
+              <div id="countdown" class="start-countdown" hidden></div>
+              <div class="arena-bottom">
+                <span id="arena-hint"
+                  >폭탄을 받으면, 내 시간이 새로 시작돼요.</span
+                ><span class="forest-label">WORD BOMB CLUB</span>
+              </div>
+            </div>
+          </div>
+          <div class="history" id="history">
+            <span class="history-label">이어 온 낱말</span
+            ><span class="history-empty"
+              >우리의 낱말 이야기가 여기에 쌓여요</span
+            >
+          </div>
+          <form id="word-form" class="word-form" hidden autocomplete="off">
+            <label for="word-input" id="input-label"
+              >내 차례를 기다리고 있어요</label
+            >
+            <div class="input-row">
+              <input
+                id="word-input"
+                type="text"
+                maxlength="100"
+                placeholder="여기에 낱말을 써 주세요"
+                spellcheck="false"
+                autocapitalize="off"
+                aria-describedby="word-feedback"
+              /><button id="submit-word" type="submit" disabled>
+                폭탄 넘기기 <span>↗</span>
+              </button>
+            </div>
+            <div class="proposal-entry">
+              <button id="propose-word" type="button" disabled>
+                친구에게 제안</button
+              ><span id="proposal-help"
+                >사전에 없으면 친구들의 동의를 받아요.</span
+              >
+            </div>
+            <div class="input-foot">
+              <span id="word-feedback" role="status" aria-live="polite"
+                >두 글자 이상 · 중복 금지 · 두음법칙 허용</span
+              ><button type="button" id="hint" class="text-button" hidden>
+                연습 힌트
+              </button>
+            </div>
+          </form>
+          <section
+            id="proposal-panel"
+            class="proposal-panel"
+            hidden
+            aria-live="polite"
+            aria-label="낱말 제안 투표"
+          ></section>
+          <div class="welcome-note" id="welcome-note">
+            <span class="note-icon">↗</span>
+            <div>
+              <strong>성공하면 다음 친구에게 슝!</strong
+              ><span>친구가 폭탄을 받을 때마다 카운트가 다시 시작돼요.</span>
+            </div>
+            <span class="note-time">10<small>SEC</small></span>
+          </div>
+        </section>
+        <aside class="sidebar">
+          <section class="setup-card" id="setup">
+            <span class="section-kicker">LET’S PLAY</span>
+            <h2>어떻게 놀까요?</h2>
+            <div class="mode-tabs" role="group" aria-label="게임 모드">
+              <button id="mode-normal" class="selected" aria-pressed="true">
+                ♡ 친구랑 해요</button
+              ><button id="mode-challenge" aria-pressed="false">◷ 챌린지</button
+              ><button id="mode-bot" aria-pressed="false">봇과 대전</button>
+            </div>
+            <p id="mode-description" class="mode-description">
+              하트를 지키며 마지막까지!<br />전체 시간 제한 없이 대결해요.
+            </p>
+            <label class="setting-label" for="turn-seconds"
+              >폭탄 카운트 <span>매 차례 초기화</span></label
+            >
+            <div class="select-wrap">
+              <select id="turn-seconds">
+                <option value="5">5초 · 빠르게!</option>
+                <option value="10" selected>10초 · 두근두근</option>
+                <option value="15">15초 · 차근차근</option>
+                <option value="20">20초 · 여유롭게</option>
+              </select>
+            </div>
+            <div id="hearts-setting">
+              <label class="setting-label" for="hearts">시작 하트</label
+              ><select id="hearts">
+                <option value="1">하트 1개</option>
+                <option value="2" selected>하트 2개</option>
+                <option value="3">하트 3개</option>
+              </select>
+            </div>
+            <div id="duration-setting" hidden>
+              <label class="setting-label" for="duration">전체 경기 시간</label
+              ><select id="duration">
+                <option value="60">1분 · 짧게 한 판</option>
+                <option value="180" selected>3분 · 추천</option>
+                <option value="300">5분 · 길게 즐기기</option>
+              </select>
+            </div>
+            <label class="setting-label" for="one-shot">한방 단어</label>
+            <select id="one-shot">
+              <option value="off">제한 · 이어갈 수 있는 단어만</option>
+              <option value="on">허용 · 막히면 새 낱말로 계속</option>
+            </select>
+            <p class="small-note">
+              허용하면 산기슭·부엌도 인정해요. 다음에 이을 단어가 없으면 새
+              낱말로 이어가요.
+            </p>
+            <label class="setting-label" for="game-speed">진행 배속</label>
+            <select id="game-speed">
+              <option value="1">1배 · 기본</option>
+              <option value="1.5">1.5배 · 조금 빠르게</option>
+              <option value="2">2배 · 빠르게</option>
+              <option value="3">3배 · 아주 빠르게</option>
+            </select>
+            <p class="small-note">
+              폭탄 전달·효과·봇 응답만 빨라져요. 내 차례와 챌린지 제한 시간은
+              그대로예요.
+            </p>
+            <div id="friend-actions">
+              <button class="primary" id="create-room">
+                친구와 방 만들기 <span>＋</span>
+              </button>
+              <div class="join-row">
+                <label class="sr-only" for="room-code">여섯 자리 방 번호</label
+                ><input
+                  id="room-code"
+                  maxlength="6"
+                  inputmode="numeric"
+                  placeholder="방 번호 6자리"
+                /><button id="join-room">참가</button>
+              </div>
+              <button class="resume" id="resume" hidden>
+                진행하던 방으로 돌아가기 ↗
+              </button>
+              <p class="small-note">로그인 후 방에 들어가서 캐릭터를 골라요.</p>
+            </div>
+            <div id="bot-settings" hidden>
+              <label class="setting-label" for="bot-count"
+                >함께할 봇 인원</label
+              >
+              <div class="practice-row">
+                <select id="bot-count" aria-label="봇 대전 인원">
+                  <option value="1">나 + 봇 1명</option>
+                  <option value="2">나 + 봇 2명</option>
+                  <option value="3">나 + 봇 3명</option>
+                  <option value="4">나 + 봇 4명</option>
+                  <option value="5">나 + 봇 5명</option>
+                  <option value="6">나 + 봇 6명</option>
+                  <option value="7">나 + 봇 7명</option>
+                </select>
+              </div>
+              <div id="practice-characters" class="character-picker"></div>
+              <button class="primary" id="practice">봇과 대전 시작 ↗</button>
+              <p class="small-note">
+                로그인 없이 바로 시작해요. 챌린지는 친구와 함께해요.
+              </p>
+            </div>
+          </section>
+          <section class="setup-card" id="room-panel" hidden></section>
+          <section class="setup-card" id="match-panel" hidden></section>
+          <section class="tip-card">
+            <span class="tip-star">✦</span>
+            <div>
+              <strong>한 글자가 이어 주는 우리</strong>
+              <p>
+                사과 → 과자 → 자전거 → 거미<br />틀려도 괜찮아요. 시간이 남으면
+                다시!
+              </p>
+            </div>
+          </section>
+          <div
+            id="status"
+            class="status"
+            role="status"
+            aria-live="polite"
+          ></div>
+        </aside>
+      </div>
+      <footer>
+        <span>DJ48 퀴즈타운 · 말잇기 라운지</span
+        ><button class="text-button" id="dictionary-info">
+          교실 사전 · <span id="dictionary-count"></span>개 낱말</button
+        ><span>2–8 PLAYERS</span>
+      </footer>
+    </main>
+    <dialog id="help-dialog">
+      <button class="dialog-close" data-close="help-dialog" aria-label="닫기">
+        ×</button
+      ><span class="section-kicker">HOW TO PLAY</span>
+      <h2>한 글자 잇고, 폭탄 넘기고!</h2>
+      <ol>
+        <li>대기실에서 캐릭터를 고르고 준비해요. 폭탄이 오면 내 차례예요.</li>
+        <li>마지막 글자로 시작하는 낱말을 쓰고 Enter!</li>
+        <li>
+          성공하면 다음 친구에게 폭탄이 날아가요.<br />다음 친구의 카운트는
+          설정한 시간으로 초기화돼요.
+        </li>
+        <li>
+          시간 안에 못 이으면 펑! 친구랑 해요 모드는 하트 −1,<br />챌린지는 점수
+          −10. 성공은 +10점이에요.
+        </li>
+      </ol>
+      <p>
+        친구랑 해요 모드는 마지막 생존자가 승리해요. 챌린지는 전체 시간이 끝나면
+        최고 점수가 승리하며, 동점은 공동 우승이에요. 전체 시간 종료에는 폭발
+        감점이 없어요.
+      </p>
+      <p>
+        두음법칙 허용 · 같은 경기에서 중복 낱말 금지 · 한방 낱말은 시작 전에
+        허용 여부를 고를 수 있어요. 사전의 남은 낱말로 더 이어 갈 수 없으면 새
+        시작 낱말을 드려요.
+      </p>
+      <p>
+        사전에 없는 낱말은 ‘친구에게 제안’을 눌러요. 제안자를 제외한 참가자
+        과반수가 동의하면 그 경기에서 인정해요. 투표는 최대 20초이며 개인·전체
+        타이머가 모두 멈춰요. 반대되거나 시간이 지나면 남은 시간으로 다시
+        시작해요. 한 차례에 한 번만 제안할 수 있어요.
+      </p>
+      <p>
+        대전 중 나가면 항복해요. 연결이 끊겨도 시간은 계속 흐르며 같은 계정으로
+        다시 들어올 수 있어요.
+      </p>
+    </dialog>
+    <dialog id="dictionary-dialog">
+      <button
+        class="dialog-close"
+        data-close="dictionary-dialog"
+        aria-label="닫기"
+      >
+        ×</button
+      ><span class="section-kicker">CLASSROOM WORDS</span>
+      <h2>우리의 교실 사전</h2>
+      <p>
+        국립국어원 기초 어휘·표준국어대사전 명사와 교실 낱말을 합쳐
+        <b>100,000개</b>를 담았어요. 두 글자 이상이면 긴 낱말도 쓸 수 있어요.
+        사전에 없는 낱말은 친구들에게 제안할 수 있어요.
+      </p>
+      <p class="small-note">
+        출처:
+        <a
+          href="https://www.korean.go.kr/front/reportData/reportDataView.do?report_seq=1160"
+          target="_blank"
+          rel="noopener"
+          >국립국어원(2024), 국어 기초 어휘 선정 및 어휘 등급화 목록</a
+        >
+        · 공공누리 제1유형 · 게임용 선별·가공.
+        <a href="DICTIONARY_NOTICE.md" target="_blank" rel="noopener"
+          >상세 출처</a
+        >
+      </p>
+      <label for="dictionary-search">낱말 찾아보기</label
+      ><input
+        id="dictionary-search"
+        placeholder="찾고 싶은 낱말 또는 첫 글자"
+        maxlength="100"
+      />
+      <div id="dictionary-list" class="dictionary-list"></div>
+      <p class="small-note">
+        대전 중에는 사전 검색을 닫아요. 봇 연습에서는 힌트를 볼 수 있어요.
+      </p>
+    </dialog>
+    <dialog id="result-dialog">
+      <span class="section-kicker">GOOD GAME, FRIENDS!</span>
+      <div class="result-spark">✦</div>
+      <h2 id="result-title">함께해서 즐거웠어요!</h2>
+      <p id="result-subtitle"></p>
+      <div id="result-rows"></div>
+      <button class="primary" id="play-again">다시 놀기 ↗</button
+      ><button class="text-button" id="close-result">경기장 보기</button>
+    </dialog>
+    <dialog id="leave-dialog">
+      <h2>이번 경기에서 나갈까요?</h2>
+      <p>대전 중에 나가면 항복으로 처리돼요.</p>
+      <div class="dialog-actions">
+        <button data-close="leave-dialog">계속하기</button
+        ><button id="confirm-leave" class="danger-button">나가기</button>
+      </div>
+    </dialog>
+  </body>
+</html>

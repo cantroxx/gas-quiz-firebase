@@ -1,0 +1,32 @@
+'use strict';
+const assert=require('node:assert/strict');
+const png=require('../../functions/coordi-shop/local-renderer/png');
+const core=require('../../functions/coordi-shop/local-renderer/core');
+const {toWidgetLook,normalize}=require('../../functions/coordi-shop/local-provider');
+const {createLocalProvider}=require('../../functions/coordi-shop/local-provider');
+const {createCoordiPreviewService}=require('../../functions/coordi-shop/service');
+class AppError extends Error{constructor(code,message){super(message);this.code=code;}}
+(async()=>{
+ const image={width:3,height:1,data:Uint8Array.from([12,80,130,100,255,0,30,255,40,60,80,0])};
+ const encoded=await png.encode(image);assert.deepEqual(await png.decode(encoded),image,'PNG must preserve straight alpha including transparent RGB');
+ const corrupted=encoded.slice();corrupted[encoded.length-5]^=1;await assert.rejects(png.decode(corrupted),/CRC/);
+ const texture=png.toBase64(await png.encode({width:1,height:1,data:Uint8Array.from([255,0,0,255])}));
+ const part=id=>({id,effects:{body:{position:'body',origin:{x:0,y:0},mapOffset:{navel:{x:0,y:0}},image:texture}}});
+ const reader={part:async id=>({id,frameBooks:{stand1:{frames:[{effects:{}}]}}}),body:async()=>part(2000),head:async()=>({id:12000,effects:{}}),order:async()=>['body'],slots:async()=>({ordering:[]})};
+ const result=await core.render({Skin:2000,Items:[]},reader);assert(result.data.some(n=>n===255));
+ await assert.rejects(core.render({Skin:2000,Action:'dance',Items:[]},reader),/동작/);
+ await assert.rejects(core.render({Skin:2000,Items:[{Id:1054818,Name:'반투명 한벌옷',Slot:'Overall'}]},reader),/원래 장비/);
+ let itemReads=0;
+ const mapped={manifest:async()=>({sourceSnapshot:'A'.repeat(64),skins:[{Id:2000}]}),baseIndex:async()=>({entries:{'base:2000:stand1:0:False':{},'base:2000:head:0:True':{}}}),item:async id=>{itemReads++;return {id,name:'Synthetic',category:id<30000?'face':id<100000?'hair':'overall',slot:id<30000?'Face':id<100000?'Hair':'Overall'};}};
+ const input={gender:0,itemCode:{skin:12000,hair:60310,face:20000,dress:1050001},itemPrism:{hair:{baseColor:0,mixColor:7,mixRate:63}}};
+ const catalog={overall:{code:1050001,category:'overall'}};
+ const widget=await toWidgetLook(normalize(input),mapped,catalog);assert.equal(widget.Skin,2000);assert.equal(widget.Items.find(i=>i.Slot==='Hair').MixId,60317);assert.equal(widget.Items.find(i=>i.Slot==='Hair').MixPercent,63);assert(widget.Items.some(i=>i.Slot==='Overall'));
+ await assert.rejects(toWidgetLook(normalize({...input,itemCode:{...input.itemCode,skin:12999}}),mapped,catalog),/피부/);
+ await assert.rejects(toWidgetLook(normalize(input),mapped,{}),/상의\/한벌옷/);
+ assert.throws(()=>normalize({...input,variation:1}),/정지/);assert.throws(()=>normalize({...input,itemCode:{...input.itemCode,subWeapon:1092067}}),/부위/);
+ const before=itemReads;
+ const provider=await createLocalProvider({reader:mapped,catalog});
+ const service=createCoordiPreviewService({provider,ErrorType:AppError,authorize:async()=>{throw new AppError('permission-denied','closed');}});
+ await assert.rejects(service('member',{look:input}),{code:'permission-denied'});assert.equal(itemReads,before,'Access denied before any item loading');
+ console.log('PASS local renderer: lossless PNG/CRC, raw alpha, explicit unsupported cases, exact skin/dress mapping, mix values, no silent options/default substitution, auth before data reads.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

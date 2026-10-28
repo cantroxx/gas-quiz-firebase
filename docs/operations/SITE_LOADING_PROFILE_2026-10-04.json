@@ -1,0 +1,3605 @@
+{
+  "measuredAt": "2026-10-04T06:37:12.222Z",
+  "baseUrl": "https://dj48-quiztown-firebase.web.app",
+  "scope": "Unauthenticated public static shells, isolated browser contexts; backend APIs blocked. Not authenticated user latency or school-device field data.",
+  "throttling": "Mobile simulation: 390x844 viewport, 4 Mbps down, 1 Mbps up, 80ms latency, CPU 4x slowdown. Unthrottled uses same viewport.",
+  "blockedUrls": [
+    "*identitytoolkit.googleapis.com*",
+    "*securetoken.googleapis.com*",
+    "*firestore.googleapis.com*",
+    "*firebasestorage.googleapis.com*",
+    "*cloudfunctions.net*",
+    "*run.app*",
+    "*firebaseio.com*",
+    "*storage.googleapis.com*",
+    "https://dj48-quiztown-firebase.web.app/api/*"
+  ],
+  "runs": [
+    {
+      "scenario": "main-unthrottled",
+      "run": "cold",
+      "timing": {
+        "ttfb": 237.69999998807907,
+        "domContentLoaded": 936,
+        "load": 1516.5,
+        "documentDecodedBytes": 430049,
+        "documentTransferBytes": 61830,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 940
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 940
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 940,
+            "tag": "H2",
+            "id": ""
+          },
+          {
+            "time": 1108,
+            "tag": "SECTION",
+            "id": "login-view"
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://fonts.googleapis.com/css2",
+            "initiator": "link",
+            "start": 244.69999998807907,
+            "duration": 576.3000000119209,
+            "transfer": 94398,
+            "encoded": 94098,
+            "decoded": 390851
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+            "initiator": "link",
+            "start": 244.89999997615814,
+            "duration": 32.10000002384186,
+            "transfer": 5067,
+            "encoded": 4767,
+            "decoded": 32474
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+            "initiator": "link",
+            "start": 244.89999997615814,
+            "duration": 38.60000002384186,
+            "transfer": 26518,
+            "encoded": 26218,
+            "decoded": 199108
+          },
+          {
+            "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+            "initiator": "link",
+            "start": 244.89999997615814,
+            "duration": 91.80000001192093,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+            "initiator": "link",
+            "start": 245,
+            "duration": 36.69999998807907,
+            "transfer": 1708,
+            "encoded": 1408,
+            "decoded": 6334
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+            "initiator": "link",
+            "start": 245,
+            "duration": 36.80000001192093,
+            "transfer": 2127,
+            "encoded": 1827,
+            "decoded": 7680
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+            "initiator": "link",
+            "start": 245,
+            "duration": 37.10000002384186,
+            "transfer": 1832,
+            "encoded": 1532,
+            "decoded": 6415
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+            "initiator": "link",
+            "start": 245.10000002384186,
+            "duration": 37.5,
+            "transfer": 2475,
+            "encoded": 2175,
+            "decoded": 10741
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+            "initiator": "link",
+            "start": 245.19999998807907,
+            "duration": 37.10000002384186,
+            "transfer": 1332,
+            "encoded": 1032,
+            "decoded": 3730
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+            "initiator": "script",
+            "start": 245.19999998807907,
+            "duration": 37.19999998807907,
+            "transfer": 1637,
+            "encoded": 1337,
+            "decoded": 3573
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+            "initiator": "script",
+            "start": 256.69999998807907,
+            "duration": 350.9000000357628,
+            "transfer": 10293,
+            "encoded": 9993,
+            "decoded": 31444
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+            "initiator": "script",
+            "start": 257.60000002384186,
+            "duration": 105.59999996423721,
+            "transfer": 101403,
+            "encoded": 101103,
+            "decoded": 341174
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+            "initiator": "script",
+            "start": 257.60000002384186,
+            "duration": 109,
+            "transfer": 40047,
+            "encoded": 39747,
+            "decoded": 139582
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+            "initiator": "script",
+            "start": 257.69999998807907,
+            "duration": 32.5,
+            "transfer": 562,
+            "encoded": 262,
+            "decoded": 458
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+            "initiator": "script",
+            "start": 257.69999998807907,
+            "duration": 108.60000002384186,
+            "transfer": 3553,
+            "encoded": 3253,
+            "decoded": 8190
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+            "initiator": "script",
+            "start": 257.69999998807907,
+            "duration": 109.19999998807907,
+            "transfer": 13290,
+            "encoded": 12990,
+            "decoded": 40329
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+            "initiator": "script",
+            "start": 257.80000001192093,
+            "duration": 25.099999964237213,
+            "transfer": 679,
+            "encoded": 379,
+            "decoded": 1000
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+            "initiator": "script",
+            "start": 257.80000001192093,
+            "duration": 25.399999976158142,
+            "transfer": 1782,
+            "encoded": 1482,
+            "decoded": 4623
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+            "initiator": "script",
+            "start": 257.80000001192093,
+            "duration": 26,
+            "transfer": 635,
+            "encoded": 335,
+            "decoded": 727
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+            "initiator": "script",
+            "start": 257.80000001192093,
+            "duration": 46.39999997615814,
+            "transfer": 123385,
+            "encoded": 123085,
+            "decoded": 842876
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+            "initiator": "script",
+            "start": 257.89999997615814,
+            "duration": 25.100000023841858,
+            "transfer": 4620,
+            "encoded": 4320,
+            "decoded": 15201
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+            "initiator": "script",
+            "start": 257.89999997615814,
+            "duration": 45.80000001192093,
+            "transfer": 1139,
+            "encoded": 839,
+            "decoded": 2211
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+            "initiator": "script",
+            "start": 257.89999997615814,
+            "duration": 46.10000002384186,
+            "transfer": 5328,
+            "encoded": 5028,
+            "decoded": 15761
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+            "initiator": "script",
+            "start": 266.10000002384186,
+            "duration": 38,
+            "transfer": 1106,
+            "encoded": 806,
+            "decoded": 1982
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+            "initiator": "css",
+            "start": 840.6999999880791,
+            "duration": 236.9000000357628,
+            "transfer": 416134,
+            "encoded": 415834,
+            "decoded": 415834
+          },
+          {
+            "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp",
+            "initiator": "fetch",
+            "start": 957.6999999880791,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+            "initiator": "other",
+            "start": 1519.699999988079,
+            "duration": 20.100000023841858,
+            "transfer": 527,
+            "encoded": 227,
+            "decoded": 339
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/",
+          "type": "Document",
+          "status": 200,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 62187
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 4945
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 26342
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1940
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1522
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1645
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1145
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 2288
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1473
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 494
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 4639
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1630
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 457
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 375
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 952
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 5142
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 918
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 123264
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 618
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 3371
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 101839
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13108
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 39893
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 10134
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "private, max-age=86400, stale-while-revalidate=604800",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 94679
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+          "type": "Image",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 416178
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 244251
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrYKMGwsw.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13391
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.118.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19813
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.119.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13647
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.117.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 20941
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.110.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 18289
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.115.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 18761
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.116.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19257
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+          "type": "Other",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 562
+        }
+      ],
+      "failures": [
+        {
+          "blockedReason": "inspector",
+          "error": ""
+        }
+      ],
+      "summary": {
+        "ttfbMs": 237.7,
+        "dclMs": 936,
+        "loadMs": 1516.5,
+        "fcpMs": 940,
+        "lcpMs": 1108,
+        "responses": 35,
+        "wireBytes": 1290090,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 368350,
+        "documentStatus": 200
+      }
+    },
+    {
+      "scenario": "main-unthrottled",
+      "run": "warm-revisit",
+      "timing": {
+        "ttfb": 292.69999998807907,
+        "domContentLoaded": 343.69999998807907,
+        "load": 349.39999997615814,
+        "documentDecodedBytes": 430049,
+        "documentTransferBytes": 61830,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 368
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 368
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 368,
+            "tag": "SECTION",
+            "id": "login-view"
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://fonts.googleapis.com/css2",
+            "initiator": "link",
+            "start": 301.69999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 94098,
+            "decoded": 390851
+          },
+          {
+            "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+            "initiator": "link",
+            "start": 301.7999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+            "initiator": "link",
+            "start": 301.89999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 26218,
+            "decoded": 199108
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+            "initiator": "link",
+            "start": 302,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 4767,
+            "decoded": 32474
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+            "initiator": "link",
+            "start": 302.0999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1532,
+            "decoded": 6415
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+            "initiator": "link",
+            "start": 302.0999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1408,
+            "decoded": 6334
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+            "initiator": "link",
+            "start": 302.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1827,
+            "decoded": 7680
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+            "initiator": "link",
+            "start": 302.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 2175,
+            "decoded": 10741
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+            "initiator": "link",
+            "start": 302.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1032,
+            "decoded": 3730
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+            "initiator": "script",
+            "start": 302.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1337,
+            "decoded": 3573
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+            "initiator": "script",
+            "start": 311.69999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 9993,
+            "decoded": 31444
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+            "initiator": "script",
+            "start": 313.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 39747,
+            "decoded": 139582
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+            "initiator": "script",
+            "start": 315.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 101103,
+            "decoded": 341174
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+            "initiator": "script",
+            "start": 317.89999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 12990,
+            "decoded": 40329
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+            "initiator": "script",
+            "start": 318.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 3253,
+            "decoded": 8190
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+            "initiator": "script",
+            "start": 318.5,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 262,
+            "decoded": 458
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+            "initiator": "script",
+            "start": 318.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 123085,
+            "decoded": 842876
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.110.woff2",
+            "initiator": "css",
+            "start": 322.5,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 18260,
+            "decoded": 18260
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.115.woff2",
+            "initiator": "css",
+            "start": 322.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 18732,
+            "decoded": 18732
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.116.woff2",
+            "initiator": "css",
+            "start": 322.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 19228,
+            "decoded": 19228
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.117.woff2",
+            "initiator": "css",
+            "start": 322.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 20912,
+            "decoded": 20912
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.118.woff2",
+            "initiator": "css",
+            "start": 322.69999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 19784,
+            "decoded": 19784
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.119.woff2",
+            "initiator": "css",
+            "start": 322.7999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 13620,
+            "decoded": 13620
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrYKMGwsw.woff2",
+            "initiator": "css",
+            "start": 322.7999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 13364,
+            "decoded": 13364
+          },
+          {
+            "url": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2",
+            "initiator": "css",
+            "start": 323.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+            "initiator": "css",
+            "start": 324,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 415834,
+            "decoded": 415834
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+            "initiator": "script",
+            "start": 328.7999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 379,
+            "decoded": 1000
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+            "initiator": "script",
+            "start": 328.89999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1482,
+            "decoded": 4623
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+            "initiator": "script",
+            "start": 329.0999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 335,
+            "decoded": 727
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+            "initiator": "script",
+            "start": 329.0999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 4320,
+            "decoded": 15201
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+            "initiator": "script",
+            "start": 329.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 839,
+            "decoded": 2211
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+            "initiator": "script",
+            "start": 329.5,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 5028,
+            "decoded": 15761
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+            "initiator": "script",
+            "start": 342.0999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 806,
+            "decoded": 1982
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+            "initiator": "other",
+            "start": 350.7999999523163,
+            "duration": 0.5,
+            "transfer": 0,
+            "encoded": 227,
+            "decoded": 339
+          },
+          {
+            "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp",
+            "initiator": "fetch",
+            "start": 354.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/",
+          "type": "Document",
+          "status": 200,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 61984
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "private, max-age=86400, stale-while-revalidate=604800",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.110.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.115.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.116.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.117.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.118.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.119.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrYKMGwsw.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+          "type": "Image",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+          "type": "Other",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "br",
+          "diskCache": true,
+          "serviceWorker": false,
+          "wireBytes": 0
+        }
+      ],
+      "failures": [
+        {
+          "blockedReason": "inspector",
+          "error": ""
+        }
+      ],
+      "summary": {
+        "ttfbMs": 292.7,
+        "dclMs": 343.7,
+        "loadMs": 349.4,
+        "fcpMs": 368,
+        "lcpMs": 368,
+        "responses": 35,
+        "wireBytes": 61984,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 0,
+        "documentStatus": 200
+      }
+    },
+    {
+      "scenario": "main-mobile-simulation",
+      "run": "cold",
+      "timing": {
+        "ttfb": 414.60000002384186,
+        "domContentLoaded": 1765.6000000238419,
+        "load": 3138.5,
+        "documentDecodedBytes": 430049,
+        "documentTransferBytes": 61830,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 1688
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 1688
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 1688,
+            "tag": "H2",
+            "id": ""
+          },
+          {
+            "time": 2024,
+            "tag": "P",
+            "id": "member-link-form-guide"
+          },
+          {
+            "time": 3156,
+            "tag": "SECTION",
+            "id": "login-view"
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://fonts.googleapis.com/css2",
+            "initiator": "link",
+            "start": 422.30000001192093,
+            "duration": 1020,
+            "transfer": 94398,
+            "encoded": 94098,
+            "decoded": 390851
+          },
+          {
+            "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+            "initiator": "link",
+            "start": 423.4000000357628,
+            "duration": 197.29999995231628,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+            "initiator": "link",
+            "start": 423.4000000357628,
+            "duration": 203.39999997615814,
+            "transfer": 5067,
+            "encoded": 4767,
+            "decoded": 32474
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+            "initiator": "link",
+            "start": 423.4000000357628,
+            "duration": 484.69999998807907,
+            "transfer": 26518,
+            "encoded": 26218,
+            "decoded": 199108
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+            "initiator": "link",
+            "start": 423.5,
+            "duration": 121.69999998807907,
+            "transfer": 1832,
+            "encoded": 1532,
+            "decoded": 6415
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+            "initiator": "link",
+            "start": 423.60000002384186,
+            "duration": 124.80000001192093,
+            "transfer": 1708,
+            "encoded": 1408,
+            "decoded": 6334
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+            "initiator": "link",
+            "start": 423.60000002384186,
+            "duration": 127.80000001192093,
+            "transfer": 2127,
+            "encoded": 1827,
+            "decoded": 7680
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+            "initiator": "link",
+            "start": 424.4000000357628,
+            "duration": 129.69999998807907,
+            "transfer": 2475,
+            "encoded": 2175,
+            "decoded": 10741
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+            "initiator": "link",
+            "start": 424.5,
+            "duration": 106.10000002384186,
+            "transfer": 1332,
+            "encoded": 1032,
+            "decoded": 3730
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+            "initiator": "script",
+            "start": 424.5,
+            "duration": 112.10000002384186,
+            "transfer": 1637,
+            "encoded": 1337,
+            "decoded": 3573
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+            "initiator": "script",
+            "start": 449.9000000357628,
+            "duration": 314.5999999642372,
+            "transfer": 10293,
+            "encoded": 9993,
+            "decoded": 31444
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+            "initiator": "script",
+            "start": 452,
+            "duration": 579.6999999880791,
+            "transfer": 40047,
+            "encoded": 39747,
+            "decoded": 139582
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+            "initiator": "script",
+            "start": 452,
+            "duration": 951.1999999880791,
+            "transfer": 101403,
+            "encoded": 101103,
+            "decoded": 341174
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+            "initiator": "script",
+            "start": 452.30000001192093,
+            "duration": 204.30000001192093,
+            "transfer": 3553,
+            "encoded": 3253,
+            "decoded": 8190
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+            "initiator": "script",
+            "start": 452.30000001192093,
+            "duration": 357.30000001192093,
+            "transfer": 13290,
+            "encoded": 12990,
+            "decoded": 40329
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+            "initiator": "script",
+            "start": 452.4000000357628,
+            "duration": 120.59999996423721,
+            "transfer": 562,
+            "encoded": 262,
+            "decoded": 458
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+            "initiator": "script",
+            "start": 452.4000000357628,
+            "duration": 1020.5,
+            "transfer": 123385,
+            "encoded": 123085,
+            "decoded": 842876
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+            "initiator": "script",
+            "start": 452.5,
+            "duration": 135.30000001192093,
+            "transfer": 679,
+            "encoded": 379,
+            "decoded": 1000
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+            "initiator": "script",
+            "start": 452.5,
+            "duration": 141.19999998807907,
+            "transfer": 635,
+            "encoded": 335,
+            "decoded": 727
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+            "initiator": "script",
+            "start": 452.5,
+            "duration": 147.19999998807907,
+            "transfer": 1139,
+            "encoded": 839,
+            "decoded": 2211
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+            "initiator": "script",
+            "start": 452.5,
+            "duration": 182.69999998807907,
+            "transfer": 1782,
+            "encoded": 1482,
+            "decoded": 4623
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+            "initiator": "script",
+            "start": 452.5,
+            "duration": 242.60000002384186,
+            "transfer": 4620,
+            "encoded": 4320,
+            "decoded": 15201
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+            "initiator": "script",
+            "start": 453.10000002384186,
+            "duration": 245.80000001192093,
+            "transfer": 5328,
+            "encoded": 5028,
+            "decoded": 15761
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+            "initiator": "script",
+            "start": 800.4000000357628,
+            "duration": 96.19999998807907,
+            "transfer": 1106,
+            "encoded": 806,
+            "decoded": 1982
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+            "initiator": "css",
+            "start": 1473.300000011921,
+            "duration": 1663.800000011921,
+            "transfer": 416134,
+            "encoded": 415834,
+            "decoded": 415834
+          },
+          {
+            "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp",
+            "initiator": "fetch",
+            "start": 1805.199999988079,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+            "initiator": "other",
+            "start": 3142.900000035763,
+            "duration": 87.29999995231628,
+            "transfer": 527,
+            "encoded": 227,
+            "decoded": 339
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/",
+          "type": "Document",
+          "status": 200,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 62186
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 4948
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 26342
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1645
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1522
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1940
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 2288
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1145
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1473
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 635
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 752
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 708
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1213
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 618
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1854
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 3893
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 4693
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 5402
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 10659
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13630
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "private, max-age=86400, stale-while-revalidate=604800",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 94679
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1179
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 40389
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 101745
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+          "type": "Image",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 416173
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 123463
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.115.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19274
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.116.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19355
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.117.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 21015
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrYKMGwsw.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13482
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.118.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19911
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.119.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13738
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.110.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 18387
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 244260
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+          "type": "Other",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 562
+        }
+      ],
+      "failures": [
+        {
+          "blockedReason": "inspector",
+          "error": ""
+        }
+      ],
+      "summary": {
+        "ttfbMs": 414.6,
+        "dclMs": 1765.6,
+        "loadMs": 3138.5,
+        "fcpMs": 1688,
+        "lcpMs": 3156,
+        "responses": 35,
+        "wireBytes": 1295158,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 369422,
+        "documentStatus": 200
+      }
+    },
+    {
+      "scenario": "main-mobile-simulation",
+      "run": "warm-revisit",
+      "timing": {
+        "ttfb": 113.5,
+        "domContentLoaded": 553.8999999761581,
+        "load": 574.5999999642372,
+        "documentDecodedBytes": 430049,
+        "documentTransferBytes": 61830,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 184
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 184
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 184,
+            "tag": "SECTION",
+            "id": "login-view"
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://fonts.googleapis.com/css2",
+            "initiator": "link",
+            "start": 121.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 94098,
+            "decoded": 390851
+          },
+          {
+            "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+            "initiator": "link",
+            "start": 121.79999995231628,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+            "initiator": "link",
+            "start": 121.89999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 26218,
+            "decoded": 199108
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+            "initiator": "link",
+            "start": 122.29999995231628,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 4767,
+            "decoded": 32474
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+            "initiator": "link",
+            "start": 122.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1532,
+            "decoded": 6415
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+            "initiator": "link",
+            "start": 122.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1408,
+            "decoded": 6334
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+            "initiator": "link",
+            "start": 122.89999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1827,
+            "decoded": 7680
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+            "initiator": "link",
+            "start": 122.89999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 2175,
+            "decoded": 10741
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+            "initiator": "link",
+            "start": 123,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1032,
+            "decoded": 3730
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+            "initiator": "script",
+            "start": 123.5,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1337,
+            "decoded": 3573
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.110.woff2",
+            "initiator": "css",
+            "start": 136.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 18260,
+            "decoded": 18260
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.115.woff2",
+            "initiator": "css",
+            "start": 136.79999995231628,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 18732,
+            "decoded": 18732
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.116.woff2",
+            "initiator": "css",
+            "start": 136.79999995231628,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 19228,
+            "decoded": 19228
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.117.woff2",
+            "initiator": "css",
+            "start": 137.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 20912,
+            "decoded": 20912
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.118.woff2",
+            "initiator": "css",
+            "start": 137.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 19784,
+            "decoded": 19784
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.119.woff2",
+            "initiator": "css",
+            "start": 137.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 13620,
+            "decoded": 13620
+          },
+          {
+            "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrYKMGwsw.woff2",
+            "initiator": "css",
+            "start": 137.29999995231628,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 13364,
+            "decoded": 13364
+          },
+          {
+            "url": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2",
+            "initiator": "css",
+            "start": 139.69999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+            "initiator": "css",
+            "start": 140.39999997615814,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 415834,
+            "decoded": 415834
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+            "initiator": "script",
+            "start": 448.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 9993,
+            "decoded": 31444
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+            "initiator": "script",
+            "start": 451.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 39747,
+            "decoded": 139582
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+            "initiator": "script",
+            "start": 456.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 101103,
+            "decoded": 341174
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+            "initiator": "script",
+            "start": 466.19999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 12990,
+            "decoded": 40329
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+            "initiator": "script",
+            "start": 467.5,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 3253,
+            "decoded": 8190
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+            "initiator": "script",
+            "start": 467.69999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 262,
+            "decoded": 458
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+            "initiator": "script",
+            "start": 468.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 123085,
+            "decoded": 842876
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+            "initiator": "script",
+            "start": 474.69999998807907,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 379,
+            "decoded": 1000
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+            "initiator": "script",
+            "start": 475.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 1482,
+            "decoded": 4623
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+            "initiator": "script",
+            "start": 477.5999999642372,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 335,
+            "decoded": 727
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+            "initiator": "script",
+            "start": 478,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 4320,
+            "decoded": 15201
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+            "initiator": "script",
+            "start": 478.5,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 839,
+            "decoded": 2211
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+            "initiator": "script",
+            "start": 479,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 5028,
+            "decoded": 15761
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+            "initiator": "script",
+            "start": 545.2999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 806,
+            "decoded": 1982
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+            "initiator": "other",
+            "start": 579.5,
+            "duration": 0.5,
+            "transfer": 0,
+            "encoded": 227,
+            "decoded": 339
+          },
+          {
+            "url": "https://identitytoolkit.googleapis.com/v1/accounts:signUp",
+            "initiator": "fetch",
+            "start": 590.7999999523163,
+            "duration": 0,
+            "transfer": 0,
+            "encoded": 0,
+            "decoded": 0
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/",
+          "type": "Document",
+          "status": 200,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 61962
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "private, max-age=86400, stale-while-revalidate=604800",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/classroom.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/town-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-entry.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/school-rooms.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/plaza-views.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/profile-view.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.110.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.115.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.116.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.117.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.118.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjAjduDfCsP6oanHyBeRjC2m8T8q3074gmKT_g.119.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/jua/v18/co3KmW9ljjATdOrYKMGwsw.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://hangeul.pstatic.net/hangeul_static/webfont/NanumSquareRound/NanumSquareRoundR.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "max-age=2592000",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/images/town-storybook-plazas-v2.webp",
+          "type": "Image",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/app.bundle.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 0
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+          "type": "Other",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "br",
+          "diskCache": true,
+          "serviceWorker": false,
+          "wireBytes": 0
+        }
+      ],
+      "failures": [
+        {
+          "blockedReason": "inspector",
+          "error": ""
+        }
+      ],
+      "summary": {
+        "ttfbMs": 113.5,
+        "dclMs": 553.9,
+        "loadMs": 574.6,
+        "fcpMs": 184,
+        "lcpMs": 184,
+        "responses": 35,
+        "wireBytes": 61962,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 0,
+        "documentStatus": 200
+      }
+    },
+    {
+      "scenario": "housing-unthrottled",
+      "run": "cold",
+      "timing": {
+        "ttfb": 232.19999998807907,
+        "domContentLoaded": 440,
+        "load": 441.69999998807907,
+        "documentDecodedBytes": 28199,
+        "documentTransferBytes": 5832,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 672
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 672
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 672,
+            "tag": "DIV",
+            "id": "edu-notice"
+          },
+          {
+            "time": 680,
+            "tag": "DIV",
+            "id": ""
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/housing/style.css",
+            "initiator": "link",
+            "start": 237.69999998807907,
+            "duration": 137.69999998807907,
+            "transfer": 7011,
+            "encoded": 6711,
+            "decoded": 38042
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+            "initiator": "script",
+            "start": 237.89999997615814,
+            "duration": 30.399999976158142,
+            "transfer": 10293,
+            "encoded": 9993,
+            "decoded": 31444
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+            "initiator": "script",
+            "start": 238,
+            "duration": 52.89999997615814,
+            "transfer": 40047,
+            "encoded": 39747,
+            "decoded": 139582
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+            "initiator": "script",
+            "start": 238.0999999642372,
+            "duration": 47.10000002384186,
+            "transfer": 13290,
+            "encoded": 12990,
+            "decoded": 40329
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+            "initiator": "script",
+            "start": 238.0999999642372,
+            "duration": 76.40000003576279,
+            "transfer": 101403,
+            "encoded": 101103,
+            "decoded": 341174
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+            "initiator": "script",
+            "start": 238.19999998807907,
+            "duration": 30.30000001192093,
+            "transfer": 562,
+            "encoded": 262,
+            "decoded": 458
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+            "initiator": "script",
+            "start": 238.19999998807907,
+            "duration": 30.80000001192093,
+            "transfer": 3553,
+            "encoded": 3253,
+            "decoded": 8190
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/housing/assets-loader.js",
+            "initiator": "script",
+            "start": 238.19999998807907,
+            "duration": 160.0999999642372,
+            "transfer": 2531,
+            "encoded": 2231,
+            "decoded": 6612
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/housing/housing-catalog.js",
+            "initiator": "script",
+            "start": 238.29999995231628,
+            "duration": 142.5,
+            "transfer": 18686,
+            "encoded": 18386,
+            "decoded": 97029
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/housing/housing-data.js",
+            "initiator": "script",
+            "start": 238.29999995231628,
+            "duration": 196.80000001192093,
+            "transfer": 6612,
+            "encoded": 6312,
+            "decoded": 23780
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/housing/app.js",
+            "initiator": "script",
+            "start": 238.39999997615814,
+            "duration": 187.80000001192093,
+            "transfer": 36116,
+            "encoded": 35816,
+            "decoded": 155205
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+            "initiator": "other",
+            "start": 442.7999999523163,
+            "duration": 17.600000023841858,
+            "transfer": 527,
+            "encoded": 227,
+            "decoded": 339
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/housing/",
+          "type": "Document",
+          "status": 200,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 5919
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 414
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 10529
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 3370
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 13194
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 39939
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "max-age=31556926",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 101692
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/housing/style.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 6956
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/housing/housing-catalog.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 18597
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/housing/assets-loader.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 2403
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/housing/app.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 35950
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/housing/housing-data.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 6427
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/favicon.svg",
+          "type": "Other",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 562
+        }
+      ],
+      "failures": [],
+      "summary": {
+        "ttfbMs": 232.2,
+        "dclMs": 440,
+        "loadMs": 441.7,
+        "fcpMs": 672,
+        "lcpMs": 680,
+        "responses": 13,
+        "wireBytes": 245952,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 0,
+        "documentStatus": 200
+      }
+    },
+    {
+      "scenario": "coordi-unthrottled",
+      "run": "cold",
+      "timing": {
+        "ttfb": 351,
+        "domContentLoaded": 670.1000000238419,
+        "load": 670.4000000357628,
+        "documentDecodedBytes": 7688,
+        "documentTransferBytes": 2436,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 648
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 648
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 648,
+            "tag": "P",
+            "id": "starter-coupons"
+          },
+          {
+            "time": 684,
+            "tag": "P",
+            "id": ""
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/dressing-room.css",
+            "initiator": "link",
+            "start": 358.4000000357628,
+            "duration": 231.89999997615814,
+            "transfer": 3674,
+            "encoded": 3374,
+            "decoded": 13827
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+            "initiator": "script",
+            "start": 358.60000002384186,
+            "duration": 116,
+            "transfer": 1637,
+            "encoded": 1337,
+            "decoded": 3573
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/hair-prism.js",
+            "initiator": "script",
+            "start": 358.80000001192093,
+            "duration": 143.39999997615814,
+            "transfer": 1963,
+            "encoded": 1663,
+            "decoded": 4269
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/catalog-filter.js",
+            "initiator": "script",
+            "start": 358.80000001192093,
+            "duration": 185.80000001192093,
+            "transfer": 1678,
+            "encoded": 1378,
+            "decoded": 4058
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/town-bridge.js",
+            "initiator": "script",
+            "start": 358.9000000357628,
+            "duration": 309.0999999642372,
+            "transfer": 864,
+            "encoded": 564,
+            "decoded": 1372
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/favicon.ico",
+            "initiator": "other",
+            "start": 672.8000000119209,
+            "duration": 130.69999998807907,
+            "transfer": 874,
+            "encoded": 574,
+            "decoded": 911
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/",
+          "type": "Document",
+          "status": 200,
+          "cacheControl": "max-age=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 2504
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1510
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/hair-prism.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1778
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/catalog-filter.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 1493
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/dressing-room.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 3507
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/coordi-shop/town-bridge.js",
+          "type": "Script",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 679
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/favicon.ico",
+          "type": "Other",
+          "status": 404,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 907
+        }
+      ],
+      "failures": [],
+      "summary": {
+        "ttfbMs": 351,
+        "dclMs": 670.1,
+        "loadMs": 670.4,
+        "fcpMs": 648,
+        "lcpMs": 684,
+        "responses": 7,
+        "wireBytes": 12378,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 0,
+        "documentStatus": 200
+      }
+    },
+    {
+      "scenario": "fraction-unthrottled",
+      "run": "cold",
+      "timing": {
+        "ttfb": 445,
+        "domContentLoaded": 455.19999998807907,
+        "load": 1054,
+        "documentDecodedBytes": 911,
+        "documentTransferBytes": 874,
+        "paints": [
+          {
+            "name": "first-paint",
+            "time": 1100
+          },
+          {
+            "name": "first-contentful-paint",
+            "time": 1100
+          }
+        ],
+        "longTasks": [],
+        "lcp": [
+          {
+            "time": 1100,
+            "tag": "H1",
+            "id": "error-title"
+          }
+        ],
+        "resources": [
+          {
+            "url": "https://fonts.googleapis.com/css2",
+            "initiator": "link",
+            "start": 451.39999997615814,
+            "duration": 596.7000000476837,
+            "transfer": 82379,
+            "encoded": 82079,
+            "decoded": 339190
+          },
+          {
+            "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+            "initiator": "link",
+            "start": 451.60000002384186,
+            "duration": 242.69999998807907,
+            "transfer": 26518,
+            "encoded": 26218,
+            "decoded": 199108
+          }
+        ]
+      },
+      "network": [
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/fraction-world/",
+          "type": "Document",
+          "status": 404,
+          "cacheControl": "no-cache, no-store, must-revalidate",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 951
+        },
+        {
+          "url": "https://dj48-quiztown-firebase.web.app/styles.css",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+          "encoding": "br",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 26401
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2",
+          "type": "Stylesheet",
+          "status": 200,
+          "cacheControl": "private, max-age=86400, stale-while-revalidate=604800",
+          "encoding": "gzip",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 82651
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/gaegu/v23/TuGSUVB6Up9NU573jvw-4sFtBxciPsu5uTs0PnI6bVN6hXFu_jPd.117.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 18419
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5Cgm203Tq4JJWq209pU0DPdWuqxJFA4GNDCBYtw.116.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 16636
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5Cgm203Tq4JJWq209pU0DPdWuqxJFA4GNDCBYtw.110.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 17618
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/gaegu/v23/TuGSUVB6Up9NU573jvw-4sFtBxciPsu5uTs0PnI6bVN6hXFu_jPd.119.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 12006
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5CgmG0X7twpAcuQ.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 25931
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5Cgm203Tq4JJWq209pU0DPdWuqxJFA4GNDCBYtw.115.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 16221
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/gaegu/v23/TuGSUVB6Up9NU573jvw-4sFtBxciPsu5uTs0PnI6bVN6hXFu_jPd.115.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19751
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5Cgm203Tq4JJWq209pU0DPdWuqxJFA4GNDCBYtw.118.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 14717
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/gaegu/v23/TuGSUVB6Up9NU573jvw-4sFtBxciPsu5uTs0PnI6bVN6hXFu_jPd.116.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 19915
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5Cgm203Tq4JJWq209pU0DPdWuqxJFA4GNDCBYtw.119.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 16666
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/notosanskr/v40/PbykFmXiEBPT4ITbgNA5Cgm203Tq4JJWq209pU0DPdWuqxJFA4GNDCBYtw.117.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 14362
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/gaegu/v23/TuGSUVB6Up9NU573jvw-4sFtBxciPsu5uTs0PnI6bVN6hXFu_jPd.118.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 16703
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/gaegu/v23/TuGSUVB6Up9NU573jsw86MZPBV0w.woff2",
+          "type": "Font",
+          "status": 200,
+          "cacheControl": "public, max-age=31536000",
+          "encoding": "",
+          "diskCache": false,
+          "serviceWorker": false,
+          "wireBytes": 11926
+        }
+      ],
+      "failures": [],
+      "summary": {
+        "ttfbMs": 445,
+        "dclMs": 455.2,
+        "loadMs": 1054,
+        "fcpMs": 1100,
+        "lcpMs": 1100,
+        "responses": 16,
+        "wireBytes": 330874,
+        "longTaskCount": 0,
+        "longTaskBlockingMs": 0,
+        "fontBytes": 220871,
+        "documentStatus": 404
+      }
+    }
+  ],
+  "assets": [
+    {
+      "pathname": "/",
+      "status": 200,
+      "ms": 582.3,
+      "decodedBytes": 430049,
+      "cacheControl": "no-cache, no-store, must-revalidate",
+      "encoding": "br",
+      "productionSha256": "8c567bb0d8b58ec6c7161b94d3c7dc34cc3c3f935773a7dfc71151187e2b5df9",
+      "localSha256": "a8bf0ee5552b1a9d17c9c1175fd66cfcf4284f794d46e2e56b7ee19053d947e8",
+      "sameAsLocal": false
+    },
+    {
+      "pathname": "/js/app.bundle.js",
+      "status": 200,
+      "ms": 919,
+      "decodedBytes": 842876,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "f6df48d3aa81b8ca5b6e342a18834ffc06c86c59102884209359861b4763eba3",
+      "localSha256": "0d2e858f1df5d575943f949c6acf5942ae938a7e5816b8b133f97c850188c7ce",
+      "sameAsLocal": false
+    },
+    {
+      "pathname": "/styles.css",
+      "status": 200,
+      "ms": 33.9,
+      "decodedBytes": 199108,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "b3e94ca2ef67e5dd2ef4732a3b190f70d20a62389de08de1eb661f47dc4f6d6d",
+      "localSha256": "75e5a9a4de41c9fb12a833935393a83cd3d8b981f8f37512ebed4eae983c66f8",
+      "sameAsLocal": false
+    },
+    {
+      "pathname": "/classroom.css",
+      "status": 200,
+      "ms": 324.7,
+      "decodedBytes": 32474,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "ec2d0e84abdd09baabb9d2d6c2f985745d18befe05c81b86a4cdfbefe80d3f8e",
+      "localSha256": "ec2d0e84abdd09baabb9d2d6c2f985745d18befe05c81b86a4cdfbefe80d3f8e",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/housing/index.html",
+      "status": 200,
+      "ms": 186.5,
+      "decodedBytes": 28199,
+      "cacheControl": "no-cache, no-store, must-revalidate",
+      "encoding": "br",
+      "productionSha256": "6501b84b0a8e287493eacd07f3153817252e9170dc3adad9d3094cd6a0131280",
+      "localSha256": "6501b84b0a8e287493eacd07f3153817252e9170dc3adad9d3094cd6a0131280",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/housing/app.js",
+      "status": 200,
+      "ms": 416.7,
+      "decodedBytes": 155205,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "f9e0c6e671cc5beadbaa27991feb98d4dc3e98113fde9afd06a8cd3cc8f4ad3f",
+      "localSha256": "f9e0c6e671cc5beadbaa27991feb98d4dc3e98113fde9afd06a8cd3cc8f4ad3f",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/housing/housing-data.js",
+      "status": 200,
+      "ms": 121.5,
+      "decodedBytes": 23780,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "ee2a070bca07c594a895cc3779507142322ebd9dd0a2238861548dd33d7570a6",
+      "localSha256": "ee2a070bca07c594a895cc3779507142322ebd9dd0a2238861548dd33d7570a6",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/coordi-shop/town-bridge.js",
+      "status": 200,
+      "ms": 184.1,
+      "decodedBytes": 1372,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "a4d466c3db8fd3b386574a7bde2f23f0ac85782b79889b33af30499f1e1a9fdc",
+      "localSha256": "a4d466c3db8fd3b386574a7bde2f23f0ac85782b79889b33af30499f1e1a9fdc",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/coordi-shop/dressing-room.js",
+      "status": 200,
+      "ms": 186.5,
+      "decodedBytes": 66977,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "46bf011156bfb504950dcba24af8963a70749f06d5831fc57f1e83f7e3057667",
+      "localSha256": "46bf011156bfb504950dcba24af8963a70749f06d5831fc57f1e83f7e3057667",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/coordi-shop/data/maple-cosmetics-catalog.json",
+      "status": 200,
+      "ms": 260.2,
+      "decodedBytes": 1955627,
+      "cacheControl": "no-cache, no-store, must-revalidate",
+      "encoding": "br",
+      "productionSha256": "e9aa38fc288dd819a88ce020e1b13e861e97034951010d6526c8eb3e4202a93d",
+      "localSha256": "e9aa38fc288dd819a88ce020e1b13e861e97034951010d6526c8eb3e4202a93d",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/js/application/classroom-usecases.js",
+      "status": 200,
+      "ms": 225.9,
+      "decodedBytes": 27230,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "36be0f3eb60cada613b9ccdbc6d598faba4ef5edcd36e3a83fd3c0f7ae611413",
+      "localSha256": "36be0f3eb60cada613b9ccdbc6d598faba4ef5edcd36e3a83fd3c0f7ae611413",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/js/features/account-data.js",
+      "status": 200,
+      "ms": 195.2,
+      "decodedBytes": 15333,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "2bee171d1b49b5064288df03f1fac63eadfe33bc477cf0f7cc50043f0a077a68",
+      "localSha256": "2bee171d1b49b5064288df03f1fac63eadfe33bc477cf0f7cc50043f0a077a68",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/js/application/account-usecases.js",
+      "status": 200,
+      "ms": 205,
+      "decodedBytes": 9697,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "97fe6a7d6773a9eb5a32c89b73f2e144579d8bacc9e2fa9d384fa9af0751b734",
+      "localSha256": "97fe6a7d6773a9eb5a32c89b73f2e144579d8bacc9e2fa9d384fa9af0751b734",
+      "sameAsLocal": true
+    },
+    {
+      "pathname": "/js/core/firebase.js",
+      "status": 200,
+      "ms": 347.1,
+      "decodedBytes": 1691,
+      "cacheControl": "public, max-age=300, stale-while-revalidate=3600",
+      "encoding": "br",
+      "productionSha256": "88e61ca812159ea510cb0f8aab044f4a39603507919e833bf63491c648b198d2",
+      "localSha256": "88e61ca812159ea510cb0f8aab044f4a39603507919e833bf63491c648b198d2",
+      "sameAsLocal": true
+    }
+  ]
+}

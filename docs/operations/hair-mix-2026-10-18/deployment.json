@@ -1,0 +1,30 @@
+{
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792306040852000",
+    "version": "sites/dj48-quiztown-firebase/versions/5a2cb873a4256a98",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/a8ecb2fe3b34963e",
+    "changed": [
+      "/coordi-shop/index.html",
+      "/coordi-shop/dressing-room.js",
+      "/coordi-shop/dressing-room.css",
+      "/coordi-shop/town-bridge.js"
+    ],
+    "preservedFiles": 4097
+  },
+  "function": {
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/coordiShopAction",
+    "beforeUpdateTime": "2026-10-02T01:16:25.176876209Z",
+    "updateTime": "2026-10-18T06:46:52.100939262Z",
+    "state": "ACTIVE",
+    "serviceSettingsPreserved": true,
+    "revision": "coordishopaction-00006-god"
+  },
+  "verification": {
+    "state": "ACTIVE",
+    "revision": "coordishopaction-00006-god",
+    "commerceSHA256": "b59097383e9a28fb53e4db81dc31978541fdf33e3555231f5d21fab28db0d5ff",
+    "deployedSourceMatches": true,
+    "entrypointUnchanged": true,
+    "unauthenticatedStatus": 401
+  }
+}

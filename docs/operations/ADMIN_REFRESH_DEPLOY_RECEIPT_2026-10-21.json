@@ -1,0 +1,142 @@
+{
+  "date": "2026-10-21",
+  "project": "dj48-quiztown-firebase",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792561732311000",
+    "version": "sites/dj48-quiztown-firebase/versions/8b3150d642e4164d",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/aa8039091afca798",
+    "changed": [
+      "index.html",
+      "styles.css",
+      "js/app.bundle.js",
+      "js/features/admin-render.js",
+      "js/features/admin-controller.js",
+      "js/infrastructure/admin-repository.js",
+      "js/special-rewards.js"
+    ]
+  },
+  "functions": {
+    "verified": [
+      {
+        "target": "adminGetMemberDetail",
+        "updateTime": "2026-10-21T05:37:16.662356703Z",
+        "sourceFiles": 8,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "adminGetDashboard",
+        "updateTime": "2026-10-21T05:37:18.891263353Z",
+        "sourceFiles": 51,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "adminGetOperationalAudit",
+        "updateTime": "2026-10-21T05:37:45.311054266Z",
+        "sourceFiles": 8,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "adminSpecialRewardAction",
+        "updateTime": "2026-10-21T05:37:41.678397765Z",
+        "sourceFiles": 93,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "specialRewardAction",
+        "updateTime": "2026-10-21T05:37:22.953415304Z",
+        "sourceFiles": 93,
+        "state": "ACTIVE"
+      }
+    ],
+    "unrelatedChanges": [],
+    "verifiedAt": "2026-10-21T05:47:29.484Z"
+  },
+  "authentication": {
+    "checkedAt": "2026-10-21T05:49:12.821Z",
+    "checks": [
+      {
+        "target": "adminGetMemberDetail",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "target": "adminGetDashboard",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "target": "adminGetOperationalAudit",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "target": "adminSpecialRewardAction",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      },
+      {
+        "target": "specialRewardAction",
+        "status": 401,
+        "error": "UNAUTHENTICATED"
+      }
+    ]
+  },
+  "checks": {
+    "passed": true,
+    "fullCheckPassed": true,
+    "archiveHashes": {
+      "adminGetMemberDetail": "78d33bf13b5eb68b7b49081042fceb5aab1b59592d09e51105afd62cbb6a5274",
+      "adminGetDashboard": "42ed8db415a5b5827942c1838440532c0b411f05325821468d3aa64ed32ba27f",
+      "adminGetOperationalAudit": "e1457ea25db0716c80204a7ad5d2015b4cb3e54129cf7ad44d7c65618288a313",
+      "adminSpecialRewardAction": "7a3d75975ca1d0ae0a303a1b716a2e0b39938cdbfb4d37076c15298bf2eea82c",
+      "specialRewardAction": "7a3d75975ca1d0ae0a303a1b716a2e0b39938cdbfb4d37076c15298bf2eea82c"
+    },
+    "evidence": {
+      "/tmp/admin-refresh-deploy-full-check.log": "86ff1f28a37f9a12b9ad87ce03cf597088471acb65915a3520e0c951b8d7f4c7",
+      "/tmp/admin-refresh-deploy-candidate-check.log": "5fa96b44afafc250780ab264d935fcf850da61a95bb1b3bb7cb97b0e7125b345",
+      "/tmp/admin-refresh-deploy-browser.log": "ce177200b89d5f961395e4a888220d3b56115e5eb84a511954597b50e896fb06"
+    }
+  },
+  "changedHttpHashes": {
+    "index.html": "822b83af06acec703dc3097ba9a61c7d7149d81dd5e20c30baddcf68c89c5390",
+    "styles.css": "f65acb7b295adb1b1476dbdf4cb97ac85c5ef2fb972c2cbcbfc9b4f09180dc55",
+    "js/app.bundle.js": "6c66a9765d9958841827243d811dd8a23da730c3c5665514ae30f8c5839b3f92",
+    "js/features/admin-render.js": "ee73c87a9654f5c0f240c83691765d16fa86502ca4df0b7afc08b6294fd53b6a",
+    "js/features/admin-controller.js": "e9dd8aa294a1cb8fa1e96f896297ed8734063b55a3ae633eac26207a760530cb",
+    "js/infrastructure/admin-repository.js": "f2967651d7f287f79290811d6d4d74d6d1495743e800fa6a9891b4e05b81cfce",
+    "js/special-rewards.js": "08c5c091662b417aae7ad113d4598503f4d6774c5ac179e7e926a621b2e23008"
+  },
+  "hostingFileCount": 4672,
+  "preservedHostingFiles": 4665,
+  "functionChanges": {
+    "adminGetMemberDetail": [
+      "index.js",
+      "admin-insights.js",
+      "subject-quiz/curriculum.js",
+      "achievements/catalog.js",
+      "popular-quiz/domain.js"
+    ],
+    "adminGetDashboard": [
+      "index.js",
+      "admin-insights.js",
+      "achievements/catalog.js",
+      "popular-quiz/domain.js"
+    ],
+    "adminGetOperationalAudit": [
+      "index.js",
+      "admin-insights.js",
+      "subject-quiz/curriculum.js",
+      "achievements/catalog.js",
+      "popular-quiz/domain.js"
+    ],
+    "adminSpecialRewardAction": [
+      "growth/special-rewards.js"
+    ],
+    "specialRewardAction": [
+      "growth/special-rewards.js"
+    ]
+  },
+  "functionManifestSha256": "074eef5a5b9980ecd8caeded407357c655e8f0a306c9421d47df3fc67972e578",
+  "productionDataWritten": false,
+  "rulesOrIndexesDeployed": false
+}

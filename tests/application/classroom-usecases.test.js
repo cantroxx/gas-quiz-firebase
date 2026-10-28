@@ -131,7 +131,7 @@ async function testPrototypeViewDataComposesLoaders() {
     },
     loadClassroomGemProgress: async (settings, forceRefresh) => {
       calls.push(['gems', settings.classId, forceRefresh]);
-      return [{ gemId: 'g1' }];
+      return [{ gemId: 'g1', currentXp: 4, completed: false }];
     },
     loadClassroomStudentCards: async (settings, forceRefresh) => {
       calls.push(['students', settings.classId, forceRefresh]);
@@ -139,7 +139,10 @@ async function testPrototypeViewDataComposesLoaders() {
     },
     loadClassroomEconomyBoard: async (settings, forceRefresh) => {
       calls.push(['economy', settings.classId, forceRefresh]);
-      return { jobs: [] };
+      return { jobs: [], classroomGems: [
+        { gemId: 'g1', gemName: '독서젬', targetXp: 10, rewardPoint: 5 },
+        { gemId: 'g2', gemName: '운동젬', targetXp: 7, rewardCoin: 3 }
+      ] };
     }
   });
 
@@ -148,9 +151,15 @@ async function testPrototypeViewDataComposesLoaders() {
     progressMap: { q1: { rewardStatus: 'approved' } },
     reviewItems: [{ recordId: 'r1' }],
     wallet: { point: 5 },
-    gemProgress: [{ gemId: 'g1' }],
+    gemProgress: [
+      { gemId: 'g1', gemName: '독서젬', currentXp: 4, targetXp: 10, rewardPoint: 5, rewardCoin: 0, completed: false },
+      { gemId: 'g2', gemName: '운동젬', currentXp: 0, targetXp: 7, rewardPoint: 0, rewardCoin: 3, completed: false }
+    ],
     studentCards: [{ memberUserId: 'member-a' }],
-    economyBoard: { jobs: [] }
+    economyBoard: { jobs: [], classroomGems: [
+      { gemId: 'g1', gemName: '독서젬', targetXp: 10, rewardPoint: 5 },
+      { gemId: 'g2', gemName: '운동젬', targetXp: 7, rewardCoin: 3 }
+    ] }
   });
   assert.deepEqual(calls[0], ['settings', true]);
   assert.equal(calls.length, 7);
@@ -458,7 +467,23 @@ async function testReviewFlowRequiresTeacher() {
   assert.deepEqual(calls, ['담임 권한이 있어야 처리할 수 있어요.']);
 }
 
+async function testFailedReadDoesNotOverwriteCache() {
+  const writes = [];
+  await usecases.loadClassroomCachedValue('wallet', { forceRefresh: true }, {
+    getValue: () => ({ point: 45 }), getLoadPromise: () => null, setLoadPromise: () => {},
+    hasLoadError: key => key === 'wallet', loadValue: async () => ({ point: 0 }),
+    setValue: (...args) => writes.push(args)
+  });
+  assert.deepEqual(writes, [], 'network fallback must not replace a valid balance in cache');
+  await usecases.loadClassroomSettingsWithCache({ forceRefresh: true }, {
+    hasLoadError: () => true, loadClassroomSettings: async () => ({ classId: 'fallback' }),
+    setValue: (...args) => writes.push(args)
+  });
+  assert.deepEqual(writes, [], 'failed settings must be retried instead of cached');
+}
+
 (async () => {
+  await testFailedReadDoesNotOverwriteCache();
   await testSettingsUseCache();
   await testSettingsForceRefresh();
   await testCachedValueUsesActivePromise();

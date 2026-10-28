@@ -1,0 +1,90 @@
+[
+  {
+    "name": "town",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-73339c80-e783-4346-9e95-093d92318a3c.png",
+    "web": "public/images/town-spatial-20261018/town-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 456230,
+    "mode": "RGB"
+  },
+  {
+    "name": "home",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-c5c1c920-3c3b-4f81-b8a3-bb95ae6582f3.png",
+    "web": "public/images/town-spatial-20261018/home-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 232184,
+    "mode": "RGB"
+  },
+  {
+    "name": "shop",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-9774a877-0d2c-4ef5-b776-4b778e7fe0e1.png",
+    "web": "public/images/town-spatial-20261018/shop-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 230454,
+    "mode": "RGB"
+  },
+  {
+    "name": "event",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-e3b1cb1c-7a5d-45a0-9a36-efaa411390e5.png",
+    "web": "public/images/town-spatial-20261018/event-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 288560,
+    "mode": "RGB"
+  },
+  {
+    "name": "ranking",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-7bbf77c3-0a94-45ec-9816-96d88cd49545.png",
+    "web": "public/images/town-spatial-20261018/ranking-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 238300,
+    "mode": "RGB"
+  },
+  {
+    "name": "school",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-4eef8c29-4c33-4031-b290-89c8e3170042.png",
+    "web": "public/images/town-spatial-20261018/school-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 146376,
+    "mode": "RGB"
+  },
+  {
+    "name": "entrance",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-8c692e0f-1484-4bc5-bc64-1dbbb866f02f.png",
+    "web": "public/images/town-spatial-20261018/entrance-v1.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 182986,
+    "mode": "RGB"
+  },
+  {
+    "name": "guide",
+    "source": "/Users/kdw/.codex/generated_images/01a14cb3-502d-78b2-91a8-3b3de13fbea8/exec-8d08b2d8-30b2-4a8b-a541-cd591259209b.png",
+    "web": "public/images/town-spatial-20261018/guide-v1.webp",
+    "size": [
+      160,
+      160
+    ],
+    "bytes": 6066,
+    "mode": "RGBA"
+  }
+]

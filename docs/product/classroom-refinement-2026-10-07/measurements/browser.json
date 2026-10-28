@@ -1,0 +1,23 @@
+{
+  "browser": "154.0.8037.95",
+  "deviceScaleFactor": 1,
+  "CPUThrottlingRate": 4,
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "pairs": 4,
+  "order": [
+    "before-after",
+    "after-before",
+    "before-after",
+    "after-before"
+  ],
+  "samplesPerRun": {
+    "render": 20,
+    "tabSwitch": 40,
+    "productSelect": 40,
+    "retainedScenario": 20
+  },
+  "requests": "offline intercepted; external requests aborted"
+}

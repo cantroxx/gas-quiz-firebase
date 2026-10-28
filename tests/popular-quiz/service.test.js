@@ -1,0 +1,68 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {initializeApp,deleteApp}=require('firebase-admin/app'),{getFirestore}=require('firebase-admin/firestore');
+const {initializeTestEnvironment,assertFails}=require('@firebase/rules-unit-testing');const {doc,getDoc,setDoc}=require('firebase/firestore');
+const {createService}=require('../../functions/popular-quiz/service'),D=require('../../functions/popular-quiz/domain'),pack=require('../../functions/popular-quiz/catalog.json');
+async function main(){
+ assert.equal(process.env.FIRESTORE_EMULATOR_HOST,'127.0.0.1:8181');
+ const app=initializeApp({projectId:'demo-dj48-rules'},'popular-service'),db=getFirestore(app);
+ const env=await initializeTestEnvironment({projectId:'demo-dj48-rules',firestore:{host:'127.0.0.1',port:8181,rules:fs.readFileSync('firestore.rules','utf8')}});
+ let time=Date.now(),rewardFail=false;const uid='popular-test-auth',memberId='popular-test-member';
+ const sample=(g,count=30)=>Array.from({length:count},(_,i)=>({id:`p-${g}-${i}`,category:'pokemon',kind:'character',group:String(g),generation:g,prompt:'이름은?',answer:`포켓몬${g}-${i}`,aliases:[],imageUrl:'https://example.com/p.png'}));
+ const service=createService({db,now:()=>time,loadPool:(cat,gens)=>cat==='pokemon'?gens.flatMap(g=>sample(g)):pack.questions.filter(q=>q.category===cat),reward:async(tx,item)=>{if(rewardFail)throw Error('reward unavailable');tx.set(db.doc('popularTestRewards/'+item.runId+'_'+item.seq),{coin:1});return {rewardCoin:1,xpDelta:2};}});
+ const call=(action,data={},as=uid)=>service.act(as,{action,...data}),secret=async r=>(await db.doc('popularQuizRuns/'+r.runId).get()).data();
+ const start=(category='idol',mode='practice',generations=[])=>call('start',{category,mode,generations,requestId:crypto.randomUUID()});
+ const answer=async(r,correct=true)=>{time+=500;const saved=await secret(r),q=saved.questions[saved.pending?saved.pending[0]:r.seq%D.ROUND_SIZE],choice=correct?q.answerIndex:(q.answerIndex+1)%4;return call('answer',{runId:r.runId,seq:r.seq,choice});};
+ try{
+  await db.doc('authLinks/'+uid).set({memberUserId:memberId});await db.doc('users/'+memberId).set({authUid:uid,status:'active',active:true,nickname:'테스트 친구'});
+  await db.doc('appSettings/featureFlags').set({practiceRewardEnabled:true,practiceXpEnabled:true,rankingEnabled:true});
+  await db.doc('quizKingSummary/'+memberId).set({categories:[{categoryKey:'old',score:70}],totalScore:70});
+  await assert.rejects(call('profile',{},''),e=>e.code==='unauthenticated');await assert.rejects(start('snack-food'),e=>e.code==='invalid-argument');
+  await assert.rejects(start('pokemon','ranking',[1,1,2]),e=>e.code==='invalid-argument');
+  const missingGeneration=createService({db,loadPool:()=>[...sample(1),...sample(2)]});
+  await assert.rejects(missingGeneration.act(uid,{action:'start',category:'pokemon',mode:'ranking',generations:[1,2,3],requestId:crypto.randomUUID()}),e=>e.code==='failed-precondition');
+  const input={category:'idol',mode:'practice',requestId:crypto.randomUUID()};let r=await call('start',input);assert.equal((await call('start',input)).runId,r.runId);
+  assert.equal(r.question.answer,undefined);assert.equal(r.question.answerIndex,undefined);assert.equal(r.deadline,undefined);
+  await assert.rejects(start(),e=>e.code==='failed-precondition');await assert.rejects(call('answer',{runId:r.runId,seq:0,choice:8}),e=>e.code==='invalid-argument');
+  time+=500;const choice=(await secret(r)).questions[0].answerIndex,payload={runId:r.runId,seq:0,choice};
+  const replies=await Promise.all([call('answer',payload),call('answer',payload)]);assert.equal(replies.filter(v=>v.duplicate).length,1);r=replies[0];assert.equal(r.correct,1);
+  assert.equal((await db.collection('popularTestRewards').get()).size,0,'no per-answer rewards');
+  r=await answer(r,false);assert.equal(r.seq,2);assert.equal(r.correct,1);
+  time+=3*86400000;r=await call('resume',{runId:r.runId});assert.equal(r.status,'playing');
+  while(r.seq<101)r=await answer(r,r.seq%2===0);
+  assert.equal(r.status,'playing');assert.equal(r.total,null);assert.equal((await secret(r)).questions.length,20);
+  assert.equal((await call('profile')).progress.idol.answered,101);
+  assert.equal((await db.collection('popularTestRewards').get()).size,0);
+  await call('finish',{runId:r.runId});
+  let old=await start();const oldData=await secret(old);delete oldData.practiceRules;await db.doc('popularQuizRuns/'+old.runId).set(oldData);old=await call('resume',{runId:old.runId});assert.equal(old.reason,'rules-updated');
+  let quit=await start();quit=await answer(quit);await call('finish',{runId:quit.runId});
+  assert.equal((await call('profile')).progress.idol.answered,102);
+
+  r=await start('pokemon','ranking',[3,1,2]);assert.deepEqual(r.generations,[1,2,3]);
+  time+=1300000;for(let i=0;i<20;i++)r=await answer(r);assert.equal(r.correct,20);assert.equal(r.rankingSaved,true);
+  const ranked=await db.collection('rankingRecords').where('conditionKey','==',D.conditionKey('pokemon',[1,2,3])).get();assert.equal(ranked.size,1);assert.ok(ranked.docs[0].data().elapsedSeconds>1200);
+  assert.equal((await call('board',{category:'pokemon',generations:[3,2,1]})).rows[0].score,20);
+  assert.equal((await call('board',{category:'pokemon',generations:[1,2,4]})).rows.length,0);
+  assert.equal((await db.doc('quizKingSummary/'+memberId).get()).data().totalScore,90);
+  assert.equal((await db.doc('userRankingSummary/'+memberId).get()).data().totalRecordCount,1);
+  await call('answer',{runId:r.runId,seq:19,choice:(await secret(r)).lastChoice});assert.equal((await db.doc('userRankingSummary/'+memberId).get()).data().totalRecordCount,1);
+  assert.equal(r.status,'playing');assert.equal(r.total,null);
+  for(let i=0;i<25;i++)r=await answer(r);
+  assert.equal(r.correct,45);assert.equal((await secret(r)).questions.length,20,'bounded question storage');
+  assert.equal((await call('board',{category:'pokemon',generations:[1,2,3]})).rows[0].score,45,'saved before leaving');
+  await Promise.all([call('finish',{runId:r.runId}),call('finish',{runId:r.runId})]);
+  assert.equal((await call('profile')).activeRunId,null);
+  assert.equal((await db.doc('userRankingSummary/'+memberId).get()).data().totalRecordCount,1);
+  r=await start('anime','ranking');r=await answer(r);for(let i=0;i<3;i++)r=await answer(r,false);assert.equal(r.reason,'hearts');assert.equal(r.rankingSaved,true);
+  r=await start('idol','ranking');r=await answer(r);await call('finish',{runId:r.runId});assert.equal((await call('board',{category:'idol'})).rows[0].score,1,'abandoned rounds rank automatically');
+  await db.doc('appSettings/featureFlags').set({disabledQuizIds:['pokemon-gen3']});await assert.rejects(start('pokemon','ranking',[1,2,3]),e=>e.code==='failed-precondition');
+  const client=env.authenticatedContext(uid).firestore();
+  await assertFails(setDoc(doc(client,'achievementProgress',memberId),{areas:{idol:{answered:99999}}}));
+  await assertFails(setDoc(doc(client,'users',memberId),{gameHonors:{stars:999}},{merge:true}));
+  await assertFails(getDoc(doc(client,'popularQuizRuns',r.runId)));await assertFails(setDoc(doc(client,'popularQuizPlayers',memberId),{active:false}));
+  await assertFails(setDoc(doc(client,'rankingRecords',ranked.docs[0].id),{...ranked.docs[0].data(),score:999,recordedAt:new Date(),updatedAt:new Date(),createdAt:new Date()}));
+  await assert.rejects(call('resume',{runId:r.runId},'other-auth'),e=>e.code==='permission-denied');
+  console.log('PASS popular transactions: atomic rewards, duplicate/concurrent retry, owner isolation, no time limit, generation conditions, ranking summaries, flags, default-deny rules.');
+ }finally{await env.cleanup();await deleteApp(app);}
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});

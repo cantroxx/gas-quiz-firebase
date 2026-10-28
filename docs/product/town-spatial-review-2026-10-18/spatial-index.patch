@@ -1,0 +1,11 @@
+--- a/public/index.html
++++ b/public/index.html
+@@ -21,6 +21,8 @@
+   <link rel="stylesheet" href="/plaza-views.css?v=event-sections-20261017">
+   <link rel="stylesheet" href="/profile-view.css?v=1">
+   <link rel="stylesheet" href="/town-ui-refresh.css?v=20261018">
++  <link rel="stylesheet" href="/town-spatial.css?v=20261018">
++  <script src="/js/town-spatial.js?v=20261018" defer></script>
+   <script defer src="/js/player-status-shortcut.js?v=town-ui-20261018"></script>
+ </head>
+ <body>

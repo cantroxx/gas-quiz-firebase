@@ -301,6 +301,12 @@
 
   // 문제 하나 만들기: 역사 모드=지금 시대의 역사 문제, 교실/공부 모드=켜진 과목 중 랜덤
   function makeProblem() {
+    if (mode === 'history') {
+      const p = B.serveHistory(ERAS[eraIdx(elapsed)].name);
+      p.subject = '역사';p.questSelection={era:ERAS[eraIdx(elapsed)].name,grade,sem};
+      return p;
+    }
+
     // 오답노트 복습: 노트에 문제가 있으면 30% 확률로 우선 출제
     const note = loadNote();
     const filteringUnits = subjects.some((sid) => allowedUnits(sid, grade, sem));
@@ -311,11 +317,6 @@
         unit: '📕 복습 · ' + it.unit, subject: it.subject || '복습',
         text: it.q, choices: idx.map((i) => it.c[i]), answerIndex: idx.indexOf(it.c.indexOf(it.a)),
       };
-    }
-    if (mode === 'history' && !studyMode) {
-      const p = B.serveHistory(ERAS[eraIdx(elapsed)].name);
-      p.subject = '역사';
-      return p;
     }
     const sid = subjects[Math.floor(Math.random() * subjects.length)];
     const gradeBased = sid === 'math' || sid === 'social' || sid === 'science';
@@ -333,6 +334,7 @@
       p = B.serve(sid, g, sem, requestedUnit);
       p.subject = B.SUBJECTS[sid].name;
     }
+    p.questSelection={subject:sid,grade:g,sem,unit:requestedUnit};
     return p;
   }
 
@@ -479,6 +481,7 @@
   }
 
   function startGame() {
+    window.MS_Net?.startQuestRun?.();
     studyMode = false;
     stopQuizTimer();
     player = newPlayer();
@@ -765,6 +768,7 @@
   }
   function onQuizTimeout() {
     if (state !== 'quiz') return;
+    if(currentQuiz.questionId){answerVerified('',null,true);return;}
     answerCore(false, null, true);
   }
 
@@ -772,21 +776,37 @@
     ui.quizWhy.textContent = `📚 공부 모드 · ${studyCount}문제 도전 · ${studyCorrect}개 정답`;
   }
 
-  function nextProblem() {
+  let questQuizEpoch = 0, questAnswerPending = false;
+  async function nextProblem() {
     quizAnswered = false;
+    const epoch = ++questQuizEpoch; questAnswerPending = false;let questNotice='';
     currentQuiz = makeProblem();
+    ui.quizUnit.textContent=currentQuiz.unit;
+    ui.quizWhy.textContent='문제를 확인하고 있어요…';
+    ui.quizFeedback.textContent='';
+    $('quizInputRow').classList.add('hidden');
+    if(currentQuiz.questSelection && window.firebase?.auth?.().currentUser && window.firebase.functions) {
+      quizAnswered=true;ui.quizText.textContent='문제를 준비하고 있어요…';ui.quizChoices.replaceChildren();$('btnQuizSubmit').disabled=true;
+      try {
+        const request={action:'question',...currentQuiz.questSelection,hint:hintCharges>0};
+        const result=await firebase.app().functions('asia-northeast3').httpsCallable('survivorQuestQuiz',{timeout:10000})(request);
+        if(epoch!==questQuizEpoch||state!=='quiz')return;currentQuiz=result.data;
+      } catch(error) {if(epoch!==questQuizEpoch||state!=='quiz')return;questNotice='연결되지 않아 이번 문제는 퀘스트에 반영되지 않아요.';}
+    }
+    if(!currentQuiz.questionId&&!questNotice)questNotice='로컬 연습·복습 문제는 퀘스트에 반영되지 않아요.';
+    quizAnswered=false;
     ui.quizUnit.textContent = currentQuiz.unit.startsWith('역사') || currentQuiz.unit.startsWith('📕') || currentQuiz.unit.startsWith('우리반')
       ? currentQuiz.unit
       : `${P.GRADES[grade].name} · ${currentQuiz.unit}`;
-    ui.quizWhy.textContent = quizWhyText;
-    if (studyMode) updateStudyWhy();
+    ui.quizWhy.textContent = questNotice || quizWhyText;
+    if (studyMode) { updateStudyWhy(); if(questNotice) ui.quizWhy.textContent += " · " + questNotice; }
     ui.quizText.textContent = currentQuiz.text;
     ui.quizFeedback.textContent = '';
     ui.quizChoices.innerHTML = '';
     $('btnQuizSubmit').disabled = false;
     // ✍️ 주관식(수학): 정답이 순수한 숫자면 직접 입력
     const ansText = currentQuiz.choices[currentQuiz.answerIndex];
-    const isNumeric = /^-?[\d,]+(\.\d+)?$/.test(ansText);
+    const isNumeric = currentQuiz.questionId ? currentQuiz.numeric : /^-?[\d,]+(\.\d+)?$/.test(ansText);
     const useInput = subjectiveOn && currentQuiz.subject === '수학' && isNumeric;
     $('quizInputRow').classList.toggle('hidden', !useInput);
     if (useInput) {
@@ -804,9 +824,9 @@
         btns.push(btn);
       });
       // 📜 족보: 오답 보기 2개를 지워 준다
-      if (hintCharges > 0) {
+      if (hintCharges > 0 && (!currentQuiz.questionId || currentQuiz.eliminated?.length)) {
         hintCharges--;
-        const wrongs = [0, 1, 2, 3].filter((i) => i !== currentQuiz.answerIndex);
+        const wrongs = currentQuiz.questionId ? currentQuiz.eliminated : [0, 1, 2, 3].filter((i) => i !== currentQuiz.answerIndex);
         wrongs.sort(() => Math.random() - 0.5);
         for (const i of wrongs.slice(0, 2)) {
           btns[i].disabled = true;
@@ -822,6 +842,7 @@
     if (state !== 'quiz') return;
     const raw = $('quizInput').value.trim();
     if (!raw) return;
+    if(currentQuiz.questionId){answerVerified(raw,null);return;}
     const ans = currentQuiz.choices[currentQuiz.answerIndex].replace(/,/g, '');
     answerCore(Number(raw.replace(/,/g, '')) === Number(ans), null);
   }
@@ -891,7 +912,15 @@
     }
     updateHud();
   }
-  function answer(i, btn) { answerCore(i === currentQuiz.answerIndex, btn); }
+  async function answerVerified(value,btn,timedOut=false) {
+    if(quizAnswered||questAnswerPending||state!=='quiz')return;
+    questAnswerPending=true;stopQuizTimer();const q=currentQuiz,epoch=questQuizEpoch;
+    try {const result=(await firebase.app().functions('asia-northeast3').httpsCallable('survivorQuestQuiz',{timeout:10000})({action:'answer',questionId:q.questionId,answer:value})).data;
+      if(epoch!==questQuizEpoch||state!=='quiz')return;q.answerIndex=result.answerIndex;answerCore(result.correct,btn,timedOut);
+    }catch(error){if(epoch===questQuizEpoch&&state==='quiz'){ui.quizFeedback.textContent='채점 연결에 실패했어요. 다시 선택해 주세요.';startQuizTimer();}}
+    finally{if(epoch===questQuizEpoch)questAnswerPending=false;}
+  }
+  function answer(i, btn) { if(currentQuiz.questionId){answerVerified(currentQuiz.choices[i],btn);return;} answerCore(i === currentQuiz.answerIndex, btn); }
 
   // ---- 공부 모드: 몬스터 없이 문제만 연속으로 ----
   function startStudy() {
@@ -1729,6 +1758,7 @@
       return;
     }
     const medal = ['🥇', '🥈', '🥉'];
+    const escapeText=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
     const p = kind === 'score' ? window.MS_Net.topList(20) : window.MS_Net.topAcc(20);
     p.then((rows) => {
       if (!rows.length) {
@@ -1739,10 +1769,10 @@
       }
       ui.hallList.innerHTML = rows.map((r, i) =>
         `<div class="hall-row"><span class="hall-rank">${medal[i] || (i + 1) + '위'}</span>` +
-        `<span class="hall-name">${r.name} ${hallBadges(r)}</span>` +
+        `<span class="hall-name">${escapeText(r.name)} ${hallBadges(r)}</span>` +
         (kind === 'score'
           ? `<span class="hall-score">${r.bestScore.toLocaleString('ko-KR')}점${r.bestVictory ? ' 👑' : ''}</span>`
-          : `<span class="hall-score">${r.accPct}% <small>(${r.quizTotal}문제)</small></span>`)
+          : `<span class="hall-score">${r.accPct}% <small>(${r.quizTotal}문제)</small></span>`) + '</div>'
       ).join('');
     }).catch(() => {
       ui.hallList.innerHTML = '<p class="hall-empty">퀴즈타운 사이트에서 열면 우리 반 랭킹이 보여요!</p>';

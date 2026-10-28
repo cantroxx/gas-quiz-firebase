@@ -1,0 +1,794 @@
+{
+  "schemaVersion": 1,
+  "source": "maple-cosmetics-catalog.json",
+  "generatedBy": "scripts/seed/build-maple-featured-hair-catalog.js",
+  "updatedAt": "2026-07-02T05:15:29.759Z",
+  "selection": "curated-popular-name-match",
+  "count": 98,
+  "items": [
+    {
+      "code": 71190,
+      "name": "밤의 아린 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "아린",
+      "score": 81390
+    },
+    {
+      "code": 71180,
+      "name": "안개 아린 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "아린",
+      "score": 81380
+    },
+    {
+      "code": 71170,
+      "name": "아린 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "아린",
+      "score": 81370
+    },
+    {
+      "code": 71060,
+      "name": "포니 버블리 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "버블리",
+      "score": 79760
+    },
+    {
+      "code": 68330,
+      "name": "다크 리르하 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "리르하",
+      "score": 78630
+    },
+    {
+      "code": 68170,
+      "name": "산구름 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "산구름",
+      "score": 78570
+    },
+    {
+      "code": 67470,
+      "name": "꼬마 데이즈 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "데이즈",
+      "score": 76670
+    },
+    {
+      "code": 67530,
+      "name": "리커버 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "리커버",
+      "score": 76530
+    },
+    {
+      "code": 68200,
+      "name": "화사한 루시드 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "루시드",
+      "score": 75700
+    },
+    {
+      "code": 65170,
+      "name": "하리화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "하리화",
+      "score": 74470
+    },
+    {
+      "code": 65460,
+      "name": "리커버 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "리커버",
+      "score": 74460
+    },
+    {
+      "code": 64010,
+      "name": "리르하 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "리르하",
+      "score": 74310
+    },
+    {
+      "code": 67200,
+      "name": "블링 슈가캔디 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 74000
+    },
+    {
+      "code": 63590,
+      "name": "리르하 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "리르하",
+      "score": 73890
+    },
+    {
+      "code": 61870,
+      "name": "안개 아멜리 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "아멜리",
+      "score": 73270
+    },
+    {
+      "code": 64770,
+      "name": "블링 채화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "채화",
+      "score": 73170
+    },
+    {
+      "code": 64780,
+      "name": "블링 블레이 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "블레이",
+      "score": 73080
+    },
+    {
+      "code": 64650,
+      "name": "애쉬 프리즘 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "프리즘",
+      "score": 72850
+    },
+    {
+      "code": 63040,
+      "name": "데이즈 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "데이즈",
+      "score": 72240
+    },
+    {
+      "code": 66030,
+      "name": "안개 사일런스 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "사일런스",
+      "score": 72230
+    },
+    {
+      "code": 66020,
+      "name": "사일런스 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "사일런스",
+      "score": 72220
+    },
+    {
+      "code": 63580,
+      "name": "채화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "채화",
+      "score": 71980
+    },
+    {
+      "code": 64390,
+      "name": "조용한 단발 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "조용한",
+      "score": 71490
+    },
+    {
+      "code": 61940,
+      "name": "리커버 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "리커버",
+      "score": 70940
+    },
+    {
+      "code": 64060,
+      "name": "블링 페스티벌 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 70860
+    },
+    {
+      "code": 61960,
+      "name": "오즈 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "오즈",
+      "score": 70860
+    },
+    {
+      "code": 64000,
+      "name": "블링 루야 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 70800
+    },
+    {
+      "code": 61550,
+      "name": "매화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "매화",
+      "score": 70650
+    },
+    {
+      "code": 61370,
+      "name": "데이즈 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "데이즈",
+      "score": 70570
+    },
+    {
+      "code": 63150,
+      "name": "미디 신비 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "신비",
+      "score": 70550
+    },
+    {
+      "code": 61120,
+      "name": "블링 하리화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "하리화",
+      "score": 70420
+    },
+    {
+      "code": 61590,
+      "name": "페어리 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "페어리",
+      "score": 70390
+    },
+    {
+      "code": 63320,
+      "name": "블링 채운 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 70120
+    },
+    {
+      "code": 61630,
+      "name": "채화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "채화",
+      "score": 70030
+    },
+    {
+      "code": 61150,
+      "name": "애쉬 버블리 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "버블리",
+      "score": 69850
+    },
+    {
+      "code": 61360,
+      "name": "수채화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "채화",
+      "score": 69760
+    },
+    {
+      "code": 63330,
+      "name": "시원한 아침등교 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "아침등교",
+      "score": 69630
+    },
+    {
+      "code": 60630,
+      "name": "리커버 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "리커버",
+      "score": 69630
+    },
+    {
+      "code": 63160,
+      "name": "아침등교 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "아침등교",
+      "score": 69460
+    },
+    {
+      "code": 60670,
+      "name": "버블리 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "버블리",
+      "score": 69370
+    },
+    {
+      "code": 60460,
+      "name": "페어리 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "페어리",
+      "score": 69260
+    },
+    {
+      "code": 60730,
+      "name": "블링 블레이 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "블레이",
+      "score": 69030
+    },
+    {
+      "code": 61990,
+      "name": "수호 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "수호",
+      "score": 68990
+    },
+    {
+      "code": 61060,
+      "name": "시원한 루시드 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "루시드",
+      "score": 68560
+    },
+    {
+      "code": 61160,
+      "name": "시원한 원더 바니 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "원더 바니",
+      "score": 68460
+    },
+    {
+      "code": 60180,
+      "name": "애쉬 프리즘 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "프리즘",
+      "score": 68380
+    },
+    {
+      "code": 61170,
+      "name": "포니테일 별구름 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "별구름",
+      "score": 68370
+    },
+    {
+      "code": 60660,
+      "name": "신비 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "신비",
+      "score": 68060
+    },
+    {
+      "code": 60950,
+      "name": "조용한 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "조용한",
+      "score": 68050
+    },
+    {
+      "code": 61140,
+      "name": "블링 에반 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 67940
+    },
+    {
+      "code": 60070,
+      "name": "시원한 루시드 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "루시드",
+      "score": 67570
+    },
+    {
+      "code": 60610,
+      "name": "블링 나랑 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 67410
+    },
+    {
+      "code": 60170,
+      "name": "블링 라온 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 66970
+    },
+    {
+      "code": 60130,
+      "name": "블링 요정윙 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 66930
+    },
+    {
+      "code": 47280,
+      "name": "안개 엘로디 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "엘로디",
+      "score": 58480
+    },
+    {
+      "code": 47270,
+      "name": "엘로디 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "엘로디",
+      "score": 58470
+    },
+    {
+      "code": 47740,
+      "name": "하리화 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "하리화",
+      "score": 57040
+    },
+    {
+      "code": 48370,
+      "name": "솜솜이 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "솜솜이",
+      "score": 56870
+    },
+    {
+      "code": 47640,
+      "name": "버블리 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "버블리",
+      "score": 56340
+    },
+    {
+      "code": 45010,
+      "name": "안개 시엘 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "시엘",
+      "score": 56010
+    },
+    {
+      "code": 45000,
+      "name": "시엘 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "시엘",
+      "score": 56000
+    },
+    {
+      "code": 45240,
+      "name": "산구름 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "산구름",
+      "score": 55640
+    },
+    {
+      "code": 48350,
+      "name": "블링 조용한 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "조용한",
+      "score": 55450
+    },
+    {
+      "code": 48020,
+      "name": "조용한 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "조용한",
+      "score": 55120
+    },
+    {
+      "code": 44480,
+      "name": "안개 설아 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "설아",
+      "score": 55080
+    },
+    {
+      "code": 44470,
+      "name": "설아 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "설아",
+      "score": 55070
+    },
+    {
+      "code": 47570,
+      "name": "미디 신비 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "신비",
+      "score": 54970
+    },
+    {
+      "code": 48360,
+      "name": "시원한 아침등교 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "아침등교",
+      "score": 54660
+    },
+    {
+      "code": 46310,
+      "name": "프리즘 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "프리즘",
+      "score": 54510
+    },
+    {
+      "code": 47090,
+      "name": "블링 신비 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "신비",
+      "score": 54490
+    },
+    {
+      "code": 47560,
+      "name": "블링 소프라노 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 54360
+    },
+    {
+      "code": 47260,
+      "name": "미로 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "미로",
+      "score": 54160
+    },
+    {
+      "code": 43300,
+      "name": "안개 백야 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "백야",
+      "score": 54100
+    },
+    {
+      "code": 43290,
+      "name": "백야 헤어",
+      "gender": "female",
+      "group": "master-label-like",
+      "keyword": "백야",
+      "score": 54090
+    },
+    {
+      "code": 46940,
+      "name": "블링 버터 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 53740
+    },
+    {
+      "code": 46710,
+      "name": "다크 미로 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "미로",
+      "score": 53610
+    },
+    {
+      "code": 46770,
+      "name": "블링 쉼표 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 53570
+    },
+    {
+      "code": 46760,
+      "name": "블링 에반 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 53560
+    },
+    {
+      "code": 46660,
+      "name": "블링 토벤 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 53460
+    },
+    {
+      "code": 45090,
+      "name": "블레이 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "블레이",
+      "score": 53390
+    },
+    {
+      "code": 46340,
+      "name": "블링 루야 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "블링",
+      "score": 53140
+    },
+    {
+      "code": 46440,
+      "name": "테디 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "테디",
+      "score": 52840
+    },
+    {
+      "code": 44500,
+      "name": "신비 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "신비",
+      "score": 51900
+    },
+    {
+      "code": 44950,
+      "name": "홍차소녀 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "홍차",
+      "score": 51450
+    },
+    {
+      "code": 44120,
+      "name": "별구름 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "별구름",
+      "score": 51320
+    },
+    {
+      "code": 43810,
+      "name": "블링 수호 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "수호",
+      "score": 50810
+    },
+    {
+      "code": 43320,
+      "name": "수호 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "수호",
+      "score": 50320
+    },
+    {
+      "code": 43330,
+      "name": "미로 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "미로",
+      "score": 50230
+    },
+    {
+      "code": 41860,
+      "name": "루시드 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "루시드",
+      "score": 49360
+    },
+    {
+      "code": 40970,
+      "name": "리본송이 헤어",
+      "gender": "female",
+      "group": "gold-silver-hands-like",
+      "keyword": "리본송이",
+      "score": 49070
+    },
+    {
+      "code": 40670,
+      "name": "루시드 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "루시드",
+      "score": 48170
+    },
+    {
+      "code": 41750,
+      "name": "아침등교 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "아침등교",
+      "score": 48050
+    },
+    {
+      "code": 40510,
+      "name": "플로리안 헤어",
+      "gender": "female",
+      "group": "popular-royal-like",
+      "keyword": "플로리안",
+      "score": 47110
+    },
+    {
+      "code": 38600,
+      "name": "리본송이 헤어",
+      "gender": "male",
+      "group": "gold-silver-hands-like",
+      "keyword": "리본송이",
+      "score": 46700
+    },
+    {
+      "code": 38310,
+      "name": "원더 바니",
+      "gender": "male",
+      "group": "popular-royal-like",
+      "keyword": "원더 바니",
+      "score": 45610
+    },
+    {
+      "code": 38100,
+      "name": "슈가캔디 헤어",
+      "gender": "male",
+      "group": "popular-royal-like",
+      "keyword": "슈가캔디",
+      "score": 44200
+    },
+    {
+      "code": 36140,
+      "name": "미로틱 헤어",
+      "gender": "male",
+      "group": "popular-royal-like",
+      "keyword": "미로",
+      "score": 43040
+    },
+    {
+      "code": 35660,
+      "name": "루야 헤어",
+      "gender": "male",
+      "group": "popular-royal-like",
+      "keyword": "루야",
+      "score": 42360
+    }
+  ]
+}

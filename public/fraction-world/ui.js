@@ -6,7 +6,7 @@
   function toast(text){$('toast').textContent=text;$('toast').style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.display='none',3500);}
   function save(){if(!FWStore.save())toast(FWStore.warning());}
   function modal(html,onReady){const d=$('modal');if(d.open)d.close();$('modal-content').innerHTML=currency(html);d.showModal();onReady?.($('modal-content'));}
-  const coin='<img class="crystal-coin" src="./assets/crystal-coin.svg" alt="결정" width="26" height="26">';
+  const coin='<img class="crystal-coin" src="./assets/crystal-coin.svg" alt="결정 코인" width="26" height="26">';
   const currency=html=>html.replaceAll('◇',coin);
   function close(){ $('modal').close(); }
   function fraction(n,d){const p=FWMath.parts(n,d);return `<span class="fraction" aria-label="${FWMath.plain(n,d)}">${p.whole||!p.num?`<span>${p.whole}</span>`:''}${p.num?`<span class="parts"><span class="num">${p.num}</span><span class="den">${d}</span></span>`:''}</span>`;}

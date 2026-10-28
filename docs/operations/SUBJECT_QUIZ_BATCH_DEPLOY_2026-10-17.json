@@ -1,0 +1,64 @@
+{
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792221964354000",
+    "version": "sites/dj48-quiztown-firebase/versions/e450e9331220b5f2",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/68aecd1b1f3f9dc5",
+    "changed": [
+      "index.html",
+      "js/app.bundle.js",
+      "js/application/admin-usecases.js",
+      "js/features/admin-state.js",
+      "js/infrastructure/admin-repository.js",
+      "js/features/shop-data.js",
+      "coordi-shop/dressing-room.js",
+      "js/application/ranking-usecases.js",
+      "js/features/ranking-data.js",
+      "js/infrastructure/ranking-repository.js",
+      "js/school-rooms.js",
+      "js/data/subject-quiz-catalog.js",
+      "subject-quiz/index.html",
+      "subject-quiz/app.js",
+      "subject-quiz/style.css"
+    ]
+  },
+  "functions": {
+    "targets": [
+      "subjectQuizAction",
+      "adminGetDashboard",
+      "renderCoordiShopPreview"
+    ],
+    "after": {
+      "subjectQuizAction": {
+        "updateTime": "2026-10-17T07:25:13.742589954Z",
+        "state": "ACTIVE"
+      },
+      "adminGetDashboard": {
+        "updateTime": "2026-10-17T07:25:24.364395803Z",
+        "state": "ACTIVE"
+      },
+      "renderCoordiShopPreview": {
+        "updateTime": "2026-10-17T07:25:23.481802471Z",
+        "state": "ACTIVE"
+      }
+    },
+    "unrelatedChanges": []
+  },
+  "rules": {
+    "before": "projects/dj48-quiztown-firebase/rulesets/af061ed4-4c36-4db0-9046-662c55811730",
+    "after": "projects/dj48-quiztown-firebase/rulesets/83035996-bf9c-428f-8874-0dd9edb69da1"
+  },
+  "cutover": {
+    "version": "subject-2022-v1",
+    "subjectQuizEnabled": true,
+    "updateTime": "2026-10-17T07:26:41.729253Z",
+    "initialRankings": "four subject collections empty; old records preserved"
+  },
+  "vercel": {
+    "deployment": "dpl_6GV3Sq6ZURm3fgeiy8wKiGAGZA3P",
+    "state": "READY",
+    "files": 67,
+    "allHashesVerified": true,
+    "preserved": 65,
+    "url": "https://dj48-fraction-world.vercel.app/"
+  }
+}

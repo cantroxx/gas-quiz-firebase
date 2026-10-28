@@ -16,9 +16,11 @@
     const data = doc.data() || {};
     return {
       titleId: data.titleId || doc.id,
+      legacy: !String(data.titleId || doc.id).startsWith('a26_'),
+      imageUrl: data.imageUrl || '',
       icon: '🏷️',
       name: data.titleName || data.name || data.titleId || doc.id,
-      desc: data.description || data.conditionText || data.sourceCategory || data.sourceType || '획득한 칭호입니다.',
+      desc: String(data.description || data.conditionText || data.sourceCategory || data.sourceType || '획득한 타이틀입니다.').replaceAll('칭호를', '타이틀을').replaceAll('칭호가', '타이틀이').replaceAll('칭호와', '타이틀과').replaceAll('칭호는', '타이틀은').replaceAll('칭호', '타이틀'),
       themeClass: data.themeClass || (data.theme ? `title-theme-${data.theme}` : ''),
       tierClass: data.tierClass || (data.tier ? `title-tier-${data.tier}` : ''),
       effectClass: data.effectClass || data.effect || '',
@@ -53,7 +55,7 @@
       badgeId: data.badgeId || doc.id,
       icon: getBadgeIconForGroup(group),
       name: data.label || data.badgeId || doc.id,
-      desc: `진행도 ${progressText}${starCount ? ` · 완주 ${starCount}회` : ''}`,
+      desc: `누적 ${Number(data.answered)||0}번 답하기 · 완주 ${starCount}회 · 다음 완주 ${correct}/100${data.perfectRuns ? ` · 20연속 정답 ${data.perfectRuns}판` : ''}`,
       group,
       correct,
       total,
@@ -71,14 +73,14 @@
     if(selected?.name) return selected.name;
     const knownTitleName = options.getKnownTitleName?.(selectedTitleId);
     if(knownTitleName) return knownTitleName;
-    if(options.hasMemberUserId) return selectedTitleId ? '선택한 칭호 없음' : '보유 칭호 없음';
+    if(options.hasMemberUserId) return selectedTitleId ? '선택한 타이틀 없음' : '보유 타이틀 없음';
     return options.fallbackTitleName || '';
   }
 
   function getRepresentativeBadgeName(badgeCards, options = {}) {
     const earnedBadge = badgeCards.find(badge => badge.completed || Number(badge.starCount) > 0);
     if(earnedBadge?.name) return earnedBadge.name;
-    return options.hasMemberUserId ? '취득한 뱃지 없음' : options.fallbackBadgeName || '';
+    return options.hasMemberUserId ? '아직 연습기록 없음' : options.fallbackBadgeName || '';
   }
 
   const HOME_LEVEL_MAX = 50;
@@ -152,7 +154,7 @@
       dateKey: String(status.dateKey || '').trim(),
       weekKey: String(status.weekKey || '').trim(),
       coin: normalizeBucket(status.coin),
-      todayQuizXp: normalizeBucket(status.todayQuizXp),
+      practiceXp: normalizeBucket(status.practiceXp),
       weeklyXp: normalizeBucket(status.weeklyXp)
     };
   }
@@ -196,6 +198,7 @@
         profileImageOffsetX: profile?.profileImageOffsetX,
         profileImageOffsetY: profile?.profileImageOffsetY,
         nickname: profile?.nickname || profileData.nickname,
+        gameHonors: badgesSnapshot?.gameHonors || profile?.gameHonors || {},
         school: schoolText || profileData.school,
         selectedTitleId,
         titleName: getSelectedTitleNameFromHomeData(profile, titleSummary, titleCards, {
@@ -211,7 +214,6 @@
         rankingMessage: profile?.rankingMessage || '',
         levelSummary,
         dailyRewardStatus: normalizeDailyRewardStatus(rewardStatus),
-        todayQuizSummary: deps.buildTodayQuizSummary?.(featureFlags) || null
       },
       titleCards,
       badgeCards,
@@ -223,7 +225,7 @@
     return titleCards.map(title => ({
       ...title,
       selected: title.titleId === selectedTitleId || title.selected === true,
-      actionLabel: title.titleId === selectedTitleId ? '선택됨' : '대표 칭호로 선택'
+      actionLabel: title.titleId === selectedTitleId ? '선택됨' : '대표 타이틀로 선택'
     }));
   }
 
@@ -231,8 +233,8 @@
     return [{
       titleId: 'none',
       icon: '🏷️',
-      name: '보유 칭호 없음',
-      desc: '보유 칭호가 없습니다.'
+      name: '보유 타이틀 없음',
+      desc: '보유 타이틀이 없습니다.'
     }];
   }
 
@@ -241,7 +243,7 @@
       badgeId: 'none',
       icon: '🏅',
       name: '연습 현황 없음',
-      desc: '아직 표시할 연습기록 기반 뱃지 현황이 없습니다.'
+      desc: '연습에서 100번 답하면 1회 완주로 기록돼요.'
     }];
   }
 

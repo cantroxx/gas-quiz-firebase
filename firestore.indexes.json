@@ -4,6 +4,14 @@
       "collectionGroup": "rankingRecords",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "categoryKey", "order": "ASCENDING" },
+        { "fieldPath": "recordedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rankingRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
         {
           "fieldPath": "categoryKey",
           "order": "ASCENDING"

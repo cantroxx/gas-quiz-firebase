@@ -1,0 +1,140 @@
+[
+  {
+    "name": "quiztown",
+    "coverage": [
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-app-compat.js",
+        "totalUnits": 31444,
+        "executedUnits": 13052
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-auth-compat.js",
+        "totalUnits": 139582,
+        "executedUnits": 38095
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-firestore-compat.js",
+        "totalUnits": 341174,
+        "executedUnits": 15737
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-storage-compat.js",
+        "totalUnits": 40329,
+        "executedUnits": 3021
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/__/firebase/10.12.2/firebase-functions-compat.js",
+        "totalUnits": 8190,
+        "executedUnits": 1801
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/__/firebase/init.js",
+        "totalUnits": 458,
+        "executedUnits": 344
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/ranking-visibility.js",
+        "totalUnits": 1000,
+        "executedUnits": 901
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/ranking-plaza-loader.js",
+        "totalUnits": 4561,
+        "executedUnits": 1002
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/event-plaza-loader.js",
+        "totalUnits": 727,
+        "executedUnits": 263
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/hideout-ranking-plaza.js",
+        "totalUnits": 14374,
+        "executedUnits": 3642
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/battle-hub.js",
+        "totalUnits": 1949,
+        "executedUnits": 1591
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/school-rooms.js",
+        "totalUnits": 14095,
+        "executedUnits": 1911
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/",
+        "totalUnits": 293095,
+        "executedUnits": 39184
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/admin-season-draft.js",
+        "totalUnits": 1660,
+        "executedUnits": 364
+      },
+      {
+        "url": "https://dj48-quiztown-firebase.web.app/js/player-status-shortcut.js",
+        "totalUnits": 3497,
+        "executedUnits": 2737
+      }
+    ],
+    "scroll": [
+      {
+        "deltaScrollY": 0,
+        "frames": 40,
+        "over50": 0,
+        "maxFrameGap": 33.400000000000546,
+        "medianFrameGap": 33.30000000000018
+      },
+      {
+        "deltaScrollY": 0,
+        "frames": 41,
+        "over50": 0,
+        "maxFrameGap": 33.400000000000546,
+        "medianFrameGap": 33.30000000000018
+      },
+      {
+        "deltaScrollY": 0,
+        "frames": 41,
+        "over50": 0,
+        "maxFrameGap": 33.400000000000546,
+        "medianFrameGap": 33.30000000000018
+      }
+    ],
+    "scope": "Separate unthrottled desktop probe. JS V8 UTF-16 range coverage of executed scripts, not bytes or safe-to-delete code; wheel/rAF gaps are laboratory indicators, not INP or compositor FPS."
+  },
+  {
+    "name": "ground",
+    "coverage": [
+      {
+        "url": "https://growndcard.com/assets/index-Cqcsd2xI.js",
+        "totalUnits": 6588354,
+        "executedUnits": 1742535
+      }
+    ],
+    "scroll": [
+      {
+        "deltaScrollY": 600,
+        "frames": 35,
+        "over50": 1,
+        "maxFrameGap": 216.60000000000036,
+        "medianFrameGap": 33.30000000000018
+      },
+      {
+        "deltaScrollY": 600,
+        "frames": 40,
+        "over50": 0,
+        "maxFrameGap": 33.400000000000546,
+        "medianFrameGap": 33.30000000000109
+      },
+      {
+        "deltaScrollY": 600,
+        "frames": 40,
+        "over50": 0,
+        "maxFrameGap": 33.400000000001455,
+        "medianFrameGap": 33.30000000000109
+      }
+    ],
+    "scope": "Separate unthrottled desktop probe. JS V8 UTF-16 range coverage of executed scripts, not bytes or safe-to-delete code; wheel/rAF gaps are laboratory indicators, not INP or compositor FPS."
+  }
+]

@@ -1,0 +1,437 @@
+[
+  {
+    "id": "korean:4-1:1",
+    "total": 125,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:2",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:3",
+    "total": 102,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:4",
+    "total": 112,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:5",
+    "total": 110,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:6",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:7",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-1:8",
+    "total": 102,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:1",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:2",
+    "total": 110,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:3",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:4",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:5",
+    "total": 110,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:6",
+    "total": 119,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:7",
+    "total": 117,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:4-2:8",
+    "total": 102,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "korean:spelling:1",
+    "total": 160,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "math:4-1:1",
+    "total": 10425,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "math:4-1:2",
+    "total": 2091,
+    "visual": 6,
+    "evidence": 0,
+    "types": [
+      "angle"
+    ]
+  },
+  {
+    "id": "math:4-1:3",
+    "total": 10584,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "math:4-1:4",
+    "total": 2121,
+    "visual": 37,
+    "evidence": 0,
+    "types": [
+      "polygon-grid"
+    ]
+  },
+  {
+    "id": "math:4-1:5",
+    "total": 2129,
+    "visual": 112,
+    "evidence": 0,
+    "types": [
+      "bar"
+    ]
+  },
+  {
+    "id": "math:4-1:6",
+    "total": 10446,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "math:4-2:1",
+    "total": 10582,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "math:4-2:2",
+    "total": 2077,
+    "visual": 8,
+    "evidence": 0,
+    "types": [
+      "triangle"
+    ]
+  },
+  {
+    "id": "math:4-2:3",
+    "total": 10584,
+    "visual": 0,
+    "evidence": 0,
+    "types": []
+  },
+  {
+    "id": "math:4-2:4",
+    "total": 2074,
+    "visual": 2,
+    "evidence": 0,
+    "types": [
+      "quadrilaterals"
+    ]
+  },
+  {
+    "id": "math:4-2:5",
+    "total": 2129,
+    "visual": 112,
+    "evidence": 0,
+    "types": [
+      "line"
+    ]
+  },
+  {
+    "id": "math:4-2:6",
+    "total": 2116,
+    "visual": 55,
+    "evidence": 0,
+    "types": [
+      "regular-polygon"
+    ]
+  },
+  {
+    "id": "social:4-1:1",
+    "total": 118,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "map",
+      "comparison",
+      "bar"
+    ]
+  },
+  {
+    "id": "social:4-1:2",
+    "total": 124,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "network",
+      "flow",
+      "comparison",
+      "bar"
+    ]
+  },
+  {
+    "id": "social:4-1:3",
+    "total": 118,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "network",
+      "comparison",
+      "flow",
+      "bar"
+    ]
+  },
+  {
+    "id": "social:4-2:1",
+    "total": 118,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "flow",
+      "comparison",
+      "bar"
+    ]
+  },
+  {
+    "id": "social:4-2:2",
+    "total": 118,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "map",
+      "comparison",
+      "bar"
+    ]
+  },
+  {
+    "id": "social:4-2:3",
+    "total": 118,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "comparison",
+      "flow",
+      "bar"
+    ]
+  },
+  {
+    "id": "social:korean-history:1",
+    "total": 119,
+    "visual": 30,
+    "evidence": 30,
+    "types": [
+      "history-timeline"
+    ]
+  },
+  {
+    "id": "social:korean-history:2",
+    "total": 119,
+    "visual": 30,
+    "evidence": 30,
+    "types": [
+      "history-timeline"
+    ]
+  },
+  {
+    "id": "social:korean-history:3",
+    "total": 119,
+    "visual": 30,
+    "evidence": 30,
+    "types": [
+      "history-timeline"
+    ]
+  },
+  {
+    "id": "social:korean-history:4",
+    "total": 119,
+    "visual": 30,
+    "evidence": 30,
+    "types": [
+      "history-timeline"
+    ]
+  },
+  {
+    "id": "social:world-history:1",
+    "total": 120,
+    "visual": 30,
+    "evidence": 30,
+    "types": [
+      "history-timeline"
+    ]
+  },
+  {
+    "id": "social:world-history:2",
+    "total": 120,
+    "visual": 30,
+    "evidence": 30,
+    "types": [
+      "history-timeline"
+    ]
+  },
+  {
+    "id": "science:4-1:1",
+    "total": 123,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "magnets",
+      "magnet-screen",
+      "flow",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-1:2",
+    "total": 122,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "water-states",
+      "condensation",
+      "flow",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-1:3",
+    "total": 122,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "river",
+      "slope-experiment",
+      "comparison",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-1:4",
+    "total": 122,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "yeast-apparatus",
+      "flow",
+      "comparison",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-2:1",
+    "total": 122,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "sky",
+      "network",
+      "planet-order",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-2:2",
+    "total": 123,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "network",
+      "comparison",
+      "flow",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-2:3",
+    "total": 122,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "syringe",
+      "comparison",
+      "balloon-motion",
+      "bar"
+    ]
+  },
+  {
+    "id": "science:4-2:4",
+    "total": 124,
+    "visual": 81,
+    "evidence": 9,
+    "types": [
+      "climate",
+      "comparison",
+      "network",
+      "bar"
+    ]
+  }
+]

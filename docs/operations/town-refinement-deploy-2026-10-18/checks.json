@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "candidateDigest": "6ba996199017737a55c637697b0a1213bf6ac23b5ab2664a991c0f8cad51a0cf",
+  "fullCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "log": "docs/product/town-refinement-review-2026-10-18/full-check.log"
+  },
+  "candidateChecks": [
+    "spatial-check.log",
+    "avatar-check.log",
+    "shell-check.log",
+    "event-check.log",
+    "school-check.log"
+  ],
+  "scope": "10 files; 77 unrelated bundle modules preserved; synthetic accounts only"
+}

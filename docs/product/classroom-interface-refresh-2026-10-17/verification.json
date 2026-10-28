@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-17",
+  "status": "deployed and verified",
+  "changes": [
+    "21 shared SVG interface/keyring icons refreshed; existing character art reused for quests/routines/missions and empty states",
+    "student routine planner with 10-item counter and responsive columns; teacher ongoing routine cards",
+    "activity feed moved from home to teacher dashboard; empty shells hidden",
+    "classroom-only return action in home dashboard, guarded by member identity"
+  ],
+  "preserved": [
+    "existing routine data model, weekdays 1–5, reward limit 20P, teacher review",
+    "existing town return action",
+    "production Firestore and rules untouched by this task"
+  ],
+  "checks": {
+    "npm run check": "passed",
+    "classroom responsive cases": 76,
+    "routine planner widths": [
+      320,
+      390,
+      768,
+      1440
+    ],
+    "routineItems": "add/edit/reset; maximum 10",
+    "navigation": "classroom entry shows return; ordinary home hides return; account switch cannot reuse unlocked entry",
+    "svgXml": 21,
+    "visualReview": "desktop and mobile screenshots reviewed"
+  },
+  "referenceScope": "Attached Grownd image used for layout. Daily payout and 200P policy not introduced.",
+  "hostingVersion": "sites/dj48-quiztown-firebase/versions/28dbfb78e811cfb7",
+  "deploymentRecord": "docs/operations/CLASSROOM_INTERFACE_DEPLOY_2026-10-17.json"
+}

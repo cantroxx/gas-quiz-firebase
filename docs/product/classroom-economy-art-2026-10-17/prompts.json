@@ -1,0 +1,23 @@
+[
+  {
+    "key": "point-shop",
+    "prompt": "Use case: stylized-concept. One premium children's classroom game UI icon. Cozy miniature clay / storybook 3D illustration, softly rounded shapes, matte tactile ceramic and wood materials, warm sage green, ivory and honey palette, gentle studio lighting. Centered compact front three-quarter silhouette filling 85% of square canvas, legible at 40 pixels. Truly transparent background, no scenery, no background tile, no watermark, no text, no vector outlines. Subject: a charming small sage green shopping bag with rounded handles, a cream circular badge carrying a tiny embossed sprout, a little ivory wrapped parcel peeking out. Means classroom point shop; simple friendly silhouette.",
+    "tool": "built-in image_gen",
+    "transparent": true,
+    "source": "/Users/kdw/.codex/generated_images/01a148bb-3174-7fb3-bb83-7480ff39d1d8/exec-b03f88fe-6124-41aa-88df-e477ee185fba.png"
+  },
+  {
+    "key": "coin-shop",
+    "prompt": "Use case: stylized-concept. One premium children's classroom game UI icon. Cozy miniature clay / storybook 3D illustration, softly rounded shapes, matte tactile ceramic and wood materials, warm sage green, ivory and honey palette, gentle studio lighting. Centered compact front three-quarter silhouette filling 85% of square canvas, legible at 40 pixels. Truly transparent background, no scenery, no background tile, no watermark, no text, no vector outlines. Subject: a charming small honey tan drawstring coin pouch with soft rounded folds, three thick golden coins peeking out of the opening, a tiny star charm on its cord. Means classroom coin shop; simple friendly silhouette.",
+    "tool": "built-in image_gen",
+    "transparent": true,
+    "source": "/Users/kdw/.codex/generated_images/01a148bb-3174-7fb3-bb83-7480ff39d1d8/exec-c2a1c6a7-01f5-4550-8fae-6400d26290da.png"
+  },
+  {
+    "key": "exchange",
+    "prompt": "Use case: stylized-concept. One premium children's classroom game UI icon. Cozy miniature clay / storybook 3D illustration, softly rounded shapes, matte tactile ceramic and wood materials, warm sage green, ivory and honey palette, gentle studio lighting. Centered compact front three-quarter silhouette filling 85% of square canvas, legible at 40 pixels. Truly transparent background, no scenery, no background tile, no watermark, no text, no vector outlines. Subject: two chunky round tokens side by side, one sage green token with a subtle embossed sprout and one honey gold token with a subtle embossed star; two short smooth ivory curved arrows above and below indicating exchange in opposite directions. Carefully separated silhouettes, easy to recognize at small size.",
+    "tool": "built-in image_gen",
+    "transparent": true,
+    "source": "/Users/kdw/.codex/generated_images/01a148bb-3174-7fb3-bb83-7480ff39d1d8/exec-5e2c5dae-0dae-4015-ab1f-ecd5c3c3bb0f.png"
+  }
+]

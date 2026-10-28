@@ -2144,45 +2144,7 @@ function selectCatalogItem(item) {
     tryBtn.classList.remove('disabled');
     tryBtn.removeAttribute('disabled');
 
-    // 쿠폰으로 받기: 온라인 + 쿠폰 보유 + 50코인 이하 (이미 가진 벽지는 제외)
-    const couponBtn = document.getElementById('btn-coupon-item');
-    const online = window.HousingData?.mode === 'online';
-    const paperOwned = online && item.paper
-        && HousingData.ownedCount(HousingData.paperItemId(item.paper, item.themeId)) > 0;
-    const couponOk = online && HousingData.coupons > 0 && item.cost <= 50 && !paperOwned && !state.simMode;
-    couponBtn.classList.toggle('hidden', !couponOk);
 }
-
-// 쿠폰 결제: 코인 대신 오늘의 쿠폰 1장 사용
-document.getElementById('btn-coupon-item').addEventListener('click', async () => {
-    const item = state.selectedCatalogItem;
-    if (!item || window.HousingData?.mode !== 'online') return;
-    const couponBtn = document.getElementById('btn-coupon-item');
-    couponBtn.disabled = true;
-    try {
-        const itemId = item.paper
-            ? HousingData.paperItemId(item.paper, item.themeId)
-            : HousingData.furniItemId(item.classname);
-        try { await HousingData.purchase(itemId, { useCoupon: true }); }
-        catch (e) { alert(e.message); return; }
-
-        if (item.paper) {
-            if (item.paper === 'wall') state.wallTheme = item.themeId;
-            else state.floorTheme = item.themeId;
-            saveGame();
-            updateUI();
-            catalogModal.classList.add('hidden');
-            return;
-        }
-        state.inventory.push(item.classname);
-        saveGame();
-        updateUI();
-        catalogModal.classList.add('hidden');
-        enterPlacementMode(item, { type: 'inventory' });
-    } finally {
-        couponBtn.disabled = false;
-    }
-});
 
 // 벽지·바닥 결제 공통 (이미 가진 색은 무료 적용) — 성공하면 true
 async function purchasePaperAndApply(item) {
@@ -2506,7 +2468,7 @@ document.querySelectorAll('.home-style-btn').forEach(btn => {
     });
 });
 
-// ---- 내 정보 상세: 랭킹·칭호·뱃지 (방 안에서 바로 보기) ----
+// ---- 내 정보 상세: 랭킹·타이틀·뱃지 (방 안에서 바로 보기) ----
 const infoListModal = document.getElementById('info-list-modal');
 function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2517,7 +2479,7 @@ document.getElementById('profile-open-titles').addEventListener('click', () => o
 document.getElementById('profile-open-badges').addEventListener('click', () => openInfoList('badges'));
 
 async function openInfoList(type) {
-    const titles = { ranking: '🏆 내 랭킹', titles: '🏅 내 칭호', badges: '🎖️ 내 뱃지' };
+    const titles = { ranking: '🏆 내 랭킹', titles: '🏅 내 타이틀', badges: '🎖️ 내 뱃지' };
     document.getElementById('info-list-title').innerText = titles[type];
     const box = document.getElementById('info-list-content');
     box.innerHTML = '<p class="info-list-empty">불러오는 중…</p>';
@@ -2533,8 +2495,8 @@ async function openInfoList(type) {
 
 async function renderMyTitles(box) {
     const [titles, selectedId] = await Promise.all([HousingData.getMyTitles(), HousingData.getSelectedTitleId()]);
-    if (!titles.length) { box.innerHTML = '<p class="info-list-empty">아직 얻은 칭호가 없어요.<br>퀴즈·연습으로 칭호를 모아 보세요!</p>'; return; }
-    box.innerHTML = '<p class="info-list-hint">칭호를 누르면 <b>대표 칭호</b>로 정할 수 있어요 (랭킹에 표시돼요).</p>';
+    if (!titles.length) { box.innerHTML = '<p class="info-list-empty">아직 얻은 타이틀이 없어요.<br>퀴즈·연습으로 타이틀을 모아 보세요!</p>'; return; }
+    box.innerHTML = '<p class="info-list-hint">타이틀을 누르면 <b>대표 타이틀</b>로 정할 수 있어요 (랭킹에 표시돼요).</p>';
     titles.forEach(t => {
         const isSel = t.id === selectedId;
         const card = document.createElement('div');
@@ -2544,9 +2506,9 @@ async function renderMyTitles(box) {
         card.addEventListener('click', async () => {
             try {
                 await HousingData.setSelectedTitle(isSel ? '' : t.id); // 다시 누르면 해제
-                document.getElementById('profile-info-title').innerText = isSel ? '아직 대표 칭호가 없어요' : (t.titleName || '');
+                document.getElementById('profile-info-title').innerText = isSel ? '아직 대표 타이틀이 없어요' : (t.titleName || '');
                 renderMyTitles(box);
-            } catch (e) { alert('대표 칭호를 바꾸지 못했어요.'); }
+            } catch (e) { alert('대표 타이틀을 바꾸지 못했어요.'); }
         });
         box.appendChild(card);
     });
@@ -2609,10 +2571,9 @@ async function openProfileCard() {
     catch (e) { p = null; }
     if (!p) return;
     document.getElementById('profile-info-nickname').innerText = p.nickname || state.playerName || '나';
-    document.getElementById('profile-info-title').innerText = p.selectedTitleName || '아직 대표 칭호가 없어요';
+    document.getElementById('profile-info-title').innerText = p.selectedTitleName || '아직 대표 타이틀이 없어요';
     document.getElementById('profile-info-level').innerText = `Lv.${p.level} ${tierLabel(p.tier)}`;
     document.getElementById('profile-info-coin').innerText = (p.djCoin || 0).toLocaleString();
-    document.getElementById('profile-info-coupon').innerText = p.coupons || 0;
     document.getElementById('profile-info-titles').innerText = p.titleCount || 0;
     document.getElementById('profile-info-badges').innerText = p.badgeCount || 0;
 }
@@ -3259,7 +3220,6 @@ function hideHallEditUI() {
     const chat = document.querySelector('.center-chat'); if (chat) chat.style.display = 'none';
     const dock = document.getElementById('side-dock'); if (dock) dock.style.display = 'none';       // 빈 독 상자 숨김
     const botbar = document.getElementById('bottom-navigation-bar'); if (botbar) botbar.style.display = 'none';
-    const coupon = document.getElementById('coupon-box'); if (coupon) coupon.style.display = 'none';
     const credits = document.querySelector('#top-status-bar .status-box'); if (credits) credits.style.display = 'none';
     const roomNameBox = document.getElementById('room-name-box'); if (roomNameBox) roomNameBox.style.cursor = 'default';
     document.getElementById('room-name-label').innerText = '명예의 전당';
@@ -3456,10 +3416,6 @@ function closeHallDrop() {
         if (priceUnit) priceUnit.innerText = 'DJ코인';
         HousingData.onCoinChange(coin => {
             state.credits = coin;
-            // 오늘의 쿠폰 표시 (1장 이상일 때만 상자 노출)
-            const box = document.getElementById('coupon-box');
-            box.style.display = HousingData.coupons > 0 ? '' : 'none';
-            document.getElementById('coupon-count').innerText = `${HousingData.coupons}장`;
             updateUI();
         });
     }

@@ -1,0 +1,66 @@
+{
+  "hosting": {
+    "at": "2026-10-18T07:22:20.799Z",
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792308139917000",
+    "version": "sites/dj48-quiztown-firebase/versions/1a14e86afd5bd33d",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/28042ba15765931e",
+    "changedFiles": 6,
+    "preservedFiles": 4651
+  },
+  "functions": {
+    "at": "2026-10-18T07:21:56.481Z",
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/popularQuizAction",
+    "state": "ACTIVE",
+    "updateTime": "2026-10-18T07:21:44.924480658Z",
+    "previousUpdateTime": "2026-10-18T06:58:03.917852019Z",
+    "revision": "popularquizaction-00002-mef",
+    "unrelatedChanges": [],
+    "serviceSettingsPreserved": true
+  },
+  "verification": {
+    "passed": true,
+    "at": "2026-10-18T07:22:34.465Z",
+    "version": "projects/584571538436/sites/dj48-quiztown-firebase/versions/1a14e86afd5bd33d",
+    "fileCount": 6,
+    "allHostedBytesMatch": true
+  },
+  "productionSmoke": {
+    "at": "2026-10-18T07:22:37.152Z",
+    "pageStatus": 200,
+    "callableUnauthenticatedStatus": 401,
+    "authGate": true,
+    "directEntryChecked": true,
+    "jsErrors": [],
+    "studentWrites": false
+  },
+  "changedPaths": [
+    "/index.html",
+    "/js/app.bundle.js",
+    "/js/school-rooms.js",
+    "/js/data/popular-quiz-catalog.js",
+    "/popular-quiz/index.html",
+    "/popular-quiz/app.js"
+  ],
+  "rawHashes": {
+    "index.html": "64dab5f037c75f55b9bcd5d2adfac030ff562506a24d1004e94c1d2617346f72",
+    "js/app.bundle.js": "54b204ed95d0681380155e8a1b8b593f4c4c9aa86db0be54efccf6d1d574930c",
+    "js/school-rooms.js": "95e6e64a9b79085ee4bf0fe7d76a823422814b1a422fb7bea54878f5a2607982",
+    "js/data/popular-quiz-catalog.js": "ebfe3782e88dd922a5bc5902553f6db9df711c7b912b9e82f50433ef3d16dad6",
+    "popular-quiz/index.html": "da0d315846c8c524ac5ec8eb2cd50c7e8747359772a6a9fd616cf6e50d0a4609",
+    "popular-quiz/app.js": "f63018a1fdc62dfde68c2ea36a15907f8cebac93b0075a4e3e57f2a60eee7e63"
+  },
+  "tests": {
+    "npmRunCheck": true,
+    "popularOnline": true,
+    "candidateSchoolEntry": true
+  },
+  "practiceReward": {
+    "trigger": "all 20 questions solved, with retries",
+    "xp": 2,
+    "coin": 1,
+    "sharedDailyXpLimit": 20,
+    "sharedDailyCoinLimit": 50
+  },
+  "rulesDeployed": false,
+  "studentDataMigration": false
+}

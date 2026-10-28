@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-18",
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792300511356000",
+    "releaseTime": "2026-10-18T05:15:11.356Z",
+    "version": "sites/dj48-quiztown-firebase/versions/02a49fc4f45d9528",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/0c9342e1af0bfaa8",
+    "changed": [
+      "subject-quiz/index.html",
+      "subject-quiz/app.js",
+      "subject-quiz/style.css"
+    ]
+  },
+  "function": {
+    "hostingUnchanged": "projects/584571538436/sites/dj48-quiztown-firebase/versions/0c9342e1af0bfaa8",
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/subjectQuizAction",
+    "updateTime": "2026-10-18T05:14:03.007255280Z",
+    "state": "ACTIVE",
+    "sourceFilesVerified": 92,
+    "memory": "512Mi",
+    "unauthenticatedStatus": 401
+  },
+  "runtime": {
+    "availableMemory": "512Mi",
+    "availableCpu": "1",
+    "maxInstanceCount": 10,
+    "maxInstanceRequestConcurrency": 80,
+    "timeoutSeconds": 30
+  },
+  "scope": {
+    "functionsChanged": [
+      "subject-quiz/history-workshop.js",
+      "subject-quiz/pool.js",
+      "subject-quiz/service.js",
+      "subject-quiz/visual-apparatus.js",
+      "subject-quiz/visual-packs.js",
+      "subject-quiz/visual-scenes.js",
+      "subject-quiz/visual-science.js",
+      "subject-quiz/visual-social.js"
+    ],
+    "functionsPreserved": 84,
+    "hostingChanged": [
+      "subject-quiz/index.html",
+      "subject-quiz/app.js",
+      "subject-quiz/style.css"
+    ]
+  },
+  "otherFunctionsChanged": [],
+  "hostingFilesVerified": 3999,
+  "rawAssetHashes": {
+    "subject-quiz/index.html": "0605dc88d705adf6ac08716dc8a96c05e1dace1b883ee5c049e6c11be4e83dd1",
+    "subject-quiz/app.js": "05e9e04b769c591f54563fb5ebc683b8bb2532af9e3b6a7d691c0498027505df",
+    "subject-quiz/style.css": "550edf7737237fa8b43759ed71bb6163805d3a78e9633bed8f8e5e1eb68edabd"
+  },
+  "functionManifestSha256": "a85a6a5e0b9edb3d317bfcb3e9cdbfc3eb56b608ca01f832aaea04ffa8b63d5f",
+  "validation": {
+    "candidateUnitTests": 33,
+    "candidateVisualLayouts": 102,
+    "candidateVisualScreens": 306,
+    "candidateOnline": "passed",
+    "productionAssetSamples": 6,
+    "productionSampleWidth": 390,
+    "studentWrites": false
+  }
+}

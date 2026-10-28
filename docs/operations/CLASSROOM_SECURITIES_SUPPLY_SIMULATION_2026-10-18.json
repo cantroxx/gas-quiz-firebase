@@ -1,0 +1,149 @@
+{
+  "assumptions": "22 synthetic students, 1000 initial coins each; deposit 100/day for 3 days; one company <=50%; no subsequent buys; full liquidation at horizon; deterministic daily +/-1%, 0%, or +5%; starting price 10; price range 1..1000. Not a forecast. Existing positions may exceed the 1000 class budget upon sale/withdrawal.",
+  "results": [
+    {
+      "days": 20,
+      "scenario": "하락",
+      "dailyChangeBps": -100,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 6050,
+      "netWalletCoin": -550,
+      "feesCoin": 29.92,
+      "cashRemainderCoin": 11.88,
+      "riskHalted": false
+    },
+    {
+      "days": 20,
+      "scenario": "횡보",
+      "dailyChangeBps": 0,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 6556,
+      "netWalletCoin": -44,
+      "feesCoin": 30.8,
+      "cashRemainderCoin": 13.2,
+      "riskHalted": false
+    },
+    {
+      "days": 20,
+      "scenario": "상승",
+      "dailyChangeBps": 100,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 7128,
+      "netWalletCoin": 528,
+      "feesCoin": 34.32,
+      "cashRemainderCoin": 16.72,
+      "riskHalted": false
+    },
+    {
+      "days": 20,
+      "scenario": "상한 스트레스",
+      "dailyChangeBps": 500,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 10626,
+      "netWalletCoin": 4026,
+      "feesCoin": 51.92,
+      "cashRemainderCoin": 0.44,
+      "riskHalted": true
+    },
+    {
+      "days": 60,
+      "scenario": "하락",
+      "dailyChangeBps": -100,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 5148,
+      "netWalletCoin": -1452,
+      "feesCoin": 25.3,
+      "cashRemainderCoin": 14.3,
+      "riskHalted": false
+    },
+    {
+      "days": 60,
+      "scenario": "횡보",
+      "dailyChangeBps": 0,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 6556,
+      "netWalletCoin": -44,
+      "feesCoin": 30.8,
+      "cashRemainderCoin": 13.2,
+      "riskHalted": false
+    },
+    {
+      "days": 60,
+      "scenario": "상승",
+      "dailyChangeBps": 100,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 8932,
+      "netWalletCoin": 2332,
+      "feesCoin": 43.34,
+      "cashRemainderCoin": 17.82,
+      "riskHalted": true
+    },
+    {
+      "days": 60,
+      "scenario": "상한 스트레스",
+      "dailyChangeBps": 500,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 54054,
+      "netWalletCoin": 47454,
+      "feesCoin": 270.38,
+      "cashRemainderCoin": 11.88,
+      "riskHalted": true
+    },
+    {
+      "days": 120,
+      "scenario": "하락",
+      "dailyChangeBps": -100,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 4334,
+      "netWalletCoin": -2266,
+      "feesCoin": 21.34,
+      "cashRemainderCoin": 17.16,
+      "riskHalted": false
+    },
+    {
+      "days": 120,
+      "scenario": "횡보",
+      "dailyChangeBps": 0,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 6556,
+      "netWalletCoin": -44,
+      "feesCoin": 30.8,
+      "cashRemainderCoin": 13.2,
+      "riskHalted": false
+    },
+    {
+      "days": 120,
+      "scenario": "상승",
+      "dailyChangeBps": 100,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 13442,
+      "netWalletCoin": 6842,
+      "feesCoin": 65.78,
+      "cashRemainderCoin": 0.66,
+      "riskHalted": true
+    },
+    {
+      "days": 120,
+      "scenario": "상한 스트레스",
+      "dailyChangeBps": 500,
+      "students": 22,
+      "totalDepositCoin": 6600,
+      "totalWithdrawalCoin": 287980,
+      "netWalletCoin": 281380,
+      "feesCoin": 1445.84,
+      "cashRemainderCoin": 19.58,
+      "riskHalted": true
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+/* 2026-10-18: presentation only. See docs/product/TOWN_UI_SIMPLIFICATION_PLAN_2026-10-18.md. */
+:root { --village-paper:#fffaf0; --village-ink:#38523c; --village-muted:#63715d; --village-line:#dcdac4; --village-green:#496a4c; }
+body { padding-bottom:32px; }
+#login-view { min-height:660px; background:#f7f4e6 url('/images/town-ui-20261018/login-village-v1.webp') center/cover no-repeat; gap:36px; }
+#login-view .login-town-decor { display:none; }
+#login-view .storybook-welcome { background:#fffaf0ed; max-width:390px; border:1px solid #e5dec5; box-shadow:0 8px 28px #41523b0c; }
+#login-view .login-panel { background:#fffdf6f5; }
+#login-view .login-help { color:var(--village-ink); }
+#town-view .town-panel-header { align-items:center; gap:12px; margin-bottom:16px; }
+#town-view .town-panel-header h2 { font-size:clamp(24px,3vw,32px); }
+#town-view .town-panel-header .eyebrow { display:none; }
+#town-view .town-header-actions { gap:8px; }
+#town-view .town-header-actions button { min-height:44px; padding:9px 14px; font-size:14px; box-shadow:none; }
+#town-view .town-info-shortcuts { width:100%; display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+#town-view .town-info-shortcuts button { min-height:40px; padding:8px 14px; border-radius:20px; font-size:13px; background:#fffaf0; }
+#town-view .town-map .place:hover { background:transparent; border-color:transparent; transform:none; }
+#town-view .town-map .place:focus-visible { outline:none; }
+#town-view .town-map .place-name { padding:8px 15px; font-size:18px; border-radius:14px; box-shadow:0 3px 0 #76644428; transition:transform .15s,background .15s; }
+#town-view .town-map .place:hover .place-name { transform:translateY(-3px); background:#fff0c8; }
+#town-view .town-map .place:focus-visible .place-name { outline:3px solid #496a4c; outline-offset:4px; }
+#town-view .storybook-map-scroll { scrollbar-width:thin; scrollbar-color:#b1b99c #f3f0e2; }
+#town-view .storybook-map-tip { margin:10px 2px 15px; color:var(--village-muted); }
+#town-view .map-buttons:not(.town-info-shortcuts) { display:flex; flex-wrap:wrap; gap:8px; }
+#town-view .map-buttons:not(.town-info-shortcuts) button { flex:1 1 110px; min-height:48px; padding:8px 12px; background:#fffaf0; }
+#town-view .daily-notice-drop { position:relative; inset:auto; width:100%; max-width:none; margin:0 0 14px; animation:none; z-index:auto; box-shadow:none; border:1px solid var(--village-line); }
+#town-view .daily-notice-drop-body { padding:14px 48px 14px 18px; }
+#town-view .daily-notice-drop-kicker { display:none; }
+#town-view #daily-notice-drop-quest { display:none; }
+#town-view #daily-notice-drop-title { font-size:16px; }
+#town-view #daily-notice-drop-announcement { font-size:14px; }
+#place-modal .modal-card { background:var(--village-paper); }
+@media(max-width:860px) {
+  #login-view { min-height:0; gap:28px; padding:24px; background-position:25% top; }
+  #login-view .storybook-welcome { margin:0; padding:20px 24px; }
+  #login-view .storybook-welcome h2 { font-size:40px; }
+  #login-view .login-panel { max-width:560px; }
+}
+@media(max-width:560px) {
+  #login-view { padding:14px; gap:70px; }
+  #login-view .storybook-welcome { padding:16px 20px; }
+  #login-view .storybook-welcome h2 { font-size:34px; margin:6px 0; }
+  #login-view .storybook-welcome p { font-size:13px; line-height:1.6; }
+  #town-view { padding:14px; }
+  #town-view .town-panel-header { display:flex; flex-direction:column; align-items:stretch; }
+  #town-view .town-header-actions { justify-content:space-between; }
+  #town-view .town-info-shortcuts { justify-content:flex-start; }
+  #town-view .town-map { min-width:640px; }
+  #town-view .town-map .place-name { font-size:16px; padding:7px 10px; }
+  #town-view .map-buttons:not(.town-info-shortcuts) { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  #town-view .map-buttons:not(.town-info-shortcuts) button { padding:8px 4px; font-size:12px; min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) { #town-view .town-map .place-name { transition:none; } }
+
+/* Rooms share paper, wood and clear controls; their data renderers are unchanged. */
+:is(#home-view,#school-view,#school-room-view,#shop-view,#event-view,#ranking-view) { color:var(--village-ink); }
+:is(#home-view,#school-view,#shop-view,#event-view,#ranking-view) .back-to-town { min-height:44px; border:1px solid var(--village-line); background:var(--village-paper); color:var(--village-ink); box-shadow:none; border-radius:14px; }
+#home-view .home-topbar .profile-intro { min-height:170px; background:linear-gradient(90deg,#fffaf0 35%,#fffaf0d9 55%,#fffaf020),url('/images/town-storybook-plazas-v2.webp') 75% 32%/cover; }
+#home-view .profile-intro::after { display:none; }
+#home-view .profile-intro .eyebrow { display:none; }
+#home-view .profile-intro>p:last-child { max-width:370px; padding:0; line-height:1.7; color:#3e5137; }
+#home-view .profile-reward-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+#home-view .home-detail-toggle { min-height:52px; padding:14px 10px; background:#fffaf0; }
+#home-view .profile-meta strong { overflow-wrap:anywhere; }
+#school-view .school-topbar { gap:12px; }
+#school-view .school-map-hint { color:var(--village-muted); }
+#school-view .school-quiz-card:hover,#school-view .school-homeroom-door:hover { border-color:transparent; background:transparent; }
+#school-view :is(.school-quiz-card:hover h3,.school-homeroom-door:hover span) { background:#fff0c8; }
+#school-room-view .room-hero { background-image:linear-gradient(90deg,var(--room-soft) 42%,#fffaf0a0),url('/images/school-storybook-lobby-v1.webp'); background-size:cover; background-position:center; }
+#school-room-view .room-hero-copy { max-width:70%; }
+#school-room-view .room-hero-art { visibility:hidden; }
+#school-room-view .room-card { border-radius:18px; }
+#school-room-view .room-card-visual { background-image:radial-gradient(#fffaf0aa 1.5px,transparent 1.5px); background-size:12px 12px; }
+#shop-view { padding:20px; }
+#shop-view .shop-topbar { min-height:64px; margin-bottom:12px; padding:8px 12px; border:1px solid #dfd3b8; border-radius:16px; background:linear-gradient(90deg,#fffaf0 35%,#fffaf0ba),url('/images/town-ui-20261018/boutique-room-v1.webp') center 65%/cover; }
+#shop-view h2 { font-family:'Jua',sans-serif; color:#514632; }
+#shop-view #shop-avatar-market iframe { display:block; border:0 !important; background:#fbf7ee; }
+:is(#ranking-view,#event-view) .plaza-hero { min-height:260px; border:1px solid #e1d9bf; }
+:is(#ranking-view,#event-view) .plaza-hero-copy { padding:26px 30px; }
+:is(#ranking-view,#event-view) .plaza-hero-copy h2 { font-size:36px; margin:10px 0; }
+:is(#ranking-view,#event-view) .plaza-hero-copy .eyebrow { color:#626f50; letter-spacing:.03em; font-size:12px; }
+:is(#ranking-view,#event-view) .plaza-hero-copy>p:not(.eyebrow) { color:#526149; line-height:1.7; }
+:is(#ranking-view,#event-view) .plaza-jump { margin-top:14px; min-height:44px; }
+#event-view #season-event-grid { display:none !important; }
+#event-view .event-section { padding:20px; border:1px solid #d8c6a2; border-radius:20px; background:linear-gradient(110deg,#eee0c0,#f7eedb 55%,#e9dabb); }
+#event-view .event-section-heading { margin-bottom:16px; }
+#event-view .event-quest-toggle { background:#fffaf0; border-color:#ccba94; }
+#event-view .event-quest-toggle[aria-expanded=true] { background:#496a4c; }
+#event-view .quest-card { border:1px solid #d8c9a9; box-shadow:0 4px 0 #ad956624; padding:28px 18px 18px; }
+#event-view .quest-card::before { height:9px; background:repeating-linear-gradient(90deg,#aebf93 0 22px,#fff5df 22px 44px); }
+#event-view .quest-card:nth-child(3n+2)::before { background:repeating-linear-gradient(90deg,#dcb498 0 22px,#fff5df 22px 44px); }
+#event-view .quest-card:nth-child(3n)::before { background:repeating-linear-gradient(90deg,#aac4ca 0 22px,#fff5df 22px 44px); }
+#event-view .event-card-icon { width:54px; height:54px; border-radius:50%; background:#f4ebd2; border:1px solid #e5d8b3; }
+#event-view :is(.quest-progress,.quest-reward) { color:#566344; }
+#event-view .quest-claim-button { min-height:46px; }
+#ranking-view .plaza-section-title .eyebrow { display:none; }
+#ranking-view .ranking-hall-details { background:#f3ead4; border:1px solid #d4c19b; }
+#ranking-view .ranking-board-panel { border:6px solid #d9c29b; border-radius:20px; background:#fffcf4; }
+#ranking-view .ranking-board-tabs { background:#f5edda; border-color:#ddcbaa; }
+#ranking-view .ranking-podium { align-items:end; }
+#ranking-view .ranking-podium-card { padding-bottom:24px; border-bottom-width:9px; }
+#ranking-view .ranking-podium-card.rank-1 { padding-top:32px; border-bottom-color:#cda45d; }
+#ranking-view .ranking-podium-card.rank-2 { border-bottom-color:#adb9a6; }
+#ranking-view .ranking-podium-card.rank-3 { border-bottom-color:#c8a383; }
+#ranking-view .ranking-nickname,#ranking-view .ranking-display-name { overflow-wrap:anywhere; }
+#ranking-view .ranking-board-tab { min-height:44px; }
+@media(max-width:760px) {
+  :is(#ranking-view,#event-view) .plaza-hero { min-height:235px; align-items:center; }
+  :is(#ranking-view,#event-view) .plaza-hero-art { width:100%; object-position:70% center; }
+  :is(#ranking-view,#event-view) .plaza-hero::before { background:linear-gradient(90deg,#f8f3e5 0%,#f8f3e5e8 35%,#f8f3e544 100%); }
+  :is(#ranking-view,#event-view) .plaza-hero-copy { padding:20px; }
+  :is(#ranking-view,#event-view) .plaza-hero-copy h2 { font-size:29px; }
+  #event-view .event-section { padding:12px; }
+  #event-view .event-section-switcher h3 { flex:0 1 auto; }
+  #home-view .home-topbar .profile-intro { min-height:150px; }
+  #shop-view { padding:12px; }
+  #school-room-view .room-hero-copy { max-width:100%; }
+  #school-room-view .room-hero-art { display:none; }
+}
+@media(max-width:480px) {
+  #ranking-view .ranking-podium { align-items:stretch; }
+  #ranking-view .ranking-podium-card.rank-1 { padding-top:20px; }
+  #ranking-view .ranking-board-panel { padding:14px; border-width:4px; }
+  #home-view .profile-reward-grid { grid-template-columns:1fr; }
+}

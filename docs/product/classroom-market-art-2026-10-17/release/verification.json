@@ -1,0 +1,652 @@
+{
+  "observed": [
+    {
+      "width": 1440,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "가격: 150 포인트"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "가격: 30 포인트"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.35P · 가격: 35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.4P · 가격: 40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.2P · 가격: 20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.65P · 가격: 65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.3P · 가격: 30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.5P · 가격: 50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.1P · 가격: 10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.45P · 가격: 45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.25P · 가격: 25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.15P · 가격: 15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.7P · 가격: 80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +0.85P · 가격: 95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +1P · 가격: 120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +1.5P · 가격: 220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 176,
+          "reward": "효과: +2P · 가격: 300 DJ코인"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 157.84375,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "가격: 150 포인트"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "가격: 30 포인트"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 157.84375,
+          "reward": "효과: +0.35P · 가격: 35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.4P · 가격: 40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.2P · 가격: 20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.65P · 가격: 65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.3P · 가격: 30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.5P · 가격: 50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.1P · 가격: 10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.45P · 가격: 45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.25P · 가격: 25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.15P · 가격: 15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.7P · 가격: 80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +0.85P · 가격: 95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +1P · 가격: 120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 157.84375,
+          "reward": "효과: +1.5P · 가격: 220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 155.84375,
+          "reward": "효과: +2P · 가격: 300 DJ코인"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 125,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "가격: 150 포인트"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "가격: 30 포인트"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 125,
+          "reward": "효과: +0.35P · 가격: 35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.4P · 가격: 40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.2P · 가격: 20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.65P · 가격: 65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.3P · 가격: 30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.5P · 가격: 50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.1P · 가격: 10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.45P · 가격: 45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.25P · 가격: 25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.15P · 가격: 15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.7P · 가격: 80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +0.85P · 가격: 95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +1P · 가격: 120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 125,
+          "reward": "효과: +1.5P · 가격: 220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 123,
+          "reward": "효과: +2P · 가격: 300 DJ코인"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "pane": "point",
+      "overflow": false,
+      "images": [
+        {
+          "id": "homework-pass",
+          "src": "/images/classroom/market-v2/homework-320.webp",
+          "loaded": true,
+          "width": 90,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "seat-choice",
+          "src": "/images/classroom/market-v2/seat-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "praise-card",
+          "src": "/images/classroom/market-v2/praise-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "가격: 50 포인트"
+        },
+        {
+          "id": "presentation-pass",
+          "src": "/images/classroom/market-v2/presentation-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "가격: 100 포인트"
+        },
+        {
+          "id": "free-time",
+          "src": "/images/classroom/market-v2/freetime-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "가격: 150 포인트"
+        },
+        {
+          "id": "billboard-ticket",
+          "src": "/images/classroom/market-v2/billboard-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "가격: 30 포인트"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "pane": "coin",
+      "overflow": false,
+      "images": [
+        {
+          "id": "boost-farmer-friend",
+          "src": "/images/classroom/market-v2/scarecrow-320.webp",
+          "loaded": true,
+          "width": 90,
+          "reward": "효과: +0.35P · 가격: 35 DJ코인"
+        },
+        {
+          "id": "boost-big-tree",
+          "src": "/images/classroom/market-v2/tree-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.4P · 가격: 40 DJ코인"
+        },
+        {
+          "id": "boost-fountain",
+          "src": "/images/classroom/market-v2/fountain-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.2P · 가격: 20 DJ코인"
+        },
+        {
+          "id": "boost-mini-tractor",
+          "src": "/images/classroom/market-v2/tractor-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.65P · 가격: 65 DJ코인"
+        },
+        {
+          "id": "boost-ripe-rice",
+          "src": "/images/classroom/market-v2/rice-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.3P · 가격: 30 DJ코인"
+        },
+        {
+          "id": "boost-truck",
+          "src": "/images/classroom/market-v2/truck-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.5P · 가격: 50 DJ코인"
+        },
+        {
+          "id": "boost-log-pile",
+          "src": "/images/classroom/market-v2/logs-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.1P · 가격: 10 DJ코인"
+        },
+        {
+          "id": "boost-bird-speaker",
+          "src": "/images/classroom/market-v2/birdspeaker-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.45P · 가격: 45 DJ코인"
+        },
+        {
+          "id": "boost-chick",
+          "src": "/images/classroom/market-v2/chick-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.25P · 가격: 25 DJ코인"
+        },
+        {
+          "id": "boost-liquid-fertilizer",
+          "src": "/images/classroom/market-v2/fertilizer-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.15P · 가격: 15 DJ코인"
+        },
+        {
+          "id": "boost-greenhouse",
+          "src": "/images/classroom/market-v2/greenhouse-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.7P · 가격: 80 DJ코인"
+        },
+        {
+          "id": "boost-sprinkler",
+          "src": "/images/classroom/market-v2/sprinkler-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +0.85P · 가격: 95 DJ코인"
+        },
+        {
+          "id": "boost-sun-lamp",
+          "src": "/images/classroom/market-v2/sunlamp-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +1P · 가격: 120 DJ코인"
+        },
+        {
+          "id": "effect-golden-garden",
+          "src": "/images/classroom/market-v2/goldengarden-320.webp",
+          "loaded": true,
+          "width": 90,
+          "reward": "효과: +1.5P · 가격: 220 DJ코인"
+        },
+        {
+          "id": "effect-star-classroom",
+          "src": "/images/classroom/market-v2/starclassroom-320.webp",
+          "loaded": true,
+          "width": 88,
+          "reward": "효과: +2P · 가격: 300 DJ코인"
+        }
+      ]
+    }
+  ],
+  "fallback": {
+    "custom": "/images/classroom/market-v2/music-320.webp",
+    "replacement": "/images/classroom/market-v2/seat-320.webp"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "source": "projects/584571538436/sites/dj48-quiztown-firebase/versions/5a2cb873a4256a98",
+  "rawHashes": {
+    "index.html": "e8fa670bd3b9c63fb85b161e807567b246332e3ee4e282b584fc629c0d5ab58e",
+    "js/app.bundle.js": "afde8fad2ce148ed1d7b982a8f0289af428fd128a3fb2e1f6432584ed70acd7f",
+    "player-status/style.css": "33537eb28f065f1c0bf1ee8b25f6760ec69bcaa2d58481184eb601467a5450ba",
+    "player-status/index.html": "81b98e51aeae6cae844387b31172074cbcb3a80b3119ca57c68e5be0f303e66b",
+    "js/school-rooms.js": "f46eb1c70d2822731093cb153d5ee6f593990a954723911838a1db50fd01fa1c",
+    "js/features/quiz-render.js": "ef0f17e7beff0fa4498e75b2523b2210e3a80ff1c111daafd70f800e20ed3aa9",
+    "js/player-status-shortcut.js": "469c0b98d46f89c12e83bdbdac7a21228a055803c8b49ef6de547c4aba1f03f7",
+    "mathsurvivor/index.html": "4d56304ac40336200a7317234ba87879e4755d7c3be80bb1564c5bbb496f9e03",
+    "mathsurvivor/game.js": "814f5260a1db819d2ea6e0a560ad75bc7141b322b7ad801dd161e288921a1ebb",
+    "mathsurvivor/style.css": "531269caad6bbeebc0c9dcfb437378f0dd0d08496f4a9199bb2f4224c396d72e",
+    "battle/index.html": "fc9e414ba827ded44811d9ac535f392e7e594f650642d92a191ccaf1602513f0",
+    "cloud-tower/index.html": "e4fda89fd7c964737a2a54b80ccd7f56e4caf5484b2afc716cba96bd66e99233",
+    "word-bomb/index.html": "96b29e771946b938d674450236d911422e47450d1d32c971dbdd3c71712e7150",
+    "town-marble/index.html": "c7ed24f0e59ab8bc6f88cc2d6149639a12b9ff1e5b5df5eeef9a4475f1bc0bb6"
+  }
+}

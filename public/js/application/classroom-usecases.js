@@ -8,10 +8,10 @@
     const cachedSettings = deps.getValue?.('settings');
     if(cachedSettings && !forceRefresh) return cachedSettings;
 
-    const settings = await deps.loadClassroomSettings({
-      prototype: options.prototype
+    return loadClassroomCachedValue('settings', options, {
+      ...deps,
+      loadValue: () => deps.loadClassroomSettings({ prototype: options.prototype })
     });
-    return deps.setValue?.('settings', settings) || settings;
   }
 
   async function loadClassroomCachedValue(key, options = {}, deps = {}) {
@@ -20,12 +20,14 @@
     if(cachedValue && !forceRefresh) return cachedValue;
 
     const activeLoadPromise = deps.getLoadPromise?.(key);
-    if(activeLoadPromise && !forceRefresh) return activeLoadPromise;
+    if(activeLoadPromise) return activeLoadPromise;
+    const generation = deps.getGeneration?.(key);
+    const isCurrent = () => !deps.getGeneration || generation === deps.getGeneration(key);
 
     const loadPromise = deps.loadValue(options)
-      .then(value => deps.setValue?.(key, value) || value)
+      .then(value => !isCurrent() || deps.hasLoadError?.(key) ? value : deps.setValue?.(key, value) || value)
       .finally(() => {
-        deps.setLoadPromise?.(key, null);
+        if(isCurrent()) deps.setLoadPromise?.(key, null);
       });
 
     deps.setLoadPromise?.(key, loadPromise);
@@ -39,6 +41,7 @@
       gems: 'loadClassroomGemProgress',
       students: 'loadClassroomStudentCards',
       economy: 'loadClassroomEconomyBoard',
+      home: 'loadClassroomHomeData',
       review: 'loadClassroomReviewItems'
     };
     const loaderName = loaderNames[key];
@@ -54,6 +57,8 @@
       setValue: deps.setValue,
       getLoadPromise: deps.getLoadPromise,
       setLoadPromise: deps.setLoadPromise,
+      hasLoadError: deps.hasLoadError,
+      getGeneration: deps.getGeneration,
       loadValue: payload => loader.call(repository, payload)
     });
   }
@@ -66,6 +71,79 @@
 
   async function getClassroomPrototypeViewData(options = {}, deps = {}) {
     const settings = await deps.loadClassroomSettings(options.forceRefresh === true);
+    if(deps.isCurrent && !deps.isCurrent()) return null;
+    if(options.activeTab) {
+      const teacher = deps.isCurrentClassroomTeacher?.(settings) === true;
+      const keys = {
+        today: ['progress', 'wallet', 'home'],
+        'today-full': ['progress', 'wallet', 'students', 'review', 'economy', 'gems'],
+        quest: ['progress', 'wallet', ...(teacher ? ['students', 'review', 'economy'] : [])],
+        classroom: ['students', 'economy', 'wallet'],
+        market: ['wallet', 'economy'],
+        securities: [],
+        bank: ['wallet', 'economy', ...(teacher ? ['students'] : [])],
+        routine: ['economy', ...(teacher ? ['review', 'students'] : [])],
+        gems: ['gems', 'economy', ...(teacher ? ['students'] : [])],
+        jobs: ['economy', 'students'],
+        mission: ['economy'],
+        teacher: ['progress', 'wallet', 'students', 'review', 'economy', 'gems']
+      }[options.activeTab] || ['progress', 'wallet', 'home'];
+      const loaders = {
+        progress: () => deps.loadClassroomQuestProgress(options.forceRefresh === true, settings),
+        wallet: () => deps.loadClassroomWallet(settings, options.forceRefresh === true),
+        home: () => deps.loadClassroomHomeData(settings, options.forceRefresh === true),
+        students: () => deps.loadClassroomStudentCards(settings, options.forceRefresh === true),
+        review: () => deps.loadClassroomReviewItems(settings, options.forceRefresh === true),
+        economy: () => deps.loadClassroomEconomyBoard(settings, options.forceRefresh === true),
+        gems: () => deps.loadClassroomGemProgress(settings, options.forceRefresh === true)
+      };
+      const fields = {progress:'progressMap',wallet:'wallet',home:'home',students:'studentCards',review:'reviewItems',economy:'economyBoard',gems:'gemProgress'};
+      const data = { settings, progressMap: {}, wallet: {}, studentCards: [], reviewItems: [], economyBoard: {}, gemProgress: [] };
+      const loadedKeys = ['settings'];
+      await Promise.all(keys.map(async key => {
+        const value = await loaders[key]();
+        if(deps.hasLoadError?.(key)) return;
+        data[fields[key]] = value;
+        loadedKeys.push(key);
+        deps.onPartialData?.({ ...data }, [...loadedKeys]);
+      }));
+      if(data.home) {
+        data.studentCards = data.home;
+        data.economyBoard = { myDjCoin: Number(data.home[0]?.djCoin || 0) };
+      }
+      if(keys.includes('gems')) {
+    const progressByGemId = new Map(data.gemProgress.map(progress => [String(progress.gemId || progress.id), progress]));
+    (data.economyBoard.classroomGems || []).forEach(gem => {
+      const gemId = String(gem.gemId || gem.id || '');
+      const progress = progressByGemId.get(gemId);
+      progressByGemId.set(gemId, {
+        ...gem,
+        ...(progress || {}),
+        currentXp: Number(progress?.currentXp || 0),
+        targetXp: Number(progress?.targetXp || gem.targetXp || 10),
+        rewardPoint: Number(progress?.rewardPoint || gem.rewardPoint || 0),
+        rewardCoin: Number(progress?.rewardCoin || gem.rewardCoin || 0),
+        completed: progress?.completed === true
+      });
+    });
+    data.gemProgress = Array.from(progressByGemId.values())
+      .sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), 'ko'));
+      }
+      return { ...data, loadedKeys, requiredKeys: ['settings', ...keys], activeTab: options.activeTab };
+    }
+    const partialData = { settings };
+    const loadedKeys = ['settings'];
+    const publish = () => deps.onPartialData?.({ ...partialData }, [...loadedKeys]);
+    publish();
+    const read = async (key, field, load) => {
+      const value = await load();
+      if(!deps.hasLoadError?.(key)) {
+        partialData[field] = value;
+        loadedKeys.push(key);
+        publish();
+      }
+      return value;
+    };
     const [
       progressMap,
       reviewItems,
@@ -74,20 +152,39 @@
       studentCards,
       economyBoard
     ] = await Promise.all([
-      deps.loadClassroomQuestProgress(options.forceRefresh === true),
-      deps.loadClassroomReviewItems(settings, options.forceRefresh === true),
-      deps.loadClassroomWallet(settings, options.forceRefresh === true),
-      deps.loadClassroomGemProgress(settings, options.forceRefresh === true),
-      deps.loadClassroomStudentCards(settings, options.forceRefresh === true),
-      deps.loadClassroomEconomyBoard(settings, options.forceRefresh === true)
+      read('progress', 'progressMap', () => deps.loadClassroomQuestProgress(options.forceRefresh === true, settings)),
+      read('review', 'reviewItems', () => deps.loadClassroomReviewItems(settings, options.forceRefresh === true)),
+      read('wallet', 'wallet', () => deps.loadClassroomWallet(settings, options.forceRefresh === true)),
+      read('gems', 'gemProgress', () => deps.loadClassroomGemProgress(settings, options.forceRefresh === true)),
+      read('students', 'studentCards', () => deps.loadClassroomStudentCards(settings, options.forceRefresh === true)),
+      read('economy', 'economyBoard', () => deps.loadClassroomEconomyBoard(settings, options.forceRefresh === true))
     ]);
+
+    // Merge the authorized catalog with the member's own progress. Keep the
+    // independent reads parallel and avoid an extra callable/catalog request.
+    const progressByGemId = new Map(gemProgress.map(progress => [String(progress.gemId || progress.id), progress]));
+    (economyBoard.classroomGems || []).forEach(gem => {
+      const gemId = String(gem.gemId || gem.id || '');
+      const progress = progressByGemId.get(gemId);
+      progressByGemId.set(gemId, {
+        ...gem,
+        ...(progress || {}),
+        currentXp: Number(progress?.currentXp || 0),
+        targetXp: Number(progress?.targetXp || gem.targetXp || 10),
+        rewardPoint: Number(progress?.rewardPoint || gem.rewardPoint || 0),
+        rewardCoin: Number(progress?.rewardCoin || gem.rewardCoin || 0),
+        completed: progress?.completed === true
+      });
+    });
+    const mergedGemProgress = Array.from(progressByGemId.values())
+      .sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), 'ko'));
 
     return {
       settings,
       progressMap,
       reviewItems,
       wallet,
-      gemProgress,
+      gemProgress: mergedGemProgress,
       studentCards,
       economyBoard
     };
@@ -543,7 +640,7 @@
       deps.warn?.('Classroom quest review failed.', error);
       deps.alert?.(error.message === 'classroom-review-functions-unavailable'
         ? '교실 퀘스트 검토 기능을 불러오지 못했어요.'
-        : '교실 퀘스트 검토 저장 중 문제가 생겼어요.');
+        : /failed-precondition|aborted/.test(error.code || '') ? error.message : '교실 퀘스트 검토 저장 중 문제가 생겼어요.');
       await deps.renderClassroom?.(true);
       return { error };
     }

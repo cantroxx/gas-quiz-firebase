@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DJ48 교실 · 변경 전후</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f4f1;color:#28372f;font:15px/1.6 system-ui,sans-serif}main{max-width:1600px;margin:auto;padding:28px}h1{font-size:26px;margin:0 0 8px}p{margin:6px 0 18px;color:#536056}.controls{display:flex;gap:16px;flex-wrap:wrap;background:#fff;padding:16px;border:1px solid #dfe4dd;border-radius:10px;margin:20px 0}label{display:flex;align-items:center;gap:8px}select{font:inherit;min-height:44px;padding:6px 12px;border:1px solid #abb9ae;border-radius:6px;background:#fff}select:focus-visible,a:focus-visible{outline:3px solid #3379af;outline-offset:3px}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}figure{margin:0;min-width:0;background:white;border:1px solid #dfe4dd}figcaption{padding:12px 16px;font-weight:600;border-bottom:1px solid #dfe4dd}.shot{display:block;width:100%;height:auto;margin:auto}.comparison.mobile .shot{max-width:390px}.comparison.tablet .shot{max-width:768px}.meta{font-size:13px}.metrics{margin-top:24px;padding:20px;background:white;border:1px solid #dfe4dd}table{border-collapse:collapse;width:100%;max-width:720px}th,td{text-align:left;padding:8px;border-bottom:1px solid #e3e7e1}a{color:#246549}.art{display:flex;gap:16px;flex-wrap:wrap}.art figure{padding:12px;border:0;background:#f8f9f6}.art img{width:100px;height:100px;object-fit:contain}.art figcaption{border:0;text-align:center;font-size:13px;padding:0}@media(max-width:650px){main{padding:16px}.comparison{grid-template-columns:1fr}.controls{gap:10px}h1{font-size:22px}}
+</style>
+<main>
+  <h1>DJ48 교실 · 변경 전후</h1>
+  <p>작은 문구점과 학급 활동 노트처럼, 더 빨리 읽히는 교실. 2026년 10월 7일 로컬 검증본.</p>
+  <p class="meta">같은 합성 데이터와 화면 크기로 촬영했습니다. 실제 학생 정보가 아닙니다. 변경 전은 이번 작업 시작 시점의 로컬 버전이며 운영 배포본과 다를 수 있습니다.</p>
+  <div class="controls">
+    <label>사용자 <select id="role"><option value="student">학생</option><option value="teacher">교사</option></select></label>
+    <label>화면 <select id="tab"><option value="quest">퀘스트</option><option value="market">마켓</option><option value="today">홈</option><option value="routine">성장루틴</option><option value="gems">젬</option><option value="classroom">학생 카드</option><option value="jobs">직업</option><option value="bank">은행</option><option value="mission">우리반 목표</option><option value="teacher">교사 검토</option></select></label>
+    <label>크기 <select id="width"><option value="1440">데스크톱 · 1440px</option><option value="768">태블릿 · 768px</option><option value="390">모바일 · 390px</option></select></label>
+  </div>
+  <div class="comparison" id="comparison" aria-live="polite">
+    <figure><figcaption>변경 전</figcaption><a id="before-link"><img class="shot" id="before" alt="변경 전 교실 화면"></a></figure>
+    <figure><figcaption>변경 후</figcaption><a id="after-link"><img class="shot" id="after" alt="변경 후 교실 화면"></a></figure>
+  </div>
+  <section class="metrics">
+    <h2>실제로 적용한 그림</h2>
+    <p>텍스트 없는 종이 스티커 스타일로 직접 생성한 네 종류. 화면에는 160/320px WebP를 사용합니다.</p>
+    <div class="art">
+      <figure><img src="../../../public/images/classroom/stationery/snack-160.webp" alt="과자와 음료" width="100" height="100"><figcaption>간식</figcaption></figure>
+      <figure><img src="../../../public/images/classroom/stationery/lunch-160.webp" alt="급식 식판" width="100" height="100"><figcaption>급식 순서</figcaption></figure>
+      <figure><img src="../../../public/images/classroom/stationery/notebook-160.webp" alt="활동 노트" width="100" height="100"><figcaption>활동</figcaption></figure>
+      <figure><img src="../../../public/images/classroom/stationery/empty-160.webp" alt="빈 정리함" width="100" height="100"><figcaption>빈 상태</figcaption></figure>
+    </div>
+    <h2>같은 조건의 전후 측정</h2>
+    <p class="meta">오프라인 Chromium, CPU 4배 제한, 1440×1000, 합성 상품 60개. 3쌍 실행의 중앙값을 비교했습니다. 실제 서버 응답·최초 로딩·FPS 측정은 아닙니다.</p>
+    <table><thead><tr><th>항목</th><th>변경 전</th><th>변경 후</th></tr></thead><tbody>
+      <tr><td>탭 전환</td><td>31.6ms</td><td>10.6ms</td></tr>
+      <tr><td>상품 선택</td><td>2.8ms</td><td>2.0ms</td></tr>
+      <tr><td>전체 재렌더</td><td>32.2ms</td><td>35.6ms</td></tr>
+      <tr><td>선택 한 번의 DOM 변경</td><td>246~248회</td><td>0~15회</td></tr>
+      <tr><td>기존 홈 삽화 2개 합계</td><td>3,428,615B</td><td>42,630B</td></tr>
+    </tbody></table>
+    <p class="meta">전체 재렌더는 소폭 늘었습니다. 초기 로딩이나 스크롤 FPS까지 개선됐다고 판단하지 않았습니다.</p>
+    <a href="../../operations/CLASSROOM_STATIONERY_2026-10-07.md">구현·검증 보고서</a>
+  </section>
+</main>
+<script>
+const role=document.getElementById('role'),tab=document.getElementById('tab'),width=document.getElementById('width');
+function update(){
+ if(tab.value==='teacher')role.value='teacher';
+ document.getElementById('comparison').className=`comparison ${width.value==='390'?'mobile':width.value==='768'?'tablet':''}`;
+ for(const version of ['before','after']){
+  const source=`${version}/${role.value}-${width.value}-${tab.value}.webp`;
+  document.getElementById(version).src=source;
+  document.getElementById(`${version}-link`).href=source;
+ }
+}
+role.addEventListener('change',()=>{if(role.value==='student'&&tab.value==='teacher')tab.value='quest';update()});
+tab.addEventListener('change',update);width.addEventListener('change',update);update();
+</script>
+</html>

@@ -1,0 +1,2112 @@
+{
+  "scope": "OFFLINE SYNTHETIC ONLY; all network fulfilled locally. Paint marks are double-rAF approximations, not GPU pixel capture/INP. No real Firebase timings. Round trips toggle shell views without executing other screens loaders.",
+  "delays": {
+    "adminDashboard": 200,
+    "adminMembers": 300,
+    "adminOptional": 400,
+    "adminAudits": 800,
+    "classSettings": 50,
+    "classOther": 50,
+    "classEconomy": 600,
+    "studentVerification": 100,
+    "shopFlags": 150,
+    "shopCatalogAndStatus": 400,
+    "shopPreview": 800
+  },
+  "runs": [
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 1,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 17,
+        "skeletonPaint": 17,
+        "coreDom": 208.9000000357628,
+        "membersDom": 310.10000002384186,
+        "entryPromise": 310.10000002384186,
+        "corePaint": 317,
+        "ready": 317,
+        "backgroundDependencies": 317.10000002384186
+      },
+      "calls": [
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.20000004768371582
+        },
+        {
+          "name": "members",
+          "ms": 1.4000000357627869
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 1,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 29.900000035762787,
+        "skeletonPaint": 29.900000035762787,
+        "coreDom": 229.70000004768372,
+        "membersDom": 329.30000001192093,
+        "entryPromise": 329.30000001192093,
+        "corePaint": 341.7000000476837,
+        "ready": 341.7000000476837,
+        "backgroundDependencies": 341.80000001192093
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.20000004768371582
+        },
+        {
+          "name": "members",
+          "ms": 1.4000000357627869
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.40000003576278687
+        },
+        {
+          "name": "members",
+          "ms": 0.800000011920929
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 1,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 31.5,
+        "skeletonPaint": 31.5,
+        "coreDom": 231.80000001192093,
+        "membersDom": 331.5,
+        "entryPromise": 331.5,
+        "corePaint": 344.80000001192093,
+        "ready": 344.80000001192093,
+        "backgroundDependencies": 345.10000002384186
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "dashboard",
+        "members",
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.20000004768371582
+        },
+        {
+          "name": "members",
+          "ms": 1.4000000357627869
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.40000003576278687
+        },
+        {
+          "name": "members",
+          "ms": 0.800000011920929
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 1.199999988079071
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 1,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 31.899999976158142,
+        "skeletonPaint": 31.899999976158142,
+        "coreDom": 209.0999999642372,
+        "membersDom": 310.69999998807907,
+        "entryPromise": 310.7999999523163,
+        "corePaint": 314.5999999642372,
+        "ready": 314.69999998807907,
+        "backgroundDependencies": 1010.6999999880791
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 1.300000011920929
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 1,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 42.30000001192093,
+        "skeletonPaint": 42.30000001192093,
+        "coreDom": 241.30000001192093,
+        "membersDom": 342.39999997615814,
+        "entryPromise": 342.5,
+        "corePaint": 346,
+        "ready": 346,
+        "backgroundDependencies": 1042.8999999761581
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 1.300000011920929
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 1.199999988079071
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 1,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 37.39999997615814,
+        "skeletonPaint": 37.39999997615814,
+        "coreDom": 236.89999997615814,
+        "membersDom": 338.39999997615814,
+        "entryPromise": 338.39999997615814,
+        "corePaint": 345.7999999523163,
+        "ready": 345.7999999523163,
+        "backgroundDependencies": 1038.5999999642372
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 1.300000011920929
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 1.199999988079071
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 1.300000011920929
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 1,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 32.299999952316284,
+        "skeletonPaint": 32.299999952316284,
+        "gateReady": 32.299999952316284,
+        "data-settings": 83.39999997615814,
+        "verified": 184.5999999642372,
+        "partialDom": 199.5,
+        "data-progress": 236.79999995231628,
+        "data-wallet": 236.79999995231628,
+        "data-gems": 236.79999995231628,
+        "data-students": 236.79999995231628,
+        "data-economy": 787.8999999761581,
+        "coreDom": 806,
+        "corePaint": 823,
+        "ready": 823,
+        "backgroundDependencies": 823.5999999642372
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 13.600000023841858
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.699999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 17.700000047683716
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 7
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 1,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 16.899999976158142,
+        "skeletonPaint": 16.899999976158142,
+        "gateReady": 16.899999976158142,
+        "data-settings": 68,
+        "verified": 169.69999998807907,
+        "coreDom": 177.30000001192093,
+        "corePaint": 183.69999998807907,
+        "ready": 183.69999998807907,
+        "backgroundDependencies": 184.30000001192093
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy",
+        "settings",
+        "verifyEntry"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 13.600000023841858
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.699999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 17.700000047683716
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 6.900000035762787
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 2
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 1,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 28.100000023841858,
+        "skeletonPaint": 28.100000023841858,
+        "gateReady": 28.100000023841858,
+        "data-settings": 79.30000001192093,
+        "verified": 181.10000002384186,
+        "coreDom": 189.89999997615814,
+        "corePaint": 195,
+        "ready": 195,
+        "backgroundDependencies": 195.39999997615814
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy",
+        "settings",
+        "verifyEntry",
+        "settings",
+        "verifyEntry"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 13.600000023841858
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.699999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 17.700000047683716
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 6.900000035762787
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.899999976158142
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 2
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 1,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 35.59999996423721,
+        "skeletonPaint": 35.59999996423721,
+        "data-settings": 83.09999996423721,
+        "partialDom": 88.29999995231628,
+        "data-progress": 134.39999997615814,
+        "data-review": 134.5,
+        "data-wallet": 134.5,
+        "data-gems": 134.5,
+        "data-students": 136.19999998807907,
+        "data-economy": 685.5,
+        "coreDom": 712,
+        "corePaint": 731.6999999880791,
+        "ready": 731.6999999880791,
+        "backgroundDependencies": 732.2999999523163
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.5
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.40000003576278687
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.300000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 26
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 7
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 1,
+      "visit": "reentry",
+      "marks": {
+        "coreDom": 9.5,
+        "firstVisual": 31.30000001192093,
+        "skeletonPaint": 31.30000001192093,
+        "corePaint": 31.30000001192093,
+        "ready": 31.30000001192093,
+        "backgroundDependencies": 66.19999998807907
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.5
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.40000003576278687
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.300000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 26
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.699999988079071
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 0
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 1,
+      "visit": "after-three-switches",
+      "marks": {
+        "coreDom": 7.900000035762787,
+        "firstVisual": 27,
+        "skeletonPaint": 27,
+        "corePaint": 27,
+        "ready": 27,
+        "backgroundDependencies": 61.10000002384186
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.5
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.40000003576278687
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.300000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 26
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.699999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 6.699999988079071
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 0
+    },
+    {
+      "screen": "shop",
+      "sample": 1,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 157.60000002384186,
+        "skeletonPaint": 157.60000002384186,
+        "corePaint": 724.2998046875,
+        "readyControlsEnabled": 1032.8999999761581,
+        "backgroundPreview": 2153.599853515625,
+        "ready": 1104.7998046875,
+        "genderClick": 1060
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": true,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 1,
+        "preview": 2,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "shop",
+      "sample": 1,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 22.600000023841858,
+        "skeletonPaint": 22.600000023841858,
+        "corePaint": 26.5,
+        "readyControlsEnabled": 31.100000023841858,
+        "backgroundPreview": 32.10000002384186,
+        "ready": 31.100000023841858
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": false,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "shop",
+      "sample": 1,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 28.80000001192093,
+        "skeletonPaint": 28.80000001192093,
+        "corePaint": 31.80000001192093,
+        "readyControlsEnabled": 36.19999998807907,
+        "backgroundPreview": 37.09999996423721,
+        "ready": 36.19999998807907
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": false,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 2,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 23.30000001192093,
+        "skeletonPaint": 23.30000001192093,
+        "coreDom": 210,
+        "membersDom": 310.9000000357628,
+        "entryPromise": 310.9000000357628,
+        "corePaint": 323.19999998807907,
+        "ready": 323.19999998807907,
+        "backgroundDependencies": 323.5
+      },
+      "calls": [
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.5
+        },
+        {
+          "name": "members",
+          "ms": 2
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 2,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 34.59999996423721,
+        "skeletonPaint": 34.69999998807907,
+        "coreDom": 230.0999999642372,
+        "membersDom": 332.89999997615814,
+        "entryPromise": 333,
+        "corePaint": 334.39999997615814,
+        "ready": 334.39999997615814,
+        "backgroundDependencies": 334.69999998807907
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.5
+        },
+        {
+          "name": "members",
+          "ms": 2
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 2.799999952316284
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 2,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 31.399999976158142,
+        "skeletonPaint": 31.399999976158142,
+        "coreDom": 231.5,
+        "membersDom": 333,
+        "entryPromise": 333,
+        "corePaint": 333.69999998807907,
+        "ready": 333.69999998807907,
+        "backgroundDependencies": 333.89999997615814
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "dashboard",
+        "members",
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.5
+        },
+        {
+          "name": "members",
+          "ms": 2
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 2.799999952316284
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.30000001192092896
+        },
+        {
+          "name": "members",
+          "ms": 1.800000011920929
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 2,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 20.599999964237213,
+        "skeletonPaint": 20.599999964237213,
+        "coreDom": 210,
+        "membersDom": 311.30000001192093,
+        "entryPromise": 311.30000001192093,
+        "corePaint": 321,
+        "ready": 321,
+        "backgroundDependencies": 1010.8999999761581
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.6000000238418579
+        },
+        {
+          "name": "members",
+          "ms": 2
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 2,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 41,
+        "skeletonPaint": 41,
+        "coreDom": 241.29999995231628,
+        "membersDom": 343.69999998807907,
+        "entryPromise": 343.69999998807907,
+        "corePaint": 348.5,
+        "ready": 348.5,
+        "backgroundDependencies": 1042.699999988079
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.6000000238418579
+        },
+        {
+          "name": "members",
+          "ms": 2
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.2999999523162842
+        },
+        {
+          "name": "members",
+          "ms": 3.300000011920929
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 2,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 47.80000001192093,
+        "skeletonPaint": 47.80000001192093,
+        "coreDom": 248,
+        "membersDom": 351.10000002384186,
+        "entryPromise": 351.2000000476837,
+        "corePaint": 362.10000002384186,
+        "ready": 362.10000002384186,
+        "backgroundDependencies": 1049.7000000476837
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.6000000238418579
+        },
+        {
+          "name": "members",
+          "ms": 2
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.2999999523162842
+        },
+        {
+          "name": "members",
+          "ms": 3.300000011920929
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.7999999523162842
+        },
+        {
+          "name": "members",
+          "ms": 3.599999964237213
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 2,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 31.599999964237213,
+        "skeletonPaint": 31.599999964237213,
+        "gateReady": 31.599999964237213,
+        "data-settings": 82.5,
+        "verified": 183.69999998807907,
+        "partialDom": 198.19999998807907,
+        "data-progress": 236.19999998807907,
+        "data-wallet": 236.29999995231628,
+        "data-gems": 236.29999995231628,
+        "data-students": 236.39999997615814,
+        "data-economy": 786.8999999761581,
+        "coreDom": 805.7999999523163,
+        "corePaint": 825,
+        "ready": 825,
+        "backgroundDependencies": 825.5999999642372
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 13.100000023841858
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.199999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 18.599999964237213
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 7
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 2,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 32.10000002384186,
+        "skeletonPaint": 32.10000002384186,
+        "gateReady": 32.10000002384186,
+        "data-settings": 84.10000002384186,
+        "verified": 185.20000004768372,
+        "coreDom": 192.9000000357628,
+        "corePaint": 198.60000002384186,
+        "ready": 198.60000002384186,
+        "backgroundDependencies": 199.10000002384186
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy",
+        "settings",
+        "verifyEntry"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 13.100000023841858
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.199999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 18.599999964237213
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.100000023841858
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 2
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 2,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 28.600000023841858,
+        "skeletonPaint": 28.600000023841858,
+        "gateReady": 28.600000023841858,
+        "data-settings": 79.5,
+        "verified": 181,
+        "coreDom": 190.10000002384186,
+        "corePaint": 195.70000004768372,
+        "ready": 195.70000004768372,
+        "backgroundDependencies": 196.20000004768372
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy",
+        "settings",
+        "verifyEntry",
+        "settings",
+        "verifyEntry"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 13.100000023841858
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.199999988079071
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 18.599999964237213
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.100000023841858
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 8.100000023841858
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 2
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 2,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 35.39999997615814,
+        "skeletonPaint": 35.39999997615814,
+        "data-settings": 81.89999997615814,
+        "partialDom": 83.69999998807907,
+        "data-progress": 133.69999998807907,
+        "data-review": 133.89999997615814,
+        "data-wallet": 133.89999997615814,
+        "data-gems": 133.89999997615814,
+        "data-students": 133.89999997615814,
+        "data-economy": 684.1999999880791,
+        "coreDom": 708.5999999642372,
+        "corePaint": 733.2999999523163,
+        "ready": 733.2999999523163,
+        "backgroundDependencies": 733.8999999761581
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.4000000357627869
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.599999964237213
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 24
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 7
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 2,
+      "visit": "reentry",
+      "marks": {
+        "coreDom": 10.5,
+        "firstVisual": 25.400000035762787,
+        "skeletonPaint": 25.400000035762787,
+        "corePaint": 25.400000035762787,
+        "ready": 25.400000035762787,
+        "backgroundDependencies": 59.40000003576279
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.4000000357627869
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.599999964237213
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 24
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 8.099999964237213
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 0
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 2,
+      "visit": "after-three-switches",
+      "marks": {
+        "coreDom": 7.600000023841858,
+        "firstVisual": 29.100000023841858,
+        "skeletonPaint": 29.100000023841858,
+        "corePaint": 29.19999998807907,
+        "ready": 29.19999998807907,
+        "backgroundDependencies": 63.40000003576279
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.4000000357627869
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.599999964237213
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 24
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 8.099999964237213
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 6.400000035762787
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 0
+    },
+    {
+      "screen": "shop",
+      "sample": 2,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 161.30000001192093,
+        "skeletonPaint": 161.30000001192093,
+        "corePaint": 731.000244140625,
+        "readyControlsEnabled": 1028.300000011921,
+        "backgroundPreview": 2144.400146484375,
+        "ready": 1086.7001953125,
+        "genderClick": 1048.500244140625
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": true,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 1,
+        "preview": 2,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "shop",
+      "sample": 2,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 23.80000001192093,
+        "skeletonPaint": 24,
+        "corePaint": 28.30000001192093,
+        "readyControlsEnabled": 32.69999998807907,
+        "backgroundPreview": 33.60000002384186,
+        "ready": 32.69999998807907
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": false,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "shop",
+      "sample": 2,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 26.600000023841858,
+        "skeletonPaint": 26.600000023841858,
+        "corePaint": 29.900000035762787,
+        "readyControlsEnabled": 34.30000001192093,
+        "backgroundPreview": 35.40000003576279,
+        "ready": 34.30000001192093
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": false,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 3,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 20.69999998807907,
+        "skeletonPaint": 20.69999998807907,
+        "coreDom": 208.69999998807907,
+        "membersDom": 311.0999999642372,
+        "entryPromise": 311.0999999642372,
+        "corePaint": 320.30000001192093,
+        "ready": 320.30000001192093,
+        "backgroundDependencies": 320.5
+      },
+      "calls": [
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 1.899999976158142
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 3,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 31.299999952316284,
+        "skeletonPaint": 31.399999976158142,
+        "coreDom": 230.89999997615814,
+        "membersDom": 331.2999999523163,
+        "entryPromise": 331.39999997615814,
+        "corePaint": 346.5,
+        "ready": 346.5,
+        "backgroundDependencies": 346.5999999642372
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 1.899999976158142
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 0.699999988079071
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "classAdmin",
+      "sample": 3,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 26.69999998807907,
+        "skeletonPaint": 26.69999998807907,
+        "coreDom": 226.60000002384186,
+        "membersDom": 327.5,
+        "entryPromise": 327.5,
+        "corePaint": 336.69999998807907,
+        "ready": 336.69999998807907,
+        "backgroundDependencies": 336.80000001192093
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "dashboard",
+        "members",
+        "dashboard",
+        "members"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.3999999761581421
+        },
+        {
+          "name": "members",
+          "ms": 1.899999976158142
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 0.699999988079071
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.20000004768371582
+        },
+        {
+          "name": "members",
+          "ms": 0.699999988079071
+        }
+      ],
+      "domNodes": 2493,
+      "newCalls": 2
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 3,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 28.799999952316284,
+        "skeletonPaint": 28.799999952316284,
+        "coreDom": 207.89999997615814,
+        "membersDom": 308.7999999523163,
+        "entryPromise": 308.7999999523163,
+        "corePaint": 311.5999999642372,
+        "ready": 311.5999999642372,
+        "backgroundDependencies": 1009.1999999880791
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.30000001192092896
+        },
+        {
+          "name": "members",
+          "ms": 0.8999999761581421
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 3,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 39.60000002384186,
+        "skeletonPaint": 39.60000002384186,
+        "coreDom": 239.30000001192093,
+        "membersDom": 339.89999997615814,
+        "entryPromise": 340.10000002384186,
+        "corePaint": 342.19999998807907,
+        "ready": 342.19999998807907,
+        "backgroundDependencies": 1041.1000000238419
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.30000001192092896
+        },
+        {
+          "name": "members",
+          "ms": 0.8999999761581421
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 1.899999976158142
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "admin",
+      "role": "superAdmin",
+      "sample": 3,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 43.80000001192093,
+        "skeletonPaint": 43.80000001192093,
+        "coreDom": 244.5,
+        "membersDom": 345.9000000357628,
+        "entryPromise": 345.9000000357628,
+        "corePaint": 357.30000001192093,
+        "ready": 357.30000001192093,
+        "backgroundDependencies": 1046.6000000238419
+      },
+      "calls": [
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit",
+        "dashboard",
+        "members",
+        "NoticeBoard",
+        "ExternalQuizzes",
+        "SeasonEvents",
+        "LoginSettings",
+        "FeatureFlags",
+        "Logs",
+        "OperationalAudit",
+        "QuizQualityAudit"
+      ],
+      "renderCost": [
+        {
+          "name": "dashboard",
+          "ms": 0.30000001192092896
+        },
+        {
+          "name": "members",
+          "ms": 0.8999999761581421
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.19999998807907104
+        },
+        {
+          "name": "members",
+          "ms": 1.899999976158142
+        },
+        {
+          "name": "dashboard",
+          "ms": 0.40000003576278687
+        },
+        {
+          "name": "members",
+          "ms": 2.400000035762787
+        }
+      ],
+      "domNodes": 2575,
+      "newCalls": 10
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 3,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 39.90000003576279,
+        "skeletonPaint": 39.90000003576279,
+        "gateReady": 39.90000003576279,
+        "data-settings": 91.60000002384186,
+        "verified": 193.60000002384186,
+        "partialDom": 203.69999998807907,
+        "data-progress": 245.60000002384186,
+        "data-wallet": 245.60000002384186,
+        "data-gems": 245.60000002384186,
+        "data-students": 245.69999998807907,
+        "data-economy": 796.1000000238419,
+        "coreDom": 818.5,
+        "corePaint": 838,
+        "ready": 838,
+        "backgroundDependencies": 838.5
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.199999988079071
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.800000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 21.80000001192093
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 7
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 3,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 29.5,
+        "skeletonPaint": 29.5,
+        "gateReady": 29.5,
+        "data-settings": 80.30000001192093,
+        "verified": 182.10000002384186,
+        "coreDom": 190.10000002384186,
+        "corePaint": 196.30000001192093,
+        "ready": 196.39999997615814,
+        "backgroundDependencies": 196.80000001192093
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy",
+        "settings",
+        "verifyEntry"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.199999988079071
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.800000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 21.80000001192093
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.300000011920929
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 2
+    },
+    {
+      "screen": "classroom",
+      "role": "student",
+      "sample": 3,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 27.19999998807907,
+        "skeletonPaint": 27.19999998807907,
+        "gateReady": 27.19999998807907,
+        "data-settings": 78.59999996423721,
+        "verified": 179.69999998807907,
+        "coreDom": 188.5,
+        "corePaint": 193.89999997615814,
+        "ready": 193.89999997615814,
+        "backgroundDependencies": 194.39999997615814
+      },
+      "calls": [
+        "settings",
+        "verifyEntry",
+        "progress",
+        "wallet",
+        "gems",
+        "students",
+        "economy",
+        "settings",
+        "verifyEntry",
+        "settings",
+        "verifyEntry"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.199999988079071
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 0.800000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 21.80000001192093
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.300000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.900000035762787
+        }
+      ],
+      "domNodes": 2409,
+      "newCalls": 2
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 3,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 38.10000002384186,
+        "skeletonPaint": 38.10000002384186,
+        "data-settings": 83.60000002384186,
+        "partialDom": 85.40000003576279,
+        "data-progress": 134.9000000357628,
+        "data-review": 135,
+        "data-wallet": 135,
+        "data-gems": 135,
+        "data-students": 135,
+        "data-economy": 685.7000000476837,
+        "coreDom": 713.2000000476837,
+        "corePaint": 733,
+        "ready": 733,
+        "backgroundDependencies": 733.6000000238419
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.5
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.800000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 27
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 7
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 3,
+      "visit": "reentry",
+      "marks": {
+        "coreDom": 9.699999988079071,
+        "firstVisual": 31.399999976158142,
+        "skeletonPaint": 31.399999976158142,
+        "corePaint": 31.399999976158142,
+        "ready": 31.399999976158142,
+        "backgroundDependencies": 66
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.5
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.800000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 27
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.600000023841858
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 0
+    },
+    {
+      "screen": "classroom",
+      "role": "teacher",
+      "sample": 3,
+      "visit": "after-three-switches",
+      "marks": {
+        "coreDom": 7.799999952316284,
+        "firstVisual": 28.599999964237213,
+        "skeletonPaint": 28.599999964237213,
+        "corePaint": 28.69999998807907,
+        "ready": 28.69999998807907,
+        "backgroundDependencies": 62.799999952316284
+      },
+      "calls": [
+        "settings",
+        "progress",
+        "review",
+        "wallet",
+        "gems",
+        "students",
+        "economy"
+      ],
+      "renderCost": [
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 1.5
+        },
+        {
+          "name": "renderClassroomTodayHome",
+          "ms": 9.800000011920929
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 27
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 7.600000023841858
+        },
+        {
+          "name": "renderClassroomSections",
+          "ms": 6.799999952316284
+        }
+      ],
+      "domNodes": 3037,
+      "newCalls": 0
+    },
+    {
+      "screen": "shop",
+      "sample": 3,
+      "visit": "first",
+      "marks": {
+        "firstVisual": 161,
+        "skeletonPaint": 161,
+        "corePaint": 723.7998046875,
+        "readyControlsEnabled": 1025.2000000476837,
+        "backgroundPreview": 2140.7998046875,
+        "ready": 1091.599853515625,
+        "genderClick": 1046
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": true,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 1,
+        "preview": 2,
+        "catalogs": 4,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "shop",
+      "sample": 3,
+      "visit": "reentry",
+      "marks": {
+        "firstVisual": 25.19999998807907,
+        "skeletonPaint": 25.19999998807907,
+        "corePaint": 29.399999976158142,
+        "readyControlsEnabled": 34,
+        "backgroundPreview": 34.89999997615814,
+        "ready": 34
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": false,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    },
+    {
+      "screen": "shop",
+      "sample": 3,
+      "visit": "after-three-switches",
+      "marks": {
+        "firstVisual": 26.30000001192093,
+        "skeletonPaint": 26.30000001192093,
+        "corePaint": 29.5,
+        "readyControlsEnabled": 33.90000003576279,
+        "backgroundPreview": 34.80000001192093,
+        "ready": 33.90000003576279
+      },
+      "calls": [],
+      "renderCost": [],
+      "domNodes": 1506,
+      "genderDialogVisible": false,
+      "buttonsEnabled": true,
+      "networkDelta": {
+        "status": 0,
+        "preview": 0,
+        "catalogs": 0,
+        "mutations": 0,
+        "externalImages": 0
+      },
+      "items": 49
+    }
+  ],
+  "sourceHashes": {
+    "public/classroom.css": "c1be20a7a708d9b91c080ad83513bebdcac5c9adab6f140c3bf66b4d2b257777",
+    "public/coordi-shop/catalog-filter.js": "68d4788bfffe3cf97d9744415cf4629b1fb34a45a7da5384e004170ee6da7b43",
+    "public/coordi-shop/data/maple-cosmetics-catalog.json": "e9aa38fc288dd819a88ce020e1b13e861e97034951010d6526c8eb3e4202a93d",
+    "public/coordi-shop/data/maple-featured-hair-catalog.json": "591dd1216725dd8760770f5e06735a3daeafb748eb5f2f866b204f1b48b9d259",
+    "public/coordi-shop/data/maple-item-effects.json": "ac3f0186f2b427bcc39626269c1604173e8e07f781d60b613a59f4a505cf7334",
+    "public/coordi-shop/data/verified-top50-display.json": "14448c96d2a23f89e824351013f0ec9b1bb03f715de5b434d7464ce1bc81f7e1",
+    "public/coordi-shop/dressing-room.css": "9a4d4ee208071e8f9347e741c868395c1153c34d235ae55f02227695855772c0",
+    "public/coordi-shop/dressing-room.js": "358d077a76f2f11270836126d51c4680f556b2822898099bd74d86862f0957f5",
+    "public/coordi-shop/hair-prism.js": "93c005dccc6023236b2d12ac7b77048436e39986786b9b39e820c9331c8b2c8f",
+    "public/coordi-shop/index.html": "491ac5b67ae079109e1ed642b75712a80ae1ada88cc7a8c2026016df0c986bb4",
+    "public/coordi-shop/town-bridge.js": "ee4241617d28ed5ec9c414ac612551d4ef390ad6976d5beddcdf68e6129ab2ff",
+    "public/coordi-shop/verified/female-41750.png": "dff85870df484f102440b32493167bc26dc0804d4a1d6209ef1dd39261fb0dea",
+    "public/coordi-shop/verified/female-47270.png": "1f9b9a95efcd80a8987493bf671905a19fd5e6b951544b2a8dc9a8818716e305",
+    "public/coordi-shop/verified/female-47740.png": "13bcfdc6a831d1f0e9d8bfd40809dd1940f01aef750b1959bc31d85cbfd05e68",
+    "public/coordi-shop/verified/female-48350.png": "279fa30526fbbbf7fa94478054a13604af4f40f56510eae7138fbcf7552854d5",
+    "public/coordi-shop/verified/female-48360.png": "36b489595b417ac0db271c3159df6331b6c805fca76f5321d82f4bbe57e0b3da",
+    "public/coordi-shop/verified/female-48370.png": "1264ef0506eaf2e018c7bb8186cac634bb840844ec9a943cef527ab951fd5832",
+    "public/coordi-shop/verified/female-61170.png": "50db1958a77666e05bcdfa850b333e394859298cff483e5d9b76df2ebd293014",
+    "public/coordi-shop/verified/female-61190.png": "1dcde7cd15baa0cee812f1afdd19c68aff808a1efe95348266214939931797af",
+    "public/coordi-shop/verified/female-61370.png": "2413beed1acfade6742a531942d645dd9e2a2b274c67698f56cd692c056e8b65",
+    "public/coordi-shop/verified/female-61500.png": "a34c30fcaca3ae9e6f3cfcebc94904e871a87852d2eeb3b3c0b2e288044ab836",
+    "public/coordi-shop/verified/female-61860.png": "d63bbbfaf13fad6156c4ad6521622b5fde2ce1ba06ae9923b3bdb74dbef626a9",
+    "public/coordi-shop/verified/female-64010.png": "74af800c69e6593fb005b1db75b182f5eb8220eb85182e5bfe13dfc31f3cc3bd",
+    "public/coordi-shop/verified/female-64090.png": "7c8af60b0d6ce77432e389c2d491fd013463bff18297efa9275ddaa65a273a23",
+    "public/coordi-shop/verified/female-64200.png": "64091de8d1c9a20b59e2c2c5ed33e18435ecb787149459499305a58acff132aa",
+    "public/coordi-shop/verified/female-67420.png": "fc90536cc92cafdcea3ed01e0e851fc41875138251dc582699147b99b9846a8b",
+    "public/coordi-shop/verified/female-67560.png": "8100964d4052c7371096eec66abb7a8287256d25b8d3dbc56d61789940f41034",
+    "public/coordi-shop/verified/female-67620.png": "b7ab6e326c277d44620d96471009917b683844755c30c861824e2e43d9844c92",
+    "public/coordi-shop/verified/female-67680.png": "96b3febc8dbb9dba89d52fa8e769a019a020988c8ca50bf00fb97464318e3970",
+    "public/coordi-shop/verified/female-67690.png": "d6c7a9b3d4510804649cf393960b8794934ecf9382a17c9211b9bdfc2dd47836",
+    "public/coordi-shop/verified/female-67700.png": "9aa75cb8febf8f604bc1da6d5e44f4a872ab2d15842004ea2431bd17b96d5022",
+    "public/coordi-shop/verified/female-68100.png": "fede99c1ac29d1c1c50ae3217b1bc56db511bdfcbd9555009a5c39d7a8526f88",
+    "public/coordi-shop/verified/female-71170.png": "7f95bcc75209d34ca09a755bb8e5802a22cd10ec73c455797c59fc9db336887f",
+    "public/coordi-shop/verified/female-71180.png": "e8ce2752e20fdee5af0178680e57c68e9e9193cd545e06dfc9ccac9f1bbd2ce2",
+    "public/coordi-shop/verified/female-71190.png": "7030cf40da0b4f23e1ef71f7da8d3942ec1838c6a7060cca00c76d085e3709b1",
+    "public/coordi-shop/verified/female-71200.png": "952d347a07e642dec983e936cecd29a18893add324523fa6155280a0ea55ead5",
+    "public/coordi-shop/verified/female-71230.png": "a14834d2f2d628f121e99c5a068c0e923b4cf8a8c77a7e6ab9851accabc79285",
+    "public/coordi-shop/verified/female-71400.png": "ede94075ae172599571648a81f9688fb027e520c4daed2331f1d3f8c91bb7438",
+    "public/coordi-shop/verified/female-71520.png": "61ea0cf647b01d73007b65a125b523ef0306b1abbd46967e4ef8602b1fa24b7a",
+    "public/coordi-shop/verified/female-71530.png": "990ed1a1d04e3eb686e32f57fd4dad2df42793a754b14acbfb6ee4e47db78b3e",
+    "public/coordi-shop/verified/female-71540.png": "180143e16f84895ee9013c31b0d8d2477b57297eedca89fa4999c4d28becb769",
+    "public/favicon.svg": "40503a664750120026e8166d5b7bf9237d5c310ced8fa35bd93b7732656a81c1",
+    "public/images/classroom-assets/medals/levels/level-01-v1.png": "9a79bc154c9529d9a0cc33c97fc4a9e8204a9e5ba0108fd9bec762b745287079",
+    "public/images/classroom-icons/bank.svg": "018ddc546d691f3361e3544daceb69913ca98514e2c09579c7785e7989a06144",
+    "public/images/classroom-icons/dj-coin.svg": "ccbc1dee8db608c5e8f142b2528e8f82908a0473f1ff251b0f56fbf8a883acb3",
+    "public/images/classroom-icons/exchange.svg": "014cca2af32fe60dcf438c2ca2e7b2076f109735aac00bbe9b1a40577fe8b8fa",
+    "public/images/classroom-icons/inventory.svg": "dba5ef58599e8b5ed632602843f04e20d0d8ce7e36b9ce015ddc884a538921b6",
+    "public/images/classroom-icons/keyring-book.svg": "404dc37ffef635becd7a9f6f926da6342f96e9b05d65870742cf0a515f789775",
+    "public/images/classroom-icons/keyring-gem.svg": "55ff7aa71db6c7022d7112f745a6238c524bab9b8d43cd3ce007e21653f23228",
+    "public/images/classroom-icons/keyring-sprout.svg": "3cf004dc7199536e658a8eaf9fa800ed7e313d05851cf1fe3540432af6718a8f",
+    "public/images/classroom-icons/mission.svg": "f001f65daf9e8bba4be87ec885d25cce971d487b80cf1a61261749c5243a750d",
+    "public/images/classroom-icons/point-shop.svg": "7993b6dfc6b84fa16c05c0e1a6ffadc728b1adefaad027f2a78603d7462c875d",
+    "public/images/classroom-icons/point-token.svg": "5172e9fd497f3c5fc3455e4a2aeb060e35102e663ec5f293198bed3f0ca95cee",
+    "public/images/classroom-icons/quest.svg": "bd17be77674bea399ff6a17efde277363f6e79ddc14473f8f0e12cabfaacc902",
+    "public/images/classroom-icons/student-card.svg": "64293e7035cafab6dc514e613a0c40e625aef235bb343eba53bcae495f2721dd",
+    "public/images/classroom/community-tree-320.webp": "6e6acce4a56c7acb0ca28abb13c4c2563e677ac220e3cd289d5469aa1c0c316c",
+    "public/images/classroom/reading-sprout-320.webp": "fe59354f351833577f32e46846527771971752376c2329596a2ebccee8a4f08c",
+    "public/images/school-storybook-lobby-v1.webp": "2db28a6135a7467f223de1dc87eaa05cae716347085adf597d34d4f10f4b0e0a",
+    "public/images/town-storybook-plazas-v2.webp": "3bfc74a2540cdf7d8d56db10b7e21ebb566e9d8df97f2721806e538083aa9cab",
+    "public/index.html": "e4edaa54130d8b91eef2e4a7564ac7bb50ecf56ca375ef10365ed434dfbab2e8",
+    "public/js/application/admin-usecases.js": "ffd8840d2919edcdd434be7eb53e6a62f2904722b9cd476c50313039064294d4",
+    "public/js/application/classroom-usecases.js": "78118fff8d05578abb148b22a9cd1ac4dcf56c3fb968d8470fbe1bbed6e55b59",
+    "public/js/data/level-medal-assets.js": "9e43e6c3e7ea5aacd3ebdd21e24fe47199fc76b6f93b30dad2670be379dfe680",
+    "public/js/domain/classroom-domain.js": "0e3067ae4a17020f3bf2943d16ed8932fab8f3e396a07b5c824881138b647941",
+    "public/js/features/admin-controller.js": "ca099bbf957a888cfe7395392de7a2dcd4c46934ba5dde55649b3a8bee86a510",
+    "public/js/features/admin-render.js": "c0626b7b3186a201e535c9348f60dc107fee76619db6466533e754fc5f757d00",
+    "public/js/features/app-view.js": "7c70429cd1307a56f399602badaac72fe699e9180bc41dc8d7bef699de37f7c1",
+    "public/js/features/classroom-controller.js": "e35273abe53c3b517fe0d125c6cb2df5422d17ec88d0102ad991987f2d02868f",
+    "public/js/features/classroom-form.js": "78002bb7f0520480804fa9f9ef275b7f6a7cf1df211f963cff591c0cdb6d7093",
+    "public/js/features/classroom-portrait.js": "4106ded805ed4a95fab0dd09f09277d9760cda0a6fbfdade1fddb4f7727fcf86",
+    "public/js/features/classroom-render.js": "e5853a36034d3bc28ab94b341ea8ee6071cc7063efa2f2d7bf3d2afba6cf338c",
+    "public/js/features/classroom-state.js": "aa8fb0a0da74f10ed1fc63230d4f6de0e984026b89137d819300c463d63b02b0",
+    "public/js/features/classroom-workspace.js": "5ac36eefde7426f75336b26623ca10b4307b5966425766a22242e39051d624e4",
+    "public/js/features/shop-render.js": "0cf00346e0af25cb9a98d67ab62a2f8adb0e1814392416193c28cc83b61b6255",
+    "public/js/player-status-shortcut.js": "9fb2ad04a290c8c48dda2342c2489e74802dc14b379e1612b0d2510582205898",
+    "public/plaza-views.css": "69ed94c80c9515571e6e0a27b145f0a56f99fea2c89345dd0c6edf82daa0a8ad",
+    "public/profile-view.css": "fb883d0291e36cceebddbbbf4ba292f54acf28c8c335b66c8fbbc8ee3fff82cb",
+    "public/school-entry.css": "ed9f5d9677a238b26d198cfffb901c4496130cfb9cfac44e52b047824c4dc804",
+    "public/school-rooms.css": "8421ccaeef9fb4adcc59acd106926041206f6b8653483bb831d1d4bc96aeab11",
+    "public/styles.css": "75e5a9a4de41c9fb12a833935393a83cd3d8b981f8f37512ebed4eae983c66f8",
+    "public/town-entry.css": "5f650415cbb05b14c0a17cacc7eaafbfe0e8aed9c0266dea5453156240afa5d7",
+    "public/town-shop.css": "aa116034bc81475e2bde9dfc8a0641fbf38d32aad82627d1ab25e0d0a7a02faa"
+  }
+}

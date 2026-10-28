@@ -110,36 +110,62 @@
 
     let room = null;
     let myHand = [];
+    let handLoaded = false;
+    let streamError = false;
+    let notifyTimer = null;
+    let actionPending = false;
     const listeners = [];
-    function notify() { listeners.forEach(function (cb) { cb(); }); }
+    function notify() {
+      if (notifyTimer !== null) return;
+      notifyTimer = setTimeout(function () {
+        notifyTimer = null;
+        listeners.forEach(function (cb) { cb(); });
+      }, 0);
+    }
+    function syncState() {
+      if (streamError) return 'error';
+      if (global.navigator && global.navigator.onLine === false) return 'offline';
+      const player = room && R.findPlayer(room, me.id);
+      if (!room || (room.status !== 'waiting' && (!handLoaded || (player && player.handCount !== myHand.length)))) return 'syncing';
+      return 'ready';
+    }
+    function failStream() { streamError = true; notify(); }
+    function exclusive(fn) {
+      if (actionPending) return Promise.resolve({ ok: false, error: '앞선 요청을 확인하고 있어요. 잠시만 기다려 주세요.' });
+      if (syncState() !== 'ready') return Promise.resolve({ ok: false, error: '연결과 손패를 확인하고 있어요. 잠시만 기다려 주세요.' });
+      actionPending = true;
+      return Promise.resolve().then(fn).finally(function () { actionPending = false; });
+    }
 
     // 실시간 구독: 방 문서 + 내 손패 문서
     const unsubRoom = roomRef.onSnapshot(function (snap) {
       room = snap.exists ? snap.data() : null;
       notify();
-    });
+    }, failStream);
     const unsubHand = handRef.onSnapshot(function (snap) {
       myHand = snap.exists ? (snap.data().tiles || []) : [];
+      handLoaded = true;
       notify();
-    });
+    }, failStream);
 
     // 트랜잭션으로 한 액션을 안전하게 적용 (동시 접근 충돌 방지)
     function runAction(applyFn, needDeck) {
-      return db.runTransaction(function (tx) {
-        return tx.get(roomRef).then(function (roomSnap) {
-          if (!roomSnap.exists) throw new Error('방이 없어졌어요.');
-          const rdata = roomSnap.data();
-          const reads = [tx.get(handRef)];
-          if (needDeck) reads.push(tx.get(deckRef));
-          return Promise.all(reads).then(function (snaps) {
-            const handSnap = snaps[0];
-            const deckSnap = snaps[1];
+      return exclusive(function () { return db.runTransaction(function (tx) {
+        const reads = [tx.get(roomRef), tx.get(handRef)];
+        if (needDeck) reads.push(tx.get(deckRef));
+        return Promise.all(reads).then(function (snaps) {
+            const roomSnap = snaps[0];
+            if (!roomSnap.exists) throw new Error('방이 없어졌어요.');
+            const rdata = roomSnap.data();
+            const handSnap = snaps[1];
+            const deckSnap = snaps[2];
             const game = {
               room: rdata,
               hands: {},
               bag: (deckSnap && deckSnap.exists) ? deckSnap.data().bag : { consonants: [], vowels: [] }
             };
             game.hands[me.id] = handSnap.exists ? (handSnap.data().tiles || []) : [];
+            const beforeHand = JSON.stringify(game.hands[me.id]);
             const beforePoolC = rdata.poolC, beforePoolV = rdata.poolV;
             const res = applyFn(game);
             if (!res.ok) throw Object.assign(new Error(res.error || '실패'), { appResult: res });
@@ -147,14 +173,13 @@
             if (!needDeck) { game.room.poolC = beforePoolC; game.room.poolV = beforePoolV; }
             // 변경분 기록
             tx.set(roomRef, game.room);
-            tx.set(handRef, { tiles: game.hands[me.id] });
+            if (JSON.stringify(game.hands[me.id]) !== beforeHand) tx.set(handRef, { tiles: game.hands[me.id] });
             if (needDeck) tx.set(deckRef, { bag: game.bag });
             return res;
-          });
         });
       }).catch(function (e) {
         return e.appResult || { ok: false, error: e.message };
-      });
+      }); });
     }
 
     return {
@@ -163,6 +188,7 @@
       getRoom: function () { return room; },
       viewerId: function () { return me.id; },
       currentHand: function () { return myHand; },
+      syncState: syncState,
       isMyTurn: function () { return room && room.status === 'playing' && room.turn === me.id; },
       onChange: function (cb) { listeners.push(cb); },
       start: function () {
@@ -182,11 +208,11 @@
         }).catch(function (e) { return e.appResult || { ok: false, error: e.message }; });
       },
       commit: function (words) { return runAction(function (g) { return R.commitTurn(g, me, { words: words }); }, false); },
-      draw: function (kind) { return callWbDraw({ code: code, action: 'draw', kind: kind }); },
+      draw: function (kind) { return exclusive(function () { return callWbDraw({ code: code, action: 'draw', kind: kind }); }); },
       propose: function (text) { return runAction(function (g) { return R.propose(g, me, { text: text }); }, false); },
       agree: function () { return runAction(function (g) { return R.agree(g, me); }, false); },
       cancelProposal: function () { return runAction(function (g) { return R.cancelProposal(g, me); }, false); },
-      timeout: function () { return callWbDraw({ code: code, action: 'timeout' }); },
+      timeout: function () { return exclusive(function () { return callWbDraw({ code: code, action: 'timeout' }); }); },
       requestPause: function () { return runAction(function (g) { return R.requestPause(g, me); }, false); },
       agreePause: function () { return runAction(function (g) { return R.agreePause(g, me); }, false); },
       cancelPause: function () { return runAction(function (g) { return R.cancelPause(g, me); }, false); },

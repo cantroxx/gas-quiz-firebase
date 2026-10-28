@@ -1,0 +1,38 @@
+{
+  "scope": "Synthetic only: 40ms per document read; real renderer excluded",
+  "runs": [
+    {
+      "sample": 1,
+      "before": {
+        "ms": 123.85729199999999,
+        "reads": 5
+      },
+      "after": {
+        "ms": 82.38133299999998,
+        "reads": 3
+      }
+    },
+    {
+      "sample": 2,
+      "before": {
+        "ms": 122.906791,
+        "reads": 5
+      },
+      "after": {
+        "ms": 81.39979199999999,
+        "reads": 3
+      }
+    },
+    {
+      "sample": 3,
+      "before": {
+        "ms": 122.55566700000003,
+        "reads": 5
+      },
+      "after": {
+        "ms": 81.63741600000003,
+        "reads": 3
+      }
+    }
+  ]
+}

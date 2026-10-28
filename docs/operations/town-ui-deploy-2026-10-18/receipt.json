@@ -1,0 +1,20 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792291199796000",
+  "version": "sites/dj48-quiztown-firebase/versions/170a9325bad778b2",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8e5f97f63c67c665",
+  "changed": [
+    "/coordi-shop/index.html",
+    "/index.html",
+    "/js/data/place-details.js",
+    "/js/features/home-render.js",
+    "/js/player-status-shortcut.js",
+    "/player-status/index.html",
+    "/player-status/status.js",
+    "/player-status/style.css",
+    "/js/app.bundle.js",
+    "/town-ui-refresh.css",
+    "/coordi-shop/storybook.css",
+    "/images/town-ui-20261018/login-village-v1.webp",
+    "/images/town-ui-20261018/boutique-room-v1.webp"
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "authorization": "사용자: 배포 진행",
+  "functions": {
+    "verifiedAt": "2026-10-18T09:00:39.400Z",
+    "functions": [
+      {
+        "id": "subjectQuizAction",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T08:36:01.541718816Z",
+        "source": {
+          "storageSource": {
+            "bucket": "gcf-v2-sources-584571538436-asia-northeast3",
+            "object": "subjectQuizAction/function-source.zip",
+            "generation": "1792312508122036"
+          }
+        },
+        "sourceHashesVerified": [
+          "index.js",
+          "subject-quiz/service.js"
+        ],
+        "maxInstances": 10,
+        "unauthenticatedStatus": 401
+      },
+      {
+        "id": "popularQuizAction",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T08:59:36.267993009Z",
+        "source": {
+          "storageSource": {
+            "bucket": "gcf-v2-sources-584571538436-asia-northeast3",
+            "object": "popularQuizAction/function-source.zip",
+            "generation": "1792313916732965"
+          }
+        },
+        "sourceHashesVerified": [
+          "index.js",
+          "popular-quiz/catalog.json"
+        ],
+        "maxInstances": 10,
+        "unauthenticatedStatus": 401
+      },
+      {
+        "id": "grantPracticeReward",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T08:39:20.226614717Z",
+        "source": {
+          "storageSource": {
+            "bucket": "gcf-v2-sources-584571538436-asia-northeast3",
+            "object": "grantPracticeReward/function-source.zip",
+            "generation": "1792312693320792"
+          }
+        },
+        "sourceHashesVerified": [
+          "index.js"
+        ],
+        "maxInstances": 100,
+        "unauthenticatedStatus": 401
+      },
+      {
+        "id": "grantRankingCompleteXp",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T08:55:13.031942551Z",
+        "source": {
+          "storageSource": {
+            "bucket": "gcf-v2-sources-584571538436-asia-northeast3",
+            "object": "grantRankingCompleteXp/function-source.zip",
+            "generation": "1792313664006827"
+          }
+        },
+        "sourceHashesVerified": [
+          "index.js"
+        ],
+        "maxInstances": 100,
+        "unauthenticatedStatus": 401
+      },
+      {
+        "id": "adminGetQuizQualityAudit",
+        "state": "ACTIVE",
+        "updateTime": "2026-10-18T08:56:40.438193553Z",
+        "source": {
+          "storageSource": {
+            "bucket": "gcf-v2-sources-584571538436-asia-northeast3",
+            "object": "adminGetQuizQualityAudit/function-source.zip",
+            "generation": "1792313748351245"
+          }
+        },
+        "sourceHashesVerified": [
+          "index.js",
+          "quiz-quality-scope.js"
+        ],
+        "maxInstances": 20,
+        "unauthenticatedStatus": 401
+      }
+    ]
+  },
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792313843188000",
+    "version": "sites/dj48-quiztown-firebase/versions/8f2d90c70e57dfd1",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/af81c80b072e25d7",
+    "changed": [
+      "/index.html",
+      "/js/app.bundle.js",
+      "/js/features/admin-render.js",
+      "/js/application/ranking-usecases.js",
+      "/js/infrastructure/ranking-repository.js",
+      "/js/infrastructure/admin-repository.js",
+      "/popular-quiz/optimized/691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf.webp",
+      "/popular-quiz/optimized/d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951.webp",
+      "/popular-quiz/optimized/22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1.webp",
+      "/popular-quiz/optimized/550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd.webp",
+      "/popular-quiz/optimized/1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811.webp",
+      "/popular-quiz/optimized/758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760.webp",
+      "/popular-quiz/optimized/14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215.webp",
+      "/popular-quiz/optimized/dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191.webp",
+      "/popular-quiz/optimized/1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a.webp",
+      "/popular-quiz/optimized/0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61.webp",
+      "/popular-quiz/optimized/282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87.webp",
+      "/popular-quiz/optimized/93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a.webp",
+      "/popular-quiz/optimized/b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0.webp",
+      "/popular-quiz/optimized/86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2.webp"
+    ]
+  },
+  "hostingRawHashes": {
+    "index.html": "dfba9ac06967238b16d098165c4fbe889cbb2c1766f86cf70203da1fd3dd2bf1",
+    "js/app.bundle.js": "f8973d1a612f5c26f903ff139103991212e5b9a061e5490b0beeb31a2a040f4b",
+    "js/features/admin-render.js": "b753abda2a1a47ebd8a1314109814ede974991484b4d4e3dda70b69efbbd3491",
+    "js/application/ranking-usecases.js": "c8dffd2cfc6e40da70ee2dbb50a48ad33be35014a72f6dbbad961d1099d69d3e",
+    "js/infrastructure/ranking-repository.js": "7ce8318926b352d7880a5a3a71e54f131cc00c3edfc80037eaf93caf263b87ec",
+    "js/infrastructure/admin-repository.js": "4c16b44e4195889162827880d4f94676b19422b61098c65455abe203b6ccec7e",
+    "popular-quiz/optimized/691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf.webp": "691896dcda2749110361aecba219962f07e966f0d04f7788a1892d46d8dc6daf",
+    "popular-quiz/optimized/d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951.webp": "d87ce88b8cfd015dfb3d55689ca4bebba52cce7ce8fe450689e77c192f235951",
+    "popular-quiz/optimized/22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1.webp": "22283c9fcc0fb0511eafa31e4e5bc2e7df4ae6704e4f96d1c4ea0326c81187f1",
+    "popular-quiz/optimized/550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd.webp": "550d325598df4938f58c3128e3359a0fb0f7a9b2002ab184f1dfd1512fbe7ddd",
+    "popular-quiz/optimized/1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811.webp": "1f227629f70a9a347069d1d97a6604e5984553e326d4bdfcddf06955d8bd7811",
+    "popular-quiz/optimized/758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760.webp": "758ddb1feecd12fc84dc3fdb2535d7e9e391839374cb8f276ec96169f75d6760",
+    "popular-quiz/optimized/14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215.webp": "14906e1fe1d1f363f1dfed2978eefa6707059e6a285eb8e562250c8506908215",
+    "popular-quiz/optimized/dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191.webp": "dcd318b1a7fc1c3c6af7bcee66684074781f73261ce8995e637d62a075052191",
+    "popular-quiz/optimized/1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a.webp": "1c5da0ae847abda06b8bf8ae39b6175aed173b7ac3d57485729096a5cde6218a",
+    "popular-quiz/optimized/0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61.webp": "0d4a53b71d17e94729409a95fbb33ae35b0807758d933f2b5d39dfd1233c8c61",
+    "popular-quiz/optimized/282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87.webp": "282de3963aad25592e72d40df8834b74ce836e0737903175801e2ae279b54b87",
+    "popular-quiz/optimized/93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a.webp": "93cf15b711089471122ec33dc0aa20b79c312fd6762b4bb1358d7c0721d7d23a",
+    "popular-quiz/optimized/b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0.webp": "b1ba46b9a86090ef702ac8a5b4eafc5ebabdfd2caa9a61277377465c676244f0",
+    "popular-quiz/optimized/86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2.webp": "86c5de44d2852ad5ff76464c8d54e0f55a9a25f6800819c20345cd8a5157bda2"
+  },
+  "hostingPreservedOtherFiles": 4651,
+  "hostingManifestAndPublicHashesVerified": true,
+  "concurrentHousingChangePreserved": true,
+  "rebaseSyntaxPassed": true,
+  "rebaseFreshnessTestsPassed": 3,
+  "errorCounts": {
+    "since": "2026-10-18T08:36:01.541718816Z",
+    "checkedAt": "2026-10-18T09:01:22.340Z",
+    "errorEntries": 1,
+    "counts": {
+      "grantrankingcompletexp": 1
+    },
+    "truncated": false,
+    "studentPayloadsRequested": false
+  },
+  "errorClassification": {
+    "count": 1,
+    "logName": "cloudaudit.googleapis.com/activity",
+    "timestamp": "2026-10-18T08:51:16.685494Z",
+    "runtimeErrorEntries": 0,
+    "auditPayloadNotRead": true
+  },
+  "settingRepresentationException": {
+    "function": "grantRankingCompleteXp",
+    "beforeMaximum": "unset, effective Cloud Run revision default 100",
+    "afterMaximum": 100,
+    "minimum": "explicit 0, equivalent to prior default",
+    "reference": "https://docs.cloud.google.com/run/docs/configuring/max-instances"
+  },
+  "productionStudentDataReadOrMutationForTesting": false,
+  "dataDeletionExecuted": false,
+  "rulesIndexesSchedulesChanged": false,
+  "trafficReductionMeasured": false
+}

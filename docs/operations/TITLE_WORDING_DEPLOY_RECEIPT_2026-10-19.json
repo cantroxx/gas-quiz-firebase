@@ -1,0 +1,25 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792378459958000",
+  "version": "sites/dj48-quiztown-firebase/versions/058d9739887c9d0c",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/2c98b10348a39454",
+  "changed": [
+    "index.html",
+    "housing/app.js",
+    "housing/style.css",
+    "housing/index.html",
+    "housing/housing-data.js",
+    "player-status/status.js",
+    "player-status/index.html",
+    "js/features/home-data.js",
+    "js/features/admin-render.js",
+    "js/features/shop-data.js",
+    "js/features/shop-render.js",
+    "js/town-spatial.js",
+    "js/features/home-render.js",
+    "js/data/place-details.js",
+    "js/app.bundle.js"
+  ],
+  "fullCheckPassed": true,
+  "httpHashesVerified": true,
+  "legacyShopCategoryCompatible": true
+}

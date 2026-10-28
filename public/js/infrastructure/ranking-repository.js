@@ -1,5 +1,28 @@
 (function (root) {
   const HIDDEN_PUBLIC_RANKING_MEMBER_USER_IDS = new Set(['G4-C8-N23']);
+  let documentCache = new WeakMap();
+  const CACHE_MS = 60000;
+
+  function clearRankingReadCache() { documentCache = new WeakMap(); }
+
+  function readRankingDocument(db, documentPath, deps = {}) {
+    let cache = documentCache.get(db);
+    if(!cache) { cache = new Map(); documentCache.set(db, cache); }
+    const authUid = root.firebase?.auth?.().currentUser?.uid || '';
+    const memberId = deps.getCurrentMemberUserId?.() || root.DJ48AccountState?.getCurrentMemberUserId?.() || '';
+    const key = `${authUid}:${memberId}:${documentPath}`;
+    const previous = cache.get(key);
+    if(previous && (previous.pending || previous.expires > Date.now())) return previous.promise;
+    const parts = documentPath.split('/');
+    let ref = db.collection(parts[0]).doc(parts[1]);
+    for(let i = 2; i < parts.length; i += 2) ref = ref.collection(parts[i]).doc(parts[i + 1]);
+    const entry = { pending: true, expires: 0 };
+    entry.promise = ref.get().then(snapshot => {
+      entry.pending = false; entry.expires = Date.now() + CACHE_MS; return snapshot;
+    }, error => { cache.delete(key); throw error; });
+    cache.set(key, entry);
+    return entry.promise;
+  }
 
   function getDocs(snapshot) {
     return Array.isArray(snapshot?.docs) ? snapshot.docs : [];
@@ -10,6 +33,9 @@
   }
 
   function isPublicRankingRowVisible(row = {}) {
+    if(String(row.categoryKey || '').startsWith('popular-v2-')) {
+      if(!String(row.recordId || '').startsWith('popular_v2_') || row.sourceSheet !== 'popular-quiz-server' || row.rulesVersion !== 'popular-20261018-v2' || row.visible === false) return false;
+    }
     return !HIDDEN_PUBLIC_RANKING_MEMBER_USER_IDS.has(getRankingRowMemberUserId(row));
   }
 
@@ -78,11 +104,13 @@
     const getFirebaseStorage = deps.getFirebaseStorage || (() => null);
     const userIds = Array.from(new Set((rows || []).map(getRankingMemberUserId).filter(Boolean))).slice(0, lookupLimit);
     if(!db || !userIds.length) return {};
+    const selfId = deps.getCurrentMemberUserId?.() || root.DJ48AccountState?.getCurrentMemberUserId?.() || root.firebase?.auth?.().currentUser?.uid || '';
+    const read = path => readRankingDocument(db, path, deps).catch(() => null);
     const snapshots = await Promise.all(userIds.map(userId => Promise.all([
-      db.collection('users').doc(userId).get().catch(() => null),
-      db.collection('userTitleSummary').doc(userId).get().catch(() => null),
-      db.collection('userLevelSummary').doc(userId).get().catch(() => null),
-      db.collection('userRoomSettings').doc(userId).get().catch(() => null)
+      read(`users/${userId}`),
+      userId === selfId ? read(`userTitleSummary/${userId}`) : null,
+      read(`userLevelSummary/${userId}`),
+      userId === selfId ? read(`userRoomSettings/${userId}`) : null
     ])));
     const profileMap = {};
     const computeLevelSummary = deps.computeLevelSummary || (totalXpInput => {
@@ -103,6 +131,7 @@
       const roomSettings = roomSettingsSnapshot?.exists ? roomSettingsSnapshot.data() || {} : {};
       profileMap[userIds[index]] = {
         userId: userIds[index],
+        authUid: data.authUid || '',
         nickname: data.nickname || data.name || '',
         school: data.school || '',
         grade: data.grade || '',
@@ -116,6 +145,7 @@
         profileImageOffsetX: data.profileImageOffsetX,
         profileImageOffsetY: data.profileImageOffsetY,
         rankingMessage: data.rankingMessage || '',
+        gameHonors: data.gameHonors || {},
         selectedTitleId: data.selectedTitleId || '',
         selectedTitleName: titleSummary.selectedTitleName || data.selectedTitleName || '',
         level: Number(computedLevelSummary.level) || 0,
@@ -127,10 +157,10 @@
         selectedTitleFrameItemId: roomSettings.selectedTitleFrameItemId || ''
       };
     });
-    const missingTitleNameUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);
+    const missingTitleNameUsers = Object.values(profileMap).filter(profile => profile.userId === selfId && profile.selectedTitleId && !profile.selectedTitleName);
     if(missingTitleNameUsers.length) {
       const titleSnapshots = await Promise.all(missingTitleNameUsers.map(profile =>
-        db.collection('userTitles').doc(profile.userId).collection('titles').doc(profile.selectedTitleId).get().catch(() => null)
+        read(`userTitles/${profile.userId}/titles/${profile.selectedTitleId}`)
       ));
       titleSnapshots.forEach((titleSnapshot, index) => {
         if(!titleSnapshot?.exists) return;
@@ -141,7 +171,7 @@
     const stillMissingTitleUsers = Object.values(profileMap).filter(profile => profile.selectedTitleId && !profile.selectedTitleName);
     if(stillMissingTitleUsers.length) {
       const catalogSnapshots = await Promise.all(stillMissingTitleUsers.map(profile =>
-        db.collection('titleCatalog').doc(profile.selectedTitleId).get().catch(() => null)
+        read(`titleCatalog/${profile.selectedTitleId}`)
       ));
       catalogSnapshots.forEach((titleSnapshot, index) => {
         if(!titleSnapshot?.exists) return;
@@ -169,7 +199,7 @@
     const getEnabledRankingCategoryKeys = deps.getEnabledRankingCategoryKeys || (keys => keys || []);
     const getRankingPlazaCategoryRecordLimit = deps.getRankingPlazaCategoryRecordLimit || (() => Number(deps.rankingPlazaCategoryRecordLimit) || 40);
     const normalizeRecord = deps.normalizeRankingRecordFromFirestore || (doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }));
-    const enabledCategoryKeys = getEnabledRankingCategoryKeys(rankingPlazaCategoryKeys);
+    const enabledCategoryKeys = Array.from(new Set(getEnabledRankingCategoryKeys(rankingPlazaCategoryKeys)));
     if(!db || !enabledCategoryKeys.length) return [];
     const loadCategoryRecords = async categoryKey => {
       const limit = getRankingPlazaCategoryRecordLimit(categoryKey);
@@ -202,18 +232,34 @@
     return Array.from(byRecordId.values());
   }
 
-  async function loadSeasonRankingRecordsForPlazaForDb(db, categoryKeys = [], deps = {}) {
+  async function loadSeasonRankingRecordsForPlazaForDb(db, categoryKeys = [], deps = {}, seasonEvents = []) {
     const getEnabledRankingCategoryKeys = deps.getEnabledRankingCategoryKeys || (keys => keys || []);
-    const getRankingPlazaCategoryRecordLimit = deps.getRankingPlazaCategoryRecordLimit || (() => Number(deps.rankingPlazaCategoryRecordLimit) || 40);
     const normalizeRecord = deps.normalizeRankingRecordFromFirestore || (doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }));
     const enabledCategoryKeys = getEnabledRankingCategoryKeys(Array.from(new Set(categoryKeys || [])));
     if(!db || !enabledCategoryKeys.length) return [];
+    const ranges = seasonEvents.filter(item => item.active !== false).map(item => ({
+      start: Date.parse(`${item.periodStartDate || item.startDate}T00:00:00+09:00`),
+      end: Date.parse(`${item.periodEndDate || item.endDate}T23:59:59.999+09:00`)
+    })).filter(range => Number.isFinite(range.start) && Number.isFinite(range.end) && range.start <= range.end);
+    if(!ranges.length) return [];
+    const start = new Date(Math.min(...ranges.map(range => range.start)));
+    const end = new Date(Math.max(...ranges.map(range => range.end)));
     const loadCategoryRecords = async categoryKey => {
-      const limit = Math.max(80, getRankingPlazaCategoryRecordLimit(categoryKey));
-      return db.collection('rankingRecords')
+      const baseQuery = db.collection('rankingRecords')
         .where('categoryKey', '==', categoryKey)
-        .limit(getPublicRankingQueryLimit(limit))
-        .get();
+        .where('recordedAt', '>=', start)
+        .where('recordedAt', '<=', end)
+        .orderBy('recordedAt', 'desc');
+      const docs = [];
+      let cursor;
+      while(true) {
+        const query = cursor ? baseQuery.startAfter(cursor) : baseQuery;
+        const page = getDocs(await query.limit(200).get());
+        docs.push(...page);
+        if(page.length < 200) break;
+        cursor = page[page.length - 1];
+      }
+      return { docs };
     };
     const snapshots = await Promise.all(enabledCategoryKeys.map(loadCategoryRecords));
     const byRecordId = new Map();
@@ -230,25 +276,31 @@
     if(!db) throw new Error('firestore-unavailable');
 
     return {
+      async loadSubjectRankingSnapshot() {
+        if(!root.firebase?.auth?.().currentUser) throw new Error('과목 랭킹은 로그인 후 확인할 수 있습니다.');
+        return (await root.firebase.app().functions('asia-northeast3').httpsCallable('subjectQuizAction')({action:'rankingSnapshot'})).data;
+      },
+      async loadSubjectRankingRecords(subject, limit = 10) {
+        if(!root.firebase?.auth?.().currentUser) throw new Error('과목 랭킹은 로그인 후 확인할 수 있습니다.');
+        return (await root.firebase.app().functions('asia-northeast3').httpsCallable('subjectQuizAction')({ action: 'subjectRankings', subject, limit })).data;
+      },
+      async loadSubjectMemberRankings(memberUserId) {
+        if(!root.firebase?.auth?.().currentUser) throw new Error('과목 랭킹은 로그인 후 확인할 수 있습니다.');
+        return (await root.firebase.app().functions('asia-northeast3').httpsCallable('subjectQuizAction')({ action: 'memberRankings', memberUserId })).data;
+      },
       async loadQuizKingSummaries(limit = 10) {
-        const snapshot = await db.collection('quizKingSummary')
-          .orderBy('totalScore', 'desc')
-          .limit(getPublicRankingQueryLimit(limit))
-          .get();
-        return getDocs(snapshot).map(doc => ({
-          memberUserId: doc.id,
-          ...(doc.data?.() || {})
-        })).filter(isPublicRankingRowVisible);
+        const current=await this.loadSubjectRankingSnapshot();
+        return current.summaries.filter(isPublicRankingRowVisible).slice(0,limit);
       },
 
-      loadLimitedRankingRecordsForPlaza() {
+      loadLimitedRankingRecordsForPlaza(categoryKeys) {
         if(deps.loadLimitedRankingRecordsForPlaza) return deps.loadLimitedRankingRecordsForPlaza(db);
-        return loadLimitedRankingRecordsForPlazaForDb(db, deps);
+        return loadLimitedRankingRecordsForPlazaForDb(db, categoryKeys ? { ...deps, rankingPlazaCategoryKeys: categoryKeys } : deps);
       },
 
-      loadSeasonRankingRecordsForPlaza(categoryKeys) {
-        if(deps.loadSeasonRankingRecordsForPlaza) return deps.loadSeasonRankingRecordsForPlaza(db, categoryKeys);
-        return loadSeasonRankingRecordsForPlazaForDb(db, categoryKeys, deps);
+      loadSeasonRankingRecordsForPlaza(categoryKeys, seasonEvents = []) {
+        if(deps.loadSeasonRankingRecordsForPlaza) return deps.loadSeasonRankingRecordsForPlaza(db, categoryKeys, seasonEvents);
+        return loadSeasonRankingRecordsForPlazaForDb(db, categoryKeys, deps, seasonEvents);
       },
 
       loadMemberProfilesForRankingRows(rows) {
@@ -257,12 +309,10 @@
       },
 
       async loadMemberRankingRecords(memberUserId, limit = 500) {
-        const snapshot = await db.collection('rankingRecords')
-          .where('memberUserId', '==', memberUserId)
-          .limit(limit)
-          .get();
-        const normalizeRecord = deps.normalizeRecord || (doc => ({ recordId: doc.id, ...(doc.data?.() || {}) }));
-        return getDocs(snapshot).map(normalizeRecord);
+        if(!root.firebase?.auth?.().currentUser) throw new Error('로그인 후 기록을 확인할 수 있습니다.');
+        const call=root.firebase.app().functions('asia-northeast3').httpsCallable('popularQuizAction');
+        const [popular,generated]=await Promise.all([call({action:'memberRankings',memberUserId}),this.loadSubjectMemberRankings(memberUserId)]);
+        return [...popular.data.records,...generated.records].filter(row=>row.memberUserId===memberUserId);
       },
 
       loadProfileRankingRankContext(bestRows) {
@@ -273,6 +323,8 @@
   }
 
   const api = {
+    readRankingDocument,
+    clearRankingReadCache,
     createRankingRepository,
     loadLimitedRankingRecordsForPlazaForDb,
     loadSeasonRankingRecordsForPlazaForDb,

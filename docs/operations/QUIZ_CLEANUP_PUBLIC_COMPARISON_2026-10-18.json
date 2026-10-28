@@ -1,0 +1,63 @@
+{
+  "checkedAt": "2026-10-18T07:25:02.508590+00:00",
+  "files": [
+    {
+      "path": "index.html",
+      "remoteSha256": "64dab5f037c75f55b9bcd5d2adfac030ff562506a24d1004e94c1d2617346f72",
+      "localSha256": "2a464892f5941a827157f325f45893943b87265ddc61b39ffd0ad0cfa84b0196",
+      "same": false,
+      "remoteBytes": 429411
+    },
+    {
+      "path": "js/app.bundle.js",
+      "remoteSha256": "54b204ed95d0681380155e8a1b8b593f4c4c9aa86db0be54efccf6d1d574930c",
+      "localSha256": "7b90aed5de9c4c6ca67fc89dc7656ba80fdad022731018412135d7d4f5ceffc1",
+      "same": false,
+      "remoteBytes": 994810
+    },
+    {
+      "path": "js/infrastructure/ranking-repository.js",
+      "remoteSha256": "60f4b6f0b73f1585355af75bb5239cd37aad0766828ac1fdc8c7ebdb3d62d86b",
+      "localSha256": "60f4b6f0b73f1585355af75bb5239cd37aad0766828ac1fdc8c7ebdb3d62d86b",
+      "same": true,
+      "remoteBytes": 16620,
+      "bundleModuleMatchesLocal": true
+    },
+    {
+      "path": "js/application/ranking-usecases.js",
+      "remoteSha256": "85e9992d99c3890a572aa476025b574d6916cd0aaafe69d0f447291a6f915614",
+      "localSha256": "85e9992d99c3890a572aa476025b574d6916cd0aaafe69d0f447291a6f915614",
+      "same": true,
+      "remoteBytes": 8299,
+      "bundleModuleMatchesLocal": true
+    },
+    {
+      "path": "js/infrastructure/admin-repository.js",
+      "remoteSha256": "283b3066536e548c7f627f98779f6e17b9b70c14697f111fb29d51ff23742759",
+      "localSha256": "283b3066536e548c7f627f98779f6e17b9b70c14697f111fb29d51ff23742759",
+      "same": true,
+      "remoteBytes": 8864,
+      "bundleModuleMatchesLocal": true
+    },
+    {
+      "path": "js/data/subject-quiz-catalog.js",
+      "remoteSha256": "4d081c9434656c688b09a38dcf9d25fe09bad9bc0ca5925c392620064a9d5412",
+      "localSha256": "4d081c9434656c688b09a38dcf9d25fe09bad9bc0ca5925c392620064a9d5412",
+      "same": true,
+      "remoteBytes": 6690,
+      "bundleModuleMatchesLocal": true
+    },
+    {
+      "path": "js/data/popular-quiz-catalog.js",
+      "remoteSha256": "ebfe3782e88dd922a5bc5902553f6db9df711c7b912b9e82f50433ef3d16dad6",
+      "localSha256": "ebfe3782e88dd922a5bc5902553f6db9df711c7b912b9e82f50433ef3d16dad6",
+      "same": true,
+      "remoteBytes": 1805,
+      "bundleModuleMatchesLocal": true
+    }
+  ],
+  "liveEntryChecks": {
+    "startServerFreshnessPolling": true,
+    "loadRankingPlazaCardsFromFirestore": true
+  }
+}

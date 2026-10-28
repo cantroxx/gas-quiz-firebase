@@ -1,0 +1,30 @@
+{
+  "name": "dj48-town-marble",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "format": "prettier --write src shared server tests vite.config.js",
+    "format:check": "prettier --check src shared server tests vite.config.js",
+    "dev": "vite --host 127.0.0.1 --port 5178",
+    "server": "node server/index.js",
+    "build": "node ../scripts/build-town-marble-domain.js && vite build",
+    "test": "node --test tests/*.test.js",
+    "smoke": "node tests/browser-smoke.js",
+    "smoke:layout": "node tests/layout-smoke.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.186.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "prettier": "^3.9.6",
+    "vite": "^8.3.0"
+  }
+}

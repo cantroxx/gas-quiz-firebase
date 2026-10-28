@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+'use strict';
+// Original vector artwork: small classroom objects with shared outlines and warm colors.
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../..'),dir=path.join(root,'public/images/classroom/securities');fs.mkdirSync(dir,{recursive:true});
+const art={
+ sprout_food:'<rect x="19" y="40" width="58" height="35" rx="12" fill="#e8b96c"/><path d="M19 52h58M48 52v23"/><path d="M34 39c-16-2-18-16-16-21 14-1 25 5 25 20M45 39c0-17 10-24 24-23 0 13-7 24-24 23" fill="#88b880"/><path d="M43 44V30"/><circle cx="34" cy="62" r="3" fill="#fbf2d6" stroke="none"/>',
+ book_tree:'<path d="M16 32q16-7 32 2 16-9 32-2v43q-16-7-32 2-16-9-32-2z" fill="#fff4d7"/><path d="M48 34v43M24 44l15 2M24 54l15 2M57 46l15-2M57 56l15-2"/><path d="M47 30V13M47 24q-18 0-19-13 15-2 19 13M48 20q2-15 18-13 0 13-18 13" fill="#8ab98c"/>',
+ town_store:'<rect x="21" y="35" width="55" height="43" rx="5" fill="#f3dfac"/><path d="M17 34l8-18h47l8 18" fill="#97bdad"/><path d="M17 34v7q8 9 16 0 8 9 16 0 8 9 16 0 8 9 15 0v-7" fill="#aad0bc"/><path d="M33 18v16M49 18v16M65 18v16"/><rect x="31" y="53" width="15" height="25" rx="2" fill="#ba9276"/><rect x="54" y="52" width="14" height="13" rx="2" fill="#c0dfdd"/>',
+ sun_farm:'<circle cx="68" cy="22" r="10" fill="#f3c765"/><path d="M68 6V3M83 22h5M55 10l-3-4M80 10l4-4"/><path d="M13 70q35-22 71 0v10H13z" fill="#a8c796"/><path d="M48 67V39M48 53q-19 0-21-16 17-1 21 16M48 45q1-18 22-18-2 17-22 18" fill="#83b984"/><path d="M24 77l13-8M50 80l9-12M71 78l3-9"/>',
+ ribbon_clothes:'<path d="M32 19l16 6 16-6 20 17-13 15-9-7v34H34V44l-9 7-13-15z" fill="#dca79a"/><path d="M35 21q13 18 26 0" fill="#fff0d7"/><path d="M48 40q-17-15-17 1 4 11 17 0 13 11 17 0 0-16-17-1" fill="#e9ca72"/><path d="M46 45l-7 14M50 45l7 14"/>',
+ sturdy_build:'<path d="M22 40l26-24 26 24v39H22z" fill="#f0d6a3"/><path d="M15 42l33-30 33 30" fill="none" stroke="#b77e65" stroke-width="8"/><rect x="40" y="52" width="17" height="27" rx="3" fill="#99bbaa"/><path d="M18 79h62M29 54h5M63 54h5"/><path d="M66 19v-8h8v15" fill="#b77e65"/>',
+ wind_bus:'<rect x="15" y="27" width="68" height="44" rx="12" fill="#b0c8a3"/><rect x="23" y="35" width="17" height="17" rx="4" fill="#e7f1de"/><rect x="44" y="35" width="16" height="17" rx="4" fill="#e7f1de"/><path d="M66 35h10v27H66z" fill="#f5e6c6"/><circle cx="31" cy="72" r="8" fill="#657669"/><circle cx="69" cy="72" r="8" fill="#657669"/><path d="M22 61h24M17 16h21M9 22h17"/>',
+ clear_power:'<path d="M48 31v47M28 80h40"/><circle cx="48" cy="31" r="6" fill="#f5d17b"/><path d="M46 25L43 6q12-3 12 5l-4 15M54 32l22 9q-3 12-11 7L51 36M43 35L25 49q-9-9-1-13l17-7" fill="#e7ecce"/><path d="M73 65l-9 13h9l-3 12 15-18H75l6-7" fill="#e9c064"/>',
+ cloud_robot:'<rect x="21" y="25" width="54" height="38" rx="12" fill="#b9d4cc"/><path d="M48 25V15"/><circle cx="48" cy="11" r="5" fill="#e6bc71"/><circle cx="35" cy="42" r="5" fill="#536e63" stroke="none"/><circle cx="61" cy="42" r="5" fill="#536e63" stroke="none"/><path d="M40 53q8 5 16 0M14 37v15M82 37v15"/><rect x="30" y="63" width="36" height="16" rx="6" fill="#edd09a"/><path d="M37 80v6M59 80v6"/>',
+ pixel_play:'<path d="M29 32h38q12 0 16 27 3 19-9 17L61 65H35L22 76q-14 2-9-17 4-27 16-27z" fill="#c5b9d6"/><path d="M30 44v17M22 52h17" stroke-width="5"/><circle cx="65" cy="46" r="4" fill="#e7b28f"/><circle cx="73" cy="56" r="4" fill="#9bbfaa"/><path d="M42 20l6-9 6 9-6 7z" fill="#eaca7b"/>',
+ star_lab:'<path d="M35 18h26M40 18v21L24 68q-5 12 9 12h30q14 0 9-12L56 39V18" fill="#e6eddd"/><path d="M32 58h32l8 13q1 8-9 8H33q-10 0-9-8z" fill="#9dc6bd"/><circle cx="43" cy="68" r="3" fill="#fff5d7" stroke="none"/><path d="M75 13l3 8 8 2-7 5 1 8-6-5-8 3 3-8-5-6 8 1z" fill="#ecc575"/>',
+ wave_media:'<rect x="16" y="32" width="64" height="45" rx="9" fill="#a7c9d2"/><path d="M44 43l17 12-17 12z" fill="#fff2d6"/><path d="M16 32V19l63-8 2 14z" fill="#d6b793"/><path d="M28 18l10 11M48 15l10 11M67 13l9 11" stroke="#fff3d7" stroke-width="6"/>',
+ securities:'<path d="M17 36l31-23 31 23v43H17z" fill="#f0dcac"/><path d="M12 36l36-27 36 27" fill="none" stroke="#80a895" stroke-width="8"/><rect x="29" y="39" width="38" height="27" rx="5" fill="#fff5dd"/><path d="M36 58l8-9 9 5 7-9" fill="none" stroke="#648e79" stroke-width="4"/><path d="M13 80h70"/><circle cx="71" cy="74" r="14" fill="#e9c16d"/><path d="M71 66v16M66 70h9M66 78h9" stroke="#b18c49"/>'
+};
+for(const [name,body] of Object.entries(art)){
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="1.4" flood-color="#695b40" flood-opacity=".15"/></filter></defs><ellipse cx="48" cy="85" rx="34" ry="5" fill="#727a5d" opacity=".12"/><g stroke="#64735d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)">${body}</g></svg>\n`;
+ fs.writeFileSync(name==='securities'?path.join(root,'public/images/classroom-icons/securities.svg'):path.join(dir,name+'.svg'),svg);
+}
+console.log('Built securities classroom icon and 12 original company SVG icons.');

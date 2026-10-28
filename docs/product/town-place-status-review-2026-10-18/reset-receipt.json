@@ -1,0 +1,27 @@
+{
+  "completedAt": "2026-10-18T06:13:04.313Z",
+  "backupPath": "/Users/kdw/Projects/gas-quiz-firebase/private/backups/town-practice-reset-20261018/backup-1792303773142.json",
+  "backupDigest": "f0586c3503b46c6512ebf5a74714d3c74b8f20c45bb489a10c0acbfe8fcece40",
+  "deleted": {
+    "practiceRecords": 588,
+    "userPracticeSummary": 122,
+    "badges": 607
+  },
+  "migratedTitles": 124,
+  "remainingPractice": 0,
+  "remainingBadges": 0,
+  "preserved": [
+    "owned title ids and fields",
+    "selected titles",
+    "coins",
+    "XP",
+    "rankings",
+    "reward logs"
+  ],
+  "writeCollections": [
+    "practiceRecords",
+    "userPracticeSummary",
+    "userBadges/*/badges",
+    "userTitles/*/titles (legacy metadata only)"
+  ]
+}

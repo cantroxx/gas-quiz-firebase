@@ -1,0 +1,18 @@
+{
+  "source": "projects/584571538436/sites/dj48-quiztown-firebase/versions/8e5f97f63c67c665",
+  "rawHashes": {
+    "coordi-shop/index.html": "f8d92a01229448cf17a5afcc63868f0b8987eeb8ac5509832c77a91081490e0a",
+    "index.html": "adf9f15f13e5c0ea7c4817996370bc477cffd644833703f965b3b9ad5c8e8588",
+    "js/data/place-details.js": "f9457556fc67442cfc9f5476286f4d19704f64e9808df518548b3114307290d1",
+    "js/features/home-render.js": "f6fd37561658a7342863b6d5ef937a1b50bdd373b71ef5b56df039ff6523c4ed",
+    "js/player-status-shortcut.js": "ef7438eafa636a8bb7034e88ae2274efe3c1689907b9e334f6da41afb9e3995b",
+    "player-status/index.html": "032b33bdf77c41e011af4f3e2aa74d6fbefa91d4852d97fbe2faf80990f4e6aa",
+    "player-status/status.js": "296dbb2bab8cae759c5e469acf9f8e1deafe46cfa6edf2ed51f68005a8619d4b",
+    "player-status/style.css": "ff3a0fa69036df2cdc977143c810d452a2eba2b29643c086558307329d0251b8",
+    "js/app.bundle.js": "235a1f04ad8e323f89843973d1597b5881871509ef0f49d001934ccb58035dd3",
+    "town-ui-refresh.css": "a5bc437007c2e2d1410edd2b2bb4b80e4290c02cb99eddbd19e779fb3a4913fd",
+    "coordi-shop/storybook.css": "7d39b77b99b7945a34609ac6546e063945c2c32fc102012a699cc24ffe08b1b3",
+    "images/town-ui-20261018/login-village-v1.webp": "796592e9aafb3b3cdd54c4392b9fe85d527076f4c3da121e5e04ee5298c2ddc9",
+    "images/town-ui-20261018/boutique-room-v1.webp": "f32c1090d0716fc50a48248276f8b2c3f4aa99a5344a4cab62865bc8e08b13d5"
+  }
+}

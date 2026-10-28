@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>코디 상점</title><link rel="stylesheet" href="/coordi-shop/dressing-room.css?v=hair-mix-20261018"><link rel="stylesheet" href="/coordi-shop/storybook.css?v=20261018">
+<link rel="stylesheet" href="/coordi-shop/workbench.css?v=20261028">
+</head>
+<body><main class="dress-shell">
+<header class="topbar"><div class="brand-group"><a class="brand" href="/">코디 상점<span class="brand-dot">.</span></a><span class="local-note">입어보기는 무료 · 구매는 DJ코인</span></div><div class="file-actions"><button id="import-look" type="button">불러오기</button><button id="export-look" type="button">파일로 저장</button><input type="file" id="look-file" accept=".json,application/json" hidden></div></header>
+<nav class="shop-mode-tabs" aria-label="코디 이용 방법"><button type="button" data-coordi-mode="dressroom" aria-pressed="false">드레스룸 · 무료</button><button type="button" data-coordi-mode="shop" aria-pressed="true">코디 상점</button></nav>
+<p class="dressroom-notice" id="dressroom-notice" hidden>갖고 있지 않은 옷도 마음껏 입어보세요. 여기서는 코인이 사용되지 않고, 장착한 코디도 바뀌지 않아요.</p>
+<div class="workspace">
+<section class="closet-panel" aria-label="코디 상품">
+<div class="closet-toolbar"><div><h1>코디 아이템</h1><span id="item-count" class="item-count"></span></div><label class="search-box"><span class="sr-only">코디 아이템 검색</span><input id="item-search" type="search" placeholder="아이템 이름 검색" autocomplete="off"></label></div>
+<nav class="category-tabs" id="category-tabs" aria-label="파츠 선택"></nav>
+<div class="catalog-meta"><span id="catalog-status">아이템을 불러오고 있어요.</span><span>눌러서 입어보기</span></div>
+<div class="item-grid" id="item-grid"></div>
+<nav class="coordi-pagination" aria-label="상품 페이지"><button type="button" class="coordi-page-button" id="coordi-page-prev">이전</button><span id="coordi-page-status" aria-live="polite"></span><button type="button" class="coordi-page-button" id="coordi-page-next">다음</button></nav>
+</section>
+<aside class="look-panel" aria-label="현재 코디">
+<div class="look-heading"><h2>입어보는 중</h2><button id="change-gender" type="button" aria-label="아바타 성별 변경"><span id="gender-lock-label">성별 선택</span><span aria-hidden="true"> ⇄</span></button></div>
+<div class="stage-frame" id="stage-frame" data-background="grid"><div class="character-preview" id="character" aria-label="코디 미리보기" role="img"><div class="character-avatar-shell"><div class="character-effect-layer" id="character-effects" aria-hidden="true"></div><img id="character-image" alt="현재 코디" decoding="async"></div><strong id="character-empty-title" class="sr-only">빈 캐릭터</strong><span id="character-render-status" class="sr-only"></span></div></div>
+
+<div class="background-picker" aria-label="배경 선택"><button type="button" data-background="grid" title="기본 배경">기본</button><button type="button" data-background="room">방</button><button type="button" data-background="stage">무대</button><button type="button" data-background="sky">하늘</button><button type="button" data-background="school">교실</button></div>
+<p class="api-status" id="official-look-status" role="status" aria-live="polite">아이템을 골라보세요</p>
+<button type="button" id="retry-coordi-preview" hidden>미리보기 다시 시도</button>
+<div class="preset-actions"><button type="button" id="random-button">랜덤 코디</button><button type="button" id="reset-button">기본 코디로</button></div>
+<p class="api-status">빈 의상 부위에는 기본 흰 티와 청반바지가 표시돼요. 기본 옷은 무료예요.</p>
+<div class="outfit-price-summary"><label><input type="checkbox" id="coordi-owned-only"> 보유 아이템만 보기</label><span>선택 상품 코인 가격</span><strong id="outfit-total">0 DJ코인</strong><p><span id="coordi-wallet">보유 코인 확인 중…</span></p><p id="starter-coupons" role="status" aria-live="polite">구매 쿠폰 확인 중…</p><button type="button" id="coordi-buy" disabled>코인으로 구매</button><button type="button" id="coordi-buy-coupon" disabled>쿠폰으로 구매</button><button type="button" id="coordi-equip" disabled>내 코디로 장착</button><p id="coordi-commerce-status" role="status" aria-live="polite"></p></div>
+<button type="button" id="prism-open">✦ 프리즘 염색 · 무료</button>
+<details class="coordi-tools-details"><summary>크게 보기 · 비교 · 되돌리기</summary>
+<div class="coordi-draft-tools" id="coordi-draft-tools"><button type="button" data-draft="large">크게 보기</button><button type="button" data-draft="saved">저장한 코디</button><button type="button" data-draft="undo">되돌리기</button><button type="button" data-draft="redo">다시 실행</button><button type="button" data-draft="pin-A">A 고정</button><button type="button" data-draft="pin-B">B 고정</button><button type="button" data-draft="restore-A">A 복원</button><button type="button" data-draft="restore-B">B 복원</button><button type="button" data-draft="end-compare">비교 종료</button></div>
+<p id="coordi-draft-status" class="coordi-draft-status" role="status">비교·복원은 무료 입어보기예요. 구매·장착·염색 저장은 별도 버튼으로 진행해요.</p>
+<section id="coordi-compare" class="coordi-compare" aria-label="고정한 코디 비교" hidden></section></details>
+<details class="outfit-details" open><summary>선택한 아이템 <span>눌러서 접기 / 펼치기</span></summary><div class="slot-list" id="slot-list"></div></details>
+</aside></div></main>
+<dialog class="prism-panel" id="prism-panel" aria-labelledby="prism-title"><div class="prism-heading"><h2 id="prism-title">✦ 프리즘 염색</h2><button type="button" id="prism-close" aria-label="염색 창 닫기">닫기 ✕</button></div><div class="prism-workspace"><div id="prism-preview-stage"><p>색을 조절하면 미리보기에 반영돼요.</p></div><div class="prism-controls">
+<p class="prism-help">입고 있는 아이템의 색을 바꿔보세요.</p>
+<label class="prism-target-label">염색할 부위<select id="prism-target"></select></label>
+<div id="hair-dye-controls" hidden>
+<label id="hair-dye-label">베이스 색<select id="hair-dye-color"><option value="0">검정</option><option value="1">빨강</option><option value="2">주황</option><option value="3">노랑</option><option value="4">초록</option><option value="5">파랑</option><option value="6">보라</option><option value="7">갈색</option></select></label>
+<label>믹스 색<select id="hair-mix-color"><option value="0">검정</option><option value="1">빨강</option><option value="2">주황</option><option value="3">노랑</option><option value="4">초록</option><option value="5">파랑</option><option value="6">보라</option><option value="7">갈색</option></select></label>
+<label class="hair-mix-ratio" for="hair-mix-rate">혼합 비율 <output id="hair-mix-summary" aria-live="polite">검정 100% · 갈색 0%</output></label>
+<input id="hair-mix-rate" type="range" min="0" max="99" step="1" value="0" aria-label="믹스 색 비율">
+<label class="hair-mix-number">믹스 색 <input id="hair-mix-percent" type="number" min="0" max="99" step="1" value="0" inputmode="numeric" aria-label="믹스 색 비율 숫자"> %</label>
+<p class="hair-mix-help">두 색의 합은 100%예요. 믹스 비율은 0~99%로 조절해요. 단색은 베이스 색을 고르고 믹스를 0%로 맞추세요.</p>
+<p id="hair-legacy-note" class="hair-mix-help" hidden>기존에 저장한 색을 표시하고 있어요. 새 믹스염색은 적용을 누르면 저장돼요.</p>
+</div>
+<p class="prism-help">조절을 멈추면 자동 미리보기 · 적용 전까지 저장되지 않아요.</p>
+<label class="prism-palette-label">바꿀 원본 색상<select id="prism-palette"><option value="0">전체</option><option value="1">빨강</option><option value="2">노랑</option><option value="3">초록</option><option value="4">청록</option><option value="5">파랑</option><option value="6">자주</option></select></label>
+<label class="prism-slider">색조 <output id="prism-tone-value">0</output><input id="prism-tone" type="range" min="0" max="359" value="0"></label>
+<label class="prism-slider">채도 <output id="prism-chroma-value">0</output><input id="prism-chroma" type="range" min="-99" max="99" value="0"></label>
+<label class="prism-slider">명도 <output id="prism-brightness-value">0</output><input id="prism-brightness" type="range" min="-99" max="99" value="0"></label>
+<label class="prism-black" id="prism-black-label"><input id="prism-black" type="checkbox">검은색 부분도 명도 조절</label>
+<div class="prism-actions"><button id="prism-preview" type="button">미리보기 다시 시도</button><button id="prism-apply" type="button" disabled>염색 무료 적용</button><button id="prism-cancel" type="button">미리보기 취소</button><button id="prism-restore" type="button">원색 복원 · 무료</button></div>
+<p id="prism-status" role="status" aria-live="polite">보유 아이템 염색과 원색 복원은 횟수 제한 없이 무료예요.</p>
+</div></div></dialog>
+  <div class="gender-dialog" id="gender-dialog" hidden>
+    <div class="gender-dialog-card" role="dialog" aria-modal="true" aria-labelledby="gender-dialog-title">
+      <strong id="gender-dialog-title">아바타 성별 선택</strong>
+      <p>코디의 기본 캐릭터를 선택하세요. 나중에 변경할 수 있어요.</p>
+      <div class="gender-dialog-actions">
+        <button type="button" data-set-gender="female">여자 아바타</button>
+        <button type="button" data-set-gender="male">남자 아바타</button>
+      </div>
+    </div>
+  </div>
+
+<script src="/coordi-shop/catalog-filter.js?v=20260929-curation-2"></script>
+<script src="/coordi-shop/hair-prism.js?v=hair-pixels-20261002"></script>
+<script src="/coordi-shop/data-provider.js?v=20261028"></script>
+<script src="/coordi-shop/preview-renderer.js?v=20261028"></script>
+<script src="/coordi-shop/draft-tools.js?v=20261028"></script>
+<script src="/coordi-shop/town-bridge.js?v=renderer-boundary-20261028"></script></body></html>

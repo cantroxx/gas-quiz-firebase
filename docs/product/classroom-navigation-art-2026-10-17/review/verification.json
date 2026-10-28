@@ -1,0 +1,23 @@
+{
+  "status": "deployed-and-verified",
+  "newArtwork": 3,
+  "imageTool": "built-in image_gen",
+  "exportCount": 9,
+  "exportBytes": 112596,
+  "menuIcons": 7,
+  "jobCases": [
+    "unassigned",
+    "unknown role",
+    "assigned library role"
+  ],
+  "viewportWidths": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "fullCheck": "passed",
+  "candidateUiCases": 76,
+  "studentDataChanges": false,
+  "hostingVersion": "sites/dj48-quiztown-firebase/versions/8a4f09caa04e5008"
+}

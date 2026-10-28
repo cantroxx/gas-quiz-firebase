@@ -1,0 +1,27 @@
+{
+  "createdOn": "2026-10-17",
+  "generator": "image_gen.imagegen",
+  "reference": "student-card-home-v2.png",
+  "purpose": "우리 교실 활동 카드용 서로 다른 투명 배경 캐릭터",
+  "subjects": [
+    {
+      "asset": "owl-notice",
+      "subject": "A small friendly brown owl delivering one cream envelope sealed with a pink heart, one tiny gold star beside it.",
+      "original": "assets/owl-notice.png",
+      "runtime": "public/images/classroom/cards/owl-notice-320.webp"
+    },
+    {
+      "asset": "fox-quest",
+      "subject": "A friendly orange fox holding a cream checklist and small blue telescope, no lettering or readable text on checklist.",
+      "original": "assets/fox-quest.png",
+      "runtime": "public/images/classroom/cards/fox-quest-320.webp"
+    },
+    {
+      "asset": "bunny-routine",
+      "subject": "A white bunny with pink ears and blue overalls watering a small leafy seedling with a blue watering can; tiny blank calendar beside it.",
+      "original": "assets/bunny-routine.png",
+      "runtime": "public/images/classroom/cards/bunny-routine-320.webp"
+    }
+  ],
+  "processing": "원본 투명 PNG를 보존하고 런타임용 320px WebP로 최적화함."
+}

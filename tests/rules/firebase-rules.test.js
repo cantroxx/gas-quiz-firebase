@@ -122,12 +122,12 @@ async function main() {
     projectId,
     firestore: {
       host: '127.0.0.1',
-      port: 8181,
+      port: Number((process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8181').split(':').pop()),
       rules: fs.readFileSync(path.join(projectRoot, 'firestore.rules'), 'utf8')
     },
     storage: {
       host: '127.0.0.1',
-      port: 9299,
+      port: Number((process.env.FIREBASE_STORAGE_EMULATOR_HOST || '127.0.0.1:9299').split(':').pop()),
       rules: fs.readFileSync(path.join(projectRoot, 'storage.rules'), 'utf8')
     }
   });

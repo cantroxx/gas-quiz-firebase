@@ -1,0 +1,200 @@
+{
+  "selected": [
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveReading"
+      },
+      "src": "/images/classroom/market-reserve-v1/reading-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReservePainting"
+      },
+      "src": "/images/classroom/market-reserve-v1/painting-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveSports"
+      },
+      "src": "/images/classroom/market-reserve-v1/sports-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveScience"
+      },
+      "src": "/images/classroom/market-reserve-v1/science-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveCinema"
+      },
+      "src": "/images/classroom/market-reserve-v1/cinema-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveCamera"
+      },
+      "src": "/images/classroom/market-reserve-v1/camera-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveFlowers"
+      },
+      "src": "/images/classroom/market-reserve-v1/flowers-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveWateringcan"
+      },
+      "src": "/images/classroom/market-reserve-v1/wateringcan-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveBench"
+      },
+      "src": "/images/classroom/market-reserve-v1/bench-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveMailbox"
+      },
+      "src": "/images/classroom/market-reserve-v1/mailbox-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveTreasure"
+      },
+      "src": "/images/classroom/market-reserve-v1/treasure-320.webp"
+    },
+    {
+      "form": {
+        "itemId": "",
+        "title": "",
+        "desc": "",
+        "pricePoint": 50,
+        "priceCoin": 0,
+        "priceType": "point",
+        "itemType": "coupon",
+        "boostPoint": 0,
+        "imageUrl": "",
+        "icon": "shopReserveAquarium"
+      },
+      "src": "/images/classroom/market-reserve-v1/aquarium-320.webp"
+    }
+  ],
+  "saved": {
+    "itemId": "homework-pass",
+    "title": "선택 시험",
+    "desc": "",
+    "pricePoint": 50,
+    "priceCoin": 0,
+    "priceType": "point",
+    "itemType": "coupon",
+    "boostPoint": 0,
+    "imageUrl": "",
+    "icon": "shopReserveAquarium"
+  },
+  "studentProduct": "shopReserveAquarium",
+  "equippedProduct": "/images/classroom/market-reserve-v1/aquarium-320.webp",
+  "customImagePreservedUntilSelection": true,
+  "defaultItemRespectsChosenIcon": true
+}

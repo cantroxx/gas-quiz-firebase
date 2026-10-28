@@ -39,6 +39,7 @@ function makeDb() {
 }
 
 function makeCollection(path) {
+  assert.notEqual(path.at(-1), 'classroomGems', 'catalog must use the authorized economy callable, never direct Firestore');
   return {
     doc(id) {
       calls.push(['doc', path.join('/'), id]);
@@ -84,6 +85,7 @@ function makeDocument(path) {
 const functions = {
   httpsCallable: name => async payload => {
     calls.push([name, payload]);
+    if(name === 'classroomBoardAction') return { data: payload.action === 'progress' ? { progressMap: { 'quest-1': { checked: true } } } : { recordId: 'member-1__quest-1' } };
     if(name === 'getClassroomStudentCards') {
       return { data: { students: [{ memberUserId: payload.memberUserId, classId: payload.classId }] } };
     }
@@ -266,7 +268,8 @@ async function testClassroomRepositoryFallbacksAndDelegates() {
   assert(calls.some(call => call[0] === 'verifyClassroomEntryCode' && call[1].entryCode === '1234'));
   assert(calls.some(call => call[0] === 'saveClassroomRoutine' && call[1].routine.title === 'Read'));
   assert(calls.some(call => call[0] === 'completeClassroomAutoQuest' && call[1].questId === 'quest-1'));
-  assert(calls.some(call => call[0] === 'set' && call[1] === 'classrooms/c1/questProgress/member-1__quest-1'));
+  assert(calls.some(call => call[0] === 'classroomBoardAction' && call[1].action === 'submit' && call[1].questId === 'quest-1'));
+  assert(!calls.some(call => call[0] === 'set' && call[1].includes('/questProgress/')), 'Students submit through the authorized server path');
   assert(calls.some(call => call[0] === 'reviewClassroomQuestProgress' && call[1].nextStatus === 'approved'));
 }
 
@@ -336,9 +339,35 @@ async function testClassroomRepositoryCallableErrors() {
   );
 }
 
+async function testReadFailureStatusAndRecovery() {
+  const statuses = new Map();
+  let failing = true;
+  const repository = createClassroomRepository({
+    getFirebaseFunctions: () => ({ httpsCallable: () => async () => {
+      if(failing) throw new Error('offline');
+      return { data: { myDjCoin: 17, jobs: [] } };
+    } }),
+    reportLoadStatus: (key, error) => statuses.set(key, !!error)
+  });
+  const options = { settings: { classId: 'demo' }, memberUserId: 'sample' };
+  await repository.loadClassroomEconomyBoard(options);
+  assert.equal(statuses.get('economy'), true, 'failed reads must not look like an empty economy');
+  failing = false;
+  const result = await repository.loadClassroomEconomyBoard(options);
+  assert.equal(statuses.get('economy'), false);
+  assert.equal(result.myDjCoin, 17);
+  const firestore = createClassroomRepository({
+    getFirestoreDb: () => ({ collection: () => ({ doc: () => ({ collection: () => ({ doc: () => ({ get: async () => { throw new Error('offline'); } }) }) }) }) }),
+    reportLoadStatus: (key, error) => statuses.set(key, !!error)
+  });
+  await firestore.loadClassroomQuestProgress({ ...options, settings: { classId: 'demo', quests: [{ id: 'q1', saveEnabled: true }] } });
+  assert.equal(statuses.get('progress'), true, 'failed progress reads must not enable completed quests');
+}
+
 testClassroomRepositoryReadPaths()
   .then(testClassroomRepositoryFallbacksAndDelegates)
   .then(testClassroomRepositoryCallableErrors)
+  .then(testReadFailureStatusAndRecovery)
   .then(() => console.log('Infrastructure tests passed: classroom-repository'))
   .catch(error => {
     console.error(error);

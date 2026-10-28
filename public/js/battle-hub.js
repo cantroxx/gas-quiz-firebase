@@ -1,15 +1,11 @@
-/* battle-hub.js — 학교 화면 카드 줄에 '온라인 대전' 카드를 주입한다.
- *  카드 클릭 → /battle/ (온라인 대전 선택 페이지)로 이동.
- *  과목 카드가 과목관으로 "화면 이동"하듯, 대전도 선택 페이지로 이동하는 구조.
- *  (v1의 body 오버레이 방식은 SPA 화면 전환과 얽혀 폐기)
- *  카드 위치는 styles.css 의 .school-quiz-card-battle 좌표가 담당한다.
- */
+/* School entrance to the shared game room; older shells fall back to /battle/. */
 (function () {
   'use strict';
 
   function go(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    window.location.href = '/battle/';
+    if(window.DJ48SchoolHubs?.open) window.DJ48SchoolHubs.open('games');
+    else window.location.href = '/battle/';
   }
 
   function injectCard() {
@@ -25,11 +21,11 @@
 
     var icon = document.createElement('span');
     icon.className = 'school-quiz-icon';
-    icon.textContent = '⚔️';
+    icon.textContent = '🎲';
     var title = document.createElement('h3');
-    title.textContent = '온라인 대전';
+    title.textContent = '게임 아지트';
     var desc = document.createElement('p');
-    desc.textContent = '낱말 대전 · 특산물 마블 · 특산물 대상인 — 대결과 무역 여행';
+    desc.textContent = '친구와 대결하고 나만의 기록에 도전해요!';
     var button = document.createElement('button');
     button.className = 'school-ready-button';
     button.type = 'button';

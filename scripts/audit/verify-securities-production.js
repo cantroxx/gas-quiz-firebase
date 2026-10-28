@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const lib='/opt/homebrew/lib/node_modules/firebase-tools/lib/',auth=require(lib+'auth'),{requireAuth}=require(lib+'requireAuth'),{Client}=require(lib+'apiv2');
+(async()=>{
+ const project='dj48-quiztown-firebase',region='asia-northeast3',stage='/tmp/securities-cd-20261018';await requireAuth({project,...auth.getGlobalDefaultAccount()});
+ const receipt=JSON.parse(fs.readFileSync(stage+'/functions-receipt.json')),checks=[];
+ for(const name of receipt.targets.filter(x=>x!=='classroomSecuritiesTick')){const response=await fetch(`https://${region}-${project}.cloudfunctions.net/${name}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{classId:'G4-C8',marketId:'coin-v1',action:'market'}})});const data=await response.json();assert.equal(response.status,401);assert.equal(data.error.status,'UNAUTHENTICATED');checks.push({name,status:response.status,error:data.error.status});}
+ const scheduler=new Client({urlPrefix:'https://cloudscheduler.googleapis.com',apiVersion:'v1',auth:true});const job=(await scheduler.get(`projects/${project}/locations/${region}/jobs/firebase-schedule-classroomSecuritiesTick-${region}`)).body;assert.equal(job.state,'ENABLED');assert.equal(job.timeZone,'Asia/Seoul');assert.equal(job.schedule,'every 1 minutes');
+ const logging=new Client({urlPrefix:'https://logging.googleapis.com',apiVersion:'v2',auth:true});const logs=(await logging.post('entries:list',{resourceNames:[`projects/${project}`],filter:'resource.type="cloud_scheduler_job" AND resource.labels.job_id="firebase-schedule-classroomSecuritiesTick-asia-northeast3" AND jsonPayload."@type"="type.googleapis.com/google.cloud.scheduler.logging.AttemptFinished"',orderBy:'timestamp desc',pageSize:1})).body.entries||[];assert(logs.length,'No scheduler completion log yet');fs.writeFileSync(stage+'/scheduler-last.json',JSON.stringify(logs[0],null,2));assert.equal(logs[0].httpRequest?.status,200,'Scheduler execution failed');
+ const result={checks,schedulerExecution:{timestamp:logs[0].timestamp,httpStatus:logs[0].httpRequest.status},scheduler:{name:job.name,state:job.state,schedule:job.schedule,timeZone:job.timeZone},verifiedAt:new Date().toISOString()};fs.writeFileSync(stage+'/production-verification.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+})().catch(e=>{console.error(e.message);process.exitCode=1});

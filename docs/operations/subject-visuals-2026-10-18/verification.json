@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-18",
+  "deployed": true,
+  "revision": "subject-visual-2026-10-18-v4",
+  "tests": {
+    "fullCheck": {
+      "exitCode": 0,
+      "log": "/tmp/subject-visual-check.log"
+    },
+    "subjectUnit": {
+      "passed": 33,
+      "log": "/tmp/subject-visual-unit-final.log"
+    },
+    "browserRegression": {
+      "units": 49,
+      "fixtures": 834,
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "screens": 2502
+    },
+    "finalDiagramLayouts": {
+      "uniqueDiagrams": 102,
+      "screens": 306,
+      "log": "/tmp/subject-visual-layout.log"
+    },
+    "finalSamples": {
+      "questions": 6,
+      "screens": 18,
+      "log": "/tmp/subject-visual-samples.log"
+    },
+    "finalEmulator": {
+      "project": "demo-subject-visual",
+      "exitCode": 0,
+      "legacyVisualFallback": true,
+      "feedbackDiagramPersistence": true,
+      "log": "/tmp/subject-visual-online-final.log"
+    }
+  },
+  "sha256": {
+    "functions/subject-quiz/history-workshop.js": "60f9c06b6244a479049604b5f2c5e3aeca12eb19c9a697c39a29ca4d30c7c48d",
+    "functions/subject-quiz/pool.js": "8730ed49918112180c2dd70e9e95beb50c8cffe10822328fe2c4b6f99803f9c5",
+    "functions/subject-quiz/service.js": "8ce1afaf297aafef658e5cb1a78980d9af5be82cc0692c741ab4aee92601f053",
+    "functions/subject-quiz/visual-scenes.js": "ab1ae8891ee1ab2217eb057382983a8b83d798bf3e3cb2ec427e5a8a54fbf666",
+    "functions/subject-quiz/visual-apparatus.js": "8e09490e1837f45d565af56e4082d0a59024accb1faa15fc20f6bfff0ed9e51e",
+    "functions/subject-quiz/visual-packs.js": "e5364aeb2f87c7beee1580e6335f48451771d69fb6a1ed673727ba1ddac43c24",
+    "functions/subject-quiz/visual-science.js": "13f65c8de49042c6a55c750888536e5b4da3b35cf2fe3bde1584c725f53a0412",
+    "functions/subject-quiz/visual-social.js": "9065f59c24b7626c5bc688ea3a33e58dca2f5b6bb0bb843ed36bafbb641e4187",
+    "public/subject-quiz/index.html": "0605dc88d705adf6ac08716dc8a96c05e1dace1b883ee5c049e6c11be4e83dd1",
+    "public/subject-quiz/app.js": "05e9e04b769c591f54563fb5ebc683b8bb2532af9e3b6a7d691c0498027505df",
+    "public/subject-quiz/style.css": "550edf7737237fa8b43759ed71bb6163805d3a78e9633bed8f8e5e1eb68edabd",
+    "tests/subject-quiz/pool.test.js": "41ea4cf3fba5abfb61e4ca5b335838440ffb808849300de15fe48fc5bd42e502",
+    "tests/subject-quiz/service.test.js": "b27b017ff4db9c138fa6566d44e9d7ffb384f3f10224ce9b4ef7b036d87da432",
+    "scripts/smoke/subject-quiz-browser.js": "4ccdba15990a0f0c3973211fc1edcee73a1aff2a318f210e6909316a561c184f"
+  },
+  "deployment": "deployment.json",
+  "hostingVersion": "sites/dj48-quiztown-firebase/versions/02a49fc4f45d9528"
+}

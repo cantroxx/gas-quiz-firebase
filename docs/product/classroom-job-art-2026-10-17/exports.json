@@ -1,0 +1,62 @@
+[
+  {
+    "key": "board-manager",
+    "size": 160,
+    "bytes": 9536
+  },
+  {
+    "key": "board-manager",
+    "size": 320,
+    "bytes": 25634
+  },
+  {
+    "key": "library-helper",
+    "size": 160,
+    "bytes": 9970
+  },
+  {
+    "key": "library-helper",
+    "size": 320,
+    "bytes": 25042
+  },
+  {
+    "key": "clean-desk-leader",
+    "size": 160,
+    "bytes": 8656
+  },
+  {
+    "key": "clean-desk-leader",
+    "size": 320,
+    "bytes": 23564
+  },
+  {
+    "key": "tech-helper",
+    "size": 160,
+    "bytes": 9584
+  },
+  {
+    "key": "tech-helper",
+    "size": 320,
+    "bytes": 23214
+  },
+  {
+    "key": "mission-reporter",
+    "size": 160,
+    "bytes": 9126
+  },
+  {
+    "key": "mission-reporter",
+    "size": 320,
+    "bytes": 22788
+  },
+  {
+    "key": "kindness-captain",
+    "size": 160,
+    "bytes": 8350
+  },
+  {
+    "key": "kindness-captain",
+    "size": 320,
+    "bytes": 20506
+  }
+]

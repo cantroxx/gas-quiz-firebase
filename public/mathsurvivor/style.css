@@ -286,3 +286,7 @@ html, body {
   .quiz-text { font-size: 22px; }
   .quiz-input-row { grid-template-columns: 1fr; }
 }
+
+/* Ranking entries are sibling rows, with stable columns on portrait screens. */
+.hall-list{overflow-x:hidden}.hall-row{display:grid;grid-template-columns:40px minmax(0,1fr) minmax(90px,auto);gap:12px;min-width:0;padding:12px}.hall-rank{width:auto;white-space:nowrap}.hall-name{min-width:0;overflow-wrap:anywhere;word-break:keep-all}.hall-score{text-align:right;white-space:nowrap}.hall-score small{display:block;font-size:13px}
+@media(max-width:420px){.hall-row{grid-template-columns:28px minmax(0,1fr) minmax(70px,auto);gap:8px;padding:10px;font-size:15px}.hall-score small{font-size:11px}.hall-tabs{gap:6px}.hall-tabs button{font-size:15px;padding:8px 10px}}

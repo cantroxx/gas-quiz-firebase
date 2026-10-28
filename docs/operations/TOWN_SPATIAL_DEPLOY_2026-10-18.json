@@ -1,0 +1,31 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792293721912000",
+  "version": "sites/dj48-quiztown-firebase/versions/2883f013195d482e",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/170a9325bad778b2",
+  "changed": [
+    "/index.html",
+    "/town-spatial.css",
+    "/js/town-spatial.js",
+    "/images/town-spatial-20261018/town-v1.webp",
+    "/images/town-spatial-20261018/home-v1.webp",
+    "/images/town-spatial-20261018/shop-v1.webp",
+    "/images/town-spatial-20261018/event-v1.webp",
+    "/images/town-spatial-20261018/ranking-v1.webp",
+    "/images/town-spatial-20261018/school-v1.webp",
+    "/images/town-spatial-20261018/entrance-v1.webp",
+    "/images/town-spatial-20261018/guide-v1.webp"
+  ],
+  "preservedFiles": 3982,
+  "date": "2026-10-18",
+  "site": "https://dj48-quiztown-firebase.web.app",
+  "hostingConfigPreserved": true,
+  "functionsOrRulesDeployed": false,
+  "dataReset": false,
+  "checks": {
+    "fullCheck": "passed; tested source hashes unchanged",
+    "candidateSpatial": "passed",
+    "candidateShell": "passed",
+    "liveManifestAndHashes": "passed",
+    "livePublicLogin": "passed 1440/390/320, backend blocked"
+  }
+}

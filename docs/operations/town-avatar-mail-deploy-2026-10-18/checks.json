@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "candidateDigest": "62b99f73b9d81003a508516f23ea94cea23ba45142016ab39df2bd862d253a2d",
+  "checks": [
+    "npm run check: exit 0",
+    "candidate town-spatial-browser: exit 0",
+    "candidate town-avatar-browser: exit 0",
+    "candidate coordi-commerce-browser: exit 0",
+    "candidate public browser smoke: exit 0"
+  ]
+}

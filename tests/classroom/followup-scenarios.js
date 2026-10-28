@@ -1,0 +1,70 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {createService}=require('../../functions/classroom/followup');
+class AppError extends Error{constructor(code,message){super(message);this.code=code;}}
+async function scenarios({db,classId,seed,get,settings}){
+ let time=Date.parse('2026-10-21T10:00:00+09:00'),seq=0;
+ const service=createService({db,ErrorType:AppError,now:()=>time,randomInt:()=>0,authorize:async(tx,id,uid,cid)=>{if(uid!=='uid-'+id||cid!==classId||!['F-S1','F-S2','F-T'].includes(id))throw new AppError('permission-denied','scope');return {settings,isTeacher:id==='F-T'};}});
+ const req=(member,action,p={})=>service('uid-'+member,{classId,memberUserId:member,action,requestId:'req-'+ ++seq,...p});
+ const t=(action,p={})=>req('F-T',action,{targetMemberUserId:'F-S1',...p}),s=(action,p={})=>req('F-S1',action,p);
+ const path=n=>`classrooms/${classId}/continuity${n}`;
+ const setup=(kind,config)=>t('configure',{kind,config});
+ const fail=(p,code)=>assert.rejects(p,e=>e.code===code);
+ for(const id of ['F-S1','F-S2']){await seed('users/'+id,{role:'student',active:true,status:'active',grade:settings.grade,classNumber:settings.classNumber});await seed(`classrooms/${classId}/studentWallets/${id}`,{point:100});await seed('userEconomy/'+id,{djCoin:100});}
+ await seed(path('Fund/balance'),{point:0,djCoin:100});
+ await fail(service('',{}),'unauthenticated');await fail(req('outsider','list'),'permission-denied');await fail(s('configure',{kind:'item',config:{}}),'permission-denied');
+ await setup('routine',{id:'daily',title:'일일',policy:'daily',startDate:'2026-10-01',reward:2.25,items:['읽기','정리']});
+ const requestId='concurrent-daily';const pair=await Promise.all([s('checkRoutine',{routineId:'daily',checked:[0,1],requestId}),s('checkRoutine',{routineId:'daily',checked:[0,1],requestId})]);assert.equal(pair.filter(r=>r.duplicate).length,1);
+ assert.equal((await get(`classrooms/${classId}/studentWallets/F-S1`)).point,102.25);
+ await fail(s('checkRoutine',{routineId:'daily',checked:[0],requestId}),'already-exists');await fail(s('checkRoutine',{routineId:'daily',checked:[0,1]}),'failed-precondition');
+ await fail(setup('routine',{id:'daily',title:'변경',policy:'daily',startDate:'2026-10-01',reward:900,items:['읽기']}),'failed-precondition');
+ await setup('routine',{id:'daily',title:'종료한 일일 루틴',active:false,policy:'daily',startDate:'2026-10-01',reward:2.25,items:['읽기','정리']});
+ await fail(s('checkRoutine',{routineId:'daily',checked:[0,1]}),'failed-precondition');
+ await setup('routine',{id:'per-item',title:'항목마다 보상',policy:'daily',rewardBasis:'per-item',startDate:'2026-10-01',reward:.5,items:['하나','둘']});
+ assert.equal((await s('checkRoutine',{routineId:'per-item',checked:[0]})).rewardPoint,.5);
+ assert.equal((await s('checkRoutine',{routineId:'per-item',checked:[0]})).rewardPoint,0);
+ await fail(s('checkRoutine',{routineId:'per-item',checked:[]}),'failed-precondition');
+ assert.equal((await s('checkRoutine',{routineId:'per-item',checked:[0,1]})).rewardPoint,.5);
+ await seed('users/F-other',{role:'student',active:true,status:'active',grade:'other',classNumber:'8'});
+ await fail(t('list',{targetMemberUserId:'F-other'}),'permission-denied');
+ await setup('routine',{id:'period',title:'기간',policy:'period',startDate:'2026-10-20',endDate:'2026-10-21',reward:3.5,items:['읽기']});
+ await t('checkRoutine',{routineId:'period',dateKey:'2026-10-20',checked:[0]});await fail(t('settleRoutine',{routineId:'period'}),'failed-precondition');await s('checkRoutine',{routineId:'period',checked:[0]});await t('settleRoutine',{routineId:'period'});await fail(t('settleRoutine',{routineId:'period'}),'already-exists');
+ for(const id of ['job-a','job-b'])await setup('job',{id,title:id,jobId:id,memberUserId:'F-S1',salary:10.5,currency:'djCoin',adjustment:10,taxPercent:10});
+ const salary=await t('paySalary',{jobId:'job-a',month:'2026-10'});assert.deepEqual([salary.gross,salary.tax,salary.net],[11.55,1.16,10.39]);await t('paySalary',{jobId:'job-b',month:'2026-10'});await fail(t('paySalary',{jobId:'job-a',month:'2026-10'}),'already-exists');
+ await setup('job',{id:'renamed',title:'동일 직업 새 배정',jobId:'job-a',memberUserId:'F-S1',salary:500,currency:'djCoin'});await fail(t('paySalary',{jobId:'renamed',month:'2026-10'}),'already-exists');
+ await setup('deposit',{id:'week',title:'7일',days:7,interestPercent:5,earlyFee:1});
+ const dep=await s('deposit',{planId:'week',amount:10});const early=await s('settleDeposit',{depositId:dep.depositId});assert.equal(early.payout,9);await fail(s('settleDeposit',{depositId:dep.depositId}),'already-exists');
+ const mature=await s('deposit',{planId:'week',amount:20});time+=7*86400000;assert.equal((await s('settleDeposit',{depositId:mature.depositId})).payout,21);
+ await setup('exchange',{id:'p-to-c',title:'환전',from:'point',to:'djCoin',ratio:1,feePercent:10,fixedFee:0.25});const exchanged=await s('exchange',{policyId:'p-to-c',amount:10});assert.equal(exchanged.credit,8.75);assert.equal(exchanged.fee,1.25);
+ const before=await get(`classrooms/${classId}/studentWallets/F-S1`),fund=await get(path('Fund/balance'));
+ await fail(s('exchange',{policyId:'p-to-c',amount:10000}),'failed-precondition');assert.deepEqual(await get(`classrooms/${classId}/studentWallets/F-S1`),before);assert.deepEqual(await get(path('Fund/balance')),fund);
+ await setup('item',{id:'seed',title:'완두 씨앗',kind:'seed',price:2,growHours:1,harvestCoin:3});await s('buyItem',{itemId:'seed',quantity:2});await s('plant',{itemId:'seed',slot:1});await fail(s('harvest',{slot:1}),'failed-precondition');time+=3600000;
+ const harvest=await Promise.allSettled([s('harvest',{slot:1}),s('harvest',{slot:1})]);assert.equal(harvest.filter(r=>r.status==='fulfilled').length,1);
+ await setup('item',{id:'skin',title:'노을',kind:'skin',price:3,theme:'sunset'});await s('buyItem',{itemId:'skin'});await s('equipSkin',{itemId:'skin'});await fail(s('buyItem',{itemId:'skin'}),'already-exists');
+ await setup('item',{id:'coupon',title:'자리 선택',kind:'coupon',price:2});await s('buyItem',{itemId:'coupon'});await fail(s('redeemCoupon',{itemId:'coupon'}),'permission-denied');await t('redeemCoupon',{itemId:'coupon'});await fail(t('redeemCoupon',{itemId:'coupon'}),'failed-precondition');
+ const request=await s('requestPoints',{amount:1.25,category:'협력',reason:'친구 돕기'});await t('reviewRequest',{recordId:request.requestId,status:'approved',reason:'확인'});await fail(t('reviewRequest',{recordId:request.requestId,status:'approved',reason:'중복'}),'failed-precondition');
+ const rejected=await s('requestPoints',{amount:1,category:'협력',reason:'테스트'});await t('reviewRequest',{recordId:rejected.requestId,status:'rejected',reason:'다시 작성'});
+ await t('saveObservation',{text:'교사만 보는 관찰',dateKey:'2026-10-21'});const student=await s('list');assert.equal(student.observations,undefined);assert(!student.records.some(r=>r.action==='saveObservation'),'Teacher observation metadata stays private');assert.equal(student.profile.theme,'sunset');assert.equal((await t('list')).observations.length,1);
+ await t('openLottery',{roundId:'round1',title:'복권',ticketPrice:1,jackpot:10.01,maxPerStudent:2,maxTickets:3,closesAt:time+1000});await s('buyTicket',{roundId:'round1',number:1});await req('F-S2','buyTicket',{roundId:'round1',number:1});await fail(s('buyTicket',{roundId:'round1',number:2}),'failed-precondition');await fail(t('drawLottery',{roundId:'round1'}),'failed-precondition');time+=2000;
+ const draw=await Promise.allSettled([t('drawLottery',{roundId:'round1'}),t('drawLottery',{roundId:'round1'})]);assert.equal(draw.filter(r=>r.status==='fulfilled').length,1);const round=(await s('list')).rounds[0];assert.equal(round.tickets,undefined);assert.equal(round.ticketCount,2);assert.deepEqual(round.winners,['F-S1','F-S2']);assert.equal(round.payoutPerWinner,5);assert.equal(round.winningNumber,1);assert.equal(round.returnedToFund,.01);
+ await t('openLottery',{roundId:'empty',title:'미판매',ticketPrice:1,jackpot:5,maxPerStudent:2,maxTickets:3,closesAt:time+1000});time+=2000;assert.equal((await t('drawLottery',{roundId:'empty'})).returnedToFund,5);
+ // Closed source archives remain private/read-only and can be paged without omissions.
+ for(let i=0;i<105;i++)await seed(path('Archives/'+String(i).padStart(3,'0')),{memberUserId:'F-S1',visibility:i===0?'teacher':'owner',section:'growth',original:{level:i}});
+ const page1=await s('history',{section:'archives'});assert.equal(page1.rows.length,99);assert.equal(page1.nextCursor,'099');
+ const page2=await s('history',{section:'archives',cursor:page1.nextCursor});assert.equal(page2.rows.length,5);assert.equal(page2.nextCursor,'');
+ assert.equal((await t('history',{section:'archives'})).rows.length,100);
+ const wrongChoice=await t('openLottery',{roundId:'no-win',title:'미당첨 확인',ticketPrice:1,jackpot:2,maxTickets:3,closesAt:time+1000});
+ await fail(s('buyTicket',{roundId:'no-win',number:101}),'invalid-argument');await s('buyTicket',{roundId:'no-win',number:2});await fail(s('closeLottery',{roundId:'no-win'}),'permission-denied');await t('closeLottery',{roundId:'no-win'});await fail(req('F-S2','buyTicket',{roundId:'no-win',number:1}),'failed-precondition');
+ const noWinner=await t('drawLottery',{roundId:'no-win'});assert.equal(noWinner.winners.length,0);assert.equal(noWinner.returnedToFund,2);
+ const snap=await get('userEconomy/F-S1');assert(snap.djCoin>0);await fail(s('deposit',{planId:'week',amount:0.001}),'invalid-argument');await fail(s('deposit',{planId:'week',amount:-1}),'invalid-argument');
+ // Financial journals must explain all changes from the synthetic starting balance.
+ const list=await t('list'),ledger=list.records;
+ assert.equal(Math.round((100+ledger.reduce((v,r)=>v+r.deltaPoint,0))*100)/100,list.wallet.point);
+ assert.equal(Math.round((100+ledger.reduce((v,r)=>v+r.deltaCoin,0))*100)/100,list.wallet.djCoin);
+ const allLedger=(await t('list',{all:true})).records;
+ assert.equal(Math.round(allLedger.reduce((v,r)=>v+r.fundPoint,0)*100)/100,list.fund.point);
+ assert.equal(Math.round((100+allLedger.reduce((v,r)=>v+r.fundCoin,0))*100)/100,list.fund.djCoin);
+ console.log('PASS followup scenarios: daily/period routines, multi-job payroll/tax, deposits, fee/fund reconciliation, atomic insufficient funds, seed planting/harvest concurrency, skin/coupon ownership, requests/observations privacy, lottery close/draw/retry/reserve, journal balance equality.');
+ return service;
+}
+module.exports={scenarios};

@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),crypto=require('node:crypto');const {initializeApp,deleteApp}=require('firebase-admin/app'),{getFirestore}=require('firebase-admin/firestore');const Q=require('../../functions/space-assessment/questions');
+(async()=>{assert.equal(process.env.FIRESTORE_EMULATOR_HOST,'127.0.0.1:8181');const app=initializeApp({projectId:'demo-dj48-rules'},'space-batch'),db=getFirestore(app),token=()=>crypto.randomBytes(32).toString('hex'),svc=require('../../functions/space-assessment/service').createService({db,authorize:async()=>({isSuperAdmin:true})});try{
+ const cls={school:'일괄채점검사'+Date.now(),grade:4,classNo:1},owner=token(),room=(await svc.act({action:'create',...cls,lastNumber:2,token:owner},'admin')).room;assert.equal(room.questionCount,25);
+ for(let number=1;number<=2;number++){const st={roomId:room.id,number,token:token()};await svc.act({action:'join',...cls,...st});for(let i=0;i<25;i++){const q=Q.questions[i];await svc.act({action:'save',...st,questionId:i+1,revision:i,answer:JSON.stringify({value:number===2&&i===0?[2]:q.answer,evidence:q.days?q.days.map(d=>q.target+':'+d):[q.target]})});}await svc.act({action:'submit',...st});}
+ const result=await svc.act({action:'grade',roomId:room.id,token:owner});assert.equal(result.report.automaticTotal,25);assert.equal(result.report.manualTotal,0);assert.deepEqual(result.report.students.map(s=>s.correct),[25,24]);assert.ok(result.report.students.every(s=>s.submitted&&s.items.length===25));
+ const oldCls={...cls,classNo:2},oldOwner=token(),oldRoom=(await svc.act({action:'create',...oldCls,lastNumber:1,token:oldOwner},'admin')).room;
+ const legacy=Q.questions.slice(0,10).map(q=>({...q}));legacy[6]={id:'jupiter-report',target:'jupiter',area:'solar',title:'기존 서술',type:'short'};
+ await db.doc('spaceAssessmentSessions/'+oldRoom.id).update({questionSet:legacy,questionCount:10,version:'legacy-test'});
+ const st={roomId:oldRoom.id,number:1,token:token()},joined=await svc.act({action:'join',...oldCls,...st});assert.equal(joined.questions.length,10);assert.equal(joined.student.answers.length,10);
+ await assert.rejects(svc.act({action:'save',...st,questionId:11,revision:0,answer:'x'}),e=>e.code==='invalid-argument');
+ for(let i=0;i<10;i++){const q=legacy[i];await svc.act({action:'save',...st,questionId:i+1,revision:i,answer:JSON.stringify({value:q.type==='short'?'띠 모양의 구름이 보여요':q.answer,evidence:q.days?q.days.map(d=>q.target+':'+d):[q.target]})});}await svc.act({action:'submit',...st});const oldGrade=await svc.act({action:'grade',roomId:oldRoom.id,token:oldOwner});assert.equal(oldGrade.report.automaticTotal,9);assert.equal(oldGrade.report.manualTotal,1);assert.equal(oldGrade.report.students[0].correct,9);
+ console.log('PASS: 2 students complete 25 questions and final-submit, teacher batch-grades 25/25 and 24/25; old 10-question room remains compatible.');
+}finally{await deleteApp(app);}})().catch(e=>{console.error(e);process.exitCode=1});

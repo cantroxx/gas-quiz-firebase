@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "candidateDigest": "cedb770ba610d7356dc75b56f16e8e70c49fe866b041cf7148305c8457695da7",
+  "candidateChecks": [
+    "spatial-check.log",
+    "avatar-check.log",
+    "shell-check.log"
+  ],
+  "fullCheck": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "log": "docs/product/town-cleanup-review-2026-10-18/full-check.log",
+    "subjectScreens": 1584
+  },
+  "finalStatic": {
+    "command": "npm run check:static",
+    "exitCode": 0
+  },
+  "scope": "8 files; existing app bundle and independent housing unchanged"
+}

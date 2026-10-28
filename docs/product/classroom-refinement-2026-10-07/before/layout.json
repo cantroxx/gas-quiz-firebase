@@ -1,0 +1,250 @@
+{
+  "fixture": "classroom-ui-browser.js synthetic demo class",
+  "cases": [
+    {
+      "name": "student-1440-quest",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 293,
+      "cardHeight": 142,
+      "scrollWidth": 1440,
+      "images": []
+    },
+    {
+      "name": "student-1440-market",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 298,
+      "cardHeight": 270,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/snack-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/stationery/lunch-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "student-768-quest",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 345,
+      "cardHeight": 142,
+      "scrollWidth": 768,
+      "images": []
+    },
+    {
+      "name": "student-768-market",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 350,
+      "cardHeight": 270,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/snack-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/stationery/lunch-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "student-390-quest",
+      "width": 390,
+      "height": 844,
+      "firstTop": 315,
+      "cardHeight": 196,
+      "scrollWidth": 390,
+      "images": []
+    },
+    {
+      "name": "student-390-market",
+      "width": 390,
+      "height": 844,
+      "firstTop": 358,
+      "cardHeight": 248,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/snack-160.webp",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/stationery/lunch-160.webp",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        }
+      ],
+      "selectedActionVisible": true
+    },
+    {
+      "name": "teacher-1440-quest",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 322,
+      "cardHeight": 164,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/notebook-160.webp",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/stationery/notebook-160.webp",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        }
+      ]
+    },
+    {
+      "name": "teacher-1440-market",
+      "width": 1440,
+      "height": 1000,
+      "firstTop": 298,
+      "cardHeight": 270,
+      "scrollWidth": 1440,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/snack-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/stationery/lunch-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "teacher-768-quest",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 374,
+      "cardHeight": 164,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/notebook-160.webp",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        },
+        {
+          "src": "/images/classroom/stationery/notebook-160.webp",
+          "width": 50,
+          "height": 50,
+          "boxWidth": 56,
+          "boxHeight": 56
+        }
+      ]
+    },
+    {
+      "name": "teacher-768-market",
+      "width": 768,
+      "height": 1024,
+      "firstTop": 350,
+      "cardHeight": 270,
+      "scrollWidth": 768,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/snack-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        },
+        {
+          "src": "/images/classroom/stationery/lunch-160.webp",
+          "width": 96,
+          "height": 96,
+          "boxWidth": 96,
+          "boxHeight": 96
+        }
+      ]
+    },
+    {
+      "name": "teacher-390-quest",
+      "width": 390,
+      "height": 844,
+      "firstTop": 398,
+      "cardHeight": 218,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/notebook-160.webp",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        },
+        {
+          "src": "/images/classroom/stationery/notebook-160.webp",
+          "width": 34,
+          "height": 34,
+          "boxWidth": 40,
+          "boxHeight": 40
+        }
+      ]
+    },
+    {
+      "name": "teacher-390-market",
+      "width": 390,
+      "height": 844,
+      "firstTop": 372,
+      "cardHeight": 248,
+      "scrollWidth": 390,
+      "images": [
+        {
+          "src": "/images/classroom/stationery/snack-160.webp",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        },
+        {
+          "src": "/images/classroom/stationery/lunch-160.webp",
+          "width": 80,
+          "height": 80,
+          "boxWidth": 80,
+          "boxHeight": 80
+        }
+      ],
+      "selectedActionVisible": true
+    }
+  ]
+}

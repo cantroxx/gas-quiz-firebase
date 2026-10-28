@@ -5,7 +5,8 @@
     const grid = document.getElementById('school-quiz-grid');
     if(!grid) return;
     grid.innerHTML = '';
-    (deps.schoolQuizCards || []).forEach(card => {
+    const doors = [{ schoolHub: 'subjects', title: '과목 퀴즈', enabled: true }, { schoolHub: 'learning', title: '학습 퀴즈', enabled: true }, { subjectId: 'popular' }];
+    doors.forEach(card => {
       const subject = card.subjectId ? deps.subjectCatalog?.[card.subjectId] : null;
       const viewModel = subject ? {
         icon: subject.icon,
@@ -16,6 +17,7 @@
       } : {
         ...card
       };
+      if(viewModel.subjectId === 'popular') viewModel.schoolHub = 'popular';
       if(viewModel.externalQuizHub && deps.featureFlags?.externalQuizzesEnabled === false && !deps.isAdminMember?.()) {
         viewModel.enabled = false;
       }
@@ -27,36 +29,32 @@
       const usageNotice = document.createElement('p');
 
       item.className = 'school-quiz-card';
+      if(viewModel.schoolHub) { item.classList.add(`school-quiz-card-${viewModel.schoolHub}`); item.dataset.schoolHub = viewModel.schoolHub; }
       if(viewModel.subjectId) item.classList.add(`school-quiz-card-${viewModel.subjectId}`);
       if(viewModel.externalQuizHub) item.classList.add('school-quiz-card-external');
-      if(viewModel.enabled && (viewModel.subjectId || viewModel.externalQuizHub)) {
-        if(viewModel.subjectId) item.dataset.subjectId = viewModel.subjectId;
+      if(viewModel.enabled && (viewModel.subjectId || viewModel.externalQuizHub || viewModel.schoolHub)) {
+        if(viewModel.subjectId && !viewModel.schoolHub) item.dataset.subjectId = viewModel.subjectId;
         if(viewModel.externalQuizHub) item.dataset.externalQuizHub = 'true';
         if(viewModel.externalQuizHub) item.setAttribute('aria-expanded', 'false');
         item.tabIndex = 0;
         item.setAttribute('role', 'button');
       }
       icon.className = 'school-quiz-icon';
-      icon.textContent = viewModel.icon;
+      icon.textContent = viewModel.icon || "";
       title.textContent = viewModel.title;
-      desc.textContent = viewModel.desc;
+      desc.textContent = viewModel.desc || "";
       button.className = viewModel.enabled ? 'school-ready-button' : 'school-disabled-button';
       button.type = 'button';
       button.disabled = !viewModel.enabled;
       button.textContent = viewModel.enabled ? '입장하기' : '준비 중';
-      if(viewModel.subjectId) button.dataset.subjectId = viewModel.subjectId;
+      button.setAttribute('aria-label', `${viewModel.title} ${viewModel.enabled ? '입장하기' : '준비 중'}`);
+      if(viewModel.subjectId && !viewModel.schoolHub) button.dataset.subjectId = viewModel.subjectId;
       if(viewModel.externalQuizHub) {
         button.dataset.externalQuizHub = 'true';
         button.setAttribute('aria-expanded', 'false');
       }
 
       item.append(icon, title, desc);
-      if(viewModel.subjectId === 'popular') {
-        usageNotice.className = 'popular-usage-notice';
-        usageNotice.dataset.popularUsageNotice = 'true';
-        usageNotice.textContent = '인기퀴즈 이용 시간을 확인하는 중입니다...';
-        item.appendChild(usageNotice);
-      }
       item.appendChild(button);
       grid.appendChild(item);
     });
@@ -69,7 +67,7 @@
     const status = document.getElementById('external-quiz-status');
     if(!section || !grid || !status) return;
     const normalizeExternalQuizzes = deps.normalizeExternalQuizzes || (data => data || {});
-    const items = (normalizeExternalQuizzes(externalQuizzes).items || []).filter(item => item.active !== false);
+    const items = (normalizeExternalQuizzes(externalQuizzes).items || []).filter(item => item.active !== false && item.group !== 'concept');
     section.hidden = false;
     grid.innerHTML = '';
     status.textContent = '';
@@ -104,7 +102,7 @@
     document.getElementById('subject-board').textContent = subject.board;
     if(subjectUsageNotice) {
       subjectUsageNotice.hidden = subjectId !== 'popular';
-      subjectUsageNotice.textContent = subjectId === 'popular' ? '확인 중' : '';
+      subjectUsageNotice.textContent = subjectId === 'popular' ? '시간 제한 없음' : '';
       delete subjectUsageNotice.dataset.state;
       delete subjectUsageNotice.dataset.urgency;
     }
@@ -114,16 +112,23 @@
       const quiz = quizCatalog[quizId];
       if(!quiz || !deps.isQuizEnabledByFlags?.(quizId)) return;
       const isHub = Array.isArray(quiz.modes) && (quiz.modes.includes('readingHub') || quiz.modes.includes('emojiHub'));
-      const isPlayable = quiz.enabled !== false && (isHub || deps.firebasePlayableQuizIds?.has(deps.normalizeFirebaseQuizId?.(quizId)));
-      const item = document.createElement('article');
+      const isStandalone = Boolean(quiz.standalonePath);
+      const isPlayable = quiz.enabled !== false && (isStandalone || isHub || deps.firebasePlayableQuizIds?.has(deps.normalizeFirebaseQuizId?.(quizId)));
+      const item = document.createElement(isStandalone && isPlayable ? 'a' : 'article');
       const icon = document.createElement('span');
       const title = document.createElement('h3');
       const desc = document.createElement('p');
-      const button = document.createElement('button');
+      const button = document.createElement(isStandalone ? 'span' : 'button');
       const badge = document.createElement('span');
 
       item.className = 'subject-quiz-card';
-      if(isPlayable) {
+      if(isStandalone && isPlayable) {
+        const url = new URL(quiz.standalonePath, window.location.origin);
+        if(new URLSearchParams(window.location.search).get('emulator') === '1') url.searchParams.set('emulator', '1');
+        item.href = url.pathname + url.search;
+        item.style.textDecoration = 'none';
+        item.style.color = 'inherit';
+      } else if(isPlayable) {
         item.dataset.quizId = quizId;
         item.tabIndex = 0;
         item.setAttribute('role', 'button');
@@ -136,7 +141,7 @@
       button.type = 'button';
       button.disabled = !isPlayable;
       button.textContent = isPlayable ? '입장하기' : '준비 중';
-      if(isPlayable) button.dataset.quizId = quizId;
+      if(isPlayable && !isStandalone) button.dataset.quizId = quizId;
 
       item.append(icon, title, desc);
       if(quiz.groupLabel && quizId !== 'pokemon') {

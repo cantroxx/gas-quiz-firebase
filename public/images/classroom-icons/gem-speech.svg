@@ -1,1 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M25 34h78c8 0 14 6 14 14v34c0 8-6 14-14 14H66l-25 17 4-17H25c-8 0-14-6-14-14V48c0-8 6-14 14-14Z" fill="#7db8ff" stroke="#285b9b" stroke-width="5"/><path d="M36 58h56M36 73h38" stroke="#fff" stroke-width="7" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="발표 젬">
+  <defs>
+    <linearGradient id="stone" x1=".2" y1="0" x2=".8" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#79c8ef"/><stop offset=".52" stop-color="#3c85bc"/><stop offset="1" stop-color="#79c8ef"/></linearGradient>
+    <linearGradient id="gold" x2=".65" y2="1"><stop stop-color="#fff6d5"/><stop offset=".35" stop-color="#e8cc95"/><stop offset=".7" stop-color="#b58a52"/><stop offset="1" stop-color="#f9e4b1"/></linearGradient>
+    <linearGradient id="face" x2=".7" y2="1"><stop stop-color="#fff" stop-opacity=".6"/><stop offset=".6" stop-color="#79c8ef" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity=".32"/></linearGradient>
+    <clipPath id="cut"><path d="M64 12 99 31 112 66 94 98 64 114 34 98 16 66 29 31Z"/></clipPath>
+  </defs>
+  <ellipse cx="64" cy="117" rx="31" ry="4" fill="#3c85bc" opacity=".12"/>
+
+  <path d="M64 12 99 31 112 66 94 98 64 114 34 98 16 66 29 31Z" transform="translate(0 3)" fill="#3c85bc" opacity=".8"/>
+  <path d="M64 12 99 31 112 66 94 98 64 114 34 98 16 66 29 31Z" fill="url(#stone)" stroke="#a07c53" stroke-width="3" stroke-linejoin="round"/>
+  <g clip-path="url(#cut)">
+    <path d="M10 12 41 17 45 40 20 66Z" fill="#fff" opacity=".5"/>
+    <path d="m41 17 46 0-7 23H45Z" fill="#fff" opacity=".65"/>
+    <path d="m87 17 30 26-21 25-16-28Z" fill="#fff" opacity=".18"/>
+    <path d="m96 68 22 12-31 35-7-27Z" fill="#3c85bc" opacity=".65"/>
+    <path d="m80 88 7 27H41l4-27Z" fill="#fff" opacity=".25"/>
+    <path d="m20 66 25 22-4 27L10 83Z" fill="#3c85bc" opacity=".5"/>
+    <path d="M45 36H80L96 52V78L80 94H45L31 78V52Z" fill="url(#face)" stroke="#fff" stroke-opacity=".45" stroke-width="1.5"/>
+    <path d="m26 41 18-18h37" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".65"/>
+  </g>
+  <path d="M64 12 99 31 112 66 94 98 64 114 34 98 16 66 29 31Z" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linejoin="round"/>
+  <g transform="translate(0 2)" fill="#3c85bc" stroke="#3c85bc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".5"><path d="M42 44h44v31H65L53 85V75H42Z"/><path d="M51 54h26m-26 11h17" fill="none"/></g>
+  <g fill="#fff6dc" stroke="#3c85bc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M42 44h44v31H65L53 85V75H42Z"/><path d="M51 54h26m-26 11h17" fill="none"/></g>
+  <path d="m104 17 2 7 7 2-7 2-2 7-2-7-7-2 7-2Z" fill="#e8c780"/>
+  <path d="m26 84 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fff9e6"/>
+  <circle cx="19" cy="35" r="2" fill="#79c8ef"/>
+</svg>

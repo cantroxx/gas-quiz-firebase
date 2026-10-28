@@ -1,0 +1,63 @@
+{
+  "createdAt": "2026-10-18T07:33:13.648980+00:00",
+  "baselineDirectory": "/tmp/quiz-cleanup-stages-20261018/baseline",
+  "files": [
+    {
+      "path": "public/index.html",
+      "sha256": "2a464892f5941a827157f325f45893943b87265ddc61b39ffd0ad0cfa84b0196"
+    },
+    {
+      "path": "public/js/app.bundle.js",
+      "sha256": "7b90aed5de9c4c6ca67fc89dc7656ba80fdad022731018412135d7d4f5ceffc1"
+    },
+    {
+      "path": "public/js/infrastructure/admin-repository.js",
+      "sha256": "283b3066536e548c7f627f98779f6e17b9b70c14697f111fb29d51ff23742759"
+    },
+    {
+      "path": "public/js/infrastructure/ranking-repository.js",
+      "sha256": "60f4b6f0b73f1585355af75bb5239cd37aad0766828ac1fdc8c7ebdb3d62d86b"
+    },
+    {
+      "path": "public/js/application/ranking-usecases.js",
+      "sha256": "85e9992d99c3890a572aa476025b574d6916cd0aaafe69d0f447291a6f915614"
+    },
+    {
+      "path": "functions/index.js",
+      "sha256": "3bd37ef8985abf1111426f9921cc467c2911f3c6aa49cb39079db561dff88740"
+    },
+    {
+      "path": "functions/subject-quiz/service.js",
+      "sha256": "8ce1afaf297aafef658e5cb1a78980d9af5be82cc0692c741ab4aee92601f053"
+    },
+    {
+      "path": "tests/infrastructure/admin-repository.test.js",
+      "sha256": "673af8ab6c7689b37e1f2b4ddc97f6071863f67e1ef8835c58eaddefb1630ef4"
+    },
+    {
+      "path": "tests/infrastructure/ranking-repository.test.js",
+      "sha256": "05a9598d3d0fbbbc195fc5b95c5d50fe62a1b976d507a9eb1188a6aac751f50f"
+    },
+    {
+      "path": "tests/application/ranking-usecases.test.js",
+      "sha256": "e8fb7a2afa5609c687b669243e36041608309edc8edcfa2ff1f41f43df38b91d"
+    },
+    {
+      "path": "tests/subject-quiz/service.test.js",
+      "sha256": "b27b017ff4db9c138fa6566d44e9d7ffb384f3f10224ce9b4ef7b036d87da432"
+    },
+    {
+      "path": "package.json",
+      "sha256": "04f38e14f93bab8b2e2cb842bd276ec7242dc620a8447134f6b729e5f313291a"
+    },
+    {
+      "path": "public/js/features/admin-render.js",
+      "sha256": "c0626b7b3186a201e535c9348f60dc107fee76619db6466533e754fc5f757d00"
+    },
+    {
+      "path": "scripts/audit/quiz-cleanup-audit.js",
+      "sha256": "154b93e82955ac1dd6e693bd83b83325d832066f2fcb05d8500c32d9c01d81aa",
+      "note": "Reconstructed from the exact single assertion edit in this stage; no runtime code changed."
+    }
+  ]
+}

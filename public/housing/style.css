@@ -1275,7 +1275,7 @@ body, html {
 
 .profile-info-actions { display: flex; flex-direction: column; gap: 10px; }
 
-/* 랭킹·칭호·뱃지 공용 모달 */
+/* 랭킹·타이틀·뱃지 공용 모달 */
 #info-list-modal .modal-body.info-list-body { display: block; padding: 18px 22px; overflow-y: auto; }
 .info-list-empty { color: #94a3b8; text-align: center; padding: 24px 0; line-height: 1.6; }
 .info-list-hint { color: #94a3b8; font-size: 12px; margin-bottom: 12px; text-align: center; }

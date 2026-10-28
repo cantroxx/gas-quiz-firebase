@@ -1,0 +1,103 @@
+{
+  "hosting": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792377625546000",
+    "version": "sites/dj48-quiztown-firebase/versions/6eac36aa5478db88",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/2aaf317f940065ed",
+    "changed": [
+      "index.html",
+      "styles.css",
+      "js/features/home-data.js",
+      "js/features/home-render.js",
+      "js/features/ranking-data.js",
+      "js/features/ranking-render.js",
+      "js/infrastructure/home-repository.js",
+      "js/infrastructure/ranking-repository.js",
+      "js/infrastructure/quiz-repository.js",
+      "js/application/home-usecases.js",
+      "js/data/popular-quiz-catalog.js",
+      "popular-quiz/app.js",
+      "mathsurvivor/net.js",
+      "js/app.bundle.js"
+    ]
+  },
+  "entryCache": {
+    "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792377709500000",
+    "version": "sites/dj48-quiztown-firebase/versions/2c98b10348a39454",
+    "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/6eac36aa5478db88",
+    "rawHashes": {
+      "popular-quiz/index.html": "78432a9f6fd1c609402d59810e9095e88b0d500f682e5fb33b2d2736a7a24e02",
+      "mathsurvivor/index.html": "afb2429125dfdd8a682d06b0a2b16d072b15c4971be046e87ab75ee6180a544f"
+    },
+    "preservedFiles": 4670
+  },
+  "functions": {
+    "verified": [
+      {
+        "target": "syncMemberTitles",
+        "updateTime": "2026-10-19T02:38:56.244722414Z",
+        "sourceFiles": 7,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "subjectQuizAction",
+        "updateTime": "2026-10-19T02:39:07.069262086Z",
+        "sourceFiles": 95,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "popularQuizAction",
+        "updateTime": "2026-10-19T02:38:53.710364240Z",
+        "sourceFiles": 99,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "studyTownAction",
+        "updateTime": "2026-10-19T02:39:02.967390385Z",
+        "sourceFiles": 25,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "townMarbleAction",
+        "updateTime": "2026-10-19T02:39:19.131792992Z",
+        "sourceFiles": 25,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "cloudTowerAction",
+        "updateTime": "2026-10-19T02:39:01.886618197Z",
+        "sourceFiles": 25,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "wordBombAction",
+        "updateTime": "2026-10-19T02:39:06.927728091Z",
+        "sourceFiles": 25,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "fruitBellAction",
+        "updateTime": "2026-10-19T02:39:30.572866444Z",
+        "sourceFiles": 8,
+        "state": "ACTIVE"
+      },
+      {
+        "target": "survivorQuestQuiz",
+        "updateTime": "2026-10-19T02:39:02.702378397Z",
+        "sourceFiles": 25,
+        "state": "ACTIVE"
+      }
+    ],
+    "unrelatedChanges": [],
+    "verifiedAt": "2026-10-19T02:39:40.854Z"
+  },
+  "newCallable": {
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/functions/getMemberAchievements",
+    "state": "ACTIVE",
+    "updateTime": "2026-10-19T02:39:21.205012224Z",
+    "sourceVerified": true,
+    "unauthenticatedStatus": 401
+  },
+  "retiredCallable": "grantPracticeBadgeCycleReward",
+  "retiredAbsentVerified": true,
+  "fullCheckPassed": true
+}

@@ -1,0 +1,31 @@
+    async function showRankingView() {
+      const flags = await loadFeatureFlags();
+      if(flags.rankingEnabled === false && !isCurrentAdminMember()) {
+        window.alert('랭킹 광장은 지금 점검 중입니다.');
+        return;
+      }
+      renderRankingView();
+      enterAppView({
+        viewId: 'ranking-view',
+        placeKey: 'ranking'
+      });
+    }
+
+
+    async function showShopView() {
+      const flags = await loadFeatureFlags();
+      if(flags.shopEnabled === false && !isCurrentAdminMember()) {
+        window.alert('상점은 지금 점검 중입니다.');
+        return;
+      }
+      renderAvatarMarket();
+      enterAppView({
+        viewId: 'shop-view',
+        placeKey: 'shop'
+      });
+
+
+    }
+
+
+    function endFixture() {}

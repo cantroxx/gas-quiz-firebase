@@ -1,4 +1,13 @@
 (function () {
+  function appendGameHonors(root,honors={}) {
+    const line=document.createElement('span');line.className='game-honors';
+    for(const [key,icon,label] of [['stars','★','대전 우승'],['hearts','♥','게임 클리어']]){
+      const count=Math.max(0,Math.floor(Number(honors?.[key])||0));if(!count)continue;
+      const item=document.createElement('span');item.className='game-honor game-honor-'+key;
+      item.textContent=count<=3?icon.repeat(count):`${icon} × ${count}`;item.title=`${label} ${count}회`;item.setAttribute('aria-label',item.title);line.append(item);
+    }
+    if(line.childNodes.length)root.append(line);
+  }
   function normalizeRankingDisplayName(data) {
     return String(data?.displayNickname || data?.displayName || data?.nickname || data?.name || data?.memberUserId || '익명').trim();
   }
@@ -39,25 +48,12 @@
     if(!entries.length) return;
 
     const shell = document.createElement('section');
-    const featuredWrap = document.createElement('div');
-    const featuredLabel = document.createElement('p');
-    const hall = document.createElement('details');
-    const summary = document.createElement('summary');
     const hallGrid = document.createElement('div');
-    const featuredEntry = entries[getDailyFeaturedRankingIndex(entries)] || entries[0];
 
     shell.className = 'ranking-hall-shell';
-    featuredWrap.className = 'ranking-featured-king';
-    featuredLabel.className = 'ranking-featured-label';
-    featuredLabel.textContent = '오늘의 왕';
-    hall.className = 'ranking-hall-details';
-    summary.className = 'ranking-hall-summary';
-    summary.textContent = '명예의 전당';
     hallGrid.className = 'ranking-hall-grid';
-    featuredWrap.append(featuredLabel, createRankingCard(featuredEntry, 'ranking-card-featured'));
     entries.forEach(entry => hallGrid.appendChild(createRankingCard(entry)));
-    hall.append(summary, hallGrid);
-    shell.append(hall, featuredWrap);
+    shell.append(hallGrid);
     grid.appendChild(shell);
   }
 
@@ -69,6 +65,7 @@
     nameText.className = 'ranking-display-name';
     nameText.textContent = normalizeDisplayName(row);
     root.appendChild(nameText);
+    appendGameHonors(root,row.gameHonors);
   }
 
   function getRankingBoardScoreText(board = {}, row = {}) {
@@ -100,6 +97,22 @@
     return badge;
   }
 
+  function applyTitleChipAppearance(chip, titleId) {
+    const match = /^a26_(.+)_(practice|ranking)_(\d+)$/.exec(String(titleId || ''));
+    if(!match) return chip;
+    const area = match[1].startsWith('pokemon-gen') ? 'pokemon' : match[1];
+    const symbols = {korean:'文',math:'∑',social:'▥',science:'⚛','flag-country':'⚑',idol:'♫',anime:'✦',tiniping:'♡',pokemon:'◓'};
+    if(!symbols[area]) return chip;
+    chip.classList.add('quiz-title-chip');
+    chip.dataset.titleArea = area;
+    chip.dataset.titleSymbol = symbols[area];
+    const threshold = Number(match[3]);
+    const subject = ['korean','math','social','science'].includes(area);
+    chip.dataset.titleStep = match[2] === 'ranking' ? String(threshold / 10) : String(subject ? [100,300,500].indexOf(threshold) + 1 : threshold / 100);
+    chip.classList.toggle('quiz-title-ranked', match[2] === 'ranking');
+    return chip;
+  }
+
   function createRankingTitleChip(row, deps = {}) {
     const getKnownTitleName = deps.getKnownTitleName || (() => '');
     const titleText = String(row?.selectedTitle || row?.selectedTitleName || getKnownTitleName(row?.selectedTitleId)).trim();
@@ -108,7 +121,7 @@
     const chip = document.createElement('span');
     chip.className = ['ranking-title-chip', frameId ? `ranking-title-frame-${frameId}` : ''].filter(Boolean).join(' ');
     chip.textContent = titleText;
-    return chip;
+    return applyTitleChipAppearance(chip, row?.selectedTitleId);
   }
 
   function renderRankingAvatar(root, row, fallbackText, deps = {}) {
@@ -204,7 +217,7 @@
       body.className = 'ranking-board-body';
       name.className = 'ranking-board-name';
       score.className = 'ranking-board-score';
-      rank.textContent = `${index + 4}`;
+      rank.textContent = `${board.rank?.(row, index + 3) || index + 4}`;
       const titleChip = createRankingTitleChip(row, deps);
       if(titleChip) name.appendChild(titleChip);
       appendRankingDisplayName(name, row, deps);
@@ -213,14 +226,24 @@
 
       body.appendChild(name);
       if(meta) body.appendChild(meta);
-      item.append(rank, body, score);
+      if(board.showRowAvatars) {
+        const identity = document.createElement('div');
+        const avatar = document.createElement('div');
+        identity.className = 'ranking-row-identity';
+        avatar.className = 'ranking-avatar ranking-row-avatar';
+        renderRankingAvatar(avatar, row, board.icon || '🎮', deps);
+        identity.append(avatar, body);
+        item.append(rank, identity, score);
+      } else {
+        item.append(rank, body, score);
+      }
       list.appendChild(item);
     });
     panel.appendChild(list);
   }
 
   function createRankingPodiumCard(row, index, board, deps = {}) {
-    const rank = index + 1;
+    const rank = board.rank?.(row, index) || index + 1;
     const medals = ['🥇', '🥈', '🥉'];
     const classes = ['gold', 'silver', 'bronze'];
     const card = document.createElement('article');
@@ -229,13 +252,13 @@
     const name = document.createElement('h4');
     const score = document.createElement('p');
 
-    card.className = `ranking-podium-card ranking-medal-${classes[index]} rank-${rank}`;
+    card.className = `ranking-podium-card ranking-medal-${classes[Math.min(rank - 1, 2)]} rank-${rank}`;
     badge.className = 'ranking-medal-badge';
     avatar.className = 'ranking-avatar';
     name.className = 'ranking-card-name';
     score.className = 'ranking-card-score';
-    badge.textContent = `${medals[index]} ${rank}위`;
-    renderRankingAvatar(avatar, row, `${rank}`, deps);
+    badge.textContent = `${medals[Math.min(rank - 1, 2)]} ${rank}위`;
+    renderRankingAvatar(avatar, row, board.icon || `${rank}`, deps);
     const titleChip = createRankingTitleChip(row, deps);
     if(titleChip) name.appendChild(titleChip);
     appendRankingDisplayName(name, row, deps);
@@ -278,7 +301,7 @@
       ? activeRankingBoardId
       : (model.boards[0]?.id || '');
 
-    model.boards.forEach(board => {
+    model.boards.filter(board => !board.hallOnly).forEach(board => {
       const button = document.createElement('button');
       const panel = document.createElement('section');
       const isActive = board.id === activeBoardId;
@@ -289,7 +312,9 @@
       panel.className = 'ranking-board-panel';
       panel.dataset.rankingBoardPanel = board.id;
       panel.hidden = !isActive;
-      renderRankingBoardPanel(panel, board, deps);
+      panel._rankingBoard = board;
+      if(!board.lazy || isActive) renderRankingBoardPanel(panel, board, deps);
+      else panel.dataset.lazyRankingBoard = board.id;
       tabs.appendChild(button);
       panels.appendChild(panel);
     });
@@ -299,6 +324,23 @@
 
   function renderRankingBoardPanel(panel, board, deps = {}) {
     panel.innerHTML = '';
+    delete panel.dataset.lazyRankingBoard;
+    if(board.lazy) {
+      const actions = document.createElement('div');
+      const refresh = document.createElement('button');
+      refresh.type = 'button'; refresh.className = 'mini-pill-button';
+      refresh.dataset.rankingRefresh = board.id; refresh.textContent = '새로고침';
+      refresh.disabled = Boolean(board.loading);
+      actions.append(refresh);
+      const message = document.createElement('p'); message.className = 'ranking-board-empty';
+      message.setAttribute('aria-live', 'polite');
+      message.textContent = board.loadError || (board.loading ? '최신 기록을 불러오는 중…' : !board.loaded ? '분야를 선택하면 기록을 불러와요.' : '');
+      if(message.textContent) actions.append(message);
+      if(!board.loaded) { panel.append(actions); return; }
+      renderRankingBoardPanel(panel, { ...board, lazy: false }, deps);
+      panel.prepend(actions);
+      return;
+    }
     if(board.id === 'popular') {
       renderPopularRankingBoardPanel(panel, board, deps);
       return;
@@ -351,31 +393,10 @@
         desc.textContent = group.desc;
         panel.appendChild(desc);
       }
-      renderRankingRows(panel, group.rows || [], board, deps);
+      renderRankingRows(panel, group.rows || [], { ...board, ...group }, deps);
       return;
     }
-    const filters = document.createElement('div');
-    const filterRow = document.createElement('div');
-    const rowsWrap = document.createElement('div');
-    filters.className = 'ranking-popular-detail-filters ranking-mode-filter-box';
-    filterRow.className = 'ranking-popular-filter-row';
-    rowsWrap.className = 'ranking-mode-filter-results';
-    const getSupportedRankingModeIdsForKeys = deps.getSupportedRankingModeIdsForKeys || (() => ['all']);
-    const getRankingModeFilterOptions = deps.getRankingModeFilterOptions || (() => []);
-    const getRankingRowsForGroup = deps.getRankingRowsForGroup || (() => []);
-    const supportedModes = new Set(getSupportedRankingModeIdsForKeys(group.keys || []));
-    getRankingModeFilterOptions().filter(option => supportedModes.has(option.id)).forEach(option => {
-      filterRow.appendChild(createPopularFilterButton(option.label, option.id === 'all', event => {
-        filterRow.querySelectorAll('.ranking-sub-tab').forEach(tab => {
-          tab.classList.toggle('is-active', tab === event.currentTarget);
-        });
-        rowsWrap.innerHTML = '';
-        renderRankingRows(rowsWrap, getRankingRowsForGroup(group, option.id), board, deps);
-      }));
-    });
-    filters.appendChild(filterRow);
-    panel.append(filters, rowsWrap);
-    renderRankingRows(rowsWrap, getRankingRowsForGroup(group), board, deps);
+    renderRankingRows(panel, group.rows || [], board, deps);
   }
 
   function renderPopularRankingBoardPanel(panel, board, deps = {}) {
@@ -460,6 +481,7 @@
     });
     document.querySelectorAll('[data-ranking-board-panel]').forEach(panel => {
       panel.hidden = panel.dataset.rankingBoardPanel !== boardId;
+      if(!panel.hidden && panel.dataset.lazyRankingBoard && panel._rankingBoard) renderRankingBoardPanel(panel, panel._rankingBoard, deps);
     });
   }
 
@@ -566,8 +588,10 @@
     createRankingCard,
     renderRankingCards,
     appendRankingDisplayName,
+    appendGameHonors,
     createRankingLevelBadge,
     createRankingTitleChip,
+    applyTitleChipAppearance,
     renderRankingAvatar,
     createRankingMetaLine,
     renderRankingRows,

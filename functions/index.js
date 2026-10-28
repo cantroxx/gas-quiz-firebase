@@ -2,14 +2,90 @@
 
 const crypto = require("crypto");
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { createCouponService, getCouponWeekKey } = require("./housing-coupons");
+const { resolveSeasonMonth } = require("./season-period");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
+const classroomPortrait = require('./classroom/portrait');
 
 initializeApp();
 
 const REGION = "asia-northeast3";
 const studyTownService = require('./study-town/service').createService({db:getFirestore(),ErrorType:HttpsError});
 exports.studyTownAction = onCall({region:REGION,maxInstances:5}, request => studyTownService.act(request.auth?.uid,request.data));
+// Isolated assessment sessions; private capability tokens, no student account/economy writes.
+const pizzaAssessmentService = require('./pizza-assessment/service').createService({ db: getFirestore(), ErrorType: HttpsError });
+const pizzaAssessmentAdminService = require('./pizza-assessment/admin').createAdminService({
+  db: getFirestore(), ErrorType: HttpsError,
+  authorize: async uid => { const member = await getAdminMemberForAuth(uid); assertSuperAdmin(member); return member; }
+});
+exports.pizzaAssessmentAction = onCall({ region: REGION, maxInstances: 10, timeoutSeconds: 30 }, request =>
+  String(request.data?.action || '').startsWith('admin')
+    ? pizzaAssessmentAdminService.act(request.auth?.uid, request.data)
+    : pizzaAssessmentService.act(request.data));
+const spaceAssessmentService = require('./space-assessment/service').createService({
+  db:getFirestore(), ErrorType:HttpsError,
+  authorize:async uid => { const member=await getAdminMemberForAuth(uid); assertSuperAdmin(member); return member; }
+});
+const spaceAssessmentAdminService = require('./space-assessment/admin').createAdminService({
+  db:getFirestore(), ErrorType:HttpsError,
+  authorize:async uid => { const member=await getAdminMemberForAuth(uid); assertSuperAdmin(member); return member; }
+});
+exports.spaceAssessmentAction=onCall({region:REGION,maxInstances:5,timeoutSeconds:30},request=>
+  String(request.data?.action || '').startsWith('admin')
+    ? spaceAssessmentAdminService.act(request.auth?.uid,request.data)
+    : spaceAssessmentService.act(request.data,request.auth?.uid));
+const townMarbleService = require('./town-marble/service').createService({ db: getFirestore(), ErrorType: HttpsError });
+exports.townMarbleAction = onCall({ region: REGION, maxInstances: 10 }, request =>
+  townMarbleService.act(request.auth?.uid, request.data));
+// Cloud Tower uses isolated server-owned runs, race rooms and rankings.
+const cloudTowerService = require('./cloud-tower/service').createService({ db: getFirestore(), ErrorType: HttpsError });
+exports.cloudTowerAction = onCall({ region: REGION, maxInstances: 10 }, request =>
+  cloudTowerService.act(request.auth?.uid, request.data));
+// Word Bomb rooms are private; this callable validates membership, turns and deadlines.
+const wordBombService = require('./word-bomb/service').createService({ db: getFirestore(), ErrorType: HttpsError });
+exports.wordBombAction = onCall({ region: REGION, maxInstances: 5, timeoutSeconds: 35 }, request =>
+  wordBombService.act(request.auth?.uid, request.data));
+// Fruit Bell: private server-owned rooms and atomic member rankings.
+const fruitBellService = require('./fruit-bell/service').createService({ db: getFirestore(), ErrorType: HttpsError });
+exports.fruitBellAction = onCall({ region: REGION, maxInstances: 5, timeoutSeconds: 35 }, request =>
+  fruitBellService.act(request.auth?.uid, request.data));
+// Generated subject quizzes: server-owned sessions and cumulative subject rankings.
+const subjectQuizService = require('./subject-quiz/service').createService({
+  db: getFirestore(), ErrorType: HttpsError,
+  reward: rewardGeneratedSubjectAnswer,
+  activity: (transaction, item) => require('./growth/activity').record(transaction, getFirestore(), {
+    source: item.source, memberId: item.memberId, uid: item.uid, time: item.time,
+    counts: item.complete ? {rankingScore:item.score} : { studyCorrect: 1, [({korean:'vocabCorrect',math:'mathCorrect',social:'socialCorrect',science:'scienceCorrect'})[item.subject]]: 1 }
+  })
+});
+exports.subjectQuizAction = onCall({ region: REGION, memory: '512MiB', maxInstances: 10, timeoutSeconds: 30 }, request =>
+  subjectQuizService.act(request.auth?.uid, request.data));
+// Popular rounds have no time budget; practice rewards are reserved for subjects.
+const popularQuizService = require('./popular-quiz/service').createService({
+  db: getFirestore(), ErrorType: HttpsError,
+  rewardPolicy: () => ({ coinPerCorrect: 0, xpPerCorrect: 0, dailyCoinLimit: 0, dailyXpLimit: 0 }),
+  activity: (tx,item) => require('./growth/activity').record(tx,getFirestore(),item)
+});
+exports.popularQuizAction = onCall({ region: REGION, memory: '512MiB', maxInstances: 10, timeoutSeconds: 30 }, request =>
+  popularQuizService.act(request.auth?.uid, request.data));
+exports.auditPopularQuizSources = onSchedule({
+  region: REGION, schedule: '0 4 1 * *', timeZone: 'Asia/Seoul',
+  timeoutSeconds: 540, memory: '512MiB', maxInstances: 1
+}, async () => {
+  const store = getFirestore(), latest = store.collection('popularQuizSourceAudits').doc('latest');
+  const previous = await latest.get();
+  const report = await require('./popular-quiz/source-audit').audit(
+    require('./popular-quiz/catalog.json').questions, previous.data() || {}
+  );
+  const batch = store.batch();
+  batch.set(latest, report);
+  batch.set(store.collection('popularQuizSourceAudits').doc(report.checkedAt.slice(0, 10)), report);
+  await batch.commit();
+  console.log('Popular image source review', { checked: report.images.length, reviewCount: report.reviewCount });
+});
 const DEFAULT_MEMBER_SCHOOL = "동자";
 const AUTH_LINK_PROVIDER = "firebase_member_link_function";
 const AUTH_LINK_VERSION = 3;
@@ -24,7 +100,6 @@ const SUPER_ADMIN_MEMBER_USER_ID = "G9-C9-N99";
 const FEATURE_FLAGS_DOC_PATH = "appSettings/featureFlags";
 const EXTERNAL_QUIZZES_DOC_PATH = "appSettings/externalQuizzes";
 const SEASON_EVENTS_DOC_PATH = "appSettings/seasonEvents";
-const ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS = new Set(["science-grade4"]);
 const MAX_EXTERNAL_QUIZ_ITEMS = 12;
 const MAX_SEASON_EVENT_ITEMS = 12;
 const POPULAR_USAGE_SOFT_LIMIT_SECONDS = 10 * 60;
@@ -42,11 +117,10 @@ const DEFAULT_CLASSROOM_EXCHANGE_SETTINGS = {
   coinToPointReward: 0.5
 };
 const WEEKLY_XP_LIMIT = 500;
-const TODAY_QUIZ_XP_PER_QUESTION = 2;
-const TODAY_QUIZ_DAILY_XP_LIMIT = 20;
+const PRACTICE_XP_PER_QUESTION = 2;
+const PRACTICE_DAILY_XP_LIMIT = 20;
 const HIDDEN_CLASSROOM_STUDENT_CARD_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
 const HIDDEN_CLASSROOM_ACTIVITY_MEMBER_USER_IDS = new Set(["G4-C8-N23"]);
-const PRACTICE_BADGE_CYCLE_REWARD_COIN = 10;
 const TITLE_ACQUISITION_XP = 50;
 const TITLE_ACQUISITION_COIN = 30;
 const TITLE_ACQUISITION_CLASSROOM_POINT = 10;
@@ -422,12 +496,6 @@ const DEFAULT_FEATURE_FLAGS = {
   externalQuizzesEnabled: true,
   eventPlazaEnabled: true,
   rankingEnabled: true,
-  todayQuizMode: "dailyRandom",
-  todayQuizIds: [],
-  todayQuizRandomPoolIds: [],
-  todayQuizDailyCount: 1,
-  todayQuizShuffleSeed: "",
-  todayQuizShuffledAtIso: "",
   disabledQuizIds: []
 };
 
@@ -477,40 +545,6 @@ const QUIZ_TITLE_MAP = {
   "science-general": "과학 상식 퀴즈"
 };
 
-const TODAY_QUIZ_ELIGIBLE_IDS = new Set([
-  "spelling",
-  "word-relation",
-  "spacing",
-  "proverb",
-  "idiom",
-  "gmo",
-  "time_store",
-  "fraction-basic",
-  "science-general",
-  "samgukji",
-  "ancient-history",
-  "unified-silla-balhae",
-  "cultural_heritage",
-  "history-people",
-  "idol",
-  "anime",
-  "flag-country",
-  "snack-food",
-  "emoji-kpop",
-  "emoji-anime",
-  "emoji-tiniping",
-  "dad-joke",
-  "tiniping",
-  "pokemon-gen1",
-  "pokemon-gen2",
-  "pokemon-gen3",
-  "pokemon-gen4",
-  "pokemon-gen5",
-  "pokemon-gen6",
-  "pokemon-gen7",
-  "pokemon-gen8",
-  "pokemon-gen9"
-]);
 
 const DEFAULT_SEASON_EVENTS = {
   items: [
@@ -675,20 +709,9 @@ function publicFeatureFlags(data = {}) {
       .filter(id => /^[0-9A-Za-z_-]{1,80}$/.test(id))))
       .slice(0, limit)
     : [];
-  const sanitizeTodayQuizIds = (value, limit) => sanitizeQuizIds(value, limit)
-    .filter(id => TODAY_QUIZ_ELIGIBLE_IDS.has(id));
   const disabledQuizIds = Array.isArray(data.disabledQuizIds)
     ? sanitizeQuizIds(data.disabledQuizIds, 120)
     : [];
-  const todayQuizIds = sanitizeTodayQuizIds(data.todayQuizIds, 20);
-  const todayQuizRandomPoolIds = sanitizeTodayQuizIds(data.todayQuizRandomPoolIds, 80);
-  const todayQuizMode = data.todayQuizMode === "manual" ? "manual" : "dailyRandom";
-  const todayQuizDailyCount = Math.min(10, Math.max(1, Math.round(Number(data.todayQuizDailyCount) || 1)));
-  const todayQuizShuffleSeed = String(data.todayQuizShuffleSeed || "").trim().slice(0, 80);
-  const todayQuizShuffledAtIso = String(data.todayQuizShuffledAtIso || "").trim().slice(0, 40);
-  const activeTodayQuizIds = todayQuizMode === "dailyRandom"
-    ? getDailyShuffledQuizIds(todayQuizRandomPoolIds, `${getKstDateKey()}:${todayQuizShuffleSeed || ""}`).slice(0, todayQuizDailyCount)
-    : todayQuizIds;
   return {
     practiceRewardEnabled: data.practiceRewardEnabled !== false,
     practiceXpEnabled: data.practiceXpEnabled !== false,
@@ -697,13 +720,6 @@ function publicFeatureFlags(data = {}) {
     externalQuizzesEnabled: data.externalQuizzesEnabled !== false,
     eventPlazaEnabled: data.eventPlazaEnabled !== false,
     rankingEnabled: data.rankingEnabled !== false,
-    todayQuizMode,
-    todayQuizIds,
-    activeTodayQuizIds,
-    todayQuizRandomPoolIds,
-    todayQuizDailyCount,
-    todayQuizShuffleSeed,
-    todayQuizShuffledAtIso,
     disabledQuizIds
   };
 }
@@ -771,6 +787,7 @@ function publicExternalQuizzes(data = {}) {
       return {
         id: String(item?.id || `external-${index + 1}`).trim().replace(/[^0-9A-Za-z_-]/g, "-").slice(0, 40) || `external-${index + 1}`,
         title,
+        group: item?.group === "concept" ? "concept" : "learning",
         description: String(item?.description || "").trim().slice(0, 120),
         url,
         active: item?.active !== false,
@@ -780,7 +797,7 @@ function publicExternalQuizzes(data = {}) {
     .filter(item => item.title && item.url)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 
-  return { items };
+  return { items, concept: { month: Math.min(12, Math.max(1, Math.trunc(Number(data.concept?.month) || 1))), theme: String(data.concept?.theme || "").trim().slice(0, 40) } };
 }
 
 function isIsoMonthKey(value) {
@@ -817,7 +834,6 @@ function formatSeasonMonthPeriod(monthKey) {
 function publicSeasonEvents(data = {}, context = {}) {
   const rawItems = Array.isArray(data.items) ? data.items : [];
   const dateKey = String(context.dateKey || getKstDateKey());
-  const monthKey = dateKey.slice(0, 7);
   const currentWeekStartDate = getKstWeekStartDateKey(dateKey);
   const currentWeekEndDate = addIsoDateDays(currentWeekStartDate, 6);
   const sanitizeQuizIds = value => Array.isArray(value)
@@ -829,9 +845,7 @@ function publicSeasonEvents(data = {}, context = {}) {
   const items = rawItems.slice(0, MAX_SEASON_EVENT_ITEMS)
     .map((item, index) => {
       const periodType = item?.periodType === "weekly" ? "weekly" : "monthly";
-      const targetMonth = isIsoMonthKey(item?.targetMonth || item?.month)
-        ? String(item.targetMonth || item.month)
-        : monthKey;
+      const targetMonth = resolveSeasonMonth(item, dateKey);
       let startDate = isIsoDateKey(item?.startDate || item?.periodStartDate)
         ? String(item.startDate || item.periodStartDate)
         : currentWeekStartDate;
@@ -857,7 +871,9 @@ function publicSeasonEvents(data = {}, context = {}) {
         title: String(item?.title || "").trim().slice(0, 60),
         desc: String(item?.desc || item?.description || "").trim().slice(0, 180),
         quizIds,
+        goals: require("./growth/season-events").goals(item?.goals || []),
         periodType,
+        autoRenew: periodType === "monthly" && item?.autoRenew === true,
         period: String(period).trim().slice(0, 40),
         periodKey,
         targetMonth: periodType === "monthly" ? targetMonth : "",
@@ -875,17 +891,6 @@ function publicSeasonEvents(data = {}, context = {}) {
   return { items };
 }
 
-function getSeasonEventsUpdateLock(snapshot) {
-  if (!snapshot?.exists) return { locked: false, lockedUntilIso: "" };
-  const updatedAtMillis = timestampToMillis(snapshot.data()?.updatedAt);
-  if (!updatedAtMillis) return { locked: false, lockedUntilIso: "" };
-  const lockedUntilMillis = updatedAtMillis + SEASON_EVENTS_UPDATE_LOCK_MS;
-  const locked = lockedUntilMillis > Date.now();
-  return {
-    locked,
-    lockedUntilIso: locked ? new Date(lockedUntilMillis).toISOString() : ""
-  };
-}
 
 function getKstDateKey(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -1661,10 +1666,10 @@ function getWeeklyLevelXpCap(memberUserId, weekKey = getKstWeekKey()) {
   };
 }
 
-function getTodayQuizDailyLevelXpCap(memberUserId, dateKey = getKstDateKey()) {
+function getPracticeDailyLevelXpCap(memberUserId, dateKey = getKstDateKey()) {
   return {
-    capKey: rewardLogId(["today_quiz_xp_daily", dateKey, memberUserId]),
-    capLimit: TODAY_QUIZ_DAILY_XP_LIMIT,
+    capKey: rewardLogId(["practice_xp_daily", dateKey, memberUserId]),
+    capLimit: PRACTICE_DAILY_XP_LIMIT,
     dateKey
   };
 }
@@ -1675,28 +1680,16 @@ function getStableHash(text) {
   }, 0);
 }
 
-function getDailyShuffledQuizIds(ids = [], dateKey = getKstDateKey()) {
-  return ids.slice().sort((a, b) => {
-    const left = getStableHash(`${dateKey}:${a}`);
-    const right = getStableHash(`${dateKey}:${b}`);
-    return left - right || String(a).localeCompare(String(b));
-  });
-}
 
-function getTodayQuizIds(flags = {}) {
-  const manualIds = Array.isArray(flags.todayQuizIds) ? flags.todayQuizIds : [];
-  const poolIds = Array.isArray(flags.todayQuizRandomPoolIds) ? flags.todayQuizRandomPoolIds : [];
-  const ids = flags.todayQuizMode === "dailyRandom"
-    ? getDailyShuffledQuizIds(poolIds, `${getKstDateKey()}:${flags.todayQuizShuffleSeed || ""}`).slice(0, Math.max(1, Number(flags.todayQuizDailyCount) || 1))
-    : manualIds;
-  return new Set(ids
-    .map(id => String(id || "").trim())
-    .filter(Boolean));
-}
 
 function getPracticeQuestKindsForQuiz(quizId) {
   const id = String(quizId || "").trim();
   const kinds = new Set();
+  if (id.startsWith("subject-")) {
+    kinds.add("studyCorrect");
+    const kind = { "subject-korean": "readingCorrect", "subject-math": "mathCorrect", "subject-social": "socialCorrect", "subject-science": "scienceCorrect" }[id];
+    if (kind) kinds.add(kind);
+  }
   if (id === "spelling") kinds.add("spellingCorrect");
   if (id === "random-basic" || id === "fraction-basic") kinds.add("mathCorrect");
   if (["word-relation", "proverb", "spacing", "idiom"].includes(id)) kinds.add("vocabCorrect");
@@ -1771,7 +1764,7 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
       .filter(Boolean);
   const linkedGemNames = rawLinkedGemNames.map(value => String(value || "").trim().slice(0, 40)).filter(Boolean).slice(0, 12);
   const rawLinkedGemIds = Array.isArray(rawQuest.linkedGemIds) ? rawQuest.linkedGemIds : [];
-  const linkedGemIds = linkedGemNames.map((name, index) => slugifyClassroomGemId(rawLinkedGemIds[index] || name)).filter(Boolean);
+  const linkedGemIds = linkedGemNames.map((name, index) => rawLinkedGemIds[index] ? String(rawLinkedGemIds[index]).trim().slice(0, 100) : slugifyClassroomGemId(name)).filter(Boolean);
   const linkedGemName = linkedGemNames[0] || "";
   const linkedGemId = linkedGemIds[0] || "";
   const gemXp = linkedGemIds.length ? 1 : 0;
@@ -1790,6 +1783,8 @@ function normalizeClassroomQuest(rawQuest = {}, index = 0) {
     desc: String(rawQuest.desc || "").trim().slice(0, 180),
     type: String(rawQuest.type || rawQuest.questType || "수락형 · 체크형").trim().slice(0, 40),
     questType: String(rawQuest.questType || rawQuest.type || "수락형 · 체크형").trim().slice(0, 40),
+    submissionType: require('./classroom/board-domain').submissionTypes.includes(rawQuest.submissionType) ? rawQuest.submissionType : 'complete',
+    checklistItems: Array.isArray(rawQuest.checklistItems) ? rawQuest.checklistItems.map(v => String(v).trim().slice(0, 120)).filter(Boolean).slice(0, 10) : [],
     rewardMode,
     rewardCoin,
     rewardCurrency,
@@ -2085,7 +2080,7 @@ function normalizeClassroomMission(rawMission = {}) {
 
 function publicClassroomMission(mission = {}, totalPoint = 0) {
   const normalized = normalizeClassroomMission(mission);
-  const safeTotal = Math.max(0, Math.round(Number(totalPoint) || 0));
+  const safeTotal = Math.max(0, roundClassroomPoint(totalPoint));
   const nextThreshold = normalized.thresholds.find(item => safeTotal < item.targetPoint) || null;
   return {
     ...normalized,
@@ -2192,57 +2187,6 @@ function publicClassroomPublicWallet(data = {}) {
   };
 }
 
-function mirrorDjCoinRewardToClassroomPoint(transaction, {
-  memberUserId,
-  memberData,
-  authUid,
-  rewardAmount,
-  sourceType,
-  sourceId
-}) {
-  const amount = Math.max(0, Math.round(Number(rewardAmount) || 0));
-  const classId = getClassIdForMember(memberData);
-  if (!classId || amount <= 0) return null;
-  const logId = rewardLogId([
-    "dj_coin_mirror_point",
-    classId,
-    memberUserId,
-    sourceType || "dj_coin_reward",
-    sourceId || Date.now()
-  ]);
-  const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-  const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
-  transaction.set(walletRef, {
-    memberUserId,
-    userId: memberUserId,
-    classId,
-    point: FieldValue.increment(amount),
-    totalEarnedPoint: FieldValue.increment(amount),
-    updatedAt: FieldValue.serverTimestamp(),
-    lastDjCoinMirrorPointAt: FieldValue.serverTimestamp(),
-    source: sourceType || "dj_coin_mirror_point"
-  }, { merge: true });
-  transaction.set(pointLogRef, {
-    type: "dj_coin_mirror_point",
-    classId,
-    userId: memberUserId,
-    memberUserId,
-    authUid,
-    rewardCurrency: "point",
-    rewardPoint: amount,
-    rewardAmount: amount,
-    sourceType: sourceType || "dj_coin_reward",
-    sourceId: sourceId || "",
-    source: "firebase_function",
-    createdAt: FieldValue.serverTimestamp()
-  }, { merge: false });
-  return {
-    classId,
-    rewardPoint: amount,
-    walletPath: walletRef.path,
-    pointLogPath: pointLogRef.path
-  };
-}
 
 function normalizeClassroomSettings(classId, data = {}) {
   const fallback = DEFAULT_CLASSROOM_SETTINGS[classId] || {
@@ -2347,12 +2291,13 @@ function publicClassroomStudentCard(doc, wallet = {}, profile = {}, titleSummary
     : {};
   return {
     memberUserId: doc.id,
+    classroomHidden: !isClassroomStudentCardVisible(doc.id, data),
     grade: String(data.grade || ""),
     classNumber: String(data.classNumber || ""),
     studentNumber: Number(data.studentNumber || 0),
     nickname: String(data.nickname || data.name || "").slice(0, 24),
     name: String(data.name || data.nickname || "").slice(0, 24),
-    profileImageUrl: String(data.profileImageUrl || "").slice(0, 1200),
+    ...classroomPortrait.publicPortrait(data, profile),
     point: getClassroomPointAmount(wallet),
     djCoin: Number(economy.djCoin ?? economy.coin ?? 0) || 0,
     pointBoostAmount: getClassroomPointBoostAmount(wallet),
@@ -2595,48 +2540,7 @@ function getPracticeSolvedTotal(record) {
   return correctCount;
 }
 
-function getRecordAreaKey(record) {
-  return String(record?.areaKey || `${record?.area || ""}/${record?.detail || ""}`).trim();
-}
 
-function buildEventQuestRows(quests, progressMap, claimMap) {
-  return quests.map(quest => {
-    const claim = claimMap[quest.questId] || {};
-    const repeatLimit = Math.max(1, Math.round(Number(quest.repeatLimit) || 1));
-    const claimedCount = Math.min(repeatLimit, Math.max(0, Math.round(Number(claim.claimedCount) || 0)));
-    const target = Math.max(1, Math.round(Number(quest.target) || 1));
-    const progress = Math.max(0, Math.round(Number(progressMap[quest.questId]?.current) || 0));
-    const nextTarget = target * Math.min(repeatLimit, claimedCount + 1);
-    const current = Math.min(nextTarget, progress);
-    const completed = current >= nextTarget;
-    const claimed = claimedCount >= repeatLimit || (quest.scope !== "weekly" && claimedCount > 0);
-    const claimable = completed && !claimed;
-    const rewardParts = [`XP +${quest.xpReward || 0}`];
-    if (Number(quest.rewardCoin) > 0) rewardParts.push(`DJ코인 +${quest.rewardCoin}`);
-    return {
-      questId: quest.questId,
-      icon: quest.icon,
-      title: quest.title,
-      scope: quest.scope || "daily",
-      recommended: !!quest.recommended,
-      current,
-      target: nextTarget,
-      baseTarget: target,
-      progress: `${current}/${nextTarget}`,
-      xpReward: quest.xpReward || 0,
-      rewardCoin: quest.rewardCoin || 0,
-      reward: rewardParts.join(" · "),
-      claimedCount,
-      repeatLimit,
-      completed,
-      claimed,
-      claimable,
-      status: claimed
-        ? "수령 완료"
-        : (claimable ? "완료 가능" : (quest.scope === "weekly" ? `주간 반복 ${claimedCount}/${repeatLimit}` : "진행 중"))
-    };
-  });
-}
 
 async function loadLinkedMemberForEvent(authUid, memberUserId) {
   const safeMemberUserId = normalizeId(memberUserId, "memberUserId");
@@ -2714,111 +2618,9 @@ exports.recordEducationCorrectForPopularUnlock = onCall({ region: REGION }, asyn
   return { success: true, status };
 });
 
-async function loadMemberPracticeRecords(memberUserId) {
-  const snapshot = await db.collection("practiceRecords")
-    .where("memberUserId", "==", memberUserId)
-    .limit(500)
-    .get();
-  return snapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
-}
 
-async function loadEventClaimMap(memberUserId, quests, dateKey, weekKey) {
-  const refs = [];
-  const keys = [];
-  quests.forEach(quest => {
-    const repeatLimit = Math.max(1, Math.round(Number(quest.repeatLimit) || 1));
-    for (let attempt = 1; attempt <= repeatLimit; attempt += 1) {
-      refs.push(db.collection("rewardLogs").doc(getEventRewardLogId(memberUserId, quest, dateKey, weekKey, attempt)));
-      keys.push({ questId: quest.questId, attempt });
-    }
-  });
-  const snapshots = await Promise.all(refs.map(ref => ref.get()));
-  return snapshots.reduce((map, snapshot, index) => {
-    if (snapshot.exists) {
-      const key = keys[index];
-      const current = map[key.questId] || { claimedCount: 0 };
-      map[key.questId] = {
-        claimedCount: current.claimedCount + 1,
-        lastAttempt: Math.max(current.lastAttempt || 0, key.attempt)
-      };
-    }
-    return map;
-  }, {});
-}
 
-async function loadEventProgressMap(memberUserId, quests, dateKey, weekKey) {
-  const snapshots = await Promise.all(quests.map(quest =>
-    db.collection("eventQuestProgress")
-      .doc(getEventProgressId(memberUserId, quest, dateKey, weekKey))
-      .get()
-  ));
-  return snapshots.reduce((map, snapshot, index) => {
-    if (snapshot.exists) map[quests[index].questId] = snapshot.data() || {};
-    return map;
-  }, {});
-}
 
-async function loadClassEventProgress(memberData) {
-  const grade = String(memberData.grade || "");
-  const classNumber = String(memberData.classNumber || "");
-  const school = String(memberData.school || DEFAULT_MEMBER_SCHOOL);
-  if (!grade || !classNumber) return [];
-
-  const gradeCandidates = Array.from(new Set([
-    grade,
-    Number(grade)
-  ].filter(value => value !== "" && !Number.isNaN(value))));
-  const memberSnapshot = await db.collection("users")
-    .where("grade", "in", gradeCandidates)
-    .limit(120)
-    .get();
-  const memberIds = memberSnapshot.docs
-    .filter(doc => {
-      const data = doc.data() || {};
-      return data.role === "student"
-        && data.status === "active"
-        && data.active === true
-        && String(data.classNumber || "") === classNumber
-        && String(data.school || DEFAULT_MEMBER_SCHOOL) === school;
-    })
-    .map(doc => doc.id);
-
-  if (!memberIds.length) {
-    return CLASS_MISSION_DEFINITIONS.map(mission => ({ ...mission, current: 0, percent: 0 }));
-  }
-
-  let practiceTotal = 0;
-  let rankingTotal = 0;
-  let coinTotal = 0;
-  for (const chunk of chunkArray(memberIds, 30)) {
-    const [practiceSnapshot, rankingSnapshot, economySnapshots] = await Promise.all([
-      db.collection("practiceRecords").where("memberUserId", "in", chunk).limit(1000).get(),
-      db.collection("rankingRecords").where("memberUserId", "in", chunk).limit(1000).get(),
-      Promise.all(chunk.map(memberId => db.collection("userEconomy").doc(memberId).get()))
-    ]);
-    practiceTotal += practiceSnapshot.docs
-      .map(doc => doc.data() || {})
-      .reduce((sum, record) => sum + getPracticeSolvedTotal(record), 0);
-    rankingTotal += rankingSnapshot.size;
-    coinTotal += economySnapshots
-      .map(snapshot => snapshot.exists ? snapshot.data() || {} : {})
-      .reduce((sum, economy) => sum + (Number(economy.totalEarned ?? economy.djCoin ?? 0) || 0), 0);
-  }
-
-  const values = {
-    class_quiz_100: practiceTotal,
-    class_coin_2000: coinTotal,
-    ranking_30: rankingTotal
-  };
-  return CLASS_MISSION_DEFINITIONS.map(mission => {
-    const current = Math.max(0, Math.floor(values[mission.missionId] || 0));
-    return {
-      ...mission,
-      current,
-      percent: Math.min(100, Math.round((current / mission.target) * 100))
-    };
-  });
-}
 
 async function writeAuthLinkLog(entry) {
   try {
@@ -3814,71 +3616,31 @@ function buildAdminDashboardSummary({ adminMember, members, credentialStates, to
 exports.adminGetDashboard = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
-  // orderBy("userId")는 userId 필드가 없는 문서(신규가입 생성분)를 제외하므로 사용하지 않는다.
-  const userSnapshot = await db.collection("users").limit(1000).get();
-  let members = userSnapshot.docs.map(publicAdminMemberRow);
-  if (!adminMember.isSuperAdmin) {
-    members = members.filter(member => isMemberInAdminScope(adminMember, member));
-  }
-
-  const credentialSnapshots = members.length
-    ? await db.getAll(...members.map(member => db.collection("memberCredentials").doc(member.userId)))
-    : [];
-  const credentialStates = credentialSnapshots.map(publicAdminCredentialState);
+  // Scope checks still finish before content reads. Only independent reads overlap.
+  const insights = require('./admin-insights');
   const kstDayStart = Timestamp.fromDate(getKstDayStartDate());
-  let todayPracticeCount = 0;
-  let todayRewardCount = 0;
-  let recentLogs = [];
-
-  try {
-    const practiceSnapshot = await db.collection("practiceRecords")
-      .where("updatedAt", ">=", kstDayStart)
-      .limit(1000)
-      .get();
-    todayPracticeCount = practiceSnapshot.docs
-      .map(doc => doc.data() || {})
-      .filter(record => adminMember.isSuperAdmin || isMemberInAdminScope(adminMember, {
-        grade: record.grade || "",
-        classNumber: record.classNumber || "",
-        userId: record.memberUserId || record.userId || ""
-      }) || members.some(member => member.userId === (record.memberUserId || record.userId || "")))
-      .length;
-  } catch (error) {
-    console.warn("Admin dashboard practice count failed.", error);
-  }
-
-  try {
-    const rewardSnapshot = await db.collection("rewardLogs")
-      .where("createdAt", ">=", kstDayStart)
-      .limit(1000)
-      .get();
-    todayRewardCount = rewardSnapshot.docs
-      .map(doc => doc.data() || {})
-      .filter(log => adminMember.isSuperAdmin || members.some(member => member.userId === (log.memberUserId || log.userId || "")))
-      .length;
-  } catch (error) {
-    console.warn("Admin dashboard reward count failed.", error);
-  }
-
-  if (adminMember.isSuperAdmin) {
-    const logSnapshot = await db.collection("adminLogs")
-      .orderBy("createdAt", "desc")
-      .limit(5)
-      .get();
-    recentLogs = logSnapshot.docs.map(publicAdminLogRow);
-  }
-
-  return {
-    success: true,
-    dashboard: buildAdminDashboardSummary({
-      adminMember,
-      members,
-      credentialStates,
-      todayPracticeCount,
-      todayRewardCount,
-      recentLogs
-    })
-  };
+  const memberReadPromise = insights.bounded(db.collection("users")).then(read => {
+    if(read.status === 'failed') throw new HttpsError('unavailable', '회원 집계를 읽지 못했습니다.');
+    return read;
+  });
+  const membersPromise = memberReadPromise.then(read=>read.docs.map(publicAdminMemberRow).filter(member=>adminMember.isSuperAdmin || isMemberInAdminScope(adminMember, member)));
+  const credentialsPromise = membersPromise.then(members=>members.length ? db.getAll(...members.map(member=>db.collection('memberCredentials').doc(member.userId))) : []);
+  const [memberRead, members, credentials, activity, rewards, logs] = await Promise.all([
+    memberReadPromise, membersPromise, credentialsPromise,
+    insights.bounded(db.collection('achievementProgress').where('updatedAt','>=',kstDayStart.toMillis())),
+    insights.bounded(db.collection('rewardLogs').where('createdAt','>=',kstDayStart)),
+    adminMember.isSuperAdmin ? db.collection('adminLogs').orderBy('createdAt','desc').limit(5).get() : null
+  ]);
+  const ids = new Set(members.map(member=>member.userId));
+  const count = (read, owner, filter=()=>true) => read.status === 'failed' ? null : read.docs.filter(doc=>filter(doc.data()) && (adminMember.isSuperAdmin || ids.has(owner(doc)))).length;
+  const dashboard = buildAdminDashboardSummary({adminMember,members,credentialStates:credentials.map(publicAdminCredentialState),
+    todayPracticeCount:count(activity,doc=>doc.id,data=>data.version===require('./achievements/catalog').VERSION),
+    todayRewardCount:count(rewards,doc=>doc.data().memberUserId||doc.data().userId),recentLogs:(logs?.docs||[]).map(publicAdminLogRow)});
+  dashboard.checkedAt = Date.now();
+  dashboard.activityLabel = '오늘 학습 진행도 갱신 학생';
+  dashboard.readStatus = {members:memberRead.status,activity:activity.status,rewards:rewards.status};
+  dashboard.activityNote = '한국 날짜 기준 현행 답안·성공 판 집계가 갱신된 학생 수입니다. 접속자·전체 플레이 횟수가 아닙니다. 보상은 지급 로그 건수입니다.';
+  return {success:true,dashboard};
 });
 
 function normalizeAuditRankingCategoryKey(categoryKey, category = "") {
@@ -3932,6 +3694,10 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
+  const scope = request.data?.scope || 'current';
+  if(scope === 'current') return {success:true,audit:await require('./admin-insights').currentAudit(db)};
+  if(scope !== 'archive') throw new HttpsError('invalid-argument', '점검 범위를 확인해 주세요.');
+
 
   const [
     userSnapshot,
@@ -3953,7 +3719,7 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
   const userIds = new Set(users.map(user => user.memberUserId));
   const credentialIds = new Set(credentialSnapshot.docs.map(doc => doc.id));
   const practiceRows = practiceSnapshot.docs.map(publicAuditRecord);
-  const rankingRows = rankingSnapshot.docs.map(publicAuditRecord);
+  const rankingRows = rankingSnapshot.docs.map(publicAuditRecord).filter(row => !(row.sourceSheet === 'popular-quiz-server' && row.rulesVersion === require('./popular-quiz/domain').VERSION));
   const quizKingRows = quizKingSnapshot.docs.map(publicAuditRecord);
   const dailyUsageRows = dailyUsageSnapshot.docs.map(publicAuditRecord);
 
@@ -4062,6 +3828,8 @@ exports.adminGetOperationalAudit = onCall({ region: REGION }, async request => {
   return {
     success: true,
     audit: {
+      scope: 'archive',
+      complete: userSnapshot.size < 2000 && credentialSnapshot.size < 2000 && practiceSnapshot.size < 5000 && rankingSnapshot.size < 5000 && quizKingSnapshot.size < 2000 && dailyUsageSnapshot.size < 5000,
       checkedAt: Timestamp.now(),
       metrics: {
         users: users.length,
@@ -4135,21 +3903,14 @@ exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
 
-  const [quizSnapshot, featureFlags] = await Promise.all([
-    db.collection("quizzes").limit(300).get(),
-    getFeatureFlags().catch(() => DEFAULT_FEATURE_FLAGS)
+  const qualityScope = require('./quiz-quality-scope');
+  const selection = qualityScope.selectScope(request.data || {}, HttpsError);
+  const [loaded, featureFlags] = await Promise.all([
+    qualityScope.loadScope(db, selection),
+    getFeatureFlags()
   ]);
   const disabledQuizIds = new Set(publicFeatureFlags(featureFlags).disabledQuizIds || []);
-  const quizDocs = quizSnapshot.docs
-    .map(doc => ({ quizId: doc.id, ...(doc.data() || {}) }))
-    .filter(quiz => !ADMIN_QUIZ_QUALITY_IGNORED_QUIZ_IDS.has(quiz.quizId));
-  const questionSnapshots = await Promise.all(quizDocs.map(quiz =>
-    db.collection("quizQuestions").doc(quiz.quizId).collection("questions").limit(1200).get()
-      .catch(error => {
-        console.warn("Admin quiz quality question read failed.", quiz.quizId, error);
-        return null;
-      })
-  ));
+  const quizDocs = loaded.entries.map(entry => entry.quiz);
 
   const quizSummaries = [];
   const invalidQuestions = [];
@@ -4161,8 +3922,7 @@ exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
   let duplicateQuestionIdCount = 0;
 
   quizDocs.forEach((quiz, index) => {
-    const snapshot = questionSnapshots[index];
-    const questions = snapshot ? snapshot.docs.map(publicAuditRecord) : [];
+    const questions = loaded.entries[index].questions.map(publicAuditRecord);
     const seenIds = new Map();
     questionCount += questions.length;
 
@@ -4217,6 +3977,11 @@ exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
     success: true,
     audit: {
       checkedAt: Timestamp.now(),
+      scope: selection.scope,
+      complete: loaded.readIssues.length === 0,
+      scopeDescription: selection.scope === 'current'
+        ? '현재 인기 퀴즈의 국기·티니핑·포켓몬 문제은행 11개 점검. 생성형 과목과 아이돌·애니 정적 팩은 별도 로컬 검사 대상입니다.'
+        : '지정한 보관 문제은행만 점검한 결과입니다. 전체 문제은행 검사가 아닙니다.',
       metrics: {
         quizCount: quizDocs.length,
         questionCount,
@@ -4227,6 +3992,7 @@ exports.adminGetQuizQualityAudit = onCall({ region: REGION }, async request => {
       },
       quizSummaries,
       issues: {
+        readIssues: loaded.readIssues,
         invalidQuestions,
         missingImages,
         duplicateQuestionIds
@@ -4484,22 +4250,27 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
 
   const userRef = db.collection("users").doc(memberUserId);
+  // Authorize the target before reading any private detail collections.
+  const userSnapshot = await userRef.get();
+  if (!userSnapshot.exists) throw new HttpsError("not-found", "Member not found.");
+  const memberData = userSnapshot.data() || {};
+  assertAdminCanAccessMember(adminMember, memberUserId, memberData, { allowSelf: true });
   const credentialsRef = db.collection("memberCredentials").doc(memberUserId);
   const economyRef = db.collection("userEconomy").doc(memberUserId);
   const summaryRef = db.collection("userPracticeSummary").doc(memberUserId);
   const titleSummaryRef = db.collection("userTitleSummary").doc(memberUserId);
 
   const [
-    userSnapshot,
     credentialsSnapshot,
     economySnapshot,
     summarySnapshot,
     titleSummarySnapshot,
     badgeSnapshot,
     titleSnapshot,
-    practiceSnapshot
+    practiceSnapshot,
+    achievementSnapshot,
+    coordiSnapshot
   ] = await Promise.all([
-    userRef.get(),
     credentialsRef.get(),
     economyRef.get(),
     summaryRef.get(),
@@ -4509,14 +4280,11 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
     db.collection("practiceRecords")
       .where("memberUserId", "==", memberUserId)
       .limit(80)
-      .get()
+      .get(),
+    db.collection("achievementProgress").doc(memberUserId).get(),
+    db.collection("coordiProfiles").doc(memberUserId).get()
   ]);
 
-  if (!userSnapshot.exists) {
-    throw new HttpsError("not-found", "Member not found.");
-  }
-  const memberData = userSnapshot.data() || {};
-  assertAdminCanAccessMember(adminMember, memberUserId, memberData, { allowSelf: true });
   const classroomId = memberData.grade && memberData.classNumber
     ? `G${memberData.grade}-C${memberData.classNumber}`
     : "";
@@ -4557,6 +4325,9 @@ exports.adminGetMemberDetail = onCall({ region: REGION }, async request => {
     success: true,
     memberUserId,
     profile: publicAdminMemberRow(userSnapshot),
+    achievements: require('./admin-insights').memberProgress(achievementSnapshot.data()),
+    gameHonors: {stars:Number(memberData.gameHonors?.stars || 0), hearts:Number(memberData.gameHonors?.hearts || 0)},
+    purchaseCoupons: Number(coordiSnapshot.data()?.purchaseCoupons || 0),
     passwordState: publicAdminCredentialState(credentialsSnapshot),
     economy: {
       djCoin: Number(economy.djCoin ?? economy.coin ?? 0),
@@ -5043,7 +4814,7 @@ exports.adminListLogs = onCall({ region: REGION }, async request => {
 function publicNoticeBoard(data) {
   return {
     title: String(data?.title || "알림판").trim().slice(0, 40),
-    desc: String(data?.desc || "공지와 오늘의 퀴즈를 확인하고 바로 이동할 수 있습니다.").trim().slice(0, 120),
+    desc: String(data?.desc || "공지와 학습 안내를 확인할 수 있습니다.").trim().slice(0, 120),
     summary: String(data?.summary || "").trim().slice(0, 180),
     announcement: String(data?.announcement || "오늘도 연습전과 랭킹전을 자유롭게 이용할 수 있어요.").trim().slice(0, 160),
     quest: String(data?.quest || "이벤트 광장에서 개인 미션을 확인하세요.").trim().slice(0, 160),
@@ -5057,51 +4828,7 @@ function publicNoticeBoard(data) {
   };
 }
 
-function getTodayQuizNoticeText(quizIds = []) {
-  const titles = quizIds
-    .map(quizId => QUIZ_TITLE_MAP[quizId] || quizId)
-    .filter(Boolean);
-  const titleText = titles.length ? titles.join(", ") : "오늘의 퀴즈";
-  return `오늘의 퀴즈: ${titleText}. 연습전에서 새 정답을 맞히면 XP +2가 추가돼요. DJ코인은 모든 연습전 새 정답에 지급됩니다.`;
-}
 
-async function syncNoticeBoardWithTodayQuizFlags(flags = {}, options = {}) {
-  const quizIds = Array.isArray(flags.activeTodayQuizIds) && flags.activeTodayQuizIds.length
-    ? flags.activeTodayQuizIds
-    : flags.todayQuizIds;
-  const activeQuizIds = Array.from(new Set((quizIds || [])
-    .map(id => String(id || "").trim())
-    .filter(Boolean)))
-    .slice(0, 2);
-  if (!activeQuizIds.length) return null;
-
-  const noticeRef = db.collection("noticeBoard").doc("current");
-  const snapshot = await noticeRef.get();
-  const currentNotice = publicNoticeBoard(snapshot.exists ? snapshot.data() || {} : {});
-  const nextNotice = publicNoticeBoard({
-    ...currentNotice,
-    quest: getTodayQuizNoticeText(activeQuizIds),
-    recommendedQuizLabel: QUIZ_TITLE_MAP[activeQuizIds[0]] || activeQuizIds[0] || "",
-    recommendedQuizId: activeQuizIds[0] || "",
-    recommendedQuiz2Label: QUIZ_TITLE_MAP[activeQuizIds[1]] || activeQuizIds[1] || "",
-    recommendedQuiz2Id: activeQuizIds[1] || ""
-  });
-
-  const changed = currentNotice.quest !== nextNotice.quest
-    || currentNotice.recommendedQuizId !== nextNotice.recommendedQuizId
-    || currentNotice.recommendedQuiz2Id !== nextNotice.recommendedQuiz2Id
-    || currentNotice.recommendedQuizLabel !== nextNotice.recommendedQuizLabel
-    || currentNotice.recommendedQuiz2Label !== nextNotice.recommendedQuiz2Label;
-  if (!changed) return nextNotice;
-
-  await noticeRef.set({
-    ...nextNotice,
-    updatedAt: FieldValue.serverTimestamp(),
-    updatedByAdminUserId: options.adminUserId || "system-today-quiz-sync"
-  }, { merge: true });
-
-  return nextNotice;
-}
 
 exports.adminGetNoticeBoard = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
@@ -5150,11 +4877,6 @@ exports.adminGetFeatureFlags = onCall({ region: REGION }, async request => {
   const adminMember = await getAdminMemberForAuth(authUid);
   assertSuperAdmin(adminMember);
   const flags = await getFeatureFlags();
-  await syncNoticeBoardWithTodayQuizFlags(flags, {
-    adminUserId: adminMember.memberUserId
-  }).catch(error => {
-    console.warn("Today quiz notice sync failed during feature flag read.", error);
-  });
   return {
     success: true,
     flags
@@ -5183,6 +4905,7 @@ exports.adminUpdateFeatureFlags = onCall({ region: REGION }, async request => {
       ? publicExternalQuizzes(beforeExternalSnapshot.data() || {})
       : DEFAULT_EXTERNAL_QUIZZES;
     const nextExternal = publicExternalQuizzes({
+      concept: beforeExternal.concept,
       items: (beforeExternal.items || []).map(item => ({
         ...item,
         active: false
@@ -5268,61 +4991,19 @@ exports.adminUpdateExternalQuizzes = onCall({ region: REGION }, async request =>
 
 exports.getPublicSeasonEvents = onCall({ region: REGION }, async request => {
   requireAuth(request);
-  const snapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
-  return {
-    success: true,
-    seasonEvents: publicSeasonEvents(snapshot.exists ? snapshot.data() || {} : DEFAULT_SEASON_EVENTS)
-  };
+  return { success: true, seasonEvents: { items: [] }, retired: true };
 });
 
 exports.adminGetSeasonEvents = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const adminMember = await getAdminMemberForAuth(authUid);
+  const adminMember = await getAdminMemberForAuth(requireAuth(request));
   assertSuperAdmin(adminMember);
-  const snapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
-  const lock = getSeasonEventsUpdateLock(snapshot);
-  return {
-    success: true,
-    seasonEvents: publicSeasonEvents(snapshot.exists ? snapshot.data() || {} : DEFAULT_SEASON_EVENTS),
-    canUpdate: !lock.locked,
-    lockedUntilIso: lock.lockedUntilIso
-  };
+  throw new HttpsError('failed-precondition', '시즌 이벤트 기능이 종료되었습니다.');
 });
 
 exports.adminUpdateSeasonEvents = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const adminMember = await getAdminMemberForAuth(authUid);
+  const adminMember = await getAdminMemberForAuth(requireAuth(request));
   assertSuperAdmin(adminMember);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const beforeSnapshot = await db.doc(SEASON_EVENTS_DOC_PATH).get();
-  const lock = getSeasonEventsUpdateLock(beforeSnapshot);
-  if (lock.locked) {
-    throw new HttpsError("failed-precondition", `Season events can be updated after ${lock.lockedUntilIso}.`);
-  }
-  const before = beforeSnapshot.exists ? publicSeasonEvents(beforeSnapshot.data() || {}) : DEFAULT_SEASON_EVENTS;
-  const next = publicSeasonEvents(payload.seasonEvents || payload);
-
-  await db.doc(SEASON_EVENTS_DOC_PATH).set({
-    ...next,
-    updatedAt: FieldValue.serverTimestamp(),
-    updatedByAdminUserId: adminMember.memberUserId
-  }, { merge: true });
-
-  await writeAdminLog({
-    adminUserId: adminMember.memberUserId,
-    action: "adminUpdateSeasonEvents",
-    targetUserId: SEASON_EVENTS_DOC_PATH,
-    before,
-    after: next,
-    reason: "season events update"
-  });
-
-  return {
-    success: true,
-    seasonEvents: next,
-    canUpdate: false,
-    lockedUntilIso: new Date(Date.now() + SEASON_EVENTS_UPDATE_LOCK_MS).toISOString()
-  };
+  throw new HttpsError('failed-precondition', '시즌 이벤트 기능이 종료되었습니다.');
 });
 
 exports.getEventProgress = onCall({ region: REGION }, async request => {
@@ -5335,28 +5016,11 @@ exports.getEventProgress = onCall({ region: REGION }, async request => {
   assertFeatureEnabledForMember(flags, "eventPlazaEnabled", memberData, "Event plaza is disabled.");
   const dateKey = getKstDateKey();
   const weekKey = getKstWeekKey();
-  const activeQuests = getActiveEventQuests(dateKey);
-  const [progressMap, claimMap, seasonEventsSnapshot] = await Promise.all([
-    loadEventProgressMap(memberUserId, activeQuests, dateKey, weekKey),
-    loadEventClaimMap(memberUserId, activeQuests, dateKey, weekKey),
-    db.doc(SEASON_EVENTS_DOC_PATH).get()
-  ]);
-  const monthKey = dateKey.slice(0, 7);
-  const seasonEvents = publicSeasonEvents(
-    seasonEventsSnapshot.exists ? seasonEventsSnapshot.data() || {} : DEFAULT_SEASON_EVENTS,
-    { dateKey, weekKey }
-  ).items.filter(eventItem => eventItem.active !== false);
+  const growth = await growthQuests.status(authUid, memberUserId);
+  return { ...growth, success: true, memberUserId, dateKey, weekKey,
+    classMissions: [], monthKey: dateKey.slice(0, 7), seasonEvents: [], legacyQuests: [],
+    seasonClaimLimit: 0, seasonClaimed: 0 };
 
-  return {
-    success: true,
-    memberUserId,
-    dateKey,
-    weekKey,
-    quests: buildEventQuestRows(activeQuests, progressMap, claimMap),
-    classMissions: [],
-    monthKey,
-    seasonEvents
-  };
 });
 
 exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
@@ -5368,15 +5032,15 @@ exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
   const dateKey = getKstDateKey();
   const weekKey = getKstWeekKey();
   const coinCapId = rewardLogId(["practice_coin_daily", dateKey, memberUserId]);
-  const todayQuizXpCap = getTodayQuizDailyLevelXpCap(memberUserId, dateKey);
+  const practiceXpCap = getPracticeDailyLevelXpCap(memberUserId, dateKey);
   const weeklyXpCap = getWeeklyLevelXpCap(memberUserId, weekKey);
-  const [coinCapSnapshot, todayQuizXpSnapshot, weeklyXpSnapshot] = await Promise.all([
+  const [coinCapSnapshot, practiceXpSnapshot, weeklyXpSnapshot] = await Promise.all([
     db.collection("rewardDailyCaps").doc(coinCapId).get(),
-    db.collection("levelXpCaps").doc(todayQuizXpCap.capKey).get(),
+    db.collection("levelXpCaps").doc(practiceXpCap.capKey).get(),
     db.collection("levelXpCaps").doc(weeklyXpCap.capKey).get()
   ]);
   const usedCoin = Math.max(0, Math.round(Number(coinCapSnapshot.exists ? coinCapSnapshot.data()?.usedCoin : 0) || 0));
-  const usedTodayQuizXp = Math.max(0, Math.round(Number(todayQuizXpSnapshot.exists ? todayQuizXpSnapshot.data()?.xp : 0) || 0));
+  const usedPracticeXp = Math.max(0, Math.round(Number(practiceXpSnapshot.exists ? practiceXpSnapshot.data()?.xp : 0) || 0));
   const usedWeeklyXp = Math.max(0, Math.round(Number(weeklyXpSnapshot.exists ? weeklyXpSnapshot.data()?.xp : 0) || 0));
 
   return {
@@ -5390,11 +5054,11 @@ exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
       used: Math.min(PRACTICE_DAILY_COIN_LIMIT, usedCoin),
       remaining: Math.max(0, PRACTICE_DAILY_COIN_LIMIT - usedCoin)
     },
-    todayQuizXp: {
-      limit: TODAY_QUIZ_DAILY_XP_LIMIT,
-      perCorrect: TODAY_QUIZ_XP_PER_QUESTION,
-      used: Math.min(TODAY_QUIZ_DAILY_XP_LIMIT, usedTodayQuizXp),
-      remaining: Math.max(0, TODAY_QUIZ_DAILY_XP_LIMIT - usedTodayQuizXp)
+    practiceXp: {
+      limit: PRACTICE_DAILY_XP_LIMIT,
+      perCorrect: PRACTICE_XP_PER_QUESTION,
+      used: Math.min(PRACTICE_DAILY_XP_LIMIT, usedPracticeXp),
+      remaining: Math.max(0, PRACTICE_DAILY_XP_LIMIT - usedPracticeXp)
     },
     weeklyXp: {
       limit: WEEKLY_XP_LIMIT,
@@ -5405,314 +5069,11 @@ exports.getDailyRewardStatus = onCall({ region: REGION }, async request => {
 });
 
 exports.claimEventQuestReward = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  const questId = normalizeId(payload.questId, "questId");
-  const dateKey = getKstDateKey();
-  const weekKey = getKstWeekKey();
-  const activeQuests = getActiveEventQuests(dateKey);
-  const quest = activeQuests.find(item => item.questId === questId);
-  if (!quest) {
-    throw new HttpsError("invalid-argument", "Unknown or inactive event quest.");
-  }
-
-  const flags = await getFeatureFlags();
-  const { memberData } = await loadLinkedMemberForEvent(authUid, memberUserId);
-  assertFeatureEnabledForMember(flags, "eventPlazaEnabled", memberData, "Event plaza is disabled.");
-
-  const result = await db.runTransaction(async transaction => {
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
-    const repeatLimit = Math.max(1, Math.round(Number(quest.repeatLimit) || 1));
-    const progressRef = db.collection("eventQuestProgress")
-      .doc(getEventProgressId(memberUserId, quest, dateKey, weekKey));
-    const logRefs = Array.from({ length: repeatLimit }, (_, index) =>
-      db.collection("rewardLogs").doc(getEventRewardLogId(memberUserId, quest, dateKey, weekKey, index + 1))
-    );
-    const economyRef = db.collection("userEconomy").doc(memberUserId);
-    const [progressSnapshot, ...logSnapshots] = await Promise.all([
-      transaction.get(progressRef),
-      ...logRefs.map(ref => transaction.get(ref))
-    ]);
-    const claimedCount = logSnapshots.filter(snapshot => snapshot.exists).length;
-    if (claimedCount >= repeatLimit) {
-      return {
-        duplicate: true,
-        rewardCoin: 0,
-        xpDelta: 0,
-        dateKey,
-        weekKey,
-        rewardLogPath: logRefs[repeatLimit - 1].path,
-        economyPath: economyRef.path
-      };
-    }
-    const progress = Math.max(0, Math.round(Number(progressSnapshot.exists ? progressSnapshot.data()?.current : 0) || 0));
-    const progressTarget = Math.max(1, Math.round(Number(quest.target) || 1)) * (claimedCount + 1);
-    if (progress < progressTarget) {
-      throw new HttpsError("failed-precondition", "Event quest is not complete.");
-    }
-    const attempt = claimedCount + 1;
-    const logRef = logRefs[claimedCount];
-    const levelXp = await applyLevelXp(transaction, {
-      memberUserId,
-      authUid,
-      memberData,
-      xpDelta: quest.xpReward || 0,
-      sourceType: `event_${quest.scope || "daily"}_quest`,
-      sourceId: `${getEventQuestPeriodKey(quest, dateKey, weekKey)}__${questId}__${attempt}`,
-      sourceLabel: quest.title,
-      dateKey,
-      classroomPointMirrorAmount: quest.rewardCoin || 0,
-      caps: [getWeeklyLevelXpCap(memberUserId, weekKey)],
-      extra: {
-        questId,
-        questScope: quest.scope || "daily",
-        attempt,
-        periodKey: getEventQuestPeriodKey(quest, dateKey, weekKey)
-      }
-    });
-
-    if (Number(quest.rewardCoin) > 0) {
-      transaction.set(economyRef, {
-        userId: memberUserId,
-        djCoin: FieldValue.increment(quest.rewardCoin),
-        totalEarned: FieldValue.increment(quest.rewardCoin),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastEventQuestRewardAt: FieldValue.serverTimestamp(),
-        source: "event_quest_reward_function"
-      }, { merge: true });
-    }
-    transaction.set(logRef, {
-      type: "event_quest",
-      questId,
-      questTitle: quest.title,
-      questScope: quest.scope || "daily",
-      dateKey,
-      weekKey,
-      attempt,
-      userId: memberUserId,
-      memberUserId,
-      authUid,
-      rewardCoin: quest.rewardCoin || 0,
-      xpDelta: levelXp.xpDelta || 0,
-      progressCurrent: progress,
-      progressTarget,
-      source: "firebase_function",
-      createdAt: FieldValue.serverTimestamp()
-    }, { merge: false });
-
-    return {
-      duplicate: false,
-      rewardCoin: quest.rewardCoin || 0,
-      xpDelta: levelXp.xpDelta || 0,
-      levelXp,
-      dateKey,
-      weekKey,
-      attempt,
-      rewardLogPath: logRef.path,
-      economyPath: economyRef.path
-    };
-  });
-
-  return {
-    success: true,
-    memberUserId,
-    questId,
-    ...result
-  };
+  return growthQuests.claim(requireAuth(request), normalizeId(request.data?.memberUserId, 'memberUserId'), String(request.data?.questId || ''));
 });
 
 exports.completeClassroomAutoQuest = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  const classId = normalizeId(payload.classId || "G4-C8", "classId");
-  const questId = normalizeId(payload.questId, "questId");
-
-  const result = await db.runTransaction(async transaction => {
-    const [memberData, classroomResult] = await Promise.all([
-      assertLinkedMemberAuth(transaction, memberUserId, authUid),
-      loadClassroomSettingsForTransaction(transaction, classId)
-    ]);
-    const settings = classroomResult.settings;
-    const quest = settings.quests.find(item => item.id === questId || item.questId === questId) || null;
-    if (!quest || quest.rewardMode !== "auto" || quest.active === false || quest.saveEnabled === false) {
-      throw new HttpsError("invalid-argument", "Unknown classroom auto quest.");
-    }
-    if (String(memberData.grade || "") !== String(settings.grade || "")
-      || String(memberData.classNumber || "") !== String(settings.classNumber || "")) {
-      throw new HttpsError("permission-denied", "Member is outside classroom scope.");
-    }
-
-    const dateKey = getKstDateKey();
-    if (quest.startDate && dateKey < String(quest.startDate)) {
-      throw new HttpsError("failed-precondition", "Classroom quest has not started.");
-    }
-    if (quest.endDate && dateKey > String(quest.endDate)) {
-      throw new HttpsError("failed-precondition", "Classroom quest period is over.");
-    }
-    if (Array.isArray(quest.targetStudentIds) && quest.targetStudentIds.length
-      && !quest.targetStudentIds.includes(memberUserId)) {
-      throw new HttpsError("permission-denied", "Classroom quest is not assigned to this member.");
-    }
-    const recordId = `${memberUserId}__${questId}__${dateKey}`;
-    const progressRef = db.collection("classrooms")
-      .doc(classId)
-      .collection("questProgress")
-      .doc(recordId);
-    const rewardCurrency = "point";
-    const rewardAmount = Number(quest.rewardCoin) || 0;
-    const logId = rewardLogId([
-      "classroom_auto_quest",
-      classId,
-      dateKey,
-      memberUserId,
-      questId
-    ]);
-    const logRef = db.collection("rewardLogs").doc(logId);
-    const economyRef = rewardCurrency === "point"
-      ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
-      : db.collection("userEconomy").doc(memberUserId);
-    const pointLogRef = rewardCurrency === "point"
-      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
-      : null;
-
-    const [progressSnapshot, logSnapshot, walletSnapshot] = await Promise.all([
-      transaction.get(progressRef),
-      transaction.get(logRef),
-      rewardCurrency === "point" ? transaction.get(economyRef) : Promise.resolve(null)
-    ]);
-    const boostedReward = getBoostedClassroomPointAmount(
-      rewardAmount,
-      walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
-    );
-
-    if (progressSnapshot.exists || logSnapshot.exists) {
-      return {
-        duplicate: true,
-        rewardCoin: 0,
-        rewardCurrency,
-        dateKey,
-        recordId,
-        progressPath: progressRef.path,
-        rewardLogPath: logRef.path,
-        economyPath: economyRef.path
-      };
-    }
-
-    const gemResult = await applyClassroomGemProgress(transaction, {
-      classId,
-      memberUserId,
-      quest,
-      authUid,
-      source: "classroom_auto_quest_function",
-      progressPath: progressRef.path
-    });
-
-    transaction.set(progressRef, {
-      recordId,
-      classId,
-      questId,
-      questTitle: quest.title,
-      questType: quest.questType || quest.type,
-      rewardMode: quest.rewardMode,
-      memberUserId,
-      userId: memberUserId,
-      checked: true,
-      status: "completed",
-      rewardCoin: rewardAmount,
-      rewardCurrency,
-      rewardStatus: "paid",
-      dateKey,
-      source: "classroom_auto_quest_function",
-      version: 2,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-      rewardedAt: FieldValue.serverTimestamp()
-    }, { merge: false });
-    if (rewardCurrency === "point") {
-      transaction.set(economyRef, {
-        memberUserId,
-        userId: memberUserId,
-        classId,
-        point: FieldValue.increment(boostedReward.rewardAmount),
-        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
-        source: "classroom_auto_quest_function"
-      }, { merge: true });
-      transaction.set(pointLogRef, {
-        type: "classroom_auto_quest",
-        classId,
-        questId,
-        questTitle: quest.title,
-        dateKey,
-        userId: memberUserId,
-        memberUserId,
-        authUid,
-        rewardCurrency,
-        rewardPoint: boostedReward.rewardAmount,
-        rewardAmount: boostedReward.rewardAmount,
-        baseRewardAmount: boostedReward.baseAmount,
-        boostPoint: boostedReward.boostPoint,
-        progressPath: progressRef.path,
-        source: "firebase_function",
-        createdAt: FieldValue.serverTimestamp()
-      }, { merge: false });
-    } else {
-      transaction.set(economyRef, {
-        userId: memberUserId,
-        djCoin: FieldValue.increment(rewardAmount),
-        totalEarned: FieldValue.increment(rewardAmount),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
-        source: "classroom_auto_quest_function"
-      }, { merge: true });
-    }
-    transaction.set(logRef, {
-      type: "classroom_auto_quest",
-        classId,
-        questId,
-        questTitle: quest.title,
-        dateKey,
-        userId: memberUserId,
-      memberUserId,
-      authUid,
-      rewardCurrency,
-      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
-      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
-      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
-      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
-      progressPath: progressRef.path,
-      source: "firebase_function",
-      createdAt: FieldValue.serverTimestamp()
-    }, { merge: false });
-
-    return {
-      duplicate: false,
-      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
-      rewardCurrency,
-      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
-      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
-      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
-      dateKey,
-      recordId,
-      progressPath: progressRef.path,
-      rewardLogPath: logRef.path,
-      economyPath: economyRef.path,
-      gem: gemResult
-    };
-  });
-
-  return {
-    success: true,
-    memberUserId,
-    classId,
-    questId,
-    ...result
-  };
+  return classroomBoardService(requireAuth(request), { ...request.data, action: 'submit' });
 });
 
 exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
@@ -5724,6 +5085,9 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
   const title = String(rawQuest.title || "").trim();
   if (!title) {
     throw new HttpsError("invalid-argument", "Quest title is required.");
+  }
+  if(rawQuest.submissionType === 'checklist' && (!Array.isArray(rawQuest.checklistItems) || rawQuest.checklistItems.length < 1 || rawQuest.checklistItems.length > 10 || rawQuest.checklistItems.some(v => typeof v !== 'string' || !v.trim() || v.length > 120))) {
+    throw new HttpsError('invalid-argument', '체크리스트 항목은 각 120자 이내로 1~10개 입력해 주세요.');
   }
   const rewardCoin = Math.max(0, Math.min(1000, Math.round(Number(rawQuest.rewardCoin) || 0)));
   if (rewardCoin <= 0) {
@@ -5760,6 +5124,8 @@ exports.saveClassroomQuest = onCall({ region: REGION }, async request => {
       endDate: rawQuest.endDate || "",
       targetStudentIds: rawQuest.targetStudentIds || [],
       repeatRule: rawQuest.repeatRule || "once",
+      submissionType: rawQuest.submissionType || "complete",
+      checklistItems: rawQuest.checklistItems || [],
       linkedGemId: rawQuest.linkedGemId || "",
       linkedGemName: rawQuest.linkedGemName || "",
       linkedGemIds: rawQuest.linkedGemIds || [],
@@ -5979,6 +5345,26 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
     };
   });
   const settings = authResult.settings;
+  // Home needs only this linked member, not the classroom roster or economy board.
+  if(payload.memberOnly === true) {
+    const [wallet, economy, profile, title, levelSnapshot] = await db.getAll(
+      db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId),
+      db.collection("userEconomy").doc(memberUserId),
+      db.collection("classrooms").doc(classId).collection("studentProfiles").doc(memberUserId),
+      db.collection("userTitleSummary").doc(memberUserId),
+      db.collection("userLevelSummary").doc(memberUserId)
+    );
+    const totalXp = Math.max(0, Math.round(Number(levelSnapshot.data()?.totalXp) || 0));
+    const level = Math.min(50, Math.floor(totalXp / 50) + 1);
+    const levelSummary = levelSnapshot.exists
+      ? { level, totalXp, xp: level >= 50 ? 0 : totalXp % 50, nextLevelXp: level >= 50 ? 0 : 50 }
+      : null;
+    return { success: true, classId, levelSummariesIncluded: true, students: [{ ...publicClassroomStudentCard(
+      { id: memberUserId, data: () => authResult.memberData },
+      wallet.data() || {}, profile.data() || {}, title.data() || {}, economy.data() || {}
+    ), levelSummary }] };
+  }
+
 
   const usersSnapshot = await db.collection("users")
     .where("role", "==", "student")
@@ -6005,14 +5391,22 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
   const economyRefs = studentDocs.map(doc => db.collection("userEconomy").doc(doc.id));
   const profileRefs = studentDocs.map(doc => db.collection("classrooms").doc(classId).collection("studentProfiles").doc(doc.id));
   const titleRefs = studentDocs.map(doc => db.collection("userTitleSummary").doc(doc.id));
-  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot, classroomGemSnapshot] = await Promise.all([
+  const levelRefs = studentDocs.map(doc => db.collection("userLevelSummary").doc(doc.id));
+  const [walletSnapshots, economySnapshots, profileSnapshots, titleSnapshots, gemProgressSnapshot, classroomGemSnapshot, levelSnapshots] = await Promise.all([
     walletRefs.length ? db.getAll(...walletRefs) : [],
     economyRefs.length ? db.getAll(...economyRefs) : [],
     profileRefs.length ? db.getAll(...profileRefs) : [],
     titleRefs.length ? db.getAll(...titleRefs) : [],
     db.collection("classrooms").doc(classId).collection("studentGemProgress").limit(1000).get(),
-    db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get()
+    db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get(),
+    levelRefs.length ? db.getAll(...levelRefs).catch(() => { console.warn('Classroom optional level summaries unavailable.'); return []; }) : []
   ]);
+  const levelByUserId = new Map(levelSnapshots.map(snapshot => {
+    if(!snapshot.exists) return [snapshot.id, null];
+    const totalXp = Math.max(0, Math.round(Number(snapshot.data()?.totalXp) || 0));
+    const level = Math.min(50, Math.floor(totalXp / 50) + 1);
+    return [snapshot.id, { level, totalXp, xp: level >= 50 ? 0 : totalXp % 50, nextLevelXp: level >= 50 ? 0 : 50 }];
+  }));
   const walletByUserId = new Map(walletSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const economyByUserId = new Map(economySnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
   const profileByUserId = new Map(profileSnapshots.map(snapshot => [snapshot.id, snapshot.exists ? snapshot.data() || {} : {}]));
@@ -6061,16 +5455,67 @@ exports.getClassroomStudentCards = onCall({ region: REGION }, async request => {
     success: true,
     classId,
     className: settings.name || `${settings.grade}학년 ${settings.classNumber}반`,
-    students: studentDocs.map(doc => publicClassroomStudentCard(
+    levelSummariesIncluded: true,
+    students: studentDocs.map(doc => ({ ...publicClassroomStudentCard(
       doc,
       walletByUserId.get(doc.id) || {},
       profileByUserId.get(doc.id) || {},
       titleByUserId.get(doc.id) || {},
       economyByUserId.get(doc.id) || {},
       gemSummaryByUserId.get(doc.id) || {}
-    ))
+    ), levelSummary: levelByUserId.get(doc.id) || null }))
   };
 });
+
+const classroomPortraitService = classroomPortrait.createService({
+  db, FieldValue, ErrorType: HttpsError,
+  authorize: async (transaction, memberUserId, uid, classId) => {
+    const [member, classroom] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, uid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(member, classroom.settings);
+    return member;
+  },
+  readUpload: async path => {
+    const bucket = getStorage().bucket();
+    const [metadata] = await bucket.file(path).getMetadata();
+    const token = String(metadata.metadata?.firebaseStorageDownloadTokens || '').split(',')[0];
+    return { ...metadata, url: token ? `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(bucket.name)}/o/${encodeURIComponent(path)}?alt=media&token=${encodeURIComponent(token)}` : '' };
+  }
+});
+exports.classroomPortraitAction = onCall({ region: REGION, maxInstances: 5 }, request =>
+  classroomPortraitService(request.auth?.uid, request.data || {}));
+
+const classroomDiaryService = require('./classroom/diary').createService({
+  db, ErrorType: HttpsError,
+  authorize: async (transaction, memberUserId, uid, classId) => {
+    const [member, classroom] = await Promise.all([
+      assertLinkedMemberAuth(transaction, memberUserId, uid),
+      loadClassroomSettingsForTransaction(transaction, classId)
+    ]);
+    assertMemberCanEnterClassroom(member, classroom.settings);
+    return { memberUserId, settings: classroom.settings, isTeacher: isClassroomTeacherMember(member, classroom.settings) };
+  },
+  authorFor: async (transaction, memberUserId, classId, context) => {
+    if(typeof memberUserId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(memberUserId)) return null;
+    const [memberDoc, profileDoc] = await Promise.all([
+      transaction.get(db.doc(`users/${memberUserId}`)),
+      transaction.get(db.doc(`classrooms/${classId}/studentProfiles/${memberUserId}`))
+    ]);
+    if(!memberDoc.exists) return null;
+    const member = memberDoc.data();
+    if(memberUserId !== context.memberUserId && !isClassroomStudentCardVisible(memberUserId, member)) return null;
+    if(member.role === 'student' && (member.status !== 'active' || member.active !== true)) return null;
+    if(memberUserId !== context.memberUserId && (String(member.grade) !== String(context.settings.grade)
+      || String(member.classNumber) !== String(context.settings.classNumber))) return null;
+    return { memberUserId, nickname: String(member.nickname || member.name || '우리반 친구').slice(0, 24),
+      studentNumber: Number(member.studentNumber || member.number || 0),
+      ...classroomPortrait.publicPortrait(member, profileDoc.exists ? profileDoc.data() : {}) };
+  }
+});
+exports.classroomDiaryAction = onCall({ region: REGION, maxInstances: 5 }, request =>
+  classroomDiaryService(request.auth?.uid, request.data || {}));
 
 exports.setClassroomSelectedBadge = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
@@ -6356,62 +5801,28 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     return { memberData, settings, canManage: isClassroomTeacherMember(memberData, settings) };
   });
 
-  const jobsSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("jobs")
-    .where("active", "==", true)
-    .limit(100)
-    .get();
-  const shopSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("shopItems")
-    .where("active", "==", true)
-    .limit(100)
-    .get();
-  const hiddenShopSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("shopItems")
-    .where("active", "==", false)
-    .limit(100)
-    .get();
-  const assignmentSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("jobAssignments")
-    .where("status", "==", "active")
-    .limit(200)
-    .get();
-  const routineSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("studentRoutines")
-    .where("memberUserId", "==", memberUserId)
-    .limit(50)
-    .get();
-  const todayKey = getKstDateKey();
-  const routineCheckSnapshot = await db.collection("classrooms")
-    .doc(classId)
-    .collection("routineCheckLogs")
-    .where("memberUserId", "==", memberUserId)
-    .limit(500)
-    .get();
   const applicationQuery = authResult.canManage
     ? db.collection("classrooms").doc(classId).collection("jobApplications").where("status", "==", "pending").limit(200)
     : db.collection("classrooms").doc(classId).collection("jobApplications").where("status", "==", "pending").limit(200);
-  const applicationSnapshot = await applicationQuery.get();
   const purchaseQuery = authResult.canManage
     ? db.collection("classrooms").doc(classId).collection("shopPurchases").limit(200)
     : db.collection("classrooms").doc(classId).collection("shopPurchases").where("memberUserId", "==", memberUserId).limit(80);
   const pointLogQuery = authResult.canManage
     ? db.collection("classrooms").doc(classId).collection("pointLogs").limit(300)
     : db.collection("classrooms").doc(classId).collection("pointLogs").where("memberUserId", "==", memberUserId).limit(100);
-  const [purchaseSnapshot, pointLogSnapshot] = await Promise.all([
-    purchaseQuery.get(),
-    pointLogQuery.get()
-  ]);
-  const [noticeSnapshot, billboardSnapshot] = await Promise.all([
-    db.collection("classrooms").doc(classId).collection("classNotices").doc("current").get(),
-    db.collection("classrooms").doc(classId).collection("billboardMessages").limit(50).get()
-  ]);
+  // Authorization above must complete before these independent reads start.
   const [
+    jobsSnapshot,
+    shopSnapshot,
+    hiddenShopSnapshot,
+    assignmentSnapshot,
+    routineSnapshot,
+    routineCheckSnapshot,
+    applicationSnapshot,
+    purchaseSnapshot,
+    pointLogSnapshot,
+    noticeSnapshot,
+    billboardSnapshot,
     missionSnapshot,
     publicWalletSnapshot,
     walletSnapshot,
@@ -6422,6 +5833,47 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     exchangeSettingsSnapshot,
     classroomGemSnapshot
   ] = await Promise.all([
+    db.collection("classrooms")
+      .doc(classId)
+      .collection("jobs")
+      .where("active", "==", true)
+      .limit(100)
+      .get(),
+    db.collection("classrooms")
+      .doc(classId)
+      .collection("shopItems")
+      .where("active", "==", true)
+      .limit(100)
+      .get(),
+    db.collection("classrooms")
+      .doc(classId)
+      .collection("shopItems")
+      .where("active", "==", false)
+      .limit(100)
+      .get(),
+    db.collection("classrooms")
+      .doc(classId)
+      .collection("jobAssignments")
+      .where("status", "==", "active")
+      .limit(200)
+      .get(),
+    db.collection("classrooms")
+      .doc(classId)
+      .collection("studentRoutines")
+      .where("memberUserId", "==", memberUserId)
+      .limit(50)
+      .get(),
+    db.collection("classrooms")
+      .doc(classId)
+      .collection("routineCheckLogs")
+      .where("memberUserId", "==", memberUserId)
+      .limit(500)
+      .get(),
+    applicationQuery.get(),
+    purchaseQuery.get(),
+    pointLogQuery.get(),
+    db.collection("classrooms").doc(classId).collection("classNotices").doc("current").get(),
+    db.collection("classrooms").doc(classId).collection("billboardMessages").limit(50).get(),
     db.collection("classrooms").doc(classId).collection("classMissions").doc("current").get(),
     db.collection("classrooms").doc(classId).collection("classPublicWallets").doc("current").get(),
     db.collection("classrooms").doc(classId).collection("studentWallets").limit(500).get(),
@@ -6434,6 +5886,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     db.collection("classrooms").doc(classId).collection("exchangeSettings").doc("current").get(),
     db.collection("classrooms").doc(classId).collection("classroomGems").where("active", "==", true).limit(100).get()
   ]);
+  const todayKey = getKstDateKey();
 
   const jobs = jobsSnapshot.docs
     .map(doc => ({ jobId: doc.id, ...(doc.data() || {}) }))
@@ -6455,7 +5908,11 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
       shopItems.push(defaultItem);
     }
   });
-  const totalStudentPoint = walletSnapshot.docs.reduce((sum, doc) => sum + Math.max(0, Math.round(getClassroomPointAmount(doc.data() || {}))), 0);
+  const boardRules = require('./classroom/board-domain');
+  const aggregateRoster = await db.collection('users').where('role', '==', 'student').get();
+  const aggregateIds = new Set(aggregateRoster.docs.filter(doc => boardRules.activeStudent(doc.id, doc.data(), authResult.settings)
+    && isClassroomStudentCardVisible(doc.id, doc.data())).map(doc => doc.id));
+  const totalStudentPoint = boardRules.totalPoints(walletSnapshot.docs.filter(doc => aggregateIds.has(doc.id)).map(doc => doc.data()));
   const rawClassMission = missionSnapshot.exists ? missionSnapshot.data() || {} : DEFAULT_CLASSROOM_MISSION;
   const achievedDateByTarget = {
     ...(rawClassMission.achievedDateByTarget && typeof rawClassMission.achievedDateByTarget === "object" ? rawClassMission.achievedDateByTarget : {})
@@ -6607,6 +6064,7 @@ exports.getClassroomEconomyBoard = onCall({ region: REGION }, async request => {
     .filter(item => item.status !== "deleted");
   const getTimestampMillis = value => {
     if (!value) return 0;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
     if (typeof value.toMillis === "function") return value.toMillis();
     if (typeof value.seconds === "number") return value.seconds * 1000;
     return 0;
@@ -7439,7 +6897,7 @@ exports.purchaseClassroomShopItem = onCall({ region: REGION }, async request => 
     const priceCoin = Math.max(1, Math.min(10000, Math.round(Number(item.priceCoin || item.priceDjCoin || 0) || 0)));
     const currentPoint = Math.max(0, getClassroomPointAmount(wallet));
     const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
-    const currentDjCoin = Math.max(0, Math.round(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
+    const currentDjCoin = Math.max(0, roundClassroomPoint(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
     const boostItem = ["pointBoost", "pointBoostEffect"].includes(String(item.itemType || ""));
     const ownedBoostItemIds = Array.isArray(wallet.boostItemIds) ? wallet.boostItemIds.map(value => String(value || "")) : [];
     if (boostItem && ownedBoostItemIds.includes(itemId)) {
@@ -8018,6 +7476,10 @@ exports.exchangeClassroomCurrency = onCall({ region: REGION }, async request => 
       loadClassroomSettingsForTransaction(transaction, classId)
     ]);
     assertMemberCanEnterClassroom(memberData, classroomResult.settings);
+    const continuityExchange = await transaction.get(db.collection("classrooms").doc(classId).collection("continuityControl").doc("exchange"));
+    if (continuityExchange.exists && continuityExchange.data()?.[direction === "pointToCoin" ? "point" : "djCoin"] === true) {
+      throw new HttpsError("failed-precondition", "수수료 정책이 적용된 환전은 농장·교실 생활과 경제 → 예금·환전을 이용해 주세요.");
+    }
     const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
     const economyRef = db.collection("userEconomy").doc(memberUserId);
     const settingsRef = db.collection("classrooms").doc(classId).collection("exchangeSettings").doc("current");
@@ -8030,7 +7492,7 @@ exports.exchangeClassroomCurrency = onCall({ region: REGION }, async request => 
     const wallet = walletSnapshot.exists ? walletSnapshot.data() || {} : {};
     const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
     const currentPoint = Math.max(0, roundClassroomPoint(getClassroomPointAmount(wallet)));
-    const currentDjCoin = Math.max(0, Math.round(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
+    const currentDjCoin = Math.max(0, roundClassroomPoint(Number(economy.djCoin ?? economy.coin ?? 0) || 0));
     const exchangeId = rewardLogId(["classroom_exchange", classId, memberUserId, direction, Date.now()]);
     if (direction === "pointToCoin") {
       if (!settings.pointToCoinEnabled) {
@@ -8470,6 +7932,17 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
     throw new HttpsError("invalid-argument", "Invalid review status.");
   }
 
+  const existing = await db.collection('classrooms').doc(classId).collection('questProgress').doc(recordId).get();
+  if(existing.exists) {
+    const progress = existing.data();
+    return classroomBoardService(authUid, {
+      classId, memberUserId: adminMember.memberUserId,
+      action: nextStatus === 'approved' ? 'complete' : 'reject',
+      questId: progress.questId, targetMemberUserId: progress.memberUserId || progress.userId,
+      dateKey: require('./classroom/board-domain').recordDay(progress) || getKstDateKey(),
+      reason: String(payload.reason || '').trim(), expectedRevision: Number(progress.revision) || 0
+    });
+  }
   const result = await db.runTransaction(async transaction => {
     const classroomResult = await loadClassroomSettingsForTransaction(transaction, classId);
     const settings = classroomResult.settings;
@@ -8614,234 +8087,7 @@ exports.reviewClassroomQuestProgress = onCall({ region: REGION }, async request 
         boostPoint: boostedReward.boostPoint
       };
     }
-    const progress = progressSnapshot.data() || {};
-    if (progress.classId !== classId || progress.recordId !== recordId) {
-      throw new HttpsError("failed-precondition", "Classroom quest progress is inconsistent.");
-    }
-    if (progress.rewardStatus === "paid" && nextStatus === "rejected") {
-      const memberUserId = normalizeId(progress.memberUserId || progress.userId, "memberUserId");
-      const rewardAmount = Math.max(0, Math.round(Number(progress.rewardAmount || progress.rewardPoint || progress.rewardCoin) || 0));
-      const rewardCurrency = "point";
-      const logId = progress.rewardMode === "auto"
-        ? rewardLogId([
-          "classroom_auto_quest",
-          classId,
-          progress.dateKey || getKstDateKey(),
-          memberUserId,
-          progress.questId
-        ])
-        : rewardLogId([
-          "classroom_review_quest",
-          classId,
-          recordId,
-          memberUserId,
-          rewardCurrency
-        ]);
-      const walletRef = db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId);
-      const pointLogRef = db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId);
-      const rewardLogRef = db.collection("rewardLogs").doc(logId);
-      if (rewardAmount > 0) {
-        transaction.set(walletRef, {
-          memberUserId,
-          userId: memberUserId,
-          classId,
-          point: FieldValue.increment(-rewardAmount),
-          totalEarnedPoint: FieldValue.increment(-rewardAmount),
-          updatedAt: FieldValue.serverTimestamp(),
-          lastClassroomQuestCancelAt: FieldValue.serverTimestamp(),
-          source: "classroom_quest_cancel_function"
-        }, { merge: true });
-      }
-      transaction.set(progressRef, {
-        rewardStatus: "cancelled",
-        status: "cancelled",
-        cancelledBy: adminMember.memberUserId,
-        cancelledAt: FieldValue.serverTimestamp(),
-        reviewedBy: adminMember.memberUserId,
-        reviewedAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-      transaction.set(pointLogRef, {
-        cancelled: true,
-        cancelledBy: adminMember.memberUserId,
-        cancelledAt: FieldValue.serverTimestamp(),
-        source: "classroom_quest_cancel_function"
-      }, { merge: true });
-      transaction.set(rewardLogRef, {
-        cancelled: true,
-        cancelledBy: adminMember.memberUserId,
-        cancelledAt: FieldValue.serverTimestamp(),
-        source: "classroom_quest_cancel_function"
-      }, { merge: true });
-      return {
-        duplicate: false,
-        rewardStatus: "cancelled",
-        rewardAmount,
-        rewardCurrency
-      };
-    }
-    if (progress.rewardStatus !== "pending_teacher_review") {
-      return {
-        duplicate: true,
-        rewardStatus: progress.rewardStatus || "",
-        rewardAmount: 0,
-        rewardCurrency: "point"
-      };
-    }
-
-    if (nextStatus === "rejected") {
-      transaction.set(progressRef, {
-        rewardStatus: "rejected",
-        reviewedBy: adminMember.memberUserId,
-        reviewedAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-      return {
-        duplicate: false,
-        rewardStatus: "rejected",
-        rewardAmount: 0,
-        rewardCurrency: "point"
-      };
-    }
-
-    const quest = settings.quests.find(item => item.id === progress.questId || item.questId === progress.questId) || {};
-    const rewardCurrency = "point";
-    const rewardAmount = Math.max(0, Math.min(1000, Math.round(Number(progress.rewardCoin || quest.rewardCoin) || 0)));
-    if (rewardAmount <= 0) {
-      throw new HttpsError("failed-precondition", "Classroom quest reward is invalid.");
-    }
-    const memberUserId = normalizeId(progress.memberUserId || progress.userId, "memberUserId");
-    const logId = rewardLogId([
-      "classroom_review_quest",
-      classId,
-      recordId,
-      memberUserId,
-      rewardCurrency
-    ]);
-    const logRef = db.collection("rewardLogs").doc(logId);
-    const walletRef = rewardCurrency === "point"
-      ? db.collection("classrooms").doc(classId).collection("studentWallets").doc(memberUserId)
-      : db.collection("userEconomy").doc(memberUserId);
-    const pointLogRef = rewardCurrency === "point"
-      ? db.collection("classrooms").doc(classId).collection("pointLogs").doc(logId)
-      : null;
-    const [logSnapshot, walletSnapshot] = await Promise.all([
-      transaction.get(logRef),
-      rewardCurrency === "point" ? transaction.get(walletRef) : Promise.resolve(null)
-    ]);
-    const boostedReward = getBoostedClassroomPointAmount(
-      rewardAmount,
-      walletSnapshot?.exists ? walletSnapshot.data() || {} : {}
-    );
-    if (logSnapshot.exists) {
-      transaction.set(progressRef, {
-        rewardStatus: "paid",
-        reviewedBy: adminMember.memberUserId,
-        reviewedAt: FieldValue.serverTimestamp(),
-        rewardedAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-      return {
-        duplicate: true,
-        rewardStatus: "paid",
-        rewardAmount: 0,
-        rewardCurrency
-      };
-    }
-
-    const gemResult = await applyClassroomGemProgress(transaction, {
-      classId,
-      memberUserId,
-      quest,
-      authUid,
-      source: "classroom_review_quest_function",
-      progressPath: progressRef.path
-    });
-
-    transaction.set(progressRef, {
-      rewardStatus: "paid",
-      status: "completed",
-      rewardCurrency,
-      rewardCoin: rewardAmount,
-      reviewedBy: adminMember.memberUserId,
-      reviewedAt: FieldValue.serverTimestamp(),
-      rewardedAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp()
-    }, { merge: true });
-
-    if (rewardCurrency === "point") {
-      transaction.set(walletRef, {
-        memberUserId,
-        userId: memberUserId,
-        classId,
-        point: FieldValue.increment(boostedReward.rewardAmount),
-        totalEarnedPoint: FieldValue.increment(boostedReward.rewardAmount),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
-        source: "classroom_review_quest_function"
-      }, { merge: true });
-      transaction.set(pointLogRef, {
-        type: "classroom_review_quest",
-        classId,
-        questId: progress.questId || "",
-        questTitle: progress.questTitle || quest.title || "",
-        recordId,
-        userId: memberUserId,
-        memberUserId,
-        authUid,
-        reviewedBy: adminMember.memberUserId,
-        rewardCurrency,
-        rewardPoint: boostedReward.rewardAmount,
-        rewardAmount: boostedReward.rewardAmount,
-        baseRewardAmount: boostedReward.baseAmount,
-        boostPoint: boostedReward.boostPoint,
-        progressPath: progressRef.path,
-        source: "firebase_function",
-        createdAt: FieldValue.serverTimestamp()
-      }, { merge: false });
-    } else {
-      transaction.set(walletRef, {
-        userId: memberUserId,
-        djCoin: FieldValue.increment(rewardAmount),
-        totalEarned: FieldValue.increment(rewardAmount),
-        updatedAt: FieldValue.serverTimestamp(),
-        lastClassroomQuestRewardAt: FieldValue.serverTimestamp(),
-        source: "classroom_review_quest_function"
-      }, { merge: true });
-    }
-
-    transaction.set(logRef, {
-      type: "classroom_review_quest",
-      classId,
-      questId: progress.questId || "",
-      questTitle: progress.questTitle || quest.title || "",
-      recordId,
-      userId: memberUserId,
-      memberUserId,
-      authUid,
-      reviewedBy: adminMember.memberUserId,
-      rewardCurrency,
-      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
-      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
-      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
-      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
-      progressPath: progressRef.path,
-      source: "firebase_function",
-      createdAt: FieldValue.serverTimestamp()
-    }, { merge: false });
-
-    return {
-      duplicate: false,
-      rewardStatus: "paid",
-      rewardCurrency,
-      rewardAmount: rewardCurrency === "point" ? boostedReward.rewardAmount : rewardAmount,
-      rewardCoin: rewardCurrency === "djCoin" ? rewardAmount : 0,
-      rewardPoint: rewardCurrency === "point" ? boostedReward.rewardAmount : 0,
-      baseRewardAmount: rewardCurrency === "point" ? boostedReward.baseAmount : rewardAmount,
-      boostPoint: rewardCurrency === "point" ? boostedReward.boostPoint : 0,
-      gem: gemResult
-    };
+    throw new HttpsError('aborted', '활동 기록이 변경됐습니다. 새로고침해 주세요.');
   });
 
   return {
@@ -9291,41 +8537,33 @@ exports.adminSetHousingSuspension = onCall({ region: REGION }, async request => 
   return { success: true, memberUserId, days, until: until ? until.toDate().toISOString() : null };
 });
 
-// 하우징 일일 무료 쿠폰 — 퀴즈타운 접속 시 자동 호출 (하루 1장, 한국시간 날짜 기준)
-// 쿠폰 수는 userEconomy.housingCoupons(서버 전용)에 보관
+// 가구 쿠폰 폐지: 구형 클라이언트와 예약 호출에는 지급 없이 응답한다.
+const housingCouponService = createCouponService({ db, FieldValue });
 exports.claimHousingDailyCoupon = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
   const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
   const dateKey = getKstDateKey();
 
-  const result = await db.runTransaction(async transaction => {
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
-
-    const economyRef = db.collection("userEconomy").doc(memberUserId);
-    const economySnapshot = await transaction.get(economyRef);
-    const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
-    const coupons = Math.max(0, Math.round(Number(economy.housingCoupons) || 0));
-
-    if (economy.lastHousingCouponDate === dateKey) {
-      return { granted: false, coupons };
-    }
-
-    transaction.set(economyRef, {
-      userId: memberUserId,
-      housingCoupons: coupons + 1,
-      lastHousingCouponDate: dateKey,
-      updatedAt: FieldValue.serverTimestamp()
-    }, { merge: true });
-    return { granted: true, coupons: coupons + 1 };
-  });
+  const result = await housingCouponService.resetMember(memberUserId, new Date(),
+    transaction => assertLinkedMemberAuth(transaction, memberUserId, authUid));
 
   return { success: true, memberUserId, dateKey, ...result };
 });
 
+exports.resetHousingWeeklyCoupons = onSchedule({
+  region: REGION, schedule: "0 0 * * 1", timeZone: "Asia/Seoul",
+  timeoutSeconds: 540, maxInstances: 1, retryCount: 3
+}, async event => {
+  const now = new Date();
+  // Ignore a delayed retry belonging to an older week.
+  if (event.scheduleTime && getCouponWeekKey(event.scheduleTime) !== getCouponWeekKey(now)) return;
+  console.log("resetHousingWeeklyCoupons", await housingCouponService.resetAll(now));
+});
+
 // 하우징(내 방 꾸미기) 전용 구매 — purchaseShopItem과 같지만 같은 가구를 여러 개 살 수 있게
 // 보유 문서를 quantity 증가 방식으로 기록한다. room_ 접두사 아이템만 허용.
-// useCoupon: true 이면 코인 대신 일일 쿠폰 1장으로 결제 (50코인 이하 아이템만)
+// 가구 쿠폰 결제는 폐지됐으며 DJ코인 결제만 허용한다.
 exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
   const authUid = requireAuth(request);
   const payload = request.data && typeof request.data === "object" ? request.data : {};
@@ -9371,18 +8609,11 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
     }
 
     const useCoupon = payload.useCoupon === true;
-    const HOUSING_COUPON_MAX_PRICE = 50;
     const economy = economySnapshot.exists ? economySnapshot.data() || {} : {};
     const djCoin = Number(economy.djCoin ?? economy.coin ?? 0);
-    const coupons = Math.max(0, Math.round(Number(economy.housingCoupons) || 0));
 
     if (useCoupon) {
-      if (price > HOUSING_COUPON_MAX_PRICE) {
-        throw new HttpsError("failed-precondition", "Coupon covers items up to 50 coins only.");
-      }
-      if (coupons < 1) {
-        throw new HttpsError("failed-precondition", "No housing coupon available.");
-      }
+      throw new HttpsError("failed-precondition", "가구 쿠폰은 폐지되어 사용할 수 없어요.");
     } else if (!Number.isFinite(djCoin) || djCoin < price) {
       throw new HttpsError("failed-precondition", "Not enough DJ coins.");
     }
@@ -9392,11 +8623,7 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
       : 0;
     const nextQuantity = previousQuantity + 1;
 
-    transaction.set(economyRef, useCoupon ? {
-      userId: memberUserId,
-      housingCoupons: coupons - 1,
-      updatedAt: FieldValue.serverTimestamp()
-    } : {
+    transaction.set(economyRef, {
       userId: memberUserId,
       djCoin: djCoin - price,
       totalSpent: FieldValue.increment(price),
@@ -9420,10 +8647,10 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
       authUid,
       itemId,
       assetId: item.assetId || "",
-      coinDelta: useCoupon ? 0 : -price,
-      pricePaid: useCoupon ? 0 : price,
-      priceType: useCoupon ? "housingCoupon" : "djCoin",
-      couponUsed: useCoupon,
+      coinDelta: -price,
+      pricePaid: price,
+      priceType: "djCoin",
+      couponUsed: false,
       quantityAfter: nextQuantity,
       inventoryPath: inventoryRef.path,
       serverVerified: true,
@@ -9433,10 +8660,10 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
 
     return {
       itemId,
-      pricePaid: useCoupon ? 0 : price,
-      couponUsed: useCoupon,
-      nextDjCoin: useCoupon ? djCoin : djCoin - price,
-      nextCoupons: useCoupon ? coupons - 1 : coupons,
+      pricePaid: price,
+      couponUsed: false,
+      nextDjCoin: djCoin - price,
+      nextCoupons: 0,
       quantity: nextQuantity,
       inventoryPath: inventoryRef.path,
       purchaseLogPath: purchaseLogRef.path
@@ -9450,23 +8677,19 @@ exports.purchaseHousingItem = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.grantPracticeReward = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  const recordId = normalizeId(payload.recordId, "recordId");
-  const questionId = normalizeId(payload.questionId, "questionId");
-  const quizId = normalizeId(payload.quizId || "unknown", "quizId");
+async function rewardGeneratedSubjectAnswer(transaction, item) {
+  return item.mode==='practice' ? grantPracticeRewardInTransaction(transaction, {
+    memberUserId:item.memberId,authUid:item.uid,recordId:`${item.memberId}__subject_${item.subject}`,
+    questionId:`${item.runId}_${item.seq}`,quizId:item.unitId.startsWith('korean:spelling:')?'spelling':`subject-${item.subject}`
+  },true) : {rewardCoin:0,xpDelta:0};
+}
 
-  if (!recordId.startsWith(`${memberUserId}__`)) {
-    throw new HttpsError("invalid-argument", "recordId does not belong to memberUserId.");
-  }
-
-  const result = await db.runTransaction(async transaction => {
+async function grantPracticeRewardInTransaction(transaction, { memberUserId, recordId, questionId, quizId, authUid }, verified = false) {
     const flags = await getFeatureFlags(transaction);
     const practiceCoinEnabled = flags.practiceRewardEnabled !== false;
     const practiceXpEnabled = flags.practiceXpEnabled !== false;
     const memberData = await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+    if(!/^subject-(korean|math|social|science)$/.test(String(quizId)) && !require('./subject-quiz/curriculum').legacyQuizIds.includes(quizId)) return { rewardCoin: 0, xpDelta: 0 };
 
     const recordRef = db.collection("practiceRecords").doc(recordId);
     const logRef = db.collection("rewardLogs").doc(rewardLogId([
@@ -9489,14 +8712,14 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       transaction.get(coinCapRef)
     ]);
 
-    if (!recordSnapshot.exists) {
+    if (!verified && !recordSnapshot.exists) {
       throw new HttpsError("failed-precondition", "Practice record does not exist.");
     }
     const record = recordSnapshot.data() || {};
     const correctIds = Array.isArray(record.correctIds)
       ? record.correctIds.map(id => String(id || "").trim())
       : [];
-    if (!correctIds.includes(questionId)) {
+    if (!verified && !correctIds.includes(questionId)) {
       throw new HttpsError("failed-precondition", "Practice question is not recorded as correct.");
     }
 
@@ -9516,8 +8739,7 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
     const summarySnapshot = await transaction.get(db.collection("userLevelSummary").doc(memberUserId));
     const previousQuizCorrectCount = Math.max(0, Math.round(Number(summarySnapshot.exists ? summarySnapshot.data()?.quizCorrectRewardCount : 0) || 0));
     const nextQuizCorrectCount = previousQuizCorrectCount + 1;
-    const isTodayQuiz = getTodayQuizIds(flags).has(quizId);
-    const quizXpDelta = practiceXpEnabled && isTodayQuiz ? TODAY_QUIZ_XP_PER_QUESTION : 0;
+    const quizXpDelta = practiceXpEnabled ? PRACTICE_XP_PER_QUESTION : 0;
     const weekKey = getKstWeekKey();
     const usedCoinToday = Math.max(0, Math.round(Number(coinCapSnapshot.exists ? coinCapSnapshot.data()?.usedCoin : 0) || 0));
     const remainingCoinToday = Math.max(0, PRACTICE_DAILY_COIN_LIMIT - usedCoinToday);
@@ -9530,23 +8752,18 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       authUid,
       memberData,
       xpDelta: quizXpDelta,
-      sourceType: isTodayQuiz ? "today_quiz_practice" : "quiz_practice",
+      sourceType: "quiz_practice",
       sourceId: `${recordId}__${questionId}`,
-      sourceLabel: isTodayQuiz ? "오늘의 퀴즈 정답 경험치" : "퀴즈 정답",
+      sourceLabel: "연습전 정답 경험치",
       dateKey,
       classroomPointMirrorAmount: rewardCoin,
-      caps: isTodayQuiz
-        ? [
-          getTodayQuizDailyLevelXpCap(memberUserId, dateKey),
-          getWeeklyLevelXpCap(memberUserId, weekKey)
-        ]
-        : [],
+      caps: [getPracticeDailyLevelXpCap(memberUserId, dateKey), getWeeklyLevelXpCap(memberUserId, weekKey)],
       extra: {
         recordId,
         questionId,
         quizId,
         quizCorrectRewardCount: nextQuizCorrectCount,
-        todayQuiz: isTodayQuiz
+        todayQuiz: false
       }
     });
 
@@ -9577,17 +8794,9 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       quizCorrectRewardCount: nextQuizCorrectCount,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
-    updateEventQuestProgressForKinds(transaction, {
-      memberUserId,
-      dateKey,
-      weekKey,
-      kinds: getPracticeQuestKindsForQuiz(quizId),
-      amount: 1,
-      sourceType: "practice_correct",
-      sourceId: `${recordId}__${questionId}`
-    });
     transaction.set(logRef, {
       type: "practice_correct",
+      todayQuiz: false,
       userId: memberUserId,
       memberUserId,
       authUid,
@@ -9618,7 +8827,21 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
       economyPath: economyRef.path,
       rewardLogPath: logRef.path
     };
-  });
+}
+
+exports.grantPracticeReward = onCall({ region: REGION }, async request => {
+  const authUid = requireAuth(request);
+  const payload = request.data && typeof request.data === "object" ? request.data : {};
+  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
+  const recordId = normalizeId(payload.recordId, "recordId");
+  const questionId = normalizeId(payload.questionId, "questionId");
+  const quizId = normalizeId(payload.quizId || "unknown", "quizId");
+
+  if (!recordId.startsWith(`${memberUserId}__`)) {
+    throw new HttpsError("invalid-argument", "recordId does not belong to memberUserId.");
+  }
+
+  const result = await db.runTransaction(transaction => grantPracticeRewardInTransaction(transaction, { memberUserId, recordId, questionId, quizId, authUid }));
 
   return {
     success: true,
@@ -9630,96 +8853,19 @@ exports.grantPracticeReward = onCall({ region: REGION }, async request => {
   };
 });
 
-exports.grantPracticeBadgeCycleReward = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-  const recordId = normalizeId(payload.recordId, "recordId");
-
-  if (!recordId.startsWith(`${memberUserId}__`)) {
-    throw new HttpsError("invalid-argument", "recordId does not belong to memberUserId.");
-  }
-
-  const result = await db.runTransaction(async transaction => {
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
-    const recordRef = db.collection("practiceRecords").doc(recordId);
-    const recordSnapshot = await transaction.get(recordRef);
-    if (!recordSnapshot.exists) {
-      throw new HttpsError("failed-precondition", "Practice record does not exist.");
-    }
-    const record = recordSnapshot.data() || {};
-    if (String(record.memberUserId || record.userId || "") !== memberUserId) {
-      throw new HttpsError("permission-denied", "Practice record does not belong to member.");
-    }
-    const starCount = Math.max(0, Math.min(1000, Math.round(Number(record.starCount || 0) || 0)));
-    if (starCount <= 0) {
-      return {
-        duplicate: true,
-        starCount,
-        paidStarCount: 0,
-        rewardCoin: 0
-      };
-    }
-
-    const rewardRefs = Array.from({ length: starCount }, (_, index) => db.collection("rewardLogs").doc(rewardLogId([
-      "practice_badge_cycle_reward",
-      memberUserId,
-      recordId,
-      index + 1
-    ])));
-    const rewardSnapshots = await Promise.all(rewardRefs.map(ref => transaction.get(ref)));
-    const unpaid = rewardSnapshots
-      .map((snapshot, index) => ({ snapshot, index, ref: rewardRefs[index] }))
-      .filter(item => !item.snapshot.exists);
-    const rewardCoin = unpaid.length * PRACTICE_BADGE_CYCLE_REWARD_COIN;
-    if (rewardCoin <= 0) {
-      return {
-        duplicate: true,
-        starCount,
-        paidStarCount: 0,
-        rewardCoin: 0
-      };
-    }
-
-    transaction.set(db.collection("userEconomy").doc(memberUserId), {
-      userId: memberUserId,
-      djCoin: FieldValue.increment(rewardCoin),
-      totalEarned: FieldValue.increment(rewardCoin),
-      updatedAt: FieldValue.serverTimestamp(),
-      lastPracticeBadgeRewardAt: FieldValue.serverTimestamp(),
-      source: "practice_badge_cycle_reward_function"
-    }, { merge: true });
-    unpaid.forEach(item => {
-      const starIndex = item.index + 1;
-      transaction.set(item.ref, {
-        type: "practice_badge_cycle_reward",
-        userId: memberUserId,
-        memberUserId,
-        authUid,
-        recordId,
-        quizId: record.quizId || "",
-        areaKey: record.areaKey || "",
-        badgeId: record.badgeId || "",
-        starIndex,
-        rewardCoin: PRACTICE_BADGE_CYCLE_REWARD_COIN,
-        source: "practice_badge_cycle_reward_function",
-        createdAt: FieldValue.serverTimestamp()
-      }, { merge: false });
-    });
-    return {
-      duplicate: false,
-      starCount,
-      paidStarCount: unpaid.length,
-      rewardCoin
-    };
+// A server-issued start prevents client-edited elapsedSeconds from instantly earning quests.
+exports.startRankingQuestSession = onCall({ region: REGION }, async request => {
+  const uid = requireAuth(request);
+  const memberId = normalizeId(request.data?.memberUserId, 'memberUserId');
+  const quizId = normalizeId(request.data?.quizId, 'quizId');
+  return db.runTransaction(async tx => {
+    const member = await assertLinkedMemberAuth(tx, memberId, uid);
+    const flags = (await tx.get(db.doc('appSettings/featureFlags'))).data() || {};
+    if (flags.rankingEnabled === false && member.role !== 'admin') throw new HttpsError('failed-precondition', '랭킹전이 잠시 쉬고 있어요.');
+    const sessionId = crypto.randomUUID();
+    tx.set(db.collection('rankingQuestSessions').doc(memberId), { uid, quizId, sessionId, issuedAt: Date.now(), consumed: false });
+    return { sessionId };
   });
-
-  return {
-    success: true,
-    memberUserId,
-    recordId,
-    ...result
-  };
 });
 
 exports.grantRankingCompleteXp = onCall({ region: REGION }, async request => {
@@ -9741,17 +8887,20 @@ exports.grantRankingCompleteXp = onCall({ region: REGION }, async request => {
       throw new HttpsError("permission-denied", "Ranking record does not belong to member.");
     }
 
+    if(!Number.isFinite(record.elapsedSeconds)||record.elapsedSeconds<10||record.elapsedSeconds>7200||!record.recordedAt||Date.now()-record.recordedAt.toMillis()>86400000)throw new HttpsError('failed-precondition','정상 완료한 최근 경기만 반영돼요.');
+    const activityRef = db.collection('growthActivities').doc('ranking_'+crypto.createHash('sha256').update(recordId).digest('hex'));
+    const existingActivity = await transaction.get(activityRef);
+    if(existingActivity.exists)return {duplicate:true,xpDelta:0};
+    const sessionRef = db.collection('rankingQuestSessions').doc(memberUserId);
+    const session = (await transaction.get(sessionRef)).data();
+    const elapsed = session ? Date.now() - session.issuedAt : 0;
+    if (!session || session.uid !== authUid || session.sessionId !== payload.sessionId || session.quizId !== quizId || record.quizId !== quizId || session.consumed || elapsed < 10000 || elapsed > 7200000 || record.recordedAt.toMillis() < session.issuedAt || !(Number(record.score) > 0)) {
+      throw new HttpsError('failed-precondition', '랭킹전을 처음부터 정상 완료하면 퀘스트에 반영돼요.');
+    }
+    transaction.update(sessionRef, { consumed: true, recordId });
+    transaction.set(activityRef,{source:'ranking:'+recordId,memberId:memberUserId,uid:authUid,quizId,counts:{rankingScore:Number(record.score)},time:Date.now()});
     const dateKey = getKstDateKey();
     const weekKey = getKstWeekKey();
-    updateEventQuestProgressForKinds(transaction, {
-      memberUserId,
-      dateKey,
-      weekKey,
-      kinds: new Set(["rankingComplete"]),
-      amount: 1,
-      sourceType: "ranking_complete",
-      sourceId: recordId
-    });
     transaction.set(recordRef, {
       levelXpDelta: 0,
       levelAfter: null,
@@ -9774,51 +8923,6 @@ exports.grantRankingCompleteXp = onCall({ region: REGION }, async request => {
     ...result
   };
 });
-
-function numberFromText(text, fallback = 1) {
-  const match = String(text || "").match(/(\d+)/);
-  return match ? Number(match[1]) || fallback : fallback;
-}
-
-function isEarnedBadge(data = {}) {
-  return data.available === true
-    || data.completed === true
-    || Number(data.starCount || 0) > 0;
-}
-
-function practiceTitleBadgeId(title = {}) {
-  const id = String(title.titleId || "").trim();
-  const condition = String(title.conditionText || "").trim();
-  if (/^pokemon_gen[1-9]_/.test(id)) return id.replace(/_trainer$/, "");
-  if (id.startsWith("spelling_")) return "daily_맞춤법";
-  if (id.startsWith("word_relation_")) return "korean_word_relation";
-  if (id.startsWith("korean_proverb_")) return "korean_proverb";
-  if (id.startsWith("korean_spacing_")) return "korean_spacing";
-  if (id.startsWith("korean_idiom_")) return "korean_idiom";
-  if (id === "reading_gmo_complete") return "korean_gmo";
-  if (id === "reading_time_store_complete") return "korean_독서:시간가게";
-  if (id.startsWith("math_muldiv_")) return "math_random_basic";
-  if (id.startsWith("math_fraction_basic_")) return "math_분수";
-  if (id.startsWith("people_") || id === "history_god") return "people_역사인물";
-  if (id.startsWith("three_kingdoms_")) return "social_three_kingdoms";
-  if (id.startsWith("ancient_three_kingdoms_")) return "social_ancient_three_kingdoms";
-  if (id.startsWith("social_regional_specialties_")) return "social_regional_specialties";
-  if (id.startsWith("social_unified_silla_balhae_")) return "social_unified_silla_balhae";
-  if (id.startsWith("social_cultural_heritage_")) return "social_cultural_heritage";
-  if (id.startsWith("science_grade4_")) return "science_science_grade4";
-  if (id.startsWith("science_general_")) return "science_science_general";
-  if (id.startsWith("popular_flag_country_")) return "popular_flag_country";
-  if (id.startsWith("popular_snack_food_")) return "popular_snack_food";
-  if (id.startsWith("popular_emoji_kpop_")) return "popular_emoji_kpop";
-  if (id.startsWith("popular_emoji_anime_")) return "popular_emoji_anime";
-  if (id.startsWith("popular_emoji_tiniping_")) return "popular_emoji_tiniping";
-  if (id.startsWith("idol_")) return "people_아이돌";
-  if (id.startsWith("anime_")) return "people_애니";
-  if (id.startsWith("dad_joke_") || id === "ten_million_youtuber") return "daily_아재개그";
-  if (id.startsWith("tiniping_")) return "people_티니핑";
-  if (condition.includes("시간가게")) return "korean_독서:시간가게";
-  return "";
-}
 
 function ownedTitleDoc(title, memberUserId, source) {
   return {
@@ -9960,220 +9064,48 @@ async function awardTitleAcquisitionReward(memberUserId, authUid, title) {
   });
 }
 
-function bestRankingScoreTotal(records) {
-  const bestByCategory = new Map();
-  records.forEach(record => {
-    const key = String(record.categoryKey || record.category || "").trim();
-    if (!key) return;
-    const score = Number(record.score || 0);
-    const elapsedSeconds = Number(record.elapsedSeconds || 999999999);
-    const current = bestByCategory.get(key);
-    if (!current || score > current.score || (score === current.score && elapsedSeconds < current.elapsedSeconds)) {
-      bestByCategory.set(key, { score, elapsedSeconds });
-    }
+const achievementCatalog = require('./achievements/catalog');
+exports.getMemberAchievements = onCall({ region: REGION }, async request => {
+  const uid=requireAuth(request),memberUserId=normalizeId(request.data?.memberUserId,"memberUserId");
+  return db.runTransaction(async tx=>{
+    const member=await assertLinkedMemberAuth(tx,memberUserId,uid);
+    const snap=await tx.get(db.collection('achievementProgress').doc(memberUserId));
+    const progress=snap.data()?.version===achievementCatalog.VERSION?snap.data():{areas:{}};
+    return {gameHonors:member.gameHonors||{},version:achievementCatalog.VERSION,catalog:achievementCatalog.titles,records:achievementCatalog.areas.map(area=>({
+      badgeId:area.id,label:area.label,group:area.group,answered:progress.areas?.[area.id]?.answered||0,
+      perfectRuns:progress.areas?.[area.id]?.perfectRuns||0
+    }))};
   });
-  return Array.from(bestByCategory.values()).reduce((sum, item) => sum + item.score, 0);
-}
-
-function emojiCategoryMatchesRecord(record = {}, sourceCategory = "") {
-  const category = String(sourceCategory || "").trim();
-  const quizId = String(record.quizId || "").trim();
-  const text = [
-    record.category,
-    record.categoryKey,
-    record.rawCategory,
-    record.subFilter
-  ].map(value => String(value || "").toLowerCase()).join(" ");
-  if (category === "kpop") {
-    return quizId === "emoji-kpop" || (text.includes("이모지") && (text.includes("k-pop") || text.includes("kpop") || text.includes("케이팝")));
-  }
-  if (category === "anime") {
-    return quizId === "emoji-anime" || (text.includes("이모지") && (text.includes("애니") || text.includes("anime")));
-  }
-  if (category === "tiniping") {
-    return quizId === "emoji-tiniping" || (text.includes("이모지") && (text.includes("티니핑") || text.includes("tiniping")));
-  }
-  return false;
-}
-
-function emojiPracticeBadgeId(sourceCategory = "") {
-  const category = String(sourceCategory || "").trim();
-  if (category === "kpop") return "popular_emoji_kpop";
-  if (category === "anime") return "popular_emoji_anime";
-  if (category === "tiniping") return "popular_emoji_tiniping";
-  return "";
-}
-
-function emojiCombinedCompletionCount(title, badges, rankingRecords) {
-  const sourceCategory = String(title.sourceCategory || "").trim();
-  const badgeId = emojiPracticeBadgeId(sourceCategory);
-  const badge = badgeId ? badges.find(item => item.badgeId === badgeId) : null;
-  const practiceCount = Math.max(0, Math.round(Number(badge?.starCount || 0) || 0));
-  const rankingCount = rankingRecords.filter(record => emojiCategoryMatchesRecord(record, sourceCategory)).length;
-  return practiceCount + rankingCount;
-}
-
-function evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTitleIds) {
-  const eligible = new Map();
-  const earnedBadges = badges.filter(badge => isEarnedBadge(badge));
-  const earnedBadgeIds = new Set(earnedBadges.map(badge => badge.badgeId));
-  const earnedGroups = new Set(earnedBadges.map(badge => badge.group || "other"));
-  const pokemonGenCount = earnedBadges.filter(badge => /^pokemon_gen[1-9]$/.test(badge.badgeId)).length;
-  const normal50Count = rankingRecords.filter(record => {
-    const mode = String(record.rankingMode || "normal");
-    return (mode === "normal" || mode === "legacy") && Number(record.score || 0) >= 50;
-  }).length;
-  const rankingBestTotal = bestRankingScoreTotal(rankingRecords);
-
-  function add(title) {
-    if (title.titleId) eligible.set(title.titleId, title);
-  }
-
-  titleCatalog.forEach(title => {
-    const sourceType = String(title.sourceType || "").trim();
-    const required = numberFromText(title.conditionText, 1);
-    if (sourceType === "practiceStars") {
-      const badgeId = practiceTitleBadgeId(title);
-      const badge = badges.find(item => item.badgeId === badgeId);
-      if (badge && Number(badge.starCount || 0) >= required) add(title);
-    } else if (sourceType === "pokemonGenCount") {
-      const needAll = String(title.conditionText || "").includes("모든");
-      const threshold = needAll ? 9 : required;
-      if (pokemonGenCount >= threshold) add(title);
-    } else if (sourceType === "badgeFields") {
-      if (earnedGroups.size >= required) add(title);
-    } else if (sourceType === "badge") {
-      if (earnedBadgeIds.size >= required) add(title);
-    } else if (sourceType === "rankingNormal50") {
-      if (normal50Count >= required) add(title);
-    } else if (sourceType === "rankingBestScoreTotal300") {
-      if (rankingBestTotal >= 300) add(title);
-    } else if (sourceType === "emojiCombinedCompletions") {
-      if (emojiCombinedCompletionCount(title, badges, rankingRecords) >= required) add(title);
-    }
-  });
-
-  let changed = true;
-  while (changed) {
-    changed = false;
-    const ownedOrEligibleIds = new Set([...existingTitleIds, ...eligible.keys()]);
-    titleCatalog.forEach(title => {
-      if (eligible.has(title.titleId)) return;
-      if (String(title.sourceType || "") !== "subjectDetailTitles") return;
-      const subjectGroup = String(title.subjectGroup || "").trim();
-      const required = numberFromText(title.conditionText, 1);
-      const count = titleCatalog.filter(candidate => {
-        if (candidate.titleId === title.titleId) return false;
-        if (!ownedOrEligibleIds.has(candidate.titleId)) return false;
-        return String(candidate.subjectGroup || "").trim() === subjectGroup
-          && String(candidate.sourceType || "").trim() === "practiceStars";
-      }).length;
-      if (count >= required) {
-        add(title);
-        changed = true;
-      }
-    });
-  }
-
-  return Array.from(eligible.values()).filter(title => !existingTitleIds.has(title.titleId));
-}
-
+});
 exports.syncMemberTitles = onCall({ region: REGION }, async request => {
-  const authUid = requireAuth(request);
-  const payload = request.data && typeof request.data === "object" ? request.data : {};
-  const memberUserId = normalizeId(payload.memberUserId, "memberUserId");
-
-  await db.runTransaction(async transaction => {
-    await assertLinkedMemberAuth(transaction, memberUserId, authUid);
+  const authUid=requireAuth(request),memberUserId=normalizeId(request.data?.memberUserId,"memberUserId");
+  const result=await db.runTransaction(async tx=>{
+    const user=await assertLinkedMemberAuth(tx,memberUserId,authUid);
+    const [progress,owned,summary]=await Promise.all([
+      tx.get(db.collection('achievementProgress').doc(memberUserId)),
+      tx.get(db.collection('userTitles').doc(memberUserId).collection('titles')),
+      tx.get(db.collection('userTitleSummary').doc(memberUserId))
+    ]);
+    const eligible=achievementCatalog.eligible(progress.data()?.version===achievementCatalog.VERSION?progress.data():{});
+    const ids=new Set(owned.docs.map(d=>d.id)),added=eligible.filter(t=>!ids.has(t.titleId));
+    for(const title of added){
+      tx.create(db.collection('userTitles').doc(memberUserId).collection('titles').doc(title.titleId),{
+        ...ownedTitleDoc(title,memberUserId,'achievement_v1'),version:achievementCatalog.VERSION,imageUrl:title.imageUrl
+      });ids.add(title.titleId);
+    }
+    const selectedTitleId=String(user.selectedTitleId||summary.data()?.selectedTitleId||'');
+    const selectedTitleName=owned.docs.find(d=>d.id===selectedTitleId)?.data()?.titleName||'';
+    if(added.length||summary.data()?.titleCount!==ids.size||summary.data()?.selectedTitleId!==selectedTitleId)
+      tx.set(db.collection('userTitleSummary').doc(memberUserId),titleSummaryDoc(memberUserId,ids,selectedTitleId,selectedTitleName),{merge:true});
+    return {eligible,added,titleCount:ids.size};
   });
-
-  const [
-    titleCatalogSnapshot,
-    badgeSnapshot,
-    titleSnapshot,
-    titleSummarySnapshot,
-    rankingSnapshot
-  ] = await Promise.all([
-    db.collection("titleCatalog").get(),
-    db.collection("userBadges").doc(memberUserId).collection("badges").get(),
-    db.collection("userTitles").doc(memberUserId).collection("titles").get(),
-    db.collection("userTitleSummary").doc(memberUserId).get(),
-    db.collection("rankingRecords").where("memberUserId", "==", memberUserId).limit(500).get()
-  ]);
-
-  const titleCatalog = titleCatalogSnapshot.docs.map(doc => ({ titleId: doc.id, ...(doc.data() || {}) }));
-  const badges = badgeSnapshot.docs.map(doc => ({ badgeId: doc.id, ...(doc.data() || {}) }));
-  const rankingRecords = rankingSnapshot.docs.map(doc => ({ recordId: doc.id, ...(doc.data() || {}) }));
-  const existingTitleIds = new Set(titleSnapshot.docs.map(doc => doc.id));
-  const existingTitleNames = {};
-  titleSnapshot.docs.forEach(doc => {
-    const data = doc.data() || {};
-    existingTitleNames[doc.id] = data.titleName || data.name || doc.id;
-  });
-  const eligibleNewTitles = evaluateEligibleTitles(titleCatalog, badges, rankingRecords, existingTitleIds);
-
-  const userSnapshot = await db.collection("users").doc(memberUserId).get();
-  const userData = userSnapshot.exists ? userSnapshot.data() || {} : {};
-  const summaryData = titleSummarySnapshot.exists ? titleSummarySnapshot.data() || {} : {};
-  const selectedTitleId = String(userData.selectedTitleId || summaryData.selectedTitleId || "").trim();
-  const selectedTitleName = selectedTitleId
-    ? (existingTitleNames[selectedTitleId] || eligibleNewTitles.find(title => title.titleId === selectedTitleId)?.titleName || summaryData.selectedTitleName || "")
-    : "";
-  const allTitleIds = new Set([...existingTitleIds, ...eligibleNewTitles.map(title => title.titleId)]);
-
-  const batch = db.batch();
-  eligibleNewTitles.forEach(title => {
-    batch.set(
-      db.collection("userTitles").doc(memberUserId).collection("titles").doc(title.titleId),
-      {
-        ...ownedTitleDoc(title, memberUserId, "firebase_title_sync"),
-        selected: selectedTitleId ? title.titleId === selectedTitleId : false
-      },
-      { merge: true }
-    );
-  });
-  batch.set(
-    db.collection("userTitleSummary").doc(memberUserId),
-    titleSummaryDoc(memberUserId, allTitleIds, selectedTitleId, selectedTitleName),
-    { merge: true }
-  );
-  batch.set(db.collection("users").doc(memberUserId), {
-    selectedTitleId,
-    selectedTitleName,
-    updatedAt: FieldValue.serverTimestamp(),
-    source: "sync_member_titles_function"
-  }, { merge: true });
-  titleSnapshot.docs.forEach(doc => {
-    batch.set(doc.ref, {
-      selected: selectedTitleId ? doc.id === selectedTitleId : false,
-      updatedAt: FieldValue.serverTimestamp()
-    }, { merge: true });
-  });
-  await batch.commit();
-  const rewardResults = [];
-  for (const title of eligibleNewTitles) {
-    rewardResults.push(await awardTitleAcquisitionReward(memberUserId, authUid, title));
-  }
-
-  return {
-    success: true,
-    memberUserId,
-    awardedCount: eligibleNewTitles.length,
-    awardedTitles: eligibleNewTitles.map(title => ({
-      titleId: title.titleId,
-      titleName: title.titleName || title.titleId
-    })),
-    titleRewardCount: rewardResults.filter(result => result && !result.duplicate).length,
-    titleRewards: rewardResults.filter(Boolean).map(result => ({
-      titleId: result.titleId,
-      titleName: result.titleName || "",
-      xpDelta: result.xpDelta || 0,
-      rewardCoin: result.rewardCoin || 0,
-      classroomPoint: result.classroomPoint || 0,
-      levelXp: result.levelXp || null
-    })),
-    titleCount: allTitleIds.size
-  };
+  // Retry every eligible title: the existing reward log makes grants idempotent
+  // and allows recovery if a previous response failed after title creation.
+  const rewards=[];
+  const rewardLogs=result.eligible.length?await db.getAll(...result.eligible.map(title=>db.collection('rewardLogs').doc(rewardLogId(['title_acquisition_reward',memberUserId,title.titleId])))):[];
+  for(let i=0;i<result.eligible.length;i++)if(!rewardLogs[i].exists)rewards.push(await awardTitleAcquisitionReward(memberUserId,authUid,result.eligible[i]));
+  return {success:true,memberUserId,awardedCount:result.added.length,awardedTitles:result.added,
+    titleCount:result.titleCount,titleRewardCount:rewards.filter(r=>!r.duplicate).length,titleRewards:rewards};
 });
 
 exports.setSelectedMemberTitle = onCall({ region: REGION }, async request => {
@@ -10202,8 +9134,6 @@ exports.setSelectedMemberTitle = onCall({ region: REGION }, async request => {
 //  - wbCleanupOldRooms: 매일 새벽, 만든 지 오래된 방 문서를 하위(secret/hands)까지 정리.
 // 진행 규칙 상수는 클라이언트 room.js 와 같은 값을 쓴다.
 // ─────────────────────────────────────────────────────────────
-const { onSchedule } = require("firebase-functions/v2/scheduler");
-
 const WB_TURN_MS = 120000;                       // 한 턴 최대 2분 (room.js TURN_MS와 동일)
 const WB_CLEANUP_AGE_MS = 6 * 60 * 60 * 1000;    // 6시간 지난 방 정리 (일시정지 50분+게임시간 여유)
 
@@ -10316,3 +9246,83 @@ exports.wbCleanupOldRooms = onSchedule(
     console.log(`wbCleanupOldRooms: ${snap.size}개 방 정리 완료`);
   }
 );
+
+// Preview shares commerce access checks; purchases use a separate transactional endpoint.
+const coordiPreview = require('./coordi-shop/service').createCoordiPreviewService({
+  authorize: uid => coordiCommerce.authorizePreview(uid), ErrorType: HttpsError
+});
+exports.renderCoordiShopPreview = onCall({ region: REGION, maxInstances: 2, concurrency: 8, timeoutSeconds: 40 }, request =>
+  coordiPreview(request.auth?.uid, request.data));
+
+// Shared quests: server-owned activities; trigger retries are deduplicated by source.
+const growthQuests = require('./growth/quests').createService({db,FieldValue,ErrorType:HttpsError,
+ authorize:(tx,uid,id)=>{if(!uid)throw new HttpsError('unauthenticated','로그인이 필요해요.');return assertLinkedMemberAuth(tx,id,uid);},
+ applyXp:(tx,options)=>applyLevelXp(tx,{...options,caps:[]})
+});
+const {onDocumentCreated}=require('firebase-functions/v2/firestore');
+exports.ingestGrowthActivity=onDocumentCreated({document:'growthActivities/{id}',region:REGION,retry:true},event=>growthQuests.ingest(event.data.data()));
+exports.ingestPracticeGrowth=onDocumentCreated({document:'rewardLogs/{id}',region:REGION,retry:true},event=>{
+ const r=event.data.data();if(r.type!=='practice_correct'||(!/^subject-(korean|math|social|science)$/.test(String(r.quizId))&&!require('./subject-quiz/curriculum').legacyQuizIds.includes(r.quizId)))return;
+ return growthQuests.ingest({source:'practice:'+event.params.id,memberId:r.memberUserId,uid:r.authUid,quizId:r.quizId,counts:{practiceCorrect:1},time:r.createdAt.toMillis()});
+});
+
+const survivorQuiz = require('./growth/survivor').createService({db,ErrorType:HttpsError,authorize:assertLinkedMemberAuth});
+const specialRewards = require('./growth/special-rewards').createService({db,FieldValue,ErrorType:HttpsError,
+ authorize:(tx,uid,id)=>assertLinkedMemberAuth(tx,normalizeId(id,'memberUserId'),uid),
+ authorizeAdmin:uid=>getAdminMemberForAuth(uid),
+ applyXp:(tx,options)=>applyLevelXp(tx,{...options,caps:[]})
+});
+exports.specialRewardAction=onCall({region:REGION},request=>specialRewards.act(requireAuth(request),request.data||{}));
+exports.adminSpecialRewardAction=onCall({region:REGION},request=>specialRewards.admin(requireAuth(request),request.data||{}));
+exports.survivorQuestQuiz=onCall({region:REGION,maxInstances:5},request=>survivorQuiz(request.auth?.uid,request.data||{}));
+
+const coordiCommerce=require('./coordi-shop/commerce').createService({db,FieldValue,ErrorType:HttpsError,authorize:assertLinkedMemberAuth});
+exports.coordiShopAction=onCall({region:REGION,maxInstances:5},request=>coordiCommerce.act(request.auth?.uid,request.data||{}));
+
+exports.adminGrowthSeasonPlan = onCall({region:REGION}, async request=>{
+  assertSuperAdmin(await getAdminMemberForAuth(requireAuth(request)));
+  throw new HttpsError('failed-precondition','시즌 이벤트 설계의 다음 달 초안 기능을 이용해 주세요.');
+});
+
+const seasonDrafts=require('./growth/season-draft').createService({db,FieldValue,ErrorType:HttpsError});
+exports.adminSeasonEventDraft=onCall({region:REGION},async request=>{
+ const admin=await getAdminMemberForAuth(requireAuth(request));assertSuperAdmin(admin);
+ throw new HttpsError('failed-precondition','시즌 이벤트 기능이 종료되었습니다.');
+});
+exports.prepareMonthlySeasonDraft=onSchedule({region:REGION,schedule:'0 0 1 * *',timeZone:'Asia/Seoul'},async()=>({retired:true}));
+
+// Securities C/D: the explicit 4-8 pilot is separate from other classroom deployments.
+Object.assign(exports, require('./classroom/securities/production').register({
+  onCall, onSchedule, region: REGION, db, ErrorType: HttpsError,
+  assertLinkedMemberAuth, loadClassroomSettingsForTransaction,
+  assertMemberCanEnterClassroom, isClassroomTeacherMember
+}));
+
+// All quest entry points share one atomic board service; private submissions stay server-only.
+const classroomBoardService = require('./classroom/board').createService({
+  db, ErrorType: HttpsError, studentVisible: isClassroomStudentCardVisible,
+  portrait: classroomPortrait.publicPortrait,
+  authorize: async (tx, memberUserId, uid, classId) => {
+    const [member, classroom] = await Promise.all([
+      assertLinkedMemberAuth(tx, memberUserId, uid), loadClassroomSettingsForTransaction(tx, classId)
+    ]);
+    assertMemberCanEnterClassroom(member, classroom.settings);
+    return { settings: classroom.settings, isTeacher: isClassroomTeacherMember(member, classroom.settings) };
+  }
+});
+exports.classroomBoardAction = onCall({ region: REGION, timeoutSeconds: 60 }, request =>
+  classroomBoardService(requireAuth(request), request.data));
+
+// Classroom followups remain local until the final review and a separate release request.
+const classroomFollowupService = require('./classroom/followup').createService({
+  db, ErrorType: HttpsError, studentVisible: isClassroomStudentCardVisible,
+  authorize: async (tx, memberUserId, uid, classId) => {
+    const [member, classroom] = await Promise.all([
+      assertLinkedMemberAuth(tx, memberUserId, uid), loadClassroomSettingsForTransaction(tx, classId)
+    ]);
+    assertMemberCanEnterClassroom(member, classroom.settings);
+    return { settings: classroom.settings, isTeacher: isClassroomTeacherMember(member, classroom.settings) };
+  }
+});
+exports.classroomFollowupAction = onCall({ region: REGION, timeoutSeconds: 60 }, request =>
+  classroomFollowupService(requireAuth(request), request.data));

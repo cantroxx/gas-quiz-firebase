@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict');
+const M=require('../../public/cloud-tower/motion.js');
+const s=M.create();M.enqueue(s,1,false);
+assert.equal(M.step(s,100).phase,'run');assert.equal(M.step(s,225).phase,'crouch');
+const air=M.step(s,600);assert.equal(air.phase,'air');assert.ok(air.x>54&&air.x<350);assert.ok(air.lift>160);
+assert.equal(M.step(s,1040).phase,'land');assert.equal(M.step(s,1140).floor,1);assert.equal(s.queue.length,0);
+M.enqueue(s,3,true);const spin=M.step(s,1950);assert.equal(spin.phase,'air');assert.ok(spin.rotation>0&&spin.rotation<Math.PI*2);assert.ok(spin.lift>230);
+const landed=M.step(s,3000);assert.equal(landed.floor,3);assert.equal(landed.x,M.point(3).x);assert.equal(landed.y,M.point(3).y);
+for(let i=4;i<24;i++)M.enqueue(s,i,false);assert.equal(M.step(s,100000).floor,23);assert.equal(s.queue.length,0);
+const reduced=M.create();M.enqueue(reduced,1,false);M.enqueue(reduced,3,true);const r=M.step(reduced,10,true);assert.equal(r.floor,3);assert.equal(r.rotation,0);assert.equal(r.phase,'idle');assert.equal(reduced.flight,null);
+const midair=M.create();M.enqueue(midair,2,true);assert.equal(M.step(midair,700).phase,'air');assert.equal(M.step(midair,750,true).floor,2);
+console.log('Cloud Tower motion: run/anticipation/air/landing phases, 180px arc, boost flip, exact landing, queued rapid answers and reduced-motion snap passed.');

@@ -1,0 +1,20 @@
+{
+  "release": "projects/584571538436/sites/dj48-quiztown-firebase/channels/live/releases/1792379705718000",
+  "version": "sites/dj48-quiztown-firebase/versions/16a94539c73e5554",
+  "previous": "projects/584571538436/sites/dj48-quiztown-firebase/versions/058d9739887c9d0c",
+  "changed": [
+    "index.html",
+    "town-spatial.css",
+    "js/town-spatial.js"
+  ],
+  "fullCheckPassed": true,
+  "candidateBrowserPassed": true,
+  "productionManifestAndHttpHashesMatched": true,
+  "preservedFiles": 4669,
+  "rawHashes": {
+    "index.html": "db9d3ffe3702029cb2ea15ea28639c94b56ab588ae4b86fc751a2dbbdc90a4c8",
+    "town-spatial.css": "b7e7421828cd7fdaf5a87550bc9c2726cbbe589b5ada19c28efefd94716cbc4f",
+    "js/town-spatial.js": "e442cff1ff733f14b16b9c522edd61688ec5b356340fa9e8dca41e0fafe3853d"
+  },
+  "scope": "Hosting only; no Functions, rules, indexes or student data changes"
+}

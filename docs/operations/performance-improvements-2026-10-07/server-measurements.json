@@ -1,0 +1,53 @@
+{
+  "scope": "Synthetic 40ms per db call; not production",
+  "runs": [
+    {
+      "superAdmin": false,
+      "sample": 1,
+      "beforeMs": 164.694166,
+      "afterMs": 83.00866699999997,
+      "readsBefore": 4,
+      "readsAfter": 4
+    },
+    {
+      "superAdmin": false,
+      "sample": 2,
+      "beforeMs": 165.73445900000002,
+      "afterMs": 81.92037500000004,
+      "readsBefore": 4,
+      "readsAfter": 4
+    },
+    {
+      "superAdmin": false,
+      "sample": 3,
+      "beforeMs": 165.18216699999994,
+      "afterMs": 82.65883300000007,
+      "readsBefore": 4,
+      "readsAfter": 4
+    },
+    {
+      "superAdmin": true,
+      "sample": 1,
+      "beforeMs": 206.61245899999994,
+      "afterMs": 82.57916599999999,
+      "readsBefore": 5,
+      "readsAfter": 5
+    },
+    {
+      "superAdmin": true,
+      "sample": 2,
+      "beforeMs": 206.0001659999998,
+      "afterMs": 82.31616700000018,
+      "readsBefore": 5,
+      "readsAfter": 5
+    },
+    {
+      "superAdmin": true,
+      "sample": 3,
+      "beforeMs": 203.772917,
+      "afterMs": 82.80066699999998,
+      "readsBefore": 5,
+      "readsAfter": 5
+    }
+  ]
+}

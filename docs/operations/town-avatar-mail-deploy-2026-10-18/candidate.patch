@@ -1,0 +1,130 @@
+--- a/index.html
++++ b/index.html
+@@ -20,9 +20,9 @@
+   <link rel="stylesheet" href="/plaza-views.css?v=event-sections-20261017">
+   <link rel="stylesheet" href="/profile-view.css?v=1">
+   <link rel="stylesheet" href="/town-ui-refresh.css?v=20261018">
+-  <link rel="stylesheet" href="/town-spatial.css?v=clean-20261018">
+-  <script src="/js/town-avatar.js?v=clean-20261018" defer></script>
+-  <script src="/js/town-spatial.js?v=clean-20261018" defer></script>
++  <link rel="stylesheet" href="/town-spatial.css?v=avatar-mail-20261018">
++  <script src="/js/town-avatar.js?v=avatar-mail-20261018" defer></script>
++  <script src="/js/town-spatial.js?v=avatar-mail-20261018" defer></script>
+   <script defer src="/js/player-status-shortcut.js?v=clean-20261018"></script>
+   <link rel="stylesheet" href="/classroom-securities.css?v=securities-workspace-20261018">
+ </head>
+--- a/town-spatial.css
++++ b/town-spatial.css
+@@ -117,6 +117,7 @@
+ .town-map-frame { position:relative; }
+ .town-map-tools { position:absolute; top:12px; z-index:10; display:flex; gap:10px; align-items:flex-start; }
+ .town-map-tools-left { left:12px; }.town-map-tools-right { right:12px; }
++.town-map-tools.town-map-tools-bottom-left { top:auto; bottom:12px; left:12px; }
+ #town-view .town-map-control { position:relative; display:flex; justify-content:center; align-items:center; width:56px; height:56px; min-width:0; min-height:44px; padding:4px; border:2px solid #b99c66; border-radius:50%; background:#fff9e8e8; box-shadow:0 3px 8px #49391830; color:#3c5237; cursor:pointer; }
+ #town-view .town-map-control[hidden] { display:none; }
+ #town-view .town-map-control::before,#town-view .town-map-control::after { content:none; }
+@@ -129,6 +130,7 @@
+ .town-map-control:focus-visible { outline:3px solid #315943; outline-offset:3px; }
+ @media(min-width:561px) { .spatial-quick {display:none;} #town-view .map-buttons [data-place] {display:none;} }
+ @media(max-width:560px) { .town-map-tools {top:7px;gap:7px;}.town-map-tools-left{left:7px}.town-map-tools-right{right:7px} #town-view .town-map-control{width:46px;height:46px;padding:3px;} }
++@media(max-width:560px) { .town-map-tools.town-map-tools-bottom-left {bottom:7px;left:7px;} }
+ @media(prefers-reduced-motion:reduce) { #town-view #global-refresh-button.needs-refresh {animation:none;box-shadow:0 0 0 3px #ffd270,0 0 12px #ffc84290;} }
+ 
+ /* The surrounding panel supplies the heading; keep one visible heading/control. */
+--- a/js/town-spatial.js
++++ b/js/town-spatial.js
+@@ -114,7 +114,14 @@
+       news.replaceChildren(picture('news'),text); news.classList.add('town-map-control');
+       news.setAttribute('aria-label',news.classList.contains('needs-refresh')?'새 소식 있음 — 최신 정보 확인':'새 소식 확인');left.append(news);
+     }
+-    frame.append(left,right);
++    const bottom = element('div','town-map-tools town-map-tools-bottom-left');
++    const inquiry = byId('btn-open-inquiry');
++    if(inquiry) {
++      inquiry.replaceChildren(picture('mailbox')); inquiry.classList.add('town-map-control');
++      inquiry.setAttribute('aria-label','선생님께 문의하기'); inquiry.title = '선생님께 문의하기';
++      bottom.append(inquiry); // Move the original button, keeping its existing inquiry handler.
++    }
++    frame.append(left,right,bottom);
+     // The shared status component retains its real dialog/iframe and returns to the shell in other views.
+     window.dispatchEvent(new Event('dj48-town-controls-ready'));
+     view.querySelector('.town-info-shortcuts')?.remove();
+--- a/js/town-avatar.js
++++ b/js/town-avatar.js
+@@ -73,7 +73,16 @@
+     const current = identity();
+     if(current !== owner) { owner = current; generation++; pending = null; signature = ''; imageUrl = ''; display(); }
+     if(!owner) {report('idle');return;}
+-    if(pending) return pending;
++    if(pending) {
++      if(!force) return pending;
++      // A save can finish while the previous status/render is still in flight.
++      // Read the saved outfit again after it settles instead of dropping that refresh.
++      const waiting = pending, waitingGeneration = generation;
++      await waiting;
++      if(waitingGeneration !== generation || current !== identity()) return;
++      if(pending === waiting) pending = null;
++      return refresh(true);
++    }
+     if(!force && imageUrl) return;
+     const token = generation, account = owner;
+     const valid = () => token === generation && account === identity();
+--- a/coordi-shop/index.html
++++ b/coordi-shop/index.html
+@@ -49,4 +49,4 @@
+ 
+ <script src="/coordi-shop/catalog-filter.js?v=20260929-curation-2"></script>
+ <script src="/coordi-shop/hair-prism.js?v=hair-pixels-20261002"></script>
+-<script src="/coordi-shop/town-bridge.js?v=shop-cleanup-20261017"></script></body></html>
++<script src="/coordi-shop/town-bridge.js?v=avatar-mail-20261018"></script></body></html>
+--- a/coordi-shop/town-bridge.js
++++ b/coordi-shop/town-bridge.js
+@@ -7,7 +7,7 @@
+   window.DJ48CoordiBridge={
+     async render(look){assertSession();return (await functions.httpsCallable('renderCoordiShopPreview')({look})).data;},
+     async status(){assertSession();return (await functions.httpsCallable('coordiShopAction')({action:'status'})).data;},
+-    async transact(payload){assertSession();const key=JSON.stringify(payload);if(!pending||pending.key!==key)pending={key,requestId:crypto.randomUUID()};const response=await functions.httpsCallable('coordiShopAction')({...payload,requestId:pending.requestId});pending=null;return response.data;}
++    async transact(payload){assertSession();const key=JSON.stringify(payload);if(!pending||pending.key!==key)pending={key,requestId:crypto.randomUUID()};const response=await functions.httpsCallable('coordiShopAction')({...payload,requestId:pending.requestId});pending=null;assertSession();if(response.data?.success && ['equip','dye'].includes(payload.action))parentWindow.DJ48TownAvatar?.refresh(true)?.catch(()=>{});return response.data;}
+   };
+-  const script=document.createElement('script');script.src='/coordi-shop/dressing-room.js?v=shop-cleanup-20261017';document.body.append(script);
++  const script=document.createElement('script');script.src='/coordi-shop/dressing-room.js?v=avatar-mail-20261018';document.body.append(script);
+ })();
+--- a/coordi-shop/dressing-room.js
++++ b/coordi-shop/dressing-room.js
+@@ -1058,6 +1058,7 @@
+   }
+ 
+   function render() {
++    updateSavedOutfitHint();
+     state = normalizeState(state);
+     renderCategories();
+     renderItems();
+@@ -1502,11 +1503,27 @@
+     for(const id of ['coordi-buy','coordi-buy-coupon','coordi-equip'])document.getElementById(id).disabled=dressroomMode||!commerce||commerceBusy;
+     document.getElementById('starter-coupons').textContent = commerce ? '남은 구매 쿠폰 '+(commerce.purchaseCoupons ?? 0)+'장 · 아이템 1개당 1장' : '구매 쿠폰 확인 중…';
+     updateMode();
++    updateSavedOutfitHint();
++  }
++  function updateSavedOutfitHint() {
++    let hint = document.getElementById('coordi-saved-outfit');
++    if(!hint) {
++      hint = document.createElement('p'); hint.id = 'coordi-saved-outfit'; hint.setAttribute('role','status');
++      document.getElementById('coordi-equip').before(hint);
++    }
++    if(!commerce) { hint.textContent = ''; return; }
++    const saved = commerce.profile.look || {}, equipped = saved.equipped || {};
++    const keys = [...new Set([...Object.keys(equipped), ...Object.keys(state.equipped)])];
++    const same = saved.gender === state.gender && keys.every(key => equipped[key] === state.equipped[key]);
++    hint.textContent = dressroomMode ? '입어보기 전용이에요. 마을 코디는 바뀌지 않아요.'
++      : !same ? '지금은 입어보기 중이에요. 구매한 아이템은 아래 ‘내 코디로 장착’을 눌러야 마을에 보여요.'
++      : Object.keys(equipped).length ? '마을에 적용된 코디예요. 헤어만 장착해도 보여요.'
++      : '마을에 저장한 코디가 없어요. 보유한 헤어를 선택하고 ‘내 코디로 장착’을 눌러 주세요.';
+   }
+   async function commerceAction(payload){
+     if(dressroomMode||!commerce||commerceBusy)return false;
+     commerceBusy=true;updateCommerce();
+-    try{const result=await window.DJ48CoordiBridge.transact({...payload,version:commerce.version});commerce={...commerce,...result};commerceMessage(result.couponsUsed ? '쿠폰 '+result.couponsUsed+'장을 사용했어요.' : result.cost ? result.cost+' DJ코인을 사용했어요.' : '저장했어요.');return true;}
++    try{const result=await window.DJ48CoordiBridge.transact({...payload,version:commerce.version});commerce={...commerce,...result};commerceMessage(payload.action === 'equip' ? '마을 코디를 저장했어요.' : payload.action === 'purchase' ? '구매했어요. 마을에 적용하려면 ‘내 코디로 장착’을 눌러 주세요.' : result.couponsUsed ? '쿠폰 '+result.couponsUsed+'장을 사용했어요.' : result.cost ? result.cost+' DJ코인을 사용했어요.' : '저장했어요.');return true;}
+     catch(error){commerceMessage(error.message||'처리 결과를 확인하지 못했어요. 같은 동작을 다시 누르면 중복 결제 없이 확인해요.');return false;}
+     finally{commerceBusy=false;updateCommerce();render();}
+   }

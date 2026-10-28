@@ -70,32 +70,45 @@
   }
 
   async function loadClassroomSettings(options = {}, deps = {}) {
+    deps.reportLoadStatus?.('settings', null);
     const prototype = options.prototype || {};
     const db = getClassroomDb(deps);
-    if(!db) return normalizeClassroomSettings({}, prototype);
+    if(!db) { deps.reportLoadStatus?.('settings', new Error('database-unavailable')); return normalizeClassroomSettings({}, prototype); }
     try {
       const snapshot = await db.collection('classrooms').doc(prototype.classId).get();
       return normalizeClassroomSettings(snapshot.exists ? snapshot.data() : {}, prototype);
     } catch(error) {
+      deps.reportLoadStatus?.('settings', error);
       deps.warn?.('Classroom settings load failed. Using prototype fallback.', error);
       return normalizeClassroomSettings({}, prototype);
     }
   }
 
   async function loadClassroomStudentCards(options = {}, deps = {}) {
+    const statusKey = options.memberOnly ? 'home' : 'students';
+    deps.reportLoadStatus?.(statusKey, null);
     const { settings = {}, memberUserId = '' } = options;
     if(!memberUserId) return getEmptyClassroomStudentCards();
     const functions = getClassroomFunctions(deps);
-    if(!functions) return getEmptyClassroomStudentCards();
+    if(!functions) { deps.reportLoadStatus?.(statusKey, new Error('functions-unavailable')); return getEmptyClassroomStudentCards(); }
     try {
       const callable = functions.httpsCallable('getClassroomStudentCards');
       const response = await callable({
         classId: settings.classId,
-        memberUserId
+        memberUserId,
+        ...(options.memberOnly ? { memberOnly: true } : {})
       });
       const students = Array.isArray(response?.data?.students) ? response.data.students : getEmptyClassroomStudentCards();
+      // Older deployed Functions remain compatible during a staged release.
+      if(options.memberOnly) {
+        const own = students.filter(student => student.memberUserId === memberUserId);
+        if(own.length !== 1) throw new Error('classroom-home-unavailable');
+        return own;
+      }
+      if(response?.data?.levelSummariesIncluded === true) return students;
       return mergeClassroomStudentLevelSummaries(students, deps);
     } catch(error) {
+      deps.reportLoadStatus?.(statusKey, error);
       deps.warn?.('Classroom student cards load failed.', error);
       return getEmptyClassroomStudentCards();
     }
@@ -133,10 +146,11 @@
   }
 
   async function loadClassroomEconomyBoard(options = {}, deps = {}) {
+    deps.reportLoadStatus?.('economy', null);
     const { settings = {}, memberUserId = '' } = options;
     if(!memberUserId) return getEmptyClassroomEconomyBoard();
     const functions = getClassroomFunctions(deps);
-    if(!functions) return getEmptyClassroomEconomyBoard();
+    if(!functions) { deps.reportLoadStatus?.('economy', new Error('functions-unavailable')); return getEmptyClassroomEconomyBoard(); }
     try {
       const callable = functions.httpsCallable('getClassroomEconomyBoard');
       const response = await callable({
@@ -171,15 +185,20 @@
         myAssignment: data.myAssignment || null
       };
     } catch(error) {
+      deps.reportLoadStatus?.('economy', error);
       deps.warn?.('Classroom economy board load failed.', error);
       return getEmptyClassroomEconomyBoard();
     }
   }
 
   async function loadClassroomWallet(options = {}, deps = {}) {
+    deps.reportLoadStatus?.('wallet', null);
     const { settings = {}, memberUserId = '' } = options;
     const db = getClassroomDb(deps);
-    if(!memberUserId || !db) return { point: 0 };
+    if(!memberUserId || !db) {
+      if(memberUserId && !db) deps.reportLoadStatus?.('wallet', new Error('database-unavailable'));
+      return { point: 0 };
+    }
     try {
       const snapshot = await db.collection('classrooms')
         .doc(settings.classId)
@@ -188,49 +207,31 @@
         .get();
       return snapshot.exists ? normalizeClassroomWallet(snapshot.data() || {}) : { point: 0 };
     } catch(error) {
+      deps.reportLoadStatus?.('wallet', error);
       deps.warn?.('Classroom wallet load failed.', error);
       return { point: 0 };
     }
   }
 
   async function loadClassroomGemProgress(options = {}, deps = {}) {
+    deps.reportLoadStatus?.('gems', null);
     const { settings = {}, memberUserId = '' } = options;
     const db = getClassroomDb(deps);
-    if(!memberUserId || !db) return [];
+    if(!memberUserId || !db) {
+      if(memberUserId && !db) deps.reportLoadStatus?.('gems', new Error('database-unavailable'));
+      return [];
+    }
     try {
-      const [progressSnapshot, catalogSnapshot] = await Promise.all([
-        db.collection('classrooms')
+      // The catalog is supplied by getClassroomEconomyBoard after its server-side
+      // membership check. Firestore does not expose classroomGems to the client.
+      const progressSnapshot = await db.collection('classrooms')
         .doc(settings.classId)
         .collection('studentGemProgress')
         .where('memberUserId', '==', memberUserId)
-        .get(),
-        db.collection('classrooms')
-          .doc(settings.classId)
-          .collection('classroomGems')
-          .where('active', '==', true)
-          .get()
-      ]);
-      const progressByGemId = new Map(progressSnapshot.docs.map(doc => {
-        const data = { id: doc.id, ...doc.data() };
-        return [String(data.gemId || doc.id), data];
-      }));
-      const catalogDocs = catalogSnapshot.docs.map(doc => ({ gemId: doc.id, ...doc.data() }));
-      catalogDocs.forEach(rawGem => {
-        const gem = rawGem.gemId ? rawGem : { gemId: rawGem.id, ...rawGem };
-        const gemId = String(gem.gemId || gem.id || '');
-        const progress = progressByGemId.get(gemId);
-        progressByGemId.set(gemId, {
-          ...gem,
-          ...(progress || {}),
-          currentXp: Number(progress?.currentXp || 0),
-          targetXp: Number(progress?.targetXp || gem.targetXp || 10),
-          rewardPoint: Number(progress?.rewardPoint || gem.rewardPoint || 0),
-          rewardCoin: Number(progress?.rewardCoin || gem.rewardCoin || 0),
-          completed: progress?.completed === true
-        });
-      });
-      return Array.from(progressByGemId.values()).sort((a, b) => String(a.gemName || a.gemId).localeCompare(String(b.gemName || b.gemId), 'ko'));
+        .get();
+      return progressSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch(error) {
+      deps.reportLoadStatus?.('gems', error);
       if(!deps.isFirestorePermissionDeniedError?.(error)) {
         deps.warn?.('Classroom gem progress load failed.', error);
       }
@@ -239,10 +240,11 @@
   }
 
   async function loadClassroomReviewItems(options = {}, deps = {}) {
+    deps.reportLoadStatus?.('review', null);
     const { settings = {}, canReview = false } = options;
     if(!canReview) return [];
     const functions = getClassroomFunctions(deps);
-    if(!functions) return [];
+    if(!functions) { deps.reportLoadStatus?.('review', new Error('functions-unavailable')); return []; }
     try {
       const callable = functions.httpsCallable('getClassroomReviewItems');
       const response = await callable({
@@ -255,30 +257,19 @@
       }
       return items;
     } catch(error) {
+      deps.reportLoadStatus?.('review', error);
       deps.warn?.('Classroom review items load failed.', error);
       return [];
     }
   }
 
   async function loadClassroomQuestProgress(options = {}, deps = {}) {
+    deps.reportLoadStatus?.('progress', null);
     const { settings = {}, memberUserId = '' } = options;
-    const db = getClassroomDb(deps);
-    if(!memberUserId || !db) return {};
-    const todayKey = getKstDateKey();
-    const saveEnabledQuests = (settings.quests || []).filter(quest => quest.saveEnabled);
-    const entries = await Promise.all(saveEnabledQuests.map(async quest => {
-      const recordId = buildClassroomQuestProgressId(memberUserId, quest.id, quest.rewardMode === 'auto' ? todayKey : '');
-      const snapshot = await db.collection('classrooms')
-        .doc(settings.classId)
-        .collection('questProgress')
-        .doc(recordId)
-        .get()
-        .catch(() => null);
-      const data = snapshot?.exists ? snapshot.data() : null;
-      if(['cancelled', 'rejected'].includes(String(data?.rewardStatus || ''))) return [quest.id, null];
-      return [quest.id, data];
-    }));
-    return Object.fromEntries(entries.filter(([, data]) => !!data));
+    const functions = getClassroomFunctions(deps);
+    if(!memberUserId || !functions) { if(memberUserId) deps.reportLoadStatus?.('progress', new Error('functions-unavailable')); return {}; }
+    try { return (await functions.httpsCallable('classroomBoardAction')({classId:settings.classId,memberUserId,action:'progress'})).data?.progressMap || {}; }
+    catch(error) { deps.reportLoadStatus?.('progress',error); deps.warn?.('Classroom quest progress load failed.',error); return {}; }
   }
 
   async function verifyClassroomEntryCode(options = {}, deps = {}) {
@@ -323,6 +314,8 @@
         endDate: values.endDate,
         targetStudentIds: values.targetStudentIds,
         repeatRule: values.repeatRule,
+        submissionType: values.submissionType,
+        checklistItems: values.checklistItems,
         linkedGemId: values.linkedGemId,
         linkedGemName: values.linkedGemName,
         linkedGemIds: values.linkedGemIds,
@@ -504,33 +497,8 @@
       memberUserId = ''
     } = options;
     if(!memberUserId) throw new Error('classroom-member-unavailable');
-    const db = getClassroomDb(deps);
-    if(!db) throw new Error('classroom-quest-progress-db-unavailable');
-    const fieldValue = deps.getFirestoreFieldValue?.();
-    const recordId = buildClassroomQuestProgressId(memberUserId, questId);
-    await db.collection('classrooms')
-      .doc(settings.classId)
-      .collection('questProgress')
-      .doc(recordId)
-      .set({
-        recordId,
-        classId: settings.classId,
-        questId,
-        questTitle: quest.title || '',
-        questType: quest.type || '수락형 · 체크형',
-        memberUserId,
-        userId: memberUserId,
-        checked: true,
-        status: 'student_checked',
-        rewardCoin: Number(quest.rewardCoin) || 0,
-        rewardCurrency: 'point',
-        rewardStatus: 'pending_teacher_review',
-        source: 'firebase-app',
-        version: 1,
-        createdAt: fieldValue.serverTimestamp(),
-        updatedAt: fieldValue.serverTimestamp()
-      }, { merge: true });
-    return { recordId };
+    const functions = getRequiredClassroomFunctions(deps, 'classroom-quest-functions-unavailable');
+    return (await functions.httpsCallable('classroomBoardAction')({ classId: settings.classId, memberUserId, questId, action: 'submit' })).data || {};
   }
 
   async function reviewClassroomQuestProgress(options = {}, deps = {}) {
@@ -540,6 +508,7 @@
       classId: options.classId,
       recordId: options.recordId,
       nextStatus: options.nextStatus,
+      reason: options.reason || '',
       ...(options.rewardPointOverride !== undefined ? { rewardPointOverride: options.rewardPointOverride } : {})
     });
     return response?.data || {};
@@ -550,19 +519,22 @@
       getFirestoreDb: deps.getFirestoreDb,
       getFirestoreFieldValue: deps.getFirestoreFieldValue,
       isFirestorePermissionDeniedError: deps.isFirestorePermissionDeniedError,
-      warn: deps.warn
+      warn: deps.warn,
+      reportLoadStatus: deps.reportLoadStatus
     };
     const callableDeps = {
       getFirestoreDb: deps.getFirestoreDb,
       getFirebaseFunctions: deps.getFirebaseFunctions,
-      warn: deps.warn
+      warn: deps.warn,
+      reportLoadStatus: deps.reportLoadStatus
     };
 
     return {
       loadClassroomSettings: options => loadClassroomSettings(options, firestoreDeps),
-      loadClassroomQuestProgress: options => loadClassroomQuestProgress(options, firestoreDeps),
+      loadClassroomQuestProgress: options => loadClassroomQuestProgress(options, callableDeps),
       loadClassroomWallet: options => loadClassroomWallet(options, firestoreDeps),
       loadClassroomGemProgress: options => loadClassroomGemProgress(options, firestoreDeps),
+      loadClassroomHomeData: options => loadClassroomStudentCards({ ...options, memberOnly: true }, callableDeps),
       loadClassroomStudentCards: options => loadClassroomStudentCards(options, callableDeps),
       loadClassroomEconomyBoard: options => loadClassroomEconomyBoard(options, callableDeps),
       loadClassroomReviewItems: options => loadClassroomReviewItems(options, callableDeps),
@@ -590,7 +562,7 @@
       ),
       saveClassroomRoutine: options => saveClassroomRoutine(options, callableDeps),
       completeClassroomAutoQuest: options => completeClassroomAutoQuest(options, callableDeps),
-      saveClassroomManualQuestProgress: options => saveClassroomManualQuestProgress(options, firestoreDeps),
+      saveClassroomManualQuestProgress: options => saveClassroomManualQuestProgress(options, callableDeps),
       reviewClassroomQuestProgress: options => reviewClassroomQuestProgress(options, callableDeps)
     };
   }

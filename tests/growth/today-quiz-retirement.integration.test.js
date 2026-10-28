@@ -1,0 +1,24 @@
+'use strict';
+const assert=require('node:assert/strict'),path=require('node:path');
+assert.match(process.env.FIRESTORE_EMULATOR_HOST||'',/^127\.0\.0\.1:\d+$/);
+process.env.GCLOUD_PROJECT='demo-today-cleanup';process.env.GOOGLE_CLOUD_PROJECT='demo-today-cleanup';
+const root=process.env.TODAY_CLEANUP_STAGE,local=path.resolve(__dirname,'../../functions');
+const load=name=>require(root?`${root}/${name}/release/functions/index`:local+'/index')[name];
+const get=load('adminGetFeatureFlags'),update=load('adminUpdateFeatureFlags');
+const req=require('node:module').createRequire(local+'/package.json'),{getFirestore}=req('firebase-admin/firestore'),{getApps,deleteApp}=req('firebase-admin/app');
+const db=getFirestore();
+(async()=>{
+ const uid='retirement-admin';await db.doc('users/retirement-admin').set({authUid:uid,role:'admin',adminLevel:'superAdmin',status:'active',active:true});
+ const retired={todayQuizMode:'dailyRandom',todayQuizIds:['spelling'],activeTodayQuizIds:['spelling'],todayQuizRandomPoolIds:['spelling'],todayQuizDailyCount:5,todayQuizShuffleSeed:'legacy-seed'};
+ await db.doc('appSettings/featureFlags').set({...retired,practiceRewardEnabled:true,practiceXpEnabled:false,disabledQuizIds:['spelling'],avatarMarketEnabled:false});
+ await db.doc('noticeBoard/current').set({quest:'교사 안내 유지',recommendedQuizId:'math'});
+ const before=await db.doc('noticeBoard/current').get();
+ const response=await get.run({auth:{uid},data:{}});
+ assert(!Object.keys(response.flags).some(k=>/todayQuiz/i.test(k)));assert.equal(response.flags.practiceXpEnabled,false);assert.deepEqual(response.flags.disabledQuizIds,['spelling']);
+ const saved=await update.run({auth:{uid},data:{flags:{...response.flags,...retired,practiceXpEnabled:true}}});
+ assert(!Object.keys(saved.flags).some(k=>/todayQuiz/i.test(k)));assert.equal(saved.flags.practiceXpEnabled,true);
+ const after=await db.doc('noticeBoard/current').get();assert.deepEqual(after.data(),before.data());assert.equal(after.updateTime.toMillis(),before.updateTime.toMillis());
+ const data=(await db.doc('appSettings/featureFlags').get()).data();assert.deepEqual(data.todayQuizIds,['spelling'],'Historical settings are ignored, not migrated');
+ await assert.rejects(get.run({auth:{uid:'student'},data:{}}),e=>e.code==='permission-denied');
+ console.log('PASS retired selection fields ignored on read/write; teacher notice unchanged; reward switches and authorization preserved.');
+})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>Promise.all(getApps().map(deleteApp)));

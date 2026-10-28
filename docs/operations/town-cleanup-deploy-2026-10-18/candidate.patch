@@ -1,0 +1,328 @@
+--- a/index.html
++++ b/index.html
+@@ -20,10 +20,10 @@
+   <link rel="stylesheet" href="/plaza-views.css?v=event-sections-20261017">
+   <link rel="stylesheet" href="/profile-view.css?v=1">
+   <link rel="stylesheet" href="/town-ui-refresh.css?v=20261018">
+-  <link rel="stylesheet" href="/town-spatial.css?v=refine-20261018">
+-  <script src="/js/town-avatar.js?v=20261018" defer></script>
+-  <script src="/js/town-spatial.js?v=refine-20261018" defer></script>
+-  <script defer src="/js/player-status-shortcut.js?v=town-ui-20261018"></script>
++  <link rel="stylesheet" href="/town-spatial.css?v=clean-20261018">
++  <script src="/js/town-avatar.js?v=clean-20261018" defer></script>
++  <script src="/js/town-spatial.js?v=clean-20261018" defer></script>
++  <script defer src="/js/player-status-shortcut.js?v=clean-20261018"></script>
+   <link rel="stylesheet" href="/classroom-securities.css?v=securities-workspace-20261018">
+ </head>
+ <body>
+@@ -127,7 +127,7 @@
+       <div class="town-panel-header">
+         <div>
+           <p class="eyebrow">Quiz Town</p>
+-          <h2 id="town-title">오늘은 어디로 놀러 갈까?</h2>
++          <h2 id="town-title">퀴즈타운</h2>
+           <p>건물과 간판을 눌러 우리 마을을 둘러보세요.</p>
+         </div>
+         <div class="town-header-actions">
+@@ -294,7 +294,7 @@
+         <button class="home-detail-toggle" type="button" data-home-detail-toggle="ranking" aria-expanded="false">내 랭킹 기록</button>
+         <button class="home-detail-toggle" type="button" data-home-detail-toggle="titles" aria-expanded="false">보유 칭호</button>
+         <button class="home-detail-toggle" type="button" data-home-detail-toggle="badges" aria-expanded="false">뱃지·연습 현황</button>
+-        <button class="home-detail-toggle" type="button" data-home-detail-toggle="items" aria-expanded="false">보유 아이템</button>
++        
+       </div>
+       <div class="home-detail-root">
+         <section class="collection-panel profile-ranking-panel home-detail-panel" data-home-detail-panel="ranking" aria-labelledby="profile-ranking-heading">
+@@ -378,7 +378,7 @@
+ 
+       <section class="event-section" aria-label="오늘의 퀘스트">
+         <div class="event-section-heading event-section-switcher">
+-          <h3 id="quest-heading"><button id="event-quest-toggle" class="event-quest-toggle" type="button" data-event-section-toggle aria-expanded="true" aria-controls="quest-card-grid">오늘의 퀘스트 <span class="event-quest-chevron" aria-hidden="true">⌄</span></button></h3>
++          <h3 id="quest-heading" class="spatial-sr-only">오늘의 퀘스트</h3>
+         </div>
+         <div id="quest-card-grid" class="quest-card-grid" role="region" aria-labelledby="quest-heading"></div>
+         <!-- Compatibility root for the separately scheduled season retirement. No student entry. -->
+@@ -2817,7 +2817,8 @@
+       const button = document.getElementById('global-refresh-button');
+       if(!button) return;
+       button.classList.toggle('needs-refresh', !!needsAttention);
+-      button.textContent = needsAttention ? '새 정보 있음' : '최신 정보';
++      (button.querySelector('.town-refresh-label') || button).textContent = needsAttention ? '새 정보 있음' : '최신 정보';
++      button.setAttribute('aria-label', needsAttention ? '새 소식 있음 — 최신 정보 확인' : '새 소식 확인');
+       button.title = message || (needsAttention ? '서버에 새 운영 정보가 있습니다. 눌러서 다시 불러오세요.' : '서버의 최신 정보를 다시 불러옵니다.');
+     }
+ 
+@@ -2868,7 +2869,7 @@
+       const button = document.getElementById('global-refresh-button');
+       if(button) {
+         button.disabled = true;
+-        button.textContent = '불러오는 중';
++        (button.querySelector('.town-refresh-label') || button).textContent = '불러오는 중';
+       }
+       try {
+         clearRuntimeDataCaches();
+@@ -2903,10 +2904,12 @@
+         const signature = await loadServerFreshnessSignature().catch(() => '');
+         if(signature) storeServerFreshnessSignature(signature);
+         setGlobalRefreshNeedsAttention(false, '최신 정보를 다시 불러왔습니다.');
++        await window.DJ48TownAvatar?.refresh(true);
++        if(!document.getElementById('town-view')?.hidden) openPlaceModal('notice');
+       } finally {
+         if(button) {
+           button.disabled = false;
+-          if(!button.classList.contains('needs-refresh')) button.textContent = '최신 정보';
++          if(!button.classList.contains('needs-refresh')) (button.querySelector('.town-refresh-label') || button).textContent = '최신 정보';
+         }
+       }
+     }
+--- a/town-spatial.css
++++ b/town-spatial.css
+@@ -110,3 +110,33 @@
+ .event-rewards-dropdown .event-rewards-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+ .event-rewards-dropdown h3 { margin:0; }
+ .event-rewards-dropdown .quest-card-grid { grid-template-columns:minmax(0,1fr); }
++
++/* Quiet map: tools stay inside the visible map viewport, including horizontal zoom. */
++.spatial-sr-only,#town-view .town-panel-header,#town-view .spatial-walk-status { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip-path:inset(50%) !important; border:0 !important; }
++#town-view .town-retired-notice,#town-view .town-info-shortcuts { display:none !important; }
++.town-map-frame { position:relative; }
++.town-map-tools { position:absolute; top:12px; z-index:10; display:flex; gap:10px; align-items:flex-start; }
++.town-map-tools-left { left:12px; }.town-map-tools-right { right:12px; }
++#town-view .town-map-control { position:relative; display:flex; justify-content:center; align-items:center; width:56px; height:56px; min-width:0; min-height:44px; padding:4px; border:2px solid #b99c66; border-radius:50%; background:#fff9e8e8; box-shadow:0 3px 8px #49391830; color:#3c5237; cursor:pointer; }
++#town-view .town-map-control[hidden] { display:none; }
++#town-view .town-map-control::before,#town-view .town-map-control::after { content:none; }
++.town-map-control img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
++#town-friends-count { position:absolute; bottom:-4px; right:-4px; border:1px solid #b99c66; border-radius:10px; padding:1px 5px; min-width:18px; font:13px/1.3 'Jua',sans-serif; background:#fff9df; }
++#town-notes-badge { position:absolute; top:-6px; right:-5px; }
++#town-view #global-refresh-button.needs-refresh { border-color:#efa833; animation:town-news-glow 1.6s ease-in-out infinite alternate; }
++#town-view #global-refresh-button:disabled { opacity:.65; cursor:wait; }
++@keyframes town-news-glow { from {box-shadow:0 0 0 3px #ffe7a6,0 0 9px #f5b94490;} to {box-shadow:0 0 0 5px #ffd270,0 0 20px #ffc842c0;} }
++.town-map-control:focus-visible { outline:3px solid #315943; outline-offset:3px; }
++@media(min-width:561px) { .spatial-quick {display:none;} #town-view .map-buttons [data-place] {display:none;} }
++@media(max-width:560px) { .town-map-tools {top:7px;gap:7px;}.town-map-tools-left{left:7px}.town-map-tools-right{right:7px} #town-view .town-map-control{width:46px;height:46px;padding:3px;} }
++@media(prefers-reduced-motion:reduce) { #town-view #global-refresh-button.needs-refresh {animation:none;box-shadow:0 0 0 3px #ffd270,0 0 12px #ffc84290;} }
++
++/* The surrounding panel supplies the heading; keep one visible heading/control. */
++#spatial-panel-quests .event-section-heading,#spatial-panel-hall .plaza-section-title {display:none;}
++#spatial-panel-quests .event-section {margin:0;padding:0;border:0;background:none;box-shadow:none;}
++#spatial-panel-quests .event-card-icon {display:none;}
++#spatial-panel-collection .collection-heading .eyebrow {display:none;}
++#home-view [data-home-detail-panel="items"],#home-view [data-home-detail-toggle="items"] {display:none !important;}
++/* The people control already opens friends/messages; retain the fallback only before it is available. */
++#town-view:has(#town-friends-button:not([hidden])) #btn-open-friends {display:none;}
++@media(min-width:561px) { #town-view .map-buttons:not(.town-info-shortcuts) {justify-content:flex-end;margin-top:10px;} #town-view .map-buttons #btn-open-inquiry {flex:0 0 auto;min-height:40px;} }
+--- a/js/town-spatial.js
++++ b/js/town-spatial.js
+@@ -89,11 +89,36 @@
+     view.addEventListener('keydown',event=>{if(event.key==='Escape') {cancel();status.textContent='산책을 멈췄어요. 원하는 건물을 골라보세요.';}});
+     new MutationObserver(()=>{if(view.hidden) cancel();}).observe(view,{attributes:true,attributeFilter:['hidden']});
+     const nav = view.querySelector('.map-buttons:not(.town-info-shortcuts)');
+-    if(nav) { nav.setAttribute('aria-label','빠른 이동'); nav.before(element('p','spatial-nav-label','빠른 이동')); }
++    if(nav) nav.setAttribute('aria-label','마을 장소');
+     const places = ['home','school','shop','ranking','event'];
+     places.forEach((place,index)=>view.querySelectorAll(`[data-place="${place}"]`).forEach(button=>button.dataset.sceneNumber = String(index+1)));
+     sceneZoom(view.querySelector('.storybook-map-scroll'));
+     view.classList.add('spatial-town-ready');
++    townControls(view);
++  }
++  function townControls(view) {
++    const scroll = view.querySelector('.storybook-map-scroll');
++    const frame = element('div','town-map-frame'); scroll.before(frame); frame.append(scroll);
++    const left = element('div','town-map-tools town-map-tools-left');
++    const right = element('div','town-map-tools town-map-tools-right'); right.id = 'town-status-slot';
++    const picture = name => { const img = element('img'); img.src = '/images/town-controls-20261018/'+name+'.webp'; img.alt = ''; return img; };
++    const friends = byId('town-friends-button'), news = byId('global-refresh-button');
++    if(friends) {
++      const count = byId('town-friends-count'), notes = byId('town-notes-badge');
++      friends.replaceChildren(picture('people'),count,notes); friends.classList.add('town-map-control');
++      const label = () => friends.setAttribute('aria-label',`접속 중 ${count.textContent}명 · 친구와 쪽지${!notes.hidden ? ' · 새 쪽지 '+notes.textContent+'개' : ''}`);
++      new MutationObserver(label).observe(friends,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden']});label();left.append(friends);
++    }
++    if(news) {
++      const text = element('span','town-refresh-label spatial-sr-only',news.textContent);
++      news.replaceChildren(picture('news'),text); news.classList.add('town-map-control');
++      news.setAttribute('aria-label',news.classList.contains('needs-refresh')?'새 소식 있음 — 최신 정보 확인':'새 소식 확인');left.append(news);
++    }
++    frame.append(left,right);
++    // The shared status component retains its real dialog/iframe and returns to the shell in other views.
++    window.dispatchEvent(new Event('dj48-town-controls-ready'));
++    view.querySelector('.town-info-shortcuts')?.remove();
++    const notice = byId('daily-notice-drop'); if(notice) notice.classList.add('town-retired-notice');
+   }
+   function panel(view, key, title, nodes) {
+     const dialog = element('dialog','spatial-panel'); dialog.id = 'spatial-panel-'+key;
+@@ -174,18 +199,16 @@
+     byId('home-title').textContent = '내 집';
+     const profile = panel(view,'profile','내 정보 수첩',[byId('profile-card-root')]);
+     const toggles = view.querySelector('.home-detail-toggle-grid');
+-    const details = panel(view,'collection','나의 기록과 보물',[toggles,view.querySelector('.home-detail-root')]);
++    const details = panel(view,'collection','나의 기록',[toggles,view.querySelector('.home-detail-root')]);
+     function openDetail(key,opener) {
+       details.open(opener);
+       const toggle = toggles.querySelector(`[data-home-detail-toggle="${key}"]`);
+       if(toggle && !toggle.classList.contains('is-active')) toggle.click();
+     }
+-    room(view,'home','책상에서 나를 확인하고, 선반과 보물상자에서 모은 기록을 꺼내보세요.',[
++    room(view,'home','내 정보와 랭킹 기록, 칭호와 뱃지를 확인해요.',[
+       {key:'profile',label:'내 정보',rect:[10,24,31,26],panel:profile},
+       {key:'records',label:'내 랭킹 기록',rect:[44,11,25,37],panel:details,run:node=>openDetail('ranking',node)},
+-      {key:'collection',label:'칭호·뱃지',rect:[73,12,23,42],panel:details,run:node=>openDetail('titles',node)},
+-      {key:'items',label:'보유 아이템',rect:[74,56,24,29],panel:details,run:node=>openDetail('items',node)},
+-      {key:'housing',label:'내 방 꾸미기 →',rect:[1,46,18,37],href:'/housing/'}
++      {key:'collection',label:'칭호·뱃지',rect:[73,12,23,42],panel:details,run:node=>openDetail('titles',node)}
+     ]);
+     // Existing classroom/title links may activate a detail tab programmatically.
+     // Observe the existing controller's state instead of replacing its data-loading behavior.
+@@ -208,9 +231,7 @@
+     if(event) {
+       const quests = panel(event,'quests','오늘의 퀘스트',[event.querySelector('.event-section')]);
+       room(event,'event','오늘의 퀘스트를 확인하고, 해낸 만큼 보상을 받아요.',[
+-        {key:'quests',label:'오늘의 퀘스트',rect:[5,15,34,48],panel:quests,run:()=>{
+-          const toggle = byId('event-quest-toggle'); if(toggle?.getAttribute('aria-expanded')==='false') toggle.click();
+-        }}
++        {key:'quests',label:'오늘의 퀘스트',rect:[5,15,34,48],panel:quests,run:()=>{ byId('quest-card-grid').hidden=false; }}
+       ]);
+     }
+   }
+--- a/js/town-avatar.js
++++ b/js/town-avatar.js
+@@ -36,6 +36,11 @@
+ 
+   if(typeof module === 'object' && module.exports) { module.exports = { savedLookPayload }; return; }
+   let owner = '', generation = 0, signature = '', imageUrl = '', pending = null, previousView = '', hairScript;
++  let avatarState = {status:'idle',message:''};
++  function report(status,message='') {
++    avatarState = {status,message};
++    window.dispatchEvent(new CustomEvent('dj48-avatar-state',{detail:avatarState}));
++  }
+   const actors = () => document.querySelectorAll('.spatial-guide');
+   const identity = () => {
+     const state = root.DJ48AccountState;
+@@ -48,7 +53,7 @@
+       const img = document.createElement('img'); img.alt = ''; img.draggable = false; img.hidden = !url;
+       actor.replaceChildren(img); actor.dataset.avatarState = url ? 'ready' : 'fallback';
+       if(url) {
+-        const failed = () => { if(img.parentElement === actor) { img.hidden = true; actor.dataset.avatarState = 'fallback'; } };
++        const failed = () => { if(img.parentElement === actor) { img.hidden = true; actor.dataset.avatarState = 'fallback'; report('error','아바타 이미지를 불러오지 못했어요. 다시 불러와 주세요.'); } };
+         if(root.DJ48ClassroomPortrait?.setAvatarImageSource) root.DJ48ClassroomPortrait.setAvatarImageSource(img, url, failed);
+         else { img.onerror = failed; img.src = url; }
+       }
+@@ -67,14 +72,15 @@
+   async function refresh(force = false) {
+     const current = identity();
+     if(current !== owner) { owner = current; generation++; pending = null; signature = ''; imageUrl = ''; display(); }
+-    if(!owner) return;
++    if(!owner) {report('idle');return;}
+     if(pending) return pending;
+     if(!force && imageUrl) return;
+     const token = generation, account = owner;
+     const valid = () => token === generation && account === identity();
+     const functions = root.DJ48Firebase?.getFirebaseFunctions?.();
+-    if(!functions) return;
++    if(!functions) {report('error','아바타 연결을 준비하지 못했어요. 다시 불러와 주세요.');return;}
+     const memberUserId = root.DJ48AccountState.getCurrentMemberUserId();
++    report('loading','저장한 코디를 불러오는 중이에요.');
+     const task = (async () => {
+       try {
+         const response = await functions.httpsCallable('coordiShopAction')({ action: 'status', memberUserId });
+@@ -82,12 +88,12 @@
+         const { profile, prices } = response.data || {};
+         // No saved outfit yet: show a neutral location marker rather than an unrelated character.
+         if(!profile?.owned?.some(id => Object.values(profile.look?.equipped || {}).includes(id))) {
+-          signature = ''; imageUrl = ''; display(); return;
++          signature = ''; imageUrl = ''; display(); report('empty','아직 장착한 코디가 없어 위치 표시로 보여요. 상점에서 코디를 고른 뒤 ‘내 코디로 장착’을 눌러 주세요.'); return;
+         }
+         const look = savedLookPayload(profile, prices);
+-        if(!look) { signature = ''; imageUrl = ''; display(); return; }
++        if(!look) { signature = ''; imageUrl = ''; display(); report('empty','아직 장착한 코디가 없어 위치 표시로 보여요. 상점에서 코디를 고른 뒤 ‘내 코디로 장착’을 눌러 주세요.'); return; }
+         const nextSignature = JSON.stringify(look);
+-        if(signature === nextSignature && imageUrl) return;
++        if(signature === nextSignature && imageUrl) {report('ready');return;}
+         const hair = await hairRenderer(); if(!valid()) return;
+         const render = hair.createRenderer(async look => {
+           if(!valid()) throw Error('Account changed');
+@@ -97,8 +103,8 @@
+         }, hair.decode, hair.encode);
+         const result = await render(look); if(!valid()) return;
+         if(!result?.success || !result.imageUrl?.startsWith('data:image/png;base64,')) throw Error('Avatar unavailable');
+-        signature = nextSignature; imageUrl = result.imageUrl; display(imageUrl);
+-      } catch(_) { if(valid()) { signature = ''; imageUrl = ''; display(); } }
++        signature = nextSignature; imageUrl = result.imageUrl; display(imageUrl); report('ready');
++      } catch(_) { if(valid()) { signature = ''; imageUrl = ''; display(); report('error','코디를 불러오지 못해 위치 표시로 보여요. 다시 불러와 주세요.'); } }
+     })();
+     pending = task;
+     try { await task; } finally { if(pending === task) pending = null; }
+@@ -108,7 +114,7 @@
+     const id = view?.id || '';
+     const enteringTown = id === 'town-view' && previousView !== id;
+     previousView = id;
+-    if(identity() !== owner) { owner = ''; generation++; pending = null; signature = ''; imageUrl = ''; display(); }
++    if(identity() !== owner) { owner = ''; generation++; pending = null; signature = ''; imageUrl = ''; display(); report('idle'); }
+     if(view?.querySelector('.spatial-guide')) refresh(enteringTown);
+   }
+   function init() {
+@@ -120,6 +126,6 @@
+     });
+     sync();
+   }
+-  root.DJ48TownAvatar = { savedLookPayload, refresh, sync };
++  root.DJ48TownAvatar = { savedLookPayload, refresh, sync, getState:()=>({...avatarState}) };
+   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true}); else init();
+ })(typeof window === 'undefined' ? globalThis : window);
+--- a/js/player-status-shortcut.js
++++ b/js/player-status-shortcut.js
+@@ -15,12 +15,34 @@
+     nav{display:flex;gap:6px;justify-content:flex-end}nav button{padding:10px 13px}
+     dialog{padding:0;border:1px solid #b5c9b9;border-radius:20px;width:min(400px,calc(100vw - 24px));height:min(620px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);background:#fffdf6;color:inherit;box-shadow:0 12px 60px #0003}
+     dialog::backdrop{background:#14231b55}header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;height:48px;box-sizing:border-box}header button{padding:4px 12px;box-shadow:none}iframe{border:0;width:100%;height:calc(100% - 48px);display:block}
+-  </style><slot name="town-links"></slot><nav aria-label="내 성장 바로가기"><button type="button" data-view="status" aria-haspopup="dialog" aria-expanded="false">👤 내 상태</button></nav><dialog aria-label="개인 상태"><header><strong>나의 퀴즈타운</strong><button type="button" aria-label="개인 상태 닫기">닫기</button></header></dialog>`;
++    :host([data-town]){position:static;margin:0;display:block}
++    .town-status-art{display:none}
++    :host([data-town]) nav button{width:56px;height:56px;padding:3px;border:2px solid #b99c66;background:#fff9e8e8;border-radius:50%;box-shadow:0 3px 8px #49391830}
++    :host([data-town]) .town-status-art{display:block;width:100%;height:100%;object-fit:contain}
++    :host([data-town]) .status-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
++    dialog[open]{display:flex;flex-direction:column}header{flex-shrink:0}iframe{flex:1;min-height:0}
++    .avatar-note{padding:8px 14px;margin:0;border-top:1px solid #ddd4b9;background:#f7f0de;font-size:12px;line-height:1.5}
++    .avatar-note[hidden]{display:none}.avatar-note button{font-size:12px;min-height:32px;padding:4px 8px;margin-top:4px;box-shadow:none}
++    @media(max-width:560px){:host([data-town]) nav button{width:46px;height:46px}}
++  </style><slot name="town-links"></slot><nav aria-label="내 성장 바로가기"><button type="button" data-view="status" aria-haspopup="dialog" aria-expanded="false" aria-label="내 상태" title="내 상태"><img class="town-status-art" src="${origin}/images/town-controls-20261018/status.webp" alt=""><span class="status-label">👤 내 상태</span></button></nav><dialog aria-label="개인 상태"><header><strong>나의 퀴즈타운</strong><button type="button" aria-label="개인 상태 닫기">닫기</button></header><div class="avatar-note" hidden><p></p><button type="button"></button></div></dialog>`;
+   const launches = [...root.querySelectorAll('nav button')], dialog = root.querySelector('dialog');
+   let activeLaunch=launches[0];
++  const note=root.querySelector('.avatar-note');
++  function avatarNote() {
++    const state=window.DJ48TownAvatar?.getState?.();
++    note.hidden=!state || !['empty','error','loading'].includes(state.status);
++    note.querySelector('p').textContent=state?.message || '';
++    const button=note.querySelector('button');button.hidden=state?.status==='loading';
++    button.textContent=state?.status==='empty'?'코디 상점 열기':'아바타 다시 불러오기';
++    button.onclick=()=>{
++      if(state?.status==='empty') { close();document.querySelector('#town-view [data-place="shop"]')?.click(); }
++      else window.DJ48TownAvatar?.refresh(true);
++    };
++  }
++  window.addEventListener('dj48-avatar-state',avatarNote);
+   function close() { dialog.close(); }
+   launches.forEach(launch=>launch.addEventListener('click', () => {
+-    activeLaunch=launch;const url=origin+'/player-status/?view='+launch.dataset.view;
++    avatarNote();activeLaunch=launch;const url=origin+'/player-status/?view='+launch.dataset.view;
+     if (location.origin !== origin) { window.open(url, '_blank', 'noopener'); return; }
+     const frame = document.createElement('iframe');
+     frame.title = '퀘스트·코인·경험치'; frame.src = url;
+@@ -35,10 +57,15 @@
+   if(shell && login) new MutationObserver(syncVisibility).observe(login,{attributes:true,attributeFilter:['hidden']});
+   function mount() {
+     // Town information stays in the town layout, clear of the floating status button.
+-    if(shell && !document.fullscreenElement) { host.dataset.shell='';shell.prepend(host); }
+-    else { delete host.dataset.shell;(document.fullscreenElement || document.body).append(host); }
++    const town=document.getElementById('town-view'), slot=document.getElementById('town-status-slot');
++    if(shell && slot && !town.hidden && !document.fullscreenElement) {host.dataset.shell='';host.dataset.town='';slot.append(host);}
++    else if(shell && !document.fullscreenElement) { delete host.dataset.town;host.dataset.shell='';shell.prepend(host); }
++    else { delete host.dataset.town;delete host.dataset.shell;(document.fullscreenElement || document.body).append(host); }
+     syncVisibility();
+   }
++  const town=document.getElementById('town-view');
++  if(town) new MutationObserver(mount).observe(town,{attributes:true,attributeFilter:['hidden']});
++  window.addEventListener('dj48-town-controls-ready',mount);
+   if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount, { once: true });
+   document.addEventListener('fullscreenchange', () => { if (dialog.open) close(); mount(); });
+ })();

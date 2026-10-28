@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {fixture}=require('./board-memory');
+const {scenarios}=require('./followup-scenarios');
+const F=require('../../functions/classroom/followup-domain');
+const {preview,sections}=require('../../functions/classroom/migration-preview');
+(async()=>{
+ const {db,data,settings}=fixture();await scenarios({db,classId:'demo',settings,seed:async(p,v)=>data.set(p,v),get:async p=>structuredClone(data.get(p))});
+ assert.throws(()=>F.cents(Infinity));assert.throws(()=>F.cents(1.001));assert.equal(F.cents(0.29),29);
+ const source=JSON.parse(require('node:fs').readFileSync('fixtures/classroom-board/grownd-example.json','utf8')),catalog=JSON.parse(require('node:fs').readFileSync('fixtures/classroom-board/target-example.json','utf8'));
+ source.snapshotAt=source.asOf+'T12:00:00+09:00';catalog.snapshotAt=source.snapshotAt;source.scope={records:source.records.length,files:0};source.files=[];source.records.forEach(r=>r.visibility='owner');for(const k of sections){source[k]=[];source.scope[k]=0;}source.funds={point:0,heartberry:0};catalog.wallets=Object.values(source.maps.students).map(memberUserId=>({memberUserId,point:0,djCoin:0}));
+ assert.equal(preview(source,catalog).ready,true);const member=source.students[0].sourceId;
+ source.growth=[{sourceId:'xp1',studentId:member,dateKey:source.asOf,totalXp:100,level:2,rewardedLevels:[1,2]}];source.scope.growth=1;
+ const report=preview(source,catalog);assert.equal(report.ready,true);assert.equal(report.executionEnabled,false);assert.equal(report.archives[0].payoutAllowed,false);assert.equal(report.changes[0].after.djCoin,source.students[0].heartberry);
+ source.scope.growth=9;assert.equal(preview(source,catalog).ready,false);source.scope.growth=1;
+ source.deposits=[{sourceId:'d1',studentId:member,dateKey:source.asOf,principal:1,interest:.1,earlyFee:1,openedDate:'2026-10-01',maturityDate:'2026-10-30',status:'open',interestPaid:false,currency:'heartberry'}];source.scope.deposits=1;
+ assert(preview(source,catalog).issues.some(i=>i.kind==='open-contract'));
+ const diagnostic=F.diagnoseLegacy([{id:'old',memberUserId:'s',rewardStatus:'paid',rewardAmount:1}],[{recordId:'old',memberUserId:'s',rewardPoint:1}]);assert.equal(diagnostic[0].automaticAdoption,false);assert.equal(diagnostic[0].amountMatched,true);
+ console.log('PASS full migration preview: source scope, before/after wallet, exact currency mapping, XP reward preservation, unresolved open contracts block ready, no executable migration, legacy evidence never fabricates ledger.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

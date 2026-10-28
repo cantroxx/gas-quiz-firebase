@@ -1,0 +1,13 @@
+{
+  "source": "projects/584571538436/sites/dj48-quiztown-firebase/versions/1bb4f18aeaecc7bf",
+  "rawHashes": {
+    "index.html": "be893de2e08b5dea15a30470c72ad97cd2345eec91b7c0b9825f6f617aaf165c",
+    "town-spatial.css": "2ec8a30f74048dde4c7fa80e1068d7553103a4603cc3732701d78253205cdea5",
+    "js/town-spatial.js": "32bc5e2bfd08337b258c96d87d8014fbe4d6c1bfdd816e33ec637b1b6893456c",
+    "js/town-avatar.js": "da8943618ae12335d81d6bee92b84f912d92ddd5970ffedc774e95a1a45b3bb2",
+    "coordi-shop/index.html": "77a41a0a2867a54ad9554138a0ce9605a9c689ddd8f95e8f3819a69cf4a6fccb",
+    "coordi-shop/town-bridge.js": "9399b3dd4fd4de461cb71af6715c7389dd6b3f83533796ba9edcafbceb9d0bee",
+    "coordi-shop/dressing-room.js": "2e39ee93d37a2b53da3a53cc9a80ebc000a31ef6c5542fa92a1d34a43c21a9f7",
+    "images/town-controls-20261018/mailbox.webp": "02ae4c040db7145579e2fb7cf6af73a0b754d5f72181370efa26062c98029dcf"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "flags": {
+    "rankingEnabled": true,
+    "practiceRewardEnabled": true,
+    "practiceXpEnabled": true,
+    "disabledQuizIds": []
+  },
+  "areas": [
+    {
+      "quizId": "flag-country",
+      "playable": 249,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "tiniping",
+      "playable": 151,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen1",
+      "playable": 151,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen2",
+      "playable": 100,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen3",
+      "playable": 135,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen4",
+      "playable": 107,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen5",
+      "playable": 156,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen6",
+      "playable": 72,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen7",
+      "playable": 88,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen8",
+      "playable": 96,
+      "round": 20,
+      "fourDistinctChoices": true
+    },
+    {
+      "quizId": "pokemon-gen9",
+      "playable": 120,
+      "round": 20,
+      "fourDistinctChoices": true
+    }
+  ],
+  "nineGenerationRound": {
+    "1": 2,
+    "2": 2,
+    "3": 3,
+    "4": 3,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2,
+    "9": 2
+  }
+}

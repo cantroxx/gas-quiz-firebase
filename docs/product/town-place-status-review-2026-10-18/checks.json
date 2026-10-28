@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "candidateDigest": "3cae1e2b39d8011b24003513ada6c23cc3a403bcae8ec41ac987edcc0399e820",
+  "checks": [
+    "npm run check (exit 0)",
+    "candidate town-spatial browser including upload/legacy titles (exit 0)",
+    "candidate player-status browser (exit 0)",
+    "candidate public shell (exit 0)",
+    "100 medal image decoding and reset allowlist/title preservation tests (exit 0)"
+  ]
+}

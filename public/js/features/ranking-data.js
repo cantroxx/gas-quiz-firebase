@@ -51,6 +51,7 @@
       profileImageOffsetX: profile.profileImageOffsetX ?? row.profileImageOffsetX,
       profileImageOffsetY: profile.profileImageOffsetY ?? row.profileImageOffsetY,
       rankingMessage: profile.rankingMessage || row.rankingMessage || '',
+      gameHonors: profile.gameHonors || {},
       selectedTitleId: profile.selectedTitleId || row.selectedTitleId || '',
       selectedTitle: profile.selectedTitleName || getKnownTitleName(profile.selectedTitleId) || row.selectedTitle || '',
       school: profile.school || row.school || '',
@@ -140,16 +141,20 @@
       .filter(Boolean)));
   }
 
-  function getSeasonRankingRecords(records = [], events = [], periodType, deps = {}) {
+  function filterSeasonRankingRecords(records = [], events = [], periodType, deps = {}) {
     const getRankingRecordTimeValue = deps.getRankingRecordTimeValue || (() => 0);
-    const getTopRankingRecordsByCategoryKeys = deps.getTopRankingRecordsByCategoryKeys || (() => []);
-    const rowLimit = Number(deps.rankingPlazaRowLimit) || 10;
     const range = getSeasonEventRange(events[0] || {}, periodType);
-    const keys = getSeasonRankingCategoryKeys(events, deps);
-    const periodRecords = records.filter(record => {
+    return records.filter(record => {
       const time = getRankingRecordTimeValue(record);
       return time >= range.startMillis && time <= range.endMillis;
     });
+  }
+
+  function getSeasonRankingRecords(records = [], events = [], periodType, deps = {}) {
+    const getTopRankingRecordsByCategoryKeys = deps.getTopRankingRecordsByCategoryKeys || (() => []);
+    const rowLimit = Number(deps.rankingPlazaRowLimit) || 10;
+    const keys = getSeasonRankingCategoryKeys(events, deps);
+    const periodRecords = filterSeasonRankingRecords(records, events, periodType, deps);
     return getTopRankingRecordsByCategoryKeys(periodRecords, keys, rowLimit);
   }
 
@@ -189,8 +194,9 @@
       ? seasonEvents
       : (Array.isArray(seasonEvents?.items) ? seasonEvents.items : []);
     return eventItems
-      .filter(eventItem => eventItem?.active !== false && Array.isArray(eventItem.quizIds) && eventItem.quizIds.length)
+      .filter(eventItem => eventItem?.active !== false && (eventItem.goals?.length || (Array.isArray(eventItem.quizIds) && eventItem.quizIds.length)))
       .map(eventItem => {
+        if(eventItem.goals?.length){const rows=eventItem.leaderboard||[];return {id:'season-'+eventItem.eventId,label:eventItem.title,desc:(eventItem.period||'')+' · 달성 조건 수, 동점 공동 순위',keys:[],rows,sourceRows:rows,meta:()=>eventItem.title,score:row=>(row.completedGoals||0)+'/'+eventItem.goals.length+'개 달성',rank:row=>rows.findIndex(r=>r.completedGoals===row.completedGoals)+1};}
         const areaLabel = getSeasonQuizAreaLabel(eventItem, deps);
         const scopeText = getSeasonQuizScopeText(eventItem, deps);
         return {
@@ -199,7 +205,7 @@
           desc: `${eventItem.period || (eventItem.periodType === 'weekly' ? '이번주' : '이번달')} 전용 시즌 랭킹탭입니다. ${scopeText}가 해당됩니다.`,
           keys: getSeasonRankingCategoryKeys([eventItem], deps),
           rows: getSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
-          sourceRows: records,
+          sourceRows: filterSeasonRankingRecords(records, [eventItem], eventItem.periodType === 'weekly' ? 'weekly' : 'monthly', deps),
           meta: row => getRankingCategoryLabel(row) || '시즌',
           score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
         };
@@ -258,9 +264,9 @@
     const socialKeys = socialDefinitions.flatMap(definition => definition.keys);
     const mathKeys = mathDefinitions.flatMap(definition => definition.keys);
     const scienceKeys = scienceDefinitions.flatMap(definition => definition.keys);
-    const popularKeys = getEnabledRankingCategoryKeys(['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'], deps);
-    const pokemonKeys = getEnabledRankingCategoryKeys(pokemonRankingCategoryKeys, deps);
-    const tinipingKeys = getEnabledRankingCategoryKeys(tinipingRankingCategoryKeys, deps);
+    const popularKeys = getEnabledRankingCategoryKeys(window.DJ48PopularQuiz?.rankingKeys || ['아재개그', '인물아이돌', '인물애니', '인기국기', '인기간식', '인기이모지-k-pop', '인기이모지-애니'], deps);
+    const pokemonKeys = getEnabledRankingCategoryKeys(window.DJ48PopularQuiz ? ['popular-v2-pokemon'] : pokemonRankingCategoryKeys, deps);
+    const tinipingKeys = getEnabledRankingCategoryKeys(window.DJ48PopularQuiz ? ['popular-v2-tiniping'] : tinipingRankingCategoryKeys, deps);
     const koreanGroups = buildSubjectRankingGroups(rankingRecords, koreanKeys, [
       ...koreanDefinitions
     ], groupDeps);
@@ -278,7 +284,7 @@
         id: 'quizKing',
         label: '퀴즈왕',
         title: '종합 퀴즈왕',
-        desc: '여러 분야의 최고 점수를 합산한 종합 순위입니다.',
+        desc: '과목별 누적 점수와 인기 퀴즈의 최고 점수를 합산합니다.',
         rows: getTopQuizKingSummaries(quizKingSummaries),
         meta: row => `${Number(row.categoryCount) || 0}영역 반영`,
         score: row => `총 ${Number(row.totalScore) || 0}점`
@@ -328,7 +334,7 @@
         id: 'popular',
         label: '인기',
         title: '인기 퀴즈 랭킹',
-        desc: '아재개그, 아이돌, 애니, 국기, 간식, 이모지 퀴즈의 랭킹 기록입니다.',
+        desc: '국기·아이돌·애니·티니핑·포켓몬 20문제 게임의 최고 기록입니다.',
         rows: getTopRankingRecordsByCategoryKeys(rankingRecords, popularKeys),
         sourceRows: rankingRecords,
         meta: row => `[${getPopularAreaForRecord(row).label}] ${getPopularRankingDetailLabel(row)}`,
@@ -339,23 +345,33 @@
         id: 'pokemon',
         label: '포켓몬',
         title: '포켓몬 랭킹',
-        desc: '포켓몬 세대별·난이도별 랭킹전 기록입니다.',
+        desc: '선택 세대 조합별 최고 기록 요약입니다. 같은 조합끼리의 순위는 포켓몬 퀴즈에서 확인해요.',
         rows: getTopRankingRecordsByCategoryKeys(rankingRecords, pokemonKeys),
         sourceRows: rankingRecords,
-        meta: row => getRankingCategoryLabel(row) || '포켓몬',
+        meta: row => row.subFilter || getRankingCategoryLabel(row) || '포켓몬',
         score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
       },
       {
         id: 'tiniping',
         label: '티니핑',
         title: '티니핑 랭킹',
-        desc: '티니핑 이미지·이모지 퀴즈의 랭킹전 기록입니다.',
+        desc: '티니핑 사진 퀴즈 20문제 게임의 최고 기록입니다.',
         rows: getTopRankingRecordsByCategoryKeys(rankingRecords, tinipingKeys),
         sourceRows: rankingRecords,
         meta: row => getRankingCategoryLabel(row) || '티니핑',
         score: row => `${Number(row.score) || 0}점${row.elapsedText ? ` · ${row.elapsedText}` : ''}`
       }
-    ];
+    ].filter(board => !['popular', 'season'].includes(board.id)).concat([{
+      id: 'flags', label: '국기', title: '국기왕', hallOnly: true,
+      groups: [{ id: 'flags', keys: ['popular-v2-flag-country'], rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['popular-v2-flag-country']) }],
+      rows: getTopRankingRecordsByCategoryKeys(rankingRecords, ['popular-v2-flag-country'])
+    }]).map(board => {
+      if(!window.DJ48SubjectQuiz || !['korean','math','social','science'].includes(board.id)) return board;
+      const { groups, ...base } = board;
+      return { ...base, desc: '하트 3개 · 한 판 5분 · 모든 단원의 정답 수를 과목별로 누적합니다.',
+        rows: rankingRecords.filter(row => row.cumulative && row.subject === board.id).sort((a,b) => b.score-a.score).slice(0,rowLimit),
+        meta: () => '과목 통합 누적', score: row => `${Number(row.score)||0}점` };
+    });
   }
 
   window.DJ48RankingData = {

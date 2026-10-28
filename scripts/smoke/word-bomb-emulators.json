@@ -1,0 +1,35 @@
+{
+  "functions": {
+    "source": "functions"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8383
+    },
+    "auth": {
+      "port": 9393
+    },
+    "functions": {
+      "port": 5203
+    },
+    "hub": {
+      "port": 4657
+    },
+    "logging": {
+      "port": 4757
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true,
+    "eventarc": {
+      "port": 9593
+    },
+    "tasks": {
+      "port": 9693
+    }
+  }
+}

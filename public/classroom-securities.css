@@ -1,0 +1,107 @@
+/* Securities workspace: compact quotes, explicit actions, separate teacher operations. */
+#classroom-securities-panel {color:#23352f;font:inherit;line-height:1.5;padding-bottom:24px}
+#classroom-securities-panel *, .sec-dialog * {box-sizing:border-box}
+#classroom-securities-panel [hidden] {display:none!important}
+#classroom-securities-panel h1 {font-size:1.45rem;margin:0;color:#23352f}
+#classroom-securities-panel h2 {font-size:1.12rem;margin:0 0 12px}
+#classroom-securities-panel h3 {font-size:1rem;margin:6px 0}
+#classroom-securities-panel p {margin:10px 0;overflow-wrap:anywhere}
+#classroom-securities-panel button,.sec-dialog button {min-height:44px;border:1px solid #cbd9d2;background:#fff;color:#285940;border-radius:12px;padding:9px 14px;font:inherit;cursor:pointer;box-shadow:none;white-space:normal}
+#classroom-securities-panel button:hover,.sec-dialog button:hover {background:#edf5f0}
+#classroom-securities-panel button:disabled,.sec-dialog button:disabled {opacity:.5;cursor:not-allowed}
+#classroom-securities-panel :focus-visible,.sec-dialog :focus-visible {outline:3px solid #247957;outline-offset:3px}
+.sec-heading {display:flex;align-items:center;gap:12px;padding:12px 0 18px}
+.sec-heading>img {width:48px;height:48px;object-fit:contain}
+.sec-heading>div {min-width:0}
+.sec-header-actions {display:flex;gap:8px;margin-left:auto;flex-shrink:0}
+.sec-session {display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px}
+.sec-session small,.sec-muted,.sec-eyebrow {font-size:.8rem;color:#5b6e64}
+.sec-status {font-size:.75rem;background:#edf0ee;border-radius:20px;padding:3px 9px;white-space:nowrap}
+.sec-status.is-open {color:#086644;background:#d8f7e7}
+.sec-summary {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 18px}
+.sec-summary>div {padding:14px 16px;border:1px solid #e0e8e3;border-radius:14px;background:#f6f9f7;font-size:.8rem}
+.sec-summary strong {display:block;margin-top:5px;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.sec-summary strong small {font-size:.8rem}
+.sec-start {display:flex;align-items:center;gap:18px;padding:14px 18px;background:#eef8f1;border:1px solid #d0e7d8;border-radius:14px;font-size:.88rem;margin-bottom:16px}
+.sec-start span {flex:1}.sec-start button {flex-shrink:0}
+.sec-tabs {display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 20px}
+#classroom-securities-panel .sec-tabs button {background:#edf2ef;border-color:transparent;border-radius:24px;padding:10px 22px;font-weight:700}
+#classroom-securities-panel .sec-tabs [aria-pressed=true] {background:#233c32;color:#fff}
+#sec-message:empty {display:none}
+.sec-row {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sec-tools {display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 16px}
+.sec-search-label {flex:1;max-width:360px}
+#classroom-securities-panel .sec-tools label {margin:0}
+#classroom-securities-panel label,.sec-dialog label {display:grid;gap:6px;margin:10px 0;font-size:.85rem;font-weight:600;min-width:0}
+#classroom-securities-panel input,#classroom-securities-panel select,#classroom-securities-panel textarea,.sec-dialog input,.sec-dialog textarea {min-height:44px;border:1px solid #c5d4cb;border-radius:10px;padding:10px;font:inherit;max-width:100%;width:100%;background:#fff;color:#23352f}
+#classroom-securities-panel textarea,.sec-dialog textarea {min-height:100px;resize:vertical}
+.sec-quote-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.sec-company-card {min-width:0}
+#classroom-securities-panel .sec-company-card>button {width:100%;min-height:104px;display:flex;gap:10px;align-items:center;padding:12px;text-align:left;background:#f8faf9;border-color:#dfe6e2}
+#classroom-securities-panel .sec-company-card.sec-up>button {background:#fff3f4;border-color:#f1cdd2}
+#classroom-securities-panel .sec-company-card.sec-down>button {background:#f0f6ff;border-color:#cbdcf5}
+.sec-company-art {width:48px;height:48px;object-fit:contain;flex:0 0 48px}
+.sec-quote-name {flex:1;min-width:0}
+.sec-quote-name strong {display:block;font-size:.95rem;color:#23352f;overflow-wrap:anywhere}
+.sec-quote-name>small {display:block;font-size:.7rem;color:#576b5f}
+.sec-quote-name .sec-owned,.sec-quote-name .sec-news-badge {display:inline-block;padding:1px 5px;border-radius:5px;background:#d8efdf;margin:3px 3px 0 0;color:#246342}
+.sec-quote-name .sec-news-badge {background:#fff0c4;color:#775700}
+.sec-quote-numbers {text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+.sec-quote-numbers>strong {display:block;font-size:1.2rem;color:#23352f}
+.sec-quote-numbers>small {display:block;font-size:.78rem;font-weight:700}
+.sec-up {color:#c52d4a}.sec-down {color:#245fc1}.sec-flat {color:#576b5f}
+.sec-two-columns {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+.sec-two-columns>section {min-width:0}
+.sec-card {padding:18px;border:1px solid #dfe7e2;border-radius:16px;background:#fff;margin-bottom:14px;min-width:0}
+.sec-card small {color:#5b6e64}
+.sec-empty {padding:26px 18px;background:#f6f9f7;border:1px solid #e2e9e5;border-radius:14px;color:#617167;text-align:center}
+.sec-detail-heading {display:flex;align-items:center;gap:14px;margin:20px 0}
+.sec-detail-heading>div {min-width:0}
+.sec-detail-heading span {font-size:.85rem}
+.sec-detail-quote {margin-left:auto;text-align:right}.sec-detail-quote>strong {display:block;font-size:1.55rem}.sec-detail-quote small {font-size:.8rem}.sec-detail-quote>span {font-weight:700}
+.sec-chart {margin:0}.sec-chart svg {width:100%;display:block;min-height:220px}.sec-chart figcaption {font-size:.85rem;color:#617167}
+#classroom-securities-panel summary {cursor:pointer;min-height:44px;padding:10px 0;font-size:.85rem}
+#classroom-securities-panel table {width:100%;border-collapse:collapse;font-size:.85rem}
+#classroom-securities-panel th,#classroom-securities-panel td {text-align:left;padding:10px 8px;border-bottom:1px solid #e3e9e5;overflow-wrap:anywhere}
+#classroom-securities-panel th {background:#f3f6f4;color:#617167}
+.sec-empty-chart {min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#617167}
+.sec-holding {display:flex;justify-content:space-between;gap:12px;padding:12px;background:#f1f6f3;border-radius:10px;margin:12px 0;font-size:.85rem}
+.sec-trade-actions {flex-wrap:nowrap}.sec-trade-actions button {flex:1;font-weight:700}
+#classroom-securities-panel [data-sec-action=buy] {background:#ce3854;border-color:#ce3854;color:#fff}
+#classroom-securities-panel [data-sec-action=sell] {background:#3373cc;border-color:#3373cc;color:#fff}
+.sec-trade-help {font-size:.8rem;color:#617167}
+.sec-news-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.sec-news-item {margin:0 0 12px}.sec-news-item p {font-size:.9rem}
+.sec-treemap {position:relative;height:450px;margin:12px 0 8px;border-radius:16px;overflow:hidden;background:#e4ebe6}
+#classroom-securities-panel .sec-treemap button {position:absolute;border:2px solid #fff;border-radius:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px;background:#e8efea;overflow:hidden;color:#263e32;min-height:0;font-size:.9rem}
+#classroom-securities-panel .sec-treemap .sec-up {background:#f7c6cf;color:#782039}
+#classroom-securities-panel .sec-treemap .sec-down {background:#c6dbfa;color:#173e7a}
+.sec-treemap small {font-size:.7rem}.sec-map-guide {font-size:.85rem}.sec-map-guide span {margin-left:12px}
+#classroom-securities-panel .sec-position {display:flex;align-items:center;gap:12px;width:100%;padding:14px;text-align:left;margin-bottom:10px;background:#f7faf8}
+.sec-position>span {min-width:0}.sec-position strong,.sec-position small {display:block}.sec-position small {font-size:.78rem}.sec-holding-value {margin-left:auto;text-align:right}
+.sec-valuation {display:grid;gap:10px;padding:18px;border:1px solid #dae5de;border-radius:16px;background:#f5f9f6;margin-bottom:14px}.sec-valuation b {font-size:1.45rem}.sec-valuation small {font-size:.8rem;color:#617167}
+.sec-transfer-route {display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:14px 0}.sec-transfer-route>div {padding:12px;background:#f0f7f2;border-radius:12px}.sec-transfer-route strong,.sec-transfer-route small {display:block}
+#classroom-securities-panel [data-server-action=deposit],#classroom-securities-panel .sec-primary {background:#258158;border-color:#258158;color:#fff;font-weight:700}
+.sec-journal-item header {display:flex;gap:12px;flex-wrap:wrap}.sec-journal-item header small {margin-left:auto}.sec-feedback {background:#eef7f0;padding:12px;border-radius:10px}
+.sec-help {margin-top:22px;border-top:1px solid #dfe7e2;color:#617167;font-size:.85rem}.sec-notice {padding:12px;background:#fff8e5;border-radius:12px}
+.sec-market-controls,.sec-pilot {display:flex;align-items:center;justify-content:space-between;gap:18px}.sec-market-controls p {font-size:.85rem}
+.sec-pilot {background:#fff7e4;padding:14px 18px;border:1px solid #eadcb8;border-radius:14px;margin-bottom:18px;font-size:.85rem}
+#classroom-securities-panel .sec-admin-reason {display:flex;align-items:center;gap:12px;font-weight:400;margin:0 0 18px;color:#617167}.sec-admin-reason input {max-width:480px}
+.sec-settings-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}#classroom-securities-panel .sec-setting {background:#f4f8f5;border:1px solid #e1e8e3;padding:18px;border-radius:16px;margin:0;align-content:start;gap:14px}
+.sec-form-grid {display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.sec-scroll-list {max-height:560px;overflow:auto;scrollbar-gutter:stable}
+.sec-dialog {border:1px solid #bdd5c7;border-radius:18px;padding:24px;width:min(520px,calc(100% - 24px));max-height:90dvh;overflow-y:auto;color:#23352f;background:#fbfcf8}.sec-dialog::backdrop {background:#16382db3}
+.sec-error,#sec-order-error {color:#9a302a;font-weight:600}
+.sec-sr-only {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.sec-preview-controls {margin:16px auto;padding:16px;max-width:1120px;font-family:sans-serif}.sec-preview-controls button,.sec-preview-controls select {min-height:44px;padding:8px}
+#classroom-view #classroom-economy-navigation:has([data-classroom-tab=securities]:not([hidden])) {grid-template-columns:repeat(6,minmax(0,1fr))}
+#classroom-view #classroom-economy-navigation [data-classroom-tab=securities] {--economy-art:url('/images/classroom/securities-v2/securities-640.webp')}
+body:has(#classroom-view:not([hidden])[data-active-tab=securities]) #dj48-player-status-shortcut {position:static!important;display:flex;justify-content:flex-end;margin:16px}
+@media(min-width:1400px) {.sec-quote-grid {grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1000px) {.sec-quote-grid {grid-template-columns:repeat(2,minmax(0,1fr))}.sec-settings-grid {grid-template-columns:repeat(2,minmax(0,1fr))}.sec-two-columns {gap:14px}}
+@media(max-width:700px) {.sec-two-columns,.sec-news-grid {grid-template-columns:1fr}.sec-scroll-list {max-height:none}.sec-heading {flex-wrap:wrap}.sec-header-actions {width:100%;justify-content:flex-end}.sec-summary {grid-template-columns:1fr 1fr}.sec-start,.sec-pilot,.sec-market-controls {align-items:stretch;flex-direction:column;gap:10px}.sec-tabs {gap:6px}#classroom-securities-panel .sec-tabs button {padding:9px 14px;font-size:.85rem}.sec-treemap {height:470px}.sec-treemap small {display:none}.sec-detail-heading {flex-wrap:wrap}.sec-detail-quote {margin-left:0;width:100%;text-align:left}}
+@media(max-width:480px) {.sec-quote-grid,.sec-settings-grid,.sec-form-grid {grid-template-columns:1fr}.sec-summary>div {padding:12px}.sec-summary strong {font-size:1.1rem}.sec-company-card>button {min-height:96px!important}.sec-tools {gap:8px}.sec-tools .sec-muted {width:100%}.sec-company-art {width:44px;height:44px;flex-basis:44px}.sec-card {padding:14px}.sec-admin-reason {flex-wrap:wrap}.sec-treemap button {font-size:.72rem!important}.sec-treemap strong {overflow-wrap:anywhere}.sec-transfer-route {font-size:.85rem}#classroom-view #classroom-economy-navigation:has([data-classroom-tab=securities]:not([hidden])) {grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Fit columns to the classroom content area, not the browser width. */
+#classroom-securities-panel .sec-quote-grid {grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr))}
+#classroom-securities-panel .sec-admin-reason {white-space:nowrap}
+#classroom-securities-panel .sec-admin-reason input {flex:1;width:0;min-width:160px;max-width:none}
+.sec-quote-name strong {word-break:keep-all}

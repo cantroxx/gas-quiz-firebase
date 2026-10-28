@@ -1,0 +1,9 @@
+{
+  "callableAuthStatus": 401,
+  "scheduler": {
+    "name": "projects/dj48-quiztown-firebase/locations/asia-northeast3/jobs/firebase-schedule-auditPopularQuizSources-asia-northeast3",
+    "schedule": "0 4 1 * *",
+    "timeZone": "Asia/Seoul",
+    "state": "ENABLED"
+  }
+}

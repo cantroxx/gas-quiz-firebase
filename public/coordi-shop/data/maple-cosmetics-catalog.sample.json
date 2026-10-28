@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "name": "투명 모자",
+      "code": 1000002,
+      "slot": "모자",
+      "cash": 1,
+      "transparent": true
+    },
+    {
+      "name": "투명 안경",
+      "code": 1020001,
+      "slot": "눈장식",
+      "cash": 1,
+      "transparent": true
+    },
+    {
+      "name": "투명 방패",
+      "code": 1092067,
+      "slot": "방패",
+      "cash": 1,
+      "transparent": true
+    },
+    {
+      "name": "크림 피부",
+      "code": 12000,
+      "slot": "피부",
+      "cash": 0,
+      "transparent": false
+    }
+  ]
+}
