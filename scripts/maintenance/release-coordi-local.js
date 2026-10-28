@@ -91,8 +91,10 @@ async function retry(fn){for(let i=0;;i++){try{return await fn();}catch(e){if(i=
   const upload=(await f.post(`projects/${project}/locations/asia-northeast3/functions:generateUploadUrl`,{})).body;
   const result=await fetch(upload.uploadUrl,{method:'PUT',headers:{'Content-Type':'application/zip'},body:fs.readFileSync(zip)});assert(result.ok,'Source upload failed');
   const env={...before.serviceConfig.environmentVariables,COORDI_RENDERER_MODE:'local',COORDI_DATA_BASE_URL:`https://${project}.web.app${config.baseUrl}`,COORDI_DATA_SNAPSHOT:config.snapshot,COORDI_MANIFEST_SHA256:config.manifestSha256};
+  // Invalidate the old CLI deployment digest; retaining it could make a later CLI deployment skip changed code.
+  const labels={...before.labels};delete labels['firebase-functions-hash'];
   // A narrow REST field mask preserves all unrelated service/build options and all other functions.
-  const operation=(await f.patch(name,{name,buildConfig:{source:{storageSource:upload.storageSource}},serviceConfig:{environmentVariables:env}},{queryParams:{updateMask:'buildConfig.source,serviceConfig.environmentVariables'}})).body;
+  const operation=(await f.patch(name,{name,labels,buildConfig:{source:{storageSource:upload.storageSource}},serviceConfig:{environmentVariables:env}},{queryParams:{updateMask:'buildConfig.source,serviceConfig.environmentVariables,labels'}})).body;
   write('function-operation.json',{name:operation.name});console.log('Started scoped function deployment');return;
  }
  if(command==='--function-status'){
@@ -101,6 +103,7 @@ async function retry(fn){for(let i=0;;i++){try{return await fn();}catch(e){if(i=
   const clean=x=>{const s=structuredClone(x.serviceConfig);delete s.revision;delete s.environmentVariables;return s;};assert.deepEqual(clean(after),clean(before),'Unrelated service settings changed');
   for(const [k,v]of Object.entries(before.serviceConfig.environmentVariables||{}))assert.equal(after.serviceConfig.environmentVariables[k],v,'Existing environment changed: '+k);
   assert.equal(after.serviceConfig.environmentVariables.COORDI_RENDERER_MODE,'local');assert.equal(after.serviceConfig.environmentVariables.COORDI_MANIFEST_SHA256,config.manifestSha256);
+  const expectedLabels={...before.labels};delete expectedLabels['firebase-functions-hash'];assert.deepEqual(after.labels,expectedLabels);
   const oldOthers=read('before.json').functions.filter(x=>x.name!==name),others=(await allFunctions()).filter(x=>x.name!==name);assert.deepEqual(others.sort((a,b)=>a.name.localeCompare(b.name)),oldOthers.sort((a,b)=>a.name.localeCompare(b.name)),'Another function changed');
   const download=(await f.post(name+':generateDownloadUrl',{})).body.downloadUrl,r=await fetch(download);assert(r.ok);fs.writeFileSync(path.join(stage,'function-after.zip'),Buffer.from(await r.arrayBuffer()));execFileSync('unzip',['-oq',path.join(stage,'function-after.zip'),'-d',path.join(stage,'function-after')]);
   const hashes=read('function-source-hashes.json');for(const [p,sha]of Object.entries(hashes))assert.equal(hash(fs.readFileSync(path.join(stage,'function-after',p))),sha,p);

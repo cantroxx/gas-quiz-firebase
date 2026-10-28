@@ -8,7 +8,7 @@
 - web manifest SHA-256 `bb9c34c995a3b8bf0f5663330650599b774483c21b33b30b4131380b5ed82195`.
 - Windows web 데이터와 가격·소유권을 결정하지 않는 표시 목록만 `/codi/<snapshot>/`에 게시한다. 원본 WZ, reference, raw-evidence, 도구, 학생 저장 코디는 게시하지 않는다.
 - Hosting 기존 4,754개 파일을 복제·보존한다. 데이터 63,896개를 추가한 뒤 상점 공급자·미리보기·초기화와 runtime 설정 6개만 추가/교체한다. 기존 HTML/JS/JSON 헤더를 유지하고 버전 데이터의 immutable/raw gzip 헤더만 추가한다.
-- `renderCoordiShopPreview` 한 함수의 source와 로컬 모드 환경값 4개만 변경한다. 기존 Node22, 256MiB, CPU1, 최대2인스턴스, 동시성8, timeout40초, 서비스 계정·네트워크·기존 환경값을 보존한다. 나머지133개 함수 전체 메타데이터를 전후 대조한다.
+- `renderCoordiShopPreview` 한 함수의 source와 로컬 모드 환경값 4개를 변경한다. 이전 소스를 가리키는 `firebase-functions-hash` 라벨만 무효화해 향후 CLI가 예전 해시를 믿고 배포를 생략하지 않도록 한다. 나머지 라벨과 기존 Node22, 256MiB, CPU1, 최대2인스턴스, 동시성8, timeout40초, 서비스 계정·네트워크·기존 환경값을 보존한다. 나머지133개 함수 전체 메타데이터를 전후 대조한다.
 - `functions/.env.dj48-quiztown-firebase`의 값 4개는 공개 데이터 버전·출처이며 비밀키가 아니다. 향후 Firebase CLI 재배포에서도 운영의 선택이 유지되도록 Git에 기록한다.
 - 학생 계정, 구매·쿠폰·코인·보유·장착·염색 원장, Firestore/Storage 규칙과 인덱스를 수정하지 않는다. 기존 교실 Storage 이미지도 일괄 덮어쓰지 않는다.
 
@@ -20,7 +20,7 @@
 2. `--prepare-data`: 현재 Hosting 복제, 버전별 데이터 업로드, 전체 manifest와 헤더 대조. 이 단계는 live 전환이 아니다.
 3. 전체 `npm run check` 성공 기록 후 `--publish-data`.
 4. `coordi-windows-reference.js ... --production-cdn`: 실제 CDN 응답만으로 정상58/예상거부11 비교. manifest와 파츠 해시, gzip 처리 확인.
-5. `--function`: Cloud Functions v2 PATCH의 `buildConfig.source,serviceConfig.environmentVariables` 필드만 갱신. [공식 PATCH 계약](https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions/patch), [소스 업로드 계약](https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions/generateUploadUrl).
+5. `--function`: Cloud Functions v2 PATCH의 `buildConfig.source,serviceConfig.environmentVariables,labels` 필드만 갱신. 라벨은 앞서 설명한 과거 CLI 해시 무효화만 허용한다. [공식 PATCH 계약](https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions/patch), [소스 업로드 계약](https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions/generateUploadUrl).
 6. `--function-status`: ACTIVE, 설정 보존, 나머지133함수 불변, 실제 배포 소스 해시 대조.
 7. `--prepare-client`, `--publish-client`, `--verify`: 상점 local 설정 게시, 전체 Hosting manifest 및 클라이언트 응답 해시, 비로그인401 확인.
 8. `coordi-windows-renderer-browser.js ... --production-cdn`: 새 Chrome에서 외부 출처를 차단하고 실제 운영 JS/데이터의69개 결과 확인.
